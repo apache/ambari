@@ -1088,4 +1088,310 @@ describe('App.ServiceConfigProperty', function () {
 
   });
 
+  describe('#unionAllMountPoints', function () {
+
+    var localDB = {
+        masterComponentHosts: [
+          {
+            component: 'NAMENODE',
+            hostName: 'h0'
+          },
+          {
+            component: 'SECONDARY_NAMENODE',
+            hostName: 'h4'
+          },
+          {
+            component: 'APP_TIMELINE_SERVER',
+            hostName: 'h0'
+          },
+          {
+            component: 'ZOOKEEPER_SERVER',
+            hostName: 'h0'
+          },
+          {
+            component: 'ZOOKEEPER_SERVER',
+            hostName: 'h1'
+          },
+          {
+            component: 'OOZIE_SERVER',
+            hostName: 'h0'
+          },
+          {
+            component: 'OOZIE_SERVER',
+            hostName: 'h1'
+          },
+          {
+            component: 'NIMBUS',
+            hostName: 'h2'
+          },
+          {
+            component: 'FALCON_SERVER',
+            hostName: 'h3'
+          },
+          {
+            component: 'KAFKA_BROKER',
+            hostName: 'h0'
+          },
+          {
+            component: 'KAFKA_BROKER',
+            hostName: 'h1'
+          }
+        ],
+        slaveComponentHosts: [
+          {
+            componentName: 'DATANODE',
+            hosts: [
+              {
+                hostName: 'h0'
+              },
+              {
+                hostName: 'h1'
+              }
+            ]
+          },
+          {
+            componentName: 'TASKTRACKER',
+            hosts: [
+              {
+                hostName: 'h0'
+              },
+              {
+                hostName: 'h1'
+              }
+            ]
+          },
+          {
+            componentName: 'NODEMANAGER',
+            hosts: [
+              {
+                hostName: 'h0'
+              },
+              {
+                hostName: 'h1'
+              },
+              {
+                hostName: 'h4'
+              }
+            ]
+          },
+          {
+            componentName: 'HBASE_REGIONSERVER',
+            hosts: [
+              {
+                hostName: 'h0'
+              },
+              {
+                hostName: 'h1'
+              }
+            ]
+          },
+          {
+            componentName: 'SUPERVISOR',
+            hosts: [
+              {
+                hostName: 'h0'
+              },
+              {
+                hostName: 'h1'
+              }
+            ]
+          }
+        ],
+        hosts: {
+          h0: {
+            disk_info: [
+              {
+                mountpoint: '/'
+              },
+              {
+                mountpoint: '/home'
+              },
+              {
+                mountpoint: '/boot'
+              },
+              {
+                mountpoint: '/boot/efi'
+              },
+              {
+                mountpoint: '/mnt'
+              },
+              {
+                mountpoint: '/mnt/efi'
+              },
+              {
+                mountpoint: '/media/disk0',
+                available: '100000000'
+              },
+              {
+                mountpoint: '/mount0',
+                available: '100000000'
+              }
+            ]
+          },
+          h4: {
+            disk_info: [
+              {
+                mountpoint: 'c:',
+                available: '100000000'
+              }
+            ]
+          }
+        }
+      },
+      cases = [
+        {
+          name: 'dfs.namenode.name.dir',
+          isOnlyFirstOneNeeded: false,
+          value: '/media/disk0/default\n/mount0/default\n'
+        },
+        {
+          name: 'dfs.name.dir',
+          isOnlyFirstOneNeeded: false,
+          value: '/media/disk0/default\n/mount0/default\n'
+        },
+        {
+          name: 'fs.checkpoint.dir',
+          isOnlyFirstOneNeeded: true,
+          value: 'file:///c:/default\n'
+        },
+        {
+          name: 'dfs.namenode.checkpoint.dir',
+          isOnlyFirstOneNeeded: true,
+          value: 'file:///c:/default\n'
+        },
+        {
+          name: 'dfs.data.dir',
+          isOnlyFirstOneNeeded: false,
+          value: '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
+        },
+        {
+          name: 'dfs.datanode.data.dir',
+          isOnlyFirstOneNeeded: false,
+          value: '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
+        },
+        {
+          name: 'mapred.local.dir',
+          isOnlyFirstOneNeeded: false,
+          value:  '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
+        },
+        {
+          name: 'yarn.nodemanager.log-dirs',
+          isOnlyFirstOneNeeded: false,
+          value:  '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\nc:\\default\n'
+        },
+        {
+          name: 'yarn.nodemanager.local-dirs',
+          isOnlyFirstOneNeeded: false,
+          value: '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\nc:\\default\n'
+        },
+        {
+          name: 'yarn.timeline-service.leveldb-timeline-store.path',
+          isOnlyFirstOneNeeded: true,
+          value: '/media/disk0/default'
+        },
+        {
+          name: 'dataDir',
+          isOnlyFirstOneNeeded: true,
+          value: '/media/disk0/default'
+        },
+        {
+          name: 'oozie_data_dir',
+          isOnlyFirstOneNeeded: true,
+          value: '/media/disk0/default'
+        },
+        {
+          name: 'hbase.tmp.dir',
+          isOnlyFirstOneNeeded: true,
+          value: '/media/disk0/default'
+        },
+        {
+          name: 'storm.local.dir',
+          isOnlyFirstOneNeeded: true,
+          value: '/media/disk0/default'
+        },
+        {
+          name: '*.falcon.graph.storage.directory',
+          isOnlyFirstOneNeeded: true,
+          value: '/default'
+        },
+        {
+          name: '*.falcon.graph.serialize.path',
+          isOnlyFirstOneNeeded: true,
+          value: '/default'
+        },
+        {
+          name: 'log.dirs',
+          isOnlyFirstOneNeeded: false,
+          value:  '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
+        }
+      ];
+
+    beforeEach(function () {
+      sinon.stub(App.Host, 'find').returns([
+        Em.Object.create({
+          id: 'h1',
+          diskInfo: [
+            {
+              mountpoint: '/media/disk1',
+              type: 'devtmpfs'
+            },
+            {
+              mountpoint: '/media/disk1',
+              type: 'tmpfs'
+            },
+            {
+              mountpoint: '/media/disk1',
+              type: 'vboxsf'
+            },
+            {
+              mountpoint: '/media/disk1',
+              type: 'CDFS'
+            },
+            {
+              mountpoint: '/media/disk1',
+              available: '0'
+            },
+            {
+              mountpoint: '/media/disk1',
+              available: '100000000'
+            },
+            {
+              mountpoint: '/mount1',
+              available: '100000000'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'h2',
+          diskInfo: [
+            {
+              mountpoint: '/'
+            }
+          ]
+        }),
+        Em.Object.create({
+          id: 'h3',
+          diskInfo: []
+        })
+      ]);
+    });
+
+    afterEach(function () {
+      App.Host.find.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.name, function () {
+        serviceConfigProperty.setProperties({
+          name: item.name,
+          defaultDirectory: '/default'
+        });
+        serviceConfigProperty.unionAllMountPoints(item.isOnlyFirstOneNeeded, localDB);
+        expect(serviceConfigProperty.get('value')).to.equal(item.value);
+        expect(serviceConfigProperty.get('defaultValue')).to.equal(item.value);
+      });
+    });
+
+  });
+
 });

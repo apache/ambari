@@ -776,10 +776,10 @@ App.ServiceConfigProperty = Em.Object.extend({
       }
 
       mountPointsPerHost = mountPointsPerHost.filter(function (mPoint) {
-        return !(['/', '/home', '/boot'].contains(mPoint.mountpoint)
-        || ['devtmpfs', 'tmpfs', 'vboxsf'].contains(mPoint.type)
-        || mPoint.available == 0
-        || mPoint.type == 'CDFS');
+        return !(['/', '/home'].contains(mPoint.mountpoint)
+        || mPoint.mountpoint && (mPoint.mountpoint.startsWith('/boot') || mPoint.mountpoint.startsWith('/mnt'))
+        || ['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type)
+        || mPoint.available == 0);
       });
 
       mountPointsPerHost.forEach(function (mPoint) {
@@ -803,7 +803,6 @@ App.ServiceConfigProperty = Em.Object.extend({
           mPoint += this.get('defaultDirectory') + "\n";
         } else if(winRegex.test(eachDrive.mountpoint.toLowerCase())) {
           switch (this.get('name')) {
-            case 'dfs.datanode.data.dir':
             case 'dfs.name.dir':
             case 'dfs.namenode.name.dir':
             case 'dfs.data.dir':
