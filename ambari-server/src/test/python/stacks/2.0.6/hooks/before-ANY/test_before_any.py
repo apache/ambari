@@ -160,7 +160,7 @@ class TestHookBeforeInstall(RMFTestCase):
         mode = 0755
     )
     self.assertResourceCalled('Directory', '/etc/hadoop/conf.empty',
-        owner = 'hdfs',
+        owner = 'root',
         group = 'hadoop',
         recursive = True,
     )
