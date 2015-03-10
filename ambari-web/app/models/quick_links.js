@@ -286,9 +286,9 @@ App.QuickLinks.FIXTURES = [
   {
     id:32,
     label:'Falcon Web UI',
-    url:'%@://%@:%@/',
+    url:'%@://%@:%@/index.html?user.name=%@',
     service_id: 'FALCON',
-    template:'%@://%@:%@/',
+    template:'%@://%@:%@/index.html?user.name=%@',
     http_config: 'falcon_port',
     site: 'falcon-env',
     regex: '^(\\d+)$',
