@@ -49,7 +49,7 @@ def service(
   find_proc = format("{jps_binary} -l  | grep {process_grep}")
   write_pid = format("{find_proc} | awk {{'print $1'}} > {pid_file}")
   crt_pid_cmd = format("{find_proc} && {write_pid}")
-  storm_env = format("source {conf_dir}/storm-env.sh ; export PATH=$PATH:$JAVA_HOME/bin")
+  storm_env = format("source {conf_dir}/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH")
 
   if action == "start":
     if name == "rest_api":
