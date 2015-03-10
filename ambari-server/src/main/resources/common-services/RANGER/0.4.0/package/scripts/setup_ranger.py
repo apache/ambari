@@ -243,7 +243,7 @@ def check_db_connnection():
     return True
   else:
     Logger.info(
-      'Ranger Admin installation Failed! Ranger requires DB client installed on Ranger Host and DB server running on DB Host')
+      'Ranger Admin installation Failed! Ranger requires DB client installed on Ranger Host, DB administrative privileges configured for connectivity from the Ranger Admin host to the configured DB host/instance and the DB server up and running on the DB host.')
     sys.exit(1)
 
 def get_status_output(cmd):
