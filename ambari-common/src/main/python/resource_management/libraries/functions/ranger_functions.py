@@ -122,7 +122,7 @@ class Rangeradmin:
     except urllib2.URLError, e:
       if isinstance(e, urllib2.HTTPError):
         Logger.error("HTTP Code: {0}".format(e.code))
-        Logger.error("HTTP Data: {0}".foramt(e.read()))
+        Logger.error("HTTP Data: {0}".format(e.read()))
       else:
         Logger.error("Error: {0}".format(e.reason))
       return None
