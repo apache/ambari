@@ -31,6 +31,7 @@ import java.util.Set;
 
 import org.apache.commons.configuration.SubsetConfiguration;
 import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.metrics2.AbstractMetric;
@@ -54,6 +55,7 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
   private List<? extends SocketAddress> metricsServers;
   private String collectorUri;
   private static final String SERVICE_NAME_PREFIX = "serviceName-prefix";
+  private static final String SERVICE_NAME = "serviceName";
 
   @Override
   public void init(SubsetConfiguration conf) {
@@ -75,6 +77,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
 
     serviceName = getServiceName(conf);
 
+    LOG.info("Identified hostname = " + hostName + ", serviceName = " + serviceName);
+
     // Load collector configs
     metricsServers = Servers.parse(conf.getString(COLLECTOR_HOST_PROPERTY), 6188);
 
@@ -84,6 +88,8 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
       collectorUri = "http://" + conf.getString(COLLECTOR_HOST_PROPERTY).trim()
           + "/ws/v1/timeline/metrics";
     }
+
+    LOG.info("Collector Uri: " + collectorUri);
 
     int maxRowCacheSize = conf.getInt(MAX_METRIC_ROW_CACHE_SIZE,
       TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT);
@@ -118,10 +124,18 @@ public class HadoopTimelineMetricsSink extends AbstractTimelineMetricsSink imple
     }
   }
 
+  /**
+   * Return configured serviceName with or without prefix.
+   * Default without serviceName or configured prefix : first config prefix
+   * With prefix : configured prefix + first config prefix
+   * Configured serviceName : Return serviceName as is.
+   */
   private String getServiceName(SubsetConfiguration conf) {
     String serviceNamePrefix = conf.getString(SERVICE_NAME_PREFIX, "");
-    return serviceNamePrefix.isEmpty() ? getFirstConfigPrefix(conf) :
-           serviceNamePrefix + "-" + getFirstConfigPrefix(conf);
+    String serviceName = conf.getString(SERVICE_NAME, "");
+    return StringUtils.isEmpty(serviceName) ?
+      StringUtils.isEmpty(serviceNamePrefix) ? getFirstConfigPrefix(conf)
+        : serviceNamePrefix + "-" + getFirstConfigPrefix(conf) : serviceName;
   }
 
   private String getFirstConfigPrefix(SubsetConfiguration conf) {
