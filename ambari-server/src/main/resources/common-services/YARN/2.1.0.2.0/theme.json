@@ -1,0 +1,172 @@
+{
+  "Theme": {
+    "name": "default",
+    "description": "Default theme for YARN service",
+    "configuration": {
+      "layouts": [
+        {
+          "name": "default",
+          "tabs": [
+            {
+              "name": "Settings",
+              "display-name": "Settings",
+              "layout": {
+                "tab-columns": "1",
+                "tab-rows": "2",
+                "sections": [
+                  {
+                    "name": "section-nm-sizing",
+                    "display-name": "NM Sizing",
+                    "row-index": "0",
+                    "column-index": "0",
+                    "row-span": "1",
+                    "section-columns": "1",
+                    "section-rows": "1",
+                    "subsections": []
+                  },
+                  {
+                    "name": "section-scheduler-defaults",
+                    "display-name": "Scheduler Defaults",
+                    "row-index": "1",
+                    "column-index": "0",
+                    "row-span": "1",
+                    "section-columns": "1",
+                    "section-rows": "1",
+                    "subsections": []
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "yarn.nodemanager.resource.memory-mb",
+          "section-name": "section-nm-sizing"
+        },
+        {
+          "config": "yarn.nodemanager.vmem-pmem-ratio",
+          "section-name": "section-nm-sizing"
+        },
+        {
+          "config": "yarn.nodemanager.resource.percentage-physical-cpu-limit",
+          "section-name": "section-nm-sizing"
+        },
+        {
+          "config": "yarn.nodemanager.resource.cpu-vcores",
+          "section-name": "section-nm-sizing"
+        },
+        {
+          "config": "yarn.scheduler.minimum-allocation-mb",
+          "section-name": "section-scheduler-defaults"
+        },
+        {
+          "config": "yarn.scheduler.maximum-allocation-mb",
+          "section-name": "section-scheduler-defaults"
+        },
+        {
+          "config": "yarn.scheduler.minimum-allocation-vcores",
+          "section-name": "section-scheduler-defaults"
+        },
+        {
+          "config": "yarn.scheduler.maximum-allocation-vcores",
+          "section-name": "section-scheduler-defaults"
+        }
+      ]
+    },
+    "widgets":[
+      {
+        "config":"yarn.nodemanager.resource.memory-mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "yarn.nodemanager.vmem-pmem-ratio",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "float"
+            }
+          ]
+        }
+      },
+      {
+        "config": "yarn.nodemanager.resource.percentage-physical-cpu-limit",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "percent"
+            }
+          ]
+        }
+      },
+      {
+        "config": "yarn.nodemanager.resource.cpu-vcores",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config":"yarn.scheduler.minimum-allocation-mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"MB"
+            }
+          ]
+        }
+      },
+      {
+        "config":"yarn.scheduler.maximum-allocation-mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"MB"
+            }
+          ]
+        }
+      },
+      {
+        "config":"yarn.scheduler.minimum-allocation-vcores",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"int"
+            }
+          ]
+        }
+      },
+      {
+        "config":"yarn.scheduler.maximum-allocation-vcores",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"int"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
