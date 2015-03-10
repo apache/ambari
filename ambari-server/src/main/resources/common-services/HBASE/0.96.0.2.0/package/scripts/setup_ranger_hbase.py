@@ -182,6 +182,7 @@ def hbase_repo_properties():
   config_dict['hbase.zookeeper.property.clientPort'] = params.hbase_zookeeper_property_clientPort
   config_dict['hbase.zookeeper.quorum'] = params.hbase_zookeeoer_quorum
   config_dict['zookeeper.znode.parent'] = params.zookeeper_znode_parent
+  config_dict['commonNameForCertificate'] = params.common_name_for_certificate
 
   if params.security_enabled:
     config_dict['hbase.master.kerberos.principal'] = params.master_jaas_princ
