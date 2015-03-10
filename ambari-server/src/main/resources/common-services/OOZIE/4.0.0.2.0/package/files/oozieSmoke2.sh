@@ -20,7 +20,7 @@
 #
 #
 
-export os_family = $1
+export os_family=$1
 export oozie_lib_dir=$2
 export oozie_conf_dir=$3
 export oozie_bin_dir=$4
