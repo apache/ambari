@@ -282,7 +282,7 @@ App.SliderAppsMapper = App.Mapper.createWithMixins(App.RunPeriodically, {
     appsToDelete.forEach(function (app) {
       var appRecord = App.SliderApp.store.getById('sliderApp', app);
       if (appRecord) {
-        appRecord.destroyRecord();
+        appRecord.deleteRecord();
       }
     });
     apps.forEach(function(app) {

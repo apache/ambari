@@ -350,9 +350,10 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
       name: 'destroyApp',
       sender: this,
       data: {
+        model: this.get('model'),
         id: this.get('model.id')
       },
-      complete: 'destroyCompleteCallback',
+      success: 'destroySuccessCallback',
       error: 'actionErrorCallback'
     });
   },
@@ -361,7 +362,9 @@ App.SliderAppController = Ember.ObjectController.extend(App.AjaxErrorHandler, {
    * Complete-callback for "destroy app"-request
    * @method destroyCompleteCallback
    */
-  destroyCompleteCallback: function() {
+  destroySuccessCallback: function(data, opt, params) {
+    params.model.deleteRecord();
+    this.store.dematerializeRecord(params.model);
     this.transitionToRoute('slider_apps');
   },
 
