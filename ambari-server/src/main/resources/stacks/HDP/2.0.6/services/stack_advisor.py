@@ -322,29 +322,56 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     ams_env = getSiteProperties(configurations, "ams-env")
     logDirItem = self.validatorEqualsPropertyItem(properties, "hbase_log_dir",
                                                   ams_env, "metrics_collector_log_dir")
+    masterHostItem = None
 
     if masterItem is None:
-      hbase_master_heapsize = formatXmxSizeToBytes(properties["hbase_master_heapsize"])
+      hostComponents = {}
+      hostMasterComponents = {}
 
-      # TODO Add AMBARI_METRICS Collector Xmx property to ams-env
-      # Collector 512m + HBASE Master heapsize
-      # For standalone HBase, master's heap memory is used by regionserver as well
-      requiredMemory = 536870912 + hbase_master_heapsize
+      for service in services["services"]:
+        for component in service["components"]:
+          if component["StackServiceComponents"]["hostnames"] is not None:
+            for hostName in component["StackServiceComponents"]["hostnames"]:
+              if hostName not in hostComponents.keys():
+                hostComponents[hostName] = []
+              hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
+              if self.isMasterComponent(component):
+                if hostName not in hostMasterComponents.keys():
+                  hostMasterComponents[hostName] = []
+                hostMasterComponents[hostName].append(component["StackServiceComponents"]["component_name"])
 
       amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
       for collectorHostName in amsCollectorHosts:
         for host in hosts["items"]:
           if host["Hosts"]["host_name"] == collectorHostName:
+            # AMS Collector co-hosted with other master components in bigger clusters
+            if len(hosts['items']) > 31 and \
+              len(hostMasterComponents[collectorHostName]) > 2 and \
+              host["Hosts"]["total_mem"] < 32*1024*1024: # <32 Gb(total_mem in k)
+              masterHostMessage = "Host {0} is used by multiple master components ({1}). " \
+                                  "It is recommended to use a separate host for the " \
+                                  "Ambari Metrics Collector component and ensure " \
+                                  "the host has sufficient memory available."
+
+              masterHostItem = self.getWarnItem(
+                masterHostMessage.format(
+                  collectorHostName, str(", ".join(hostMasterComponents[collectorHostName]))))
+
+            # No enough physical memory
+            # TODO Add AMBARI_METRICS Collector Xmx property to ams-env
+            requiredMemory = getMemorySizeRequired(hostComponents[collectorHostName], configurations)
             if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-              message = "Not enough total RAM on the host {0}, " \
-                        "at least {1} MB required" \
-                .format(collectorHostName, requiredMemory/1048576)  # MB
-              regionServerItem = self.getWarnItem(message)
-              masterItem = self.getWarnItem(message)
+              message = "No enough total RAM on the host {0}, " \
+                        "at least {1} MB required for the components({2})" \
+                .format(collectorHostName, requiredMemory/1048576,
+                        str(", ".join(hostComponents[collectorHostName])))  # MB
+              regionServerItem = self.getErrorItem(message)
+              masterItem = self.getErrorItem(message)
               break
 
     validationItems = [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
                        {"config-name": "hbase_master_heapsize", "item": masterItem},
+                       {"config-name": "hbase_master_heapsize", "item": masterHostItem},
                        {"config-name": "hbase_log_dir", "item": logDirItem}]
     return self.toConfigurationValidationProblems(validationItems, "ams-hbase-env")
 
@@ -453,7 +480,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                         {"config-name": 'yarn.scheduler.minimum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.minimum-allocation-mb')},
                         {"config-name": 'yarn.scheduler.maximum-allocation-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.scheduler.maximum-allocation-mb')} ]
     return self.toConfigurationValidationProblems(validationItems, "yarn-site")
- 
+
   def validateHbaseEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
                         {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')} ]
@@ -494,6 +521,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       'HIVE_SERVER': {6: 1, 31: 2, "else": 4},
       'HIVE_METASTORE': {6: 1, 31: 2, "else": 4},
       'WEBHCAT_SERVER': {6: 1, 31: 2, "else": 4},
+      'METRICS_COLLECTOR': {"else": 2},
       }
 
   def get_system_min_uid(self):
@@ -618,3 +646,61 @@ def getMountPointForDir(dir, mountPoints):
           bestMountFound = mountPoint
 
   return bestMountFound
+
+def getHeapsizeProperties():
+  return { "NAMENODE": { "config-name": "hadoop-env",
+                         "property": "namenode_heapsize",
+                         "default": "1024m"},
+           "DATANODE": { "config-name": "hadoop-env",
+                         "property": "dtnode_heapsize",
+                         "default": "1024m"},
+           "REGIONSERVER": { "config-name": "hbase-env",
+                             "property": "hbase_regionserver_heapsize",
+                             "default": "1024m"},
+           "HBASE_MASTER": { "config-name": "hbase-env",
+                             "property": "hbase_master_heapsize",
+                             "default": "1024m"},
+           "HIVE_CLIENT": { "config-name": "hive-site",
+                            "property": "hive.heapsize",
+                            "default": "1024m"},
+           "HISTORYSERVER": { "config-name": "mapred-env",
+                              "property": "jobhistory_heapsize",
+                              "default": "1024m"},
+           "OOZIE_SERVER": { "config-name": "oozie-env",
+                             "property": "oozie_heapsize",
+                             "default": "1024m"},
+           "RESOURCEMANAGER": { "config-name": "yarn-env",
+                                "property": "resourcemanager_heapsize",
+                                "default": "1024m"},
+           "NODEMANAGER": { "config-name": "yarn-env",
+                            "property": "nodemanager_heapsize",
+                            "default": "1024m"},
+           "APP_TIMELINE_SERVER": { "config-name": "yarn-env",
+                                    "property": "apptimelineserver_heapsize",
+                                    "default": "1024m"},
+           "ZOOKEEPER_SERVER": { "config-name": "zookeeper-env",
+                                 "property": "zookeeper_heapsize",
+                                 "default": "1024m"},
+           "METRICS_COLLECTOR": { "config-name": "ams-hbase-env",
+                                  "property": "hbase_master_heapsize",
+                                  "default": "1024m"},
+           }
+
+def getMemorySizeRequired(components, configurations):
+  totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
+  for component in components:
+    if component in getHeapsizeProperties().keys():
+      heapSizeProperty = getHeapsizeProperties()[component]
+      try:
+        properties = configurations[heapSizeProperty["config-name"]]["properties"]
+        heapsize = properties[heapSizeProperty["property"]]
+      except KeyError:
+        heapsize = heapSizeProperty["default"]
+
+      # Assume Mb if no modifier
+      if len(heapsize) > 1 and heapsize[-1] in '0123456789':
+        heapsize = str(heapsize) + "m"
+
+      totalMemoryRequired += formatXmxSizeToBytes(heapsize)
+
+  return totalMemoryRequired
