@@ -21,6 +21,12 @@
 <configuration supports_final="true">
 
   <property>
+    <name>common.name.for.certificate</name>
+    <value>-</value>
+    <description>Used for repository creation on ranger admin</description>    
+  </property>      
+
+  <property>
     <name>policy_user</name>
     <value>ambari-qa</value>
     <description>This user must be system user and also present at Ranger admin portal</description>

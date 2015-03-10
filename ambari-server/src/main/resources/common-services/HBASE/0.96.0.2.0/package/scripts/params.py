@@ -212,6 +212,7 @@ ssl_keystore_password = default("/configurations/ranger-hbase-plugin-properties/
 ssl_truststore_file = default("/configurations/ranger-hbase-plugin-properties/SSL_TRUSTSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-truststore.jks")
 ssl_truststore_password = default("/configurations/ranger-hbase-plugin-properties/SSL_TRUSTSTORE_PASSWORD", "changeit")
 grant_revoke = default("/configurations/ranger-hbase-plugin-properties/UPDATE_XAPOLICIES_ON_GRANT_REVOKE","true")
+common_name_for_certificate = default("/configurations/ranger-hbase-plugin-properties/common.name.for.certificate", "-")
 
 zookeeper_znode_parent = config['configurations']['hbase-site']['zookeeper.znode.parent']
 hbase_zookeeoer_quorum = config['configurations']['hbase-site']['hbase.zookeeper.quorum']
