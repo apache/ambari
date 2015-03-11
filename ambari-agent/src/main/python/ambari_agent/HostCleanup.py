@@ -17,12 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-import sys
-from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
-
 # For compatibility with different OSes
 # Edit PYTHONPATH to be able to import common_functions
+import sys
 sys.path.append("/usr/lib/python2.6/site-packages/")
+########################################################
+
 import os
 import string
 import subprocess
@@ -37,7 +37,7 @@ import datetime
 from AmbariConfig import AmbariConfig
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-
+from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 
 logger = logging.getLogger()
 
