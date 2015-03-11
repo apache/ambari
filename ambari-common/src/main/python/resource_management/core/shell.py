@@ -142,7 +142,7 @@ def _call(command, logoutput=None, throw_on_failure=True,
   # --noprofile is used to preserve PATH set for ambari-agent
   subprocess_command = ["/bin/bash","--login","--noprofile","-c", command]
   proc = subprocess.Popen(subprocess_command, bufsize=1, stdout=slave_fd, stderr=subprocess.STDOUT,
-                          cwd=cwd, env=env, shell=False,
+                          cwd=cwd, env=env, shell=False, close_fds=True,
                           preexec_fn=preexec_fn)
   
   if timeout:
