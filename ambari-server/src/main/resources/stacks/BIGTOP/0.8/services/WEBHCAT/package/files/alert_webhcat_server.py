@@ -96,7 +96,6 @@ def execute(parameters=None, host_name=None):
   if security_enabled:
     if WEBHCAT_KEYTAB_KEY not in parameters or WEBHCAT_PRINCIPAL_KEY not in parameters:
       return (RESULT_CODE_UNKNOWN, [str(parameters)])
-      # return (RESULT_CODE_UNKNOWN, ['The WebHCat keytab and principal are required parameters when security is enabled.'])
 
     try:
       webhcat_keytab = parameters[WEBHCAT_KEYTAB_KEY]
@@ -164,6 +163,8 @@ def execute(parameters=None, host_name=None):
     except Exception, exception:
       return (RESULT_CODE_CRITICAL, [str(exception)])
   else:
+    url_response = None
+    
     try:
       # execute the query for the JSON that includes WebHCat status
       start_time = time.time()
@@ -177,6 +178,12 @@ def execute(parameters=None, host_name=None):
     except:
       label = CRITICAL_CONNECTION_MESSAGE.format(query_url)
       return (RESULT_CODE_CRITICAL, [label])
+    finally:
+      if url_response is not None:
+        try:
+          url_response.close()
+        except:
+          pass
 
 
   # if status is not in the response, we can't do any check; return CRIT

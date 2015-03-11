@@ -90,9 +90,6 @@
           "type": "METRIC",
           "uri": {
             "http": "{{ams-hbase-site/hbase.master.info.port}}",
-            "https": "{{ams-hbase-site/hbase.master.info.port}}",
-            "https_property": "{{cluster-env/security_enabled}}",
-            "https_property_value": "true",
             "default_port": 61310
           },
           "reporting": {

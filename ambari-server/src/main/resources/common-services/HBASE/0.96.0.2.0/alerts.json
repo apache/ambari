@@ -64,9 +64,6 @@
           "type": "METRIC",
           "uri": {
             "http": "{{hbase-site/hbase.master.info.port}}",
-            "https": "{{hbase-site/hbase.master.info.port}}",
-            "https_property": "{{cluster-env/security_enabled}}",
-            "https_property_value": "true",
             "default_port": 60010
           },
           "reporting": {
@@ -103,9 +100,6 @@
           "type": "METRIC",
           "uri": {
             "http": "{{hbase-site/hbase.master.info.port}}",
-            "https": "{{hbase-site/hbase.master.info.port}}",
-            "https_property": "{{cluster-env/security_enabled}}",
-            "https_property_value": "true",
             "default_port": 60010
           },
           "reporting": {

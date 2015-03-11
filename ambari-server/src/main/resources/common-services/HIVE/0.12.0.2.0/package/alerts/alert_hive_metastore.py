@@ -18,11 +18,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import socket
 import time
-import traceback
-import urllib2
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute

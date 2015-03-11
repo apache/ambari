@@ -18,12 +18,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import json
 import socket
 import time
-import traceback
-import urllib2
-from resource_management.libraries.functions import hive_check 
+from resource_management.libraries.functions import hive_check
 
 OK_MESSAGE = "TCP OK - %.4f response on port %s"
 CRITICAL_MESSAGE = "Connection failed on host {0}:{1}"

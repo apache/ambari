@@ -129,8 +129,18 @@ def get_time(delta):
   return {'h':h, 'm':m}
 
 
-def get_value_from_jmx(qry, property):
-  response = urllib2.urlopen(qry)
-  data=response.read()
-  data_dict = json.loads(data)
-  return data_dict["beans"][0][property]
+def get_value_from_jmx(query, jmx_property):
+  response = None
+  
+  try:
+    response = urllib2.urlopen(query)
+    data = response.read()
+
+    data_dict = json.loads(data)
+    return data_dict["beans"][0][jmx_property]
+  finally:
+    if response is not None:
+      try:
+        response.close()
+      except:
+        pass

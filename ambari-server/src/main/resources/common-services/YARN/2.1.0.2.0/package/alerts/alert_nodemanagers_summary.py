@@ -102,12 +102,21 @@ def execute(parameters=None, host_name=None):
   return ((result_code, [label]))
 
 
-def get_value_from_jmx(url, property):
-  # use a customer header process that will look for the non-standard
-  # "Refresh" header and attempt to follow the redirect
-  url_opener = urllib2.build_opener(RefreshHeaderProcessor())
-  response = url_opener.open(url)
+def get_value_from_jmx(query, jmx_property):
+  response = None
+  
+  try:
+    # use a customer header process that will look for the non-standard
+    # "Refresh" header and attempt to follow the redirect
+    url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+    response = url_opener.open(query)
 
-  data=response.read()
-  data_dict = json.loads(data)
-  return data_dict["beans"][0][property]
+    data = response.read()
+    data_dict = json.loads(data)
+    return data_dict["beans"][0][jmx_property]
+  finally:
+    if response is not None:
+      try:
+        response.close()
+      except:
+        pass
