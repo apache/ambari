@@ -22,6 +22,7 @@ import logging
 import time
 import subprocess
 import os
+import uuid
 from  tempfile import gettempdir
 from alerts.base_alert import BaseAlert
 from collections import namedtuple
@@ -172,10 +173,19 @@ class WebAlert(BaseAlert):
       else:
         kerberos_env = None
 
+      # check if cookies dir exists, if not then create it
+      tmp_dir = self.config.get('agent', 'tmp_dir')
+      cookies_dir = os.path.join(tmp_dir, "cookies")
+
+      if not os.path.exists(cookies_dir):
+        os.makedirs(cookies_dir)
+
       # substitute 0.0.0.0 in url with actual fqdn
       url = url.replace('0.0.0.0', self.host_name)
+      cookie_file_name = str(uuid.uuid4())
+      cookie_file = os.path.join(cookies_dir, cookie_file_name)
       start_time = time.time()
-      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL', '-w',
+      curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-sL', '-w',
         '%{http_code}', url, '--connect-timeout', CURL_CONNECTION_TIMEOUT,
         '-o', '/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
@@ -191,6 +201,10 @@ class WebAlert(BaseAlert):
         logger.exception("[Alert][{0}] Unable to make a web request.".format(self.get_name()))
 
       return WebResponse(status_code=0, time_millis=0, error_msg=str(exc))
+
+    finally:
+      if os.path.isfile(cookie_file):
+        os.remove(cookie_file)
 
     return WebResponse(status_code=response_code, time_millis=time_millis, error_msg=None)
 
