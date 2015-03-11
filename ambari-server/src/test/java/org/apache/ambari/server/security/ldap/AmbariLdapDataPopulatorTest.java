@@ -1469,16 +1469,20 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     Capture<ContextMapper> contextMapperCapture = new Capture<ContextMapper>();
+    LdapUserDto dto = new LdapUserDto();
 
-    List list = new LinkedList();
+    List<LdapUserDto> list = new LinkedList<LdapUserDto>();
+    list.add(dto);
 
     expect(configuration.getLdapServerProperties()).andReturn(ldapServerProperties).anyTimes();
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
     expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
 
+    expect(ldapTemplate.lookup(eq("uid=foo,dc=example,dc=com"), capture(contextMapperCapture))).andReturn(dto);
+
+    expect(ldapTemplate.lookup(eq("foo"), capture(contextMapperCapture))).andReturn(null);
     expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), capture(contextMapperCapture))).andReturn(list);
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(uid=foo))"), capture(contextMapperCapture))).andReturn(list);
 
     replay(ldapTemplate, ldapServerProperties, users, configuration);
 
@@ -1486,8 +1490,8 @@ public class AmbariLdapDataPopulatorTest {
 
     populator.setLdapTemplate(ldapTemplate);
 
-    populator.getLdapUserByMemberAttr("foo");
-    populator.getLdapUserByMemberAttr("uid=foo,dc=example,dc=com");
+    assertEquals(dto, populator.getLdapUserByMemberAttr("uid=foo,dc=example,dc=com"));
+    assertEquals(dto, populator.getLdapUserByMemberAttr("foo"));
 
     verify(ldapTemplate, ldapServerProperties, users, configuration);
   }
@@ -1503,12 +1507,10 @@ public class AmbariLdapDataPopulatorTest {
 
     replay(ldapServerProperties, adapter);
 
-    Set<LdapUserDto> userResultSet = new HashSet<LdapUserDto>();
-    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(userResultSet, ldapServerProperties);
-    ldapUserContextMapper.mapFromContext(adapter);
+    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(ldapServerProperties);
+    LdapUserDto userDto = (LdapUserDto) ldapUserContextMapper.mapFromContext(adapter);
 
-    assertEquals(1, userResultSet.size());
-    LdapUserDto userDto = userResultSet.iterator().next();
+    assertNotNull(userDto);
     assertNull(userDto.getUid());
     assertEquals("testuser", userDto.getUserName());
     assertEquals("cn=testuser,ou=ambari,dc=sme,dc=support,dc=com", userDto.getDn());
@@ -1524,11 +1526,9 @@ public class AmbariLdapDataPopulatorTest {
 
     replay(ldapServerProperties, adapter);
 
-    Set<LdapUserDto> userResultSet = new HashSet<LdapUserDto>();
-    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(userResultSet, ldapServerProperties);
-    ldapUserContextMapper.mapFromContext(adapter);
+    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(ldapServerProperties);
 
-    assertEquals(0, userResultSet.size());
+    assertNull(ldapUserContextMapper.mapFromContext(adapter));
   }
 
   @Test
@@ -1542,12 +1542,10 @@ public class AmbariLdapDataPopulatorTest {
 
     replay(ldapServerProperties, adapter);
 
-    Set<LdapUserDto> userResultSet = new HashSet<LdapUserDto>();
-    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(userResultSet, ldapServerProperties);
-    ldapUserContextMapper.mapFromContext(adapter);
+    AmbariLdapDataPopulator.LdapUserContextMapper ldapUserContextMapper = new AmbariLdapDataPopulator.LdapUserContextMapper(ldapServerProperties);
+    LdapUserDto userDto = (LdapUserDto) ldapUserContextMapper.mapFromContext(adapter);
 
-    assertEquals(1, userResultSet.size());
-    LdapUserDto userDto = userResultSet.iterator().next();
+    assertNotNull(userDto);
     assertEquals("uid1", userDto.getUid());
     assertEquals("testuser", userDto.getUserName());
     assertEquals("cn=testuser,ou=ambari,dc=sme,dc=support,dc=com", userDto.getDn());
