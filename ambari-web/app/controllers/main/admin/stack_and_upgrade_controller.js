@@ -145,7 +145,6 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     this.loadUpgradeData(true).done(function() {
       self.loadStackVersionsToModel(true).done(function () {
         self.loadRepoVersionsToModel().done(function() {
-          self.set('requestInProgress', false);
           var currentVersion = App.StackVersion.find().findProperty('state', 'CURRENT');
           if (currentVersion) {
             self.set('currentVersion', {
@@ -431,11 +430,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     };
 
     if (App.get('supports.preUpgradeCheck')) {
+      this.set('requestInProgress', true);
       App.ajax.send({
         name: "admin.rolling_upgrade.pre_upgrade_check",
         sender: this,
         data: params,
-        success: "runPreUpgradeCheckSuccess"
+        success: "runPreUpgradeCheckSuccess",
+        error: "runPreUpgradeCheckError"
       });
     } else {
       this.upgrade(params);
@@ -452,6 +453,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    */
   runPreUpgradeCheckSuccess: function (data, opt, params) {
     if (data.items.someProperty('UpgradeChecks.status', "FAIL")) {
+      this.set('requestInProgress', false);
       var header = Em.I18n.t('popup.clusterCheck.Upgrade.header').format(params.label);
       var title = Em.I18n.t('popup.clusterCheck.Upgrade.title');
       var alert = Em.I18n.t('popup.clusterCheck.Upgrade.alert');
@@ -459,6 +461,10 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
     } else {
       this.upgrade(params);
     }
+  },
+
+  runPreUpgradeCheckError: function() {
+    this.set('requestInProgress', false);
   },
 
   /**
