@@ -43,4 +43,5 @@ IS_WINDOWS = platform.system() == "Windows"
 if IS_WINDOWS:
   from resource_management.libraries.functions.windows_service_utils import *
   from resource_management.libraries.functions.install_hdp_msi import *
+  from resource_management.libraries.functions.install_jdbc_driver import *
   from resource_management.libraries.functions.reload_windows_env import *

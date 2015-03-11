@@ -19,17 +19,24 @@ limitations under the License.
 
 import sys
 
-from ambari_commons.inet_utils import download_file
 from resource_management import *
 from resource_management.libraries import Hook
 
 
 #Hook for hosts with only client without other components
 class AfterInstallHook(Hook):
-
   def hook(self, env):
     import params
     env.set_params(params)
+
+    #The SQL Server JDBC driver needs to end up in HADOOP_COMMOON_DIR\share\hadoop\common\lib
+    try:
+      ensure_jdbc_driver_is_in_classpath(params.hadoop_common_dir,
+                                         params.config["hostLevelParams"]["agentCacheDir"],
+                                         params.config['hostLevelParams']['jdk_location'],
+                                         ["sqljdbc4.jar", "sqljdbc_auth.dll"])
+    except Exception, e:
+      raise Fail("Unable to deploy the required JDBC driver in the class path. Error info: {0}".format(e.message))
 
     XmlConfig("core-site.xml",
               conf_dir=params.hadoop_conf_dir,
