@@ -1212,6 +1212,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
   },
 
   showDatabaseConnectionWarningPopup: function (serviceNames, deferred) {
+    var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('installer.step7.popup.database.connection.header'),
       body: Em.I18n.t('installer.step7.popup.database.connection.body').format(serviceNames.join(', ')),
@@ -1222,6 +1223,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
         this._super();
       },
       onSecondary: function () {
+        self.set('submitButtonClicked', false);
         deferred.reject();
         this._super();
       }

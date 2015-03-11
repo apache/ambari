@@ -1413,4 +1413,51 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#showDatabaseConnectionWarningPopup', function () {
+
+    var cases = [
+        {
+          method: 'onSecondary',
+          submitButtonClicked: false,
+          isRejected: true,
+          title: 'Cancel button clicked'
+        },
+        {
+          method: 'onPrimary',
+          submitButtonClicked: true,
+          isResolved: true,
+          title: 'Proceed Anyway button clicked'
+        }
+      ],
+      dfd,
+      testObject,
+      serviceNames = ['HIVE', 'OOZIE'],
+      bodyMessage = 'HIVE, OOZIE';
+
+    beforeEach(function () {
+      installerStep7Controller.set('submitButtonClicked', true);
+      dfd = $.Deferred(function (d) {
+        d.done(function () {
+          testObject.isResolved = true;
+        });
+        d.fail(function () {
+          testObject.isRejected = true;
+        })
+      });
+      testObject = {};
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        var popup = installerStep7Controller.showDatabaseConnectionWarningPopup(serviceNames, dfd);
+        expect(popup.get('body')).to.equal(Em.I18n.t('installer.step7.popup.database.connection.body').format(bodyMessage));
+        popup[item.method]();
+        expect(testObject.isResolved).to.equal(item.isResolved);
+        expect(testObject.isRejected).to.equal(item.isRejected);
+        expect(installerStep7Controller.get('submitButtonClicked')).to.equal(item.submitButtonClicked);
+      });
+    });
+
+  });
+
 });
