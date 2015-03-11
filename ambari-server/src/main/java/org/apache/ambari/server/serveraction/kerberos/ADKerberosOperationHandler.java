@@ -25,7 +25,7 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
-import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.app.Velocity;
 import org.apache.velocity.exception.MethodInvocationException;
 import org.apache.velocity.exception.ParseErrorException;
 import org.apache.velocity.exception.ResourceNotFoundException;
@@ -115,12 +115,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   private SearchControls searchControls = null;
 
   /**
-   * VelocityEngine used to process the "create principal template" that is expected to generate
-   * a JSON structure declaring the attributes of the Active Directory account
-   */
-  private VelocityEngine velocityEngine = null;
-
-  /**
    * The Gson instance to use to convert the template-generated JSON structure to a Map of attribute
    * names to values.
    */
@@ -183,9 +177,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
 
     this.createTemplate = kerberosConfiguration.get(KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE);
 
-    this.velocityEngine = new VelocityEngine();
-    this.velocityEngine.init();
-
     this.gson = new Gson();
 
     setOpen(true);
@@ -199,7 +190,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   @Override
   public void close() throws KerberosOperationException {
     this.searchControls = null;
-    this.velocityEngine = null;
 
     this.gson = null;
 
@@ -515,9 +505,6 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
   protected Map<String, Object> processCreateTemplate(Map<String, Object> context)
       throws KerberosOperationException {
 
-    if (velocityEngine == null) {
-      throw new KerberosOperationException("The Velocity Engine must not be null");
-    }
     if (gson == null) {
       throw new KerberosOperationException("The JSON parser must not be null");
     }
@@ -543,7 +530,7 @@ public class ADKerberosOperationHandler extends KerberosOperationHandler {
     }
 
     try {
-      if (velocityEngine.evaluate(new VelocityContext(context), stringWriter, "Active Directory principal create template", template)) {
+      if (Velocity.evaluate(new VelocityContext(context), stringWriter, "Active Directory principal create template", template)) {
         String json = stringWriter.toString();
         Type type = new TypeToken<Map<String, Object>>() {
         }.getType();
