@@ -572,6 +572,16 @@ describe('App.MainServiceItemController', function () {
   });
 
   describe("#runSmokeTestPrimary", function () {
+    beforeEach(function () {
+      sinon.stub(App, 'get').withArgs('clusterName').returns('myCluster');
+      sinon.spy($, 'ajax');
+    });
+
+    afterEach(function () {
+      App.get.restore();
+      $.ajax.restore();
+    });
+
     var tests = [
       {
         data: {
@@ -584,8 +594,25 @@ describe('App.MainServiceItemController', function () {
           "command" : "HDFS_SERVICE_CHECK"
         },
         "Requests/resource_filters": [{"service_name" : "HDFS"}]
+      },
+      {
+        data: {
+          'serviceName': "KERBEROS",
+          'displayName': "Kerberos",
+          'query': "test"
+        },
+        "RequestInfo": {
+          "context": "Kerberos Service Check",
+          "command" : "KERBEROS_SERVICE_CHECK",
+          "operation_level": {
+            "level": "CLUSTER",
+            "cluster_name": "myCluster"
+          }
+        },
+        "Requests/resource_filters": [{"service_name" : "KERBEROS"}]
       }
     ];
+
     tests.forEach(function (test) {
 
       var mainServiceItemController = App.MainServiceItemController.create({content: {serviceName: test.data.serviceName,
@@ -593,21 +620,16 @@ describe('App.MainServiceItemController', function () {
       beforeEach(function () {
         mainServiceItemController.set("runSmokeTestErrorCallBack", Em.K);
         mainServiceItemController.set("runSmokeTestSuccessCallBack", Em.K);
-        sinon.spy($, 'ajax');
       });
 
-      afterEach(function () {
-        $.ajax.restore();
-      });
-
-      it('send request to run smoke test', function () {
-
+      it('send request to run smoke test for ' + test.data.serviceName, function () {
         mainServiceItemController.runSmokeTestPrimary(test.data.query);
         expect($.ajax.calledOnce).to.equal(true);
 
         expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.context).to.equal(test.RequestInfo.context);
         expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.command).to.equal(test.RequestInfo.command);
         expect(JSON.parse($.ajax.args[0][0].data)["Requests/resource_filters"][0].serviceName).to.equal(test["Requests/resource_filters"][0].serviceName);
+        expect(JSON.parse($.ajax.args[0][0].data).RequestInfo.operation_level).to.be.deep.equal(test.RequestInfo.operation_level);
       });
     });
   });

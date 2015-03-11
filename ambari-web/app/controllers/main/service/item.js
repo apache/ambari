@@ -474,17 +474,25 @@ App.MainServiceItemController = Em.Controller.extend({
   },
 
   runSmokeTestPrimary: function(query) {
+    var clusterLevelRequired = ['KERBEROS'];
+    var requestData = {
+        'serviceName': this.get('content.serviceName'),
+        'displayName': this.get('content.displayName'),
+        'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK',
+        'query': query
+    };
+    if (clusterLevelRequired.contains(this.get('content.serviceName'))) {
+      requestData.operationLevel = {
+        "level": "CLUSTER",
+        "cluster_name": App.get('clusterName')
+      };
+    }
     App.ajax.send({
       'name': 'service.item.smoke',
       'sender': this,
       'success':'runSmokeTestSuccessCallBack',
       'error':'runSmokeTestErrorCallBack',
-      'data': {
-        'serviceName': this.get('content.serviceName'),
-        'displayName': this.get('content.displayName'),
-        'actionName': this.get('content.serviceName') === 'ZOOKEEPER' ? 'ZOOKEEPER_QUORUM_SERVICE_CHECK' : this.get('content.serviceName') + '_SERVICE_CHECK',
-        'query': query
-      }
+      'data': requestData
     });
   },
 
