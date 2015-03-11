@@ -1,0 +1,47 @@
+# Licensed to the Apache Software Foundation (ASF) under one or more
+# contributor license agreements.  See the NOTICE file distributed with
+# this work for additional information regarding copyright ownership.
+# The ASF licenses this file to You under the Apache License, Version 2.0
+# (the "License"); you may not use this file except in compliance with
+# the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Poll collectors every ten seconds
+*.period=60
+
+{% if has_metric_collector %}
+
+*.timeline.plugin.urls=file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar
+*.sink.timeline.slave.host.name={{hostname}}
+accumulo.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+accumulo.period=10
+accumulo.collector={{metric_collector_host}}:{{metric_collector_port}}
+
+jvm.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+jvm.period=10
+jvm.collector={{metric_collector_host}}:{{metric_collector_port}}
+
+rpc.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+rpc.period=10
+rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
+
+accumulo.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
+accumulo.sink.timeline.period=10
+accumulo.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
+accumulo.sink.timeline.serviceName-prefix={{instance_name}}
+
+{% else %}
+
+accumulo.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31
+accumulo.sink.ganglia.period=10
+accumulo.sink.ganglia.servers={{ganglia_server_host}}:8666
+
+{% endif %}
+

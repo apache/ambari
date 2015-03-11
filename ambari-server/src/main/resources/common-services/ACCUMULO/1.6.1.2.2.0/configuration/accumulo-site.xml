@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<configuration>
+  <!-- Put your site-specific accumulo configurations here. The available configuration values along with their defaults are documented in docs/config.html Unless
+    you are simply testing at your workstation, you will most definitely need to change the three entries below. -->
+
+  <property>
+    <name>instance.volumes</name>
+    <value>hdfs://localhost:8020/apps/accumulo/data</value>
+    <description>Location of Accumulo data files in HDFS.</description>
+  </property>
+
+  <property>
+    <name>instance.zookeeper.host</name>
+    <value>localhost:2181</value>
+    <description>Comma-separated list of ZooKeeper server:port
+      pairs.</description>
+  </property>
+
+  <property>
+    <name>instance.zookeeper.timeout</name>
+    <value>30s</value>
+    <description>Timeout for zookeeper connections.</description>
+  </property>
+
+  <property>
+    <name>general.kerberos.principal</name>
+    <value>*</value>
+    <description>Name of the kerberos principal to use.</description>
+  </property>
+
+  <property>
+    <name>general.kerberos.keytab</name>
+    <value>*</value>
+    <description>Path to the kerberos keytab to use.</description>
+  </property>
+
+  <property>
+    <name>instance.rpc.ssl.enabled</name>
+    <value>false</value>
+    <description>Controls whether or not SSL is enabled for
+      Accumulo RPC.</description>
+  </property>
+
+  <property>
+    <name>instance.rpc.ssl.clientAuth</name>
+    <value>false</value>
+    <description>Controls whether or not client authentication is required
+      when SSL is enabled for Accumulo.</description>
+  </property>
+
+  <property>
+    <name>tserver.memory.maps.max</name>
+    <value>80M</value>
+    <description>Amount of memory to use for Accumulo's in-memory
+      map, where incoming writes are sorted.  If native maps are enabled
+      (tserver.memory.maps.native.enabled) this memory is
+      off-heap.</description>
+  </property>
+
+  <property>
+    <name>tserver.memory.maps.native.enabled</name>
+    <value>false</value>
+    <description>Controls whether or not native maps are enabled
+      for Accumulo's in-memory map, where incoming writes are
+      sorted (see also tserver.memory.maps.max).</description>
+  </property>
+
+  <property>
+    <name>tserver.cache.data.size</name>
+    <value>7M</value>
+    <description>Size of on-heap block cache for data blocks.</description>
+  </property>
+
+  <property>
+    <name>tserver.cache.index.size</name>
+    <value>20M</value>
+    <description>Size of on-heap block cache for index blocks.</description>
+  </property>
+
+  <property>
+    <name>tserver.sort.buffer.size</name>
+    <value>50M</value>
+    <description>Size of on-heap block cache for data blocks.</description>
+  </property>
+
+  <property>
+    <name>tserver.walog.max.size</name>
+    <value>40M</value>
+    <description>Amount of memory to use for sorting walogs when
+      recovering from tserver failure.</description>
+  </property>
+
+  <property>
+    <name>master.port.client</name>
+    <value>9999</value>
+    <description>Port for client connections to the master.</description>
+  </property>
+
+  <property>
+    <name>trace.port.client</name>
+    <value>12234</value>
+    <description>Port for client connections to the master.</description>
+  </property>
+
+  <property>
+    <name>tserver.port.client</name>
+    <value>9997</value>
+    <description>Port for delivering tracing data to the tracer
+      process.</description>
+  </property>
+
+  <property>
+    <name>gc.port.client</name>
+    <value>50091</value>
+    <description>Port for monitoring the Accumulo garbage
+      collector.</description>
+  </property>
+
+  <property>
+    <name>monitor.port.client</name>
+    <value>50095</value>
+    <description>Port for the Accumulo monitor UI.</description>
+  </property>
+
+  <property>
+    <name>monitor.port.log4j</name>
+    <value>4560</value>
+    <description>Port for delivering logs for aggregation by the
+      Accumulo monitor.</description>
+  </property>
+
+  <property>
+    <name>trace.user</name>
+    <value>trace</value>
+    <description>User that the tracer process uses to write
+      tracing data to Accumulo.</description>
+  </property>
+
+  <property>
+    <name>general.classpaths</name>
+    <value>
+      $ACCUMULO_HOME/lib/accumulo-server.jar,
+      $ACCUMULO_HOME/lib/accumulo-core.jar,
+      $ACCUMULO_HOME/lib/accumulo-start.jar,
+      $ACCUMULO_HOME/lib/accumulo-fate.jar,
+      $ACCUMULO_HOME/lib/accumulo-proxy.jar,
+      $ACCUMULO_HOME/lib/[^.].*.jar,
+      $ZOOKEEPER_HOME/zookeeper[^.].*.jar,
+      $HADOOP_CONF_DIR,
+      /usr/hdp/current/hadoop-client/[^.].*.jar,
+      /usr/hdp/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,
+      /usr/hdp/current/hadoop-hdfs-client/[^.].*.jar,
+      /usr/hdp/current/hadoop-mapreduce-client/[^.].*.jar,
+      /usr/hdp/current/hadoop-yarn-client/[^.].*.jar,
+      /usr/hdp/current/hadoop-yarn-client/lib/jersey.*.jar,
+      /usr/hdp/current/hive-client/lib/hive-accumulo-handler.jar,
+    </value>
+    <description>List of jars and directories that will be added to
+      Accumulo's classpath.  Ordering matters, as the entries will be
+      searched in order when attempting to load a class.</description>
+  </property>
+</configuration>

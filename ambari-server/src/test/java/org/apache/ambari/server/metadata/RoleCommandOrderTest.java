@@ -109,8 +109,6 @@ public class RoleCommandOrderTest {
     assertFalse(dependenciesContainBlockedRole(deps, Role.HDFS_SERVICE_CHECK));
     assertFalse(dependenciesContainBlockedRole(deps, Role.HDFS_CLIENT));
     // Checking blocker roles
-    assertFalse(dependenciesContainBlockerRole(deps, Role.DATANODE));
-    assertFalse(dependenciesContainBlockerRole(deps, Role.NAMENODE));
     assertFalse(dependenciesContainBlockerRole(deps, Role.SECONDARY_NAMENODE));
     assertFalse(dependenciesContainBlockerRole(deps, Role.JOURNALNODE));
     assertFalse(dependenciesContainBlockerRole(deps, Role.NAMENODE_SERVICE_CHECK));

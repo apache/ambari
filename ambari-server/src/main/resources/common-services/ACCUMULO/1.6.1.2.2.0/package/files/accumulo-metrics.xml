@@ -1,0 +1,60 @@
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+<!--
+  This file follows the conventions for XMLConfiguration files specified in the Apache Commons Configuration 1.5 Library. Changes to this file will be noticed
+  at runtime (see the FileChangedReloadingStrategy class in Commons Configuration).
+-->
+<config>
+<!--
+   Metrics log directory
+-->
+  <logging>
+    <dir>${ACCUMULO_HOME}/metrics</dir>
+  </logging>
+<!--
+ Enable/Disable metrics accumulation on the different servers and their components
+ NOTE: Turning on logging can be expensive because it will use several more file handles and will create a lot of short lived objects.
+-->
+  <master>
+    <enabled type="boolean">false</enabled>
+    <logging type="boolean">false</logging>
+  </master>
+  <tserver>
+    <enabled type="boolean">false</enabled>
+    <logging type="boolean">false</logging>
+    <update>
+      <enabled type="boolean">false</enabled>
+      <logging type="boolean">false</logging>
+    </update>
+    <scan>
+      <enabled type="boolean">false</enabled>
+      <logging type="boolean">false</logging>
+    </scan>
+    <minc>
+      <enabled type="boolean">false</enabled>
+      <logging type="boolean">false</logging>
+    </minc>
+  </tserver>
+  <thrift>
+    <enabled type="boolean">false</enabled>
+    <logging type="boolean">false</logging>
+  </thrift>
+  <replication>
+    <enabled type="boolean">false</enabled>
+    <logging type="boolean">false</logging>
+  </replication>
+</config>
