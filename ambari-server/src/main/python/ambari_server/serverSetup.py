@@ -797,13 +797,16 @@ def _cache_jdbc_driver(args):
   if os.path.lexists(jdbc_symlink):
     os.remove(jdbc_symlink)
 
-  if not os.path.isfile(os.path.join(resources_dir, jdbc_name)):
-    try:
-      shutil.copy(args.jdbc_driver, resources_dir)
-    except Exception, e:
-      err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
-            "permissions and free disk space.".format(args.jdbc_driver, resources_dir, str(e))
-      raise FatalException(1, err)
+  if os.path.isfile(os.path.join(resources_dir, jdbc_name)):
+    os.remove(os.path.join(resources_dir, jdbc_name))
+
+  try:
+    shutil.copy(args.jdbc_driver, resources_dir)
+    print "Copying {0} to {1}".format(args.jdbc_driver, resources_dir)
+  except Exception, e:
+    err = "Can not copy file {0} to {1} due to: {2} . Please check file " \
+          "permissions and free disk space.".format(args.jdbc_driver, resources_dir, str(e))
+    raise FatalException(1, err)
 
   os.symlink(os.path.join(resources_dir, jdbc_name), jdbc_symlink)
   print "JDBC driver was successfully initialized."
