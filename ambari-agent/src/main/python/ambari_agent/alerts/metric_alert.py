@@ -154,10 +154,19 @@ class MetricAlert(BaseAlert):
 
       # use a customer header processor that will look for the non-standard
       # "Refresh" header and attempt to follow the redirect
-      url_opener = urllib2.build_opener(RefreshHeaderProcessor())
-      response = url_opener.open(url)
-
-      content = response.read()
+      response = None
+      try:
+        url_opener = urllib2.build_opener(RefreshHeaderProcessor())
+        response = url_opener.open(url)
+        content = response.read()
+      finally:
+        # explicitely close the connection as we've seen python hold onto these
+        if response is not None:
+          try:
+            response.close()
+          except:
+            logger.debug("[Alert][{0}] Unable to close JMX URL connection to {1}".format
+              (self.get_name(), url))
 
       json_response = json.loads(content)
       json_data = json_response['beans'][0]

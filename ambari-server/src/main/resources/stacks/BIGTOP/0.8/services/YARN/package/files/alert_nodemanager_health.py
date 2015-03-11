@@ -21,6 +21,8 @@ limitations under the License.
 import json
 import socket
 import urllib2
+from ambari_commons import OSCheck
+from ambari_commons.inet_utils import resolve_address
 
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
@@ -31,7 +33,8 @@ NODEMANAGER_HTTPS_ADDRESS_KEY = '{{yarn-site/yarn.nodemanager.webapp.https.addre
 YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
 
 OK_MESSAGE = 'NodeManager Healthy'
-CRITICAL_CONNECTION_MESSAGE = 'Connection failed to {0}'
+CRITICAL_CONNECTION_MESSAGE = 'Connection failed to {0} ({1})'
+CRITICAL_HTTP_STATUS_MESSAGE = 'HTTP {0} returned from {1} ({2})'
 CRITICAL_NODEMANAGER_STATUS_MESSAGE = 'NodeManager returned an unexpected status of "{0}"'
 CRITICAL_NODEMANAGER_UNKNOWN_JSON_MESSAGE = 'Unable to determine NodeManager health from unexpected JSON response'
 
@@ -92,14 +95,25 @@ def execute(parameters=None, host_name=None):
       host_name = socket.getfqdn()
 
     uri = '{0}:{1}'.format(host_name, NODEMANAGER_DEFAULT_PORT)
+    
+  if OSCheck.is_windows_family():
+    uri_host, uri_port = uri.split(':')
+    # on windows 0.0.0.0 is invalid address to connect but on linux it resolved to 127.0.0.1
+    uri_host = resolve_address(uri_host)
+    uri = '{0}:{1}'.format(uri_host, uri_port)
+
+  query = "{0}://{1}/ws/v1/node/info".format(scheme,uri)
 
   try:
-    query = "{0}://{1}/ws/v1/node/info".format(scheme,uri)
-    
     # execute the query for the JSON that includes templeton status
     url_response = urllib2.urlopen(query)
-  except:
-    label = CRITICAL_CONNECTION_MESSAGE.format(uri)
+  except urllib2.HTTPError, httpError:
+    label = CRITICAL_HTTP_STATUS_MESSAGE.format(str(httpError.code), query,
+      str(httpError))
+
+    return (RESULT_CODE_CRITICAL, [label])
+  except Exception, exception:
+    label = CRITICAL_CONNECTION_MESSAGE.format(query, str(exception))
     return (RESULT_CODE_CRITICAL, [label])
 
   # URL response received, parse it
@@ -111,6 +125,12 @@ def execute(parameters=None, host_name=None):
     node_healthy = str(node_healthy)
   except:
     return (RESULT_CODE_CRITICAL, [query])
+  finally:
+    if url_response is not None:
+      try:
+        url_response.close()
+      except:
+        pass
 
   # proper JSON received, compare against known value
   if node_healthy.lower() == 'true':
