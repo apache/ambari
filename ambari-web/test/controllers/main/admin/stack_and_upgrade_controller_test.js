@@ -245,7 +245,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
           value: '2.2',
           label: 'HDP-2.2'
         },
-        success: "runPreUpgradeCheckSuccess"
+        success: "runPreUpgradeCheckSuccess",
+        error: "runPreUpgradeCheckError"
       });
     });
   });
