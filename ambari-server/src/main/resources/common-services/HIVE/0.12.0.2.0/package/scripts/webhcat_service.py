@@ -26,7 +26,7 @@ def webhcat_service(action='start'):
   cmd = format('env HADOOP_HOME={hadoop_home} {webhcat_bin_dir}/webhcat_server.sh')
 
   if action == 'start':
-    demon_cmd = format('{cmd} start')
+    demon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
     no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
     Execute(demon_cmd,
             user=params.webhcat_user,
