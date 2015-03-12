@@ -17,11 +17,21 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
-import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.api.services.BaseRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
@@ -36,24 +46,26 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Inject;
 
 /**
  * Resource provider for request resources.
  */
+@StaticallyInject
 public class RequestResourceProvider extends AbstractControllerResourceProvider {
+
+  @Inject
+  private static RequestDAO s_requestDAO = null;
+
+  @Inject
+  private static HostRoleCommandDAO s_hostRoleCommandDAO = null;
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
@@ -371,11 +383,14 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Set<Resource> response = new HashSet<Resource>();
     ActionManager actionManager = getManagementController().getActionManager();
 
+    Long clusterId = null;
+
     if (clusterName != null) {
       Clusters clusters = getManagementController().getClusters();
       //validate that cluster exists, throws exception if it doesn't.
       try {
-        clusters.getCluster(clusterName);
+        Cluster cluster = clusters.getCluster(clusterName);
+        clusterId = cluster.getClusterId();
       } catch (AmbariException e) {
         throw new NoSuchParentResourceException(e.getMessage(), e);
       }
@@ -397,11 +412,11 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
         ascOrder != null ? ascOrder : false);
       LOG.debug("List<Long> requestIds = actionManager.getRequestsByStatus = {}", requestIds.size());
 
-      response.addAll(getRequestResources(clusterName, actionManager, requestIds,
+      response.addAll(getRequestResources(clusterId, clusterName, requestIds,
           requestedPropertyIds));
     } else {
       Collection<Resource> responses = getRequestResources(
-          clusterName, actionManager, Collections.singletonList(requestId), requestedPropertyIds);
+          clusterId, clusterName, Collections.singletonList(requestId), requestedPropertyIds);
 
       if (responses.isEmpty()) {
         throw new NoSuchResourceException("Request resource doesn't exist.");
@@ -412,39 +427,39 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
   }
 
   // Get all of the request resources for the given set of request ids
-  private Collection<Resource> getRequestResources(String clusterName,
-                                                   ActionManager actionManager,
-                                                   List<Long> requestIds,
-                                                   Set<String> requestedPropertyIds) {
-
-    List<org.apache.ambari.server.actionmanager.Request> requests = actionManager.getRequests(requestIds);
-    LOG.debug("requests = actionManager.getRequests(requestIds)={}", requests.size());
+  private Collection<Resource> getRequestResources(Long clusterId, String clusterName,
+      List<Long> requestIds, Set<String> requestedPropertyIds) {
 
     Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
-    for (org.apache.ambari.server.actionmanager.Request request : requests) {
-      if ((null == clusterName && null == request.getClusterName()) ||
-          (null != clusterName && null != request.getClusterName() && clusterName.equals(request.getClusterName())))
-        resourceMap.put(request.getRequestId(), getRequestResource(request, requestedPropertyIds));
+    List<RequestEntity> requests = s_requestDAO.findByPks(requestIds);
+    for (RequestEntity re : requests) {
+      if ((null == clusterId && (null == re.getClusterId() || -1L == re.getClusterId())) ||
+          (null != clusterId && null != re.getRequestId() && re.getClusterId().equals(clusterId))) {
+        Resource r = getRequestResource(re, clusterName, requestedPropertyIds);
+        resourceMap.put(re.getRequestId(), r);
+      }
     }
 
     return resourceMap.values();
   }
 
-  private Resource getRequestResource(final org.apache.ambari.server.actionmanager.Request request,
-                                      Set<String> requestedPropertyIds) {
+  private Resource getRequestResource(RequestEntity entity, String clusterName,
+      Set<String> requestedPropertyIds) {
     Resource resource = new ResourceImpl(Resource.Type.Request);
 
-    if (null != request.getClusterName())
-      setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, request.getClusterName(), requestedPropertyIds);
+    if (null != clusterName)
+      setResourceProperty(resource, REQUEST_CLUSTER_NAME_PROPERTY_ID, clusterName, requestedPropertyIds);
 
-    setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, request.getRequestId(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_CONTEXT_ID, request.getRequestContext(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_TYPE_ID, request.getRequestType(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_INPUTS_ID, request.getInputs(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID, request.getResourceFilters(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_ID_PROPERTY_ID, entity.getRequestId(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_CONTEXT_ID, entity.getRequestContext(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_TYPE_ID, entity.getRequestType(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_INPUTS_ID, entity.getInputs(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_RESOURCE_FILTER_ID,
+        org.apache.ambari.server.actionmanager.Request.filtersFromEntity(entity),
+        requestedPropertyIds);
 
-    RequestOperationLevel operationLevel = request.getOperationLevel();
+    RequestOperationLevel operationLevel = org.apache.ambari.server.actionmanager.Request.operationLevelFromEntity(entity);
     String opLevelStr = null;
     if (operationLevel != null) {
       opLevelStr = RequestOperationLevel.getExternalLevelName(
@@ -452,29 +467,31 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     }
     setResourceProperty(resource, REQUEST_OPERATION_LEVEL_ID, opLevelStr, requestedPropertyIds);
 
-    setResourceProperty(resource, REQUEST_CREATE_TIME_ID, request.getCreateTime(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_START_TIME_ID, request.getStartTime(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_END_TIME_ID, request.getEndTime(), requestedPropertyIds);
-    setResourceProperty(resource, REQUEST_EXCLUSIVE_ID, request.isExclusive(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_CREATE_TIME_ID, entity.getCreateTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_START_TIME_ID, entity.getStartTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_END_TIME_ID, entity.getEndTime(), requestedPropertyIds);
+    setResourceProperty(resource, REQUEST_EXCLUSIVE_ID, entity.isExclusive(), requestedPropertyIds);
 
-    if (request.getRequestScheduleId() != null) {
-      setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE_ID, request.getRequestScheduleId(), requestedPropertyIds);
+    if (entity.getRequestScheduleId() != null) {
+      setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE_ID, entity.getRequestScheduleId(), requestedPropertyIds);
     } else {
       setResourceProperty(resource, REQUEST_SOURCE_SCHEDULE, null, requestedPropertyIds);
     }
 
-    Collection<HostRoleCommand> commands = request.getCommands();
-    Collection<Stage> stages = request.getStages();
 
-    CalculatedStatus status = CalculatedStatus.statusFromStages(stages);
+    Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
+    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);
     setResourceProperty(resource, REQUEST_PROGRESS_PERCENT_ID, status.getPercent(), requestedPropertyIds);
 
-    int taskCount = commands.size();
+    int taskCount = 0;
+    for (HostRoleCommandStatusSummaryDTO dto : summary.values()) {
+      taskCount += dto.getTaskTotal();
+    }
 
-    Map<HostRoleStatus, Integer> hostRoleStatusCounters =
-        CalculatedStatus.calculateStatusCounts(getHostRoleStatuses(commands));
+    Map<HostRoleStatus, Integer> hostRoleStatusCounters = CalculatedStatus.calculateTaskStatusCounts(
+        summary, summary.keySet());
 
     setResourceProperty(resource, REQUEST_TASK_CNT_ID, taskCount, requestedPropertyIds);
     setResourceProperty(resource, REQUEST_FAILED_TASK_CNT_ID,
@@ -491,19 +508,5 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     return resource;
   }
 
-  /**
-   * Get a collection of statuses from the given collection of tasks.
-   *
-   * @param tasks  the tasks
-   *
-   * @return a collection of statuses
-   */
-  private static Collection<HostRoleStatus> getHostRoleStatuses(Collection<HostRoleCommand> tasks) {
-    Collection<HostRoleStatus> hostRoleStatuses = new LinkedList<HostRoleStatus>();
 
-    for (HostRoleCommand hostRoleCommand : tasks) {
-      hostRoleStatuses.add(hostRoleCommand.getStatus());
-    }
-    return hostRoleStatuses;
-  }
 }

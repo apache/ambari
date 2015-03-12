@@ -140,4 +140,83 @@ public class HostRoleCommandStatusSummaryDTO {
     return m_maxTime;
   }
 
+  /**
+   * For testing, create an empty summary.
+   */
+  public static HostRoleCommandStatusSummaryDTO create() {
+    return new HostRoleCommandStatusSummaryDTO(
+        0L, // skippable,
+        0L, // minStartTime,
+        0L, // maxEndTime,
+        0L, // stageId,
+        0L, // aborted,
+        0L, // completed,
+        0L, // failed,
+        0L, // holding,
+        0L, // holdingFailed,
+        0L, // holdingTimedout,
+        0L, // inProgress,
+        0L, // pending,
+        0L, // queued,
+        0L);  // timedout
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#COMPLETED} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO completed(int count) {
+    put(HostRoleStatus.COMPLETED, Integer.valueOf(count));
+    return this;
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#FAILED} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO failed(int count) {
+    put(HostRoleStatus.FAILED, Integer.valueOf(count));
+    return this;
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#ABORTED} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO aborted(int count) {
+    put(HostRoleStatus.ABORTED, count);
+    return this;
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#TIMEDOUT} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO timedout(int count) {
+    put(HostRoleStatus.TIMEDOUT, count);
+    return this;
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#IN_PROGRESS} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO inProgress(int count) {
+    put(HostRoleStatus.IN_PROGRESS, count);
+    return this;
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#PENDING} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO pending(int count) {
+    put(HostRoleStatus.PENDING, count);
+    return this;
+  }
+
+  /**
+   * For testing, set the number of {@link HostRoleStatus#QUEUED} tasks
+   */
+  public HostRoleCommandStatusSummaryDTO queued(int count) {
+    put(HostRoleStatus.QUEUED, count);
+    return this;
+  }
+
+
+
 }

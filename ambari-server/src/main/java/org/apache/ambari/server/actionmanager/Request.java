@@ -157,7 +157,7 @@ public class Request {
 
     this.requestId = entity.getRequestId();
     this.clusterId = entity.getClusterId();
-    
+
     if (-1L != this.clusterId) {
       try {
         this.clusterName = clusters.getClusterById(this.clusterId).getClusterName();
@@ -185,31 +185,13 @@ public class Request {
       Stage stage = stageFactory.createExisting(stageEntity);
       stages.add(stage);
     }
-    Collection<RequestResourceFilterEntity> resourceFilterEntities = entity.getResourceFilterEntities();
-    if (resourceFilterEntities != null) {
-      this.resourceFilters = new ArrayList<RequestResourceFilter>();
-      for (RequestResourceFilterEntity resourceFilterEntity : resourceFilterEntities) {
-        RequestResourceFilter resourceFilter =
-          new RequestResourceFilter(
-            resourceFilterEntity.getServiceName(),
-            resourceFilterEntity.getComponentName(),
-            getHostsList(resourceFilterEntity.getHosts()));
-        this.resourceFilters.add(resourceFilter);
-      }
-    }
-    RequestOperationLevelEntity operationLevelEntity = entity.getRequestOperationLevel();
-    if (operationLevelEntity != null) {
-      this.operationLevel = new RequestOperationLevel(
-          Resource.Type.valueOf(operationLevelEntity.getLevel()),
-        operationLevelEntity.getClusterName(),
-        operationLevelEntity.getServiceName(),
-        operationLevelEntity.getHostComponentName(),
-        operationLevelEntity.getHostName()
-      );
-    }
+
+    resourceFilters = filtersFromEntity(entity);
+
+    operationLevel = operationLevelFromEntity(entity);
   }
 
-  private List<String> getHostsList(String hosts) {
+  private static List<String> getHostsList(String hosts) {
     List<String> hostList = new ArrayList<String>();
     if (hosts != null && !hosts.isEmpty()) {
       for (String host : hosts.split(",")) {
@@ -405,4 +387,52 @@ public class Request {
   public void setExclusive(boolean isExclusive) {
     this.exclusive = isExclusive;
   }
+
+  /**
+   * @param entity  the request entity
+   * @return a list of {@link RequestResourceFilter} from the entity, or {@code null}
+   *        if none are defined
+   */
+  public static List<RequestResourceFilter> filtersFromEntity (RequestEntity entity) {
+    List<RequestResourceFilter> resourceFilters = null;
+
+    Collection<RequestResourceFilterEntity> resourceFilterEntities = entity.getResourceFilterEntities();
+    if (resourceFilterEntities != null) {
+      resourceFilters = new ArrayList<RequestResourceFilter>();
+      for (RequestResourceFilterEntity resourceFilterEntity : resourceFilterEntities) {
+        RequestResourceFilter resourceFilter =
+          new RequestResourceFilter(
+            resourceFilterEntity.getServiceName(),
+            resourceFilterEntity.getComponentName(),
+            getHostsList(resourceFilterEntity.getHosts()));
+        resourceFilters.add(resourceFilter);
+      }
+    }
+
+    return resourceFilters;
+  }
+
+  /**
+   * @param entity  the request entity
+   * @return the {@link RequestOperationLevel} from the entity, or {@code null}
+   *        if none is defined
+   */
+  public static RequestOperationLevel operationLevelFromEntity(RequestEntity entity) {
+    RequestOperationLevel level = null;
+
+    RequestOperationLevelEntity operationLevelEntity = entity.getRequestOperationLevel();
+    if (operationLevelEntity != null) {
+      level = new RequestOperationLevel(
+          Resource.Type.valueOf(operationLevelEntity.getLevel()),
+        operationLevelEntity.getClusterName(),
+        operationLevelEntity.getServiceName(),
+        operationLevelEntity.getHostComponentName(),
+        operationLevelEntity.getHostName());
+    }
+
+    return level;
+  }
+
+
+
 }
