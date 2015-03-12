@@ -33,8 +33,10 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
+import org.apache.ambari.server.controller.internal.AlertResourceProvider;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
 import org.apache.ambari.server.controller.internal.SortRequestImpl;
 import org.apache.ambari.server.controller.spi.PageRequest.StartingPoint;
@@ -147,6 +149,7 @@ public class AlertsDAOTest {
     assertEquals(5, definitions.size());
 
     // create 10 historical alerts for each definition, 8 OK and 2 CRIT
+    // total of 80 OK, 20 CRITICAL
     calendar.clear();
     calendar.set(2014, Calendar.JANUARY, 1);
 
@@ -338,7 +341,7 @@ public class AlertsDAOTest {
     history.setAlertLabel(hostDef.getDefinitionName());
     history.setAlertText(hostDef.getDefinitionName());
     history.setAlertTimestamp(Long.valueOf(1L));
-    history.setHostName("h2");
+    history.setHostName(HOSTNAME);
     history.setAlertState(AlertState.OK);
 
     // current for the history
@@ -348,15 +351,67 @@ public class AlertsDAOTest {
     current.setAlertHistory(history);
     m_dao.create(current);
 
-    List<AlertCurrentEntity> currentAlerts = m_dao.findCurrentByHost(
-        m_cluster.getClusterId(), history.getHostName());
+    Predicate hostPredicate = null;
+    hostPredicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_HOST).equals(HOSTNAME).toPredicate();
 
+    AlertCurrentRequest request = new AlertCurrentRequest();
+    request.Predicate = hostPredicate;
+
+    List<AlertCurrentEntity> currentAlerts = m_dao.findAll(request);
     assertNotNull(currentAlerts);
     assertEquals(1, currentAlerts.size());
 
-    currentAlerts = m_dao.findCurrentByHost(m_cluster.getClusterId(), "foo");
+    hostPredicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_HOST).equals("invalid.apache.org").toPredicate();
+
+    request = new AlertCurrentRequest();
+    request.Predicate = hostPredicate;
+    currentAlerts = m_dao.findAll(request);
 
     assertNotNull(currentAlerts);
+    assertEquals(0, currentAlerts.size());
+  }
+
+  /**
+   * Tests that the Ambari {@link Predicate} can be converted and submitted to
+   * JPA correctly to return a restricted result set.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testAlertCurrentPredicate() throws Exception {
+    AlertDefinitionEntity definition = m_definitionDao.findByName(
+        m_cluster.getClusterId(), "Alert Definition 0");
+
+    assertNotNull(definition);
+
+    Predicate definitionIdPredicate = null;
+    Predicate hdfsPredicate = null;
+    Predicate yarnPredicate = null;
+
+    definitionIdPredicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_DEFINITION_ID).equals(
+        definition.getDefinitionId()).toPredicate();
+
+    AlertCurrentRequest request = new AlertCurrentRequest();
+    request.Predicate = definitionIdPredicate;
+
+    List<AlertCurrentEntity> currentAlerts = m_dao.findAll(request);
+    assertEquals(1, currentAlerts.size());
+
+    hdfsPredicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_SERVICE).equals("HDFS").toPredicate();
+
+    yarnPredicate = new PredicateBuilder().property(
+        AlertResourceProvider.ALERT_SERVICE).equals("YARN").toPredicate();
+
+    request.Predicate = yarnPredicate;
+    currentAlerts = m_dao.findAll(request);
+    assertEquals(5, currentAlerts.size());
+
+    request.Predicate = hdfsPredicate;
+    currentAlerts = m_dao.findAll(request);
     assertEquals(0, currentAlerts.size());
   }
 
