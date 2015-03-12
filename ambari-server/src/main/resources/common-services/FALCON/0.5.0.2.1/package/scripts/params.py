@@ -92,6 +92,7 @@ hostname = config["hostname"]
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
+smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 kinit_path_local = functions.get_kinit_path()
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
