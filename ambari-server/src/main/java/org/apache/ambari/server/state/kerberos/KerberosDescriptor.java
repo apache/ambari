@@ -256,6 +256,26 @@ public class KerberosDescriptor extends AbstractKerberosDescriptorContainer {
   }
 
   /**
+   * Gets the requested AbstractKerberosDescriptor implementation using a type name and a relevant
+   * descriptor name.
+   * <p/>
+   * This implementation handles service descriptors and delegates to the AbstractKerberosDescriptor
+   * implementation to handle component and identity types.
+   *
+   * @param type a String indicating the type of the requested descriptor
+   * @param name a String indicating the name of the requested descriptor
+   * @return a AbstractKerberosDescriptor representing the requested descriptor or null if not found
+   */
+  @Override
+  protected AbstractKerberosDescriptor getDescriptor(KerberosDescriptorType type, String name) {
+    if (KerberosDescriptorType.SERVICE == type) {
+      return getService(name);
+    } else {
+      return super.getDescriptor(type, name);
+    }
+  }
+
+  /**
    * Creates a Map of values that can be used to create a copy of this KerberosDescriptor
    * or generate the JSON structure described in
    * {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor}
