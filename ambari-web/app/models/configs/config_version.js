@@ -16,39 +16,12 @@
  * limitations under the License.
  */
 
+
 var App = require('app');
-require('models/service_config_version');
 
-var model;
-
-describe('App.ServiceConfigVersion', function () {
-
-  beforeEach(function () {
-    model = App.ServiceConfigVersion.createRecord({});
-  });
-
-  describe('#authorFormatted', function () {
-
-    var cases = [
-      {
-        author: 'admin',
-        authorFormatted: 'admin',
-        title: 'should display username as is'
-      },
-      {
-        author: 'userNameIsTooLongToDisplay',
-        authorFormatted: 'userNameIsTooLongToD...',
-        title: 'should trim username to 20 chars'
-      }
-    ];
-
-    cases.forEach(function (item) {
-      it(item.title, function () {
-        model.set('author', item.author);
-        expect(model.get('authorFormatted')).to.equal(item.authorFormatted);
-      });
-    });
-
-  });
-
+App.ConfigVersion = App.ServiceConfigVersion.extend({
+  configGroup: DS.belongsTo('App.ServiceConfigGroup'),
+  configProperties: DS.hasMany('App.ConfigProperty')
 });
+
+App.ConfigVersion.FIXTURES = [];
