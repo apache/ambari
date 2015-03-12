@@ -20,9 +20,8 @@ package org.apache.ambari.view.hive;
 
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.persistence.Storage;
-import org.apache.ambari.view.hive.persistence.utils.StorageUtil;
 import org.apache.ambari.view.hive.utils.HdfsApi;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,19 +36,16 @@ public class BaseService {
   protected final static Logger LOG =
       LoggerFactory.getLogger(BaseService.class);
 
-  private Storage storage;
-  protected Storage getStorage() {
-    if (storage == null) {
-      storage = StorageUtil.getInstance(context).getStorage();
+  private SharedObjectsFactory sharedObjectsFactory;
+  public SharedObjectsFactory getSharedObjectsFactory() {
+    if (sharedObjectsFactory == null) {
+      sharedObjectsFactory = new SharedObjectsFactory(context);
     }
-    return storage;
+    return sharedObjectsFactory;
   }
 
-  private HdfsApi hdfsApi = null;
-  protected HdfsApi getHdfsApi()  {
-    if (hdfsApi == null)
-      hdfsApi = HdfsApi.getInstance(context);
-    return hdfsApi;
+  public void setSharedObjectsFactory(SharedObjectsFactory sharedObjectsFactory) {
+    this.sharedObjectsFactory = sharedObjectsFactory;
   }
 
   public BaseService() {

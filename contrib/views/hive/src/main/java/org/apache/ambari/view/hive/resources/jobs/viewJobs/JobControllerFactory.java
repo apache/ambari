@@ -16,28 +16,27 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.jobs;
+package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class JobControllerFactory {
+public class JobControllerFactory implements IJobControllerFactory {
+  private SharedObjectsFactory sharedObjectsFactory;
   private ViewContext context;
 
-  private JobControllerFactory(ViewContext context) {
+  public JobControllerFactory(ViewContext context, SharedObjectsFactory sharedObjectsFactory) {
+    this.sharedObjectsFactory = sharedObjectsFactory;
     this.context = context;
   }
 
-  private static Map<String, JobControllerFactory> viewSingletonObjects = new HashMap<String, JobControllerFactory>();
-  public static JobControllerFactory getInstance(ViewContext context) {
-    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
-      viewSingletonObjects.put(context.getInstanceName(), new JobControllerFactory(context));
-    return viewSingletonObjects.get(context.getInstanceName());
-  }
-
+  @Override
   public JobController createControllerForJob(Job job) {
-    return new JobControllerImpl(context, job);
+    return new JobControllerImpl(context, job,
+        sharedObjectsFactory.getHiveConnectionController(),
+        sharedObjectsFactory.getOperationHandleControllerFactory(),
+        sharedObjectsFactory.getSavedQueryResourceManager(),
+        sharedObjectsFactory.getATSParser(),
+        sharedObjectsFactory.getHdfsApi());
   }
 }

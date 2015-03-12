@@ -26,43 +26,34 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ConnectionPool {
+public class ConnectionFactory implements IConnectionFactory {
   private final static Logger LOG =
-      LoggerFactory.getLogger(ConnectionPool.class);
+      LoggerFactory.getLogger(ConnectionFactory.class);
+  private ViewContext context;
 
-  private static Map<String, Connection> viewSingletonObjects = new HashMap<String, Connection>();
-  /**
-   * Returns HdfsApi object specific to instance
-   * @param context View Context instance
-   * @return Hdfs business delegate object
-   */
-  public static Connection getConnection(ViewContext context) {
-    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
-      viewSingletonObjects.put(context.getInstanceName(), connectToHive(context));
-    return viewSingletonObjects.get(context.getInstanceName());
+  public ConnectionFactory(ViewContext context) {
+    this.context = context;
   }
 
-  private static Connection connectToHive(ViewContext context) {
+  @Override
+  public Connection getHiveConnection() {
     try {
-      return new Connection(getHiveHost(context), Integer.valueOf(getHivePort(context)), getHiveAuthParams(context));
+      return new Connection(getHiveHost(), Integer.valueOf(getHivePort()),
+          getHiveAuthParams(), context.getUsername());
     } catch (HiveClientException e) {
       throw new ServiceFormattedException("Couldn't open connection to Hive: " + e.toString(), e);
     }
   }
 
-  public static void setInstance(ViewContext context, Connection api) {
-    viewSingletonObjects.put(context.getInstanceName(), api);
-  }
-
-  private static String getHiveHost(ViewContext context) {
+  private String getHiveHost() {
     return context.getProperties().get("hive.host");
   }
 
-  private static String getHivePort(ViewContext context) {
+  private String getHivePort() {
     return context.getProperties().get("hive.port");
   }
 
-  private static Map<String, String> getHiveAuthParams(ViewContext context) {
+  private Map<String, String> getHiveAuthParams() {
     String auth = context.getProperties().get("hive.auth");
     Map<String, String> params = new HashMap<String, String>();
     if (auth == null || auth.isEmpty()) {

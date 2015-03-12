@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.ArrayController.extend({
   needs: [ constants.namingConventions.databases,
@@ -91,7 +92,9 @@ export default Ember.ArrayController.extend({
           var isExplainedQuery,
               subroute;
 
-          if (model.get('constructor.typeKey') === constants.namingConventions.job) {
+          //jobs that were run from hive ui (exclude ats jobs)
+          if (model.get('constructor.typeKey') === constants.namingConventions.job &&
+              utils.isInteger(model.get('id'))) {
             isExplainedQuery = self.get('currentQuery.fileContent').indexOf(constants.namingConventions.explainPrefix) > -1;
 
             if (isExplainedQuery) {
@@ -251,13 +254,9 @@ export default Ember.ArrayController.extend({
     var hasQueryParams = this.get('index.queryParams.length');
     var hasSettings = this.get('settings').hasSettings(jobId);
 
-    if ( selected && selected[0] !== "" ||
+    return selected && selected[0] !== "" ||
          hasQueryParams ||
-         hasSettings ) {
-      return true;
-    }
-
-    return false;
+         hasSettings;
   },
 
   actions: {

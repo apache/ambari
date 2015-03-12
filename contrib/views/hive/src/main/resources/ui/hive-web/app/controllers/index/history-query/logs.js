@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.ObjectController.extend({
   needs: [ constants.namingConventions.loadedFiles ],
@@ -73,12 +74,11 @@ export default Ember.ObjectController.extend({
   },
 
   isJobRunning: function (job) {
-    var status = job.get('status');
-
-    return status !== constants.statuses.finished &&
-           status !== constants.statuses.canceled &&
-           status !== constants.statuses.closed &&
-           status !== constants.statuses.error;
+    return utils.insensitiveCompare(job.get('status'),
+                                    constants.statuses.unknown,
+                                    constants.statuses.initialized,
+                                    constants.statuses.running,
+                                    constants.statuses.pending);
   },
 
   getLogs: function () {

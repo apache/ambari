@@ -22,15 +22,15 @@ import org.apache.ambari.view.hive.persistence.utils.Indexed;
 
 public class TestBean implements Indexed {
   public String someData;
-  public Integer id;
+  public String id;
 
   @Override
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
   @Override
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 }

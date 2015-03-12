@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.resources.udfs;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
@@ -38,12 +39,12 @@ public class UDFResourceManager extends PersonalCRUDResourceManager<UDF> {
    * Constructor
    * @param context View Context instance
    */
-  public UDFResourceManager(ViewContext context) {
-    super(UDF.class, context);
+  public UDFResourceManager(IStorageFactory storageFactory, ViewContext context) {
+    super(UDF.class, storageFactory, context);
   }
 
   @Override
-  public UDF read(Integer id) throws ItemNotFound {
+  public UDF read(Object id) throws ItemNotFound {
     return super.read(id);
   }
 
@@ -58,7 +59,7 @@ public class UDFResourceManager extends PersonalCRUDResourceManager<UDF> {
   }
 
   @Override
-  public void delete(Integer resourceId) throws ItemNotFound {
+  public void delete(Object resourceId) throws ItemNotFound {
     super.delete(resourceId);
   }
 }

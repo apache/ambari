@@ -19,7 +19,7 @@
 import Typeahead from 'ember-cli-selectize/components/ember-selectize';
 import Ember from 'ember';
 
-export default Typeahead.extend({
+export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
   didInsertElement: function() {
     this._super();
 

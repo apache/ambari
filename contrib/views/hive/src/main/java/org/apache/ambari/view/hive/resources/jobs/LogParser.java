@@ -23,29 +23,35 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class LogParser {
-  public static final Pattern HADOOP_MR_JOBS_RE = Pattern.compile("(http[^\\s]*/proxy/([a-z0-9_]+?)/)");
-  public static final Pattern HADOOP_TEZ_JOBS_RE = Pattern.compile("\\(Executing on YARN cluster with App id ([a-z0-9_]+?)\\)");
-  private LinkedHashSet<JobId> jobsList;
+  public static final Pattern HADOOP_MR_APPS_RE = Pattern.compile("(http[^\\s]*/proxy/([a-z0-9_]+?)/)");
+  public static final Pattern HADOOP_TEZ_APPS_RE = Pattern.compile("\\(Executing on YARN cluster with App id ([a-z0-9_]+?)\\)");
+  private LinkedHashSet<AppId> appsList;
+
+  private LogParser() {}
 
   public static LogParser parseLog(String logs) {
     LogParser parser = new LogParser();
 
-    LinkedHashSet<JobId> mrJobIds = getMRJobIds(logs);
-    LinkedHashSet<JobId> tezJobIds = getTezJobIds(logs);
-
-    LinkedHashSet<JobId> jobIds = new LinkedHashSet<JobId>();
-    jobIds.addAll(mrJobIds);
-    jobIds.addAll(tezJobIds);
-
-    parser.setJobsList(jobIds);
+    parser.setAppsList(parseApps(logs, parser));
     return parser;
   }
 
-  private static LinkedHashSet<JobId> getMRJobIds(String logs) {
-    Matcher m = HADOOP_MR_JOBS_RE.matcher(logs);
-    LinkedHashSet<JobId> list = new LinkedHashSet<JobId>();
+  public static LinkedHashSet<AppId> parseApps(String logs, LogParser parser) {
+    LinkedHashSet<AppId> mrAppIds = getMRAppIds(logs);
+    LinkedHashSet<AppId> tezAppIds = getTezAppIds(logs);
+
+    LinkedHashSet<AppId> appIds = new LinkedHashSet<AppId>();
+    appIds.addAll(mrAppIds);
+    appIds.addAll(tezAppIds);
+
+    return appIds;
+  }
+
+  private static LinkedHashSet<AppId> getMRAppIds(String logs) {
+    Matcher m = HADOOP_MR_APPS_RE.matcher(logs);
+    LinkedHashSet<AppId> list = new LinkedHashSet<AppId>();
     while (m.find()) {
-      JobId applicationInfo = new JobId();
+      AppId applicationInfo = new AppId();
       applicationInfo.setTrackingUrl(m.group(1));
       applicationInfo.setIdentifier(m.group(2));
       list.add(applicationInfo);
@@ -53,27 +59,34 @@ public class LogParser {
     return list;
   }
 
-  private static LinkedHashSet<JobId> getTezJobIds(String logs) {
-    Matcher m = HADOOP_TEZ_JOBS_RE.matcher(logs);
-    LinkedHashSet<JobId> list = new LinkedHashSet<JobId>();
+  private static LinkedHashSet<AppId> getTezAppIds(String logs) {
+    Matcher m = HADOOP_TEZ_APPS_RE.matcher(logs);
+    LinkedHashSet<AppId> list = new LinkedHashSet<AppId>();
     while (m.find()) {
-      JobId applicationInfo = new JobId();
-      applicationInfo.setTrackingUrl(null);
+      AppId applicationInfo = new AppId();
+      applicationInfo.setTrackingUrl("");
       applicationInfo.setIdentifier(m.group(1));
       list.add(applicationInfo);
     }
     return list;
   }
 
-  public void setJobsList(LinkedHashSet<JobId> jobsList) {
-    this.jobsList = jobsList;
+  public void setAppsList(LinkedHashSet<AppId> appsList) {
+    this.appsList = appsList;
   }
 
-  public LinkedHashSet<JobId> getJobsList() {
-    return jobsList;
+  public LinkedHashSet<AppId> getAppsList() {
+    return appsList;
   }
 
-  public static class JobId {
+  public AppId getLastAppInList() {
+    Object[] appIds = appsList.toArray();
+    if (appIds.length == 0)
+      return null;
+    return (AppId) appIds[appsList.size()-1];
+  }
+
+  public static class AppId {
     private String trackingUrl;
     private String identifier;
 
@@ -96,11 +109,11 @@ public class LogParser {
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;
-      if (!(o instanceof JobId)) return false;
+      if (!(o instanceof AppId)) return false;
 
-      JobId jobId = (JobId) o;
+      AppId appId = (AppId) o;
 
-      if (!identifier.equals(jobId.identifier)) return false;
+      if (!identifier.equals(appId.identifier)) return false;
 
       return true;
     }
@@ -108,6 +121,18 @@ public class LogParser {
     @Override
     public int hashCode() {
       return identifier.hashCode();
+    }
+  }
+
+  public static class EmptyAppId extends AppId {
+    @Override
+    public String getTrackingUrl() {
+      return "";
+    }
+
+    @Override
+    public String getIdentifier() {
+      return "";
     }
   }
 }

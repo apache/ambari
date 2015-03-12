@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.resources.savedQueries;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
@@ -41,23 +42,15 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   private final static Logger LOG =
       LoggerFactory.getLogger(SavedQueryResourceManager.class);
 
+  private SharedObjectsFactory sharedObjectsFactory;
+
   /**
    * Constructor
    * @param context View Context instance
    */
-  private SavedQueryResourceManager(ViewContext context) {
-    super(SavedQuery.class, context);
-  }
-
-  //TODO: move all context-singletones to ContextController or smth like that
-  private static Map<String, SavedQueryResourceManager> viewSingletonObjects = new HashMap<String, SavedQueryResourceManager>();
-  public static SavedQueryResourceManager getInstance(ViewContext context) {
-    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
-      viewSingletonObjects.put(context.getInstanceName(), new SavedQueryResourceManager(context));
-    return viewSingletonObjects.get(context.getInstanceName());
-  }
-  static Map<String, SavedQueryResourceManager> getViewSingletonObjects() {
-    return viewSingletonObjects;
+  public SavedQueryResourceManager(ViewContext context, SharedObjectsFactory sharedObjectsFactory) {
+    super(SavedQuery.class, sharedObjectsFactory, context);
+    this.sharedObjectsFactory = sharedObjectsFactory;
   }
 
   @Override
@@ -83,20 +76,20 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
       throw new MisconfigurationFormattedException("scripts.dir");
     }
 
-    String normalizedName = String.format("hive-query-%d", object.getId());
+    String normalizedName = String.format("hive-query-%s", object.getId());
     String timestamp = new SimpleDateFormat("yyyy-MM-dd_hh-mm").format(new Date());
     String baseFileName = String.format(userScriptsPath +
         "/%s-%s", normalizedName, timestamp);
 
-    String newFilePath = HdfsUtil.findUnallocatedFileName(context, baseFileName, ".hql");
-    HdfsUtil.putStringToFile(context, newFilePath, "");
+    String newFilePath = HdfsUtil.findUnallocatedFileName(sharedObjectsFactory.getHdfsApi(), baseFileName, ".hql");
+    HdfsUtil.putStringToFile(sharedObjectsFactory.getHdfsApi(), newFilePath, "");
 
     object.setQueryFile(newFilePath);
-    getStorage().store(SavedQuery.class, object);
+    storageFabric.getStorage().store(SavedQuery.class, object);
   }
 
   @Override
-  public SavedQuery read(Integer id) throws ItemNotFound {
+  public SavedQuery read(Object id) throws ItemNotFound {
     SavedQuery savedQuery = super.read(id);
     fillShortQueryField(savedQuery);
     return savedQuery;
@@ -104,7 +97,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
 
   private void fillShortQueryField(SavedQuery savedQuery) {
     if (savedQuery.getQueryFile() != null) {
-      FilePaginator paginator = new FilePaginator(savedQuery.getQueryFile(), context);
+      FilePaginator paginator = new FilePaginator(savedQuery.getQueryFile(), sharedObjectsFactory.getHdfsApi());
       String query = null;
       try {
         query = paginator.readPage(0);
@@ -117,7 +110,14 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
       }
       savedQuery.setShortQuery(query.substring(0, (query.length() > 42)?42:query.length()));
     }
-    getStorage().store(SavedQuery.class, savedQuery);
+    storageFabric.getStorage().store(SavedQuery.class, savedQuery);
+  }
+
+  @Override
+  public SavedQuery update(SavedQuery newObject, String id) throws ItemNotFound {
+    SavedQuery savedQuery = super.update(newObject, id);
+    fillShortQueryField(savedQuery);
+    return savedQuery;
   }
 
   @Override
@@ -126,7 +126,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
   }
 
   @Override
-  public void delete(Integer resourceId) throws ItemNotFound {
+  public void delete(Object resourceId) throws ItemNotFound {
     super.delete(resourceId);
   }
 }

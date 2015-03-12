@@ -20,6 +20,7 @@
 
 $panel-background: #f5f5f5;
 $placeholder-color: #aaa;
+$border-color: #ddd;
 
 @-webkit-keyframes fadeIn {
   0% {opacity: 0;}
@@ -50,8 +51,21 @@ $placeholder-color: #aaa;
   -webkit-animation-name: fadeOut;
           animation-name: fadeOut;
 }
+
 #content {
   padding: 20px 0;
+}
+
+#index-content {
+  display: flex;
+}
+
+#visual-explain, #tez-ui {
+  position: absolute;
+  left: 0;
+  width: 0;
+  z-index: 99;
+  background: white;
 }
 
 #alerts-container {
@@ -78,7 +92,7 @@ aside  hr {
 }
 
 .toolbox {
-  margin-top: 15px;
+  margin: 15px 15px 0 0;
 
   insert-udfs {
     display: inline-block;
@@ -97,6 +111,10 @@ aside  hr {
   color: $placeholder-color;
 }
 
+.form-group {
+  margin-bottom: 0;
+}
+
 .secondary-row {
   background: $panel-background;
 }
@@ -109,12 +127,12 @@ aside  hr {
 }
 
 .CodeMirror {
-  border: 0 1px solid #ddd;
+  border: 0 1px solid $border-color;
 }
 
 .grip {
   height: 20px;
-  border: 0 1px 1px solid #ddd;
+  border: 0 1px 1px solid $border-color;
   background-color: $panel-background;
   color: #bbb;
   text-align: center;
@@ -133,19 +151,19 @@ aside  hr {
   background-color: white;
 }
 
-.Unknown {
+.UNKNOWN {
   color: gray;
 }
 
-.Running, .Pending, .Initialized, .fa-edit {
+.RUNNING, .PENDING, .INITIALIZED, .fa-edit {
   color: orange;
 }
 
-.Finished {
+.SUCCEEDED {
   color: green;
 }
 
-.Canceled, .Error {
+.CANCELED, .ERROR {
   color: red;
 }
 
@@ -153,13 +171,42 @@ dropdown .fa-remove {
   color: red;
 }
 
-.Closed {
+.CLOSED {
   color: blue;
 }
 
 .query-container {
   position: relative;
   padding-right: 0;
+}
+
+.main-content {
+  flex-grow: 1;
+}
+
+.query-menu {
+  margin-top: 57px;
+
+  span, popover {
+    cursor: pointer;
+    overflow: hidden;
+    display: block;
+    border-bottom: 1px solid $border-color;
+    padding: 10px;
+  }
+}
+
+.queries-icon {
+  font-size: 20px;
+
+  &.active {
+    color: #428bca;
+  }
+
+  &.text-icon {
+    font-size: 12px;
+    font-weight: 800;
+  }
 }
 
 .alert {
@@ -231,7 +278,7 @@ body {
   height: 36px;
   background: url("/img/spinner.gif");
   background-repeat: no-repeat;
-  margin: 0px auto;
+  margin: 0 auto;
 
   &.small {
     background-size: 20px;
@@ -257,25 +304,18 @@ body {
   padding-right: 0 !important;
 }
 
-.popover-right {
-  z-index: 92;
-  float: right;
-  position: relative;
-}
-
 .query-editor-panel .panel-body {
   position: relative;
+  padding-right: 0;
 }
-.settings-toggle {
+
+.settings-containers-toggle {
   position: absolute;
   top: 0;
   right: 25px;
   cursor: pointer;
 }
 
-.settings-toggle.active {
-  color: #428bca;
-}
 .settings-container {
   width: 100%;
   overflow-y: scroll;
@@ -286,8 +326,8 @@ body {
   position: absolute;
   padding: 0 15px;
   z-index: 1000;
-  border: 1px solid #ddd;
 
+  border: 1px solid $border-color;
   -webkit-animation-duration: .5s;
           animation-duration: .5s;
   -webkit-animation-fill-mode: both;
@@ -302,14 +342,25 @@ body {
 
 .setting {
   float: left;
-  margin: 0 10px 10px 0;
+  padding-right: 10px;
+  padding-top: 10px;
+
+  .input-group {
+    width: 100%;
+  }
+  .input-group-addon {
+    text-align: justify;
+    width: 50%;
+  }
 }
 
 .setting .remove {
   line-height: 30px;
-  margin-left: 10px;
   font-size: 18px;
   cursor: pointer;
+  position: absolute;
+  right: -5px;
+  top: -10px;
 }
 
 tabs {
@@ -319,9 +370,4 @@ tabs {
 
 tree-view ul li {
   padding-left: 10px;
-}
-
-.runOnTez {
-  float: right;
-  margin: 0
 }

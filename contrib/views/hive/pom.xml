@@ -195,7 +195,7 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.14</version>
         <configuration>
-          <nodeVersion>v0.10.26</nodeVersion>
+          <nodeVersion>v0.10.32</nodeVersion>
           <npmVersion>1.4.3</npmVersion>
           <workingDirectory>src/main/resources/ui/hive-web/</workingDirectory>
         </configuration>

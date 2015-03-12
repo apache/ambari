@@ -18,32 +18,19 @@
 
 package org.apache.ambari.view.hive.resources.jobs;
 
-import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.client.Connection;
-import org.apache.ambari.view.hive.client.ConnectionPool;
 import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
 
-import java.util.HashMap;
-import java.util.Map;
 
 public class ConnectionController {
-  private ViewContext context;
-  private Connection connection;
   private OperationHandleControllerFactory operationHandleControllerFactory;
+  private Connection connection;
 
-  private ConnectionController(ViewContext context) {
-    this.context = context;
-    connection = ConnectionPool.getConnection(context);
-    operationHandleControllerFactory = OperationHandleControllerFactory.getInstance(context);
-  }
-
-  private static Map<String, ConnectionController> viewSingletonObjects = new HashMap<String, ConnectionController>();
-  public static ConnectionController getInstance(ViewContext context) {
-    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
-      viewSingletonObjects.put(context.getInstanceName(), new ConnectionController(context));
-    return viewSingletonObjects.get(context.getInstanceName());
+  public ConnectionController(OperationHandleControllerFactory operationHandleControllerFactory, Connection connection) {
+    this.connection = connection;
+    this.operationHandleControllerFactory = operationHandleControllerFactory;
   }
 
   public void selectDatabase(String database) {

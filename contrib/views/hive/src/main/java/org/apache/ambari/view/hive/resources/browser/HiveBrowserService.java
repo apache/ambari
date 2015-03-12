@@ -21,13 +21,13 @@ package org.apache.ambari.view.hive.resources.browser;
 import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
-import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.client.ColumnDescription;
-import org.apache.ambari.view.hive.client.ConnectionPool;
 import org.apache.ambari.view.hive.client.Cursor;
+import org.apache.ambari.view.hive.client.IConnectionFactory;
 import org.apache.ambari.view.hive.resources.jobs.ResultsPaginationController;
 import org.apache.ambari.view.hive.utils.BadRequestFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -55,6 +55,8 @@ public class HiveBrowserService {
 
   private static final long EXPIRING_TIME = 10*60*1000;  // 10 minutes
   private static Map<String, Cursor> resultsCache;
+  private IConnectionFactory connectionFactory;
+
   public static Map<String, Cursor> getResultsCache() {
     if (resultsCache == null) {
       PassiveExpiringMap<String, Cursor> resultsCacheExpiringMap =
@@ -62,6 +64,12 @@ public class HiveBrowserService {
       resultsCache = Collections.synchronizedMap(resultsCacheExpiringMap);
     }
     return resultsCache;
+  }
+
+  private IConnectionFactory getConnectionFactory() {
+    if (connectionFactory == null)
+      connectionFactory = new SharedObjectsFactory(context);
+    return new SharedObjectsFactory(context);
   }
 
   /**
@@ -81,7 +89,7 @@ public class HiveBrowserService {
     String curl = null;
     try {
       JSONObject response = new JSONObject();
-      List<String> tables = ConnectionPool.getConnection(context).ddl().getDBList(like);
+      List<String> tables = getConnectionFactory().getHiveConnection().ddl().getDBList(like);
       response.put("databases", tables);
       return Response.ok(response).build();
     } catch (WebApplicationException ex) {
@@ -116,7 +124,7 @@ public class HiveBrowserService {
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {
-                  return ConnectionPool.getConnection(context).ddl().getDBListCursor(finalLike);
+                  return getConnectionFactory().getHiveConnection().ddl().getDBListCursor(finalLike);
                 }
               }).build();
     } catch (WebApplicationException ex) {
@@ -146,7 +154,7 @@ public class HiveBrowserService {
     String curl = null;
     try {
       JSONObject response = new JSONObject();
-      List<String> tables = ConnectionPool.getConnection(context).ddl().getTableList(db, like);
+      List<String> tables = getConnectionFactory().getHiveConnection().ddl().getTableList(db, like);
       response.put("tables", tables);
       response.put("database", db);
       return Response.ok(response).build();
@@ -183,7 +191,7 @@ public class HiveBrowserService {
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {
-                  Cursor cursor = ConnectionPool.getConnection(context).ddl().getTableListCursor(db, finalLike);
+                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableListCursor(db, finalLike);
                   cursor.selectColumns(requestedColumns);
                   return cursor;
                 }
@@ -212,7 +220,7 @@ public class HiveBrowserService {
     String curl = null;
     try {
       JSONObject response = new JSONObject();
-      List<ColumnDescription> columnDescriptions = ConnectionPool.getConnection(context).ddl()
+      List<ColumnDescription> columnDescriptions = getConnectionFactory().getHiveConnection().ddl()
           .getTableDescription(db, table, like, extendedTableDescription);
       response.put("columns", columnDescriptions);
       response.put("database", db);
@@ -247,7 +255,7 @@ public class HiveBrowserService {
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {
-                  Cursor cursor = ConnectionPool.getConnection(context).ddl().getTableDescriptionCursor(db, table, like);
+                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableDescriptionCursor(db, table, like);
                   cursor.selectColumns(requestedColumns);
                   return cursor;
                 }

@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.ObjectController.extend({
   cachedResults: [],
@@ -51,7 +52,7 @@ export default Ember.ObjectController.extend({
   initResults: function () {
     var existingJob;
 
-    if (this.get('content.status') !== constants.statuses.finished) {
+    if (!utils.insensitiveCompare(this.get('content.status'), constants.statuses.succeeded)) {
       return;
     }
 

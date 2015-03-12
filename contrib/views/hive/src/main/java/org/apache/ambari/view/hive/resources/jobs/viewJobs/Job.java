@@ -16,7 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.jobs;
+package org.apache.ambari.view.hive.resources.jobs.viewJobs;
+
 
 import org.apache.ambari.view.hive.persistence.utils.Indexed;
 import org.apache.ambari.view.hive.persistence.utils.PersonalResource;
@@ -30,15 +31,15 @@ public interface Job extends Serializable,Indexed,PersonalResource {
   public static final String JOB_STATE_UNKNOWN = "Unknown";
   public static final String JOB_STATE_INITIALIZED = "Initialized";
   public static final String JOB_STATE_RUNNING = "Running";
-  public static final String JOB_STATE_FINISHED = "Finished";
+  public static final String JOB_STATE_FINISHED = "Succeeded";
   public static final String JOB_STATE_CANCELED = "Canceled";
   public static final String JOB_STATE_CLOSED = "Closed";
   public static final String JOB_STATE_ERROR = "Error";
   public static final String JOB_STATE_PENDING = "Pending";
 
-  Integer getId();
+  String getId();
 
-  void setId(Integer id);
+  void setId(String id);
 
   String getOwner();
 
@@ -68,9 +69,9 @@ public interface Job extends Serializable,Indexed,PersonalResource {
 
   void setForcedContent(String forcedContent);
 
-  Integer getQueryId();
+  String getQueryId();
 
-  void setQueryId(Integer queryId);
+  void setQueryId(String queryId);
 
   String getStatusDir();
 
@@ -87,4 +88,12 @@ public interface Job extends Serializable,Indexed,PersonalResource {
   String getConfFile();
 
   void setConfFile(String confFile);
+
+  String getApplicationId();
+
+  void setApplicationId(String applicationId);
+
+  String getDagName();
+
+  void setDagName(String DagName);
 }

@@ -55,7 +55,12 @@ public class FileServiceTest extends HDFSTest {
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    HdfsApi.dropAllConnections(); //cleanup API connection
+  }
+
+  @Override
+  @After
+  public void tearDown() throws Exception {
+    fileService.getSharedObjectsFactory().clear(HdfsApi.class);
   }
 
   @Test

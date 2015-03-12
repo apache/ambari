@@ -41,38 +41,40 @@
   </thead>
   <tbody>
     {{#each query in this}}
-      <tr>
-        <td>
-          {{#link-to "index.savedQuery" query}}
-            {{query.shortQuery}}
-          {{/link-to}}
-        </td>
+      {{#unless query.isNew}}
+        <tr>
+          <td>
+            {{#link-to "index.savedQuery" query}}
+              {{query.shortQuery}}
+            {{/link-to}}
+          </td>
 
-        <td>
-          {{#link-to "index.savedQuery" query}}
-            {{query.title}}
-          {{/link-to}}
-        </td>
+          <td>
+            {{#link-to "index.savedQuery" query}}
+              {{query.title}}
+            {{/link-to}}
+          </td>
 
-        <td>{{query.dataBase}}</td>
+          <td>{{query.dataBase}}</td>
 
-        <td>{{query.owner}}</td>
+          <td>{{query.owner}}</td>
 
-        <td>
-          {{#unless query.isNew}}
-            <div class="btn-group pull-right">
-              <span data-toggle="dropdown">
-                <a class="fa fa-gear"></a>
-              </span>
-              <ul class="dropdown-menu" role="menu">
-                {{#each link in controller.links}}
-                  <li {{action 'executeAction' link query}}><a>{{tb-helper link}}</a></li>
-                {{/each}}
-              </ul>
-            </div>
-          {{/unless}}
-        </td>
-      </tr>
+          <td>
+            {{#unless query.isNew}}
+              <div class="btn-group pull-right">
+                <span data-toggle="dropdown">
+                  <a class="fa fa-gear"></a>
+                </span>
+                <ul class="dropdown-menu" role="menu">
+                  {{#each link in controller.links}}
+                    <li {{action 'executeAction' link query}}><a>{{tb-helper link}}</a></li>
+                  {{/each}}
+                </ul>
+              </div>
+            {{/unless}}
+          </td>
+        </tr>
+      {{/unless}}
     {{/each}}
   </tbody>
 </table>

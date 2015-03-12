@@ -28,4 +28,5 @@ public interface FilteringStrategy {
    * @return true if item conforms this filter
    */
   boolean isConform(Indexed item);
+  String whereStatement();
 }

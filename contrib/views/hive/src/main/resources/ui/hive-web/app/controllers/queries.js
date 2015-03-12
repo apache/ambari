@@ -63,10 +63,7 @@ export default Ember.ArrayController.extend(FilterableMixin, {
   ],
 
   model: function () {
-    var queries = this.get('queries');
-    queries = queries ? queries.filterBy('isNew', false) : queries;
-
-    return this.filter(queries);
+    return this.filter(this.get('queries'));
   }.property('queries', 'filters.@each'),
 
   actions: {

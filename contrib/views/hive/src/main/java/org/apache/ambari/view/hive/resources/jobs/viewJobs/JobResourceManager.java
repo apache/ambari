@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.jobs;
+package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.client.*;
@@ -36,15 +36,15 @@ public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
   private final static Logger LOG =
       LoggerFactory.getLogger(JobResourceManager.class);
 
-  private JobControllerFactory jobControllerFactory;
+  private IJobControllerFactory jobControllerFactory;
 
   /**
    * Constructor
    * @param context View Context instance
    */
-  public JobResourceManager(ViewContext context) {
-    super(JobImpl.class, context);
-    jobControllerFactory = JobControllerFactory.getInstance(context);
+  public JobResourceManager(SharedObjectsFactory sharedObjectsFactory, ViewContext context) {
+    super(JobImpl.class, sharedObjectsFactory, context);
+    jobControllerFactory = sharedObjectsFactory.getJobControllerFactory();
   }
 
   @Override
@@ -64,7 +64,7 @@ public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
     return object;
   }
 
-  private void saveIfModified(JobController jobController) {
+  public void saveIfModified(JobController jobController) {
     if (jobController.isModified()) {
       save(jobController.getJobPOJO());
       jobController.clearModified();
@@ -73,10 +73,10 @@ public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
 
 
   @Override
-  public Job read(Integer id) throws ItemNotFound {
+  public Job read(Object id) throws ItemNotFound {
     Job job = super.read(id);
     JobController jobController =  jobControllerFactory.createControllerForJob(job);
-    jobController.onRead();
+    jobController.update();
     saveIfModified(jobController);
     return job;
   }
@@ -87,11 +87,11 @@ public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
   }
 
   @Override
-  public void delete(Integer resourceId) throws ItemNotFound {
+  public void delete(Object resourceId) throws ItemNotFound {
     super.delete(resourceId);
   }
 
-  public JobController readController(Integer id) throws ItemNotFound {
+  public JobController readController(Object id) throws ItemNotFound {
     Job job = read(id);
     return jobControllerFactory.createControllerForJob(job);
   }

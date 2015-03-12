@@ -24,7 +24,11 @@ import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.backgroundjobs.BackgroundJobController;
 import org.apache.ambari.view.hive.client.Cursor;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
-import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSRequestsDelegate;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSRequestsDelegateImpl;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParser;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.*;
 import org.apache.ambari.view.hive.utils.*;
 import org.apache.ambari.view.hive.utils.HdfsApi;
 import org.apache.commons.beanutils.PropertyUtils;
@@ -59,14 +63,23 @@ public class JobService extends BaseService {
   ViewResourceHandler handler;
 
   protected JobResourceManager resourceManager;
+  private IOperationHandleResourceManager opHandleResourceManager;
   protected final static Logger LOG =
       LoggerFactory.getLogger(JobService.class);
 
   protected synchronized JobResourceManager getResourceManager() {
     if (resourceManager == null) {
-      resourceManager = new JobResourceManager(context);
+      SharedObjectsFactory connectionsFactory = getSharedObjectsFactory();
+      resourceManager = new JobResourceManager(connectionsFactory, context);
     }
     return resourceManager;
+  }
+
+  private IOperationHandleResourceManager getOperationHandleResourceManager() {
+    if (opHandleResourceManager == null) {
+      opHandleResourceManager = new OperationHandleResourceManager(getSharedObjectsFactory());
+    }
+    return opHandleResourceManager;
   }
 
   /**
@@ -77,7 +90,7 @@ public class JobService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getOne(@PathParam("jobId") String jobId) {
     try {
-      JobController jobController = getResourceManager().readController(Integer.valueOf(jobId));
+      JobController jobController = getResourceManager().readController(jobId);
 
       JSONObject jsonJob = jsonObjectFromJob(jobController);
 
@@ -110,7 +123,7 @@ public class JobService extends BaseService {
                                 @Context HttpServletResponse response,
                                 @QueryParam("columns") final String requestedColumns) {
     try {
-      JobController jobController = getResourceManager().readController(Integer.valueOf(jobId));
+      JobController jobController = getResourceManager().readController(jobId);
       final Cursor resultSet = jobController.getResults();
       resultSet.selectColumns(requestedColumns);
 
@@ -153,7 +166,7 @@ public class JobService extends BaseService {
                                    @QueryParam("columns") final String requestedColumns,
                                    @Context HttpServletResponse response) {
     try {
-      final JobController jobController = getResourceManager().readController(Integer.valueOf(jobId));
+      final JobController jobController = getResourceManager().readController(jobId);
 
       String backgroundJobId = "csv" + String.valueOf(jobController.getJob().getId());
       if (commence != null && commence.equals("true")) {
@@ -167,7 +180,7 @@ public class JobService extends BaseService {
               Cursor resultSet = jobController.getResults();
               resultSet.selectColumns(requestedColumns);
 
-              FSDataOutputStream stream = HdfsApi.getInstance(context).create(targetFile, true);
+              FSDataOutputStream stream = getSharedObjectsFactory().getHdfsApi().create(targetFile, true);
               Writer writer = new BufferedWriter(new OutputStreamWriter(stream));
               CSVPrinter csvPrinter = new CSVPrinter(writer, CSVFormat.DEFAULT);
               try {
@@ -225,7 +238,7 @@ public class JobService extends BaseService {
                              @QueryParam("searchId") String searchId,
                              @QueryParam("columns") final String requestedColumns) {
     try {
-      final JobController jobController = getResourceManager().readController(Integer.valueOf(jobId));
+      final JobController jobController = getResourceManager().readController(jobId);
 
       return ResultsPaginationController.getInstance(context)
            .request(jobId, searchId, true, fromBeginning, count,
@@ -276,13 +289,13 @@ public class JobService extends BaseService {
     try {
       JobController jobController;
       try {
-        jobController = getResourceManager().readController(Integer.valueOf(id));
+        jobController = getResourceManager().readController(id);
       } catch (ItemNotFound itemNotFound) {
         throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
       }
       jobController.cancel();
       if (remove != null && remove.compareTo("true") == 0) {
-        getResourceManager().delete(Integer.valueOf(id));
+        getResourceManager().delete(id);
       }
 //      getResourceManager().delete(Integer.valueOf(queryId));
       return Response.status(204).build();
@@ -303,8 +316,10 @@ public class JobService extends BaseService {
   public Response getList() {
     try {
       LOG.debug("Getting all job");
-      List allJobs = getResourceManager().readAll(
-          new OnlyOwnersFilteringStrategy(this.context.getUsername()));  //TODO: move strategy to PersonalCRUDRM
+      ATSRequestsDelegate transport = new ATSRequestsDelegateImpl(context, "http://127.0.0.1:8188");
+      IATSParser atsParser = new ATSParser(transport);
+      Aggregator aggregator = new Aggregator(getResourceManager(), getOperationHandleResourceManager(), atsParser);
+      List allJobs = aggregator.readAll(context.getUsername());
 
       JSONObject object = new JSONObject();
       object.put("jobs", allJobs);

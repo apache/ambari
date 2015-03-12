@@ -19,7 +19,6 @@
 package org.apache.ambari.view.hive.utils;
 
 
-import org.apache.ambari.view.ViewContext;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +34,14 @@ public class HdfsUtil {
    * @param filePath path to file
    * @param content new content of file
    */
-  public static void putStringToFile(ViewContext context, String filePath, String content) {
-    HdfsApi hdfs = HdfsApi.getInstance(context);
-
+  public static void putStringToFile(HdfsApi hdfs, String filePath, String content) {
     FSDataOutputStream stream;
     try {
-      stream = hdfs.create(filePath, true);
-      stream.writeBytes(content);
-      stream.close();
+      synchronized (hdfs) {
+        stream = hdfs.create(filePath, true);
+        stream.writeBytes(content);
+        stream.close();
+      }
     } catch (IOException e) {
       throw new ServiceFormattedException("Could not write file " + filePath, e);
     } catch (InterruptedException e) {
@@ -57,9 +56,7 @@ public class HdfsUtil {
    * @param extension file extension
    * @return if fullPathAndFilename="/tmp/file",extension=".txt" then filename will be like "/tmp/file_42.txt"
    */
-  public static String findUnallocatedFileName(ViewContext context, String fullPathAndFilename, String extension) {
-    HdfsApi hdfs = HdfsApi.getInstance(context);
-
+  public static String findUnallocatedFileName(HdfsApi hdfs, String fullPathAndFilename, String extension) {
     int triesCount = 0;
     String newFilePath;
     boolean isUnallocatedFilenameFound;

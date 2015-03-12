@@ -102,7 +102,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public FileStatus[] listdir(final String path) throws FileNotFoundException,
+  public synchronized FileStatus[] listdir(final String path) throws FileNotFoundException,
       IOException, InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<FileStatus[]>() {
       public FileStatus[] run() throws FileNotFoundException, Exception {
@@ -119,7 +119,7 @@ public class HdfsApi {
    * @throws java.io.FileNotFoundException
    * @throws InterruptedException
    */
-  public FileStatus getFileStatus(final String path) throws IOException,
+  public synchronized FileStatus getFileStatus(final String path) throws IOException,
       FileNotFoundException, InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<FileStatus>() {
       public FileStatus run() throws FileNotFoundException, IOException {
@@ -135,7 +135,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public boolean mkdir(final String path) throws IOException,
+  public synchronized boolean mkdir(final String path) throws IOException,
       InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
@@ -152,7 +152,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public boolean rename(final String src, final String dst) throws IOException,
+  public synchronized boolean rename(final String src, final String dst) throws IOException,
       InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
@@ -169,7 +169,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public boolean delete(final String path, final boolean recursive)
+  public synchronized boolean delete(final String path, final boolean recursive)
       throws IOException, InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
@@ -183,7 +183,7 @@ public class HdfsApi {
    * @return home directory
    * @throws Exception
    */
-  public Path getHomeDir() throws Exception {
+  public synchronized Path getHomeDir() throws Exception {
     return ugi.doAs(new PrivilegedExceptionAction<Path>() {
       public Path run() throws IOException {
         return fs.getHomeDirectory();
@@ -196,7 +196,7 @@ public class HdfsApi {
    * @return home directory
    * @throws Exception
    */
-  public FsStatus getStatus() throws Exception {
+  public synchronized FsStatus getStatus() throws Exception {
     return ugi.doAs(new PrivilegedExceptionAction<FsStatus>() {
       public FsStatus run() throws IOException {
         return fs.getStatus();
@@ -212,7 +212,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public FSDataOutputStream create(final String path, final boolean overwrite)
+  public synchronized FSDataOutputStream create(final String path, final boolean overwrite)
       throws IOException, InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<FSDataOutputStream>() {
       public FSDataOutputStream run() throws Exception {
@@ -228,7 +228,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public FSDataInputStream open(final String path) throws IOException,
+  public synchronized FSDataInputStream open(final String path) throws IOException,
       InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<FSDataInputStream>() {
       public FSDataInputStream run() throws Exception {
@@ -245,7 +245,7 @@ public class HdfsApi {
    * @throws java.io.IOException
    * @throws InterruptedException
    */
-  public void copy(final String src, final String dest) throws IOException,
+  public synchronized void copy(final String src, final String dest) throws IOException,
       InterruptedException {
     boolean result = ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
@@ -257,7 +257,7 @@ public class HdfsApi {
     }
   }
 
-  public boolean exists(final String newFilePath) throws IOException, InterruptedException {
+  public synchronized boolean exists(final String newFilePath) throws IOException, InterruptedException {
     return ugi.doAs(new PrivilegedExceptionAction<Boolean>() {
       public Boolean run() throws Exception {
         return fs.exists(new Path(newFilePath));
@@ -326,24 +326,7 @@ public class HdfsApi {
     return json;
   }
 
-
-  private static Map<String, HdfsApi> viewSingletonObjects = new HashMap<String, HdfsApi>();
-  /**
-   * Returns HdfsApi object specific to instance
-   * @param context View Context instance
-   * @return Hdfs business delegate object
-   */
-  public static HdfsApi getInstance(ViewContext context) {
-    if (!viewSingletonObjects.containsKey(context.getInstanceName()))
-      viewSingletonObjects.put(context.getInstanceName(), connectToHDFSApi(context));
-    return viewSingletonObjects.get(context.getInstanceName());
-  }
-
-  public static void setInstance(ViewContext context, HdfsApi api) {
-    viewSingletonObjects.put(context.getInstanceName(), api);
-  }
-
-  public static HdfsApi connectToHDFSApi(ViewContext context) {
+  public static synchronized HdfsApi connectToHDFSApi(ViewContext context) {
     HdfsApi api = null;
     Thread.currentThread().setContextClassLoader(null);
 
@@ -391,9 +374,5 @@ public class HdfsApi {
     if (userName == null || userName.compareTo("null") == 0 || userName.compareTo("") == 0)
       userName = context.getUsername();
     return userName;
-  }
-
-  public static void dropAllConnections() {
-    viewSingletonObjects.clear();
   }
 }

@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.Controller.extend({
   needs: [ constants.namingConventions.openQueries,
@@ -26,7 +27,9 @@ export default Ember.Controller.extend({
            constants.namingConventions.jobLogs,
            constants.namingConventions.jobResults,
            constants.namingConventions.jobExplain,
-           constants.namingConventions.settings
+           constants.namingConventions.settings,
+           constants.namingConventions.visualExplain,
+           constants.namingConventions.tezUI
   ],
 
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
@@ -36,6 +39,8 @@ export default Ember.Controller.extend({
   results: Ember.computed.alias('controllers.' + constants.namingConventions.jobResults),
   explain: Ember.computed.alias('controllers.' + constants.namingConventions.jobExplain),
   settings: Ember.computed.alias('controllers.' + constants.namingConventions.settings),
+  visualExplain: Ember.computed.alias('controllers.' + constants.namingConventions.visualExplain),
+  tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
 
   canExecute: function () {
     var isModelRunning = this.get('model.isRunning');
@@ -77,7 +82,6 @@ export default Ember.Controller.extend({
 
   _executeQuery: function (shouldExplain) {
     var queryId,
-        self = this,
         query,
         finalQuery,
         job,
@@ -166,8 +170,6 @@ export default Ember.Controller.extend({
     }
 
     queries = queries.map(function (query) {
-      var explainIndex = query.indexOf(constants.namingConventions.explainPrefix);
-
       if (shouldExplain) {
         if (query.indexOf(constants.namingConventions.explainPrefix) === -1) {
           return constants.namingConventions.explainPrefix + query;
@@ -213,7 +215,7 @@ export default Ember.Controller.extend({
     this._super();
 
     // initialize queryParams with an empty array
-    this.set('queryParams', Ember.ArrayProxy.create({ content: Ember.A([]) }))
+    this.set('queryParams', Ember.ArrayProxy.create({ content: Ember.A([]) }));
 
     this.set('queryProcessTabs', Ember.ArrayProxy.create({ content: Ember.A([
       Ember.Object.create({
@@ -232,20 +234,27 @@ export default Ember.Controller.extend({
   },
 
   displayJobTabs: function () {
-    return this.get('content.constructor.typeKey') === constants.namingConventions.job;
+    return this.get('content.constructor.typeKey') === constants.namingConventions.job &&
+           utils.isInteger(this.get('content.id'));
   }.property('content'),
 
   modelChanged: function () {
     var self = this;
     var content = this.get('content');
     var openQueries = this.get('openQueries');
+    var database = this.get('databases').findBy('name', this.get('content.dataBase'));
+
+    if (database) {
+      this.set('databases.selectedDatabase', database);
+    }
 
     //update open queries list when current query model changes
     openQueries.update(content).then(function (isExplainedQuery) {
       var newId = content.get('id');
       var tab = openQueries.getTabForModel(content);
 
-      if (content.get('constructor.typeKey') === constants.namingConventions.job) {
+      //if not an ATS job
+      if (content.get('constructor.typeKey') === constants.namingConventions.job && utils.isInteger(newId)) {
         self.get('queryProcessTabs').forEach(function (queryTab) {
           queryTab.set('id', newId);
         });
@@ -269,7 +278,7 @@ export default Ember.Controller.extend({
       return;
     }
 
-    if (this.get('content.status') !== constants.statuses.finished) {
+    if (!utils.insensitiveCompare(this.get('content.status'), constants.statuses.succeeded)) {
       return;
     }
 
@@ -285,7 +294,7 @@ export default Ember.Controller.extend({
     var tabs = this.get('queryProcessTabs');
     var isResultsTabVisible = tabs.findBy('path', constants.namingConventions.subroutes.jobResults).get('visible');
 
-    if (this.get('content.status') === constants.statuses.finished && isResultsTabVisible) {
+    if (utils.insensitiveCompare(this.get('content.status'), constants.statuses.succeeded) && isResultsTabVisible) {
       items.push({
         title: Ember.I18n.t('buttons.saveHdfs'),
         action: 'saveToHDFS'
@@ -320,7 +329,7 @@ export default Ember.Controller.extend({
   saveToHDFS: function () {
     var job = this.get('content');
 
-    if (job.get('status') !== constants.statuses.finished) {
+    if (!utils.insensitiveCompare(job.get('status'), constants.statuses.succeeded)) {
       return;
     }
 
@@ -347,7 +356,7 @@ export default Ember.Controller.extend({
 
     Ember.run.later(function () {
       Ember.$.getJSON(url).then(function (response) {
-        if (response.status !== constants.results.statuses.terminated) {
+        if (!utils.insensitiveCompare(response.status, constants.results.statuses.terminated)) {
           self.pollSaveToHDFS(response);
         } else {
           self.set('content.isRunning', false);
@@ -413,6 +422,10 @@ export default Ember.Controller.extend({
           id: 'fixture_' + idCounter
         });
 
+        if (idCounter) {
+          model.set('title', model.get('title') + ' (' + idCounter + ')')
+        }
+
         idCounter++;
 
         this.transitionToRoute(constants.namingConventions.subroutes.savedQuery, model);
@@ -423,6 +436,8 @@ export default Ember.Controller.extend({
       var self = this,
           wasNew = this.get('model.isNew'),
           defer = Ember.RSVP.defer();
+
+      this.set('model.dataBase', this.get('databases.selectedDatabase.name'));
 
       this.send('openModal', 'modal-save', {
         heading: "modals.save.heading",
@@ -446,7 +461,7 @@ export default Ember.Controller.extend({
       var subroute;
 
       this._executeQuery().then(function (job) {
-        if (job.get('status') !== constants.statuses.finished) {
+        if (job.get('status') !== constants.statuses.succeeded) {
           subroute = constants.namingConventions.subroutes.jobLogs;
         } else {
           subroute = constants.namingConventions.subroutes.jobResults;
@@ -470,6 +485,23 @@ export default Ember.Controller.extend({
       }, function (err) {
         self.send('addAlert', constants.alerts.error, err.responseText, "alerts.errors.save.query");
       });
+    },
+
+    toggleOverlay: function (targetController) {
+      if (this.get('visualExplain.showOverlay') && targetController !== 'visualExplain') {
+        this.set('visualExplain.showOverlay', false);
+      } else if (this.get('tezUI.showOverlay') && targetController !== 'tezUI') {
+        this.set('tezUI.showOverlay', false);
+      } else if (this.get('settings.showOverlay') && targetController !== 'settings') {
+        this.set('settings.showOverlay', false);
+      }
+
+      if (targetController !== 'settings') {
+        //set content for visual explain and tez ui.
+        this.set(targetController + '.content', this.get('content'));
+      }
+
+      this.toggleProperty(targetController + '.showOverlay');
     }
   }
 });

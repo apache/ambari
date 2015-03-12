@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.ObjectController.extend({
   needs: [ constants.namingConventions.history, constants.namingConventions.loadedFiles ],
@@ -25,9 +26,7 @@ export default Ember.ObjectController.extend({
   files: Ember.computed.alias('controllers.' + constants.namingConventions.loadedFiles),
 
   canStop: function () {
-    return this.get('status') === constants.statuses.running ||
-           this.get('status') === constants.statuses.initialized ||
-           this.get('status') === constants.statuses.pending;
+    return utils.insensitiveCompare(this.get('status'), constants.statuses.running, constants.statuses.initialized, constants.statuses.pending)
   }.property('status'),
 
   actions: {

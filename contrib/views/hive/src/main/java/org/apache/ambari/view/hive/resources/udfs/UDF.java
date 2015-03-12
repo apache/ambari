@@ -33,7 +33,7 @@ public class UDF implements Serializable, PersonalResource {
   private String classname;
   private Integer fileResource;
 
-  private Integer id;
+  private String id;
   private String owner;
 
   public UDF() {}
@@ -42,12 +42,12 @@ public class UDF implements Serializable, PersonalResource {
   }
 
   @Override
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
   @Override
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 

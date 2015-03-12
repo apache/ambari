@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.Route.extend({
   setupController: function (controller, model) {
@@ -28,10 +29,16 @@ export default Ember.Route.extend({
       subroute = existingTab.get('subroute');
     }
 
-    if (subroute) {
-      this.transitionTo(subroute, model);
+    // filter out hdfs jobs
+    if (utils.isInteger(model.get('id'))) {
+      if (subroute) {
+        this.transitionTo(subroute, model);
+      } else {
+        this.transitionTo(constants.namingConventions.subroutes.jobLogs, model);
+      }
     } else {
-      this.transitionTo(constants.namingConventions.subroutes.jobLogs, model);
+      this.transitionTo(constants.namingConventions.subroutes.historyQuery, model);
+      this.controllerFor(constants.namingConventions.routes.index).set('model', model);
     }
   }
 });

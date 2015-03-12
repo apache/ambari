@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.view.*;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
-import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +44,7 @@ public class FileResourceResourceProvider implements ResourceProvider<FileResour
 
   protected synchronized FileResourceResourceManager getResourceManager() {
     if (resourceManager == null) {
-      resourceManager = new FileResourceResourceManager(context);
+      resourceManager = new FileResourceResourceManager(new SharedObjectsFactory(context), context);
     }
     return resourceManager;
   }
@@ -52,7 +52,7 @@ public class FileResourceResourceProvider implements ResourceProvider<FileResour
   @Override
   public FileResourceItem getResource(String resourceId, Set<String> properties) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
     try {
-      return getResourceManager().read(Integer.valueOf(resourceId));
+      return getResourceManager().read(resourceId);
     } catch (ItemNotFound itemNotFound) {
       throw new NoSuchResourceException(resourceId);
     }
@@ -88,7 +88,7 @@ public class FileResourceResourceProvider implements ResourceProvider<FileResour
       throw new SystemException("error on updating resource", e);
     }
     try {
-      getResourceManager().update(item, Integer.valueOf(resourceId));
+      getResourceManager().update(item, resourceId);
     } catch (ItemNotFound itemNotFound) {
       throw new NoSuchResourceException(resourceId);
     }
@@ -98,7 +98,7 @@ public class FileResourceResourceProvider implements ResourceProvider<FileResour
   @Override
   public boolean deleteResource(String resourceId) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
     try {
-      getResourceManager().delete(Integer.valueOf(resourceId));
+      getResourceManager().delete(resourceId);
     } catch (ItemNotFound itemNotFound) {
       throw new NoSuchResourceException(resourceId);
     }

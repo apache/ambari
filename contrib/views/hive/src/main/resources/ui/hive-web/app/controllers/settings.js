@@ -28,19 +28,28 @@ export default Ember.ArrayController.extend({
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
 
-  showSettingsOverlay: false,
+  predefinedSettings: constants.hiveParameters,
 
-  querySettings: function () {
+  currentSettings: function () {
     var currentId = this.get('index.model.id');
-    return this.findBy('id', currentId);
-  }.property('model.[]', 'index.model.id'),
+    var targetSettings = this.findBy('id', currentId);
+
+   if (!targetSettings) {
+      targetSettings = this.pushObject(Ember.Object.create({
+        id: currentId,
+        settings: []
+      }));
+    }
+
+    return targetSettings;
+  }.property('index.model.id'),
 
   updateSettingsId: function (oldId, newId) {
     this.filterBy('id', oldId).setEach('id', newId);
   },
 
-  getSettingsString: function (id) {
-    var currentId = id ? id : this.get('index.model.id');
+  getSettingsString: function () {
+    var currentId = this.get('index.model.id');
 
     var querySettings = this.findBy('id', currentId);
 
@@ -49,12 +58,8 @@ export default Ember.ArrayController.extend({
     }
 
     var settings = querySettings.get('settings').map(function (setting) {
-      return 'set %@ = %@;'.fmt(setting.key, setting.value);
+      return 'set %@ = %@;'.fmt(setting.get('key.name'), setting.get('value'));
     });
-
-    if (querySettings.get('runOnTez')) {
-      settings.push('set %@ = tez;'.fmt(constants.settings.executionEngine));
-    }
 
     return settings.join("\n");
   },
@@ -70,8 +75,7 @@ export default Ember.ArrayController.extend({
     var id = this.get('index.model.id');
     var query = this.get('openQueries.currentQuery');
     var content = query.get('fileContent');
-    var runOnTez = false;
-
+    var self = this;
 
     var regex = new RegExp(/^set\s+[\w-.]+(\s+|\s?)=(\s+|\s?)[\w-.]+(\s+|\s?);/gim);
     var settings = content.match(regex);
@@ -83,68 +87,97 @@ export default Ember.ArrayController.extend({
     query.set('fileContent', content.replace(regex, '').trim());
     settings = settings.map(function (setting) {
       var KV = setting.split('=');
-
-      return {
-        key: KV[0].replace('set', '').trim(),
+      var obj = {
+        key: {
+          name: KV[0].replace('set', '').trim()
+        },
         value: KV[1].replace(';', '').trim()
       };
+
+      if (!self.get('predefinedSettings').findBy('name', obj.key.name)) {
+        self.get('predefinedSettings').pushObject({
+          name: obj.key.name
+        });
+      }
+
+      return obj;
     });
 
-    // remove runOnTez from settings
-    settings = settings.findBy('key', constants.settings.executionEngine).without(false);
-
-    this.setSettingForQuery(id, settings, !!runOnTez);
+    this.setSettingForQuery(id, settings);
   }.observes('openQueries.currentQuery', 'openQueries.tabUpdated'),
 
-  setSettingForQuery: function (id, settings, runOnTez) {
+  setSettingForQuery: function (id, settings) {
     var querySettings = this.findBy('id', id);
 
     if (!querySettings) {
       this.pushObject(Ember.Object.create({
         id: id,
-        settings: settings,
-        runOnTez: runOnTez
+        settings: settings
       }));
     } else {
       querySettings.setProperties({
-        'settings': settings,
-        'runOnTez': runOnTez
+        'settings': settings
       });
     }
   },
 
-  createSettingsForQuery: function () {
-    var currentId = this.get('index.model.id');
+  validate: function() {
+    var settings = this.get('currentSettings.settings') || [];
+    var predefinedSettings = this.get('predefinedSettings');
 
-    if (!this.findBy('id', currentId)) {
-      this.pushObject(Ember.Object.create({
-        id: currentId,
-        settings: [],
-        runOnTez: false
-      }));
-    }
-  },
+    settings.forEach(function(setting) {
+      var predefined = predefinedSettings.filterProperty('name', setting.get('key.name'));
+      if (!predefined.length) {
+        return;
+      } else {
+        predefined = predefined[0];
+      }
+
+      if (predefined.values && predefined.values.contains(setting.get('value'))) {
+        setting.set('valid', true);
+        return;
+      }
+
+      if (predefined.validate && predefined.validate.test(setting.get('value'))) {
+        setting.set('valid', true);
+        return;
+      }
+
+      setting.set('valid', false);
+    });
+  }.observes('currentSettings.[]', 'currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
+
+  currentSettingsAreValid: function() {
+    var currentSettings = this.get('currentSettings.settings');
+    var invalid = currentSettings.filterProperty('valid', false);
+
+    return invalid.length ? false : true;
+  }.property('currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
 
   actions: {
-    toggleOverlay: function () {
-      // create a setting object if its not already there
-      this.createSettingsForQuery();
-      this.toggleProperty('showSettingsOverlay');
-    },
-
     add: function () {
       var currentId = this.get('index.model.id'),
-       querySettings = this.findBy('id', currentId);
+          querySettings = this.findBy('id', currentId);
 
-      querySettings.settings.pushObject(Ember.Object.create({
-        key: '',
-        value: ''
-      }));
+      var Setting = Ember.Object.extend({
+        valid: true,
+        selection: Ember.Object.create(),
+        value: Ember.computed.alias('selection.value')
+      });
+
+      querySettings.get('settings').pushObject(Setting.create({}));
     },
 
     remove: function (setting) {
-      var currentId = this.get('index.model.id');
-      this.findBy('id', currentId).settings.removeObject(setting);
+      this.findBy('id', this.get('index.model.id')).settings.removeObject(setting);
+    },
+
+    addKey: function (param) {
+      var newKey = this.get('predefinedSettings').pushObject({
+        name: param
+      });
+
+      this.get('currentSettings.settings').findBy('key', null).set('key', newKey);
     }
   }
 });

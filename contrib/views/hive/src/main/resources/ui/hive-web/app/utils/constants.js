@@ -17,6 +17,7 @@
  */
 
 import Ember from 'ember';
+import helpers from 'hive/utils/functions';
 
 export default Ember.Object.create({
   appTitle: 'Hive',
@@ -62,6 +63,8 @@ export default Ember.Object.create({
     database: 'database',
     databases: 'databases',
     openQueries: 'open-queries',
+    visualExplain: 'visual-explain',
+    tezUI: 'tez-ui',
     file: 'file',
     fileResource: 'file-resource',
     fileResources: 'file-resources',
@@ -79,15 +82,83 @@ export default Ember.Object.create({
     settings: 'settings'
   },
 
+  hiveParameters: [
+    {
+      name: 'hive.tez.container.size',
+      values: [
+        Ember.Object.create({ value: 'true' }),
+        Ember.Object.create({ value: 'false' })
+      ]
+    },
+    {
+      name: 'hive.prewarm.enabled',
+      validate: helpers.regexes.digits
+    },
+    {
+      name: 'hive.prewarm.numcontainers',
+      values: [
+        Ember.Object.create({ value: 'one' }),
+        Ember.Object.create({ value: 'two' }),
+        Ember.Object.create({ value: 'three' })
+      ]
+    },
+    {
+      name: 'hive.tez.auto.reducer.parallelism',
+      value: 'test'
+    },
+    {
+      name: 'hive.execution.engine'
+    },
+    {
+      name: 'hive.vectorized.execution.enabled'
+    },
+    {
+      name: 'tez.am.resource.memory.mb'
+    },
+    {
+      name: 'tez.am.container.idle.release-timeout-min.millis'
+    },
+    {
+      name: 'tez.am.container.idle.release-timeout-max.millis'
+    },
+    {
+      name: 'tez.queue.name'
+    },
+    {
+      name: 'tez.runtime.io.sort.mb'
+    },
+    {
+      name: 'tez.runtime.sort.threads'
+    },
+    {
+      name: 'tez.runtime.optimize.shared.fetch'
+    },
+    {
+      name: 'tez.runtime.compress.codec'
+    },
+    {
+      name: 'tez.runtime.shuffle.keep-alive.enabled'
+    },
+    {
+      name: 'tez.grouping.min-size'
+    },
+    {
+      name: 'tez.grouping.max-size'
+    },
+    {
+      name: 'tez.generate.debug.artifacts'
+    }
+  ],
+
   statuses: {
-    unknown: "Unknown",
-    initialized: "Initialized",
-    running: "Running",
-    finished: "Finished",
-    canceled: "Canceled",
-    closed: "Closed",
-    error: "Error",
-    pending: "Pending"
+    unknown: "UNKNOWN",
+    initialized: "INITIALIZED",
+    running: "RUNNING",
+    succeeded: "SUCCEEDED",
+    canceled: "CANCELED",
+    closed: "CLOSED",
+    error: "ERROR",
+    pending: "PENDING"
   },
 
   alerts: {

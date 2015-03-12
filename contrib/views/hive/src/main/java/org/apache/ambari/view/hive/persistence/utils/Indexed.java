@@ -26,11 +26,11 @@ public interface Indexed {
    * Get the ID
    * @return ID
    */
-  Integer getId();
+  String getId();
 
   /**
    * Set ID
    * @param id ID
    */
-  void setId(Integer id);
+  void setId(String id);
 }

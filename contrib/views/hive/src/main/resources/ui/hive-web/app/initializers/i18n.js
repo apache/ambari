@@ -64,7 +64,9 @@ TRANSLATIONS = {
     query: {
       editor: 'Query Editor',
       process: 'Query Process Results',
-      parameters: 'Parameters'
+      parameters: 'Parameters',
+      visualExplain: 'Visual Explain',
+      tez: 'TEZ'
     },
     download: 'Save results...'
   },
@@ -77,7 +79,8 @@ TRANSLATIONS = {
       database: 'Select Database...',
       udfs: 'Insert udfs',
       file: 'Select File Resource...',
-      noFileResource: '(no file)'
+      noFileResource: '(no file)',
+      value: "Select value..."
     },
     fileResource: {
       name: "resource name",

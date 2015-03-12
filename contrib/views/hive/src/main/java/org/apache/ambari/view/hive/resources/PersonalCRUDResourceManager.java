@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.resources;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.PersonalResource;
 import org.slf4j.Logger;
@@ -31,24 +32,24 @@ import java.util.concurrent.Callable;
  * @param <T> Data type with ID and Owner
  */
 public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRUDResourceManager<T> {
-  protected ViewContext context;
   protected boolean ignorePermissions = false;
 
   private final static Logger LOG =
       LoggerFactory.getLogger(PersonalCRUDResourceManager.class);
+  protected ViewContext context;
+
   /**
    * Constructor
    * @param resourceClass model class
-   * @param context View Context instance
    */
-  public PersonalCRUDResourceManager(Class<? extends T> resourceClass, ViewContext context) {
-    super(resourceClass);
+  public PersonalCRUDResourceManager(Class<? extends T> resourceClass, IStorageFactory storageFabric, ViewContext context) {
+    super(resourceClass, storageFabric);
     this.context = context;
   }
 
   @Override
-  public T update(T newObject, Integer id) throws ItemNotFound {
-    T object = getStorage().load(this.resourceClass, id);
+  public T update(T newObject, String id) throws ItemNotFound {
+    T object = storageFabric.getStorage().load(this.resourceClass, id);
     if (object.getOwner().compareTo(this.context.getUsername()) != 0) {
       throw new ItemNotFound();
     }
@@ -74,18 +75,13 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
     return object.getOwner().compareTo(this.context.getUsername()) == 0;
   }
 
-  @Override
-  public ViewContext getContext() {
-    return context;
-  }
-
   /**
    * Execute action ignoring objects owner
    * @param actions callable to execute
    * @return value returned from actions
    * @throws Exception
    */
-  public <T> T ignorePermissions(Callable<T> actions) throws Exception {
+  public T ignorePermissions(Callable<T> actions) throws Exception {
     ignorePermissions = true;
     T result;
     try {

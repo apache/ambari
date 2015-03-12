@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.jobs;
+package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.client.*;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
+import org.apache.ambari.view.hive.resources.jobs.*;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQuery;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceManager;
 import org.apache.ambari.view.hive.utils.*;
@@ -39,28 +41,37 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
       LoggerFactory.getLogger(JobControllerImpl.class);
 
   private ViewContext context;
+  private HdfsApi hdfsApi;
   private Job jobUnproxied;
   private Job job;
   private boolean modified;
 
-  private OperationHandleControllerFactory operationHandleControllerFactory;
+  private OperationHandleControllerFactory opHandleControllerFactory;
   private ConnectionController hiveSession;
   private SavedQueryResourceManager savedQueryResourceManager;
+  private IATSParser atsParser;
 
   /**
    * JobController constructor
    * Warning: Create JobControllers ONLY using JobControllerFactory!
    */
-  public JobControllerImpl(ViewContext context, Job job) {
+  public JobControllerImpl(ViewContext context, Job job,
+                           ConnectionController hiveSession,
+                           OperationHandleControllerFactory opHandleControllerFactory,
+                           SavedQueryResourceManager savedQueryResourceManager,
+                           IATSParser atsParser,
+                           HdfsApi hdfsApi) {
     this.context = context;
     setJobPOJO(job);
-    operationHandleControllerFactory = OperationHandleControllerFactory.getInstance(context);
-    hiveSession = ConnectionController.getInstance(context);
-    savedQueryResourceManager = SavedQueryResourceManager.getInstance(context);
+    this.opHandleControllerFactory = opHandleControllerFactory;
+    this.hiveSession = hiveSession;
+    this.savedQueryResourceManager = savedQueryResourceManager;
+    this.atsParser = atsParser;
+    this.hdfsApi = hdfsApi;
   }
 
   public String getQueryForJob() {
-    FilePaginator paginator = new FilePaginator(job.getQueryFile(), context);
+    FilePaginator paginator = new FilePaginator(job.getQueryFile(), hdfsApi);
     String query;
     try {
       query = paginator.readPage(0);  //warning - reading only 0 page restricts size of query to 1MB
@@ -89,6 +100,8 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     OperationHandleController handleController = hiveSession.executeQuery(query);
 
     handleController.persistHandleForJob(job);
+
+//    atsParser.getHiveQuieryIdsList()
   }
 
   private void setupHiveBeforeQueryExecute() {
@@ -98,12 +111,12 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
   @Override
   public void cancel() throws ItemNotFound {
-    OperationHandleController handle = operationHandleControllerFactory.getHandleForJob(job);
+    OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
     handle.cancel();
   }
 
   @Override
-  public void onRead() {
+  public void update() {
     updateOperationStatus();
     updateOperationLogs();
 
@@ -113,7 +126,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
   public void updateOperationStatus() {
     try {
 
-      OperationHandleController handle = operationHandleControllerFactory.getHandleForJob(job);
+      OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
       String status = handle.getOperationStatus();
       job.setStatus(status);
       LOG.debug("Status of job#" + job.getId() + " is " + job.getStatus());
@@ -135,13 +148,17 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
   public void updateOperationLogs() {
     try {
-      OperationHandleController handle = operationHandleControllerFactory.getHandleForJob(job);
+      OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
       String logs = handle.getLogs();
 
-//      LogParser info = LogParser.parseLog(logs);
+      LogParser info = LogParser.parseLog(logs);
+      LogParser.AppId app = info.getLastAppInList();
+      if (app != null) {
+        job.setApplicationId(app.getIdentifier());
+      }
 
       String logFilePath = job.getLogFile();
-      HdfsUtil.putStringToFile(context, logFilePath, logs);
+      HdfsUtil.putStringToFile(hdfsApi, logFilePath, logs);
 
     } catch (HiveClientRuntimeException ex) {
       LOG.error("Error while fetching logs: " + ex.getMessage());
@@ -182,7 +199,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
   @Override
   public Cursor getResults() throws ItemNotFound {
-    OperationHandleController handle = operationHandleControllerFactory.getHandleForJob(job);
+    OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
     return handle.getResults();
   }
 
@@ -229,7 +246,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     LOG.debug("Creating log file for job#" + job.getId());
 
     String logFile = job.getStatusDir() + "/" + "logs";
-    HdfsUtil.putStringToFile(context, logFile, "");
+    HdfsUtil.putStringToFile(hdfsApi, logFile, "");
 
     job.setLogFile(logFile);
     LOG.debug("Log file for job#" + job.getId() + ": " + logFile);
@@ -237,7 +254,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
   private void setupStatusDir() {
     String newDirPrefix = makeStatusDirectoryPrefix();
-    String newDir = HdfsUtil.findUnallocatedFileName(context, newDirPrefix, "");
+    String newDir = HdfsUtil.findUnallocatedFileName(hdfsApi, newDirPrefix, "");
 
     job.setStatusDir(newDir);
     LOG.debug("Status dir for job#" + job.getId() + ": " + newDir);
@@ -252,7 +269,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
       throw new MisconfigurationFormattedException("jobs.dir");
     }
 
-    String normalizedName = String.format("hive-job-%d", job.getId());
+    String normalizedName = String.format("hive-job-%s", job.getId());
     String timestamp = new SimpleDateFormat("yyyy-MM-dd_hh-mm").format(new Date());
     return String.format(userScriptsPath +
         "/%s-%s", normalizedName, timestamp);
@@ -268,14 +285,14 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
 
       if (job.getForcedContent() != null) {
 
-        HdfsUtil.putStringToFile(context, jobQueryFilePath, job.getForcedContent());
+        HdfsUtil.putStringToFile(hdfsApi, jobQueryFilePath, job.getForcedContent());
         job.setForcedContent("");  // prevent forcedContent to be written to DB
 
       }
       else if (job.getQueryId() != null) {
 
         String savedQueryFile = getRelatedSavedQueryFile();
-        HdfsApi.getInstance(context).copy(savedQueryFile, jobQueryFilePath);
+        hdfsApi.copy(savedQueryFile, jobQueryFilePath);
         job.setQueryFile(jobQueryFilePath);
 
       } else {

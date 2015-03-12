@@ -19,22 +19,30 @@
     <label>Hive</label>
     <version>0.0.1</version>
 
+    <min-ambari-version>1.7.*</min-ambari-version>
+
     <!-- HDFS Configs -->
     <parameter>
         <name>webhdfs.url</name>
-        <description>WebHDFS FileSystem URI (example: webhdfs://namenode:50070)</description>
+        <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
+        <label>WebHDFS FileSystem URI</label>
+        <placeholder>webhdfs://namenode:50070</placeholder>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>webhdfs.username</name>
-        <description>User and doAs for proxy user for HDFS</description>
+        <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
+        <label>WebHDFS Username</label>
         <required>false</required>
     </parameter>
 
     <parameter>
         <name>webhdfs.auth</name>
-        <description>Semicolon-separated authentication configs. Default: auth=SIMPLE</description>
+        <description>Semicolon-separated authentication configs.</description>
+        <label>WebHDFS Authentication</label>
+        <placeholder>auth=SIMPLE</placeholder>
+        <default-value>auth=SIMPLE</default-value>
         <required>false</required>
     </parameter>
 
@@ -42,38 +50,60 @@
 
     <parameter>
         <name>dataworker.username</name>
-        <description>The username (defaults to ViewContext username)</description>
+        <description>The dataworker username. By default, users the currently logged-in Ambari user.</description>
+        <label>Dataworker Username</label>
         <required>false</required>
     </parameter>
 
     <parameter>
         <name>scripts.dir</name>
-        <description>HDFS directory path to store Hive scripts (example: /users/${username})</description>
+        <description>HDFS directory path to store Hive scripts.</description>
+        <label>Scripts HDFS Directory</label>
+        <placeholder>/user/${username}/hive/scripts</placeholder>
+        <default-value>/user/${username}/hive/scripts</default-value>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>jobs.dir</name>
-        <description>HDFS directory path to store Hive job status (example: /users/${username})</description>
+        <description>HDFS directory path to store Hive job status.</description>
+        <label>Jobs HDFS Directory</label>
+        <placeholder>/user/${username}/hive/jobs</placeholder>
+        <default-value>/user/${username}/hive/jobs</default-value>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>hive.host</name>
-        <description>HiveServer2 hostname or IP (example: 127.0.0.1)</description>
+        <description>Enter the HiveServer2 host. Host must be accessible from Ambari Server.</description>
+        <label>HiveServer2 Host</label>
+        <placeholder>127.0.0.1</placeholder>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>hive.port</name>
-        <description>HiveServer2 Thrift port (example: 10000)</description>
+        <description>HiveServer2 Thrift port (example: 10000).</description>
+        <label>HiveServer2 Thrift port</label>
+        <placeholder>10000</placeholder>
+        <default-value>10000</default-value>
         <required>true</required>
     </parameter>
 
     <parameter>
         <name>hive.auth</name>
-        <description>Semicolon-separated authentication configs. Default: auth=NOSASL</description>
+        <description>Semicolon-separated authentication configs.</description>
+        <label>Hive Authentication</label>
+        <placeholder>auth=NONE</placeholder>
+        <default-value>auth=NONE</default-value>
         <required>false</required>
+    </parameter>
+
+    <parameter>
+        <name>yarn.ats.url</name>
+        <description>The URL to the YARN Application Timeline Server, used to provide Jobs information, typically, this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration.</description>
+        <placeholder>http://yarn.ats.address:8188</placeholder>
+        <required>true</required>
     </parameter>
 
     <resource>
@@ -107,7 +137,7 @@
         <name>job</name>
         <plural-name>jobs</plural-name>
         <id-property>id</id-property>
-        <resource-class>org.apache.ambari.view.hive.resources.jobs.JobImpl</resource-class>
+        <resource-class>org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl</resource-class>
         <provider-class>org.apache.ambari.view.hive.resources.jobs.JobResourceProvider</provider-class>
         <service-class>org.apache.ambari.view.hive.resources.jobs.JobService</service-class>
     </resource>
@@ -133,7 +163,7 @@
             <id-property>id</id-property>
         </entity>
         <entity>
-            <class>org.apache.ambari.view.hive.resources.jobs.JobImpl</class>
+            <class>org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl</class>
             <id-property>id</id-property>
         </entity>
         <entity>

@@ -23,8 +23,8 @@ import constants from 'hive/utils/constants';
 export default Ember.ArrayController.extend(FilterableMixin, {
   itemController: constants.namingConventions.job,
 
-  sortAscending: true,
-  sortProperties: ['dateSubmitted'],
+  sortAscending: false,
+  sortProperties: ['dateSubmittedTimestamp'],
 
   init: function () {
     var oneMonthAgo = new Date();
@@ -40,12 +40,11 @@ export default Ember.ArrayController.extend(FilterableMixin, {
       }),
       Ember.Object.create({
         caption: 'columns.status',
-        property: 'status',
-        classBinding: 'status'
+        property: 'status'
       }),
       Ember.Object.create({
         caption: 'columns.date',
-        property: 'dateSubmitted',
+        property: 'dateSubmittedTimestamp',
         dateRange: Ember.Object.create({
           min: oneMonthAgo,
           max: new Date()

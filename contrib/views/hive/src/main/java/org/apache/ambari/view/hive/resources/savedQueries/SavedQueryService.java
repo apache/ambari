@@ -23,7 +23,6 @@ import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
-import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
 import org.apache.ambari.view.hive.utils.NotFoundFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.json.simple.JSONObject;
@@ -58,7 +57,7 @@ public class SavedQueryService extends BaseService {
       LoggerFactory.getLogger(SavedQueryService.class);
 
   protected synchronized SavedQueryResourceManager getResourceManager() {
-    return SavedQueryResourceManager.getInstance(context);
+    return getSharedObjectsFactory().getSavedQueryResourceManager();
   }
 
   protected void setResourceManager(SavedQueryResourceManager resourceManager) {
@@ -73,8 +72,7 @@ public class SavedQueryService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getOne(@PathParam("queryId") String queryId) {
     try {
-      SavedQuery savedQuery = null;
-      savedQuery = getResourceManager().read(Integer.valueOf(queryId));
+      SavedQuery savedQuery = getResourceManager().read(queryId);
       JSONObject object = new JSONObject();
       object.put("savedQuery", savedQuery);
       return Response.ok(object).build();
@@ -94,7 +92,7 @@ public class SavedQueryService extends BaseService {
   @Path("{queryId}")
   public Response delete(@PathParam("queryId") String queryId) {
     try {
-      getResourceManager().delete(Integer.valueOf(queryId));
+      getResourceManager().delete(queryId);
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -135,7 +133,7 @@ public class SavedQueryService extends BaseService {
   public Response update(SavedQueryRequest request,
                          @PathParam("queryId") String queryId) {
     try {
-      getResourceManager().update(request.savedQuery, Integer.valueOf(queryId));
+      getResourceManager().update(request.savedQuery, queryId);
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
       throw ex;

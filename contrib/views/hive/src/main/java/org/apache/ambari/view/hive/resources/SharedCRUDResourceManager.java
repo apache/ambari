@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.resources;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.utils.Indexed;
 
 /**
@@ -31,20 +32,13 @@ public class SharedCRUDResourceManager<T extends Indexed> extends CRUDResourceMa
   /**
    * Constructor
    * @param responseClass model class
-   * @param context View Context instance
    */
-  public SharedCRUDResourceManager(Class<T> responseClass, ViewContext context) {
-    super(responseClass);
-    this.context = context;
+  public SharedCRUDResourceManager(Class<T> responseClass, IStorageFactory storageFabric) {
+    super(responseClass, storageFabric);
   }
 
   @Override
   protected boolean checkPermissions(T object) {
     return true; //everyone has permission
-  }
-
-  @Override
-  protected ViewContext getContext() {
-    return context;
   }
 }

@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive.resources.savedQueries;
 import org.apache.ambari.view.hive.HDFSTest;
 import org.apache.ambari.view.hive.utils.HdfsApi;
 import org.apache.ambari.view.hive.utils.NotFoundFormattedException;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.json.simple.JSONObject;
 import org.junit.*;
 import org.junit.rules.ExpectedException;
@@ -43,13 +44,12 @@ public class SavedQueryServiceTest extends HDFSTest {
 
   @BeforeClass
   public static void startUp() throws Exception {
-      HDFSTest.startUp(); // super
+    HDFSTest.startUp(); // super
   }
 
   @AfterClass
   public static void shutDown() throws Exception {
     HDFSTest.shutDown(); // super
-    HdfsApi.dropAllConnections(); //cleanup API connection
   }
 
   @Override
@@ -57,7 +57,13 @@ public class SavedQueryServiceTest extends HDFSTest {
   public void setUp() throws Exception {
     super.setUp();
     savedQueryService = getService(SavedQueryService.class, handler, context);
-    SavedQueryResourceManager.getViewSingletonObjects().clear();
+    savedQueryService.getSharedObjectsFactory().clear();
+  }
+
+  @Override
+  @After
+  public void tearDown() throws Exception {
+    super.tearDown();
   }
 
   @Override
@@ -124,7 +130,7 @@ public class SavedQueryServiceTest extends HDFSTest {
   @Test
   public void update() {
     Response created = doCreateSavedQuery();
-    Integer createdId = ((SavedQuery) ((JSONObject) created.getEntity()).get("savedQuery")).getId();
+    Object createdId = ((SavedQuery) ((JSONObject) created.getEntity()).get("savedQuery")).getId();
 
     SavedQueryService.SavedQueryRequest request = new SavedQueryService.SavedQueryRequest();
     request.savedQuery = new SavedQuery();
@@ -144,7 +150,7 @@ public class SavedQueryServiceTest extends HDFSTest {
   @Test
   public void delete() {
     Response created = doCreateSavedQuery();
-    Integer createdId = ((SavedQuery) ((JSONObject) created.getEntity()).get("savedQuery")).getId();
+    Object createdId = ((SavedQuery) ((JSONObject) created.getEntity()).get("savedQuery")).getId();
 
     Response response = savedQueryService.delete(String.valueOf(createdId));
     Assert.assertEquals(204, response.getStatus());

@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.resources.resources;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
@@ -38,8 +39,8 @@ public class FileResourceResourceManager extends PersonalCRUDResourceManager<Fil
    * Constructor
    * @param context View Context instance
    */
-  public FileResourceResourceManager(ViewContext context) {
-    super(FileResourceItem.class, context);
+  public FileResourceResourceManager(IStorageFactory storageFactory, ViewContext context) {
+    super(FileResourceItem.class, storageFactory, context);
   }
 
   @Override
@@ -48,12 +49,12 @@ public class FileResourceResourceManager extends PersonalCRUDResourceManager<Fil
   }
 
   @Override
-  public FileResourceItem read(Integer id) throws ItemNotFound {
+  public FileResourceItem read(Object id) throws ItemNotFound {
     return super.read(id);
   }
 
   @Override
-  public void delete(Integer resourceId) throws ItemNotFound {
+  public void delete(Object resourceId) throws ItemNotFound {
     super.delete(resourceId);
   }
 

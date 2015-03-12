@@ -23,6 +23,7 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.utils.*;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileAlreadyExistsException;
 import org.json.simple.JSONObject;
@@ -51,6 +52,8 @@ import java.io.IOException;
  *      update file content
  */
 public class FileService extends BaseService {
+  public static final String FAKE_FILE = "fakefile://";
+
   @Inject
   ViewResourceHandler handler;
 
@@ -66,17 +69,23 @@ public class FileService extends BaseService {
   public Response getFilePage(@PathParam("filePath") String filePath, @QueryParam("page") Long page) throws IOException, InterruptedException {
     LOG.debug("Reading file " + filePath);
     try {
-      FilePaginator paginator = new FilePaginator(filePath, context);
+      FileResource file = new FileResource();
 
       if (page == null)
         page = 0L;
 
-      FileResource file = new FileResource();
-      file.setFilePath(filePath);
-      file.setFileContent(paginator.readPage(page));
-      file.setHasNext(paginator.pageCount() > page + 1);
-      file.setPage(page);
-      file.setPageCount(paginator.pageCount());
+      if (filePath.startsWith(FAKE_FILE)) {
+        if (page > 1)
+          throw new IllegalArgumentException("There's only one page in fake files");
+
+        String content = filePath.substring(FAKE_FILE.length());
+
+        fillFakeFileObject(filePath, file, content);
+      } else {
+        FilePaginator paginator = new FilePaginator(filePath, getSharedObjectsFactory().getHdfsApi());
+
+        fillRealFileObject(filePath, page, file, paginator);
+      }
 
       JSONObject object = new JSONObject();
       object.put("file", file);
@@ -92,6 +101,24 @@ public class FileService extends BaseService {
     }
   }
 
+  public void fillRealFileObject(String filePath, Long page, FileResource file, FilePaginator paginator) throws IOException, InterruptedException {
+    file.setFilePath(filePath);
+    file.setFileContent(paginator.readPage(page));
+    file.setHasNext(paginator.pageCount() > page + 1);
+    file.setPage(page);
+    file.setPageCount(paginator.pageCount());
+  }
+
+  public void fillFakeFileObject(String filePath, FileResource file, String encodedContent) {
+    String content = new String(Base64.decodeBase64(encodedContent));
+
+    file.setFilePath(filePath);
+    file.setFileContent(content);
+    file.setHasNext(false);
+    file.setPage(0);
+    file.setPageCount(1);
+  }
+
   /**
    * Delete single item
    */
@@ -100,7 +127,7 @@ public class FileService extends BaseService {
   public Response deleteFile(@PathParam("filePath") String filePath) throws IOException, InterruptedException {
     try {
       LOG.debug("Deleting file " + filePath);
-      if (getHdfsApi().delete(filePath, false)) {
+      if (getSharedObjectsFactory().getHdfsApi().delete(filePath, false)) {
         return Response.status(204).build();
       }
       throw new NotFoundFormattedException("FileSystem.delete returned false", null);
@@ -121,7 +148,7 @@ public class FileService extends BaseService {
                              @PathParam("filePath") String filePath) throws IOException, InterruptedException {
     try {
       LOG.debug("Rewriting file " + filePath);
-      FSDataOutputStream output = getHdfsApi().create(filePath, true);
+      FSDataOutputStream output = getSharedObjectsFactory().getHdfsApi().create(filePath, true);
       output.writeBytes(request.file.getFileContent());
       output.close();
       return Response.status(204).build();
@@ -143,7 +170,7 @@ public class FileService extends BaseService {
     try {
       LOG.debug("Creating file " + request.file.getFilePath());
       try {
-        FSDataOutputStream output = getHdfsApi().create(request.file.getFilePath(), false);
+        FSDataOutputStream output = getSharedObjectsFactory().getHdfsApi().create(request.file.getFilePath(), false);
         if (request.file.getFileContent() != null) {
           output.writeBytes(request.file.getFileContent());
         }

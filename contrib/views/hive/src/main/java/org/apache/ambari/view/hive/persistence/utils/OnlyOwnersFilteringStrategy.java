@@ -30,4 +30,9 @@ public class OnlyOwnersFilteringStrategy implements FilteringStrategy {
     Owned object = (Owned) item;
     return object.getOwner().compareTo(username) == 0;
   }
+
+  @Override
+  public String whereStatement() {
+    return "owner = '" + username + "'";
+  }
 }
