@@ -65,8 +65,14 @@ public enum HostRoleStatus {
   ABORTED;
 
   private static List<HostRoleStatus> COMPLETED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED, COMPLETED);
-  private static List<HostRoleStatus> FAILED_STATES = Arrays.asList(FAILED, TIMEDOUT, ABORTED);
   private static List<HostRoleStatus> HOLDING_STATES = Arrays.asList(HOLDING, HOLDING_FAILED, HOLDING_TIMEDOUT);
+
+  /**
+   * The {@link HostRoleStatus}s that represent any commands which are
+   * considered to be "Failed".
+   */
+  public static EnumSet<HostRoleStatus> FAILED_STATUSES = EnumSet.of(FAILED,
+      TIMEDOUT, ABORTED);
 
   /**
    * The {@link HostRoleStatus}s that represent any commands which are
@@ -78,12 +84,17 @@ public enum HostRoleStatus {
       HostRoleStatus.HOLDING_FAILED, HostRoleStatus.HOLDING_TIMEDOUT);
 
   /**
+   * The {@link HostRoleStatus}s that represent all non-completed states.
+   */
+  public static final EnumSet<HostRoleStatus> NOT_COMPLETED_STATUSES = EnumSet.complementOf(EnumSet.of(COMPLETED));
+
+  /**
    * Indicates whether or not it is a valid failure state.
    *
    * @return true if this is a valid failure state.
    */
   public boolean isFailedState() {
-    return FAILED_STATES.contains(this);
+    return FAILED_STATUSES.contains(this);
   }
 
   /**
@@ -115,14 +126,6 @@ public enum HostRoleStatus {
    */
   public static List<HostRoleStatus> getCompletedStates() {
     return Collections.unmodifiableList(COMPLETED_STATES);
-  }
-
-  /**
-   *
-   * @return list of failed states
-   */
-  public static List<HostRoleStatus> getFailedStates() {
-    return Collections.unmodifiableList(FAILED_STATES);
   }
 
   /**

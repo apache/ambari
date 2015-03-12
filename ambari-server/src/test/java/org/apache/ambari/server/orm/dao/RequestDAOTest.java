@@ -81,11 +81,15 @@ public class RequestDAOTest {
   @Test
   public void testFindAll() throws Exception {
     RequestDAO dao = injector.getInstance(RequestDAO.class);
-
     Set<Long> set = Collections.emptySet();
-
     List<RequestEntity> list = dao.findByPks(set);
+    Assert.assertEquals(0, list.size());
+  }
 
+  @Test
+  public void testFindAllRequestIds() throws Exception {
+    RequestDAO dao = injector.getInstance(RequestDAO.class);
+    List<Long> list = dao.findAllRequestIds(0, true);
     Assert.assertEquals(0, list.size());
   }
 

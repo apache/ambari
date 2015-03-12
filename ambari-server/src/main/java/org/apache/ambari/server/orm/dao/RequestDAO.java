@@ -18,27 +18,34 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.text.MessageFormat;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
 
-import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class RequestDAO {
+  /**
+   * SQL template to retrieve all request IDs, sorted by the ID.
+   */
+  private final static String REQUEST_IDS_SORTED_SQL = "SELECT request.requestId FROM RequestEntity request ORDER BY request.requestId {0}";
+
   @Inject
   Provider<EntityManager> entityManagerProvider;
+
   @Inject
   DaoUtils daoUtils;
 
@@ -49,9 +56,10 @@ public class RequestDAO {
 
   @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds) {
-    if (null == requestIds || 0 == requestIds.size())
+    if (null == requestIds || 0 == requestIds.size()) {
       return Collections.emptyList();
-    
+    }
+
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
         "WHERE request.requestId IN ?1", RequestEntity.class);
     return daoUtils.selectList(query, requestIds);
@@ -60,6 +68,22 @@ public class RequestDAO {
   @RequiresSession
   public List<RequestEntity> findAll() {
     return daoUtils.selectAll(entityManagerProvider.get(), RequestEntity.class);
+  }
+
+  @RequiresSession
+  public List<Long> findAllRequestIds(int limit, boolean ascending) {
+    String sort = "ASC";
+    if (!ascending) {
+      sort = "DESC";
+    }
+
+    String sql = MessageFormat.format(REQUEST_IDS_SORTED_SQL, sort);
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(sql,
+        Long.class);
+
+    query.setMaxResults(limit);
+
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
