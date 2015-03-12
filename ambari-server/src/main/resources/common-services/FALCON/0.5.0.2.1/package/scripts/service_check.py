@@ -27,7 +27,7 @@ class FalconServiceCheck(Script):
 
     env.set_params(params)
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {smokeuser_keytab} {smoke_user}"),
+      Execute(format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}"),
               user=params.smoke_user)
     Execute(format("{falcon_home}/bin/falcon admin -version"),
             user=params.smoke_user,
