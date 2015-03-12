@@ -25,7 +25,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_utils import run_os_command
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
-from ambari_server.serverConfiguration import configDefaults, PID_NAME, get_ambari_properties, get_stack_location, \
+from ambari_server.serverConfiguration import configDefaults, PID_NAME, get_resources_location, get_stack_location, \
   CLIENT_API_PORT, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
 
@@ -83,10 +83,9 @@ def is_server_runing():
 # Performs HDP stack housekeeping
 #
 def refresh_stack_hash(properties):
-  stack_location = get_stack_location(properties)
-  # Hack: we determine resource dir as a parent dir for stack_location
-  resources_location = os.path.dirname(stack_location)
-  resource_files_keeper = ResourceFilesKeeper(resources_location)
+  resources_location = get_resources_location(properties)
+  stacks_location = get_stack_location(properties)
+  resource_files_keeper = ResourceFilesKeeper(resources_location, stacks_location)
 
   try:
     print "Organizing resource files at {0}...".format(resources_location,

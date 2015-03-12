@@ -262,7 +262,7 @@ switch ($($args[0])){
   }
   "upgrade"
   {
-    echo "Upgrade Ambari Server"
+    echo "Upgrading Ambari Server"
     _upgrade $args
     echo "Ambari Server Upgrade finished"
   }
@@ -291,9 +291,15 @@ switch ($($args[0])){
     _pstart $args
     echo "Ambari Server security setup finished"
   }
+  "refresh-stack-hash"
+  {
+    echo "Refreshing stack hash"
+    _pstart $args
+    echo "Refreshing stack hash finished"
+  }
   default
   {
-    echo "Usage: ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-security} [options]"
+    echo "Usage: ambari-server {start|stop|restart|setup|upgrade|status|upgradestack|setup-ldap|setup-security|refresh-stack-hash} [options]"
     echo "Use ambari-server <action> --help to get details on options available."
     echo "Or, simply invoke ambari-server.py --help to print the options."
     $retcode=1

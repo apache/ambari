@@ -34,18 +34,15 @@ from ambari_commons.os_utils import copy_files, run_os_command, is_root
 from ambari_commons.str_utils import compress_backslashes
 from ambari_server.dbConfiguration import DBMSConfigFactory, check_jdbc_drivers
 from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
-  get_ambari_properties, get_full_ambari_classpath, get_java_exe_path, get_JAVA_HOME, get_value_from_properties, \
-  read_ambari_user, update_properties, validate_jdk, write_property, \
+  get_ambari_properties, get_full_ambari_classpath, get_is_secure, get_is_persisted, get_java_exe_path, get_JAVA_HOME, \
+  get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
-  RESOURCES_DIR_PROPERTY, SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY, get_is_secure, \
-  get_is_persisted
+  SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
 from ambari_server.utils import locate_file
-
-
 
 
 # selinux commands
@@ -407,11 +404,7 @@ class JDKSetup(object):
 
     jdk_cfg = self.jdks[self.jdk_index]
 
-    try:
-      resources_dir = properties[RESOURCES_DIR_PROPERTY]
-    except (KeyError), e:
-      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-      raise FatalException(1, err)
+    resources_dir = get_resources_location(properties)
 
     dest_file = os.path.abspath(os.path.join(resources_dir, jdk_cfg.dest_file))
     if os.path.exists(dest_file):
@@ -472,16 +465,10 @@ class JDKSetup(object):
     self._ensure_java_home_env_var_is_set(java_home_dir)
 
   def download_and_unpack_jce_policy(self, properties):
-    conf_file = properties.fileName
-
     err_msg_stdout = "JCE Policy files are required for secure HDP setup. Please ensure " \
               " all hosts have the JCE unlimited strength policy 6, files."
 
-    try:
-      resources_dir = properties[RESOURCES_DIR_PROPERTY]
-    except (KeyError), e:
-      err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-      raise FatalException(1, err)
+    resources_dir = get_resources_location(properties)
 
     jdk_cfg = self.jdks[self.jdk_index]
 
@@ -782,13 +769,8 @@ def _cache_jdbc_driver(args):
   if properties == -1:
     err = "Error getting ambari properties"
     raise FatalException(-1, err)
-  conf_file = properties.fileName
 
-  try:
-    resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
-    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-    raise FatalException(1, err)
+  resources_dir = get_resources_location(properties)
 
   symlink_name = args.jdbc_db + "-jdbc-driver.jar"
   jdbc_symlink = os.path.join(resources_dir, symlink_name)
@@ -1023,22 +1005,29 @@ def setup(options):
 # Setup the JCE policy for Ambari Server.
 #
 def setup_jce_policy(args):
-  if os.path.exists(args[1]):
-    if not os.path.split(args[1])[0] == configDefaults.SERVER_RESOURCES_DIR:
-      try:
-        shutil.copy(args[1], configDefaults.SERVER_RESOURCES_DIR)
-      except Exception as e:
-        err = "Fail while trying to copy {0} to {1}. {2}".format(args[1], configDefaults.SERVER_RESOURCES_DIR, e)
-        raise FatalException(1, err)
-  else:
+  if not os.path.exists(args[1]):
     err = "Can not run 'setup-jce'. Invalid path {0}.".format(args[1])
     raise FatalException(1, err)
 
   properties = get_ambari_properties()
-  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
-  resources_dir = properties.get_property(RESOURCES_DIR_PROPERTY)
+  resources_dir = get_resources_location(properties)
 
-  zip_name = os.path.split(args[1])[1]
+  zip_path = os.path.split(args[1])
+  zip_dir = zip_path[0]
+
+  if not zip_dir == resources_dir:
+    try:
+      shutil.copy(args[1], resources_dir)
+    except Exception as e:
+      err = "Fail while trying to copy {0} to {1}. {2}".format(args[1], resources_dir, e)
+      raise FatalException(1, err)
+
+  jdk_path = properties.get_property(JAVA_HOME_PROPERTY)
+  if not jdk_path or not os.path.exists(jdk_path):
+    err = "JDK not installed, you need to run 'ambari-server setup' before attempting to install the JCE policy."
+    raise FatalException(1, err)
+
+  zip_name = zip_path[1]
   properties.process_pair(JCE_NAME_PROPERTY, zip_name)
 
   print 'Installing JCE policy...'

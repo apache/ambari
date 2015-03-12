@@ -307,7 +307,7 @@ def init_parser_options(parser):
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def init_parser_options(parser):
-  optparse.Option('-f', '--init-script-file',
+  parser.add_option('-f', '--init-script-file',
                     default='/var/lib/ambari-server/'
                             'resources/Ambari-DDL-Postgres-EMBEDDED-CREATE.sql',
                     help="File with setup script")
@@ -484,6 +484,7 @@ def create_user_action_map(args, options):
     UPGRADE_ACTION: UserAction(upgrade, options),
     LDAP_SETUP_ACTION: UserAction(setup_ldap),
     SETUP_SECURITY_ACTION: UserActionRestart(setup_security, options),
+    REFRESH_STACK_HASH_ACTION: UserAction(refresh_stack_hash_action),
   }
   return action_map
 

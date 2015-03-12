@@ -43,11 +43,11 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
 
 class TestOSCheck(TestCase):
   @patch.object(OSCheck, "os_distribution")
-  @patch("os.path.exists")
-  def test_get_os_type(self, mock_exists, mock_linux_distribution):
+  @patch("ambari_commons.os_check._is_oracle_linux")
+  def test_get_os_type(self, mock_is_oracle_linux, mock_linux_distribution):
 
     # 1 - Any system
-    mock_exists.return_value = False
+    mock_is_oracle_linux.return_value = False
     mock_linux_distribution.return_value = ('my_os', '', '')
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'my_os')
@@ -63,19 +63,19 @@ class TestOSCheck(TestCase):
       pass
 
     # 3 - path exist: '/etc/oracle-release'
-    mock_exists.return_value = True
+    mock_is_oracle_linux.return_value = True
     mock_linux_distribution.return_value = ('some_os', '', '')
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'oraclelinux')
 
     # 4 - Common system
-    mock_exists.return_value = False
+    mock_is_oracle_linux.return_value = False
     mock_linux_distribution.return_value = ('CenToS', '', '')
     result = OSCheck.get_os_type()
     self.assertEquals(result, 'centos')
 
     # 5 - Red Hat Enterprise Linux
-    mock_exists.return_value = False
+    mock_is_oracle_linux.return_value = False
     # Red Hat Enterprise Linux Server release 6.5 (Santiago)
     mock_linux_distribution.return_value = ('Red Hat Enterprise Linux Server', '6.5', 'Santiago')
     result = OSCheck.get_os_type()

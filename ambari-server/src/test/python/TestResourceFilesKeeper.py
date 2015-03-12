@@ -34,6 +34,7 @@ from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperExcepti
 
 class TestResourceFilesKeeper(TestCase):
 
+  TEST_RESOURCES_DIR = "../resources"
   TEST_STACKS_DIR="../resources/stacks"
 
   # Stack that is not expected to change
@@ -66,9 +67,10 @@ class TestResourceFilesKeeper(TestCase):
 
   @patch.object(ResourceFilesKeeper, "update_directory_archieves")
   def test_perform_housekeeping(self, update_directory_archieves_mock):
-    resource_files_keeper = ResourceFilesKeeper("/dummy-path")
+    resource_files_keeper = ResourceFilesKeeper("/dummy-resources", "/dummy-path")
     resource_files_keeper.perform_housekeeping()
     update_directory_archieves_mock.assertCalled()
+    pass
 
 
   @patch.object(ResourceFilesKeeper, "update_directory_archive")
@@ -85,7 +87,7 @@ class TestResourceFilesKeeper(TestCase):
     list_common_services_mock.return_value = [self.DUMMY_UNCHANGEABLE_COMMON_SERVICES,
                                               self.DUMMY_UNCHANGEABLE_COMMON_SERVICES]
     abspath_mock.side_effect = lambda s : s
-    resource_files_keeper = ResourceFilesKeeper(self.TEST_STACKS_DIR)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.TEST_STACKS_DIR)
     resource_files_keeper.update_directory_archieves()
     self.assertEquals(pprint.pformat(
       update_directory_archive_mock.call_args_list),
@@ -99,14 +101,15 @@ class TestResourceFilesKeeper(TestCase):
             "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
             "call('../resources/TestAmbaryServer.samples/"
             "dummy_common_services/HIVE/0.11.0.2.0.5.0/package'),\n "
-            "call('../resources/stacks/custom_actions'),\n "
-            "call('../resources/stacks/host_scripts')]")
+            "call('../resources/custom_actions'),\n "
+            "call('../resources/host_scripts')]")
+    pass
 
 
   @patch("glob.glob")
   @patch("os.path.exists")
   def test_list_stacks(self, exists_mock, glob_mock):
-    resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
     # Test normal execution flow
     glob_mock.return_value = ["stack1", "stack2", "stack3"]
     exists_mock.side_effect = [True, False, True]
@@ -127,7 +130,7 @@ class TestResourceFilesKeeper(TestCase):
   @patch("glob.glob")
   @patch("os.path.exists")
   def test_list_common_services(self, exists_mock, glob_mock):
-    resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
     # Test normal execution flow
     glob_mock.return_value = ["common_service1", "common_service2", "common_service3"]
     exists_mock.side_effect = [True, False, True]
@@ -154,7 +157,7 @@ class TestResourceFilesKeeper(TestCase):
     # Test situation when there is no saved directory hash
     read_hash_sum_mock.return_value = None
     count_hash_sum_mock.return_value = self.YA_HASH
-    resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH)
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
@@ -218,17 +221,18 @@ class TestResourceFilesKeeper(TestCase):
     # Test nozip option
     read_hash_sum_mock.return_value = None
     count_hash_sum_mock.return_value = self.YA_HASH
-    resource_files_keeper = ResourceFilesKeeper(self.SOME_PATH, nozip=True)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.SOME_PATH, nozip=True)
     resource_files_keeper.update_directory_archive(self.SOME_PATH)
     self.assertTrue(read_hash_sum_mock.called)
     self.assertTrue(count_hash_sum_mock.called)
     self.assertFalse(zip_directory_mock.called)
     self.assertTrue(write_hash_sum_mock.called)
+    pass
 
 
   def test_count_hash_sum(self):
     # Test normal flow
-    resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)
     test_dir = os.path.join(self.DUMMY_UNCHANGEABLE_PACKAGE)
     hash_sum = resource_files_keeper.count_hash_sum(test_dir)
     self.assertEquals(hash_sum, self.DUMMY_UNCHANGEABLE_PACKAGE_HASH)
@@ -246,7 +250,7 @@ class TestResourceFilesKeeper(TestCase):
 
 
   def test_read_hash_sum(self):
-    resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
     self.assertEquals(hash_sum, "dummy_hash")
 
@@ -272,11 +276,12 @@ class TestResourceFilesKeeper(TestCase):
         open_mock.side_effect = self.exc_side_effect
         res = resource_files_keeper.read_hash_sum("path-to-directory")
         self.assertEqual(res, None)
+    pass
 
 
   def test_write_hash_sum(self):
     NEW_HASH = "new_hash"
-    resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)
     resource_files_keeper.write_hash_sum(
       self.DUMMY_UNCHANGEABLE_PACKAGE, NEW_HASH)
     hash_sum = resource_files_keeper.read_hash_sum(self.DUMMY_UNCHANGEABLE_PACKAGE)
@@ -302,7 +307,7 @@ class TestResourceFilesKeeper(TestCase):
 
   def test_zip_directory(self):
     # Test normal flow
-    resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)
     resource_files_keeper.zip_directory(self.DUMMY_UNCHANGEABLE_PACKAGE)
     arc_file = os.path.join(self.DUMMY_UNCHANGEABLE_PACKAGE,
                             ResourceFilesKeeper.ARCHIVE_NAME)
@@ -328,12 +333,13 @@ class TestResourceFilesKeeper(TestCase):
 
 
   def test_is_ignored(self):
-    resource_files_keeper = ResourceFilesKeeper(self.DUMMY_UNCHANGEABLE_PACKAGE)
+    resource_files_keeper = ResourceFilesKeeper(self.TEST_RESOURCES_DIR, self.DUMMY_UNCHANGEABLE_PACKAGE)
     self.assertTrue(resource_files_keeper.is_ignored(".hash"))
     self.assertTrue(resource_files_keeper.is_ignored("archive.zip"))
     self.assertTrue(resource_files_keeper.is_ignored("dummy.pyc"))
     self.assertFalse(resource_files_keeper.is_ignored("dummy.py"))
     self.assertFalse(resource_files_keeper.is_ignored("1.sh"))
+    pass
 
 
   def exc_side_effect(self, *a):

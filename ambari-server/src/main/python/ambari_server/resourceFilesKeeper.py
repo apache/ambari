@@ -23,7 +23,6 @@ import os, sys
 import zipfile
 import glob
 import pprint
-from xml.dom import minidom
 
 
 class KeeperException(Exception):
@@ -55,11 +54,12 @@ class ResourceFilesKeeper():
   # Change that to True to see debug output at stderr
   DEBUG=False
 
-  def __init__(self, resources_dir, verbose=False, nozip=False):
+  def __init__(self, resources_dir, stacks_dir, verbose=False, nozip=False):
     """
       nozip = create only hash files and skip creating zip archives
     """
     self.resources_dir = resources_dir
+    self.stacks_root = stacks_dir
     self.verbose = verbose
     self.nozip = nozip
 
@@ -72,21 +72,31 @@ class ResourceFilesKeeper():
     # probably, later we will need some additional operations
 
 
-  def update_directory_archieves(self):
-    """
-    Please see AMBARI-4481 for more details
-    """
-    stacks_root = os.path.join(self.resources_dir, self.STACKS_DIR)
-    self.dbg_out("Updating archives for stack dirs at {0}...".format(stacks_root))
-    valid_stacks = self.list_stacks(stacks_root)
-    self.dbg_out("Stacks: {0}".format(pprint.pformat(valid_stacks)))
-    # Iterate over stack directories
-    for stack_dir in valid_stacks:
-      for root, dirs, _ in os.walk(stack_dir):
+  def _iter_update_directory_archive(self, subdirs_list):
+    for subdir in subdirs_list:
+      for root, dirs, _ in os.walk(subdir):
         for d in dirs:
           if d in self.ARCHIVABLE_DIRS:
             full_path = os.path.abspath(os.path.join(root, d))
             self.update_directory_archive(full_path)
+
+  def _update_resources_subdir_archive(self, subdir):
+    archive_root = os.path.join(self.resources_dir, subdir)
+    self.dbg_out("Updating archive for {0} dir at {1}...".format(subdir, archive_root))
+
+    # update the directories so that the .hash is generated
+    self.update_directory_archive(archive_root)
+
+  def update_directory_archieves(self):
+    """
+    Please see AMBARI-4481 for more details
+    """
+    # archive stacks
+    self.dbg_out("Updating archives for stack dirs at {0}...".format(self.stacks_root))
+    valid_stacks = self.list_stacks(self.stacks_root)
+    self.dbg_out("Stacks: {0}".format(pprint.pformat(valid_stacks)))
+    # Iterate over stack directories
+    self._iter_update_directory_archive(valid_stacks)
 
     # archive common services
     common_services_root = os.path.join(self.resources_dir, self.COMMON_SERVICES_DIR)
@@ -94,58 +104,40 @@ class ResourceFilesKeeper():
     valid_common_services = self.list_common_services(common_services_root)
     self.dbg_out("Common Services: {0}".format(pprint.pformat(valid_common_services)))
     # Iterate over common services directories
-    for common_service_dir in valid_common_services:
-      for root, dirs, _ in os.walk(common_service_dir):
-        for d in dirs:
-          if d in self.ARCHIVABLE_DIRS:
-            full_path = os.path.abspath(os.path.join(root, d))
-            self.update_directory_archive(full_path)
-
+    self._iter_update_directory_archive(valid_common_services)
 
     # custom actions
-    custom_actions_root = os.path.join(self.resources_dir,self.CUSTOM_ACTIONS_DIR)        
-    self.dbg_out("Updating archive for {0} dir at {1}...".format(self.CUSTOM_ACTIONS_DIR, 
-        custom_actions_root))
-        
+    self._update_resources_subdir_archive(self.CUSTOM_ACTIONS_DIR)
+
     # agent host scripts
-    host_scripts_root = os.path.join(self.resources_dir,self.HOST_SCRIPTS_DIR)    
-    self.dbg_out("Updating archive for {0} dir at {1}...".format(self.HOST_SCRIPTS_DIR, 
-        host_scripts_root))
-    
-    # update the directories so that the .hash is generated
-    self.update_directory_archive(custom_actions_root)
-    self.update_directory_archive(host_scripts_root)
+    self._update_resources_subdir_archive(self.HOST_SCRIPTS_DIR)
 
 
-  def list_stacks(self, stacks_root):
+  def _list_metainfo_dirs(self, root_dir):
+    valid_items = []  # Format: <stack_dir, ignore(True|False)>
+    glob_pattern = "{0}/*/*".format(root_dir)
+    dirs = glob.glob(glob_pattern)
+    for directory in dirs:
+      metainfo_file = os.path.join(directory, self.METAINFO_XML)
+      if os.path.exists(metainfo_file):
+        valid_items.append(directory)
+    return valid_items
+
+  def list_stacks(self, root_dir):
     """
     Builds a list of stack directories
     """
-    valid_stacks = [] # Format: <stack_dir, ignore(True|False)>
-    glob_pattern = "{0}/*/*".format(stacks_root)
     try:
-      stack_dirs = glob.glob(glob_pattern)
-      for directory in stack_dirs:
-        metainfo_file = os.path.join(directory, self.METAINFO_XML)
-        if os.path.exists(metainfo_file):
-          valid_stacks.append(directory)
-      return valid_stacks
+      return self._list_metainfo_dirs(root_dir)
     except Exception, err:
       raise KeeperException("Can not list stacks: {0}".format(str(err)))
 
-  def list_common_services(self, common_services_root):
+  def list_common_services(self, root_dir):
     """
     Builds a list of common services directories
     """
-    valid_common_services = []
-    glob_pattern = "{0}/*/*".format(common_services_root)
     try:
-      common_services_dirs = glob.glob(glob_pattern)
-      for directory in common_services_dirs:
-        metainfo_file = os.path.join(directory, self.METAINFO_XML)
-        if os.path.exists(metainfo_file):
-          valid_common_services.append(directory)
-      return valid_common_services
+      return self._list_metainfo_dirs(root_dir)
     except Exception, err:
       raise KeeperException("Can not list common services: {0}".format(str(err)))
 
@@ -269,8 +261,14 @@ def main(argv=None):
   Params:
     1: Path to resources root directory
   """
-  path = argv[1]
-  resource_files_keeper = ResourceFilesKeeper(path, nozip=True)
+  res_path = argv[1]
+
+  if len(argv) >= 3:
+    stacks_path = argv[2]
+  else:
+    stacks_path = os.path.join(res_path, ResourceFilesKeeper.STACKS_DIR)
+
+  resource_files_keeper = ResourceFilesKeeper(res_path, stacks_path, nozip=True)
   resource_files_keeper.perform_housekeeping()
 
 

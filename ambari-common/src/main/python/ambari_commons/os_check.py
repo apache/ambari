@@ -70,6 +70,17 @@ VER_NT_WORKSTATION = 1
 VER_NT_DOMAIN_CONTROLLER = 2
 VER_NT_SERVER = 3
 
+# Linux specific releases, caching them since they are execution invariants
+_IS_ORACLE_LINUX = os.path.exists('/etc/oracle-release')
+_IS_REDHAT_LINUX = os.path.exists('/etc/redhat-release')
+
+def _is_oracle_linux():
+  return _IS_ORACLE_LINUX
+
+def _is_redhat_linux():
+  return _IS_REDHAT_LINUX
+
+
 class OS_CONST_TYPE(type):
 
   # Declare here os type mapping
@@ -148,7 +159,7 @@ class OSCheck:
 
       if PYTHON_VER < 26:
         distribution = platform.dist()
-      elif os.path.exists('/etc/redhat-release'):
+      elif _is_redhat_linux():
         distribution = platform.dist()
       else:
         distribution = platform.linux_distribution()
@@ -171,7 +182,7 @@ class OSCheck:
     operatingSystem = dist[0].lower()
 
     # special cases
-    if os.path.exists('/etc/oracle-release'):
+    if _is_oracle_linux():
       return 'oraclelinux'
     elif operatingSystem.startswith('suse linux enterprise server'):
       return 'sles'

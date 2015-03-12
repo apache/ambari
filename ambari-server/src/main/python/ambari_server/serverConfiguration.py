@@ -137,7 +137,6 @@ SERVICE_PASSWORD_KEY = "TMP_AMBARI_PASSWORD"
 
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"
-RESOURCES_DIR_DEFAULT = "resources"
 
 # stack repo upgrade
 STACK_LOCATION_KEY = 'metadata.path'
@@ -1102,9 +1101,27 @@ def get_java_exe_path():
 
 
 #
+# Server resource files location
+#
+def get_resources_location(properties):
+  err = 'Invalid directory'
+  try:
+    resources_dir = properties[RESOURCES_DIR_PROPERTY]
+    if not resources_dir:
+      resources_dir = configDefaults.SERVER_RESOURCES_DIR
+  except (KeyError), e:
+    err = 'Property ' + str(e) + ' is not defined at ' + properties.fileName
+    resources_dir = configDefaults.SERVER_RESOURCES_DIR
+
+  if not os.path.exists(os.path.abspath(resources_dir)):
+    msg = 'Resources dir ' + resources_dir + ' is incorrectly configured: ' + err
+    raise FatalException(1, msg)
+
+  return resources_dir
+
+#
 # Stack upgrade
 #
-
 def get_stack_location(properties):
   stack_location = properties[STACK_LOCATION_KEY]
   if stack_location is None:

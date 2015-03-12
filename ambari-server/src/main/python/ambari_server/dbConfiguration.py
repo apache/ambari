@@ -25,10 +25,9 @@ from ambari_commons.exceptions import FatalException
 from ambari_commons.logging_utils import get_silent, print_error_msg, print_info_msg, print_warning_msg, set_silent
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons.str_utils import cbool
-from ambari_server.serverConfiguration import decrypt_password_for_alias, get_value_from_properties, get_is_secure, \
-  is_alias_string, \
-  JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG, get_ambari_properties, update_properties, \
-  RESOURCES_DIR_PROPERTY, JDBC_PATTERNS, configDefaults
+from ambari_server.serverConfiguration import decrypt_password_for_alias, get_ambari_properties, get_is_secure, \
+  get_resources_location, get_value_from_properties, is_alias_string, \
+  JDBC_PASSWORD_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, PRESS_ENTER_MSG
 from ambari_server.userInput import get_validated_string_input
 
 
@@ -454,13 +453,8 @@ def check_jdbc_drivers(args):
     err = "Error getting ambari properties"
     print_error_msg(err)
     raise FatalException(-1, err)
-  conf_file = properties.fileName
 
-  try:
-    resources_dir = properties[RESOURCES_DIR_PROPERTY]
-  except (KeyError), e:
-    err = 'Property ' + str(e) + ' is not defined at ' + conf_file
-    raise FatalException(1, err)
+  resources_dir = get_resources_location(properties)
 
   try:
     db_idx_orig = args.database_index

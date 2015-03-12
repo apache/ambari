@@ -33,7 +33,8 @@ from ambari_commons.exceptions import NonFatalException, FatalException
 from ambari_commons.os_utils import copy_files, find_in_path, is_root, remove_file, run_os_command
 from ambari_server.dbConfiguration import DBMSConfig, USERNAME_PATTERN, SETUP_DB_CONNECT_ATTEMPTS, \
     SETUP_DB_CONNECT_TIMEOUT, STORAGE_TYPE_LOCAL, DEFAULT_USERNAME, DEFAULT_PASSWORD
-from ambari_server.serverConfiguration import get_ambari_properties, get_value_from_properties, configDefaults, \
+from ambari_server.serverConfiguration import encrypt_password, store_password_file, \
+    get_ambari_properties, get_resources_location, get_value_from_properties, configDefaults, \
     OS_TYPE, OS_FAMILY, AMBARI_PROPERTIES_FILE, RESOURCES_DIR_PROPERTY, \
     JDBC_DATABASE_PROPERTY, JDBC_DATABASE_NAME_PROPERTY, JDBC_POSTGRES_SCHEMA_PROPERTY, \
     JDBC_HOSTNAME_PROPERTY, JDBC_PORT_PROPERTY, \
@@ -41,7 +42,7 @@ from ambari_server.serverConfiguration import get_ambari_properties, get_value_f
     JDBC_DRIVER_PROPERTY, JDBC_URL_PROPERTY, \
     JDBC_RCA_USER_NAME_PROPERTY, JDBC_RCA_PASSWORD_ALIAS, JDBC_RCA_PASSWORD_FILE_PROPERTY, \
     JDBC_RCA_DRIVER_PROPERTY, JDBC_RCA_URL_PROPERTY, \
-    PERSISTENCE_TYPE_PROPERTY, encrypt_password, store_password_file
+    PERSISTENCE_TYPE_PROPERTY
 from ambari_server.userInput import get_YN_input, get_validated_string_input, read_password
 from ambari_server.utils import get_postgre_hba_dir, get_postgre_running_status
 
@@ -153,11 +154,7 @@ class LinuxDBMSConfig(DBMSConfig):
   def _install_jdbc_driver(self, properties, files_list):
     if type(files_list) is not int:
       print 'Copying JDBC drivers to server resources...'
-      try:
-        resources_dir = properties[RESOURCES_DIR_PROPERTY]
-      except KeyError:
-        print_error_msg("There is no value for " + RESOURCES_DIR_PROPERTY + "in " + AMBARI_PROPERTIES_FILE)
-        return False
+      resources_dir = get_resources_location(properties)
 
       db_name = self.dbms_full_name.lower()
       symlink_name = db_name + "-jdbc-driver.jar"

@@ -18,7 +18,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 import getpass
-
 import os
 import stat
 import subprocess
@@ -26,7 +25,7 @@ import tempfile
 import sys
 
 from ambari_commons.exceptions import FatalException
-from ambari_commons.logging_utils import get_debug_mode, get_verbose, print_warning_msg, print_info_msg, \
+from ambari_commons.logging_utils import get_debug_mode, print_warning_msg, print_info_msg, \
   set_debug_mode_from_options
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -34,9 +33,9 @@ from ambari_commons.os_utils import is_root
 from ambari_server.dbConfiguration import ensure_dbms_is_running, ensure_jdbc_driver_is_installed
 from ambari_server.serverConfiguration import configDefaults, find_jdk, get_ambari_classpath, get_ambari_properties, \
   get_conf_dir, get_is_persisted, get_is_secure, get_java_exe_path, get_original_master_key, read_ambari_user, \
-  PID_NAME, RESOURCES_DIR_DEFAULT, RESOURCES_DIR_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
+  PID_NAME, SECURITY_KEY_ENV_VAR_NAME, SECURITY_MASTER_KEY_LOCATION, \
   SETUP_OR_UPGRADE_MSG, check_database_name_property, parse_properties_file
-from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
+from ambari_server.serverUtils import refresh_stack_hash
 from ambari_server.setupHttps import get_fqdn
 from ambari_server.setupSecurity import save_master_key
 from ambari_server.utils import check_reverse_lookup, save_pid, locate_file, looking_for_pid, wait_for_pid, \
@@ -104,13 +103,6 @@ AMBARI_SERVER_DIE_MSG = "Ambari Server java process died with exitcode {0}. Chec
 # linux open-file limit
 ULIMIT_OPEN_FILES_KEY = 'ulimit.open.files'
 ULIMIT_OPEN_FILES_DEFAULT = 10000
-
-
-def get_resources_location(properties):
-  res_location = properties[RESOURCES_DIR_PROPERTY]
-  if res_location is None:
-    res_location = RESOURCES_DIR_DEFAULT
-  return res_location
 
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)

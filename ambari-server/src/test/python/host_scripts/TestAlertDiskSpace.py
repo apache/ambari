@@ -22,8 +22,17 @@ from mock.mock import patch, MagicMock
 from ambari_commons.os_check import OSCheck
 from stacks.utils.RMFTestCase import *
 
+from only_for_platform import get_platform, not_for_platform, only_for_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+  from pwd import getpwnam
+else:
+  #No Windows tests for now, but start getting prepared
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestAlertDiskSpace(RMFTestCase):
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('alert_disk_space._get_disk_usage')
   @patch("os.path.isdir")
   @patch.object(OSCheck, "get_os_family", new = MagicMock(return_value = 'redhat'))

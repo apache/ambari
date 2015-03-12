@@ -73,7 +73,8 @@ with patch("platform.linux_distribution", return_value = os_distro_value):
           LDAP_MGR_PASSWORD_PROPERTY, LDAP_MGR_PASSWORD_ALIAS, JDBC_PASSWORD_FILENAME, NR_USER_PROPERTY, SECURITY_KEY_IS_PERSISTED, \
           SSL_TRUSTSTORE_PASSWORD_PROPERTY, SECURITY_IS_ENCRYPTION_ENABLED, SSL_TRUSTSTORE_PASSWORD_ALIAS, \
           SECURITY_MASTER_KEY_LOCATION, SECURITY_KEYS_DIR, LDAP_PRIMARY_URL_PROPERTY, store_password_file, \
-          get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME
+          get_pass_file_path, GET_FQDN_SERVICE_URL, JDBC_USE_INTEGRATED_AUTH_PROPERTY, SECURITY_KEY_ENV_VAR_NAME, \
+          JAVA_HOME_PROPERTY
         from ambari_server.serverUtils import is_server_runing, refresh_stack_hash
         from ambari_server.serverSetup import check_selinux, check_ambari_user, proceedJDBCProperties, SE_STATUS_DISABLED, SE_MODE_ENFORCING, configure_os_settings, \
           download_and_install_jdk, prompt_db_properties, setup, \
@@ -2161,17 +2162,24 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Successful JDK download
     args.java_home = None
     validate_jdk_mock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     path_isfileMock.return_value = False
     args.jdk_location = None
     run_os_command_mock.return_value = (0, "Creating jdk1/jre" , None)
     statResult = MagicMock()
     statResult.st_size = 32000
     statMock.return_value = statResult
-    rcode = download_and_install_jdk(args)
+    try:
+      rcode = download_and_install_jdk(args)
+    except Exception, e:
+      raise
     self.assertEqual(0, rcode)
 
     # Test case: not accept the license"
     get_YN_input_mock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     download_and_install_jdk(args)
     self.assertTrue(exit_mock.called)
 
@@ -2180,7 +2188,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_JAVA_HOME_mock.return_value = "some_jdk"
     validate_jdk_mock.return_value = True
     get_YN_input_mock.return_value = False
-    path_existsMock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     force_download_file_mock.reset_mock()
     with patch("ambari_server.serverSetup.JDKSetup._download_jce_policy") as download_jce_policy_mock:
       rcode = download_and_install_jdk(args)
@@ -2191,7 +2200,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     update_properties_mock.reset_mock()
     args.java_home = "somewhere"
     validate_jdk_mock.return_value = True
-    path_existsMock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     get_JAVA_HOME_mock.return_value = "some_jdk"
     path_isfileMock.return_value = True
     download_and_install_jdk(args)
@@ -2216,7 +2226,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.jdk_location = None
     validate_jdk_mock.return_value = False
     update_properties_mock.reset_mock()
-    path_existsMock.side_effect = [False, True]
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, True, True, True]
     get_validated_string_input_mock.return_value = "2"
     get_JAVA_HOME_mock.return_value = None
     rcode = download_and_install_jdk(args)
@@ -2226,8 +2237,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Test case: Setup ambari-server first time, Custom JDK selected, JDK not exists
     update_properties_mock.reset_mock()
     validate_jdk_mock.return_value = False
-    path_existsMock.side_effect = None
-    path_existsMock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     get_validated_string_input_mock.return_value = "2"
     get_JAVA_HOME_mock.return_value = None
     try:
@@ -2242,7 +2253,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     validate_jdk_mock.return_value = False
     path_isfileMock.return_value = False
     update_properties_mock.reset_mock()
-    path_existsMock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     get_validated_string_input_mock.return_value = "2"
     get_JAVA_HOME_mock.return_value = None
     flag = False
@@ -2258,7 +2270,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     #Test case: Setup ambari-server with java home passed. Path to java home doesn't exist
     args.java_home = "somewhere"
     validate_jdk_mock.return_value = False
-    path_existsMock.return_value = False
+    path_existsMock.reset_mock()
+    path_existsMock.side_effect = [True, False, True, False]
     try:
       download_and_install_jdk(args)
       self.fail("Should throw exception")
@@ -2759,7 +2772,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_setup_jce_policy(self, open_mock, search_file_mock, get_ambari_properties_mock, unpack_jce_policy_mock,
                             update_properties_mock, path_split_mock, shutil_copy_mock, exists_mock):
     exists_mock.return_value = True
-    properties = MagicMock()
+    properties = Properties()
+    properties.process_pair(JAVA_HOME_PROPERTY, "/java_home")
     unpack_jce_policy_mock.return_value = 0
     get_ambari_properties_mock.return_value = properties
     conf_file = 'etc/ambari-server/conf/ambari.properties'
@@ -2814,6 +2828,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       setup_jce_policy(args)
     except FatalException:
       self.assertTrue(True)
+    pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_commons.firewall.run_os_command")
@@ -3256,7 +3271,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverConfiguration.get_validated_string_input")
   @patch("os.environ")
   @patch("ambari_server.setupSecurity.get_ambari_properties")
-  @patch("ambari_server.serverUtils.get_ambari_properties")
   @patch("ambari_server.serverSetup.get_ambari_properties")
   @patch("ambari_server.serverConfiguration.get_ambari_properties")
   @patch("ambari_server_main.get_ambari_properties")
@@ -3282,7 +3296,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                  find_jdk_mock, check_database_name_property_mock, search_file_mock,
                  popenMock, openMock, pexistsMock,
                  get_ambari_properties_mock, get_ambari_properties_2_mock, get_ambari_properties_3_mock,
-                 get_ambari_properties_4_mock, get_ambari_properties_5_mock, os_environ_mock,
+                 get_ambari_properties_4_mock, os_environ_mock,
                  get_validated_string_input_method, write_property_method,
                  os_chmod_method, get_is_secure_mock, get_is_persisted_mock,
                  save_master_key_method, get_master_key_location_method,
@@ -3291,6 +3305,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                  wait_for_pid_mock, looking_for_pid_mock, stdout_write_mock, stdout_flush_mock):
 
     def reset_mocks():
+      pexistsMock.reset_mock()
+
       args = MagicMock()
       del args.dbms
       del args.database_index
@@ -3325,7 +3341,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p = Properties()
     p.process_pair(SECURITY_IS_ENCRYPTION_ENABLED, 'False')
 
-    get_ambari_properties_5_mock.return_value = get_ambari_properties_4_mock.return_value = \
+    get_ambari_properties_4_mock.return_value = \
       get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = p
     get_is_secure_mock.return_value = False
@@ -3433,12 +3449,16 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # Test exception handling on resource files housekeeping
     perform_housekeeping_mock.reset_mock()
     perform_housekeeping_mock.side_effect = KeeperException("some_reason")
+
+    pexistsMock.return_value = True
+
     try:
       _ambari_server_.start(args)
       self.fail("Should fail with exception")
     except FatalException as e:
       self.assertTrue('some_reason' in e.reason)
     self.assertTrue(perform_housekeeping_mock.called)
+
     perform_housekeeping_mock.side_effect = lambda *v, **kv : None
     perform_housekeeping_mock.reset_mock()
 
@@ -3827,11 +3847,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("os.path.isfile")
   @patch("ambari_server.serverSetup.get_ambari_properties")
+  @patch("os.path.exists")
   @patch("os.path.lexists")
   @patch("os.remove")
   @patch("os.symlink")
   @patch("shutil.copy")
-  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock,
+  def test_proceedJDBCProperties(self, copy_mock, os_symlink_mock, os_remove_mock, lexists_mock, exists_mock,
                                  get_ambari_properties_mock, isfile_mock):
     args = MagicMock()
 
@@ -3876,6 +3897,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     p = MagicMock()
     get_ambari_properties_mock.return_value = p
     p.__getitem__.side_effect = KeyError("test exception")
+    exists_mock.return_value = False
     fail = False
 
     try:
@@ -3889,6 +3911,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     args.jdbc_db = "postgres"
     get_ambari_properties_mock.return_value = MagicMock()
     isfile_mock.side_effect = [True, False]
+    exists_mock.return_value = True
     fail = False
 
     def side_effect():
@@ -3927,6 +3950,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("__builtin__.open")
   @patch("os.path.isfile")
   @patch("os.path.lexists")
+  @patch("os.path.exists")
   @patch("os.remove")
   @patch("os.symlink")
   @patch.object(Properties, "store")
@@ -3950,7 +3974,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                             is_root_mock, update_ambari_properties_mock, find_properties_file_mock, run_os_command_mock,
                             run_schema_upgrade_mock, read_ambari_user_mock, print_warning_msg_mock,
                             adjust_directory_permissions_mock, properties_store_mock,
-                            os_symlink_mock, os_remove_mock, lexists_mock, isfile_mock, open_mock):
+                            os_symlink_mock, os_remove_mock, exists_mock, lexists_mock, isfile_mock, open_mock):
 
     def reset_mocks():
       run_os_command_mock.reset_mock()
@@ -4043,6 +4067,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = properties
     get_ambari_properties_3_mock.side_effect = get_ambari_properties_2_mock.side_effect = [properties, properties2, properties2]
 
+    exists_mock.return_value = True
+
     try:
       upgrade(args)
     except FatalException as fe:
@@ -4102,8 +4128,8 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       self.assertTrue(write_property_mock.called)
       self.assertFalse(move_user_custom_actions_mock.called)
       self.assertTrue(os_symlink_mock.called)
-      self.assertTrue(os_symlink_mock.call_args_list[0][0][0] == "mysql-connector-java.jar")
-      self.assertTrue(os_symlink_mock.call_args_list[0][0][1] == "mysql-jdbc-driver.jar")
+      self.assertTrue(os_symlink_mock.call_args_list[0][0][0] == "/var/lib/ambari-server/resources/mysql-connector-java.jar")
+      self.assertTrue(os_symlink_mock.call_args_list[0][0][1] == "/var/lib/ambari-server/resources/mysql-jdbc-driver.jar")
 
     args = reset_mocks()
 
@@ -4131,6 +4157,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("__builtin__.open")
   @patch("os.path.isfile")
+  @patch("os.path.exists")
   @patch("os.path.lexists")
   @patch("os.remove")
   @patch("os.symlink")
@@ -4159,7 +4186,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                    read_ambari_user_mock, print_warning_msg_mock,
                    adjust_directory_permissions_mock,
                    find_properties_file_mock, change_db_files_owner_mock, properties_store_mock,
-                   os_symlink_mock, os_remove_mock, lexists_mock, isfile_mock, open_mock):
+                   os_symlink_mock, os_remove_mock, lexists_mock, exists_mock, isfile_mock, open_mock):
 
     def reset_mocks():
       isfile_mock.reset_mock()
@@ -4210,6 +4237,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     read_ambari_user_mock.return_value = None
     run_schema_upgrade_mock.return_value = 0
     change_db_files_owner_mock.return_value = 0
+    exists_mock.return_value = True
     upgrade(args)
     self.assertTrue(print_warning_msg_mock.called)
     warning_args = print_warning_msg_mock.call_args[0][0]
@@ -4276,6 +4304,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = p
     p.__getitem__.side_effect = ["something", "something", "something", KeyError("test exception")]
+    exists_mock.return_value = False
     fail = False
 
     try:
@@ -4293,6 +4322,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     get_ambari_properties_3_mock.return_value = get_ambari_properties_2_mock.return_value = \
       get_ambari_properties_mock.return_value = props
+    exists_mock.return_value = True
     lexists_mock.return_value = True
     isfile_mock.side_effect = [True, False]
 
@@ -6543,9 +6573,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     run_metainfo_upgrade_mock.assert_called_with({})
     pass
 
+  @patch("os.path.exists")
   @patch.object(ResourceFilesKeeper, "perform_housekeeping")
   def test_refresh_stack_hash(self,
-    perform_housekeeping_mock):
+    perform_housekeeping_mock, path_exists_mock):
+
+    path_exists_mock.return_value = True
 
     properties = Properties()
     refresh_stack_hash(properties)
