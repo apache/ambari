@@ -25,8 +25,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -39,7 +39,6 @@ import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
-import org.apache.ambari.server.state.Cluster;
 
 import com.google.inject.Inject;
 
@@ -52,18 +51,19 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
   public static final String ALERT_ID = "Alert/id";
   public static final String ALERT_STATE = "Alert/state";
   public static final String ALERT_ORIGINAL_TIMESTAMP = "Alert/original_timestamp";
+  public static final String ALERT_LATEST_TIMESTAMP = "Alert/latest_timestamp";
   public static final String ALERT_MAINTENANCE_STATE = "Alert/maintenance_state";
   public static final String ALERT_DEFINITION_ID = "Alert/definition_id";
   public static final String ALERT_DEFINITION_NAME = "Alert/definition_name";
   public static final String ALERT_TEXT = "Alert/text";
 
-  protected static final String ALERT_CLUSTER_NAME = "Alert/cluster_name";
-  protected static final String ALERT_LATEST_TIMESTAMP = "Alert/latest_timestamp";
+  public static final String ALERT_CLUSTER_NAME = "Alert/cluster_name";
+  public static final String ALERT_COMPONENT = "Alert/component_name";
+  public static final String ALERT_HOST = "Alert/host_name";
+  public static final String ALERT_SERVICE = "Alert/service_name";
+
   protected static final String ALERT_INSTANCE = "Alert/instance";
   protected static final String ALERT_LABEL = "Alert/label";
-  protected static final String ALERT_COMPONENT = "Alert/component_name";
-  protected static final String ALERT_HOST = "Alert/host_name";
-  protected static final String ALERT_SERVICE = "Alert/service_name";
   protected static final String ALERT_SCOPE = "Alert/scope";
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
@@ -148,28 +148,13 @@ public class AlertResourceProvider extends ReadOnlyResourceProvider {
         }
 
       } else {
-        Cluster cluster = null;
-
-        try {
-          cluster = getManagementController().getClusters().getCluster(clusterName);
-        } catch (AmbariException e) {
-          throw new NoSuchResourceException("Parent Cluster resource doesn't exist", e);
-        }
-
-        String serviceName = (String) propertyMap.get(ALERT_SERVICE);
-        String hostName = (String) propertyMap.get(ALERT_HOST);
-
         List<AlertCurrentEntity> entities = null;
+          AlertCurrentRequest alertCurrentRequest = new AlertCurrentRequest();
+          alertCurrentRequest.Predicate = predicate;
+          alertCurrentRequest.Pagination = request.getPageRequest();
+          alertCurrentRequest.Sort = request.getSortRequest();
 
-        if (null != hostName) {
-          entities = alertsDAO.findCurrentByHost(cluster.getClusterId(),
-              hostName);
-        } else if (null != serviceName) {
-          entities = alertsDAO.findCurrentByService(cluster.getClusterId(),
-              serviceName);
-        } else {
-          entities = alertsDAO.findCurrentByCluster(cluster.getClusterId());
-        }
+          entities = alertsDAO.findAll(alertCurrentRequest);
 
         if (null == entities) {
           entities = Collections.emptyList();

@@ -20,7 +20,6 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMORY_URL;
 import static org.apache.ambari.server.configuration.Configuration.JDBC_IN_MEMROY_DRIVER;
 import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.captureLong;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
@@ -45,6 +44,7 @@ import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -117,8 +117,7 @@ public class AlertResourceProviderTest {
    */
   @Test
   public void testGetCluster() throws Exception {
-    expect(m_dao.findCurrentByCluster(
-        captureLong(new Capture<Long>()))).andReturn(getClusterMockEntities()).anyTimes();
+    expect( m_dao.findAll(capture(new Capture<AlertCurrentRequest>())) ).andReturn(getClusterMockEntities()).anyTimes();
 
     replay(m_dao);
 
@@ -146,8 +145,8 @@ public class AlertResourceProviderTest {
    */
   @Test
   public void testGetService() throws Exception {
-    expect(m_dao.findCurrentByService(captureLong(new Capture<Long>()),
-        capture(new Capture<String>()))).andReturn(getClusterMockEntities()).anyTimes();
+    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+        getClusterMockEntities()).anyTimes();
 
     replay(m_dao);
 
@@ -177,8 +176,8 @@ public class AlertResourceProviderTest {
    */
   @Test
   public void testGetHost() throws Exception {
-    expect(m_dao.findCurrentByHost(captureLong(new Capture<Long>()),
-        capture(new Capture<String>()))).andReturn(getClusterMockEntities()).anyTimes();
+    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
+        getClusterMockEntities()).anyTimes();
 
     replay(m_dao);
 
@@ -211,7 +210,7 @@ public class AlertResourceProviderTest {
    */
   @Test
   public void testGetClusterSummary() throws Exception {
-    expect(m_dao.findCurrentByCluster(captureLong(new Capture<Long>()))).andReturn(
+    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
         getMockEntitiesManyStates()).anyTimes();
 
     replay(m_dao);
@@ -263,7 +262,7 @@ public class AlertResourceProviderTest {
   @Test
   @SuppressWarnings("unchecked")
   public void testGetClusterGroupedSummary() throws Exception {
-    expect(m_dao.findCurrentByCluster(captureLong(new Capture<Long>()))).andReturn(
+    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
         getMockEntitiesManyStates()).anyTimes();
 
     replay(m_dao);
@@ -366,7 +365,7 @@ public class AlertResourceProviderTest {
       }
     }
 
-    expect(m_dao.findCurrentByCluster(captureLong(new Capture<Long>()))).andReturn(
+    expect(m_dao.findAll(capture(new Capture<AlertCurrentRequest>()))).andReturn(
         currents).anyTimes();
 
     replay(m_dao);

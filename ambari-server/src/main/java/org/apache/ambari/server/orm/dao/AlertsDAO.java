@@ -30,11 +30,13 @@ import javax.persistence.metamodel.SingularAttribute;
 
 import org.apache.ambari.server.api.query.JpaPredicateVisitor;
 import org.apache.ambari.server.api.query.JpaSortBuilder;
+import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
+import org.apache.ambari.server.orm.entities.AlertCurrentEntity_;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity_;
 import org.apache.ambari.server.state.AlertState;
@@ -221,7 +223,6 @@ public class AlertsDAO {
    * @param request
    * @return
    */
-  @Transactional
   public List<AlertHistoryEntity> findAll(AlertHistoryRequest request) {
     EntityManager entityManager = entityManagerProvider.get();
 
@@ -243,6 +244,46 @@ public class AlertsDAO {
 
     // pagination
     TypedQuery<AlertHistoryEntity> typedQuery = entityManager.createQuery(query);
+    if (null != request.Pagination) {
+      typedQuery.setFirstResult(request.Pagination.getOffset());
+      typedQuery.setMaxResults(request.Pagination.getPageSize());
+    }
+
+    typedQuery = setQueryRefreshHint(typedQuery);
+
+    return daoUtils.selectList(typedQuery);
+  }
+
+  /**
+   * Finds all {@link AlertCurrentEntity} that match the provided
+   * {@link AlertCurrentRequest}. This method will make JPA do the heavy lifting
+   * of providing a slice of the result set.
+   *
+   * @param request
+   * @return
+   */
+  @Transactional
+  public List<AlertCurrentEntity> findAll(AlertCurrentRequest request) {
+    EntityManager entityManager = entityManagerProvider.get();
+
+    // convert the Ambari predicate into a JPA predicate
+    CurrentPredicateVisitor visitor = new CurrentPredicateVisitor();
+    PredicateHelper.visit(request.Predicate, visitor);
+
+    CriteriaQuery<AlertCurrentEntity> query = visitor.getCriteriaQuery();
+    javax.persistence.criteria.Predicate jpaPredicate = visitor.getJpaPredicate();
+
+    if (null != jpaPredicate) {
+      query.where(jpaPredicate);
+    }
+
+    // sorting
+    JpaSortBuilder<AlertCurrentEntity> sortBuilder = new JpaSortBuilder<AlertCurrentEntity>();
+    List<Order> sortOrders = sortBuilder.buildSortOrders(request.Sort, visitor);
+    query.orderBy(sortOrders);
+
+    // pagination
+    TypedQuery<AlertCurrentEntity> typedQuery = entityManager.createQuery(query);
     if( null != request.Pagination ){
       typedQuery.setFirstResult(request.Pagination.getOffset());
       typedQuery.setMaxResults(request.Pagination.getPageSize());
@@ -261,7 +302,6 @@ public class AlertsDAO {
    *          the predicate to apply, or {@code null} for none.
    * @return the total count of rows that would be returned in a result set.
    */
-  @Transactional
   public int getCount(Predicate predicate) {
     return 0;
   }
@@ -329,12 +369,15 @@ public class AlertsDAO {
   }
 
   /**
-   * Retrieves the summary information for a particular scope.  The result is a DTO
-   * since the columns are aggregated and don't fit to an entity.
+   * Retrieves the summary information for a particular scope. The result is a
+   * DTO since the columns are aggregated and don't fit to an entity.
    *
-   * @param clusterId the cluster id
-   * @param serviceName the service name. Use {@code null} to not filter on service.
-   * @param hostName the host name.  Use {@code null} to not filter on host.
+   * @param clusterId
+   *          the cluster id
+   * @param serviceName
+   *          the service name. Use {@code null} to not filter on service.
+   * @param hostName
+   *          the host name. Use {@code null} to not filter on host.
    * @return the summary DTO
    */
   @RequiresSession
@@ -446,26 +489,6 @@ public class AlertsDAO {
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
     query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.SERVICE));
-
-    query = setQueryRefreshHint(query);
-    return daoUtils.selectList(query);
-  }
-
-  /**
-   * Gets the current alerts for a given host.
-   *
-   * @return the current alerts for the given host or an empty list if none
-   *         exist (never {@code null}).
-   */
-  @RequiresSession
-  public List<AlertCurrentEntity> findCurrentByHost(long clusterId,
-      String hostName) {
-    TypedQuery<AlertCurrentEntity> query = entityManagerProvider.get().createNamedQuery(
-        "AlertCurrentEntity.findByHost", AlertCurrentEntity.class);
-
-    query.setParameter("clusterId", clusterId);
-    query.setParameter("hostName", hostName);
-    query.setParameter("inlist", EnumSet.of(Scope.ANY, Scope.HOST));
 
     query = setQueryRefreshHint(query);
     return daoUtils.selectList(query);
@@ -797,6 +820,39 @@ public class AlertsDAO {
     public List<? extends SingularAttribute<?, ?>> getPredicateMapping(
         String propertyId) {
       return AlertHistoryEntity_.getPredicateMapping().get(propertyId);
+    }
+  }
+
+  /**
+   * The {@link CurrentPredicateVisitor} is used to convert an Ambari
+   * {@link Predicate} into a JPA {@link javax.persistence.criteria.Predicate}.
+   */
+  private final class CurrentPredicateVisitor extends
+      JpaPredicateVisitor<AlertCurrentEntity> {
+
+    /**
+     * Constructor.
+     *
+     */
+    public CurrentPredicateVisitor() {
+      super(entityManagerProvider.get(), AlertCurrentEntity.class);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Class<AlertCurrentEntity> getEntityClass() {
+      return AlertCurrentEntity.class;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public List<? extends SingularAttribute<?, ?>> getPredicateMapping(
+        String propertyId) {
+      return AlertCurrentEntity_.getPredicateMapping().get(propertyId);
     }
   }
 }
