@@ -527,10 +527,38 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
    * <p/>
    * The path value is expected to be an "absolute" path through the Kerberos Descriptor hierarchy
    * to some specific KerberosIdentityDescriptor.  The path must be in one of the following forms:
+   * <ul>
+   * <li>/identity</li>
+   * <li>/service/identity</li>
+   * <li>/service/component/identity</li>
+   * </ul>
    * <p/>
-   * /identity
-   * /service/identity
-   * /service/component/identity
+   * If the path starts with "../", the ".." will be translated to the path of the parent item.
+   * In the following example, <code>../service_identity</code> will resolve to
+   * <code>/SERVICE/service_identity</code>:
+   * <pre>
+   * {
+   *  "name": "SERVICE",
+   *  "identities": [
+   *    {
+   *      "name": "service_identity",
+   *      ...
+   *    }
+   *  ],
+   *  "components" : [
+   *    {
+   *      "name": "COMPONENT",
+   *      "identities": [
+   *        {
+   *          "name": "./service_identity",
+   *          ...
+   *        },
+   *        ...
+   *      ]
+   *    }
+   *  ]
+   * }
+   * </pre>
    *
    * @param path a String declaring the path to a KerberosIdentityDescriptor
    * @return a KerberosIdentityDescriptor identified by the path or null if not found
@@ -539,50 +567,72 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
       throws AmbariException {
     KerberosIdentityDescriptor identityDescriptor = null;
 
-    if ((path != null) && path.startsWith("/")) {
-      // The name indicates it is referencing an identity somewhere in the hierarchy... try to find it.
-      // /[<service name>/[<component name>/]]<identity name>
-      String[] pathParts = path.split("/");
+    if (path != null) {
+      if(path.startsWith("../")) {
+        // Resolve parent path
+        AbstractKerberosDescriptor parent = getParent();
 
-      String serviceName = null;
-      String componentName = null;
-      String identityName;
+        path = path.substring(2);
 
-      switch (pathParts.length) {
-        case 3:
-          serviceName = pathParts[0];
-          componentName = pathParts[1];
-          identityName = pathParts[2];
-          break;
-        case 2:
-          serviceName = pathParts[0];
-          identityName = pathParts[1];
-          break;
-        case 1:
-          identityName = pathParts[0];
-          break;
-        default:
-          throw new AmbariException(String.format("Unexpected path length in %s", path));
-      }
+        while(parent != null) {
+          String name = parent.getName();
 
-      if (identityName != null) {
-        // Start at the top of the hierarchy
-        AbstractKerberosDescriptor descriptor = getRoot();
-
-        if (descriptor != null) {
-          if ((serviceName != null) && !serviceName.isEmpty()) {
-            descriptor = descriptor.getDescriptor(KerberosDescriptorType.SERVICE, serviceName);
-
-            if ((descriptor != null) && (componentName != null) && !componentName.isEmpty()) {
-              descriptor = descriptor.getDescriptor(KerberosDescriptorType.COMPONENT, componentName);
-            }
+          if (name != null) {
+            path = String.format("/%s", name) + path;
           }
 
-          if (descriptor != null) {
-            descriptor = descriptor.getDescriptor(KerberosDescriptorType.IDENTITY, identityName);
+          parent = parent.getParent();
+        }
+      }
 
-            if (descriptor instanceof KerberosIdentityDescriptor) {
-              identityDescriptor = (KerberosIdentityDescriptor) descriptor;
+      if (path.startsWith("/")) {
+        // The name indicates it is referencing an identity somewhere in the hierarchy... try to find it.
+        // /[<service name>/[<component name>/]]<identity name>
+        String[] pathParts = path.split("/");
+
+        String serviceName = null;
+        String componentName = null;
+        String identityName;
+
+        switch (pathParts.length) {
+          case 4:
+            serviceName = pathParts[1];
+            componentName = pathParts[2];
+            identityName = pathParts[3];
+            break;
+          case 3:
+            serviceName = pathParts[1];
+            identityName = pathParts[2];
+            break;
+          case 2:
+            identityName = pathParts[1];
+            break;
+          case 1:
+            identityName = pathParts[0];
+            break;
+          default:
+            throw new AmbariException(String.format("Unexpected path length in %s", path));
+        }
+
+        if (identityName != null) {
+          // Start at the top of the hierarchy
+          AbstractKerberosDescriptor descriptor = getRoot();
+
+          if (descriptor != null) {
+            if ((serviceName != null) && !serviceName.isEmpty()) {
+              descriptor = descriptor.getDescriptor(KerberosDescriptorType.SERVICE, serviceName);
+
+              if ((descriptor != null) && (componentName != null) && !componentName.isEmpty()) {
+                descriptor = descriptor.getDescriptor(KerberosDescriptorType.COMPONENT, componentName);
+              }
+            }
+
+            if (descriptor != null) {
+              descriptor = descriptor.getDescriptor(KerberosDescriptorType.IDENTITY, identityName);
+
+              if (descriptor instanceof KerberosIdentityDescriptor) {
+                identityDescriptor = (KerberosIdentityDescriptor) descriptor;
+              }
             }
           }
         }
@@ -590,7 +640,6 @@ public abstract class AbstractKerberosDescriptorContainer extends AbstractKerber
     }
 
     return identityDescriptor;
-
   }
 
   /**

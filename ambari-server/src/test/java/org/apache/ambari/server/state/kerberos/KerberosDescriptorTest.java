@@ -22,6 +22,9 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -434,5 +437,91 @@ public class KerberosDescriptorTest {
 
     Assert.assertEquals("$c6401.ambari.apache.org",
         KerberosDescriptor.replaceVariables("$${host}", configurations));
+  }
+
+  @Test
+  public void testGetReferencedIdentityDescriptor() throws IOException {
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_get_referenced_identity_descriptor.json");
+    Assert.assertNotNull(systemResourceURL);
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()));
+
+    KerberosIdentityDescriptor identity;
+
+    // Stack-level identity
+    identity = descriptor.getReferencedIdentityDescriptor("/stack_identity");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("stack_identity", identity.getName());
+
+    // Service-level identity
+    identity = descriptor.getReferencedIdentityDescriptor("/SERVICE1/service1_identity");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("service1_identity", identity.getName());
+    Assert.assertNotNull(identity.getParent());
+    Assert.assertEquals("SERVICE1", identity.getParent().getName());
+
+    // Component-level identity
+    identity = descriptor.getReferencedIdentityDescriptor("/SERVICE2/SERVICE2_COMPONENT1/service2_component1_identity");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("service2_component1_identity", identity.getName());
+    Assert.assertNotNull(identity.getParent());
+    Assert.assertEquals("SERVICE2_COMPONENT1", identity.getParent().getName());
+    Assert.assertNotNull(identity.getParent().getParent());
+    Assert.assertEquals("SERVICE2", identity.getParent().getParent().getName());
+  }
+
+  @Test
+  public void testGetReferencedIdentityDescriptor_NameCollisions() throws IOException {
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_get_referenced_identity_descriptor.json");
+    Assert.assertNotNull(systemResourceURL);
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()));
+
+    KerberosIdentityDescriptor identity;
+
+    // Stack-level identity
+    identity = descriptor.getReferencedIdentityDescriptor("/collision");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("collision", identity.getName());
+    Assert.assertNotNull(identity.getParent());
+    Assert.assertEquals(null, identity.getParent().getName());
+
+    // Service-level identity
+    identity = descriptor.getReferencedIdentityDescriptor("/SERVICE1/collision");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("collision", identity.getName());
+    Assert.assertNotNull(identity.getParent());
+    Assert.assertEquals("SERVICE1", identity.getParent().getName());
+
+    // Component-level identity
+    identity = descriptor.getReferencedIdentityDescriptor("/SERVICE2/SERVICE2_COMPONENT1/collision");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("collision", identity.getName());
+    Assert.assertNotNull(identity.getParent());
+    Assert.assertEquals("SERVICE2_COMPONENT1", identity.getParent().getName());
+    Assert.assertNotNull(identity.getParent().getParent());
+    Assert.assertEquals("SERVICE2", identity.getParent().getParent().getName());
+  }
+
+  @Test
+  public void testGetReferencedIdentityDescriptor_RelativePath() throws IOException {
+    URL systemResourceURL = ClassLoader.getSystemResource("kerberos/test_get_referenced_identity_descriptor.json");
+    Assert.assertNotNull(systemResourceURL);
+
+    KerberosDescriptor descriptor = KERBEROS_DESCRIPTOR_FACTORY.createInstance(new File(systemResourceURL.getFile()));
+    Assert.assertNotNull(descriptor);
+
+    KerberosServiceDescriptor serviceDescriptor = descriptor.getService("SERVICE2");
+    Assert.assertNotNull(serviceDescriptor);
+
+    KerberosComponentDescriptor componentDescriptor =  serviceDescriptor.getComponent("SERVICE2_COMPONENT1");
+    Assert.assertNotNull(componentDescriptor);
+
+    KerberosIdentityDescriptor identity;
+    identity = componentDescriptor.getReferencedIdentityDescriptor("../service2_identity");
+    Assert.assertNotNull(identity);
+    Assert.assertEquals("service2_identity", identity.getName());
+    Assert.assertEquals(serviceDescriptor, identity.getParent());
+
+    identity = serviceDescriptor.getReferencedIdentityDescriptor("../service2_identity");
+    Assert.assertNull(identity);
   }
 }
