@@ -22,8 +22,8 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
@@ -240,7 +240,7 @@ public class CalculatedStatus {
   public static Map<HostRoleStatus, Integer> calculateTaskStatusCounts(
       Map<Long, HostRoleCommandStatusSummaryDTO> stageDto, Set<Long> stageIds) {
 
-    Map<HostRoleStatus, Integer> result = new HashMap<HostRoleStatus, Integer>();
+    List<HostRoleStatus> status = new ArrayList<HostRoleStatus>();
 
     for (Long stageId : stageIds) {
       if (!stageDto.containsKey(stageId)) {
@@ -249,18 +249,10 @@ public class CalculatedStatus {
 
       HostRoleCommandStatusSummaryDTO dto = stageDto.get(stageId);
 
-      for (Entry<HostRoleStatus, Integer> entry : dto.getCounts().entrySet()) {
-        if (!result.containsKey(entry.getKey())) {
-          result.put(entry.getKey(), 0);
-        }
-
-        Integer old = result.get(entry.getKey());
-        result.put(entry.getKey(), old + entry.getValue());
-      }
-
+      status.addAll(dto.getTaskStatuses());
     }
 
-    return result;
+    return calculateStatusCounts(status);
   }
 
   /**
