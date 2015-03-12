@@ -144,12 +144,12 @@ class Controller(threading.Thread):
           self.repeatRegistration = False
           return ret
 
-        logger.info("Registration Successful (response=%s)", pprint.pformat(ret))
-
         self.responseId = int(ret['responseId'])
+        logger.info("Registration Successful (response id = %s)", self.responseId)
+
         self.isRegistered = True
         if 'statusCommands' in ret.keys():
-          logger.info("Got status commands on registration " + pprint.pformat(ret['statusCommands']))
+          logger.info("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
           pass
         else:
@@ -241,10 +241,7 @@ class Controller(threading.Thread):
 
         serverId = int(response['responseId'])
 
-        if logger.isEnabledFor(logging.DEBUG):
-          logger.debug('Heartbeat response (id = %s): %s', serverId, pprint.pformat(response))
-        else:
-          logger.info('Heartbeat response received (id = %s)', serverId)
+        logger.info('Heartbeat response received (id = %s)', serverId)
 
         if 'hasMappedComponents' in response.keys():
           self.hasMappedComponents = response['hasMappedComponents'] is not False

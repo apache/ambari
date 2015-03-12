@@ -93,7 +93,6 @@ class ActionQueue(threading.Thread):
       logger.info("Adding " + command['commandType'] + " for service " + \
                     command['serviceName'] + " of cluster " + \
                     command['clusterName'] + " to the queue.")
-      logger.debug(pprint.pformat(command))
       self.statusCommandQueue.put(command)
 
   def put(self, commands):
@@ -106,7 +105,6 @@ class ActionQueue(threading.Thread):
       logger.info("Adding " + command['commandType'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
-      logger.debug(pprint.pformat(command))
       if command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND :
         self.backgroundCommandQueue.put(self.createCommandHandle(command))
       else:
@@ -172,9 +170,9 @@ class ActionQueue(threading.Thread):
     return command
 
   def process_command(self, command):
-    logger.debug("Took an element of Queue: " + pprint.pformat(command))
     # make sure we log failures
     commandType = command['commandType']
+    logger.debug("Took an element of Queue (command type = %s)." % commandType)
     try:
       if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND]:
         self.execute_command(command)
@@ -199,7 +197,6 @@ class ActionQueue(threading.Thread):
               commandId = str(commandId), role=command['role'],
               cluster=clusterName)
     logger.info(message)
-    logger.debug(pprint.pformat(command))
 
     taskId = command['taskId']
     # Preparing 'IN_PROGRESS' report

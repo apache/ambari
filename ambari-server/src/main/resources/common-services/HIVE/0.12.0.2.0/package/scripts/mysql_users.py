@@ -40,6 +40,7 @@ def mysql_adduser():
   Execute(cmd,
           tries=3,
           try_sleep=5,
+          logoutput=False,
           path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'
   )
 
