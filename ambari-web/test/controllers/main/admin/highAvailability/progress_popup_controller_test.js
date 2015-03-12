@@ -137,4 +137,50 @@ describe('App.HighAvailabilityProgressPopupController', function () {
 
   });
 
+  describe('#getHosts', function () {
+
+    var cases = [
+      {
+        name: 'background_operations.get_by_request',
+        title: 'default background operation polling'
+      },
+      {
+        stageId: 0,
+        name: 'common.request.polling',
+        stageIdPassed: '0',
+        title: 'polling by stage, stageId = 0'
+      },
+      {
+        stageId: 1,
+        name: 'common.request.polling',
+        stageIdPassed: 1,
+        title: 'polling by stage'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.setProperties({
+          requestIds: [1, 2],
+          stageId: item.stageId
+        });
+        controller.getHosts();
+        expect(App.ajax.send.calledTwice).to.be.true;
+        expect(App.ajax.send.firstCall.args[0].name).to.equal(item.name);
+        expect(App.ajax.send.secondCall.args[0].name).to.equal(item.name);
+        expect(App.ajax.send.firstCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+        expect(App.ajax.send.secondCall.args[0].data.stageId).to.eql(item.stageIdPassed);
+      });
+    });
+
+  });
+
 });
