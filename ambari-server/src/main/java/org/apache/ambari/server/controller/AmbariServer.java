@@ -396,11 +396,14 @@ public class AmbariServer {
                     "org.apache.ambari.server.api.AmbariCsrfProtectionFilter");
       }
 
-      //Set jetty thread pool
-      serverForAgent.setThreadPool(
-          new QueuedThreadPool(configs.getAgentThreadPoolSize()));
-      server.setThreadPool(
-          new QueuedThreadPool(configs.getClientThreadPoolSize()));
+      // Set jetty thread pool
+      QueuedThreadPool qtp = new QueuedThreadPool(configs.getAgentThreadPoolSize());
+      qtp.setName("qtp-ambari-agent");
+      serverForAgent.setThreadPool(qtp);
+
+      qtp = new QueuedThreadPool(configs.getClientThreadPoolSize());
+      qtp.setName("qtp-client");
+      server.setThreadPool(qtp);
 
       /* Configure the API server to use the NIO connectors */
       SelectChannelConnector apiConnector;

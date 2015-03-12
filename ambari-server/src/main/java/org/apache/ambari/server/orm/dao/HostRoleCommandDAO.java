@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.dao;
 import static org.apache.ambari.server.orm.DBAccessor.DbType.ORACLE;
 import static org.apache.ambari.server.orm.dao.DaoUtils.ORACLE_LIST_LIMIT;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -65,6 +66,18 @@ public class HostRoleCommandDAO {
       ") FROM HostRoleCommandEntity hrc " +
       " GROUP BY hrc.requestId, hrc.stageId HAVING hrc.requestId = :requestId",
       HostRoleCommandStatusSummaryDTO.class.getName());
+
+  /**
+   * SQL template to get requests that have at least one task in any of the
+   * specified statuses.
+   */
+  private static final String REQUESTS_BY_TASK_STATUS_SQL = "SELECT DISTINCT task.requestId FROM HostRoleCommandEntity task WHERE task.status IN :taskStatuses ORDER BY task.requestId {0}";
+
+  /**
+   * SQL template to get all requests which have had all of their tasks
+   * COMPLETED
+   */
+  private static final String COMPLETED_REQUESTS_SQL = "SELECT DISTINCT task.requestId FROM HostRoleCommandEntity task WHERE NOT EXISTS (SELECT task.requestId FROM HostRoleCommandEntity task WHERE task.status IN :notCompletedStatuses) ORDER BY task.requestId {0}";
 
   @Inject
   Provider<EntityManager> entityManagerProvider;
@@ -278,47 +291,45 @@ public class HostRoleCommandDAO {
     return daoUtils.selectAll(entityManagerProvider.get(), HostRoleCommandEntity.class);
   }
 
+  /**
+   * Gets requests that have tasks in any of the specified statuses.
+   *
+   * @param statuses
+   * @param maxResults
+   * @param ascOrder
+   * @return
+   */
   @RequiresSession
-  public List<Long> getRequestsByTaskStatus(Collection<HostRoleStatus> statuses,
-    boolean match, boolean checkAllTasks, int maxResults, boolean ascOrder) {
-
-    List<Long> results;
-    StringBuilder queryStr = new StringBuilder();
-
-    queryStr.append("SELECT DISTINCT command.requestId ").append(
-      "FROM HostRoleCommandEntity command ");
-    if (statuses != null && !statuses.isEmpty()) {
-      queryStr.append("WHERE ");
-
-      if (checkAllTasks) {
-        queryStr.append("command.requestId ");
-        if (!match) {
-          queryStr.append("NOT ");
-        }
-        queryStr.append("IN (").append("SELECT c.requestId ")
-          .append("FROM HostRoleCommandEntity c ")
-          .append("WHERE c.requestId = command.requestId ")
-          .append("AND c.status IN ?1) ");
-      } else {
-        queryStr.append("command.status ");
-        if (!match) {
-          queryStr.append("NOT ");
-        }
-        queryStr.append("IN ?1 ");
-      }
+  public List<Long> getRequestsByTaskStatus(
+      Collection<HostRoleStatus> statuses, int maxResults, boolean ascOrder) {
+    String sortOrder = "ASC";
+    if (!ascOrder) {
+      sortOrder = "DESC";
     }
 
-    queryStr.append("ORDER BY command.requestId ").append(ascOrder ? "ASC" : "DESC");
-    TypedQuery<Long> query = entityManagerProvider.get().createQuery(queryStr.toString(),
-      Long.class);
-    query.setMaxResults(maxResults);
+    String sql = MessageFormat.format(REQUESTS_BY_TASK_STATUS_SQL, sortOrder);
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(sql,
+        Long.class);
 
-    if (statuses != null && !statuses.isEmpty()) {
-      results = daoUtils.selectList(query, statuses);
-    } else {
-      results = daoUtils.selectList(query);
+    query.setParameter("taskStatuses", statuses);
+    return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
+  public List<Long> getCompletedRequests(int maxResults, boolean ascOrder) {
+    String sortOrder = "ASC";
+    if (!ascOrder) {
+      sortOrder = "DESC";
     }
-    return results;
+
+    String sql = MessageFormat.format(COMPLETED_REQUESTS_SQL, sortOrder);
+    TypedQuery<Long> query = entityManagerProvider.get().createQuery(sql,
+        Long.class);
+
+    query.setParameter("notCompletedStatuses",
+        HostRoleStatus.NOT_COMPLETED_STATUSES);
+
+    return daoUtils.selectList(query);
   }
 
   @Transactional

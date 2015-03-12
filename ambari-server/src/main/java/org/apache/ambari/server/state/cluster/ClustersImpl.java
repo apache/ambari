@@ -279,7 +279,6 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  @Transactional
   public List<Host> getHosts() {
     checkLoaded();
     r.lock();
@@ -419,7 +418,6 @@ public class ClustersImpl implements Clusters {
     }
   }
 
-  @Transactional
   private Map<String, Host> getHostsMap(Collection<String> hostSet) throws
       HostNotFoundException {
     checkLoaded();
@@ -439,7 +437,6 @@ public class ClustersImpl implements Clusters {
     return hostMap;
   }
 
-  @Transactional
   private Map<String, Cluster> getClustersMap(Collection<String> clusterSet) throws
       ClusterNotFoundException {
     checkLoaded();
@@ -579,7 +576,6 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  @Transactional
   public Map<String, Cluster> getClusters() {
     checkLoaded();
     r.lock();
