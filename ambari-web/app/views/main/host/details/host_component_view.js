@@ -103,11 +103,12 @@ App.HostComponentView = Em.View.extend({
   /**
    * CSS-class for disabling drop-down menu with list of host component actions
    * Disabled if host's <code>healthClass</code> is health-status-DEAD-YELLOW (lost heartbeat)
+   * Disabled if component's action list is empty
    * @type {String}
    */
   disabled: function () {
-    return (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") ? 'disabled' : '';
-  }.property('parentView.content.healthClass'),
+    return ( (this.get('parentView.content.healthClass') === "health-status-DEAD-YELLOW") || (this.get('noActionAvailable') === 'hidden' && this.get('isRestartComponentDisabled'))) ? 'disabled' : '';
+  }.property('parentView.content.healthClass', 'noActionAvailable', 'isRestartComponentDisabled'),
 
   /**
    * For Upgrade failed state

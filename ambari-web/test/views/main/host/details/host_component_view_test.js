@@ -55,10 +55,26 @@ describe('App.HostComponentView', function() {
     var tests = Em.A([
       {
         parentView: {content: {healthClass: 'health-status-DEAD-YELLOW'}},
+        noActionAvailable: '',
+        isRestartComponentDisabled: true,
         e: 'disabled'
       },
       {
         parentView: {content: {healthClass: 'another-class'}},
+        noActionAvailable: '',
+        isRestartComponentDisabled: true,
+        e: ''
+      },
+      {
+        parentView: {content: {healthClass: 'another-class'}},
+        noActionAvailable: 'hidden',
+        isRestartComponentDisabled: true,
+        e: 'disabled'
+      },
+      {
+        parentView: {content: {healthClass: 'another-class'}},
+        noActionAvailable: 'hidden',
+        isRestartComponentDisabled: false,
         e: ''
       }
     ]);
@@ -68,7 +84,9 @@ describe('App.HostComponentView', function() {
         hostComponentView = App.HostComponentView.create({
           startBlinking: function(){},
           doBlinking: function(){},
-          parentView: test.parentView
+          parentView: test.parentView,
+          noActionAvailable: test.noActionAvailable,
+          isRestartComponentDisabled: test.isRestartComponentDisabled
         });
         expect(hostComponentView.get('disabled')).to.equal(test.e);
       });
