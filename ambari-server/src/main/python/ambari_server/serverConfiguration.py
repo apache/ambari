@@ -81,10 +81,10 @@ JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
 
 DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
-JDK_NAMES = ["jdk-8u40-linux-x64.tar.gz", "jdk-7u67-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
+JDK_NAMES = ["jdk-7u67-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
 
 #JCE Policy files
-JCE_POLICY_FILENAMES = ["jce_policy-8.zip", "UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
+JCE_POLICY_FILENAMES = ["UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
 
 # JDBC
 JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
