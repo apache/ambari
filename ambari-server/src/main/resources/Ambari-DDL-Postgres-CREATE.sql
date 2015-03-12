@@ -816,6 +816,8 @@ BEGIN;
   union all
   select 'upgrade_id_seq', 0 
   union all
+  select 'upgrade_group_id_seq', 0
+  union all
   select 'upgrade_item_id_seq', 0;
 
   INSERT INTO adminresourcetype (resource_type_id, resource_type_name)

@@ -578,7 +578,7 @@ GRANT ALL PRIVILEGES ON TABLE ambari.adminpermission TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.adminprivilege TO :username;
 
 CREATE TABLE ambari.repo_version (
-  repo_version_id BIGINT,
+  repo_version_id BIGINT NOT NULL,
   stack VARCHAR(255) NOT NULL,
   version VARCHAR(255) NOT NULL,
   display_name VARCHAR(128) NOT NULL,
