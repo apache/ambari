@@ -59,7 +59,7 @@ test('Can execute query', function() {
   click('.execute-query');
 
   andThen(function() {
-    ok(find('.query-process-results-panel .nav-tabs li:nth-child(2)').hasClass('active'), 'Results tab is visible');
+    equal(find('.query-process-results-panel').length, 1, 'Job tabs are visible.');
   });
 });
 

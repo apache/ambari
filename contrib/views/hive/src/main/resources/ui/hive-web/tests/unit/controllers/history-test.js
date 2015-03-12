@@ -40,10 +40,10 @@ test('date range is set correctly', function () {
 
   var history = Ember.ArrayProxy.create({ content: [
     Ember.Object.create({
-      dateSubmitted: min
+      dateSubmittedTimestamp: min
     }),
     Ember.Object.create({
-      dateSubmitted: max
+      dateSubmittedTimestamp: max
     })
   ]});
 

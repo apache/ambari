@@ -47,8 +47,8 @@
           {{item.title}}
         {{/link-to}}
         </td>
-        <td {{bind-attr class=item.status}}>{{item.status}}</td>
-        <td>{{date-binding item "dateSubmitted"}}</td>
+        <td {{bind-attr class=item.uppercaseStatus}}>{{all-uppercase item.status}}</td>
+        <td>{{date-binding item "dateSubmittedTimestamp"}}</td>
         <td>{{item.duration}}</td>
         <td>
           <a class="fa fa-expand pull-right"></a>

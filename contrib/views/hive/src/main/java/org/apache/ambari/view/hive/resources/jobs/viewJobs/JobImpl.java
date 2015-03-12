@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.jobs;
+package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
@@ -35,9 +35,12 @@ public class JobImpl implements Job {
   private String status = JOB_STATE_UNKNOWN;
   private String forcedContent = null;
   private String dataBase = null;
-  private Integer queryId = null;
+  private String queryId = null;
 
-  private Integer id = null;
+  private String applicationId;
+  private String dagName;
+
+  private String id = null;
   private String owner = null;
 
   private String logFile;
@@ -72,12 +75,12 @@ public class JobImpl implements Job {
   }
 
   @Override
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
   @Override
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 
@@ -152,12 +155,12 @@ public class JobImpl implements Job {
   }
 
   @Override
-  public Integer getQueryId() {
+  public String getQueryId() {
     return queryId;
   }
 
   @Override
-  public void setQueryId(Integer queryId) {
+  public void setQueryId(String queryId) {
     this.queryId = queryId;
   }
 
@@ -199,5 +202,25 @@ public class JobImpl implements Job {
   @Override
   public void setConfFile(String confFile) {
     this.confFile = confFile;
+  }
+
+  @Override
+  public String getApplicationId() {
+    return applicationId;
+  }
+
+  @Override
+  public void setApplicationId(String applicationId) {
+    this.applicationId = applicationId;
+  }
+
+  @Override
+  public String getDagName() {
+    return dagName;
+  }
+
+  @Override
+  public void setDagName(String DagName) {
+    this.dagName = DagName;
   }
 }

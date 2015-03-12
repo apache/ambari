@@ -86,7 +86,7 @@ public class FileResourceServiceTest extends BaseHiveTest {
   @Test
   public void updateFileResourceItem() {
     Response createdFileResourceItem = doCreateFileResourceItem();
-    Integer createdUdfId = ((FileResourceItem) ((JSONObject) createdFileResourceItem.getEntity()).get("fileResource")).getId();
+    Object createdUdfId = ((FileResourceItem) ((JSONObject) createdFileResourceItem.getEntity()).get("fileResource")).getId();
 
     FileResourceService.ResourceRequest request = new FileResourceService.ResourceRequest();
     request.fileResource = new FileResourceItem();
@@ -108,7 +108,7 @@ public class FileResourceServiceTest extends BaseHiveTest {
   @Test
   public void deleteFileResourceItem() {
     Response createdFileResourceItem = doCreateFileResourceItem();
-    Integer createdUdfId = ((FileResourceItem) ((JSONObject) createdFileResourceItem.getEntity()).get("fileResource")).getId();
+    Object createdUdfId = ((FileResourceItem) ((JSONObject) createdFileResourceItem.getEntity()).get("fileResource")).getId();
 
     Response response = resourceService.delete(String.valueOf(createdUdfId));
     Assert.assertEquals(204, response.getStatus());

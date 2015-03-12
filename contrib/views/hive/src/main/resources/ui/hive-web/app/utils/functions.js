@@ -22,7 +22,7 @@ import Ember from 'ember';
 
 export default Ember.Object.create({
   isInteger: function (x) {
-    return (x^0) === x;
+    return !isNaN(x);
   },
 
   isDate: function(date) {
@@ -31,6 +31,19 @@ export default Ember.Object.create({
 
   regexes: {
     allUppercase: /^[^a-z]*$/,
-    whitespaces: /^(\s*).*$/
+    whitespaces: /^(\s*).*$/,
+    digits: /^\d+$/
+  },
+
+  insensitiveCompare: function (sourceString) {
+    var args = Array.prototype.slice.call(arguments, 1);
+
+    if (!sourceString) {
+      return;
+    }
+
+    return args.find(function (arg) {
+      return sourceString.match(new RegExp('^' + arg + '$', 'i'));
+    });
   }
 });

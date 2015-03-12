@@ -20,7 +20,7 @@ import Ember from 'ember';
 import constants from 'hive/utils/constants';
 
 export default Ember.Route.extend({
-  setupController: function() {
+  setupController: function () {
     var self = this;
 
     this.controllerFor(constants.namingConventions.databases).set('model', this.store.find(constants.namingConventions.database));
@@ -31,7 +31,7 @@ export default Ember.Route.extend({
   },
 
   actions: {
-    openModal: function(modalTemplate, options) {
+    openModal: function (modalTemplate, options) {
       this.controllerFor(modalTemplate).setProperties({
         heading: options.heading,
         text: options.text,

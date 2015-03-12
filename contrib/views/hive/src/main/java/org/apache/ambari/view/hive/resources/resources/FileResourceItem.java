@@ -32,7 +32,7 @@ public class FileResourceItem implements Serializable, PersonalResource {
   private String name;
   private String path;
 
-  private Integer id;
+  private String id;
   private String owner;
 
   public FileResourceItem() {}
@@ -41,12 +41,12 @@ public class FileResourceItem implements Serializable, PersonalResource {
   }
 
   @Override
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
   @Override
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 

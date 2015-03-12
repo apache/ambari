@@ -66,7 +66,7 @@ public class HelpService extends BaseService {
   public Response testStorage(){
     TestBean test = new TestBean();
     test.someData = "hello world";
-    getStorage().store(TestBean.class, test);
+    getSharedObjectsFactory().getStorage().store(TestBean.class, test);
     return Response.ok("OK").build();
   }
 }

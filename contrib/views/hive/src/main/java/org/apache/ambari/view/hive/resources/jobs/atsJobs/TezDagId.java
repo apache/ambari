@@ -16,31 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.view.hive.resources.jobs;
+package org.apache.ambari.view.hive.resources.jobs.atsJobs;
 
-import org.apache.ambari.view.hive.client.Cursor;
-import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
-
-public interface JobController {
-  void submit();
-
-  void cancel() throws ItemNotFound;
-
-  Job getJob();
-
-  /**
-   * Use carefully. Returns unproxied bean object
-   * @return unproxied bean object
-   */
-  Job getJobPOJO();
-
-  Cursor getResults() throws ItemNotFound;
-
-  void afterCreation();
-
-  void onRead();
-
-  boolean isModified();
-
-  void clearModified();
+public class TezDagId {
+  public static final String STATUS_UNKNOWN = "UNKNOWN";
+  public String applicationId = "";
+  public String dagName = "";
+  public String status = STATUS_UNKNOWN;
 }

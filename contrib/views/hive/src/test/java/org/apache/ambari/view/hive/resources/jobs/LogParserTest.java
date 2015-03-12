@@ -45,8 +45,8 @@ public class LogParserTest {
             "INFO : Ended Job = job_1421248330903_0003";
 
         LogParser p = LogParser.parseLog(log);
-        Assert.assertEquals(1, p.getJobsList().size());
-        Assert.assertEquals("application_1421248330903_0003",(((LogParser.JobId) (p.getJobsList().toArray())[0])
+        Assert.assertEquals(1, p.getAppsList().size());
+        Assert.assertEquals("application_1421248330903_0003",(((LogParser.AppId) (p.getAppsList().toArray())[0])
                                                             .getIdentifier()));
     }
 
@@ -66,8 +66,8 @@ public class LogParserTest {
             "INFO : Map 1: 1/1 Reducer 2: 1/1 ";
 
         LogParser p = LogParser.parseLog(log);
-        Assert.assertEquals(1, p.getJobsList().size());
-        Assert.assertEquals("application_1423156117563_0003",(((LogParser.JobId) (p.getJobsList().toArray())[0])
+        Assert.assertEquals(1, p.getAppsList().size());
+        Assert.assertEquals("application_1423156117563_0003",(((LogParser.AppId) (p.getAppsList().toArray())[0])
             .getIdentifier()));
     }
 }

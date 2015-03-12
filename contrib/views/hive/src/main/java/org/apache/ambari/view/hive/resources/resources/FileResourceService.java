@@ -57,7 +57,7 @@ public class FileResourceService extends BaseService {
 
   protected synchronized FileResourceResourceManager getResourceManager() {
     if (resourceManager == null) {
-      resourceManager = new FileResourceResourceManager(context);
+      resourceManager = new FileResourceResourceManager(getSharedObjectsFactory(), context);
     }
     return resourceManager;
   }
@@ -70,10 +70,9 @@ public class FileResourceService extends BaseService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response getOne(@PathParam("id") String id) {
     try {
-      FileResourceItem FileResourceItem = null;
-      FileResourceItem = getResourceManager().read(Integer.valueOf(id));
+      FileResourceItem fileResourceItem = getResourceManager().read(id);
       JSONObject object = new JSONObject();
-      object.put("fileResource", FileResourceItem);
+      object.put("fileResource", fileResourceItem);
       return Response.ok(object).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -91,7 +90,7 @@ public class FileResourceService extends BaseService {
   @Path("{id}")
   public Response delete(@PathParam("id") String id) {
     try {
-      getResourceManager().delete(Integer.valueOf(id));
+      getResourceManager().delete(id);
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -132,7 +131,7 @@ public class FileResourceService extends BaseService {
   public Response update(ResourceRequest request,
                          @PathParam("id") String id) {
     try {
-      getResourceManager().update(request.fileResource, Integer.valueOf(id));
+      getResourceManager().update(request.fileResource, id);
       return Response.status(204).build();
     } catch (WebApplicationException ex) {
       throw ex;

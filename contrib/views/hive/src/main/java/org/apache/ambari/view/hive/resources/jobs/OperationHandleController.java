@@ -19,10 +19,10 @@
 package org.apache.ambari.view.hive.resources.jobs;
 
 
-import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.client.ConnectionPool;
 import org.apache.ambari.view.hive.client.Cursor;
 import org.apache.ambari.view.hive.client.HiveClientException;
+import org.apache.ambari.view.hive.client.IConnectionFactory;
+import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.hive.service.cli.thrift.TGetOperationStatusResp;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
@@ -33,17 +33,15 @@ public class OperationHandleController {
   private final static Logger LOG =
       LoggerFactory.getLogger(OperationHandleController.class);
 
-  private ViewContext context;
+  private IConnectionFactory connectionsFabric;
   private TOperationHandle operationHandle;
-  private OperationHandleResourceManager operationHandlesStorage;
+  private IOperationHandleResourceManager operationHandlesStorage;
 
-  public OperationHandleController(ViewContext context, TOperationHandle storedOperationHandle, OperationHandleResourceManager operationHandlesStorage) {
-    this.context = context;
+  public OperationHandleController(IConnectionFactory connectionsFabric, TOperationHandle storedOperationHandle, IOperationHandleResourceManager operationHandlesStorage) {
+    this.connectionsFabric = connectionsFabric;
     this.operationHandle = storedOperationHandle;
     this.operationHandlesStorage = operationHandlesStorage;
   }
-
-
 
   public TOperationHandle getStoredOperationHandle() {
     return operationHandle;
@@ -54,7 +52,7 @@ public class OperationHandleController {
   }
 
   public String getOperationStatus() throws NoOperationStatusSetException, HiveClientException {
-    TGetOperationStatusResp statusResp = ConnectionPool.getConnection(context).getOperationStatus(operationHandle);
+    TGetOperationStatusResp statusResp = connectionsFabric.getHiveConnection().getOperationStatus(operationHandle);
     if (!statusResp.isSetOperationState()) {
       throw new NoOperationStatusSetException("Operation state is not set");
     }
@@ -93,7 +91,7 @@ public class OperationHandleController {
 
   public void cancel() {
     try {
-      ConnectionPool.getConnection(context).cancelOperation(operationHandle);
+      connectionsFabric.getHiveConnection().cancelOperation(operationHandle);
     } catch (HiveClientException e) {
       throw new ServiceFormattedException("Cancel failed: " + e.toString(), e);
     }
@@ -104,10 +102,10 @@ public class OperationHandleController {
   }
 
   public String getLogs() {
-    return ConnectionPool.getConnection(context).getLogs(operationHandle);
+    return connectionsFabric.getHiveConnection().getLogs(operationHandle);
   }
 
   public Cursor getResults() {
-    return ConnectionPool.getConnection(context).getResults(operationHandle);
+    return connectionsFabric.getHiveConnection().getResults(operationHandle);
   }
 }

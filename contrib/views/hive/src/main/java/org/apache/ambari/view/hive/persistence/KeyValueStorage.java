@@ -62,7 +62,7 @@ public abstract class KeyValueStorage implements Storage {
       int lastIndex = getConfig().getInt(modelIndexingPropName, 0);
       lastIndex ++;
       getConfig().setProperty(modelIndexingPropName, lastIndex);
-      obj.setId(lastIndex);
+      obj.setId(String.valueOf(lastIndex));
     }
 
     String modelPropName = getItemPropertyName(model, obj.getId());
@@ -71,12 +71,13 @@ public abstract class KeyValueStorage implements Storage {
   }
 
   @Override
-  public <T extends Indexed> T load(Class<T> model, Integer id) throws ItemNotFound {
+  public <T extends Indexed> T load(Class<T> model, Object id) throws ItemNotFound {
     String modelPropName = getItemPropertyName(model, id);
     LOG.debug(String.format("Loading %s", modelPropName));
     if (getConfig().containsKey(modelPropName)) {
       String json = read(modelPropName);
       LOG.debug(String.format("json: %s", json));
+
       return deserialize(model, json);
     } else {
       throw new ItemNotFound();
@@ -141,14 +142,14 @@ public abstract class KeyValueStorage implements Storage {
   }
 
   @Override
-  public synchronized void delete(Class model, int id) {
-    LOG.debug(String.format("Deleting %s:%d", model.getName(), id));
+  public synchronized void delete(Class model, Object id) {
+    LOG.debug(String.format("Deleting %s:%s", model.getName(), id));
     String modelPropName = getItemPropertyName(model, id);
     clear(modelPropName);
   }
 
   @Override
-  public boolean exists(Class model, Integer id) {
+  public boolean exists(Class model, Object id) {
     return getConfig().containsKey(getItemPropertyName(model, id));
   }
 
@@ -156,7 +157,7 @@ public abstract class KeyValueStorage implements Storage {
     return String.format("%s:index", model.getName());
   }
 
-  private String getItemPropertyName(Class model, int id) {
-    return String.format("%s.%d", model.getName(), id);
+  private String getItemPropertyName(Class model, Object id) {
+    return String.format("%s.%s", model.getName(), id);
   }
 }

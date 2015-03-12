@@ -41,7 +41,7 @@ public interface Storage {
    * @return bean instance
    * @throws ItemNotFound thrown if item with id was not found in DB
    */
-  <T extends Indexed> T load(Class<T> model, Integer id) throws ItemNotFound;
+  <T extends Indexed> T load(Class<T> model, Object id) throws ItemNotFound;
 
   /**
    * Load all objects of given bean class
@@ -74,7 +74,7 @@ public interface Storage {
    * @param model bean class
    * @param id identifier
    */
-  void delete(Class model, int id) throws ItemNotFound;
+  void delete(Class model, Object id) throws ItemNotFound;
 
   /**
    * Check is object exists
@@ -82,5 +82,5 @@ public interface Storage {
    * @param id identifier
    * @return true if exists
    */
-  boolean exists(Class model, Integer id);
+  boolean exists(Class model, Object id);
 }

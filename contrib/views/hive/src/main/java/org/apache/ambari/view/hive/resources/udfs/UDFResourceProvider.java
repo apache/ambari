@@ -22,7 +22,7 @@ import com.google.inject.Inject;
 import org.apache.ambari.view.*;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
-import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
+import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,9 +42,10 @@ public class UDFResourceProvider implements ResourceProvider<UDF> {
   protected final static Logger LOG =
       LoggerFactory.getLogger(UDFResourceProvider.class);
 
+
   protected synchronized UDFResourceManager getResourceManager() {
     if (resourceManager == null) {
-      resourceManager = new UDFResourceManager(context);
+      resourceManager = new UDFResourceManager(new SharedObjectsFactory(context), context);
     }
     return resourceManager;
   }
@@ -52,7 +53,7 @@ public class UDFResourceProvider implements ResourceProvider<UDF> {
   @Override
   public UDF getResource(String resourceId, Set<String> properties) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
     try {
-      return getResourceManager().read(Integer.valueOf(resourceId));
+      return getResourceManager().read(resourceId);
     } catch (ItemNotFound itemNotFound) {
       throw new NoSuchResourceException(resourceId);
     }
@@ -88,7 +89,7 @@ public class UDFResourceProvider implements ResourceProvider<UDF> {
       throw new SystemException("error on updating resource", e);
     }
     try {
-      getResourceManager().update(item, Integer.valueOf(resourceId));
+      getResourceManager().update(item, resourceId);
     } catch (ItemNotFound itemNotFound) {
       throw new NoSuchResourceException(resourceId);
     }
@@ -98,7 +99,7 @@ public class UDFResourceProvider implements ResourceProvider<UDF> {
   @Override
   public boolean deleteResource(String resourceId) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
     try {
-      getResourceManager().delete(Integer.valueOf(resourceId));
+      getResourceManager().delete(resourceId);
     } catch (ItemNotFound itemNotFound) {
       throw new NoSuchResourceException(resourceId);
     }

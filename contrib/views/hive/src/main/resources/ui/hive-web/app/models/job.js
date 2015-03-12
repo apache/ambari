@@ -28,5 +28,17 @@ export default DS.Model.extend({
   status: DS.attr('string'),
   dateSubmitted: DS.attr('date'),
   forcedContent: DS.attr('string'),
-  logFile: DS.attr('string')
+  logFile: DS.attr('string'),
+
+  dateSubmittedTimestamp: function () {
+    var date = this.get('dateSubmitted');
+
+    return date ? date * 1000 : date;
+  }.property('dateSubmitted'),
+
+  uppercaseStatus: function () {
+    var status = this.get('status');
+
+    return status ? status.toUpperCase() : status;
+  }.property('status')
 });

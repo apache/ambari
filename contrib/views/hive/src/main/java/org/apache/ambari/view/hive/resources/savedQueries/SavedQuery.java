@@ -34,7 +34,7 @@ public class SavedQuery implements Serializable, PersonalResource {
   private String title;
   private String shortQuery;
 
-  private Integer id;
+  private String id;
   private String owner;
 
   public SavedQuery() {}
@@ -43,12 +43,12 @@ public class SavedQuery implements Serializable, PersonalResource {
   }
 
   @Override
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
   @Override
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 

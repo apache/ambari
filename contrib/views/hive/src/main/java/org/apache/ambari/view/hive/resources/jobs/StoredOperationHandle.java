@@ -40,9 +40,9 @@ public class StoredOperationHandle implements Indexed {
   private String guid;
   private String secret;
 
-  private Integer jobId;
+  private String jobId;
 
-  private Integer id;
+  private String id;
 
   public StoredOperationHandle() {}
   public StoredOperationHandle(Map<String, Object> stringObjectMap) throws InvocationTargetException, IllegalAccessException {
@@ -126,21 +126,21 @@ public class StoredOperationHandle implements Indexed {
     this.secret = secret;
   }
 
-  public Integer getJobId() {
+  public String getJobId() {
     return jobId;
   }
 
-  public void setJobId(Integer jobId) {
+  public void setJobId(String jobId) {
     this.jobId = jobId;
   }
 
   @Override
-  public Integer getId() {
+  public String getId() {
     return id;
   }
 
   @Override
-  public void setId(Integer id) {
+  public void setId(String id) {
     this.id = id;
   }
 }

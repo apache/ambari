@@ -40,11 +40,11 @@ public class FilePaginator {
   /**
    * Constructor
    * @param filePath Path to file on HDFS
-   * @param context View Context instance
+   * @param hdfsApi hdfs api
    */
-  public FilePaginator(String filePath, ViewContext context) {
+  public FilePaginator(String filePath, HdfsApi hdfsApi) {
     this.filePath = filePath;
-    hdfsApi = HdfsApi.getInstance(context);
+    this.hdfsApi = hdfsApi;
   }
 
   /**

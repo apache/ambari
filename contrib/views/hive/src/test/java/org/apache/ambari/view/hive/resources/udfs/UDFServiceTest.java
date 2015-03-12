@@ -86,7 +86,7 @@ public class UDFServiceTest extends BaseHiveTest {
   @Test
   public void updateUDF() {
     Response createdUDF = doCreateUDF();
-    Integer createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
+    Object createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
 
     UDFService.UDFRequest request = new UDFService.UDFRequest();
     request.udf = new UDF();
@@ -108,7 +108,7 @@ public class UDFServiceTest extends BaseHiveTest {
   @Test
   public void deleteUDF() {
     Response createdUDF = doCreateUDF();
-    Integer createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
+    Object createdUdfId = ((UDF) ((JSONObject) createdUDF.getEntity()).get("udf")).getId();
 
     Response response = udfService.delete(String.valueOf(createdUdfId));
     Assert.assertEquals(204, response.getStatus());

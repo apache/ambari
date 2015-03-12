@@ -18,7 +18,9 @@
 
 package org.apache.ambari.view.hive.client;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.shims.ShimLoader;
+import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hive.service.auth.HiveAuthFactory;
 import org.apache.hive.service.auth.KerberosSaslHelper;
 import org.apache.hive.service.auth.PlainSaslHelper;
@@ -54,11 +56,13 @@ public class Connection {
   private TTransport transport;
 
   private DDLDelegator ddl;
+  private String username;
 
-  public Connection(String host, int port, Map<String, String> authParams) throws HiveClientException {
+  public Connection(String host, int port, Map<String, String> authParams, String username) throws HiveClientException {
     this.host = host;
     this.port = port;
     this.authParams = authParams;
+    this.username = username;
 
     openConnection();
     ddl = new DDLDelegator(this);
@@ -78,11 +82,11 @@ public class Connection {
           + host + ":" + port + ": " + e.toString(), e);
     }
     LOG.info("Hive connection opened");
-    openSession();
   }
 
   /**
    * Based on JDBC implementation of HiveConnection.createBinaryTransport
+   *
    * @return transport
    * @throws HiveClientException
    */
@@ -107,6 +111,11 @@ public class Connection {
           }
           saslProps.put(Sasl.QOP, saslQOP.toString());
           saslProps.put(Sasl.SERVER_AUTH, "true");
+
+          Configuration conf = new Configuration();
+          conf.set("hadoop.security.authentication", "kerberos");
+          UserGroupInformation.setConfiguration(conf);
+
           transport = KerberosSaslHelper.getKerberosTransport(
               authParams.get(Utils.HiveAuthenticationParams.AUTH_PRINCIPAL), host,
               HiveAuthFactory.getSocketTransport(host, port, 10000), saslProps,
@@ -119,7 +128,7 @@ public class Connection {
                 host, HiveAuthFactory.getSocketTransport(host, port, 10000), saslProps);
           } else {
             // we are using PLAIN Sasl connection with user/password
-            String userName = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_USER, Utils.HiveAuthenticationParams.ANONYMOUS_USER);
+            String userName = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_USER, getUsername());
             String passwd = getAuthParamDefault(Utils.HiveAuthenticationParams.AUTH_PASSWD, Utils.HiveAuthenticationParams.ANONYMOUS_USER);
             // Note: Thrift returns an SSL socket that is already bound to the specified host:port
             // Therefore an open called on this would be a no-op later
@@ -250,6 +259,7 @@ public class Connection {
         public TExecuteStatementResp body() throws HiveClientException {
 
           TExecuteStatementReq execReq = null;
+          openSession();
           execReq = new TExecuteStatementReq(getSessHandle(), oneCmd);
           execReq.setRunAsync(async);
           execReq.setConfOverlay(new HashMap<String, String>()); //maybe it's hive configuration? use it, Luke!
@@ -397,5 +407,13 @@ public class Connection {
 
   public void setAuthParams(Map<String, String> authParams) {
     this.authParams = authParams;
+  }
+
+  public String getUsername() {
+    return username;
+  }
+
+  public void setUsername(String username) {
+    this.username = username;
   }
 }
