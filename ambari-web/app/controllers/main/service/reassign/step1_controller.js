@@ -104,8 +104,6 @@ App.ReassignMasterWizardStep1Controller = Em.Controller.extend({
 
     if (this.get('content.reassign.component_name') == 'OOZIE_SERVER' && databaseType !== 'derby') {
       App.router.reassignMasterController.set('content.hasManualSteps', false);
-    } else {
-      App.router.reassignMasterController.set('content.hasManualSteps', true);
     }
 
     var serviceDbProp = this.get('content.reassign.service_id').toLowerCase() + "_database";

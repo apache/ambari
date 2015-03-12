@@ -103,4 +103,73 @@ describe('App.ReassignMasterWizardStep1Controller', function () {
     });
 
   });
+
+  describe('#onLoadConfigs', function() {
+
+    var controller;
+    var reassignCtrl;
+
+    beforeEach(function() {
+      controller = App.ReassignMasterWizardStep1Controller.create({
+        content: Em.Object.create({
+          reassign: Em.Object.create({
+            'component_name': 'OOZIE_SERVER',
+            'service_id': 'OOZIE'
+          }),
+          services: []
+        })
+      });
+      controller.set('_super', Em.K);
+
+      sinon.stub(controller, 'getDatabaseHost', Em.K);
+      sinon.stub(controller, 'saveDatabaseType', Em.K);
+      sinon.stub(controller, 'saveServiceProperties', Em.K);
+    
+      reassignCtrl = App.router.reassignMasterController;
+      reassignCtrl.set('content.hasManualSteps', true);
+    });
+
+    afterEach(function() {
+      controller.getDatabaseHost.restore();
+      controller.saveDatabaseType.restore();
+      controller.saveServiceProperties.restore();
+    });
+  
+    it('should not set hasManualSteps to false for oozie with derby db', function() {
+      var data = {
+        items: [
+          {
+            properties: {
+              'oozie.service.JPAService.jdbc.driver': 'jdbc:derby:${oozie.data.dir}/${oozie.db.schema.name}-db;create=true'
+            }
+          }
+        ]
+      };
+    
+      expect(reassignCtrl.get('content.hasManualSteps')).to.be.true;
+
+      controller.onLoadConfigs(data);
+
+      expect(reassignCtrl.get('content.hasManualSteps')).to.be.true;
+    });
+  
+    it('should set hasManualSteps to false for oozie without derby db', function() {
+      var data = {
+        items: [
+          {
+            properties: {
+              'oozie.service.JPAService.jdbc.driver': 'mysql'
+            }
+          }
+        ]
+      };
+
+    
+      expect(reassignCtrl.get('content.hasManualSteps')).to.be.true;
+
+      controller.onLoadConfigs(data);
+
+      expect(reassignCtrl.get('content.hasManualSteps')).to.be.false;
+    });
+  });
 });
