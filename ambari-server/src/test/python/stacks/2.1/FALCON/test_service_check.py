@@ -47,7 +47,7 @@ class TestFalconServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa',
+    self.assertResourceCalled('Execute','/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM',
                               user='ambari-qa'
     )
     self.assertResourceCalled('Execute', '/usr/lib/falcon/bin/falcon admin -version',
