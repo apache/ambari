@@ -27,7 +27,7 @@ from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 
 
-@patch.object(shell, "call", new=MagicMock(return_value=(1,"")))
+@patch.object(shell, "call", new=MagicMock(return_value=(5,"")))
 class TestNamenode(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -443,6 +443,7 @@ class TestNamenode(RMFTestCase):
     self.assert_configure_default()
 
     # verify that active namenode was formatted
+    self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
     self.assertResourceCalled('Execute', 'yes Y | hdfs --config /etc/hadoop/conf namenode -format',
         path = ['/usr/bin'],
         user = 'hdfs',
@@ -541,11 +542,9 @@ class TestNamenode(RMFTestCase):
                               mode = 0755
     )
 
-    # verify that the standby case is detected, and that the bootstrap
+    # TODO: Using shell.call() to bootstrap standby which is patched to return status code '5' (i.e. already bootstrapped)
+    # Need to update the test case to verify that the standby case is detected, and that the bootstrap
     # command is run before the namenode launches
-    self.assertResourceCalled('Execute', 'hdfs namenode -bootstrapStandby',
-                              user = 'hdfs', tries=50)
-
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
