@@ -109,6 +109,9 @@ App.HighAvailabilityProgressPopupController = Ember.Controller.extend({
     var name = 'background_operations.get_by_request';
     if (!Em.isNone(stageId)) {
       name = 'common.request.polling';
+      if (stageId === 0) {
+        stageId = '0';
+      }
     }
     requestIds.forEach(function (requestId) {
       App.ajax.send({
