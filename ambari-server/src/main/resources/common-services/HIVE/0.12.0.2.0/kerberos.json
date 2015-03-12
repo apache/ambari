@@ -8,25 +8,6 @@
         },
         {
           "name": "/smokeuser"
-        },
-        {
-          "name": "hive",
-          "principal": {
-            "value": "hive/_HOST@${realm}",
-            "type": "service",
-            "local_username": "${hive-env/hive_user}"
-          },
-          "keytab": {
-            "file": "${keytab_dir}/hive.service.keytab",
-            "owner": {
-              "name": "${hive-env/hive_user}",
-              "access": "r"
-            },
-            "group": {
-              "name": "${cluster-env/user_group}",
-              "access": ""
-            }
-          }
         }
       ],
       "configurations": [
@@ -54,11 +35,23 @@
           "name": "HIVE_METASTORE",
           "identities": [
             {
-              "name": "../hive",
+              "name": "hive_metastore_hive",
               "principal": {
-                "configuration": "hive-site/hive.metastore.kerberos.principal"
+                "value": "hive/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hive-site/hive.metastore.kerberos.principal",
+                "local_username": "${hive-env/hive_user}"
               },
               "keytab": {
+                "file": "${keytab_dir}/hive.service.keytab",
+                "owner": {
+                  "name": "${hive-env/hive_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
                 "configuration": "hive-site/hive.metastore.kerberos.keytab.file"
               }
             }
@@ -68,11 +61,23 @@
           "name": "HIVE_SERVER",
           "identities": [
             {
-              "name": "../hive",
+              "name": "hive_server_hive",
               "principal": {
-                "configuration": "hive-site/hive.server2.authentication.kerberos.principal"
+                "value": "hive/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hive-site/hive.server2.authentication.kerberos.principal",
+                "local_username": "${hive-env/hive_user}"
               },
               "keytab": {
+                "file": "${keytab_dir}/hive.service.keytab",
+                "owner": {
+                  "name": "${hive-env/hive_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
                 "configuration": "hive-site/hive.server2.authentication.kerberos.keytab"
               }
             },
@@ -100,9 +105,6 @@
               }
             }
           ]
-        },
-        {
-          "name": "HIVE_CLIENT"
         }
       ]
     }
