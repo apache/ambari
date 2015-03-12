@@ -19,6 +19,7 @@ limitations under the License.
 import os.path
 
 from resource_management import *
+from resource_management.core.logger import Logger
 from resource_management.core.exceptions import ComponentIsNotRunning
 
 from utils import service, safe_zkfc_op
@@ -54,8 +55,9 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
         # run the bootstrap command, to start the NameNode in standby mode
         # this requires that the active NameNode is already up and running,
         # so this execute should be re-tried upon failure, up to a timeout
-        Execute("hdfs namenode -bootstrapStandby",
-          user = params.hdfs_user, tries=50)
+        success = bootstrap_standby_namenode(params)
+        if not success:
+          raise Fail("Could not bootstrap standby namenode")
 
     options = "-rollingUpgrade started" if rolling_restart else ""
 
@@ -180,15 +182,21 @@ def format_namenode(force=None):
       if params.hostname == params.dfs_ha_namenode_active:
         # check and run the format command in the HA deployment scenario
         # only format the "active" namenode in an HA deployment
-        Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
-                user = params.hdfs_user,
-                path = [params.hadoop_bin_dir]
-        )
-        for m_dir in mark_dir:
-          Directory(m_dir,
-            recursive = True
-        )
-
+        if force:
+          ExecuteHadoop('namenode -format',
+                        kinit_override=True,
+                        bin_dir=params.hadoop_bin_dir,
+                        conf_dir=hadoop_conf_dir)
+        else:
+          if not is_namenode_formatted(params):
+            Execute(format("yes Y | hdfs --config {hadoop_conf_dir} namenode -format"),
+                    user = params.hdfs_user,
+                    path = [params.hadoop_bin_dir]
+            )
+            for m_dir in mark_dir:
+              Directory(m_dir,
+                recursive = True
+              )
 
 def is_namenode_formatted(params):
   old_mark_dirs = params.namenode_formatted_old_mark_dirs
@@ -273,3 +281,23 @@ def decommission():
                   conf_dir=conf_dir,
                   kinit_override=True,
                   bin_dir=params.hadoop_bin_dir)
+
+def bootstrap_standby_namenode(params):
+  try:
+    iterations = 50
+    bootstrap_cmd = "hdfs namenode -bootstrapStandby -nonInteractive"
+    Logger.info("Boostrapping standby namenode: %s" % (bootstrap_cmd))
+    for i in range(iterations):
+      Logger.info('Try %d out of %d' % (i+1, iterations))
+      code, out = shell.call(bootstrap_cmd, logoutput=True, user=params.hdfs_user)
+      if code == 0:
+        Logger.info("Standby namenode bootstrapped successfully")
+        return True
+      elif code == 5:
+        Logger.info("Standby namenode already bootstrapped")
+        return True
+      else:
+        Logger.warning('Bootstrap standby namenode failed with %d error code. Will retry' % (code))
+  except Exception as ex:
+    Logger.error('Bootstrap standby namenode threw an exception. Reason %s' %(str(ex)))
+  return False
