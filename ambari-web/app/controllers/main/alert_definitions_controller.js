@@ -37,14 +37,6 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
 
   /**
    * List of all <code>App.AlertDefinition</code>
-   * Consists of:
-   * <ul>
-   *   <li>App.PortAlertDefinition</li>
-   *   <li>App.MetricsAlertDefinition</li>
-   *   <li>App.WebAlertDefinition</li>
-   *   <li>App.AggregateAlertDefinition</li>
-   *   <li>App.ScriptAlertDefinition</li>
-   * </ul>
    * @type {App.AlertDefinition[]}
    */
   content: App.AlertDefinition.find(),
@@ -92,19 +84,23 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   /**
    * Calculate critical count for each service, to show up the label on services menu
    * @method getCriticalAlertsCountForService
-   * @return {number}
+   * @return {Number}
    */
   getCriticalAlertsCountForService: function (service) {
-    return this.get('criticalAlertInstances').filterProperty('service', service).get('length');
+    return this.get('content').filterProperty('service.serviceName', service).
+      invoke('getWithDefault', 'summary.CRITICAL.count', 0).
+      reduce(Em.sum, 0);
   },
 
   /**
    * Calculate critical/warning count for each service, to show up the label on services menu
    * @method getCriticalOrWarningAlertsCountForService
-   * @return {number}
+   * @return {Number}
    */
   getCriticalOrWarningAlertsCountForService: function (service) {
-    return this.get('unhealthyAlertInstances').filterProperty('service', service).get('length');
+    return this.get('content').filterProperty('service.serviceName', service).map(function (alertDefinition) {
+      return alertDefinition.getWithDefault('summary.CRITICAL.count', 0) + alertDefinition.getWithDefault('summary.WARNING.count', 0);
+    }).reduce(Em.sum, 0);
   },
 
   /**
@@ -112,138 +108,21 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    */
 
   /**
-   * Alerts number to show up on top-nav bar: number of critical/warning alerts
-   * @type {number}
+   * Number of all critical and warning alert instances
+   * Calculation is based on each <code>alertDefinitions.summary</code>
+   * @type {Number}
    */
-  allAlertsCount: function () {
-    return this.get('unhealthyAlertInstances.length');
-  }.property('unhealthyAlertInstances.length'),
-
-  criticalAlertInstances: function () {
-    return App.AlertInstance.find().toArray().filterProperty('state', 'CRITICAL');
-  }.property('mapperTimestamp'),
-
-  warningAlertInstances: function () {
-    return App.AlertInstance.find().toArray().filterProperty('state', 'WARNING');
-  }.property('mapperTimestamp'),
-
-  unhealthyAlertInstances: function () {
-    return this.get('criticalAlertInstances').concat(this.get('warningAlertInstances'));
-  }.property('criticalAlertInstances', 'warningAlertInstances'),
+  unhealthyAlertInstancesCount: function () {
+    return this.get('content').map(function (alertDefinition) {
+      return alertDefinition.getWithDefault('summary.CRITICAL.count', 0) + alertDefinition.getWithDefault('summary.WARNING.count', 0);
+    }).reduce(Em.sum, 0);
+  }.property('content.@each.summary'),
 
   /**
-   * if critical alerts exist, if true, the alert badge should be red.
+   * if critical alerts exist, the alert badge should be red.
+   * @type {Boolean}
    */
   isCriticalAlerts: function () {
-    return this.get('unhealthyAlertInstances').someProperty('state', 'CRITICAL');
-  }.property('unhealthyAlertInstances.@each.state'),
-
-  /**
-   * Onclick handler for alerts number located right to bg ops number (see application.hbs)
-   * @method showPopup
-   * @return {App.ModalPopup}
-   */
-  showPopup: function () {
-
-    var self = this;
-
-    return App.ModalPopup.show({
-
-      header: function () {
-        return Em.I18n.t('alerts.fastAccess.popup.header').format(this.get('definitionsController.allAlertsCount'));
-      }.property('definitionsController.allAlertsCount'),
-
-      definitionsController: this,
-
-      classNames: ['sixty-percent-width-modal', 'alerts-popup'],
-
-      secondary: Em.I18n.t('alerts.fastAccess.popup.body.showmore'),
-
-      autoHeight: false,
-
-      isHideBodyScroll: true,
-
-      onSecondary: function () {
-        this.hide();
-        App.router.transitionTo('main.alerts.index');
-      },
-
-      bodyClass: App.TableView.extend({
-
-        templateName: require('templates/common/modal_popups/alerts_popup'),
-
-        controller: self,
-
-        isPaginate: true,
-
-        content: function () {
-          return this.get('controller.unhealthyAlertInstances');
-        }.property('controller.unhealthyAlertInstances.length', 'controller.unhealthyAlertInstances.@each.state'),
-
-        isLoaded: function () {
-          return !!this.get('controller.unhealthyAlertInstances');
-        }.property('controller.unhealthyAlertInstances'),
-
-        isAlertEmptyList: function () {
-          return !this.get('content.length');
-        }.property('content.length'),
-
-        /**
-         * No filtering for alert definitions
-         * @method filter
-         */
-        filter: function() {
-          this.set('filteredContent', this.get('content'));
-        }.observes('content.length'),
-
-        refreshTooltips: function () {
-          this.ensureTooltip();
-        }.observes('contents.length'),
-
-        ensureTooltip: function () {
-          Em.run.next(this, function () {
-            App.tooltip($(".timeago"));
-          });
-        },
-        /**
-         * Router transition to alert definition details page
-         * @param event
-         */
-        gotoAlertDetails: function (event) {
-          if (event && event.context) {
-            this.get('parentView').hide();
-            var definition = this.get('controller.content').findProperty('id', event.context.get('definitionId'));
-            App.router.transitionTo('main.alerts.alertDetails', definition);
-          }
-        },
-
-        /**
-         * Router transition to service summary page
-         * @param event
-         */
-        gotoService: function (event) {
-          if (event && event.context) {
-            this.get('parentView').hide();
-            App.router.transitionTo('main.services.service.summary', event.context);
-          }
-        },
-
-        /**
-         * Router transition to host level alerts page
-         * @param event
-         */
-        goToHostAlerts: function (event) {
-          if (event && event.context) {
-            this.get('parentView').hide();
-            App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
-          }
-        },
-
-        didInsertElement: function () {
-          this.filter();
-          this.ensureTooltip();
-        }
-      })
-    });
-  }
+    return !this.get('content').everyProperty('summary.CRITICAL.count', 0);
+  }.property('content.@each.summary')
 });

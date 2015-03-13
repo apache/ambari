@@ -115,6 +115,19 @@ Ember.isBlank = function(obj) {
 };
 
 /**
+ * Calculates sum of two numbers
+ * Use this function as a callback on <code>invoke</code> etc
+ *
+ * @method sum
+ * @param {Number} a
+ * @param {Number} b
+ * @returns {Number}
+ */
+Ember.sum = function (a, b) {
+  return a + b;
+};
+
+/**
  *
  */
 Ember.RadioButton = Ember.Checkbox.extend({

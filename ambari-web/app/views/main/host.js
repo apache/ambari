@@ -293,7 +293,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   overlayObserver: function() {
     var $tbody = this.$('tbody'),
-      $overlay = this.$('.hosts-overlay'),
+      $overlay = this.$('.table-overlay'),
       $spinner = $($overlay).find('.spinner');
     if (!this.get('filteringComplete')) {
       if (!$tbody) return;

@@ -22,6 +22,17 @@ App.MainAlertInstancesController = Em.Controller.extend({
 
   name: 'mainAlertInstancesController',
 
+  content: App.AlertInstance.find(),
+
+  /**
+   * @type {App.AlertInstance[]}
+   */
+  unhealthyAlertInstances: function () {
+    return App.AlertInstance.find().filter(function (item) {
+      return ['CRITICAL', 'WARNING'].contains(item.get('state'));
+    });
+  }.property('content.[]'),
+
   /**
    * Are alertInstances loaded
    * @type {boolean}
@@ -169,6 +180,176 @@ App.MainAlertInstancesController = Em.Controller.extend({
    */
   getAlertInstancesErrorCallback: function () {
     this.set('isLoaded', true);
+  },
+
+  /**
+   * Onclick handler for alerts number located right to bg ops number (see application.hbs)
+   * @method showPopup
+   * @return {App.ModalPopup}
+   */
+  showPopup: function () {
+
+    var self = this;
+
+    return App.ModalPopup.show({
+
+      alertsNumberBinding: 'App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount',
+
+      header: function () {
+        return Em.I18n.t('alerts.fastAccess.popup.header').format(this.get('alertsNumber'));
+      }.property('alertsNumber'),
+
+      definitionsController: this,
+
+      classNames: ['sixty-percent-width-modal', 'alerts-popup'],
+
+      secondary: Em.I18n.t('alerts.fastAccess.popup.body.showmore'),
+
+      autoHeight: false,
+
+      isHideBodyScroll: true,
+
+      onSecondary: function () {
+        this._super();
+        App.router.transitionTo('main.alerts.index');
+      },
+
+      bodyClass: App.TableView.extend(App.TableServerViewMixin, {
+
+        updaterBinding: 'App.router.updateController',
+
+        templateName: require('templates/common/modal_popups/alerts_popup'),
+
+        controller: self,
+
+        isPaginate: true,
+
+        willInsertElement: function () {
+          this._super();
+          this.updateAlertInstances();
+        },
+
+        /**
+         * Number of all critical and warning alert instances
+         * @type {Boolean}
+         */
+        filteredCount: function () {
+          return App.router.get('mainAlertDefinitionsController.unhealthyAlertInstancesCount');
+        }.property('alertsNumber'),
+
+        content: function () {
+          return this.get('controller.unhealthyAlertInstances');
+        }.property('controller.unhealthyAlertInstances.@each.state'),
+
+        isLoaded: function () {
+          return !!this.get('controller.unhealthyAlertInstances');
+        }.property('controller.unhealthyAlertInstances'),
+
+        isAlertEmptyList: function () {
+          return !this.get('content.length');
+        }.property('content.length'),
+
+        /**
+         * Update list of shown alert instances
+         * @method updateAlertInstances
+         */
+        updateAlertInstances: function () {
+          var self = this,
+            displayLength = this.get('displayLength'),
+            startIndex = this.get('startIndex');
+          if (!displayLength) return; // wait while table-info is loaded
+          this.get('updater').set('queryParamsForUnhealthyAlertInstances', {
+            from: startIndex - 1,
+            page_size: displayLength
+          });
+          this.set('filteringComplete', false);
+          this.get('updater').updateUnhealthyAlertInstances(function() {
+            self.set('filteringComplete', true);
+          });
+        }.observes('displayLength', 'startIndex'),
+
+        /**
+         * Show spinner when filter/sorting request is in processing
+         * @method overlayObserver
+         */
+        overlayObserver: function() {
+          var $tbody = this.$('#alert-info'),
+            $overlay = this.$('.table-overlay'),
+            $spinner = $($overlay).find('.spinner');
+          if (!this.get('filteringComplete')) {
+            if (!$tbody) return;
+            var tbodyPos =  $tbody.position();
+            if (!tbodyPos) return;
+            $spinner.css('display', 'block');
+            $overlay.css({
+              top: tbodyPos.top + 1,
+              left: tbodyPos.left + 1,
+              width: $tbody.width() - 1,
+              height: $tbody.height() - 1
+            });
+          }
+        },
+
+        /**
+         * No filtering for alert definitions
+         * @method filter
+         */
+        filter: function() {
+          this.set('filteredContent', this.get('content'));
+        }.observes('content.length'),
+
+        refreshTooltips: function () {
+          this.ensureTooltip();
+        }.observes('contents.[]'),
+
+        ensureTooltip: function () {
+          Em.run.next(this, function () {
+            App.tooltip($(".timeago"));
+          });
+        },
+        /**
+         * Router transition to alert definition details page
+         * @param event
+         */
+        gotoAlertDetails: function (event) {
+          if (event && event.context) {
+            this.get('parentView').hide();
+            var definition = App.AlertDefinition.find().findProperty('id', event.context.get('definitionId'));
+            App.router.transitionTo('main.alerts.alertDetails', definition);
+          }
+        },
+
+        /**
+         * Router transition to service summary page
+         * @param event
+         */
+        gotoService: function (event) {
+          if (event && event.context) {
+            this.get('parentView').hide();
+            App.router.transitionTo('main.services.service.summary', event.context);
+          }
+        },
+
+        /**
+         * Router transition to host level alerts page
+         * @param event
+         */
+        goToHostAlerts: function (event) {
+          if (event && event.context) {
+            this.get('parentView').hide();
+            App.router.transitionTo('main.hosts.hostDetails.alerts', event.context);
+          }
+        },
+
+        didInsertElement: function () {
+          this.filter();
+          this.ensureTooltip();
+          this.addObserver('filteringComplete', this, this.overlayObserver);
+          this.overlayObserver();
+          return this._super();
+        }
+      })
+    });
   }
 
 });

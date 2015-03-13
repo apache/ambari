@@ -203,7 +203,7 @@
                   <time class="timeago"
                         rel="tooltip"  {{bindAttr data-original-title="instance.statusChangedAndLastCheckedFormatted"}}>{{instance.lastTriggeredForFormatted}}</time>
                 </td>
-                <td>{{view view.parentView.lastDayCount hostBinding="instance.host"}}</td>
+                <td>{{view view.parentView.lastDayCount hostNameBinding="instance.hostName"}}</td>
                 <td><span class="alert-text" rel="tooltip" {{bindAttr data-original-title="instance.text"}}
                           class="alert-text">{{instance.text}}</span></td>
                 {{/view}}
