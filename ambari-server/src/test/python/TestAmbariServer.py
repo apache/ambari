@@ -4573,10 +4573,12 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     with open(serverConfiguration.AMBARI_PROPERTIES_FILE, "w") as f:
       f.write(NEW_PROPERTY)
       f.write(CHANGED_VALUE_PROPERTY)
+      f.close()
 
     with open(configDefaults.AMBARI_PROPERTIES_BACKUP_FILE, 'w') as f:
       for line in properties:
         f.write(line)
+      f.close()
 
     #Call tested method
     update_ambari_properties()
