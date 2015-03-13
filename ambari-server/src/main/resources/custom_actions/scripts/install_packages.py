@@ -204,6 +204,14 @@ class InstallPackages(Script):
     :return: filtered package_list
     """
     filtered_package_list = []
+
+    # hadoop-lzo package is installed only if LZO compression is enabled
+    lzo_packages = ['hadoop-lzo', 'lzo', 'hadoop-lzo-native', 'liblzo2-2', 'hadooplzo']
+    has_lzo = False
+    io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
+    if io_compression_codecs:
+      has_lzo = "com.hadoop.compression.lzo" in io_compression_codecs.lower()
+
     for package in package_list:
       skip_package = False
       # mysql* package logic is managed at HIVE scripts
@@ -212,10 +220,8 @@ class InstallPackages(Script):
       # Ambari metrics packages should not be upgraded during RU
       if package['name'].startswith('ambari-metrics'):
         skip_package = True
-      # hadooplzo package is installed only if LZO comperession is enabled
-      io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
-      if not io_compression_codecs or "com.hadoop.compression.lzo" not in io_compression_codecs:
-        lzo_packages = ['hadoop-lzo', 'lzo', 'hadoop-lzo-native', 'liblzo2-2', 'hadooplzo']
+
+      if not has_lzo:
         for lzo_package in lzo_packages:
           if package['name'].startswith(lzo_package):
             skip_package = True

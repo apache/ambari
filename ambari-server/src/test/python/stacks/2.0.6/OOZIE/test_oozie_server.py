@@ -793,7 +793,7 @@ class TestOozieServer(RMFTestCase):
   @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
-  @patch("shutil.copy", new = MagicMock())
+  @patch("shutil.copy2", new = MagicMock())
   @patch.object(shell, "call")
   def test_upgrade(self, call_mock, glob_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
@@ -845,7 +845,7 @@ class TestOozieServer(RMFTestCase):
   @patch("os.remove")
   @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
-  @patch("shutil.copy", new = MagicMock())
+  @patch("shutil.copy2", new = MagicMock())
   @patch.object(shell, "call")
   def test_downgrade_no_compression_library_copy(self, call_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
@@ -891,7 +891,7 @@ class TestOozieServer(RMFTestCase):
   @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob", new = MagicMock(return_value=["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]))
-  @patch("shutil.copy")
+  @patch("shutil.copy2")
   @patch.object(shell, "call")
   def test_upgrade_failed_prepare_war(self, call_mock, shutil_copy_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):

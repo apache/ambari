@@ -119,7 +119,10 @@ def prepare_libext_directory():
   # /usr/hdp/current/hadoop-client ; we must use params.version directly
   # however, this only works when upgrading beyond 2.2.0.0; don't do this
   # for downgrade to 2.2.0.0 since hadoop-lzo will not be present
-  if params.upgrade_direction == Direction.UPGRADE or target_version_needs_compression_libraries:
+  # This can also be called during a Downgrade.
+  # When a version is Intalled, it is responsible for downloading the hadoop-lzo packages
+  # if lzo is enabled.
+  if params.lzo_enabled and (params.upgrade_direction == Direction.UPGRADE or target_version_needs_compression_libraries):
     hadoop_lzo_pattern = 'hadoop-lzo*.jar'
     hadoop_client_new_lib_dir = format("/usr/hdp/{version}/hadoop/lib")
 
@@ -132,9 +135,9 @@ def prepare_libext_directory():
     files_copied = False
     for file in files:
       if os.path.isfile(file):
-        files_copied = True
         Logger.info("Copying {0} to {1}".format(str(file), params.oozie_libext_customer_dir))
-        shutil.copy(file, params.oozie_libext_customer_dir)
+        shutil.copy2(file, params.oozie_libext_customer_dir)
+        files_copied = True
 
     if not files_copied:
       raise Fail("There are no files at {0} matching {1}".format(
@@ -146,7 +149,7 @@ def prepare_libext_directory():
     raise Fail("Unable to copy {0} because it does not exist".format(oozie_ext_zip_file))
 
   Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_customer_dir))
-  shutil.copy(oozie_ext_zip_file, params.oozie_libext_customer_dir)
+  shutil.copy2(oozie_ext_zip_file, params.oozie_libext_customer_dir)
 
 
 def upgrade_oozie():
