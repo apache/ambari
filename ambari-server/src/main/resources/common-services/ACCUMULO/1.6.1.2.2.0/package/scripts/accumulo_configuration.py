@@ -70,8 +70,8 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
     # create a site file for server processes
     configs = {}
     configs.update(params.config['configurations']['accumulo-site'])
-    configs["instance.secret"] = params.config['configurations']['accumulo-env']['instance_secret']
-    configs["trace.token.property.password"] = params.trace_password
+    configs["instance.secret"] = str(params.config['configurations']['accumulo-env']['instance_secret'])
+    configs["trace.token.property.password"] = str(params.trace_password)
     XmlConfig( "accumulo-site.xml",
                conf_dir = dest_conf_dir,
                configurations = configs,
