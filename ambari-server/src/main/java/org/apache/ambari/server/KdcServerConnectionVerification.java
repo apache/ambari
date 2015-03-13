@@ -45,11 +45,11 @@ import com.google.inject.Singleton;
  * <p>
  * It has two potential clients.
  * <ul>
- * <li>Ambari Agent: 
+ * <li>Ambari Agent:
  * 		Uses it to make sure host can talk to specified KDC Server
  * </li>
- * 
- * <li>Ambari Server: 
+ *
+ * <li>Ambari Server:
  * 		Uses it for connection check, like agent, and also validates
  * 		the credentials provided on Server side.
  * </li>
@@ -67,18 +67,18 @@ public class KdcServerConnectionVerification {
    * UDP connection timeout in seconds.
    */
   private int udpTimeout = 10;
-  
+
   @Inject
   public KdcServerConnectionVerification(Configuration config) {
     this.config = config;
   }
 
-  
+
   /**
    * Given server IP or hostname, checks if server is reachable i.e.
    * we can make a socket connection to it. Hostname may contain port
-   * number separated by a colon. 
-   * 
+   * number separated by a colon.
+   *
    * @param kdcHost KDC server IP or hostname (with optional port number)
    * @return true, if server is accepting connection given port; false otherwise.
    */
@@ -116,7 +116,7 @@ public class KdcServerConnectionVerification {
 
   /**
    * Attempt to connect to KDC server over TCP.
-   * 
+   *
    * @param server KDC server IP or hostname
    * @param port	 KDC server port
    * @return	true, if server is accepting connection given port; false otherwise.
@@ -181,7 +181,7 @@ public class KdcServerConnectionVerification {
       }
     });
 
-    new Thread(future).start();
+    new Thread(future, "ambari-kdc-verify").start();
     Boolean result;
     try {
       // timeout after specified timeout

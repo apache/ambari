@@ -62,6 +62,7 @@ import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.MockServerAction;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
@@ -160,9 +161,9 @@ public class TestActionScheduler {
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     //Keep large number of attempts so that the task is not expired finally
     //Small action timeout to test rescheduling
@@ -252,9 +253,10 @@ public class TestActionScheduler {
     ActionDBAccessor db = mock(ActionDBAccessor.class);
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
-    Request request = mock(Request.class);
+
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     doAnswer(new Answer() {
       @Override
@@ -330,9 +332,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -416,9 +419,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -549,9 +553,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -642,9 +647,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -727,9 +733,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -858,9 +865,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -949,9 +957,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -1025,9 +1034,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -1087,9 +1097,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -1268,9 +1279,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -1445,9 +1457,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -1673,9 +1686,9 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessorImpl.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
 
     Stage s1 = StageUtils.getATestStage(requestId1, stageId, hostname, CLUSTER_HOST_INFO,
       "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
@@ -1760,9 +1773,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -1841,9 +1855,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
     doAnswer(new Answer() {
@@ -1936,9 +1951,10 @@ public class TestActionScheduler {
 
     ActionDBAccessor db = mock(ActionDBAccessor.class);
 
-    Request request = mock(Request.class);
+    RequestEntity request = mock(RequestEntity.class);
     when(request.isExclusive()).thenReturn(false);
-    when(db.getRequest(anyLong())).thenReturn(request);
+    when(db.getRequestEntity(anyLong())).thenReturn(request);
+
     when(db.getCommandsInProgressCount()).thenReturn(stages.size());
     when(db.getStagesInProgress()).thenReturn(stages);
 
@@ -2164,16 +2180,16 @@ public class TestActionScheduler {
       }
     }).when(db).startRequest(anyLong());
 
-    Request request1 = mock(Request.class);
+    RequestEntity request1 = mock(RequestEntity.class);
     when(request1.isExclusive()).thenReturn(false);
-    Request request2 = mock(Request.class);
+    RequestEntity request2 = mock(RequestEntity.class);
     when(request2.isExclusive()).thenReturn(true);
-    Request request3 = mock(Request.class);
+    RequestEntity request3 = mock(RequestEntity.class);
     when(request3.isExclusive()).thenReturn(false);
 
-    when(db.getRequest(requestId1)).thenReturn(request1);
-    when(db.getRequest(requestId2)).thenReturn(request2);
-    when(db.getRequest(requestId3)).thenReturn(request3);
+    when(db.getRequestEntity(requestId1)).thenReturn(request1);
+    when(db.getRequestEntity(requestId2)).thenReturn(request2);
+    when(db.getRequestEntity(requestId3)).thenReturn(request3);
 
     Properties properties = new Properties();
     Configuration conf = new Configuration(properties);

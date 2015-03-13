@@ -24,6 +24,7 @@ import java.util.Map;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 
 import com.google.inject.persist.Transactional;
 
@@ -40,9 +41,18 @@ public interface ActionDBAccessor {
   public List<Stage> getAllStages(long requestId);
 
   /**
-   * Get request object by id
-   * @param requestId
-   * @return
+   * Gets the request entity by id.  Will not load the entire
+   * Request/Stage/HostRoleCommand object hierarchy.
+   */
+  RequestEntity getRequestEntity(long requestId);
+
+  /**
+   * Get request object by id.  USE WITH CAUTION!  This method will
+   * result in loading the full object hierarchy, and can be expensive to
+   * construct.
+   * @param requestId the request id
+   * @return the Request instance, with all Stages and HostRoleCommands constructed
+   *        from the database
    */
   Request getRequest(long requestId);
 
@@ -205,4 +215,6 @@ public interface ActionDBAccessor {
    * Gets request objects by ids
    */
   public List<Request> getRequests(Collection<Long> requestIds);
+
+
 }

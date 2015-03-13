@@ -44,6 +44,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.ActionFinalReportReceivedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.serveraction.ServerActionExecutor;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -152,7 +153,7 @@ class ActionScheduler implements Runnable {
   }
 
   public void start() {
-    schedulerThread = new Thread(this);
+    schedulerThread = new Thread(this, "ambari-action-scheduler");
     schedulerThread.start();
 
     // Start up the ServerActionExecutor. Since it is directly related to the ActionScheduler it
@@ -252,7 +253,8 @@ class ActionScheduler implements Runnable {
         i_stage ++;
         long requestId = stage.getRequestId();
         LOG.debug("==> STAGE_i = " + i_stage + "(requestId=" + requestId + ",StageId=" + stage.getStageId() + ")");
-        Request request = db.getRequest(requestId);
+
+        RequestEntity request = db.getRequestEntity(requestId);
 
         if (request.isExclusive()) {
           if (runningRequestIds.size() > 0 ) {
