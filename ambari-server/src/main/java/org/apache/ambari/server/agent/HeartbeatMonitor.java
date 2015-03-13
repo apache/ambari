@@ -94,7 +94,7 @@ public class HeartbeatMonitor implements Runnable {
   }
 
   public void start() {
-    monitorThread = new Thread(this);
+    monitorThread = new Thread(this, "ambari-hearbeat-monitor");
     monitorThread.start();
   }
 

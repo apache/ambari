@@ -141,8 +141,13 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
   }
 
   @Override
+  public RequestEntity getRequestEntity(long requestId) {
+    return requestDAO.findByPK(requestId);
+  }
+
+  @Override
   public Request getRequest(long requestId) {
-    RequestEntity requestEntity = requestDAO.findByPK(requestId);
+    RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null) {
       return requestFactory.createExisting(requestEntity);
     } else {
@@ -309,7 +314,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void startRequest(long requestId) {
-    RequestEntity requestEntity = requestDAO.findByPK(requestId);
+    RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getStartTime() == -1L) {
       requestEntity.setStartTime(System.currentTimeMillis());
       requestDAO.merge(requestEntity);
@@ -318,7 +323,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
 
   @Override
   public void endRequest(long requestId) {
-    RequestEntity requestEntity = requestDAO.findByPK(requestId);
+    RequestEntity requestEntity = getRequestEntity(requestId);
     if (requestEntity != null && requestEntity.getEndTime() == -1L) {
       requestEntity.setEndTime(System.currentTimeMillis());
       requestDAO.merge(requestEntity);
