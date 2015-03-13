@@ -36,9 +36,7 @@
     <python.ver>python &gt;= 2.6</python.ver>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <!--TODO change to HDP URL-->
-    <hbase.tar>
-      http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hbase-0.98.4.2.2.0.0-2041-hadoop2.tar.gz
-    </hbase.tar>
+    <hbase.tar>http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hbase-0.98.4.2.2.0.0-2041-hadoop2.tar.gz</hbase.tar>
     <hbase.folder>hbase-0.98.4.2.2.0.0-2041-hadoop2</hbase.folder>
     <hadoop.tar>
       http://public-repo-1.hortonworks.com/HDP/centos6/2.x/GA/2.2.0.0/tars/hadoop-2.6.0.2.2.0.0-2041.tar.gz
