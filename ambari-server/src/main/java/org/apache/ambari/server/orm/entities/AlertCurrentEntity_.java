@@ -100,6 +100,10 @@ public class AlertCurrentEntity_ {
     mapping.put(AlertResourceProvider.ALERT_HOST,
         Arrays.asList(alertHistory, AlertHistoryEntity_.hostName));
 
+    // AlertCurrentEntity.alertHistory.state = OK
+    mapping.put(AlertResourceProvider.ALERT_STATE,
+        Arrays.asList(alertHistory, AlertHistoryEntity_.alertState));
+
     return mapping;
   }
 }
