@@ -36,17 +36,23 @@ class TestKafkaBroker(RMFTestCase):
     self.assertResourceCalled('Directory', '/var/log/kafka',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = 'a'
     )
 
     self.assertResourceCalled('Directory', '/var/run/kafka',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = 'a'
     )
 
     self.assertResourceCalled('Directory', '/etc/kafka/conf',
                               owner = 'kafka',
                               group = 'hadoop',
-                              recursive = True
+                              recursive = True,
+                              mode = 0755,
+                              cd_access = 'a'
     )
