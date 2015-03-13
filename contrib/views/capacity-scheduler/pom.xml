@@ -78,13 +78,31 @@
     <build>
     <plugins>
       <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-clean-plugin</artifactId>
+        <version>2.5</version>
+        <configuration>
+          <filesets>
+            <fileset>
+              <directory>${ui.directory}</directory>
+              <followSymlinks>false</followSymlinks>
+               <includes>
+                <include>public/**</include>
+                <include>node_modules/**</include>
+                <include>bower_components/**</include>
+                <include>node/**</include>
+              </includes>
+             </fileset>
+          </filesets>
+        </configuration>
+      </plugin>
+      <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.14</version>
         <configuration>
-            <workingDirectory>src/main/resources/ui</workingDirectory>
+            <workingDirectory>${ui.directory}</workingDirectory>
         </configuration>
-
         <executions>
           <execution>
             <id>install node and npm</id>
@@ -92,22 +110,20 @@
                 <goal>install-node-and-npm</goal>
             </goals>
             <!-- optional: default phase is "generate-resources" -->
-            <phase>generate-resources</phase>
+            <phase>initialize</phase>
             <configuration>
                 <nodeVersion>v0.10.26</nodeVersion>
                 <npmVersion>1.4.3</npmVersion>
             </configuration>
           </execution>
           <execution>
-          <id>npm install</id>
+            <id>npm install</id>
             <goals>
               <goal>npm</goal>
             </goals>
-
             <phase>generate-resources</phase>
-
             <configuration>
-                <arguments>install --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
+              <arguments>install --unsafe-perm --registry=http://registry.npmjs.eu</arguments>
             </configuration>
           </execution>
         </executions>
@@ -117,21 +133,38 @@
         <groupId>org.codehaus.mojo</groupId>
         <version>1.2.1</version>
         <executions>
-            <execution>
+          <execution>
+            <id>node gyp executable</id>
+            <phase>initialize</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <skip>${skip.nodegyp.chmod}</skip>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <executable>chmod</executable>
+              <arguments>
+                <argument>+x</argument>
+                <argument>${ui.directory}/node/npm/bin/node-gyp-bin/node-gyp</argument>
+              </arguments>
+            </configuration>
+          </execution>
+          <execution>
             <id>Brunch build</id>
             <phase>generate-resources</phase>
             <goals>
               <goal>exec</goal>
             </goals>
             <configuration>
-              <workingDirectory>${basedir}/src/main/resources/ui</workingDirectory>
-              <executable>node/node</executable>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <executable>${ui.directory}/node/${node.executable}</executable>
               <arguments>
-                <argument>node_modules/.bin/brunch</argument>
+                <argument>node_modules/brunch/bin/brunch</argument>
                 <argument>build</argument>
+                <argument>--production</argument>
               </arguments>
             </configuration>
-            </execution>
+          </execution>
         </executions>
       </plugin>
       <plugin>
@@ -244,4 +277,30 @@
         </plugins>
     </pluginManagement>
     </build>
-</project>
+    <profiles>
+      <profile>
+        <id>windows</id>
+        <activation>
+          <os>
+            <family>win</family>
+          </os>
+        </activation>
+        <properties>
+          <node.executable>node.exe</node.executable>
+          <skip.nodegyp.chmod>true</skip.nodegyp.chmod>
+        </properties>
+      </profile>
+      <profile>
+        <id>linux</id>
+        <activation>
+          <os>
+            <family>unix</family>
+          </os>
+        </activation>
+        <properties>
+          <node.executable>node</node.executable>
+          <skip.nodegyp.chmod>false</skip.nodegyp.chmod>
+        </properties>
+      </profile>
+    </profiles>
+  </project>

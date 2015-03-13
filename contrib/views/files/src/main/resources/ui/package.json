@@ -14,15 +14,14 @@
   "scripts": {
     "test": "node_modules/phantomjs/bin/phantomjs runner.js public/tests.html",
     "start": "brunch watch --server",
-    "preinstall": "chmod +x node/npm/bin/node-gyp-bin/node-gyp",
-    "postinstall" : "bash node/with_new_path.sh node node_modules/.bin/bower --allow-root install"
+    "postinstall" : "bower --allow-root install"
   },
   "dependencies": {
     "javascript-brunch": "^1.7.1",
     "css-brunch": "^1.7.0",
     "uglify-js-brunch": "^1.7.7",
     "clean-css-brunch": "^1.7.1",
-    "bower": "^1.2.8",
+    "bower": ">= 1.2.8",
     "brunch": "1.7.17",
     "scaffolt": "^0.4.3",
     "ember-precompiler-brunch": ">= 1.5.0",
