@@ -20,6 +20,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 from ambari_commons import OSCheck
 from mock.mock import MagicMock, patch
+from resource_management.core import shell
 
 class TestZkfc(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
@@ -206,7 +207,7 @@ class TestZkfc(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-
+  @patch.object(shell, "call", new=MagicMock(return_value=(0,"")))
   def test_start_with_ha_active_namenode_bootstrap(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
@@ -250,11 +251,7 @@ class TestZkfc(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755
     )
-
-    # verify that the znode initialization occurs prior to ZKFC startup
-    self.assertResourceCalled('Execute', 'hdfs zkfc -formatZK -force -nonInteractive',
-                              user = 'hdfs')
-
+    # TODO: verify that the znode initialization occurs prior to ZKFC startup
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
@@ -273,6 +270,7 @@ class TestZkfc(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch.object(shell, "call", new=MagicMock(return_value=(2,"")))
   def test_start_with_ha_standby_namenode_bootstrap(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
@@ -316,11 +314,7 @@ class TestZkfc(RMFTestCase):
                               group = 'hadoop',
                               mode = 0755
     )
-
-    # verify that the znode initialization occurs prior to ZKFC startup
-    self.assertResourceCalled('Execute', 'hdfs zkfc -formatZK -force -nonInteractive',
-                              user = 'hdfs')
-
+    # TODO: verify that the znode initialization occurs prior to ZKFC startup
     self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
                               owner = 'hdfs',
                               recursive = True,
