@@ -938,6 +938,17 @@ class TestNamenode(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
 
+  def test_upgrade_restart(self):
+    #   Execution of nn_ru_lzo invokes a code path that invokes lzo installation, which
+    #   was failing in RU case.  See hdfs.py and the lzo_enabled check that is in it.
+    #   Just executing the script is enough to test the fix
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "restart",
+                       config_file = "nn_ru_lzo.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
 
 class Popen_Mock:
   return_value = 1

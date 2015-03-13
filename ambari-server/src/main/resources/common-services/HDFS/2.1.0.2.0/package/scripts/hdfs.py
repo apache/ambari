@@ -80,4 +80,5 @@ def hdfs(name=None):
   )
   
   if params.lzo_enabled:
-    Package(params.lzo_packages_for_current_host)
+    if len(params.lzo_packages_for_current_host) > 0:
+      Package(params.lzo_packages_for_current_host)
