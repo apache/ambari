@@ -263,6 +263,14 @@
     <description>ZooKeeper session timeout in milliseconds.</description>
   </property>
   <property>
+    <name>zookeeper.session.timeout.localHBaseCluster</name>
+    <value>120000</value>
+    <description>
+      ZooKeeper session timeout in milliseconds for
+      pseudo distributed mode.
+    </description>
+  </property>
+  <property>
     <name>phoenix.sequence.saltBuckets</name>
     <value>2</value>
     <description>
