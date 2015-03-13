@@ -93,7 +93,7 @@
             "fs.trash.interval": "360", 
             "hadoop.proxyuser.hive.groups": "users", 
             "ipc.server.tcpnodelay": "true", 
-            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec", 
+            "io.compression.codecs": "org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.SnappyCodec,com.hadoop.compression.lzo.LzoCodec",
             "ipc.client.idlethreshold": "8000", 
             "io.file.buffer.size": "131072", 
             "io.serializations": "org.apache.hadoop.io.serializer.WritableSerialization", 
