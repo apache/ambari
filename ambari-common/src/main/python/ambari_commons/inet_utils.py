@@ -26,13 +26,13 @@ from exceptions import *
 from logging_utils import *
 from os_check import OSCheck
 
-def download_file(link, destination, chunk_size=16 * 1024):
+def download_file(link, destination, chunk_size=16 * 1024, progress_func = None):
   print_info_msg("Downloading {0} to {1}".format(link, destination))
   if os.path.exists(destination):
       print_warning_msg("File {0} already exists, assuming it was downloaded before".format(destination))
       return
 
-  force_download_file(link, destination, chunk_size)
+  force_download_file(link, destination, chunk_size, progress_func = progress_func)
 
 
 def download_progress(file_name, downloaded_size, blockSize, totalSize):
@@ -73,7 +73,7 @@ def find_range_components(meta):
   return (file_size, seek_pos)
 
 
-def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func = download_progress):
+def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func = None):
   request = urllib2.Request(link)
 
   if os.path.exists(destination) and not os.path.isfile(destination):
@@ -127,8 +127,8 @@ def force_download_file(link, destination, chunk_size = 16 * 1024, progress_func
 
         file_size_dl += len(buffer)
         f.write(buffer)
-
-        progress_func(file_name, file_size_dl, chunk_size, file_size)
+        if progress_func is not None:
+          progress_func(file_name, file_size_dl, chunk_size, file_size)
     finally:
       f.close()
 
