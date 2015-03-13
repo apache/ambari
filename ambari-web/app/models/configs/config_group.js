@@ -20,7 +20,9 @@
 var App = require('app');
 
 App.ServiceConfigGroup = DS.Model.extend({
-  id: DS.attr('number'),
+  id: DS.attr('string'),
+  //
+  configGroupId: DS.attr('number'),
   name: DS.attr('string'),
   serviceName: DS.attr('string'),
   description: DS.attr('string'),

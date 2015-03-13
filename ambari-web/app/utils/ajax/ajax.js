@@ -600,6 +600,38 @@ var urls = {
     }
   },
 
+  /*************************CONFIG GROUPS***************************************/
+
+  'configs.config_groups.load.all': {
+    'real': '/clusters/{clusterName}/config_groups?fields=*',
+    'mock': '/data/configurations/config_groups.json'
+  },
+
+  'configs.config_groups.load.services': {
+    'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag.in({serviceList})&fields=*',
+    'mock': '/data/configurations/config_groups.json'
+  },
+
+  /*************************STACK CONFIGS**************************************/
+
+  'configs.stack_configs.load.all': {
+    'real': '{stackVersionUrl}/services?fields=configurations/*,StackServices/config_types/*',
+    'mock': '/data/stacks/HDP-2.2/configurations.json'
+  },
+
+  'configs.stack_configs.load.services': {
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceList})?fields=configurations/*,StackServices/config_types/*',
+    'mock': '/data/stacks/HDP-2.2/configurations.json'
+  },
+
+  'configs.stack_configs.load.service': {
+    'real': '{stackVersionUrl}/services/{serviceName}?fields=configurations/*,StackServices/config_types/*',
+    'mock': '/data/stacks/HDP-2.2/configurations.json'
+  },
+
+  /*************************CONFIG VERSIONS*************************************/
+    //TODO
+
   'service.load_config_groups': {
     'real': '/clusters/{clusterName}/config_groups?ConfigGroup/tag={serviceName}&fields=*',
     'mock': '/data/configurations/config_group.json'

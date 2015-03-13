@@ -21,6 +21,8 @@ require('mappers/server_data_mapper');
 require('mappers/stack_service_mapper');
 require('mappers/stack_mapper');
 require('mappers/stack_version_mapper');
+require('mappers/configs/stack_config_properties_mapper');
+require('mappers/configs/config_groups_mapper');
 require('mappers/repository_version_mapper');
 require('mappers/hosts_mapper');
 require('mappers/cluster_mapper');

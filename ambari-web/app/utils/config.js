@@ -1833,5 +1833,68 @@ App.config = Em.Object.create({
       globValue = globValue.replace(/,/g, '\\,');
     }
     return value.replace(express, globValue);
+  },
+
+  /**
+   * load stack configs from server and run mapper
+   * @param {String[]} [serviceNames=null]
+   * @returns {$.ajax}
+   * @method loadConfigsFromStack
+   */
+  loadConfigsFromStack: function(serviceNames) {
+    serviceNames = serviceNames || [];
+    var name = serviceNames.length > 0 ? 'configs.stack_configs.load.services' : 'configs.stack_configs.load.all';
+    return App.ajax.send({
+      name: name,
+      sender: this,
+      data: {
+        stackVersionUrl: App.get('stackVersionURL'),
+        serviceList: serviceNames.join(',')
+      },
+      success: 'saveConfigsToModel'
+    });
+  },
+
+  /**
+   * runs <code>stackConfigPropertiesMapper<code>
+   * @param data
+   */
+  saveConfigsToModel: function(data) {
+    App.stackConfigPropertiesMapper.map(data);
+  },
+
+  /**
+   * load config groups
+   * @param {String[]} serviceNames
+   * @returns {$.Deferred()}
+   * @method loadConfigGroups
+   */
+  loadConfigGroups: function(serviceNames) {
+    var dfd = $.Deferred();
+    if (!serviceNames || serviceNames.length === 0) {
+      dfd.resolve();
+    } else {
+      App.ajax.send({
+        name: 'configs.config_groups.load.services',
+        sender: this,
+        data: {
+          serviceList: serviceNames.join(','),
+          dfd: dfd
+        },
+        success: 'saveConfigGroupsToModel'
+      });
+    }
+    return dfd.promise();
+  },
+
+  /**
+   * runs <code>configGroupsMapper<code>
+   * @param data
+   * @param opt
+   * @param params
+   */
+  saveConfigGroupsToModel: function(data, opt, params) {
+    App.configGroupsMapper.map(data, params.serviceList.split(','));
+    params.dfd.resolve();
   }
 });
