@@ -291,7 +291,7 @@ def check_ambari_user():
 
 def check_firewall():
   firewall_obj = Firewall().getFirewallObject()
-  firewall_on = firewall_obj.check_iptables()
+  firewall_on = firewall_obj.check_firewall()
   if firewall_obj.stderrdata and len(firewall_obj.stderrdata) > 0:
     print firewall_obj.stderrdata
   if firewall_on:

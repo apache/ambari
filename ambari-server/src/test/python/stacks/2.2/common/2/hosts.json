@@ -59,7 +59,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956063,
@@ -130,7 +131,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948855,
@@ -201,7 +203,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948309,
@@ -272,7 +275,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948670,
@@ -343,7 +347,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957394,
@@ -406,7 +411,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955935,
@@ -469,7 +475,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956632,
@@ -532,7 +539,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954117,
@@ -595,7 +603,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949809,
@@ -658,7 +667,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954221,
@@ -721,7 +731,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957734,
@@ -784,7 +795,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953434,
@@ -847,7 +859,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957310,
@@ -910,7 +923,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952778,
@@ -973,7 +987,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952531,
@@ -1036,7 +1051,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952702,
@@ -1099,7 +1115,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952459,
@@ -1162,7 +1179,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956601,
@@ -1225,7 +1243,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952541,
@@ -1288,7 +1307,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952426,
@@ -1351,7 +1371,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956430,
@@ -1414,7 +1435,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948993,
@@ -1477,7 +1499,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953416,
@@ -1540,7 +1563,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953409,
@@ -1603,7 +1627,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957375,
@@ -1666,7 +1691,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951820,
@@ -1729,7 +1755,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952889,
@@ -1792,7 +1819,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949901,
@@ -1855,7 +1883,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953558,
@@ -1918,7 +1947,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953832,
@@ -1981,7 +2011,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954850,
@@ -2044,7 +2075,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953593,
@@ -2107,7 +2139,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956416,
@@ -2170,7 +2203,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958197,
@@ -2233,7 +2267,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953186,
@@ -2296,7 +2331,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954602,
@@ -2359,7 +2395,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958193,
@@ -2422,7 +2459,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952419,
@@ -2485,7 +2523,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957780,
@@ -2548,7 +2587,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957610,
@@ -2611,7 +2651,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952707,
@@ -2674,7 +2715,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952719,
@@ -2737,7 +2779,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952933,
@@ -2800,7 +2843,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953238,
@@ -2863,7 +2907,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953721,
@@ -2926,7 +2971,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954059,
@@ -2989,7 +3035,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953657,
@@ -3052,7 +3099,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954407,
@@ -3115,7 +3163,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953441,
@@ -3178,7 +3227,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957279,
@@ -3241,7 +3291,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953520,
@@ -3304,7 +3355,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956820,
@@ -3367,7 +3419,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956397,
@@ -3430,7 +3483,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949570,
@@ -3493,7 +3547,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950010,
@@ -3556,7 +3611,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952329,
@@ -3619,7 +3675,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953787,
@@ -3682,7 +3739,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954645,
@@ -3745,7 +3803,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950966,
@@ -3808,7 +3867,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953609,
@@ -3871,7 +3931,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952695,
@@ -3934,7 +3995,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949287,
@@ -3997,7 +4059,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948304,
@@ -4060,7 +4123,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949695,
@@ -4123,7 +4187,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952567,
@@ -4186,7 +4251,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953581,
@@ -4249,7 +4315,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956140,
@@ -4312,7 +4379,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953880,
@@ -4375,7 +4443,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952809,
@@ -4438,7 +4507,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952812,
@@ -4501,7 +4571,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953051,
@@ -4564,7 +4635,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953246,
@@ -4627,7 +4699,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956413,
@@ -4690,7 +4763,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951106,
@@ -4753,7 +4827,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951233,
@@ -4816,7 +4891,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950168,
@@ -4879,7 +4955,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949924,
@@ -4942,7 +5019,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956469,
@@ -5005,7 +5083,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957167,
@@ -5068,7 +5147,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949155,
@@ -5131,7 +5211,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954503,
@@ -5194,7 +5275,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956971,
@@ -5257,7 +5339,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956075,
@@ -5320,7 +5403,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953283,
@@ -5383,7 +5467,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957882,
@@ -5446,7 +5531,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951677,
@@ -5509,7 +5595,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956475,
@@ -5572,7 +5659,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955852,
@@ -5635,7 +5723,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956810,
@@ -5698,7 +5787,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955789,
@@ -5761,7 +5851,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956051,
@@ -5824,7 +5915,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948955,
@@ -5887,7 +5979,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955214,
@@ -5950,7 +6043,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952773,
@@ -6013,7 +6107,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953877,
@@ -6076,7 +6171,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956093,
@@ -6139,7 +6235,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953431,
@@ -6202,7 +6299,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956401,
@@ -6265,7 +6363,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948869,
@@ -6328,7 +6427,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952460,
@@ -6391,7 +6491,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949670,
@@ -6454,7 +6555,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949640,
@@ -6517,7 +6619,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953441,
@@ -6580,7 +6683,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953369,
@@ -6643,7 +6747,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956381,
@@ -6706,7 +6811,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953511,
@@ -6769,7 +6875,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948884,
@@ -6832,7 +6939,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948403,
@@ -6895,7 +7003,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953409,
@@ -6958,7 +7067,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952880,
@@ -7021,7 +7131,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955640,
@@ -7084,7 +7195,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955970,
@@ -7147,7 +7259,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948722,
@@ -7210,7 +7323,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953973,
@@ -7273,7 +7387,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957194,
@@ -7336,7 +7451,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953051,
@@ -7399,7 +7515,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955953,
@@ -7462,7 +7579,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953302,
@@ -7525,7 +7643,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955704,
@@ -7588,7 +7707,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952754,
@@ -7651,7 +7771,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953079,
@@ -7714,7 +7835,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951778,
@@ -7777,7 +7899,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953327,
@@ -7840,7 +7963,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948421,
@@ -7903,7 +8027,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950621,
@@ -7966,7 +8091,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952606,
@@ -8029,7 +8155,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948786,
@@ -8092,7 +8219,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955160,
@@ -8155,7 +8283,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954068,
@@ -8218,7 +8347,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954249,
@@ -8281,7 +8411,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958063,
@@ -8344,7 +8475,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956502,
@@ -8407,7 +8539,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955178,
@@ -8470,7 +8603,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955688,
@@ -8533,7 +8667,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956844,
@@ -8596,7 +8731,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956941,
@@ -8659,7 +8795,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958162,
@@ -8722,7 +8859,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957527,
@@ -8785,7 +8923,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956856,
@@ -8848,7 +8987,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953691,
@@ -8911,7 +9051,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952906,
@@ -8974,7 +9115,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955550,
@@ -9037,7 +9179,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951923,
@@ -9100,7 +9243,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951913,
@@ -9163,7 +9307,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953859,
@@ -9226,7 +9371,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953327,
@@ -9289,7 +9435,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953738,
@@ -9352,7 +9499,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953863,
@@ -9415,7 +9563,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948874,
@@ -9478,7 +9627,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951911,
@@ -9541,7 +9691,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949771,
@@ -9604,7 +9755,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954724,
@@ -9667,7 +9819,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951780,
@@ -9730,7 +9883,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952703,
@@ -9793,7 +9947,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953785,
@@ -9856,7 +10011,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955585,
@@ -9919,7 +10075,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952024,
@@ -9982,7 +10139,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955650,
@@ -10045,7 +10203,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957285,
@@ -10108,7 +10267,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954096,
@@ -10171,7 +10331,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957838,
@@ -10234,7 +10395,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953769,
@@ -10297,7 +10459,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954144,
@@ -10360,7 +10523,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953818,
@@ -10423,7 +10587,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953747,
@@ -10486,7 +10651,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953214,
@@ -10549,7 +10715,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953738,
@@ -10612,7 +10779,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953838,
@@ -10675,7 +10843,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953214,
@@ -10738,7 +10907,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951895,
@@ -10801,7 +10971,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954244,
@@ -10864,7 +11035,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952800,
@@ -10927,7 +11099,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956394,
@@ -10990,7 +11163,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952237,
@@ -11053,7 +11227,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953728,
@@ -11116,7 +11291,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953137,
@@ -11179,7 +11355,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957175,
@@ -11242,7 +11419,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955602,
@@ -11305,7 +11483,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957558,
@@ -11368,7 +11547,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957049,
@@ -11431,7 +11611,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952098,
@@ -11494,7 +11675,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958225,
@@ -11557,7 +11739,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956353,
@@ -11620,7 +11803,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953381,
@@ -11683,7 +11867,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956894,
@@ -11746,7 +11931,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957534,
@@ -11809,7 +11995,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956959,
@@ -11872,7 +12059,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953976,
@@ -11935,7 +12123,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953283,
@@ -11998,7 +12187,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958097,
@@ -12061,7 +12251,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957347,
@@ -12124,7 +12315,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956288,
@@ -12187,7 +12379,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948545,
@@ -12250,7 +12443,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956924,
@@ -12313,7 +12507,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953832,
@@ -12376,7 +12571,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957698,
@@ -12439,7 +12635,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952589,
@@ -12502,7 +12699,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948685,
@@ -12565,7 +12763,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956350,
@@ -12628,7 +12827,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956848,
@@ -12691,7 +12891,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950716,
@@ -12754,7 +12955,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957718,
@@ -12817,7 +13019,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955515,
@@ -12880,7 +13083,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955696,
@@ -12943,7 +13147,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956137,
@@ -13006,7 +13211,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953372,
@@ -13069,7 +13275,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951570,
@@ -13132,7 +13339,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952418,
@@ -13195,7 +13403,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953436,
@@ -13258,7 +13467,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954715,
@@ -13321,7 +13531,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957075,
@@ -13384,7 +13595,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953032,
@@ -13447,7 +13659,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952887,
@@ -13510,7 +13723,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953140,
@@ -13573,7 +13787,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951539,
@@ -13636,7 +13851,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953031,
@@ -13699,7 +13915,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953902,
@@ -13762,7 +13979,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953557,
@@ -13825,7 +14043,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953609,
@@ -13888,7 +14107,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952762,
@@ -13951,7 +14171,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955542,
@@ -14014,7 +14235,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956941,
@@ -14077,7 +14299,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949772,
@@ -14140,7 +14363,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956959,
@@ -14203,7 +14427,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956508,
@@ -14266,7 +14491,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953098,
@@ -14329,7 +14555,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956673,
@@ -14392,7 +14619,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953358,
@@ -14455,7 +14683,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955701,
@@ -14518,7 +14747,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953381,
@@ -14581,7 +14811,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954184,
@@ -14644,7 +14875,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953471,
@@ -14707,7 +14939,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956245,
@@ -14770,7 +15003,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957198,
@@ -14833,7 +15067,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956038,
@@ -14896,7 +15131,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949717,
@@ -14959,7 +15195,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949800,
@@ -15022,7 +15259,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948622,
@@ -15085,7 +15323,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952593,
@@ -15148,7 +15387,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953283,
@@ -15211,7 +15451,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955384,
@@ -15274,7 +15515,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954849,
@@ -15337,7 +15579,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951861,
@@ -15400,7 +15643,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956496,
@@ -15463,7 +15707,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954407,
@@ -15526,7 +15771,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955661,
@@ -15589,7 +15835,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956832,
@@ -15652,7 +15899,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953109,
@@ -15715,7 +15963,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957459,
@@ -15778,7 +16027,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957554,
@@ -15841,7 +16091,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953122,
@@ -15904,7 +16155,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948590,
@@ -15967,7 +16219,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954116,
@@ -16030,7 +16283,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956102,
@@ -16093,7 +16347,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953706,
@@ -16156,7 +16411,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953785,
@@ -16219,7 +16475,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953403,
@@ -16282,7 +16539,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956442,
@@ -16345,7 +16603,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958072,
@@ -16408,7 +16667,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948318,
@@ -16471,7 +16731,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948619,
@@ -16534,7 +16795,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955813,
@@ -16597,7 +16859,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949350,
@@ -16660,7 +16923,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952963,
@@ -16723,7 +16987,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953650,
@@ -16786,7 +17051,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957688,
@@ -16849,7 +17115,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956697,
@@ -16912,7 +17179,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952937,
@@ -16975,7 +17243,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956637,
@@ -17038,7 +17307,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956848,
@@ -17101,7 +17371,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956415,
@@ -17164,7 +17435,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956083,
@@ -17227,7 +17499,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955850,
@@ -17290,7 +17563,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958094,
@@ -17353,7 +17627,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958200,
@@ -17416,7 +17691,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948613,
@@ -17479,7 +17755,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948682,
@@ -17542,7 +17819,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953328,
@@ -17605,7 +17883,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954729,
@@ -17668,7 +17947,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956529,
@@ -17731,7 +18011,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954183,
@@ -17794,7 +18075,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954609,
@@ -17857,7 +18139,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948527,
@@ -17920,7 +18203,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954627,
@@ -17983,7 +18267,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951607,
@@ -18046,7 +18331,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954643,
@@ -18109,7 +18395,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950349,
@@ -18172,7 +18459,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954579,
@@ -18235,7 +18523,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954914,
@@ -18298,7 +18587,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958160,
@@ -18361,7 +18651,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953699,
@@ -18424,7 +18715,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954062,
@@ -18487,7 +18779,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953063,
@@ -18550,7 +18843,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953687,
@@ -18613,7 +18907,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950226,
@@ -18676,7 +18971,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953290,
@@ -18739,7 +19035,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953799,
@@ -18802,7 +19099,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952889,
@@ -18865,7 +19163,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950078,
@@ -18928,7 +19227,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953383,
@@ -18991,7 +19291,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952200,
@@ -19054,7 +19355,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948324,
@@ -19117,7 +19419,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952349,
@@ -19180,7 +19483,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953481,
@@ -19243,7 +19547,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953202,
@@ -19306,7 +19611,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956221,
@@ -19369,7 +19675,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954023,
@@ -19432,7 +19739,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953477,
@@ -19495,7 +19803,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954519,
@@ -19558,7 +19867,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955843,
@@ -19621,7 +19931,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955693,
@@ -19684,7 +19995,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957174,
@@ -19747,7 +20059,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949820,
@@ -19810,7 +20123,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955688,
@@ -19873,7 +20187,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812958063,
@@ -19936,7 +20251,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955489,
@@ -19999,7 +20315,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949646,
@@ -20062,7 +20379,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957389,
@@ -20125,7 +20443,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955333,
@@ -20188,7 +20507,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955587,
@@ -20251,7 +20571,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948877,
@@ -20314,7 +20635,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956071,
@@ -20377,7 +20699,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956199,
@@ -20440,7 +20763,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953899,
@@ -20503,7 +20827,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949857,
@@ -20566,7 +20891,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952717,
@@ -20629,7 +20955,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956241,
@@ -20692,7 +21019,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949012,
@@ -20755,7 +21083,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952847,
@@ -20818,7 +21147,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956074,
@@ -20881,7 +21211,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949984,
@@ -20944,7 +21275,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957162,
@@ -21007,7 +21339,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953556,
@@ -21070,7 +21403,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955931,
@@ -21133,7 +21467,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957434,
@@ -21196,7 +21531,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955412,
@@ -21259,7 +21595,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957971,
@@ -21322,7 +21659,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955656,
@@ -21385,7 +21723,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956838,
@@ -21448,7 +21787,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955660,
@@ -21511,7 +21851,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956182,
@@ -21574,7 +21915,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955458,
@@ -21637,7 +21979,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954276,
@@ -21700,7 +22043,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956236,
@@ -21763,7 +22107,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957340,
@@ -21826,7 +22171,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949839,
@@ -21889,7 +22235,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950733,
@@ -21952,7 +22299,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949853,
@@ -22015,7 +22363,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952345,
@@ -22078,7 +22427,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951115,
@@ -22141,7 +22491,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949855,
@@ -22204,7 +22555,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956220,
@@ -22267,7 +22619,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954408,
@@ -22330,7 +22683,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953439,
@@ -22393,7 +22747,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954475,
@@ -22456,7 +22811,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954900,
@@ -22519,7 +22875,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953861,
@@ -22582,7 +22939,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956181,
@@ -22645,7 +23003,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954527,
@@ -22708,7 +23067,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954179,
@@ -22771,7 +23131,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954607,
@@ -22834,7 +23195,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812946588,
@@ -22897,7 +23259,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954458,
@@ -22960,7 +23323,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957421,
@@ -23023,7 +23387,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955383,
@@ -23086,7 +23451,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952263,
@@ -23149,7 +23515,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812946890,
@@ -23212,7 +23579,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953100,
@@ -23275,7 +23643,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952741,
@@ -23338,7 +23707,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812956349,
@@ -23401,7 +23771,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955212,
@@ -23464,7 +23835,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957681,
@@ -23527,7 +23899,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812947056,
@@ -23590,7 +23963,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954629,
@@ -23653,7 +24027,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953222,
@@ -23716,7 +24091,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955289,
@@ -23779,7 +24155,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957219,
@@ -23842,7 +24219,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812947172,
@@ -23905,7 +24283,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812947287,
@@ -23968,7 +24347,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812951369,
@@ -24031,7 +24411,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952907,
@@ -24094,7 +24475,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953267,
@@ -24157,7 +24539,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948430,
@@ -24220,7 +24603,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812946320,
@@ -24283,7 +24667,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953538,
@@ -24346,7 +24731,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948483,
@@ -24409,7 +24795,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812955084,
@@ -24472,7 +24859,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950228,
@@ -24535,7 +24923,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950849,
@@ -24598,7 +24987,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812952909,
@@ -24661,7 +25051,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812953916,
@@ -24724,7 +25115,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812950962,
@@ -24787,7 +25179,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812949453,
@@ -24850,7 +25243,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812954180,
@@ -24913,7 +25307,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812947434,
@@ -24976,7 +25371,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812957483,
@@ -25039,7 +25435,8 @@
           },
           "umask" : 18,
           "transparentHugePage" : "always",
-          "iptablesIsRunning" : true,
+          "firewallRunning" : true,
+          "firewallName" : "iptables",
           "reverseLookup" : true
         },
         "last_heartbeat_time" : 1413812948319,

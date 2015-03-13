@@ -131,8 +131,8 @@ def ensure_server_security_is_configured():
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def ensure_server_security_is_configured():
   if not is_root():
-    print "Unable to check iptables status when starting without root privileges."
-    print "Please do not forget to disable or adjust iptables if needed"
+    print "Unable to check firewall status when starting without root privileges."
+    print "Please do not forget to disable or adjust firewall if needed"
 
 
 def get_ulimit_open_files(properties):

@@ -101,6 +101,12 @@ class HostInfo(object):
     else:
       return self.current_umask
 
+  def checkFirewall(self):
+    return Firewall().getFirewallObject().check_firewall()
+
+  def getFirewallName(self):
+    return Firewall().getFirewallObject().get_firewall_name()
+
   def checkReverseLookup(self):
     """
     Check if host fqdn resolves to current host ip
@@ -229,9 +235,6 @@ class HostInfoLinux(HostInfo):
     else:
       return ""
 
-  def checkIptables(self):
-    return Firewall().getFirewallObject().check_iptables()
-
   def hadoopVarRunCount(self):
     if not os.path.exists('/var/run/hadoop'):
       return 0
@@ -277,7 +280,8 @@ class HostInfoLinux(HostInfo):
     dict['umask'] = str(self.getUMask())
 
     dict['transparentHugePage'] = self.getTransparentHugePage()
-    dict['iptablesIsRunning'] = self.checkIptables()
+    dict['firewallRunning'] = self.checkFirewall()
+    dict['firewallName'] = self.getFirewallName()
     dict['reverseLookup'] = self.checkReverseLookup()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks
@@ -340,18 +344,6 @@ class HostInfoWindows(HostInfo):
         result['status'] = "Available"
         results.append(result)
 
-  def checkIptables(self):
-    from ambari_commons.os_windows import run_powershell_script, CHECK_FIREWALL_SCRIPT
-
-    out = run_powershell_script(CHECK_FIREWALL_SCRIPT)
-    if out[0] != 0:
-      logger.warn("Unable to check firewall status:{0}".format(out[2]))
-      return False
-    profiles_status = [i for i in out[1].split("\n") if not i == ""]
-    if "1" in profiles_status:
-      return True
-    return False
-
   def createAlerts(self, alerts):
     # TODO AMBARI-7849 Implement createAlerts for Windows
     return alerts
@@ -404,7 +396,8 @@ class HostInfoWindows(HostInfo):
 
     dict['umask'] = str(self.getUMask())
 
-    dict['iptablesIsRunning'] = self.checkIptables()
+    dict['firewallRunning'] = self.checkFirewall()
+    dict['firewallName'] = self.getFirewallName()
     dict['reverseLookup'] = self.checkReverseLookup()
     # If commands are in progress or components are already mapped to this host
     # Then do not perform certain expensive host checks

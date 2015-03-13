@@ -251,10 +251,10 @@ class TestCheckHost(TestCase):
   @patch('ambari_agent.HostInfo.HostInfoLinux.checkLiveServices')
   @patch('ambari_agent.HostInfo.HostInfoLinux.getUMask')
   @patch('ambari_agent.HostInfo.HostInfoLinux.getTransparentHugePage')
-  @patch('ambari_agent.HostInfo.HostInfoLinux.checkIptables')
+  @patch('ambari_agent.HostInfo.HostInfoLinux.checkFirewall')
   @patch('ambari_agent.HostInfo.HostInfoLinux.checkReverseLookup')
   @patch('time.time')
-  def testLastAgentEnv(self, time_mock, checkReverseLookup_mock, checkIptables_mock, getTransparentHugePage_mock,
+  def testLastAgentEnv(self, time_mock, checkReverseLookup_mock, checkFirewall_mock, getTransparentHugePage_mock,
                        getUMask_mock, checkLiveServices_mock, javaProcs_mock, put_structured_out_mock,
                        get_tmp_dir_mock, get_config_mock, systemmock):
     jsonFilePath = os.path.join(TestCheckHost.current_dir+"/../../resources/custom_actions", "check_last_agent_env.json")
@@ -270,7 +270,7 @@ class TestCheckHost(TestCase):
     # ensure the correct function was called
     self.assertTrue(time_mock.called)
     self.assertTrue(checkReverseLookup_mock.called)
-    self.assertTrue(checkIptables_mock.called)
+    self.assertTrue(checkFirewall_mock.called)
     self.assertTrue(getTransparentHugePage_mock.called)
     self.assertTrue(getUMask_mock.called)
     self.assertTrue(checkLiveServices_mock.called)
@@ -280,7 +280,8 @@ class TestCheckHost(TestCase):
     last_agent_env_check_result = put_structured_out_mock.call_args[0][0]
     self.assertTrue('last_agent_env_check' in last_agent_env_check_result)
     self.assertTrue('hostHealth' in last_agent_env_check_result['last_agent_env_check'])
-    self.assertTrue('iptablesIsRunning' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('firewallRunning' in last_agent_env_check_result['last_agent_env_check'])
+    self.assertTrue('firewallName' in last_agent_env_check_result['last_agent_env_check'])
     self.assertTrue('reverseLookup' in last_agent_env_check_result['last_agent_env_check'])
     self.assertTrue('alternatives' in last_agent_env_check_result['last_agent_env_check'])
     self.assertTrue('umask' in last_agent_env_check_result['last_agent_env_check'])

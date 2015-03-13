@@ -63,7 +63,10 @@ class FirewallChecks(object):
     self.stdoutdata = None
     self.stderrdata = None
     # stdout message
-    self.MESSAGE_CHECK_FIREWALL = 'Checking iptables...'
+    self.MESSAGE_CHECK_FIREWALL = 'Checking firewall status...'
+
+  def get_firewall_name(self):
+    return self.FIREWALL_SERVICE_NAME
 
   def get_command(self):
     return "%s %s %s" % (self.SERVICE_CMD, self.FIREWALL_SERVICE_NAME, self.SERVICE_SUBCMD)
@@ -83,7 +86,7 @@ class FirewallChecks(object):
     self.stdoutdata = out
     self.stderrdata = err
 
-  def check_iptables(self):
+  def check_firewall(self):
     try:
       self.run_command()
       return self.check_result()
@@ -144,15 +147,20 @@ class SuseFirewallChecks(FirewallChecks):
 class WindowsFirewallChecks(FirewallChecks):
   def __init__(self):
     super(WindowsFirewallChecks, self).__init__()
-    self.MESSAGE_CHECK_FIREWALL = 'Checking firewall status...'
+    self.FIREWALL_SERVICE_NAME = "MpsSvc"
 
   def run_command(self):
-    from ambari_commons.os_windows import run_powershell_script, CHECK_FIREWALL_SCRIPT
+    from ambari_commons.os_windows import run_powershell_script, CHECK_FIREWALL_SCRIPT, WinServiceController, SERVICE_STATUS_RUNNING
 
-    retcode, out, err = run_powershell_script(CHECK_FIREWALL_SCRIPT)
-    self.returncode = retcode
-    self.stdoutdata = out
-    self.stderrdata = err
+    if WinServiceController.QueryStatus(self.FIREWALL_SERVICE_NAME) != SERVICE_STATUS_RUNNING:
+      self.returncode = 0
+      self.stdoutdata = ""
+      self.stderrdata = ""
+    else:
+      retcode, out, err = run_powershell_script(CHECK_FIREWALL_SCRIPT)
+      self.returncode = retcode
+      self.stdoutdata = out
+      self.stderrdata = err
 
   def check_result(self):
     if self.returncode != 0:
@@ -170,5 +178,5 @@ class WindowsFirewallChecks(FirewallChecks):
       print_warning_msg(
         "Following firewall profiles are enabled:{0}. Make sure that the firewall is properly configured.".format(
           ",".join(enabled_profiles)))
-      return False
-    return True
+      return True
+    return False

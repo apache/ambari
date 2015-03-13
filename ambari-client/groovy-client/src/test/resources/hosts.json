@@ -75,7 +75,8 @@
             ]
           },
           "umask" : 18,
-          "iptablesIsRunning" : true
+          "firewallRunning" : true,
+          "firewallName" : "iptables"
         },
         "last_heartbeat_time" : 1401222535701,
         "last_registration_time" : 1401180386121,

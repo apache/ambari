@@ -342,7 +342,7 @@ class ServerConfigDefaultsLinux(ServerConfigDefaults):
     self.MESSAGE_ERROR_SETUP_NOT_ROOT = "Ambari-server setup should be run with root-level privileges"
     self.MESSAGE_ERROR_RESET_NOT_ROOT = "Ambari-server reset should be run with root-level privileges"
     self.MESSAGE_ERROR_UPGRADE_NOT_ROOT = "Ambari-server upgrade must be run with root-level privileges"
-    self.MESSAGE_CHECK_FIREWALL = "Checking iptables..."
+    self.MESSAGE_CHECK_FIREWALL = "Checking firewall status..."
 
 configDefaults = ServerConfigDefaults()
 

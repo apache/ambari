@@ -198,7 +198,7 @@ public class AgentResourceTest extends JerseyTest {
             ", \"existingUsers\": "+ ExistingUserJSON +
             ", \"umask\": \"18\", \"installedPackages\": "+
             PackageDetailJSON +", \"stackFoldersAndFiles\": "+ DirectoryJSON +
-            ", \"iptablesIsRunning\": \"true\", \"transparentHugePage\": \"never\"}";
+            ", \"firewallRunning\": \"true\", \"firewallName\": \"iptables\", \"transparentHugePage\": \"never\"}";
     AgentEnv.Directory[] dirs = getJsonFormString(
             DirectoryJSON, AgentEnv.Directory[].class);
     Assert.assertEquals("/var/lib", dirs[0].getName());
@@ -234,7 +234,8 @@ public class AgentResourceTest extends JerseyTest {
             AgentEnvJSON, AgentEnv.class);
     Assert.assertTrue(18 == agentEnv.getUmask());
     Assert.assertEquals("never", agentEnv.getTransparentHugePage());
-    Assert.assertTrue(Boolean.TRUE == agentEnv.getIptablesIsRunning());
+    Assert.assertTrue(Boolean.TRUE == agentEnv.getFirewallRunning());
+    Assert.assertEquals("iptables", agentEnv.getFirewallName());
     Assert.assertEquals("/etc/alternatives/hdfs-conf", agentEnv.getAlternatives()[0].getName());
     Assert.assertEquals("/etc/hadoop/conf.dist", agentEnv.getAlternatives()[0].getTarget());
     Assert.assertEquals("abc", agentEnv.getAlternatives()[1].getName());

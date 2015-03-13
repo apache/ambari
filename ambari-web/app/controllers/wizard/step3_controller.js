@@ -1591,9 +1591,9 @@ App.WizardStep3Controller = Em.Controller.extend({
         host.warnings.push(warning);
       }
 
-      var firewallRunning = _host.Hosts.last_agent_env.iptablesIsRunning;
+      var firewallRunning = _host.Hosts.last_agent_env.firewallRunning;
       if (firewallRunning !== null && firewallRunning) {
-        var name = Em.I18n.t('installer.step3.hostWarningsPopup.firewall.name');
+        var name = _host.Hosts.last_agent_env.firewallName + " Running";
         warning = warnings.filterProperty('category', 'firewall').findProperty('name', name);
         if (warning) {
           warning.hosts.push(_host.Hosts.host_name);

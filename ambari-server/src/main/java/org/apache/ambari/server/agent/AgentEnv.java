@@ -60,7 +60,9 @@ public class AgentEnv {
 
   private String transparentHugePage;
 
-  private Boolean iptablesIsRunning;
+  private Boolean firewallRunning;
+
+  private String firewallName;
 
   private Boolean reverseLookup;
 
@@ -136,12 +138,20 @@ public class AgentEnv {
     return hostHealth;
   }
 
-  public Boolean getIptablesIsRunning() {
-    return iptablesIsRunning;
+  public Boolean getFirewallRunning() {
+    return firewallRunning;
   }
 
-  public void setIptablesIsRunning(Boolean iptablesIsRunning) {
-    this.iptablesIsRunning = iptablesIsRunning;
+  public void setFirewallRunning(Boolean firewallRunning) {
+    this.firewallRunning = firewallRunning;
+  }
+
+  public String getFirewallName() {
+    return firewallName;
+  }
+
+  public void setFirewallName(String firewallName) {
+    this.firewallName = firewallName;
   }
 
   public static class HostHealth {

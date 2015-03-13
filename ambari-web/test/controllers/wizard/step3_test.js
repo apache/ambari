@@ -1707,8 +1707,8 @@ describe('App.WizardStep3Controller', function () {
     it('should parse firewall warnings', function () {
 
       var items = [
-        {Hosts: {host_name: 'c1', last_agent_env: {iptablesIsRunning: true}}},
-        {Hosts: {host_name: 'c2', last_agent_env: {iptablesIsRunning: false}}}
+        {Hosts: {host_name: 'c1', last_agent_env: {firewallRunning: true, firewallName: "iptables"}}},
+        {Hosts: {host_name: 'c2', last_agent_env: {firewallRunning: false, firewallName: "iptables"}}}
       ];
 
       c.parseWarnings({items: items});
@@ -1722,8 +1722,8 @@ describe('App.WizardStep3Controller', function () {
     it('should parse firewall warnings (2)', function () {
 
       var items = [
-        {Hosts: {host_name: 'c1', last_agent_env: {iptablesIsRunning: true}}},
-        {Hosts: {host_name: 'c2', last_agent_env: {iptablesIsRunning: true}}}
+        {Hosts: {host_name: 'c1', last_agent_env: {firewallRunning: true, firewallName: "iptables"}}},
+        {Hosts: {host_name: 'c2', last_agent_env: {firewallRunning: true, firewallName: "iptables"}}}
       ];
 
       c.parseWarnings({items: items});

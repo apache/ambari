@@ -1302,7 +1302,7 @@ class TestAmbariServer(TestCase):
   @patch.object(OSCheck, "get_os_family")
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
-  def test_check_iptables_is_running(self, get_os_major_version_mock, get_os_type_mock, get_os_family_mock, popen_mock):
+  def test_check_firewall_is_running(self, get_os_major_version_mock, get_os_type_mock, get_os_family_mock, popen_mock):
 
     get_os_major_version_mock.return_value = 18
     get_os_type_mock.return_value = OSConst.OS_FEDORA
@@ -1314,10 +1314,10 @@ class TestAmbariServer(TestCase):
     p.returncode = 0
     popen_mock.return_value = p
     self.assertEqual("Fedora18FirewallChecks", firewall_obj.__class__.__name__)
-    self.assertTrue(firewall_obj.check_iptables())
+    self.assertTrue(firewall_obj.check_firewall())
     p.communicate.return_value = ("", "err")
     p.returncode = 3
-    self.assertFalse(firewall_obj.check_iptables())
+    self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
 
@@ -1328,10 +1328,10 @@ class TestAmbariServer(TestCase):
     p.communicate.return_value = ("Status: active", "err")
     p.returncode = 0
     self.assertEqual("UbuntuFirewallChecks", firewall_obj.__class__.__name__)
-    self.assertTrue(firewall_obj.check_iptables())
+    self.assertTrue(firewall_obj.check_firewall())
     p.communicate.return_value = ("Status: inactive", "err")
     p.returncode = 0
-    self.assertFalse(firewall_obj.check_iptables())
+    self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
     get_os_type_mock.return_value = ""
@@ -1341,10 +1341,10 @@ class TestAmbariServer(TestCase):
     p.communicate.return_value = ("### iptables", "err")
     p.returncode = 0
     self.assertEqual("SuseFirewallChecks", firewall_obj.__class__.__name__)
-    self.assertTrue(firewall_obj.check_iptables())
+    self.assertTrue(firewall_obj.check_firewall())
     p.communicate.return_value = ("SuSEfirewall2 not active", "err")
     p.returncode = 0
-    self.assertFalse(firewall_obj.check_iptables())
+    self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
 
     get_os_type_mock.return_value = ""
@@ -1354,10 +1354,10 @@ class TestAmbariServer(TestCase):
     p.communicate.return_value = ("Table: filter", "err")
     p.returncode = 0
     self.assertEqual("FirewallChecks", firewall_obj.__class__.__name__)
-    self.assertTrue(firewall_obj.check_iptables())
+    self.assertTrue(firewall_obj.check_firewall())
     p.communicate.return_value = ("", "err")
     p.returncode = 3
-    self.assertFalse(firewall_obj.check_iptables())
+    self.assertFalse(firewall_obj.check_firewall())
     self.assertEqual("err", firewall_obj.stderrdata)
     pass
 

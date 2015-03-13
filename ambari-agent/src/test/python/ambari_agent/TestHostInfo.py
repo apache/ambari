@@ -256,7 +256,7 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfoLinux, 'etcAlternativesConf')
   @patch.object(HostInfoLinux, 'hadoopVarRunCount')
   @patch.object(HostInfoLinux, 'hadoopVarLogCount')
-  @patch.object(HostInfoLinux, 'checkIptables')
+  @patch.object(HostInfoLinux, 'checkFirewall')
   def test_hostinfo_register_suse(self, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
                              gpd_mock, aip_mock, aap_mock, whcf_mock, os_umask_mock, get_os_type_mock):
@@ -294,7 +294,7 @@ class TestHostInfo(TestCase):
   @patch.object(HostInfoLinux, 'etcAlternativesConf')
   @patch.object(HostInfoLinux, 'hadoopVarRunCount')
   @patch.object(HostInfoLinux, 'hadoopVarLogCount')
-  @patch.object(HostInfoLinux, 'checkIptables')
+  @patch.object(HostInfoLinux, 'checkFirewall')
   @patch.object(HostInfoLinux, 'getTransparentHugePage')
   def test_hostinfo_register(self, get_transparentHuge_page_mock, cit_mock, hvlc_mock, hvrc_mock, eac_mock, cf_mock, jp_mock,
                              cls_mock, cu_mock, gir_mock, gipbr_mock, gipbn_mock,
@@ -331,7 +331,8 @@ class TestHostInfo(TestCase):
     self.assertEqual(dict['alternatives'], [])
     self.assertEqual(dict['stackFoldersAndFiles'], [])
     self.assertEqual(dict['existingUsers'], [])
-    self.assertTrue(dict['iptablesIsRunning'])
+    self.assertTrue(dict['firewallRunning'])
+    self.assertEqual(dict['firewallName'], "iptables")
 
   @patch("os.path.exists")
   @patch("os.path.islink")
@@ -511,11 +512,11 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
   @patch("ambari_commons.firewall.run_os_command")
-  def test_IpTablesRunning(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
+  def test_FirewallRunning(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 0, "Table: filter", ""
-    self.assertTrue(Firewall().getFirewallObject().check_iptables())
+    self.assertTrue(Firewall().getFirewallObject().check_firewall())
 
 
   @patch.object(socket, "getfqdn")
@@ -547,11 +548,11 @@ class TestHostInfo(TestCase):
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_major_version")
   @patch("ambari_commons.firewall.run_os_command")
-  def test_IpTablesStopped(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
+  def test_FirewallStopped(self, run_os_command_mock, get_os_major_version_mock, get_os_type_mock, get_os_family_mock):
     get_os_type_mock.return_value = ""
     get_os_family_mock.return_value = OSConst.REDHAT_FAMILY
     run_os_command_mock.return_value = 3, "", ""
-    self.assertFalse(Firewall().getFirewallObject().check_iptables())
+    self.assertFalse(Firewall().getFirewallObject().check_firewall())
 
   @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = ('redhat','11','Final')))

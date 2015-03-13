@@ -561,7 +561,6 @@ Em.I18n.translations = {
   'installer.step3.hostWarningsPopup.thp.message':'The following hosts have Transparent Huge Pages (THP) enabled. THP should be disabled to avoid potential Hadoop performance issues.',
   'installer.step3.hostWarningsPopup.firewall':'Firewall Issues',
   'installer.step3.hostWarningsPopup.firewall.message':'Firewall is running on the following hosts. Please configure the firewall to allow communications on the ports documented in the <i>Configuring Ports</i> section of  the <a target=\"_blank\" href=\"http://ambari.apache.org/current/installing-hadoop-using-ambari/content/\">Ambari documentation</a>',
-  'installer.step3.hostWarningsPopup.firewall.name':'<i>iptables</i> Running',
   'installer.step3.hostWarningsPopup.process':'Process Issues',
   'installer.step3.hostWarningsPopup.processes.message':'The following processes should not be running',
   'installer.step3.hostWarningsPopup.fileAndFolder':'File and Folder Issues',
