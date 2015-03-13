@@ -38,16 +38,14 @@
                     {{allOperationsCount}} {{pluralize allOperationsCount singular="t:op" plural="t:ops"}}</span>
                 {{/if}}
               {{/with}}
-              {{#with App.router.mainAlertDefinitionsController}}
-                {{#if allAlertsCount}}
-                  <span {{bindAttr class=":label isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
-                  {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
-                {{else}}
-                  <span rel="tooltip" {{translateAttr title="titlebar.alerts.noAlerts"}}
-                        class="label alerts-none-count" {{action "showPopup" target="App.router.mainAlertDefinitionsController"}}>
-                  {{allAlertsCount}} {{pluralize allAlertsCount singular="alert" plural="alerts"}}</span>
-                {{/if}}
-              {{/with}}
+              {{#if App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}}
+                <span {{bindAttr class=":label App.router.mainAlertDefinitionsController.isCriticalAlerts:alert-crit-count:alert-warn-count"}} {{action "showPopup" target="App.router.mainAlertInstancesController"}}>
+                {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}} {{pluralize App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount singular="alert" plural="alerts"}}</span>
+              {{else}}
+                <span rel="tooltip" {{translateAttr title="titlebar.alerts.noAlerts"}}
+                      class="label alerts-none-count" {{action "showPopup" target="App.router.mainAlertInstancesController"}}>
+                {{App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount}} {{pluralize App.router.mainAlertDefinitionsController.unhealthyAlertInstancesCount singular="alert" plural="alerts"}}</span>
+              {{/if}}
             </a>
           {{else}}
             <a class="logo"><img src="/img/logo-white.png" alt="Apache Ambari" title="Apache Ambari"></a>

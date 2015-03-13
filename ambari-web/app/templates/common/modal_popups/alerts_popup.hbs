@@ -61,6 +61,11 @@
         {{/if}}
       </div>
     </div>
+
+    <div {{bindAttr class="view.filteringComplete:hidden :table-overlay"}}>
+      <div class="spinner"></div>
+    </div>
+
     {{#if view.isPaginate}}
       <div class="page-bar pull-right no-borders mtm">
         <div class="items-on-page">

@@ -85,11 +85,12 @@ App.MainAlertDefinitionDetailsView = App.TableView.extend({
    * View calculates and represents count of alerts on appropriate host during last day
    */
   lastDayCount: Em.View.extend({
+    hostName: '', // binding from template
     template: Ember.Handlebars.compile('<span>{{view.count}}</span>'),
     count: function () {
       var lastDayAlertsCount = this.get('parentView.controller.lastDayAlertsCount');
-      return lastDayAlertsCount ? lastDayAlertsCount[this.get('host.hostName')] || 0 : Em.I18n.t('app.loadingPlaceholder');
-    }.property('parentView.controller.lastDayAlertsCount', 'host')
+      return lastDayAlertsCount ? lastDayAlertsCount[this.get('hostName')] || 0 : Em.I18n.t('app.loadingPlaceholder');
+    }.property('parentView.controller.lastDayAlertsCount', 'hostName')
   }),
 
   /**

@@ -19,10 +19,10 @@
 var App = require('app');
 var validator = require('utils/validator');
 
-//TODO integrate mixin into mainHostController to avoid code duplication
 App.TableServerMixin = Em.Mixin.create({
   queryParams: [],
   resetStartIndex: false,
+
   /**
    * filterProps support follow types of filter:
    * MATCH - match of RegExp
@@ -33,8 +33,9 @@ App.TableServerMixin = Em.Mixin.create({
    * CUSTOM - substitute values with keys "{#}" in alias
    */
   filterProps: [],
+
   /**
-   * include "from" nad "page_size"
+   * include "from" and "page_size"
    */
   paginationProps: [
     {
@@ -50,6 +51,7 @@ App.TableServerMixin = Em.Mixin.create({
       type: 'EQUAL'
     }
   ],
+
   sortProps: [],
 
   /**

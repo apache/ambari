@@ -114,6 +114,15 @@ App.UpdateController = Em.Controller.extend({
   }),
 
   /**
+   * Pagination query-parameters for unhealthy alerts request
+   * @type {{from: Number, page_size: Number}}
+   */
+  queryParamsForUnhealthyAlertInstances: {
+    from: 0,
+    page_size: 10
+  },
+
+  /**
    * map describes relations between updater function and table
    */
   tableUpdaterMap: {
@@ -469,7 +478,8 @@ App.UpdateController = Em.Controller.extend({
 
   updateUnhealthyAlertInstances: function (callback) {
     var testUrl = '/data/alerts/alert_instances.json';
-    var realUrl = '/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)';
+    var queryParams = this.get('queryParamsForUnhealthyAlertInstances');
+    var realUrl = '/alerts?fields=*&Alert/state.in(CRITICAL,WARNING)&Alert/maintenance_state.in(OFF)&from=' + queryParams.from + '&page_size=' + queryParams.page_size;
     var url = this.getUrl(testUrl, realUrl);
 
     App.HttpClient.get(url, App.alertInstanceMapper, {
