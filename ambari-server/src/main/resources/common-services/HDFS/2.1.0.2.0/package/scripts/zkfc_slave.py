@@ -48,8 +48,11 @@ class ZkfcSlave(Script):
     # only run this format command if the active namenode hostname is set
     # The Ambari UI HA Wizard prompts the user to run this command
     # manually, so this guarantees it is only run in the Blueprints case
-    if params.dfs_ha_enabled and params.dfs_ha_namenode_active is not None:
-        Execute("hdfs zkfc -formatZK -force -nonInteractive", user=params.hdfs_user)
+    if params.dfs_ha_enabled and \
+       params.dfs_ha_namenode_active is not None:
+      success =  initialize_ha_zookeeper(params)
+      if not success:
+        raise Fail("Could not initialize HA state in zookeeper")
 
     utils.service(
       action="start", name="zkfc", user=params.hdfs_user, create_pid_dir=True,
@@ -121,6 +124,25 @@ class ZkfcSlave(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+def initialize_ha_zookeeper(params):
+  try:
+    iterations = 10
+    formatZK_cmd = "hdfs zkfc -formatZK -nonInteractive"
+    Logger.info("Initialize HA state in ZooKeeper: %s" % (formatZK_cmd))
+    for i in range(iterations):
+      Logger.info('Try %d out of %d' % (i+1, iterations))
+      code, out = shell.call(formatZK_cmd, logoutput=False, user=params.hdfs_user)
+      if code == 0:
+        Logger.info("HA state initialized in ZooKeeper successfully")
+        return True
+      elif code == 2:
+        Logger.info("HA state already initialized in ZooKeeper")
+        return True
+      else:
+        Logger.warning('HA state initialization in ZooKeeper failed with %d error code. Will retry' % (code))
+  except Exception as ex:
+    Logger.error('HA state initialization in ZooKeeper threw an exception. Reason %s' %(str(ex)))
+  return False
 
 if __name__ == "__main__":
   ZkfcSlave().execute()
