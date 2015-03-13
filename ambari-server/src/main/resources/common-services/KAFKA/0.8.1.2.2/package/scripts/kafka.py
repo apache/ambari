@@ -27,6 +27,8 @@ def kafka():
     import params
 
     Directory([params.kafka_log_dir, params.kafka_pid_dir, params.conf_dir],
+              mode=0755,
+              cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
               recursive=True
@@ -42,6 +44,8 @@ def kafka():
 
     kafka_data_dir = kafka_server_config['log.dirs']
     Directory(filter(None,kafka_data_dir.split(",")),
+              mode=0755,
+              cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
               recursive=True)
