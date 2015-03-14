@@ -446,7 +446,7 @@ public class PhoenixHBaseAccessor {
       }
     }
 
-    LOG.info("Metrics records size: " + metrics.getMetrics().size());
+    LOG.debug("Metrics records size: " + metrics.getMetrics().size());
     return metrics;
   }
 
