@@ -477,6 +477,6 @@ class Script(object):
       component_name = stack_to_component[stack_name] if stack_name in stack_to_component else None
       if component_name and stack_name and version and \
               compare_versions(format_hdp_stack_version(hdp_stack_version), '2.2.0.0') >= 0:
-        Execute("/usr/bin/hdp-select set {component_name} {version}".format(
-            component_name=component_name, version=version))
+        Execute(('/usr/bin/hdp-select', 'set', component_name, version),
+                sudo = True)
 
