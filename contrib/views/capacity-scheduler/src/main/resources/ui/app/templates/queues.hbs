@@ -25,7 +25,7 @@
         </div>
       {{else}}
         <div class="add-queue col-sm-6">
-          <button {{action askPath}} {{bind-attr class=":btn :btn-default :btn-block isNotOperator:disabled hasNewQueue:disabled"}} ><i class="fa fa-plus"></i> Add Queue</button>
+          <button {{action 'askPath'}} {{bind-attr class=":btn :btn-default :btn-block isNotOperator:disabled hasNewQueue:disabled"}} ><i class="fa fa-plus"></i> Add Queue</button>
         </div>
         <div class="add-queue col-sm-6">
           <div class="btn-group btn-group-justified btn-group-save">
@@ -35,8 +35,8 @@
                   <span class="caret"></span>
                 </button>
                 <ul class="dropdown-menu pull-right" role="menu">
-                    {{#dropdown-confirmation action='saveModal' targetObject=view}}
-                      {{#view view.button action='showRestartConfirmation' classBinding=":btn needRestart::disabled"}}<i class="fa fa-fw fa fa-cogs"></i> Save and Restart ResourceManager{{/view}}
+                    {{dropdown-confirmation action='saveModal' targetObject=view needRestart=needRestart}}
+                      {{!-- {{#view view.button action='showRestartConfirmation' classBinding=":btn needRestart::disabled"}}<i class="fa fa-fw fa fa-cogs"></i> Save and Restart ResourceManager{{/view}}
                       {{#if view.restartConfirming}}
                         <div class="btn-group btn-group-justified">
                           <div class="btn-group">
@@ -47,12 +47,12 @@
                           </div>
                         </div>
                       {{/if}}
-                    {{/dropdown-confirmation}}
+                    {{/dropdown-confirmation}} --}}
                   <li >
-                    <a href="#" {{action saveModal 'refresh' target="view"}} {{bind-attr class=":btn needRefresh::disabled"}}><i class="fa fa-fw fa-refresh"></i> Save and Refresh Queues</a>
+                    <a href="#" {{action 'saveModal' 'refresh' target="view"}} {{bind-attr class=":btn needRefresh::disabled"}}><i class="fa fa-fw fa-refresh"></i> Save and Refresh Queues</a>
                   </li>
                   <li>
-                    <a href="#" {{action saveModal target="view"}} {{bind-attr class=":btn needSave::disabled"}}><i class="fa fa-fw fa-save"></i> Save Only</a>
+                    <a href="#" {{action 'saveModal' target="view"}} {{bind-attr class=":btn needSave::disabled"}}><i class="fa fa-fw fa-save"></i> Save Only</a>
                   </li>
                 </ul>
             </div>
@@ -68,6 +68,39 @@
   <div class="hidden-sm hidden-xs">
     {{partial "schedulerPanel"}}
   </div>
+
+  <div class="hidden-sm hidden-xs">
+    <div class="panel panel-default panel-versions">
+      <div class="panel-heading">
+        <div class="panel-title">
+          Versions
+        </div>
+      </div>
+      <div id="versions-table-wrap">
+        <table class="table table-condensed">
+          <tbody>
+          {{#each sortedTags}}
+            <tr>
+              <td>
+                <span class="label label-info">v{{id}}</span>
+                {{#if isCurrent}}
+                  <span class="label label-success">Current</span>
+                {{/if}}
+              </td>
+              <td>{{changed}}</td>
+              <td>
+                <div class="btn-group btn-group-xs btn-block">
+                  <button type="button" class="btn btn-default btn-xs btn-block" {{action 'loadTagged' tag}} >load</button>
+                </div>
+              </td>
+            </tr>
+          {{/each}}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   {{!-- ALERT --}}
   {{#if alertMessage}}
   <div class="alert alert-danger">
@@ -102,7 +135,7 @@
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button {{action saveConfig view.saveMode}} type="button" class="btn btn-success" data-dismiss="modal">Save changes</button>
+        <button {{action 'saveConfig' view.saveMode}} type="button" class="btn btn-success" data-dismiss="modal">Save changes</button>
       </div>
     </div>
   </div>

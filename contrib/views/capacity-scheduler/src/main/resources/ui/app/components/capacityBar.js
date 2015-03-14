@@ -20,22 +20,36 @@ var App = require('app');
 
 App.CapacityBarComponent = Em.Component.extend({
   layoutName:'components/capacityBar',
+
   classNames:['capacity-bar'],
+
+  capacityValue:null,
+
+  maxCapacityValue:null,
+
+  warn:false,
+
+  pattern:'width: %@%;',
+
   mark:function () {
     if (this.$().parent().hasClass('active')) {
       Ember.run.next(this, 'addInClass');
-    };
+    }
   }.on('didInsertElement'),
+
   addInClass:function () {
     this.$().children().addClass('in');
   },
+
   capacityWidth: function() {
-    return  (Number(this.get('capacityValue'))<=100)?('width: '+this.get('capacityValue')+'%'):'width: 100%';
+    return this.get('pattern').fmt(( +this.get('capacityValue') <= 100 ) ? +this.get('capacityValue') : 100);
   }.property('capacityValue'),
+
   maxCapacityWidth: function() {
-    var val = Number(this.get('maxCapacityValue')) - Number(this.get('capacityValue'));
-    return  (val<=100)?('width: '+val+'%'):'width: 100%';
+    var val = this.get('maxCapacityValue') - this.get('capacityValue');
+    return  this.get('pattern').fmt((val<=100)?val:100);
   }.property('maxCapacityValue','capacityValue'),
+
   showMaxCapacity:function () {
     return this.get('maxCapacityValue') > this.get('capacityValue');
   }.property('maxCapacityValue','capacityValue')

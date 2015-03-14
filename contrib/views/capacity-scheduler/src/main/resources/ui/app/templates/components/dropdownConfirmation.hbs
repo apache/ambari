@@ -16,20 +16,14 @@
 * limitations under the License.
 }}
 
-<div class="progress progress-labelled" data-label-max="100" data-label-step="25" style="position: relative;">
-    <div {{bind-attr style="capacityWidth" class=":progress-bar warn:progress-bar-danger:progress-bar-success"}}>
-      <span>
-        {{capacityValue}}%
-      </span>
+{{#view view.button action="showRestartConfirmation" classBinding=":btn needRestart::disabled"}}<i class="fa fa-fw fa fa-cogs"></i> Save and Restart ResourceManager{{/view}}
+{{#if view.restartConfirming}}
+  <div class="btn-group btn-group-justified">
+    <div class="btn-group">
+      <a {{action showRestartConfirmation target="view"}} class="btn btn-sm btn-danger"><i class="fa fa-fw fa-lg fa-times"></i> Cancel</a>
     </div>
-      <div class="progress-bar progress-bar-success progress-striped" {{bind-attr style="maxCapacityWidth"}}>
-      </div>
-
-    <div class="marks">
-      <label style="left: 25%;"><div></div></label>
-      <label style="left: 50%;"><div></div></label>
-      <label style="left: 75%;"><div></div></label>
+    <div class="btn-group">
+      <a {{action 'confirm' target="view"}} class="btn btn-sm btn-success"><i class="fa fa-fw fa-lg fa-check"></i> Restart</a>
     </div>
-
-</div>
-
+  </div>
+{{/if}}

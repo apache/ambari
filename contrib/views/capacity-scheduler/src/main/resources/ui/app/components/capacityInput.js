@@ -24,8 +24,7 @@ App.InputRangeComponent = Em.TextField.extend({
   action: 'mouseUp',
 
   mouseUp: function () {
-    var value = this.get('value');
-    this.sendAction('action', value);
+    this.sendAction('action', this.get('value'));
   }
 });
 
@@ -42,35 +41,29 @@ App.IntInputComponent = Ember.TextField.extend({
   classNames:['form-control'],
   maxVal:null,
   intVal:function () {
-    var val = parseFloat(this.get('value'))||0;
+    var val = (!Em.isBlank(this.get('value'))) ? parseFloat(this.get('value')) : null;
     var maxVal = this.get('maxVal');
-    val = (maxVal && maxVal < val)?maxVal:val;
-    this.set('value', val);
+    this.set('value', (maxVal && maxVal < val)?maxVal:val);
   }.on('change'),
   checkNumber:function () {
-    var val = this.get('value'),
-        num = Number(val),
-        str = String(val);
-    if (typeof val !== "number" && !isNaN(num) && str == num.toString()) {
-      this.set('value', Number(val));
-    };
+    this.set('value', (!Em.isBlank(this.get('value')) && !isNaN(parseFloat(this.get('value')))) ? parseFloat(this.get('value')): null);
   }.observes('value')
 });
 
 App.CapacityInputComponent = App.IntInputComponent.extend({
-  
+
   totalCapacity:null,
   queue:null,
 
   keyDown: function(evt) {
     var newChar, val = this.get('value')||0;
     val = val.toString();
-    
-    if ((evt.keyCode > 64 && evt.keyCode < 91) || 
-      (evt.keyCode > 185 && evt.keyCode < 193) || 
+
+    if ((evt.keyCode > 64 && evt.keyCode < 91) ||
+      (evt.keyCode > 185 && evt.keyCode < 193) ||
       (evt.keyCode > 218 && evt.keyCode < 223)) {
       return false;
-    };
+    }
 
     if (evt.keyCode > 95 && evt.keyCode < 106) {
       newChar = (evt.keyCode - 96).toString();
@@ -80,25 +73,31 @@ App.CapacityInputComponent = App.IntInputComponent.extend({
 
     if (newChar.match(/[0-9]/)) {
       val = val.substring(0, evt.target.selectionStart) + newChar + val.substring(evt.target.selectionEnd);
-    };
+    }
 
-    return parseFloat(val)<=100;
-  },
+    return parseFloat(val) <= 100;
+  }
 });
 
 App.MaxCapacityInputComponent = App.CapacityInputComponent.extend({
   isInvalid:false,
   invalid:function (c,o) {
-    var queue = this.get('queue'),
-        max_capacity = Number(queue.get('maximum_capacity')),
-        capacity = Number(queue.get('capacity'));
+    var queue = this.get('queue'), max_capacity, capacity;
+
+    if (queue.get('maximum_capacity') === null) return;
+
+    max_capacity = +queue.get('maximum_capacity');
+    capacity = +queue.get('capacity');
+
     if (o == 'queue.capacity' && max_capacity < capacity) {
       return queue.set('maximum_capacity',capacity);
-    };
+    }
+
     if (max_capacity < capacity && queue.get('isDirty')) {
       queue.get('errors').add('maximum_capacity', 'Maximum must be equal or greater than capacity');
     } else {
       queue.get('errors').remove('maximum_capacity');
     }
+
   }.observes('queue.maximum_capacity','queue.capacity')
 });

@@ -39,7 +39,7 @@ App.PathInputComponent = Em.Component.extend({
     cancel:function () {
       this.set('activeFlag',false);
     }
-  }, 
+  },
   queues:[],
   activeFlag:false,
   pathMap:Em.computed.mapBy('queues','path'),
@@ -60,7 +60,7 @@ App.PathInputComponent = Em.Component.extend({
       this.$().typeahead({
           source: this.get('pathSource'),
           matcher: function (item) {
-            return ~item.toLowerCase().indexOf(this.query.toLowerCase())
+            return ~item.toLowerCase().indexOf(this.query.toLowerCase());
           },
           minLength:2,
           items:100,

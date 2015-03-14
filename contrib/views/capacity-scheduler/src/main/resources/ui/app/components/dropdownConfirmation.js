@@ -20,6 +20,7 @@ var App = require('app');
 
 
 App.DropdownConfirmationComponent = Em.Component.extend(App.ClickElsewhereMixin,{
+  layoutName:'components/dropdownConfirmation',
   tagName:'li',
   restartConfirming:false,
   actions:{
@@ -36,20 +37,20 @@ App.DropdownConfirmationComponent = Em.Component.extend(App.ClickElsewhereMixin,
     this.$().parents('.dropdown-menu').parent().removeClass('open');
   },
   dropdownHideControl:function () {
-    var _this = this;
     this.$().parents('.dropdown-menu').parent().on(
       "hide.bs.dropdown", function() {
-        return !_this.get('restartConfirming');
-      });
+        return !this.get('restartConfirming');
+      }.bind(this));
   }.on('didInsertElement'),
   button:Em.Component.extend({
     tagName:'a',
-    click:function (e) {
+    click:function () {
       this.triggerAction({
         action: 'showRestartConfirmation',
         target: this.get('parentView'),
         actionContext: this.get('context')
       });
     }
-  })
+  }),
+  needRestart:false
 });

@@ -15,23 +15,23 @@
 #  limitations under the License.
 
 
-exports.config = 
+exports.config =
 
   watcher:
     usePolling: true
 
   fileListInterval: 512
 
-  files: 
-    
-    javascripts: 
+  files:
+
+    javascripts:
       defaultExtension: 'js'
-      joinTo: 
+      joinTo:
         'javascripts/app.js': /^app/
         'javascripts/vendor.js': /^bower_components|vendor/
       order:
         before: [
-          'bower_components/jquery/jquery.js',
+          'bower_components/jquery/dist/jquery.js',
           'bower_components/handlebars/handlebars.js',
           'bower_components/ember/ember.js',
           'bower_components/ember-data/ember-data.js'
@@ -56,7 +56,7 @@ exports.config =
       defaultExtension: 'hbs'
       joinTo: 'javascripts/app.js' : /^app/
       paths:
-        jquery: 'bower_components/jquery/jquery.js'
+        jquery: 'bower_components/jquery/dist/jquery.js'
         handlebars: 'bower_components/handlebars/handlebars.js'
         ember: 'bower_components/ember/ember.js'
 

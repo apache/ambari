@@ -19,10 +19,10 @@
 <div {{bind-attr class=":input-group :path-input isError:has-error" }} >
   {{view inputFieldView pathSource=pathMap value=path}}
   <span class="input-group-btn">
-    <button {{action cancel}} class="btn btn-danger" type="button">
+    <button {{action 'cancel'}} class="btn btn-danger" type="button">
       <i class="fa fa-times"></i>
     </button>
-    <button {{action add}} class="btn btn-success" type="button">
+    <button {{action 'add'}} class="btn btn-success" type="button">
       <i class="fa fa-check"></i>
     </button>
   </span>

@@ -24,6 +24,12 @@ App.testMode = false;
 // adapters
 require('adapters');
 
+//serializers
+require('serializers');
+
+//store
+require('store');
+
 //components
 require('components');
 

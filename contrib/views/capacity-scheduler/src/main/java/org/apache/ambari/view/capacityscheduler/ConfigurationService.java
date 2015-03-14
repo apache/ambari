@@ -114,8 +114,11 @@ public class ConfigurationService {
   // ================================================================================
 
   private final String versionTagUrl = "%s?fields=Clusters/desired_configs/capacity-scheduler";
-  private final String configurationUrl = "%%s/configurations?type=capacity-scheduler&tag=%s";
+  private final String configurationUrl = "%s/configurations?type=capacity-scheduler";
+  private final String configurationUrlByTag = "%%s/configurations?type=capacity-scheduler&tag=%s";
   private final String rmHostUrl = "%s/services/YARN/components/RESOURCEMANAGER?fields=host_components/host_name";
+
+  private final String rmGetNodeLabelUrl = "http://%s:8088/ws/v1/cluster/get-node-labels";
 
   // ================================================================================
   // Privilege Reading
@@ -131,13 +134,62 @@ public class ConfigurationService {
    */
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response readConfiguration() {
+  public Response readLatestConfiguration() {
     Response response = null;
     try {
       validateViewConfiguration();
       
       String versionTag = getVersionTag();
       JSONObject configurations = getConfigurationFromAmbari(versionTag);
+      response = Response.ok(configurations).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+
+    return response;
+  }
+
+  /**
+   * Gets capacity scheduler configuration by all tags.
+   *
+   * @return scheduler configuration
+   */
+  @GET
+  @Path("all")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response readAllConfigurations() {
+    Response response = null;
+    try {
+      validateViewConfiguration();
+
+      String url = String.format(configurationUrl, baseUrl);
+      JSONObject configurations = proxy.request(url).get().asJSON();
+      response = Response.ok(configurations).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+
+    return response;
+  }
+
+  /**
+   * Gets capacity scheduler configuration by specific tag.
+   *
+   * @return scheduler configuration
+   */
+  @GET
+  @Path("byTag/{tag}")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response readConfigurationByTag(@PathParam("tag") String tag) {
+    Response response = null;
+    try {
+      validateViewConfiguration();
+
+      JSONObject configurations = getConfigurationFromAmbari(tag);
       response = Response.ok(configurations).build();
     } catch (WebApplicationException ex) {
       throw ex;
@@ -173,6 +225,31 @@ public class ConfigurationService {
   }
 
   /**
+   * Gets node labels from RM
+   *
+   * @return node labels
+   */
+  @GET
+  @Produces(MediaType.APPLICATION_JSON)
+  @Path("/nodeLabels")
+  public Response getNodeLabels() {
+    Response response;
+
+    try {
+      String nodeLabels = proxy.request(String.format(rmGetNodeLabelUrl, getRMHost())).get().asString();
+
+      response = Response.ok(nodeLabels).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+
+    return response;
+  }
+
+
+  /**
    * Checks if the user is an operator.
    *
    * @return    if <code>true</code>, the user is an operator; otherwise <code>false</code>
@@ -183,7 +260,7 @@ public class ConfigurationService {
       // first check if the user is an CLUSTER.OPERATOR
       String url = String.format(clusterOperatorPrivilegeUrl, baseUrl, context.getUsername()); 
       JSONObject json = proxy.request(url).get().asJSON();
-      
+
       if (json == null || json.size() <= 0) {
         // user is not a CLUSTER.OPERATOR but might be an AMBARI.ADMIN
         url = String.format(ambariAdminPrivilegeUrl, serverUrl, context.getUsername()); 
@@ -215,7 +292,7 @@ public class ConfigurationService {
   }
 
   private JSONObject getConfigurationFromAmbari(String versionTag) {
-    String urlTemplate = String.format(configurationUrl, versionTag);
+    String urlTemplate = String.format(configurationUrlByTag, versionTag);
     String url = String.format(urlTemplate, baseUrl);
     return proxy.request(url).get().asJSON();
   }
@@ -267,6 +344,7 @@ public class ConfigurationService {
   @Consumes(MediaType.APPLICATION_JSON)
   @Produces(MediaType.APPLICATION_JSON)
   public Response writeConfiguration(JSONObject request) {
+    JSONObject response;
     try {
       validateViewConfiguration();
 
@@ -274,9 +352,9 @@ public class ConfigurationService {
         return Response.status(401).build();
       }
 
-      proxy.request(baseUrl).
-            setData(makeConfigUpdateData(request)).
-            put();
+      response = proxy.request(baseUrl).
+                    setData(request).
+                    put().asJSON();
 
     } catch (WebApplicationException ex) {
       throw ex;
@@ -284,7 +362,7 @@ public class ConfigurationService {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
 
-    return readConfiguration();
+    return Response.ok(response).build();
   }
 
   /**
@@ -302,8 +380,6 @@ public class ConfigurationService {
       if (isOperator() == false) {
         return Response.status(401).build();
       }
-      
-      writeConfiguration(request);
 
       String rmHost = getRMHost();
       JSONObject data = (JSONObject) JSONValue.parse(String.format(refreshRMRequestData, rmHost));
@@ -316,7 +392,7 @@ public class ConfigurationService {
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return readConfiguration();
+    return readLatestConfiguration();
   }
 
   /**
@@ -335,8 +411,6 @@ public class ConfigurationService {
         return Response.status(401).build();
       }
 
-      writeConfiguration(request);
-
       String rmHost = getRMHost();
       JSONObject data = (JSONObject) JSONValue.parse(String.format(restartRMRequestData, rmHost, rmHost));
       proxy.request(baseUrl + "/requests/").
@@ -348,7 +422,7 @@ public class ConfigurationService {
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
-    return readConfiguration();
+    return readLatestConfiguration();
   }
 
   private String getRMHost() {
@@ -365,19 +439,6 @@ public class ConfigurationService {
     if (rmHost == null)
       throw new ServiceFormattedException("Can't retrieve Resource Manager Host");
     return rmHost;
-  }
-
-  private JSONObject makeConfigUpdateData(JSONObject request) {
-    JSONObject desiredConfigs = (JSONObject) request.clone();
-    desiredConfigs.put("type", "capacity-scheduler");
-    desiredConfigs.put("tag", "version" + String.valueOf(System.currentTimeMillis()));
-
-    JSONObject clusters = new JSONObject();
-    clusters.put("desired_configs", desiredConfigs);
-
-    JSONObject data = new JSONObject();
-    data.put("Clusters", clusters);
-    return data;
   }
 
 }

@@ -16,45 +16,49 @@
 * limitations under the License.
 }}
 
-{{#each view.leaf}}
-  {{#link-to "queue" this classNameBindings=":list-group-item overCapacity:list-group-item-danger isNew:list-group-item-info" }}
-    <div class="col-md-offset-{{unbound this.depth}} col-sm-offset-{{unbound this.depth}} col-xs-offset-{{unbound this.depth}}">
-      
-    {{name}} ({{capacity}}%)
+{{#each queue in view.leaf }}
+  {{#link-to "queue" queue classNameBindings=":list-group-item queue.overCapacity:list-group-item-danger queue.isNew:list-group-item-info" }}
+    <span class="col-md-offset-{{unbound queue.depth}} col-sm-offset-{{unbound queue.depth}} col-xs-offset-{{unbound queue.depth}}">
+
+    {{queue.name}} ({{queue.capacity}}%)
+
+    {{#if queue.version}}
+        <span class="label label-info">v{{queue.version}}</span>
+    {{/if}}
 
     <span class="badge pull-right">
-      {{#if overCapacity}}
+      {{#if queue.overCapacity}}
         <i class="fa fa-fw fa-lg red fa-warning"></i>
       {{/if}}
-      {{#if isNewQueue }}
-        {{#if isSaving}}
+      {{#if queue.isNewQueue }}
+        {{#if queue.isSaving}}
         <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
         {{else}}
-        <i class="fa fa-fw fa-lg blue fa-plus"></i> 
+        <i class="fa fa-fw fa-lg blue fa-refresh"></i>
         {{/if}}
       {{else}}
-        {{#if isError}}
-          {{#if isSaving}}
+        {{#if queue.isError}}
+          {{#if queue.isSaving}}
             <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
           {{else}}
             <span> queue was not saved </span> <i class="fa fa-fw fa-lg red fa-warning"></i>
           {{/if}}
-        {{else}}    
-          {{#if isDirty}}
-            {{#if isSaving}}
+        {{else}}
+          {{#if queue.isAnyDirty}}
+            {{#if queue.isSaving}}
               <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
             {{else}}
-              <i class="fa fa-fw fa-lg blue fa-pencil"></i>
+              {{diff-tooltip queue=queue}}
             {{/if}}
           {{else}}
-            <i class="fa fa-fw fa-lg green fa-check"></i> 
+            <i class="fa fa-fw fa-lg green fa-check"></i>
           {{/if}}
         {{/if}}
       {{/if}}
     </span>
-    
-    </div>
+
+    </span>
   {{/link-to}}
 
-  {{recurce-queues depth=view.childDepth parent=this.path}}
+  {{recurce-queues depth=view.childDepth parent=queue.path}}
 {{/each}}

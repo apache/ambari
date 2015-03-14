@@ -36,16 +36,18 @@ App.ConfirmDeleteComponent = Em.Component.extend(App.ClickElsewhereMixin,{
   tagName:'a',
   tooltip:function () {
     var element = this.$();
+
     if (this.get('confirm')) {
       element.tooltip({
         placement:'left',
         title:'Click again to confirm'
       }).tooltip('show');
     } else {
-      element.tooltip('destroy')
+      element.tooltip('destroy');
     }
+
   }.observes('confirm'),
-  click:function (e) {
+  click:function () {
     this.send('delete');
   },
   didChange:function () {

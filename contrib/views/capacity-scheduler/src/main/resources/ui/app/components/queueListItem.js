@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.RecurceQueuesComponent = Ember.View.extend({
+App.RecurceQueuesComponent = Em.View.extend({
   templateName: "components/queueListItem",
   depth:0,
   parent:'',
@@ -39,4 +39,69 @@ App.RecurceQueuesComponent = Ember.View.extend({
     items.last().addClass('last');
   }
 
+});
+
+App.DiffTooltipComponent = Em.Component.extend({
+  classNames:'fa fa-fw fa-lg blue fa-pencil'.w(),
+  tagName:'i',
+  queue:null,
+  initTooltip:function  () {
+    var queue = this.get('queue');
+    this.$().tooltip({
+        title:function () {
+          var caption = '',
+              fmtString = '<span>%@: %@ -> %@</span>\n',
+              emptyValue = '<small><em>not set</em></small>',
+              changes = queue.changedAttributes(),
+              idsToNames = function (l) {
+                return l.split('.').get('lastObject');
+              },
+              formatChangedAttributes = function (prefix,item) {
+                // don't show this to user.
+                if (item == '_accessAllLabels') return;
+
+                var oldV = this[item].objectAt(0),
+                    newV = this[item].objectAt(1);
+
+                caption += fmtString.fmt(
+                    [prefix,item].compact().join('.'),
+                    (oldV != null && '\'%@\''.fmt(oldV)) || emptyValue,
+                    (newV != null && '\'%@\''.fmt(newV)) || emptyValue
+                  );
+              },
+              initialLabels,
+              currentLabels,
+              isAllChanged,
+              oldV,
+              newV;
+
+          Em.keys(changes).forEach(Em.run.bind(changes,formatChangedAttributes,null));
+
+          if (queue.constructor.typeKey === 'queue') {
+            //cpmpare labels
+            isAllChanged = changes.hasOwnProperty('_accessAllLabels');
+            initialLabels = queue.get('initialLabels').sort();
+            currentLabels = queue.get('labels').mapBy('id').sort();
+
+            if (queue.get('isLabelsDirty') || isAllChanged) {
+
+              oldV = ((isAllChanged && changes._accessAllLabels.objectAt(0)) || (!isAllChanged && queue.get('_accessAllLabels')))?'*':initialLabels.map(idsToNames).join(',') || emptyValue;
+              newV = ((isAllChanged && changes._accessAllLabels.objectAt(1)) || (!isAllChanged && queue.get('_accessAllLabels')))?'*':currentLabels.map(idsToNames).join(',') || emptyValue;
+
+              caption += fmtString.fmt('accessible-node-labels', oldV, newV);
+            }
+
+            queue.get('labels').forEach(function (label) {
+              var labelsChanges = label.changedAttributes(),
+                  prefix = ['accessible-node-labels',label.get('name')].join('.');
+              Em.keys(labelsChanges).forEach(Em.run.bind(labelsChanges,formatChangedAttributes,prefix));
+            });
+          }
+
+          return caption;
+        },
+        html:true,
+        placement:'bottom'
+      });
+  }.on('didInsertElement')
 });

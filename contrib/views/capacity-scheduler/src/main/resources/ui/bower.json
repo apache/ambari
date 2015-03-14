@@ -3,18 +3,19 @@
   "version": "0.0.1",
   "main": "public/app.js",
   "dependencies": {
-    "ember": "1.6.0-beta.1",
+    "ember": "1.7.0",
     "ember-data": "1.0.0-beta.8",
-    "jquery": "1.9.0",
+    "jquery": "2.x",
     "bootstrap": "3.1.x",
     "moment": "~2.5.1",
     "ember-i18n": "~1.6.0",
     "font-awesome": "~4.1",
-    "bootstrap3-typeahead": "~3.0.3"
+    "bootstrap3-typeahead": "~3.0.3",
+    "perfect-scrollbar": "~0.5.8"
   },
   "overrides": {
     "jquery": {
-      "main": "jquery.js"
+      "main": "dist/jquery.js"
     },
     "ember-uploader": {
       "main": "dist/ember-uploader.js"
@@ -24,6 +25,11 @@
     },
     "ember-i18n": {
       "scripts": []
+    },
+    "bootstrap": {
+      "main": [
+        "./dist/js/bootstrap.js"
+      ]
     },
     "font-awesome": {
       "main": "css/font-awesome.css"

@@ -44,13 +44,28 @@ App.TraceRoute = Ember.Route.extend({
  */
 App.QueuesRoute = Ember.Route.extend({
   actions:{
+    rollbackProp:function (prop, item) {
+      var attributes = item.changedAttributes();
+      if (attributes.hasOwnProperty(prop)) {
+        item.set(prop,attributes[prop][0]);
+      }
+    }
   },
   model: function() {
-    return this.store.find('queue');
+    var store = this.get('store');
+    return new Ember.RSVP.Promise(function (resolve,reject) {
+      store.get('nodeLabels').then(function () {
+        return store.find('queue');
+      }).then(function (queues) {
+        resolve(queues);
+      }).catch(function (e) {
+        reject(e);
+      });
+    });
   },
   setupController:function (c,model) {
     this.store.checkOperator().then(function (isOperator) {
-      c.set('isOperator',isOperator);
+      c.set('isOperator', isOperator);
     });
     c.set('model',model);
     this.store.find('scheduler','scheduler').then(function (s) {
@@ -68,9 +83,8 @@ App.QueueRoute = Ember.Route.extend({
   model: function(params,tr) {
     var queues = this.modelFor('queues') || this.store.find('queue'),
         filterQueues = function (queues) {
-          return queues.filterBy('id',params.queue_id).get('firstObject');
+          return queues.findBy('id',params.queue_id);
         };
-
     return (queues instanceof DS.PromiseArray)?queues.then(filterQueues):filterQueues(queues);
   },
   afterModel:function (model) {
@@ -78,7 +92,7 @@ App.QueueRoute = Ember.Route.extend({
       this.transitionTo('queues');
     }
   },
-  
+
   actions: {
     willTransition: function (tr) {
       if (this.get('controller.isRenaming')) {
@@ -111,7 +125,15 @@ App.LoadingRoute = Ember.Route.extend();
  */
 App.ErrorRoute = Ember.Route.extend({
   setupController:function (controller,model) {
-    var response = JSON.parse(model.responseText);
+    //TODO Handle Ember Error!
+    var response;
+    try {
+      response = JSON.parse(model.responseText);
+    } catch (e) {
+      throw model;
+      response = model;
+    }
+    model.trace = model.stack;
     controller.set('model',response);
   }
 });

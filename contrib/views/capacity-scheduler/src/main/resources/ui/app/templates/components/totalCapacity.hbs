@@ -19,51 +19,34 @@
 <div class="panel panel-default panel-capacity">
   <div class="panel-heading">
     <div class="panel-title">
-    Capacity
-  <div class="total">
-<div class="level-total-label">Level Total</div>
-{{capacity-bar capacityValue=totalCapacity maxCapacityValue=totalCapacity warn=leafQueues.firstObject.overCapacity}}
-  </div>
+      Capacity
+      <div class="total">
+        <div class="level-total-label">Level Total</div>
+        {{capacity-bar capacityValue=totalCapacity maxCapacityValue=totalCapacity warn=currentQueue._overCapacity}}
+      </div>
     </div>
   </div>
-  <div class="panel-body total">
-  <div class="panel-body queues">
-    {{#each leafQueues}}
-      {{#if this.isCurrent}}
-      <div {{bind-attr class=":queue-capacity this.isCurrent:active"}}>
-          <div class="queue-label">{{this.name}}</div>
-        {{render "capacityEditForm" this}}
-  <a href="#" {{action toggleProperty "showPeerQueues"}}>
+  <div class="panel-body">
+    {{#with currentQueue}}
+      {{partial  'components/queueContainer'}}
+    {{/with}}
     <div class="peer-toggle">
-Show/Hide Peer Level Queues
+      <a href="#"  {{action 'toggleProperty' 'showPeerQueues'}}>
+        {{#if showPeerQueues}}
+          <small><i class="fa fa-chevron-up"></i> Hide Peer Level Queues </small>
+        {{else}}
+          <small><i class="fa fa-chevron-down"></i> Show Peer Level Queues </small>
+        {{/if}}
+      </a>
     </div>
-  </a>
-      </div>
-      {{/if}}
-    {{/each}}  
-{{#if showPeerQueues}}
-    {{#each leafQueues}}
-      {{#unless this.isCurrent}}
-      <div {{bind-attr class=":queue-capacity :queue-capacity-peer"}}>
-        <p>
-          <div class="queue-label">{{this.name}}</div>
-        </p>
-        {{render "capacityEditForm" this}}
-      </div>
-      {{/unless}}
-    {{/each}}
-{{/if}}
-    {{#each newLeafQueues}}
-      <div {{bind-attr class=":queue-capacity :queue-capacity-peer :new-queue this.isCurrent:active"}} >
-        <div class="input-row row" >
-          <div class="col-md-5">
-            {{#each this.errors.path}}
-              <p class="help-block red">{{this.message}}</p>
-            {{/each}}
-          </div>
-        </div>
-        {{render "capacityEditForm" this}}
-      </div>
-    {{/each}}
+    {{#if showPeerQueues}}
+      {{#each queue in leafQueues}}
+        {{#unless queue.isCurrent}}
+          {{#with queue}}
+            {{partial 'components/queueContainer'}}
+          {{/with}}
+        {{/unless}}
+      {{/each}}
+    {{/if}}
   </div>
 </div>

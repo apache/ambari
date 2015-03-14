@@ -34,3 +34,5 @@ require('templates/components/totalCapacity');
 require('templates/components/queueListItem');
 require('templates/components/pathInput');
 require('templates/components/userGroupInput');
+require('templates/components/queueContainer');
+require('templates/components/dropdownConfirmation');

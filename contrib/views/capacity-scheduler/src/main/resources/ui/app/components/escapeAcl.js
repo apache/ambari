@@ -19,7 +19,7 @@
 
 Ember.Handlebars.helper('escapeACL', function(value) {
   var output = '';
-  
+
   value = value || '';
 
   if (value.trim() == '') {
@@ -28,21 +28,22 @@ Ember.Handlebars.helper('escapeACL', function(value) {
     output = '<label class="label label-success"> <i class="fa fa-asterisk fa-fw"></i> Anyone</label>';
   } else {
     var ug = value.split(' ');
-    var users = ug[0].split(',')||[]; 
+    var users = ug[0].split(',')||[];
     var groups = (ug.length == 2)?ug[1].split(',')||[]:[];
 
-    output += ' <span class="users"> '
+    output += ' <span class="users"> ';
 
     users.forEach(function (user) {
       output += (user)?'<span class="label label-primary"><i class="fa fa-user fa-fw"></i> '+ user +'</span> ':'';
     });
 
-    output += ' </span> <span class="groups"> '
+    output += ' </span> <span class="groups"> ';
 
     groups.forEach(function (group) {
       output += (group)?'<span class="label label-primary"><i class="fa fa-users fa-fw"></i> '+ group +'</span> ':'';
     });
-    output += ' </span> '
+
+    output += ' </span> ';
   }
   return new Ember.Handlebars.SafeString(output);
 });

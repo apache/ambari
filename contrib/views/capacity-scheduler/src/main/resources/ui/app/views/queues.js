@@ -27,7 +27,8 @@ App.QueuesView = Em.View.extend({
   },
   saveMode:'',
   clearSaveMode:function () {
-    $('#noteModal').on('hidden.bs.modal', function (e) {
+    this.$('#versions-table-wrap').perfectScrollbar();
+    $('#noteModal').on('hidden.bs.modal', function () {
       this.set('saveMode','');
     }.bind(this));
   }.on('didInsertElement')

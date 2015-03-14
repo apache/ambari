@@ -16,10 +16,19 @@
 * limitations under the License.
 }}
 
-<div class="panel panel-default panel-capacity">
+<div class="panel panel-default panel-scheduler">
   <div class="panel-heading">
     <div class="panel-title">
       Scheduler
+    {{#if scheduler.isDirty}}
+            {{#if scheduler.isSaving}}
+              <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
+            {{else}}
+              {{diff-tooltip queue=scheduler}}
+            {{/if}}
+          {{else}}
+            <i class="fa fa-fw fa-lg green fa-check"></i>
+          {{/if}}
     </div>
   </div>
   <div class="panel-body">
@@ -29,20 +38,34 @@
         {{#if isOperator}}
         <div class="col-xs-6 control-value">
           {{int-input value=scheduler.maximum_applications maxlength=15 class="input-sm input-int"}}
+          {{#if schedulerDirtyFilelds.maximum_applications}}
+            <div class="btn-group btn-group-xs" >
+                <a {{action 'rollbackProp' 'maximum_applications' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+            </div>
+          {{/if}}
+        </div>
         {{else}}
         <div class="col-xs-6">
           <p class="form-control-static">{{scheduler.maximum_applications}}</p>
-        {{/if}}
         </div>
+        {{/if}}
       </div>
       <div class="form-group">
         <label class="col-xs-5 control-label">Maximum AM Resource</label>
         {{#if isOperator}}
-        <div class="col-xs-6 control-value">
-          <div class="input-group input-percent">
-            {{int-input value=scheduler.maximum_am_resource_percent class="input-sm" maxVal=100}}
-            <span class="input-group-addon">%</span>
+        <div class="col-xs-6 control-value input-percent-wrap">
+          <div>
+            <div class="input-group input-percent">
+              {{int-input value=scheduler.maximum_am_resource_percent class="input-sm" maxVal=100}}
+              <span class="input-group-addon">%</span>
+            </div>
           </div>
+          {{#if schedulerDirtyFilelds.maximum_am_resource_percent}}
+            <div class="btn-group btn-group-xs" >
+                <a {{action 'rollbackProp' 'maximum_am_resource_percent' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+            </div>
+          {{/if}}
+        </div>
         {{else}}
         <div class="col-xs-6">
           {{#if scheduler.maximum_am_resource_percent}}
@@ -50,34 +73,45 @@
           {{else}}
             <p class="form-control-static">-</p>
           {{/if}}
-        {{/if}}
         </div>
+        {{/if}}
       </div>
       <div class="form-group">
         <label class="col-xs-5 control-label">Node Locality Delay</label>
         {{#if isOperator}}
-        <div class="col-xs-6 control-value">
+          <div class="col-xs-6 control-value">
             {{int-input value=scheduler.node_locality_delay maxlength=10 class="input-sm input-int"}}
+            {{#if schedulerDirtyFilelds.node_locality_delay}}
+              <div class="btn-group btn-group-xs" >
+                  <a {{action 'rollbackProp' 'node_locality_delay' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+              </div>
+            {{/if}}
+          </div>
         {{else}}
-        <div class="col-xs-6">
-          {{#if scheduler.node_locality_delay}}
-            <p class="form-control-static">{{scheduler.node_locality_delay}} %</p>
-          {{else}}
-            <p class="form-control-static">-</p>
-          {{/if}}
+          <div class="col-xs-6">
+            {{#if scheduler.node_locality_delay}}
+              <p class="form-control-static">{{scheduler.node_locality_delay}} %</p>
+            {{else}}
+              <p class="form-control-static">-</p>
+            {{/if}}
+          </div>
         {{/if}}
-        </div>
       </div>
-     {{#if isOperator}}
-     {{#if scheduler.resource_calculator}}
- <div class="form-group">
-        <label class="col-xs-5 control-label">Calculator</label>
-        <div class="col-xs-12 control-value">
-            {{input value=scheduler.resource_calculator class="input-sm form-control"}}
-        </div>
-      </div>
-     {{/if}}
-     {{/if}}
+      {{#if isOperator}}
+        {{#if scheduler.resource_calculator}}
+          <div class="form-group">
+            <label class="col-xs-5 control-label">Calculator</label>
+            <div class="col-xs-12 control-value">
+              {{input value=scheduler.resource_calculator class="input-sm form-control"}}
+              {{#if schedulerDirtyFilelds.resource_calculator}}
+                <div class="btn-group btn-group-xs" >
+                    <a {{action 'rollbackProp' 'resource_calculator' scheduler}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+                </div>
+              {{/if}}
+            </div>
+          </div>
+        {{/if}}
+      {{/if}}
     </form>
   </div>
 </div>

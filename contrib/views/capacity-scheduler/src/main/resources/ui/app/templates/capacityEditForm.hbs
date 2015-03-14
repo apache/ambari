@@ -16,30 +16,65 @@
 * limitations under the License.
 }}
 
-<form {{bind-attr class=":form-horizontal :capacity-edit-form " }} role="form">
-  <div {{bind-attr class=":form-group" }}>
-    <label class="col-xs-1 control-label capacity-edit">Capacity: </label>
-    <div class="col-xs-2 capacity-input control-value input-group input-percent">
-{{capacity-input class='input-sm' value=this.capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
-<span class="input-group-addon">%</span>
+<form {{bind-attr class=":form-inline :capacity-edit-form parentController.isOperator::text-center" }} role="form">
+
+  {{#if parentController.isOperator}}
+    <div class="form-group">
+      <label>Capacity:</label>
+      <div class="form-group">
+        <div class="input-group input-percent">
+          {{capacity-input class='input-sm' value=this.capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
+          <span class="input-group-addon">%</span>
+        </div>
+      </div>
     </div>
-    <div class="col-xs-3 control-value">
-{{input-range min="0" max="100" step="1" value=this.capacity}}
+    <div class="form-group">
+      {{input-range min="0" max="100" step="1" value=this.capacity class="input-sm"}}
     </div>
-    <label style="padding-top: 0px" class="col-xs-1 control-label capacity-edit">Max Capacity: </label>
-    <div {{bind-attr class="this.isValid::has-error" }}>
-    <div class="col-xs-2 capacity-input control-value input-group input-percent">
-{{max-capacity-input class='input-sm' value=this.maximum_capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
-<span class="input-group-addon">%</span>
+    <div class="rollback-wrap">
+      {{#if view.dirty_capacity}}
+        <div class="btn-group btn-group-xs pull-left" >
+          <a {{action 'rollbackProp' 'capacity' this}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+        </div>
+      {{/if}}
     </div>
-    <div class="col-xs-3 control-value">
-{{input-range min="0" max="100" step="1" value=this.maximum_capacity}}
-    {{#each this.errors.maximum_capacity}}
-      <span class="help-block">
-        {{message}}
-      </span>
-    {{/each}}
-  </div>
-  </div>
-  </div>
+    <div class="rollback-wrap-ghost"></div>
+
+    <div {{bind-attr class=":form-group this.isValid::has-error" }}>
+      <label>Max Capacity:</label>
+      <div class="form-group">
+        <div class="input-group input-percent">
+          {{max-capacity-input class='input-sm' value=this.maximum_capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
+          <span class="input-group-addon">%</span>
+        </div>
+      </div>
+    </div>
+    <div {{bind-attr class=":form-group this.isValid::has-error" }}>
+      {{input-range min="0" max="100" step="1" value=this.maximum_capacity class="input-sm "}}
+      {{#each this.errors.maximum_capacity}}
+        <span class="help-block">{{message}}</span>
+      {{/each}}
+    </div>
+    <div class="rollback-wrap">
+      {{#if view.dirty_maxcapacity}}
+        <div class="btn-group btn-group-xs pull-left" >
+          <a {{action 'rollbackProp' 'maximum_capacity' this}} href="#" class="btn btn-default btn-warning"><i class="fa fa-undo"></i></a>
+        </div>
+      {{/if}}
+    </div>
+  {{else}}
+    <div class="form-group">
+      <label>Capacity:
+        <span>{{capacity}}%</span>
+      </label>
+    </div>
+    <div class="form-group">
+      <label>Max Capacity:
+        <span>{{maximum_capacity}}%</span>
+      </label>
+    </div>
+  {{capacity-bar capacityValue=capacity maxCapacityValue=maximum_capacity}}
+
+  {{/if}}
+
 </form>
