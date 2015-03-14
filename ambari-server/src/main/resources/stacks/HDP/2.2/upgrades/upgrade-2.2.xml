@@ -97,6 +97,9 @@
         <service>YARN</service>
         <service>HBASE</service>
       </priority>
+      <exclude>
+        <service>AMBARI_METRICS</service>
+      </exclude>
     </group>
     
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
@@ -128,6 +131,9 @@
         <service>YARN</service>
         <service>HBASE</service>
       </priority>
+      <exclude>
+        <service>AMBARI_METRICS</service>
+      </exclude>
     </group>
 
     <group name="HIVE" title="Hive">
@@ -210,6 +216,9 @@
         <service>YARN</service>
         <service>HBASE</service>
       </priority>
+      <exclude>
+        <service>AMBARI_METRICS</service>
+      </exclude>
     </group>
 
     <group name="KAFKA" title="Kafka">

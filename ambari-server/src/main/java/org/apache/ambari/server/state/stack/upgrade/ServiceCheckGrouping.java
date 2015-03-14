@@ -54,6 +54,10 @@ public class ServiceCheckGrouping extends Grouping {
   @XmlElement(name="service")
   private Set<String> priorityServices = new HashSet<String>();
 
+  @XmlElementWrapper(name="exclude")
+  @XmlElement(name="service")
+  private Set<String> excludeServices = new HashSet<String>();
+
   private ServiceCheckBuilder m_builder = new ServiceCheckBuilder();
 
   @Override
@@ -105,6 +109,9 @@ public class ServiceCheckGrouping extends Grouping {
 
       // create stages for everything else, as long it is valid
       for (String service : clusterServices) {
+        if (ServiceCheckGrouping.this.excludeServices.contains(service)) {
+          continue;
+        }
         if (checkServiceValidity(ctx, service, serviceMap)) {
           StageWrapper wrapper = new StageWrapper(
               StageWrapper.Type.SERVICE_CHECK,
