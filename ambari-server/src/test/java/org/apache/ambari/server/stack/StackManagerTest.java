@@ -208,6 +208,7 @@ public class StackManagerTest {
     expectedServices.add("FLUME");
     expectedServices.add("FAKENAGIOS");
     expectedServices.add("TEZ");
+    expectedServices.add("AMBARI_METRICS");
 
     ServiceInfo pigService = null;
     for (ServiceInfo service : services) {

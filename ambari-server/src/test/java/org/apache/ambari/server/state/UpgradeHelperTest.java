@@ -428,15 +428,14 @@ public class UpgradeHelperTest {
 
   @Test
   public void testServiceCheckUpgradeStages() throws Exception {
-
-    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.2.0");
     assertTrue(upgrades.containsKey("upgrade_test_checks"));
     UpgradePack upgrade = upgrades.get("upgrade_test_checks");
     assertNotNull(upgrade);
 
     Cluster c = makeCluster();
     // HBASE and PIG have service checks, but not TEZ.
-    Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); }};
+    Set<String> additionalServices = new HashSet<String>() {{ add("HBASE"); add("PIG"); add("TEZ"); add("AMBARI_METRICS"); }};
     for(String service : additionalServices) {
       c.addService(service);
     }
@@ -446,13 +445,18 @@ public class UpgradeHelperTest {
     for(Service service : services) {
       ServiceInfo si = ambariMetaInfo.getService(c.getCurrentStackVersion().getStackName(),
           c.getCurrentStackVersion().getStackVersion(), service.getName());
-      if (null != si.getCommandScript()) {
-        numServiceChecksExpected++;
-        if (service.getName().equalsIgnoreCase("TEZ")) {
-          assertTrue("Expect Tez to not have any service checks", false);
-        }
+      if (null == si.getCommandScript()) {
         continue;
       }
+      if (service.getName().equalsIgnoreCase("TEZ")) {
+        assertTrue("Expect Tez to not have any service checks", false);
+      }
+
+      // Expect AMS to not run any service checks because it is excluded
+      if (service.getName().equalsIgnoreCase("AMBARI_METRICS")) {
+        continue;
+      }
+      numServiceChecksExpected++;
     }
 
     UpgradeContext context = new UpgradeContext(m_masterHostResolver,
