@@ -42,9 +42,13 @@ App.NameNodeCpuPieChartView = App.PieChartDashboardWidgetView.extend({
     }else{
      this.set('nnHostName', this.get('model').get('nameNode.hostName'));
     }
-    this.getValue();
-    intervalId = setInterval(function() {self.getValue()}, App.componentsUpdateInterval);
-    this.set('intervalId', intervalId);
+    if (this.get('nnHostName')) {
+      this.getValue();
+      intervalId = setInterval(function () {
+        self.getValue()
+      }, App.componentsUpdateInterval);
+      this.set('intervalId', intervalId);
+    }
   },
 
   getValue: function () {
