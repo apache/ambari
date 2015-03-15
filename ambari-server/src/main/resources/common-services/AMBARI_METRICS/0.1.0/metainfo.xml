@@ -121,6 +121,7 @@
       <configuration-dependencies>
         <config-type>ams-site</config-type>
         <config-type>ams-log4j</config-type>
+        <config-type>ams-env</config-type>
         <config-type>ams-hbase-policy</config-type>
         <config-type>ams-hbase-site</config-type>
         <config-type>ams-hbase-security-site</config-type>
