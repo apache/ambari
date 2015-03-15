@@ -675,6 +675,11 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "hbase_master_heapsize": "1024m",
           "hbase_regionserver_heapsize": "1024m",
+          }
+      },
+      "ams-env": {
+        "properties": {
+          "metrics_collector_heapsize": "512m",
         }
       },
       "ams-hbase-site": {

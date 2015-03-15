@@ -45,7 +45,11 @@
     <value>/var/log/ambari-metrics-monitor</value>
     <description>Monitor log directory.</description>
   </property>
-
+  <property>
+    <name>metrics_collector_heapsize</name>
+    <value>512m</value>
+    <description>Metrics Collector Heap Size</description>
+  </property>
   <property>
     <name>content</name>
     <value>
@@ -69,8 +73,11 @@ export AMS_MONITOR_PID_DIR={{ams_monitor_pid_dir}}
 # AMS HBase pid directory
 export AMS_HBASE_PID_DIR={{hbase_pid_dir}}
 
+# AMS Collector heapsize
+export AMS_COLLECTOR_HEAPSIZE={{metrics_collector_heapsize}}
+
 # AMS Collector options
-export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native"
+export AMS_COLLECTOR_OPTS="-Djava.library.path=/usr/lib/ams-hbase/lib/hadoop-native -Xmx$AMS_COLLECTOR_HEAPSIZE "
 {% if security_enabled %}
 export AMS_COLLECTOR_OPTS="$AMS_COLLECTOR_OPTS -Djava.security.auth.login.config={{ams_collector_jaas_config_file}}"
 {% endif %}

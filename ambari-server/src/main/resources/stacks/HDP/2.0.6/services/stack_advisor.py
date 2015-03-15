@@ -127,6 +127,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
 
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
+    putAmsEnvProperty = self.putProperty(configurations, "ams-env")
+    putAmsEnvProperty = self.putProperty(configurations, "ams-env")
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site")
     putTimelineServiceProperty = self.putProperty(configurations, "ams-site")
     putHbaseEnvProperty = self.putProperty(configurations, "ams-hbase-env")
@@ -145,12 +147,24 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       totalHostsCount = len(hosts["items"])
       if totalHostsCount > 400:
         putHbaseEnvProperty("hbase_master_heapsize", "12288m")
+        putAmsEnvProperty("metrics_collector_heapsize", "4096m")
+        putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
+        putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
+        putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
+        putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
       elif totalHostsCount > 100:
         putHbaseEnvProperty("hbase_master_heapsize", "6144m")
+        putAmsEnvProperty("metrics_collector_heapsize", "2048m")
+        putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
+        putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
+        putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
+        putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
       elif totalHostsCount > 50:
         putHbaseEnvProperty("hbase_master_heapsize", "2048m")
+        putAmsEnvProperty("metrics_collector_heapsize", "1024m")
       else:
         putHbaseEnvProperty("hbase_master_heapsize", "1024m")
+        putAmsEnvProperty("metrics_collector_heapsize", "512m")
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
@@ -648,59 +662,63 @@ def getMountPointForDir(dir, mountPoints):
   return bestMountFound
 
 def getHeapsizeProperties():
-  return { "NAMENODE": { "config-name": "hadoop-env",
+  return { "NAMENODE": [{"config-name": "hadoop-env",
                          "property": "namenode_heapsize",
-                         "default": "1024m"},
-           "DATANODE": { "config-name": "hadoop-env",
+                         "default": "1024m"}],
+           "DATANODE": [{"config-name": "hadoop-env",
                          "property": "dtnode_heapsize",
-                         "default": "1024m"},
-           "REGIONSERVER": { "config-name": "hbase-env",
+                         "default": "1024m"}],
+           "REGIONSERVER": [{"config-name": "hbase-env",
                              "property": "hbase_regionserver_heapsize",
-                             "default": "1024m"},
-           "HBASE_MASTER": { "config-name": "hbase-env",
+                             "default": "1024m"}],
+           "HBASE_MASTER": [{"config-name": "hbase-env",
                              "property": "hbase_master_heapsize",
-                             "default": "1024m"},
-           "HIVE_CLIENT": { "config-name": "hive-site",
+                             "default": "1024m"}],
+           "HIVE_CLIENT": [{"config-name": "hive-site",
                             "property": "hive.heapsize",
-                            "default": "1024m"},
-           "HISTORYSERVER": { "config-name": "mapred-env",
+                            "default": "1024m"}],
+           "HISTORYSERVER": [{"config-name": "mapred-env",
                               "property": "jobhistory_heapsize",
-                              "default": "1024m"},
-           "OOZIE_SERVER": { "config-name": "oozie-env",
+                              "default": "1024m"}],
+           "OOZIE_SERVER": [{"config-name": "oozie-env",
                              "property": "oozie_heapsize",
-                             "default": "1024m"},
-           "RESOURCEMANAGER": { "config-name": "yarn-env",
+                             "default": "1024m"}],
+           "RESOURCEMANAGER": [{"config-name": "yarn-env",
                                 "property": "resourcemanager_heapsize",
-                                "default": "1024m"},
-           "NODEMANAGER": { "config-name": "yarn-env",
+                                "default": "1024m"}],
+           "NODEMANAGER": [{"config-name": "yarn-env",
                             "property": "nodemanager_heapsize",
-                            "default": "1024m"},
-           "APP_TIMELINE_SERVER": { "config-name": "yarn-env",
+                            "default": "1024m"}],
+           "APP_TIMELINE_SERVER": [{"config-name": "yarn-env",
                                     "property": "apptimelineserver_heapsize",
-                                    "default": "1024m"},
-           "ZOOKEEPER_SERVER": { "config-name": "zookeeper-env",
+                                    "default": "1024m"}],
+           "ZOOKEEPER_SERVER": [{"config-name": "zookeeper-env",
                                  "property": "zookeeper_heapsize",
-                                 "default": "1024m"},
-           "METRICS_COLLECTOR": { "config-name": "ams-hbase-env",
-                                  "property": "hbase_master_heapsize",
-                                  "default": "1024m"},
+                                 "default": "1024m"}],
+           "METRICS_COLLECTOR": [{"config-name": "ams-hbase-env",
+                                   "property": "hbase_master_heapsize",
+                                   "default": "1024m"},
+                                 {"config-name": "ams-env",
+                                   "property": "metrics_collector_heapsize",
+                                   "default": "512m"}],
            }
 
 def getMemorySizeRequired(components, configurations):
   totalMemoryRequired = 512*1024*1024 # 512Mb for OS needs
   for component in components:
     if component in getHeapsizeProperties().keys():
-      heapSizeProperty = getHeapsizeProperties()[component]
-      try:
-        properties = configurations[heapSizeProperty["config-name"]]["properties"]
-        heapsize = properties[heapSizeProperty["property"]]
-      except KeyError:
-        heapsize = heapSizeProperty["default"]
+      heapSizeProperties = getHeapsizeProperties()[component]
+      for heapSizeProperty in heapSizeProperties:
+        try:
+          properties = configurations[heapSizeProperty["config-name"]]["properties"]
+          heapsize = properties[heapSizeProperty["property"]]
+        except KeyError:
+          heapsize = heapSizeProperty["default"]
 
-      # Assume Mb if no modifier
-      if len(heapsize) > 1 and heapsize[-1] in '0123456789':
-        heapsize = str(heapsize) + "m"
+        # Assume Mb if no modifier
+        if len(heapsize) > 1 and heapsize[-1] in '0123456789':
+          heapsize = str(heapsize) + "m"
 
-      totalMemoryRequired += formatXmxSizeToBytes(heapsize)
+        totalMemoryRequired += formatXmxSizeToBytes(heapsize)
 
   return totalMemoryRequired
