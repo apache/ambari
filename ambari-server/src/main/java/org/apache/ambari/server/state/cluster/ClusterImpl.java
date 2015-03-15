@@ -2530,23 +2530,34 @@ public class ClusterImpl implements Cluster {
   @Override
   public void addSessionAttributes(Map<String, Object> attributes) {
     if (attributes != null && !attributes.isEmpty()) {
-
       Map<String, Object>  sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
-
       sessionAttributes.putAll(attributes);
+      setSessionAttributes(attributes);
+    }
+  }
 
-      String attributeName = CLUSTER_SESSION_ATTRIBUTES_PREFIX + getClusterName();
+  @Override
+  public void setSessionAttribute(String key, Object value){
+    if (key != null && !key.isEmpty()) {
+      Map<String, Object> sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
+      sessionAttributes.put(key, value);
+      setSessionAttributes(sessionAttributes);
+    }
+  }
 
-      getSessionManager().setAttribute(attributeName, sessionAttributes);
+  @Override
+  public void removeSessionAttribute(String key) {
+    if (key != null && !key.isEmpty()) {
+      Map<String, Object> sessionAttributes = new HashMap<String, Object>(getSessionAttributes());
+      sessionAttributes.remove(key);
+      setSessionAttributes(sessionAttributes);
     }
   }
 
   @Override
   public Map<String, Object> getSessionAttributes() {
-    String attributeName = CLUSTER_SESSION_ATTRIBUTES_PREFIX + getClusterName();
-
     Map<String, Object>  attributes =
-        (Map<String, Object>) getSessionManager().getAttribute(attributeName);
+        (Map<String, Object>) getSessionManager().getAttribute(getClusterSessionAttributeName());
 
     return attributes == null ? Collections.<String, Object>emptyMap() : attributes;
   }
@@ -2558,5 +2569,26 @@ public class ClusterImpl implements Cluster {
    */
   protected AmbariSessionManager getSessionManager() {
     return sessionManager;
+  }
+
+  /**
+   * Set the map of session attributes for this cluster.
+   * <p/>
+   * This is a private method so that it may be used as a utility for add and update operations.
+   *
+   * @param sessionAttributes the map of session attributes for this cluster; never null
+   */
+  private void setSessionAttributes(Map<String, Object> sessionAttributes) {
+    getSessionManager().setAttribute(getClusterSessionAttributeName(), sessionAttributes);
+  }
+
+  /**
+   * Generates and returns the cluster-specific attribute name to use to set and get cluster-specific
+   * session attributes.
+   *
+   * @return the name of the cluster-specific session attribute
+   */
+  private String getClusterSessionAttributeName() {
+    return CLUSTER_SESSION_ATTRIBUTES_PREFIX + getClusterName();
   }
 }

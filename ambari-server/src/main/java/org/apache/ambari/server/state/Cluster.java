@@ -477,6 +477,21 @@ public interface Cluster {
   public void addSessionAttributes(Map<String, Object> attributes);
 
   /**
+   * Sets or adds an attribute in the session for this cluster
+   *
+   * @param key   the name of the key which identifies the attribute in the map
+   * @param value the value to set
+   */
+  public void setSessionAttribute(String key, Object value);
+
+  /**
+   * Removes an attribute from the session for this cluster
+   *
+   * @param key the name of the key which identifies the attribute in the map
+   */
+  public void removeSessionAttribute(String key);
+
+  /**
    * Get the map of session attributes for this cluster.
    *
    * @return the map of session attributes for this cluster; never null

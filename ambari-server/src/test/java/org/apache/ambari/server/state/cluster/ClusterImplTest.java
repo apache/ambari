@@ -26,11 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.createMockBuilder;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 public class ClusterImplTest {
@@ -57,6 +53,80 @@ public class ClusterImplTest {
     replay(sessionManager, cluster);
 
     cluster.addSessionAttributes(attributes);
+
+    verify(sessionManager, cluster);
+  }
+
+  @Test
+  public void testSetSessionAttribute() throws Exception {
+    Map<String, Object> attributes = new HashMap<String, Object>();
+    attributes.put("foo", "bar");
+    attributes.put("foo2", "bar2");
+
+    Map<String, Object> updatedAttributes = new HashMap<String, Object>(attributes);
+    updatedAttributes.put("foo2", "updated value");
+
+    Map<String, Object> addedAttributes = new HashMap<String, Object>(updatedAttributes);
+    updatedAttributes.put("foo3", "added value");
+
+    AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
+
+    ClusterImpl cluster =
+      createMockBuilder(ClusterImpl.class).
+        addMockedMethod("getSessionManager").
+        addMockedMethod("getClusterName").
+        addMockedMethod("getSessionAttributes").
+        createMock();
+
+    expect(cluster.getSessionManager()).andReturn(sessionManager);
+    expect(cluster.getClusterName()).andReturn("c1");
+    expect(cluster.getSessionAttributes()).andReturn(attributes);
+
+    sessionManager.setAttribute("cluster_session_attributes:c1", updatedAttributes);
+    expectLastCall().once();
+
+    expect(cluster.getSessionManager()).andReturn(sessionManager);
+    expect(cluster.getClusterName()).andReturn("c1");
+    expect(cluster.getSessionAttributes()).andReturn(updatedAttributes);
+
+    sessionManager.setAttribute("cluster_session_attributes:c1", addedAttributes);
+    expectLastCall().once();
+
+    replay(sessionManager, cluster);
+
+    cluster.setSessionAttribute("foo2", "updated value");
+    cluster.setSessionAttribute("foo3", "added value");
+
+    verify(sessionManager, cluster);
+  }
+
+  @Test
+  public void testRemoveSessionAttribute() throws Exception {
+    Map<String, Object> attributes = new HashMap<String, Object>();
+    attributes.put("foo", "bar");
+    attributes.put("foo2", "bar2");
+
+    Map<String, Object> trimmedAttributes = new HashMap<String, Object>(attributes);
+    trimmedAttributes.remove("foo2");
+
+    AmbariSessionManager sessionManager = createMock(AmbariSessionManager.class);
+
+    ClusterImpl cluster =
+      createMockBuilder(ClusterImpl.class).
+        addMockedMethod("getSessionManager").
+        addMockedMethod("getClusterName").
+        addMockedMethod("getSessionAttributes").
+        createMock();
+
+    expect(cluster.getSessionManager()).andReturn(sessionManager);
+    expect(cluster.getClusterName()).andReturn("c1");
+    expect(cluster.getSessionAttributes()).andReturn(attributes);
+    sessionManager.setAttribute("cluster_session_attributes:c1", trimmedAttributes);
+    expectLastCall().once();
+
+    replay(sessionManager, cluster);
+
+    cluster.removeSessionAttribute("foo2");
 
     verify(sessionManager, cluster);
   }
