@@ -363,6 +363,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     testCreateTestIdentity(new KerberosCredential("principal", "password", "keytab"));
   }
 
+  @Test (expected = KerberosMissingAdminCredentialsException.class)
+  public void testCreateTestIdentityNoCredentials() throws Exception {
+    testCreateTestIdentity(null);
+  }
+
   @Test
   public void testDeleteTestIdentity() throws Exception {
     testDeleteTestIdentity(new KerberosCredential("principal", "password", "keytab"));
@@ -1965,6 +1970,13 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Config krb5ConfConfig = createNiceMock(Config.class);
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
+    final Map<String,Object> attributeMap = new HashMap<String, Object>();
+    if (kerberosCredential != null) {
+      attributeMap.put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
+      attributeMap.put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
+      attributeMap.put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
+    }
+
     final Cluster cluster = createNiceMock(Cluster.class);
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).anyTimes();
@@ -1991,13 +2003,17 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getCurrentStackVersion())
         .andReturn(new StackId("HDP", "2.2"))
         .anyTimes();
-    expect(cluster.getSessionAttributes()).andReturn(new HashMap<String, Object>() {{
-      if (kerberosCredential != null) {
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PRINCIPAL, kerberosCredential.getPrincipal());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_PASSWORD, kerberosCredential.getPassword());
-        put("kerberos_admin/" + KerberosCredential.KEY_NAME_KEYTAB, kerberosCredential.getKeytab());
+    expect(cluster.getSessionAttributes()).andReturn(attributeMap).anyTimes();
+
+    cluster.setSessionAttribute(anyObject(String.class), anyObject());
+    expectLastCall().andAnswer(new IAnswer<Object>() {
+      @Override
+      public Object answer() throws Throwable {
+        Object[] args = getCurrentArguments();
+        attributeMap.put((String) args[0], args[1]);
+        return null;
       }
-    }}).anyTimes();
+    }).anyTimes();
 
     final Clusters clusters = injector.getInstance(Clusters.class);
     expect(clusters.getHostsForCluster("c1"))

@@ -1730,14 +1730,10 @@ public class KerberosHelper {
    * @param value   the Kerberos service check identifier to store or null to clear any previously set value
    */
   private void setKerberosServiceCheckIdentifier(Cluster cluster, String value) {
-    Map<String, Object> sessionAttributes = cluster.getSessionAttributes();
-
-    if (sessionAttributes != null) {
-      if (value == null) {
-        sessionAttributes.remove(SERVICE_CHECK_IDENTIFIER);
-      } else {
-        sessionAttributes.put(SERVICE_CHECK_IDENTIFIER, value);
-      }
+    if (value == null) {
+      cluster.removeSessionAttribute(SERVICE_CHECK_IDENTIFIER);
+    } else {
+      cluster.setSessionAttribute(SERVICE_CHECK_IDENTIFIER, value);
     }
   }
 
