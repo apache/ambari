@@ -192,6 +192,11 @@
     <description>Childopts for Storm UI Java process.</description>
   </property>
   <property>
+    <name>ui.filter</name>
+    <value>null</value>
+    <description>Class for Storm UI authentication</description>
+  </property>
+  <property>
     <name>logviewer.port</name>
     <value>8000</value>
     <description>HTTP UI port for log viewer.</description>
