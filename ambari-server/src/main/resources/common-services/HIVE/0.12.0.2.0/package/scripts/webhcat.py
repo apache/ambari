@@ -147,6 +147,10 @@ def webhcat():
        group=params.user_group,
        content=InlineTemplate(params.webhcat_env_sh_template)
   )
+  
+  Directory(params.webhcat_conf_dir,
+       cd_access='a',
+  )
 
   log4j_webhcat_filename = 'webhcat-log4j.properties'
   if (params.log4j_webhcat_props != None):
