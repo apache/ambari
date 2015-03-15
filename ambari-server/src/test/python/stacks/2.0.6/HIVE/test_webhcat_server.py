@@ -212,6 +212,9 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
+        cd_access = 'a',
+    )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',
                               owner = 'hcat',
@@ -320,6 +323,9 @@ class TestWebHCatServer(RMFTestCase):
                               owner = 'hcat',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
+        cd_access = 'a',
+    )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',
                               owner = 'hcat',
