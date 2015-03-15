@@ -62,10 +62,10 @@
   </property>
   <property>
     <name>timeline.metrics.host.aggregator.minute.interval</name>
-    <value>300</value>
+    <value>120</value>
     <description>
       Time in seconds to sleep for the minute resolution host based
-      aggregator. Default resolution is 5 minutes.
+      aggregator. Default resolution is 2 minutes.
     </description>
   </property>
   <property>
