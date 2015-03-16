@@ -26,6 +26,8 @@ import logging
 import os
 import sys
 import time
+import atexit
+
 from apscheduler.scheduler import Scheduler
 from alerts.collector import AlertCollector
 from alerts.metric_alert import MetricAlert
@@ -34,7 +36,6 @@ from alerts.script_alert import ScriptAlert
 from alerts.web_alert import WebAlert
 
 logger = logging.getLogger()
-
 
 class AlertSchedulerHandler():
   FILENAME = 'definitions.json'
@@ -48,7 +49,6 @@ class AlertSchedulerHandler():
     'coalesce': True,
     'standalone': False
   }
-
 
   def __init__(self, cachedir, stacks_dir, common_services_dir, host_scripts_dir,
       cluster_configuration, config, in_minutes=True):
@@ -70,6 +70,16 @@ class AlertSchedulerHandler():
     self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
     self.__in_minutes = in_minutes
     self.config = config
+
+    # register python exit handler
+    atexit.register(self.exit_handler)
+
+
+  def exit_handler(self):
+    """
+    Exit handler
+    """
+    self.stop()
 
 
   def update_definitions(self, heartbeat):
@@ -116,12 +126,12 @@ class AlertSchedulerHandler():
       self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
 
     alert_callables = self.__load_definitions()
-      
+
     # schedule each definition
     for _callable in alert_callables:
       self.schedule_definition(_callable)
-      
-    logger.debug("[AlertScheduler] Starting {0}; currently running: {1}".format(
+
+    logger.info("[AlertScheduler] Starting {0}; currently running: {1}".format(
       str(self.__scheduler), str(self.__scheduler.running)))
 
     self.__scheduler.start()
@@ -132,22 +142,23 @@ class AlertSchedulerHandler():
       self.__scheduler.shutdown(wait=False)
       self.__scheduler = Scheduler(AlertSchedulerHandler.APS_CONFIG)
 
+    logger.info("[AlertScheduler] Stopped the alert scheduler.")
 
   def reschedule(self):
     """
-    Removes jobs that are scheduled where their UUID no longer is valid. 
+    Removes jobs that are scheduled where their UUID no longer is valid.
     Schedules jobs where the definition UUID is not currently scheduled.
     """
     jobs_scheduled = 0
     jobs_removed = 0
-    
+
     definitions = self.__load_definitions()
     scheduled_jobs = self.__scheduler.get_jobs()
-    
+
     # for every scheduled job, see if its UUID is still valid
     for scheduled_job in scheduled_jobs:
       uuid_valid = False
-      
+
       for definition in definitions:
         definition_uuid = definition.get_uuid()
         if scheduled_job.name == definition_uuid:
@@ -160,7 +171,7 @@ class AlertSchedulerHandler():
         logger.info("[AlertScheduler] Unscheduling {0}".format(scheduled_job.name))
         self._collector.remove_by_uuid(scheduled_job.name)
         self.__scheduler.unschedule_job(scheduled_job)
-      
+
     # for every definition, determine if there is a scheduled job
     for definition in definitions:
       definition_scheduled = False
@@ -169,12 +180,12 @@ class AlertSchedulerHandler():
         if definition_uuid == scheduled_job.name:
           definition_scheduled = True
           break
-      
+
       # if no jobs are found with the definitions UUID, schedule it
       if definition_scheduled == False:
         jobs_scheduled += 1
         self.schedule_definition(definition)
-  
+
     logger.info("[AlertScheduler] Reschedule Summary: {0} rescheduled, {1} unscheduled".format(
         str(jobs_scheduled), str(jobs_removed)))
 
@@ -209,7 +220,7 @@ class AlertSchedulerHandler():
   def collector(self):
     """ gets the collector for reporting to the server """
     return self._collector
-  
+
 
   def __load_definitions(self):
     """
@@ -218,7 +229,7 @@ class AlertSchedulerHandler():
     :return:
     """
     definitions = []
-    
+
     all_commands = None
     alerts_definitions_path = os.path.join(self.cachedir, self.FILENAME)
     try:
@@ -227,21 +238,21 @@ class AlertSchedulerHandler():
     except:
       logger.warning('[AlertScheduler] {0} not found or invalid. No alerts will be scheduled until registration occurs.'.format(alerts_definitions_path))
       return definitions
-    
+
     for command_json in all_commands:
       clusterName = '' if not 'clusterName' in command_json else command_json['clusterName']
       hostName = '' if not 'hostName' in command_json else command_json['hostName']
 
       for definition in command_json['alertDefinitions']:
         alert = self.__json_to_callable(clusterName, hostName, definition)
-        
+
         if alert is None:
           continue
-          
+
         alert.set_helpers(self._collector, self._cluster_configuration)
 
         definitions.append(alert)
-      
+
     return definitions
 
 
@@ -255,7 +266,7 @@ class AlertSchedulerHandler():
 
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("[AlertScheduler] Creating job type {0} with {1}".format(source_type, str(json_definition)))
-    
+
     alert = None
 
     if source_type == AlertSchedulerHandler.TYPE_METRIC:
@@ -289,7 +300,7 @@ class AlertSchedulerHandler():
       logger.info("[AlertScheduler] The alert {0} with UUID {1} is disabled and will not be scheduled".format(
           definition.get_name(),definition.get_uuid()))
       return
-    
+
     job = None
 
     if self.__in_minutes:
@@ -298,15 +309,15 @@ class AlertSchedulerHandler():
     else:
       job = self.__scheduler.add_interval_job(self.__make_function(definition),
         seconds=definition.interval())
-    
-    # although the documentation states that Job(kwargs) takes a name 
+
+    # although the documentation states that Job(kwargs) takes a name
     # key/value pair, it does not actually set the name; do it manually
     if job is not None:
       job.name = definition.get_uuid()
-      
+
     logger.info("[AlertScheduler] Scheduling {0} with UUID {1}".format(
       definition.get_name(), definition.get_uuid()))
-  
+
 
   def get_job_count(self):
     """
@@ -315,10 +326,10 @@ class AlertSchedulerHandler():
     """
     if self.__scheduler is None:
       return 0
-    
+
     return len(self.__scheduler.get_jobs())
 
-  
+
   def execute_alert(self, execution_commands):
     """
     Executes an alert immediately, ignoring any scheduled jobs. The existing
@@ -331,18 +342,18 @@ class AlertSchedulerHandler():
     for execution_command in execution_commands:
       try:
         alert_definition = execution_command['alertDefinition']
-        
+
         clusterName = '' if not 'clusterName' in execution_command else execution_command['clusterName']
-        hostName = '' if not 'hostName' in execution_command else execution_command['hostName']      
-        
+        hostName = '' if not 'hostName' in execution_command else execution_command['hostName']
+
         alert = self.__json_to_callable(clusterName, hostName, alert_definition)
-  
+
         if alert is None:
           continue
-  
+
         logger.info("[AlertScheduler] Executing on-demand alert {0} ({1})".format(alert.get_name(),
             alert.get_uuid()))
-        
+
         alert.set_helpers(self._collector, self._cluster_configuration)
         alert.collect()
       except:
@@ -357,7 +368,7 @@ def main():
     logger.setLevel(logging.DEBUG)
   except TypeError:
     logger.setLevel(12)
-    
+
   ch = logging.StreamHandler()
   ch.setLevel(logger.level)
   logger.addHandler(ch)
@@ -376,7 +387,7 @@ def main():
   print str(ash.collector().alerts())
       
   ash.stop()
-    
+
 if __name__ == "__main__":
   main()
   

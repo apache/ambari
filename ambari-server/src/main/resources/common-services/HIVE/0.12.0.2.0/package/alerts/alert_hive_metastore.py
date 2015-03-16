@@ -20,12 +20,13 @@ limitations under the License.
 
 import socket
 import time
+
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.core.resources import Execute
 
-OK_MESSAGE = "Metastore OK - %.4f response"
-CRITICAL_MESSAGE = "Connection to metastore failed on host {0}"
+OK_MESSAGE = "Metastore OK - Hive command took {0:.3f}s"
+CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
 
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
@@ -72,18 +73,20 @@ def execute(parameters=None, host_name=None):
 
   result_code = None
 
-  if security_enabled:
-    smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
-    if SMOKEUSER_KEYTAB_KEY in parameters:
-      smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
-    kinit_path_local = get_kinit_path()
-    kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
-    Execute(kinitcmd,
-            user=smokeuser,
-            path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-    )
-
   try:
+    if security_enabled:
+      smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
+
+      if SMOKEUSER_KEYTAB_KEY in parameters:
+        smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
+
+      kinit_path_local = get_kinit_path()
+      kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
+
+      Execute(kinitcmd, user=smokeuser,
+        path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+        timeout=10)
+
     if host_name is None:
       host_name = socket.getfqdn()
 
@@ -92,24 +95,21 @@ def execute(parameters=None, host_name=None):
         metastore_uri = uri
 
     cmd = format("hive --hiveconf hive.metastore.uris={metastore_uri} -e 'show databases;'")
-    start_time = time.time()
-    try:
-      Execute(cmd,
-              user=smokeuser,
-              path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-              timeout=240
-      )
-      is_metastore_ok = True
-    except:
-      is_metastore_ok = False
 
-    if is_metastore_ok == True:
-      result_code = 'OK'
+    start_time = time.time()
+
+    try:
+      Execute(cmd, user=smokeuser,
+        path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+        timeout=30 )
+
       total_time = time.time() - start_time
-      label = OK_MESSAGE % (total_time)
-    else:
+
+      result_code = 'OK'
+      label = OK_MESSAGE.format(total_time)
+    except Exception, exception:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name)
+      label = CRITICAL_MESSAGE.format(host_name, exception.message)
 
   except Exception, e:
     label = str(e)

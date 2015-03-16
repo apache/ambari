@@ -158,7 +158,7 @@ def stop_agent():
     time.sleep(5)
     if os.path.exists(ProcessHelper.pidfile):
       raise Exception("PID file still exists.")
-    os._exit(0)
+    sys.exit(0)
   except Exception, err:
     if pid == -1:
       print ("Agent process is not running")
@@ -166,7 +166,7 @@ def stop_agent():
       res = runner.run([AMBARI_SUDO_BINARY, 'kill', '-9', str(pid)])
       if res['exitCode'] != 0:
         raise Exception("Error while performing agent stop. " + res['error'] + res['output'])
-    os._exit(1)
+    sys.exit(1)
 
 def reset_agent(options):
   try:
@@ -191,9 +191,9 @@ def reset_agent(options):
         os.rmdir(os.path.join(root, name))
   except Exception, err:
     print("A problem occurred while trying to reset the agent: " + str(err))
-    os._exit(1)
+    sys.exit(1)
 
-  os._exit(0)
+  sys.exit(0)
 
 # event - event, that will be passed to Controller and NetUtil to make able to interrupt loops form outside process
 # we need this for windows os, where no sigterm available
