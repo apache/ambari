@@ -949,6 +949,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     if (configs['hbase-site']) {
       configs['hbase-site']['hbase.zookeeper.quorum'] = zks.join(',');
     }
+    if (configs['accumulo-site']) {
+      configs['accumulo-site']['instance.zookeeper.host'] = zksWithPort;
+    }
     if (configs['webhcat-site']) {
       configs['webhcat-site']['templeton.zookeeper.hosts'] = zksWithPort;
     }

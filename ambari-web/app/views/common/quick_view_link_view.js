@@ -268,6 +268,9 @@ App.QuickViewLinks = Em.View.extend({
       case "STORM":
         hosts[0] = this.findComponentHost(response.items, "STORM_UI_SERVER");
         break;
+      case "ACCUMULO":
+        hosts[0] = this.findComponentHost(response.items, "ACCUMULO_MONITOR");
+        break;
       default:
         var service = App.StackService.find().findProperty('serviceName', serviceName);
         if (service && service.get('hasMaster')) {
