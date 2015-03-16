@@ -94,7 +94,8 @@ def execute(parameters=None, host_name=None):
       if host_name in uri:
         metastore_uri = uri
 
-    cmd = format("hive --hiveconf hive.metastore.uris={metastore_uri} -e 'show databases;'")
+    cmd = format("export HIVE_CONF_DIR='/etc/hive/conf.server/' ; "
+                 "hive --hiveconf hive.metastore.uris={metastore_uri} -e 'show databases;'")
 
     start_time = time.time()
 
