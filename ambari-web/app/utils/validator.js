@@ -206,7 +206,7 @@ module.exports = {
       return true;
     };
     if (/^[\?\|\*\!,]/.test(value)) return false;
-    return /^((\.\*?)?([\w\[\]\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
+    return /^((\.\*?)?([\w\s\[\]\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
   },
 
   /**
