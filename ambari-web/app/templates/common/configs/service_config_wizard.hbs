@@ -48,8 +48,32 @@
   </div>
 {{/if}}
 
-<div class="accordion">
-  {{#each catView in view.serviceConfigsByCategoryView.childViews}}
-    {{view catView}}
+{{#if view.supportsConfigLayout}}
+  <ul class="nav nav-tabs">
+    {{#each tab in view.tabs}}
+      <li {{bindAttr class="tab.isActive:active" }}><a href="#" {{bindAttr data-target="tab.className"}} data-toggle="tab">{{tab.displayName}}</a></li>
+    {{/each}}
+  </ul>
+
+  {{#each tab in view.tabs}}
+    <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
+      {{#if tab.isAdvanced}}
+        <div class="accordion">
+          {{#each catView in view.serviceConfigsByCategoryView.childViews}}
+            {{view catView}}
+          {{/each}}
+        </div>
+      {{else}}
+        {{!
+          @TODO Fancy Config view goes here
+        }}
+      {{/if}}
+    </div>
   {{/each}}
-</div>
+{{else}}
+  <div class="accordion">
+    {{#each catView in view.serviceConfigsByCategoryView.childViews}}
+      {{view catView}}
+    {{/each}}
+  </div>
+{{/if}}
