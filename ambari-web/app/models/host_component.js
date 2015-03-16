@@ -238,7 +238,8 @@ App.HostComponentActionMap = {
       RUN_SMOKE_TEST: {
         action: 'runSmokeTest',
         label: Em.I18n.t('services.service.actions.run.smoke'),
-        cssClass: 'icon-thumbs-up-alt'
+        cssClass: 'icon-thumbs-up-alt',
+        disabled: ctx.get('controller.isStopDisabled')
       },
       REFRESH_CONFIGS: {
         action: 'refreshConfigs',

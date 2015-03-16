@@ -21,7 +21,7 @@ require('views/main/service/item');
 
 var view;
 
-describe('App.MainServiceItemView', function () {
+describe.only('App.MainServiceItemView', function () {
 
   describe('#mastersExcludedCommands', function () {
 
@@ -109,13 +109,13 @@ describe('App.MainServiceItemView', function () {
             {"action": "reassignMaster", "context": "NAMENODE", "label": "Move NameNode", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "reassignMaster", "context": "SECONDARY_NAMENODE", "label": "Move SNameNode", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "enableHighAvailability", "label": "Enable NameNode HA", "cssClass": "icon-arrow-up", "isHidden": false, "disabled": true},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for HDFS", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "rebalanceHdfsNodes", "customCommand": "REBALANCEHDFS", "context": "Rebalance HDFS", "label": "Rebalance HDFS", "cssClass": "icon-refresh", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, hasSubmenu: false, submenuOptions: []}
           ]
         },
-       {
+        {
           serviceName: "ZOOKEEPER",
           displayName: "ZooKeeper",
           serviceTypes: [],
@@ -139,7 +139,7 @@ describe('App.MainServiceItemView', function () {
           ],
           result: [
             {"action": "restartAllHostComponents", "context": "ZOOKEEPER", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for ZooKeeper", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"cssClass": "icon-plus", "label": "Add ZooKeeper Server", "service": "ZOOKEEPER", "component": "ZOOKEEPER_SERVER", "action": "addZOOKEEPER_SERVER", "disabled": "disabled", tooltip: ''},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
@@ -180,7 +180,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "reassignMaster", "context": "APP_TIMELINE_SERVER", "label": "Move App Timeline Server", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "reassignMaster", "context": "RESOURCEMANAGER", "label": "Move ResourceManager", "cssClass": "icon-share-alt", "disabled": false},
             {"action": "enableRMHighAvailability", "label": "Enable ResourceManager HA", "cssClass": "icon-arrow-up", "isHidden": false, disabled: false},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for YARN", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
@@ -205,7 +205,7 @@ describe('App.MainServiceItemView', function () {
           ],
           result: [
             {"action": "restartAllHostComponents", "context": "MAPREDUCE2", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for MapReduce2", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
@@ -225,7 +225,7 @@ describe('App.MainServiceItemView', function () {
           ],
           result: [
             {"action": "restartAllHostComponents", "context": "KAFKA", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Kafka", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
@@ -251,7 +251,7 @@ describe('App.MainServiceItemView', function () {
             {"action": "refreshConfigs", "label": "Refresh configs", "cssClass": "icon-refresh", "disabled": true},
             {"action": "restartAllHostComponents", "context": "FLUME", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "rollingRestart", "label": "Restart Flumes", "cssClass": "icon-time", "disabled": false, "context": "FLUME_HANDLER"},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Flume", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"cssClass": "icon-plus", "label": "Add Flume Component", "service": "FLUME", "component": "FLUME_HANDLER", "action": "addFLUME_HANDLER", "disabled": '', tooltip: ''},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": true, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
@@ -287,7 +287,7 @@ describe('App.MainServiceItemView', function () {
           result: [
             {"action": "restartAllHostComponents", "context": "HBASE", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "rollingRestart", "label": "Restart RegionServers", "cssClass": "icon-time", "disabled": false, "context": "HBASE_REGIONSERVER"},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for HBase", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"cssClass": "icon-plus", "label": "Add HBase Master", "service": "HBASE", "component": "HBASE_MASTER", "action": "addHBASE_MASTER", "disabled": '', tooltip: ''},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
@@ -314,7 +314,7 @@ describe('App.MainServiceItemView', function () {
           result: [
             {"action": "restartAllHostComponents", "context": "OOZIE", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "reassignMaster", "context": "OOZIE_SERVER", "label": "Move Oozie Server", "cssClass": "icon-share-alt", "disabled": false},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Oozie", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "downloadClientConfigs", "label": "Download Client Configs", "cssClass": "icon-download-alt", "isHidden": false, "disabled": false, "hasSubmenu": false, "submenuOptions": []}
           ]
@@ -334,7 +334,7 @@ describe('App.MainServiceItemView', function () {
           ],
           result: [
             {"action": "restartAllHostComponents", "context": "KNOX", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
-            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},
+            {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt", "disabled": false},
             {"action": "turnOnOffPassive", "context": "Turn On Maintenance Mode for Knox", "label": "Turn On Maintenance Mode", "cssClass": "icon-medkit", "disabled": false},
             {"action": "startLdapKnox", "customCommand": "STARTDEMOLDAP", "context": "Start Demo LDAP",  "label": "Start Demo LDAP", "cssClass": "icon-play-sign", "disabled": false},
             {"action": "stopLdapKnox", "customCommand": "STOPDEMOLDAP", "context": "Stop Demo LDAP", "label": "Stop Demo LDAP", "cssClass": "icon-stop", "disabled": false},
@@ -444,7 +444,8 @@ describe('App.MainServiceItemView', function () {
               passiveState: 'OFF'
             }),
             isSeveralClients: false,
-            clientComponents: []
+            clientComponents: [],
+            isStopDisabled: false
           }),
           mastersExcludedCommands: mastersExcludedCommands,
           hasConfigTab: hasConfigTab
