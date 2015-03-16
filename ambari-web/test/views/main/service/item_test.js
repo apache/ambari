@@ -21,7 +21,7 @@ require('views/main/service/item');
 
 var view;
 
-describe.only('App.MainServiceItemView', function () {
+describe('App.MainServiceItemView', function () {
 
   describe('#mastersExcludedCommands', function () {
 

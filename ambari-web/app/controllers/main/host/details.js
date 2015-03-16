@@ -753,7 +753,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       this.set('fromDeleteHost', false);
       return hiveHosts.without(this.get('content.hostName'));
     }
-    return hiveHosts;
+    return hiveHosts.sort();
   },
 
   /**

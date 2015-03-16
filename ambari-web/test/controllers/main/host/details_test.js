@@ -2352,4 +2352,82 @@ describe('App.MainHostDetailsController', function () {
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
     });
   });
+
+  describe('#getHiveHosts()', function () {
+
+    var cases = [
+      {
+        'input': {
+          'hiveMetastoreHost': '',
+          'fromDeleteHost': false,
+          'deleteHiveMetaStore': false
+        },
+        'hiveHosts': ['h1', 'h2'],
+        'title': 'adding HiveServer2'
+      },
+      {
+        'input': {
+          'hiveMetastoreHost': 'h0',
+          'fromDeleteHost': false,
+          'deleteHiveMetaStore': false
+        },
+        'hiveHosts': ['h0', 'h1', 'h2'],
+        'title': 'adding Hive Metastore'
+      },
+      {
+        'input': {
+          'hiveMetastoreHost': '',
+          'content.hostName': 'h1',
+          'fromDeleteHost': false,
+          'deleteHiveMetaStore': true
+        },
+        'hiveHosts': ['h2'],
+        'title': 'deleting Hive component'
+      },
+      {
+        'input': {
+          'hiveMetastoreHost': '',
+          'content.hostName': 'h2',
+          'fromDeleteHost': true,
+          'deleteHiveMetaStore': false
+        },
+        'hiveHosts': ['h1'],
+        'title': 'deleting host with Hive component'
+      }
+    ];
+
+    before(function () {
+      sinon.stub(App.HostComponent, 'find').returns([
+        {
+          componentName: 'HIVE_METASTORE',
+          hostName: 'h2'
+        },
+        {
+          componentName: 'HIVE_METASTORE',
+          hostName: 'h1'
+        },
+        {
+          componentName: 'HIVE_SERVER',
+          hostName: 'h3'
+        }
+      ]);
+    });
+
+    after(function () {
+      App.HostComponent.find.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        Em.keys(item.input).forEach(function (key) {
+          controller.set(key, item.input[key]);
+        });
+        expect(controller.getHiveHosts()).to.eql(item.hiveHosts);
+        expect(controller.get('hiveMetastoreHost')).to.be.empty;
+        expect(controller.get('fromDeleteHost')).to.be.false;
+        expect(controller.get('deleteHiveMetaStore')).to.be.false;
+      });
+    });
+
+  });
 });
