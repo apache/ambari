@@ -22,6 +22,7 @@ import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
@@ -136,7 +137,7 @@ public class RequestResourceProviderTest {
   public void testGetResourcesWithRequestInfo() throws Exception {
     Resource.Type type = Resource.Type.Request;
 
-    expect(requestDAO.findByPks(Collections.<Long> emptyList())).andReturn(Collections.<RequestEntity>emptyList()).anyTimes();
+    expect(requestDAO.findByPks(Collections.<Long> emptyList(), true)).andReturn(Collections.<RequestEntity>emptyList()).anyTimes();
     replay(requestDAO);
 
     ActionManager actionManager = createNiceMock(ActionManager.class);
@@ -217,7 +218,7 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock)).anyTimes();
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Collections.singletonList(requestMock)).anyTimes();
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().inProgress(1));
     }}).anyTimes();
@@ -267,7 +268,7 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock)).anyTimes();
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Collections.singletonList(requestMock)).anyTimes();
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().inProgress(1));
     }}).anyTimes();
@@ -320,7 +321,7 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager);
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock)).anyTimes();
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Collections.singletonList(requestMock)).anyTimes();
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().inProgress(1));
     }}).anyTimes();
@@ -380,7 +381,7 @@ public class RequestResourceProviderTest {
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
     expect(clusters.getCluster("bad-cluster")).andThrow(new AmbariException("bad cluster!")).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Collections.singletonList(requestMock));
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().inProgress(1));
     }}).anyTimes();
@@ -447,7 +448,7 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).
         andReturn(Arrays.asList(requestMock, requestMock1)).anyTimes();
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().inProgress(1));
@@ -501,8 +502,8 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock0));
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock1));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Arrays.asList(requestMock0));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Arrays.asList(requestMock1));
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().completed(2));
     }}).anyTimes();
@@ -565,8 +566,8 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock0));
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock1));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Arrays.asList(requestMock0));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Arrays.asList(requestMock1));
 
     // IN_PROGRESS and PENDING
     expect(hrcDAO.findAggregateCounts(100L)).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
@@ -645,8 +646,8 @@ public class RequestResourceProviderTest {
 
     // set expectations
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock0));
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Arrays.asList(requestMock1));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Arrays.asList(requestMock0));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Arrays.asList(requestMock1));
 
     // FAILED and COMPLETED
     expect(hrcDAO.findAggregateCounts(100L)).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
@@ -1149,7 +1150,7 @@ public class RequestResourceProviderTest {
     expect(managementController.getActionManager()).andReturn(actionManager).anyTimes();
     expect(managementController.getClusters()).andReturn(clusters).anyTimes();
     expect(clusters.getCluster(anyObject(String.class))).andReturn(null).anyTimes();
-    expect(requestDAO.findByPks(capture(requestIdsCapture))).andReturn(Collections.singletonList(requestMock));
+    expect(requestDAO.findByPks(capture(requestIdsCapture), eq(true))).andReturn(Collections.singletonList(requestMock));
     expect(hrcDAO.findAggregateCounts((Long) anyObject())).andReturn(new HashMap<Long, HostRoleCommandStatusSummaryDTO>(){{
       put(1L, HostRoleCommandStatusSummaryDTO.create().inProgress(1));
     }}).anyTimes();

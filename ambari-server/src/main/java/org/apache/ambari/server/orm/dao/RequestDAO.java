@@ -30,6 +30,8 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -54,14 +56,31 @@ public class RequestDAO {
     return entityManagerProvider.get().find(RequestEntity.class, requestId);
   }
 
-  @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds) {
+    return findByPks(requestIds, false);
+  }
+
+  /**
+   * Given a collection of request ids, load the corresponding entities
+   * @param requestIds  the collection of request ids
+   * @param refreshHint {@code true} to hint JPA that the list should be refreshed
+   * @return the list entities. An empty list if the requestIds are not provided
+   */
+  @RequiresSession
+  public List<RequestEntity> findByPks(Collection<Long> requestIds, boolean refreshHint) {
     if (null == requestIds || 0 == requestIds.size()) {
       return Collections.emptyList();
     }
 
     TypedQuery<RequestEntity> query = entityManagerProvider.get().createQuery("SELECT request FROM RequestEntity request " +
         "WHERE request.requestId IN ?1", RequestEntity.class);
+
+    // !!! https://bugs.eclipse.org/bugs/show_bug.cgi?id=398067
+    // ensure that an associated entity with a JOIN is not stale
+    if (refreshHint) {
+      query.setHint(QueryHints.REFRESH, HintValues.TRUE);
+    }
+
     return daoUtils.selectList(query, requestIds);
   }
 

@@ -432,7 +432,7 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
     Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
-    List<RequestEntity> requests = s_requestDAO.findByPks(requestIds);
+    List<RequestEntity> requests = s_requestDAO.findByPks(requestIds, true);
     for (RequestEntity re : requests) {
       if ((null == clusterId && (null == re.getClusterId() || -1L == re.getClusterId())) ||
           (null != clusterId && null != re.getRequestId() && re.getClusterId().equals(clusterId))) {
