@@ -311,16 +311,5 @@ App.QuickLinks.FIXTURES = [
     site: 'spark-defaults',
     regex: '^(\\d+)$',
     default_http_port: 18080
-  },
-  {
-    id:35,
-    label:'Accumulo Monitor UI',
-    url:'%@://%@:%@/',
-    service_id: 'ACCUMULO',
-    template:'%@://%@:%@/',
-    http_config: 'monitor.port.client',
-    site: 'accumulo-site',
-    regex: '^(\\d+)$',
-    default_http_port: 50095
   }
 ];

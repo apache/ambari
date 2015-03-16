@@ -661,9 +661,6 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
     if (!App.get('isHaEnabled') && App.Service.find('HBASE').get('isLoaded')) {
       configs['hbase-site']['hbase.rootdir'] = configs['hbase-site']['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
     }
-    if (!App.get('isHaEnabled') && App.Service.find('ACCUMULO').get('isLoaded')) {
-      configs['accumulo-site']['instance.volumes'] = configs['accumulo-site']['instance.volumes'].replace(/\/\/[^\/]*/, '//' + targetHostName + ':8020');
-    }
   },
 
   /**
