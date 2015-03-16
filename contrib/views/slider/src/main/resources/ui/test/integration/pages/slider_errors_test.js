@@ -19,6 +19,7 @@
 QUnit.module('integration/pages - index', {
 
   setup: function () {
+    sinon.config.useFakeTimers = false;
     Ember.run(App, App.advanceReadiness);
     Em.run(function () {
       var p = {

@@ -72,48 +72,40 @@ test('getViewDisplayParametersSuccessCallback', function () {
 
 test('getParametersFromViewPropertiesSuccessCallback', function () {
 
-  var storeAll = App.SliderApp.store.all,
-    controller = this.subject();
+  var controller = this.subject();
 
   Em.run(function () {
-    App.SliderApp.store.all = function () {
-      return properties;
-    };
+    sinon.stub(App.SliderApp.store, 'all').returns(properties);
     controller.getParametersFromViewPropertiesSuccessCallback({
       parameters: {
         'site.global.metric_collector_lib': 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar',
         'site.global.metric_collector_host': 'h2',
-        'site.global.metric_collector_port': '6188',
+        'site.global.metric_collector_port': '6188'
       },
       validations: [{}, {}]
     });
+    App.SliderApp.store.all.restore();
   });
 
   equal(App.get('metricsHost'), 'h2', 'should set metrics server host');
   equal(App.get('metricsPort'), '6188', 'should set metrics server port');
   equal(App.get('metricsLibPath'), 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar', 'should set metrics lib path');
 
-  App.SliderApp.store.set('all', storeAll);
-
 });
 
  test('initMetricsServerProperties', function () {
 
-   var storeAll = App.SliderApp.store.all,
-     controller = this.subject();
+   var controller = this.subject();
 
    Em.run(function () {
-     App.SliderApp.store.all = function () {
-       return properties;
-     };
+     sinon.stub(App.SliderApp.store, 'all').returns(properties);
      controller.initMetricsServerProperties();
+     App.SliderApp.store.all.restore();
    });
 
    equal(App.get('metricsHost'), 'h2', 'should set metrics server host');
    equal(App.get('metricsPort'), '6188', 'should set metrics server port');
    equal(App.get('metricsLibPath'), 'file:///usr/lib/ambari-metrics-hadoop-sink/ambari-metrics-hadoop-sink.jar', 'should set metrics lib path');
-
-   App.SliderApp.store.set('all', storeAll);
 
  });
 

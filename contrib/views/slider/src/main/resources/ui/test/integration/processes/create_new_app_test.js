@@ -108,6 +108,8 @@ QUnit.module('integration/processes - Create New App', {
 
   setup: function () {
 
+    sinon.config.useFakeTimers = false;
+
     $.mockjax({
       type: 'GET',
       url: '*',

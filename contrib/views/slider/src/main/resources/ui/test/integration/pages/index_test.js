@@ -19,6 +19,7 @@
 QUnit.module('integration/pages - index', {
 
   setup: function () {
+    sinon.config.useFakeTimers = false;
     App.set('viewEnabled', true);
     App.__container__.lookup('controller:Slider').getViewDisplayParametersSuccessCallback({
       "ViewInstanceInfo": {

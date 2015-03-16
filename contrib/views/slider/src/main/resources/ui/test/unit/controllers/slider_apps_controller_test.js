@@ -16,12 +16,21 @@
  * limitations under the License.
  */
 
-moduleFor('controller:sliderApps', 'App.SliderAppsController');
+moduleFor('controller:sliderApps', 'App.SliderAppsController', {
+
+  setup: function () {
+    sinon.stub(Bootstrap.ModalManager, 'open', Em.K);
+  },
+
+  teardown: function () {
+    Bootstrap.ModalManager.open.restore();
+  }
+
+});
 
 test('showUnavailableAppsPopup', function () {
 
-  var bsOpen = Bootstrap.ModalManager.open,
-    cases = [
+  var cases = [
       {
         message: 'message',
         result: 'message',
@@ -39,13 +48,10 @@ test('showUnavailableAppsPopup', function () {
   cases.forEach(function (item) {
 
     Em.run(function () {
-      Bootstrap.set('ModalManager.open', Em.K);
       controller.showUnavailableAppsPopup(item.message);
     });
 
     equal(controller.get('errorMessage'), item.result, item.title);
-
-    Bootstrap.set('ModalManager.open', bsOpen);
 
   });
 

@@ -20,7 +20,21 @@ moduleFor('controller:sliderApp', 'App.SliderAppController', {
 
   needs: [
     'component:bs-modal'
-  ]
+  ],
+
+  setup: function () {
+    sinon.stub(Bootstrap.ModalManager, 'register', Em.K);
+    sinon.stub(Bootstrap.ModalManager, 'open', Em.K);
+    sinon.stub(App.ajax, 'send', Em.K);
+    sinon.stub(Bootstrap.ModalManager, 'close', Em.K);
+  },
+
+  teardown: function () {
+    Bootstrap.ModalManager.register.restore();
+    Bootstrap.ModalManager.open.restore();
+    App.ajax.send.restore();
+    Bootstrap.ModalManager.close.restore();
+  }
 
 });
 
@@ -168,8 +182,7 @@ test('destroyButtonEnabled', function () {
 
 test('confirmDestroy', function () {
 
-  var bsRegister = Bootstrap.ModalManager.register,
-    controller = this.subject(),
+  var controller = this.subject(),
     assertionsEqual = [
       {
         propertyName: 'name',
@@ -187,11 +200,13 @@ test('confirmDestroy', function () {
     assertionsDeepEqual = [
       {
         propertyName: 'targetObject',
-        value: controller
+        value: controller,
+        valueFormatted: 'App.SliderAppController'
       },
       {
         propertyName: 'controller',
-        value: controller
+        value: controller,
+        valueFormatted: 'App.SliderAppController'
       },
       {
         propertyName: 'body',
@@ -205,20 +220,16 @@ test('confirmDestroy', function () {
     title = 'modalComponent.{0} should be {1}';
 
   Em.run(function () {
-    Bootstrap.set('ModalManager.register', function (name, component) {
-      this.registeredComponent = component;
-    });
     controller.confirmDestroy();
   });
 
+  ok(Bootstrap.ModalManager.register.calledOnce, 'Bootstrap.ModalManager.register should be executed');
   assertionsEqual.forEach(function (item) {
-    equal(Bootstrap.ModalManager.registeredComponent[item.propertyName], item.value, title.format(item.propertyName, item.value));
+    equal(Bootstrap.ModalManager.register.firstCall.args[1][item.propertyName], item.value, title.format(item.propertyName, item.value));
   });
   assertionsDeepEqual.forEach(function (item) {
-    deepEqual(Bootstrap.ModalManager.registeredComponent[item.propertyName], item.value, title.format(item.propertyName, item.value));
+    deepEqual(Bootstrap.ModalManager.register.firstCall.args[1][item.propertyName], item.value, title.format(item.propertyName, item.valueFormatted || item.value));
   });
-
-  Bootstrap.set('ModalManager.register', bsRegister);
 
 });
 
@@ -306,8 +317,7 @@ test('validateGroupedComponents', function () {
 
 test('flex', function () {
 
-  var bsOpen = Bootstrap.ModalManager.open,
-    controller = this.subject({
+  var controller = this.subject({
       appType: {
         components: [
           Em.Object.create({
@@ -326,14 +336,11 @@ test('flex', function () {
     });
 
   Em.run(function () {
-    Bootstrap.set('ModalManager.open', Em.K);
     controller.flex();
   });
 
   equal(controller.get('groupedComponents')[0].count, 1, 'count should be incremented');
   equal(controller.get('groupedComponents')[1].count, 0, 'count shouldn\'t be incremented');
-
-  Bootstrap.set('ModalManager.open', bsOpen);
 
 });
 
@@ -401,8 +408,7 @@ test('actionErrorCallback', function () {
 
 test('actions.submitFlex', function () {
 
-  var bsClose = Bootstrap.ModalManager.close,
-    controller = this.subject({
+  var controller = this.subject({
       model: Em.Object.create({
         id: 0,
         name: 'n'
@@ -414,14 +420,11 @@ test('actions.submitFlex', function () {
     });
 
   Em.run(function () {
-    Bootstrap.set('ModalManager.close', Em.K);
     controller.send('submitFlex');
   });
 
   equal(controller.get('groupedComponents.length'), 0, 'should clear grouped components');
   ok(!controller.get('groupedComponentsHaveErrors'), 'should clear components errors');
-
-  Bootstrap.set('ModalManager.close', bsClose);
 
 });
 
@@ -443,8 +446,7 @@ test('actions.closeFlex', function () {
 
 test('modalConfirmed', function () {
 
-  var bsClose = Bootstrap.ModalManager.close,
-    controller = this.subject({
+  var controller = this.subject({
       confirmChecked: true,
       currentAction: 'customMethod',
       customMethod: function () {
@@ -453,39 +455,31 @@ test('modalConfirmed', function () {
     });
 
   Em.run(function () {
-    Bootstrap.set('ModalManager.close', Em.K);
     controller.send('modalConfirmed');
   });
 
   deepEqual(controller.get('groupedComponents'), [{}], 'currentAction should be executed');
   ok(!controller.get('confirmChecked'), 'confirmChecked should be false');
 
-  Bootstrap.set('ModalManager.close', bsClose);
-
 });
 
 test('modalCanceled', function () {
 
-  var bsClose = Bootstrap.ModalManager.close,
-    controller = this.subject({
+  var controller = this.subject({
       confirmChecked: true
     });
 
   Em.run(function () {
-    Bootstrap.set('ModalManager.close', Em.K);
     controller.send('modalCanceled');
   });
 
   ok(!controller.get('confirmChecked'), 'confirmChecked should be false');
 
-  Bootstrap.set('ModalManager.close', bsClose);
-
 });
 
 test('openModal', function () {
 
-  var bsOpen = Bootstrap.ModalManager.open,
-    cases = [
+  var cases = [
       {
         options: {
           action: 'customMethod'
@@ -512,7 +506,6 @@ test('openModal', function () {
     });
 
   Em.run(function () {
-    Bootstrap.set('ModalManager.open', Em.K);
     controller.send('openModal', {
       action: 'customMethod'
     });
@@ -529,8 +522,6 @@ test('openModal', function () {
     deepEqual(controller.get('groupedComponents'), item.groupedComponents, item.title);
 
   });
-
-  Bootstrap.set('ModalManager.open', bsOpen);
 
 });
 
