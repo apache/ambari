@@ -131,7 +131,7 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
    * @type {Boolean}
    */
   isCriticalAlerts: function () {
-    return !this.get('content').everyProperty('summary.CRITICAL.count', 0);
+    return this.get('content').invoke('getWithDefault', 'summary.CRITICAL.count', 0).reduce(Em.sum, 0) !== 0;
   }.property('content.@each.summary')
   
 });
