@@ -655,3 +655,45 @@ describe('App.CheckDBConnectionView', function () {
   });
 
 });
+
+describe('App.BaseUrlTextField', function () {
+
+  var view;
+
+  beforeEach(function () {
+    view = App.BaseUrlTextField.create({
+      repository: Em.Object.create({
+        baseUrl: 'val'
+      })
+    });
+    view.didInsertElement();
+  });
+
+  describe('#valueWasChanged', function () {
+
+    it('should be recalculated after value is changed', function () {
+      view.setProperties({
+        value: 'val',
+        defaultValue: 'val'
+      });
+      expect(view.get('valueWasChanged')).to.be.false;
+      view.set('value', 'newVal');
+      expect(view.get('valueWasChanged')).to.be.true;
+    });
+
+  });
+
+  describe('#restoreValue', function () {
+
+    it('should unset value', function () {
+      view.setProperties({
+        value: 'valNew',
+        defaultValue: 'val'
+      });
+      view.restoreValue();
+      expect(view.get('value')).to.equal('val');
+    });
+
+  });
+
+});

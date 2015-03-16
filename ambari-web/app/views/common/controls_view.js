@@ -1352,14 +1352,60 @@ App.CheckDBConnectionView = Ember.View.extend({
 });
 
 /**
- *
+ * View with input field used to repo-version URLs
  * @type {*}
  */
 App.BaseUrlTextField = Ember.TextField.extend({
 
+  layout: Ember.Handlebars.compile('<div class="pull-left">{{yield}}</div> {{#if view.valueWasChanged}}<div class="pull-right"><a class="btn btn-small" {{action "restoreValue" target="view"}}><i class="icon-undo"></i></a></div>{{/if}}'),
+
+  /**
+   * Binding in the template
+   * @type {App.RepositoryVersion}
+   */
+  repository: null,
+
+  /**
+   * @type {string}
+   */
   valueBinding: 'repository.baseUrl',
 
-  keyUp: function (event) {
+  /**
+   * @type {string}
+   */
+  defaultValue: '',
+
+  /**
+   * Determines if user have put some new value
+   * @type {boolean}
+   */
+  valueWasChanged: false,
+
+  didInsertElement: function () {
+    this.set('defaultValue', this.get('value'));
+    this.addObserver('value', this, this.valueWasChangedObs);
+  },
+
+  valueWasChangedObs: function () {
+    var value = this.get('value'),
+      defaultValue = this.get('defaultValue');
+    this.set('valueWasChanged', value !== defaultValue);
+  },
+
+  /**
+   * Restore value and unset error-flag
+   * @method restoreValue
+   */
+  restoreValue: function () {
+    this.set('value', this.get('defaultValue'));
+    this.keyUp();
+  },
+
+  /**
+   * Remove error-highlight after user puts some new value
+   * @method keyUp
+   */
+  keyUp: function () {
     if (Em.get(this, 'repository.hasError')) {
       Em.set(this, 'repository.hasError', false);
     }

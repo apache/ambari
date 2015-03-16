@@ -34,11 +34,11 @@
     <div class="span2">
       {{os.osType}}
     </div>
-  <div class="span10">
-  {{#each repository in os.repositories}}
-    <div class="row-fluid">
-      <div class="span3">{{repository.repoName}}</div>
-      <div {{bindAttr class="repository.hasError:error :control-group :span9"}}>{{view App.BaseUrlTextField repositoryBinding="repository"}}</div>
+    <div class="span10">
+      {{#each repository in os.repositories}}
+        <div class="row-fluid">
+          <div class="span3">{{repository.repoName}}</div>
+          <div {{bindAttr class="repository.hasError:error :control-group :span9"}}>{{view App.BaseUrlTextField repositoryBinding="repository"}}</div>
         </div>
       {{/each}}
     </div>
@@ -48,5 +48,5 @@
 <div>
   <label>{{view view.skipCheckBox checkedBinding="view.parentView.skipValidation"}}{{t installer.step1.advancedRepo.skipValidation.message}}
     <i class="icon-question-sign" rel="skip-validation-tooltip"
-  data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
+       data-toggle="tooltip" {{translateAttr title="installer.step1.advancedRepo.skipValidation.tooltip"}}></i></label>
 </div>
