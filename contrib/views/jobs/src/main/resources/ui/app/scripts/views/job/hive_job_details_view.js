@@ -180,8 +180,8 @@ App.JobView = Em.View.extend({
   summaryMetricTypesDisplay: [
     Em.I18n.t('jobs.hive.tez.metric.input'),
     Em.I18n.t('jobs.hive.tez.metric.output'),
-    /* Em.I18n.t('jobs.hive.tez.metric.recordsRead'),
-     Em.I18n.t('jobs.hive.tez.metric.recordsWrite'), */
+    Em.I18n.t('jobs.hive.tez.metric.recordsRead'),
+    Em.I18n.t('jobs.hive.tez.metric.recordsWrite'),
     Em.I18n.t('jobs.hive.tez.metric.tezTasks'),
     Em.I18n.t('jobs.hive.tez.metric.spilledRecords')
   ],

@@ -221,10 +221,10 @@ App.Helpers.jobs = {
                       };
                       break;
                     case 'HIVE':
-                      cNameToPropetyMap = {
-                        'RECORDS_READ': 'recordReadCount',
-                        'RECORDS_WRITE': 'recordWriteCount'
-                      };
+                      var vertexNameFormatted = App.Helpers.string.convertSpacesToUnderscores(data.otherinfo.vertexName);
+                      cNameToPropetyMap = {};
+                      cNameToPropetyMap['RECORDS_IN_' + vertexNameFormatted] = 'recordReadCount';
+                      cNameToPropetyMap['RECORDS_OUT_' + vertexNameFormatted] = 'recordWriteCount';
                       break;
                     default:
                       break;

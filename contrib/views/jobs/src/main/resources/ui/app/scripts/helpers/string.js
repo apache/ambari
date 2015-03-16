@@ -99,6 +99,16 @@ App.Helpers.string = {
       }
     }
     return value;
+  },
+
+  /**
+   * Convert spaces to underscores
+   * @method convertSpacesToUnderscores
+   * @param {string} str
+   * @returns {string}
+   */
+  convertSpacesToUnderscores: function (str) {
+    return Em.isNone(str) ? '' : str.replace(' ', '_');
   }
 
 };
