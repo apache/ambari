@@ -110,8 +110,10 @@ def execute(parameters=None, host_name=None):
 
     start_time = time.time()
     try:
-      hive_check.check_thrift_port_sasl(host_name, port, hive_server2_authentication,
-                                        hive_server_principal, kinitcmd, smokeuser, transport_mode = transport_mode)
+      hive_check.check_thrift_port_sasl(host_name, port,
+        hive_server2_authentication, hive_server_principal, kinitcmd, smokeuser,
+        transport_mode = transport_mode)
+
       is_thrift_port_ok = True
     except:
       is_thrift_port_ok = False

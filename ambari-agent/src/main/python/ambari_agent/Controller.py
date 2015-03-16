@@ -102,7 +102,6 @@ class Controller(threading.Thread):
 
   def __del__(self):
     logger.info("Server connection disconnected.")
-    pass
 
   def registerWithServer(self):
     """
@@ -151,7 +150,6 @@ class Controller(threading.Thread):
         if 'statusCommands' in ret.keys():
           logger.info("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
-          pass
         else:
           self.hasMappedComponents = False
 
@@ -170,7 +168,7 @@ class Controller(threading.Thread):
         logger.error("Unable to connect to: " + self.registerUrl, exc_info=True)
         """ Sleeping for {0} seconds and then retrying again """.format(delay)
         time.sleep(delay)
-      pass
+
     return ret
 
   def cancelCommandInQueue(self, commands):
@@ -180,8 +178,6 @@ class Controller(threading.Thread):
         self.actionQueue.cancel(commands)
       except Exception, err:
         logger.error("Exception occurred on commands cancel: %s", err.message)
-        pass
-    pass
 
   def addToQueue(self, commands):
     """Add to the queue for running the commands """
@@ -192,7 +188,6 @@ class Controller(threading.Thread):
     else:
       """Only add to the queue if not empty list """
       self.actionQueue.put(commands)
-    pass
 
   def addToStatusQueue(self, commands):
     if not commands:
@@ -201,7 +196,6 @@ class Controller(threading.Thread):
       if not LiveStatus.SERVICES:
         self.updateComponents(commands[0]['clusterName'])
       self.actionQueue.put_status(commands)
-    pass
 
   # For testing purposes
   DEBUG_HEARTBEAT_RETRIES = 0
@@ -223,7 +217,6 @@ class Controller(threading.Thread):
         if not retry:
           data = json.dumps(
               self.heartbeat.build(self.responseId, int(hb_interval), self.hasMappedComponents))
-          pass
         else:
           self.DEBUG_HEARTBEAT_RETRIES += 1
 
@@ -333,7 +326,6 @@ class Controller(threading.Thread):
         # Stop loop when stop event received
         logger.info("Stop event received")
         self.DEBUG_STOP_HEARTBEATING=True
-    pass
 
   def run(self):
     self.actionQueue = ActionQueue(self.config, controller=self)
@@ -349,8 +341,6 @@ class Controller(threading.Thread):
       self.registerAndHeartbeat()
       if not self.repeatRegistration:
         break
-
-    pass
 
   def registerAndHeartbeat(self):
     registerResponse = self.registerWithServer()
@@ -373,8 +363,8 @@ class Controller(threading.Thread):
       self.heartbeatWithServer()
 
   def restartAgent(self):
-    os._exit(AGENT_AUTO_RESTART_EXIT_CODE)
-    pass
+    sys.exit(AGENT_AUTO_RESTART_EXIT_CODE)
+
 
   def sendRequest(self, url, data):
     response = None
@@ -411,7 +401,6 @@ class Controller(threading.Thread):
     logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
     logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
     logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
-    pass
 
 def main(argv=None):
   # Allow Ctrl-C

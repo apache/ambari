@@ -35,7 +35,6 @@ pidfile = os.path.join(piddir, "ambari-agent.pid")
 
 
 def _clean():
-
   logger.info("Removing pid file")
   try:
     os.unlink(pidfile)
@@ -54,14 +53,11 @@ def _clean():
 
 
 def stopAgent():
-
   _clean()
-  os._exit(0)
-  pass
+  sys.exit(0)
 
 
 def restartAgent():
-
   _clean()
 
   executable = sys.executable
