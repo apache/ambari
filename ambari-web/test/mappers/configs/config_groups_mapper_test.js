@@ -19,7 +19,10 @@
 var App = require('app');
 require('mappers/configs/config_groups_mapper');
 
-describe('App.configGroupsMapper', function () {
+/**
+ * not using this mapper
+ */
+describe.skip('App.configGroupsMapper', function () {
 
   var allHosts = App.get('allHostNames');
   var defaultAllHosts = ['host1', 'host2', 'host3'];

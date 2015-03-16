@@ -20,7 +20,6 @@
 var App = require('app');
 
 App.ConfigVersion = App.ServiceConfigVersion.extend({
-  configGroup: DS.belongsTo('App.ServiceConfigGroup'),
   configProperties: DS.hasMany('App.ConfigProperty')
 });
 

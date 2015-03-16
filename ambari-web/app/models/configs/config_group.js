@@ -16,13 +16,28 @@
  * limitations under the License.
  */
 
+/**
+ * THIS IS NOT USED FOR NOW
+ * FOR CONFIG GROUPS WE ARE USING OLD MODELS AND LOGIC
+ */
 
 var App = require('app');
 
 App.ServiceConfigGroup = DS.Model.extend({
+  /**
+   * unique id generated as <code>serviceName<code><code>configGroupId<code>
+   * in case default configGroup <code>serviceName<code><code>0<code>
+   * @property {string}
+   */
   id: DS.attr('string'),
-  //
+
+  /**
+   * original id for config group that is get from server
+   * for default groups "-1"
+   * @property {number}
+   */
   configGroupId: DS.attr('number'),
+
   name: DS.attr('string'),
   serviceName: DS.attr('string'),
   description: DS.attr('string'),

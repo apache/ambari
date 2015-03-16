@@ -1896,5 +1896,59 @@ App.config = Em.Object.create({
   saveConfigGroupsToModel: function(data, opt, params) {
     App.configGroupsMapper.map(data, params.serviceList.split(','));
     params.dfd.resolve();
+  },
+
+  /**
+   * load config groups
+   * @param {String} serviceName
+   * @param {Number} configGroupId
+   * @returns {$.ajax}
+   * @method loadConfigGroups
+   */
+  loadConfigVersions: function(serviceName, configGroupId, configVersion) {
+    var info = this.generateAjaxDataForVersions(serviceName, configGroupId, configVersion);
+    return App.ajax.send({
+      name: info.name,
+      sender: this,
+      data: info.data,
+      success: 'saveConfigVersionsToModel'
+    });
+  },
+
+  /**
+   * generate ajax info
+   * @param serviceName
+   * @param configGroupId
+   * @param configVersion
+   * @returns {{name: string, data: {}}}
+   */
+  generateAjaxDataForVersions: function(serviceName, configGroupId, configVersion) {
+    var result = {
+      name: 'configs.config_versions.load.all.min',
+      data: {}
+    }
+    if (serviceName) {
+      result.data.serviceName = serviceName;
+      if (configVersion) {
+        result.name = 'configs.config_versions.load';
+        result.data.configVersion = configVersion
+      } else if (configGroupId) {
+        result.name = 'configs.config_versions.load.group';
+        result.data.configGroupId = configGroupId;
+      } else {
+        result.name = 'configs.config_versions.load.service.min';
+      }
+    }
+    return result;
+  },
+
+  /**
+   * runs <code>configGroupsMapper<code>
+   * @param data
+   * @param opt
+   * @param params
+   */
+  saveConfigVersionsToModel: function(data) {
+    App.configVersionsMapper.map(data);
   }
 });

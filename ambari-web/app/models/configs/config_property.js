@@ -72,14 +72,6 @@ App.ConfigProperty = App.StackConfigProperty.extend({
   isNotEditable: Ember.computed.not('isEditable'),
 
   /**
-   * defines if property belongs to default config group
-   * if true it's config group is default
-   * //TODO probably make computed basing on configVersion.configGroup.isDefault
-   * @property {boolean}
-   */
-  isOriginalSCP : DS.attr('boolean', {defaultValue: true}),
-
-  /**
    * defines if property can contain overriden values
    * @property {boolean}
    */
@@ -141,6 +133,15 @@ App.ConfigProperty = App.StackConfigProperty.extend({
   hasWarnings: function() {
     return this.get('warnMessage') !== '';
   }.property('warnMessage'),
+
+  /**
+   * defines if property belongs to default config group
+   * if true it's config group is default
+   * @type {boolean}
+   */
+  isOriginalSCP: function() {
+    return this.get('configVersion.isDefault');
+  }.property('configVersion.isDefault'),
 
   /**
    * Indicates when value is not the default value.

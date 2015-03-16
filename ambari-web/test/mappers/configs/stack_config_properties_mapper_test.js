@@ -136,31 +136,31 @@ describe('App.stackConfigPropertiesMapper', function () {
     it('should load data to model', function() {
       App.stackConfigPropertiesMapper.map(json);
       expect(App.StackConfigProperty.find().get('length')).to.equal(3);
-      expect(App.StackConfigProperty.find().mapProperty('id')).to.eql(['p1site1','p2site2','p3site3']);
+      expect(App.StackConfigProperty.find().mapProperty('id')).to.eql(['p1_site1','p2_site2','p3_site3']);
 
-      expect(App.StackConfigProperty.find('p1site1').get('name')).to.eql('p1');
-      expect(App.StackConfigProperty.find('p1site1').get('displayName')).to.eql('p1');
-      expect(App.StackConfigProperty.find('p1site1').get('description')).to.eql('desc1');
-      expect(App.StackConfigProperty.find('p1site1').get('defaultValue')).to.eql('v1');
-      expect(App.StackConfigProperty.find('p1site1').get('defaultIsFinal')).to.be.false;
-      expect(App.StackConfigProperty.find('p1site1').get('serviceName')).to.eql('s1');
-      expect(App.StackConfigProperty.find('p1site1').get('stackName')).to.eql('HDP');
-      expect(App.StackConfigProperty.find('p1site1').get('stackVersion')).to.eql('2.2');
-      expect(App.StackConfigProperty.find('p1site1').get('type')).to.eql([]);
-      expect(App.StackConfigProperty.find('p1site1').get('fileName')).to.eql('site1.xml');
-      expect(App.StackConfigProperty.find('p1site1').get('propertyDependedBy')).to.eql([
+      expect(App.StackConfigProperty.find('p1_site1').get('name')).to.eql('p1');
+      expect(App.StackConfigProperty.find('p1_site1').get('displayName')).to.eql('p1');
+      expect(App.StackConfigProperty.find('p1_site1').get('description')).to.eql('desc1');
+      expect(App.StackConfigProperty.find('p1_site1').get('defaultValue')).to.eql('v1');
+      expect(App.StackConfigProperty.find('p1_site1').get('defaultIsFinal')).to.be.false;
+      expect(App.StackConfigProperty.find('p1_site1').get('serviceName')).to.eql('s1');
+      expect(App.StackConfigProperty.find('p1_site1').get('stackName')).to.eql('HDP');
+      expect(App.StackConfigProperty.find('p1_site1').get('stackVersion')).to.eql('2.2');
+      expect(App.StackConfigProperty.find('p1_site1').get('type')).to.eql([]);
+      expect(App.StackConfigProperty.find('p1_site1').get('fileName')).to.eql('site1.xml');
+      expect(App.StackConfigProperty.find('p1_site1').get('propertyDependedBy')).to.eql([
         {
           "property_type": "site4",
           "property_name": "p4"
         }
       ]);
-      expect(App.StackConfigProperty.find('p1site1').get('valueAttributes')).to.eql({
+      expect(App.StackConfigProperty.find('p1_site1').get('valueAttributes')).to.eql({
         "type": "int",
         "minimum": "512",
         "maximum": "10240",
         "unit": "MB"
       });
-      expect(App.StackConfigProperty.find('p1site1').get('supportsFinal')).to.be.true;
+      expect(App.StackConfigProperty.find('p1_site1').get('supportsFinal')).to.be.true;
     });
   });
 

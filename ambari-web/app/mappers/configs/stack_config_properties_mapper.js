@@ -48,7 +48,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
 
         stackItem.configurations.forEach(function(config) {
           var configType = App.config.getConfigTagFromFileName(config.StackConfigurations.type);
-          config.id = config.StackConfigurations.property_name + configType;
+          config.id = config.StackConfigurations.property_name + '_' + configType;
           config.default_is_final = config.StackConfigurations.final === "true";
           config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
           /**
