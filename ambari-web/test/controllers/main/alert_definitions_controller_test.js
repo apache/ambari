@@ -53,4 +53,24 @@ describe('App.MainAlertDefinitionsController', function() {
 
   });
 
+  describe('#isCriticalAlerts', function () {
+
+    beforeEach(function () {
+      controller.set('content', Em.A([
+        Em.Object.create({summary: {CRITICAL: {count: 0}}}),
+        Em.Object.create({summary: {CRITICAL: {}}})
+      ]));
+    });
+
+    it('if summary is undefined, 0 should be used', function () {
+      expect(controller.get('isCriticalAlerts')).to.be.false;
+    });
+
+    it('should be true, if some CRITICAL count is greater than 0', function () {
+      controller.get('content').pushObject(Em.Object.create({summary: {CRITICAL: {count: 1}}}));
+      expect(controller.get('isCriticalAlerts')).to.be.true;
+    });
+
+  });
+
 });
