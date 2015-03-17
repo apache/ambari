@@ -101,7 +101,7 @@ def refresh_stack_hash(properties):
 # Builds ambari-server API base url
 # Reads server protocol/port from configuration
 # And returns something like
-# http://127.0.0.1:8080:/api/v1/
+# http://127.0.0.1:8080/api/v1/
 #
 def get_ambari_server_api_base(properties):
   api_protocol = SERVER_API_PROTOCOL
