@@ -96,6 +96,7 @@ def load_stack_values(version, filename):
     ostype = ostag.attrib['type']
     for repotag in ostag:
       reponametag = repotag.find('reponame')
+      repocomponentstag = repotag.find('repocomponents')
       repoidtag = repotag.find('repoid')
       baseurltag = repotag.find('baseurl')
       if reponametag is not None and repoidtag is not None and baseurltag is not None:

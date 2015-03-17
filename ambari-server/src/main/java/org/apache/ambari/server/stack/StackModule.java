@@ -622,6 +622,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     ri.setRepoId(r.getRepoId());
     ri.setRepoName(r.getRepoName());
     ri.setLatestBaseUrl(r.getBaseUrl());
+    ri.setRepoComponents(r.getRepoComponents());
 
     LOG.debug("Checking for override for base_url");
     String updatedUrl = stackContext.getUpdatedRepoUrl(stackInfo.getName(), stackInfo.getVersion(),

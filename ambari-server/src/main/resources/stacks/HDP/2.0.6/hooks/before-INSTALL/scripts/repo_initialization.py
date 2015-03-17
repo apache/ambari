@@ -20,7 +20,7 @@ from resource_management import *
 import json
 
 # components_lits = repoName + postfix
-_UBUNTU_REPO_COMPONENTS_POSTFIX = ["main"]
+_DEFAULT_UBUNTU_REPO_COMPONENTS_POSTFIX = "main"
 
 def _alter_repo(action, repo_string, repo_template):
   """
@@ -37,8 +37,10 @@ def _alter_repo(action, repo_string, repo_template):
       repo['baseUrl'] = None
     if not 'mirrorsList' in repo:
       repo['mirrorsList'] = None
-    
-    ubuntu_components = [ repo['repoName'] ] + _UBUNTU_REPO_COMPONENTS_POSTFIX
+    if not 'repoComponents' in repo:
+      repo['repoComponents'] = _DEFAULT_UBUNTU_REPO_COMPONENTS_POSTFIX
+
+    ubuntu_components = [ repo['repoName'] ] + repo['repoComponents'].split()
     
     Repository(repo['repoId'],
                action = action,

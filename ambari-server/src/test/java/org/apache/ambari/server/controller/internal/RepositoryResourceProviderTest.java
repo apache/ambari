@@ -48,14 +48,15 @@ public class RepositoryResourceProviderTest {
   private static final String VAL_OS = "centos6";
   private static final String VAL_REPO_ID = "HDP-0.2";
   private static final String VAL_REPO_NAME = "HDP1";
+  private static final String VAL_REPO_COMPONENTS = "main contrib";
   private static final String VAL_BASE_URL = "http://foo.com";
 
   @Test
   public void testGetResources() throws Exception{
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
-    RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null, null, null);
+    RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS, 
+        VAL_REPO_ID, VAL_REPO_NAME, VAL_REPO_COMPONENTS, null, null, null);
     rr.setStackName(VAL_STACK_NAME);
     rr.setStackVersion(VAL_STACK_VERSION);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
@@ -76,6 +77,7 @@ public class RepositoryResourceProviderTest {
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_OS_TYPE_PROPERTY_ID);
     propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_ID_PROPERTY_ID);
+    propertyIds.add(RepositoryResourceProvider.REPOSITORY_REPO_COMPONENTS_PROPERTY_ID);
 
     Predicate predicate =
         new PredicateBuilder().property(RepositoryResourceProvider.REPOSITORY_STACK_NAME_PROPERTY_ID).equals(VAL_STACK_NAME)
@@ -100,6 +102,9 @@ public class RepositoryResourceProviderTest {
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_NAME_PROPERTY_ID);
       Assert.assertEquals(o, VAL_REPO_NAME);
 
+      o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_REPO_COMPONENTS_PROPERTY_ID);
+      Assert.assertEquals(o, VAL_REPO_COMPONENTS);
+
       o = resource.getPropertyValue(RepositoryResourceProvider.REPOSITORY_BASE_URL_PROPERTY_ID);
       Assert.assertEquals(o, VAL_BASE_URL);
 
@@ -121,8 +126,8 @@ public class RepositoryResourceProviderTest {
 
     AmbariManagementController managementController = EasyMock.createMock(AmbariManagementController.class);
 
-    RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS,
-        VAL_REPO_ID, VAL_REPO_NAME, null, null ,null);
+    RepositoryResponse rr = new RepositoryResponse(VAL_BASE_URL, VAL_OS, 
+        VAL_REPO_ID, VAL_REPO_NAME, VAL_REPO_COMPONENTS, null, null, null);
     Set<RepositoryResponse> allResponse = new HashSet<RepositoryResponse>();
     allResponse.add(rr);
 

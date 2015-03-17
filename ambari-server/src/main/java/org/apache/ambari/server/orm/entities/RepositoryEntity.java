@@ -24,6 +24,7 @@ public class RepositoryEntity {
 
   private String name;
   private String baseUrl;
+  private String repoComponents;
   private String repositoryId;
 
   public String getName() {
@@ -40,6 +41,14 @@ public class RepositoryEntity {
 
   public void setBaseUrl(String baseUrl) {
     this.baseUrl = baseUrl;
+  }
+
+  public String getRepoComponents() {
+    return repoComponents;
+  }
+
+  public void setRepoComponents(String repoComponents) {
+    this.repoComponents = repoComponents;
   }
 
   public String getRepositoryId() {
@@ -60,6 +69,7 @@ public class RepositoryEntity {
     if (name != null ? !name.equals(that.name) : that.name != null) return false;
     if (baseUrl != null ? !baseUrl.equals(that.baseUrl) : that.baseUrl != null) return false;
     if (repositoryId != null ? !repositoryId.equals(that.repositoryId) : that.repositoryId != null) return false;
+    if (repoComponents != null ? !repoComponents.equals(that.repoComponents) : that.repoComponents != null) return false;
 
     return true;
   }
@@ -69,6 +79,7 @@ public class RepositoryEntity {
     int result = name != null ? name.hashCode() : 0;
     result = 31 * result + (baseUrl != null ? baseUrl.hashCode() : 0);
     result = 31 * result + (repositoryId != null ? repositoryId.hashCode() : 0);
+    result = 31 * result + (repoComponents != null ? repoComponents.hashCode() : 0);
     return result;
   }
 

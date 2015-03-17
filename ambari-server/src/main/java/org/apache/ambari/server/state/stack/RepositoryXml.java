@@ -134,6 +134,7 @@ public class RepositoryXml implements Validable{
     private String mirrorslist = null;
     private String repoid = null;
     private String reponame = null;
+    private String repocomponents = null;
     private String latest = null;
 
     private Repo() {
@@ -167,6 +168,13 @@ public class RepositoryXml implements Validable{
       return reponame;
     }
     
+    /**
+     * @return the repocomponents
+     */
+    public String getRepoComponents() {
+      return repocomponents;
+    }
+
     public String getLatestUri() {
       return latest;
     }

@@ -57,6 +57,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
   public static final String REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID       = PropertyHelper.getPropertyId("Repositories", "verify_base_url");
   public static final String REPOSITORY_LATEST_BASE_URL_PROPERTY_ID       = PropertyHelper.getPropertyId("Repositories", "latest_base_url");
   public static final String REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Repositories", "repository_version_id");
+  public static final String REPOSITORY_REPO_COMPONENTS_PROPERTY_ID 	  = PropertyHelper.getPropertyId("Repositories", "repo_components");
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -82,6 +83,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
       add(REPOSITORY_VERIFY_BASE_URL_PROPERTY_ID);
       add(REPOSITORY_LATEST_BASE_URL_PROPERTY_ID);
       add(REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID);
+      add(REPOSITORY_REPO_COMPONENTS_PROPERTY_ID);
     }
   };
 
@@ -162,6 +164,7 @@ public class RepositoryResourceProvider extends AbstractControllerResourceProvid
         setResourceProperty(resource, REPOSITORY_MIRRORS_LIST_PROPERTY_ID, response.getMirrorsList(), requestedIds);
         setResourceProperty(resource, REPOSITORY_DEFAULT_BASE_URL_PROPERTY_ID, response.getDefaultBaseUrl(), requestedIds);
         setResourceProperty(resource, REPOSITORY_LATEST_BASE_URL_PROPERTY_ID, response.getLatestBaseUrl(), requestedIds);
+        setResourceProperty(resource, REPOSITORY_REPO_COMPONENTS_PROPERTY_ID, response.getRepoComponents(), requestedIds);
         if (response.getRepositoryVersionId() != null) {
           setResourceProperty(resource, REPOSITORY_REPOSITORY_VERSION_ID_PROPERTY_ID, response.getRepositoryVersionId(), requestedIds);
         }
