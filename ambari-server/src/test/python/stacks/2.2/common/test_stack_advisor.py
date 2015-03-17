@@ -684,8 +684,8 @@ class TestHDP22StackAdvisor(TestCase):
       },
       "ams-hbase-site": {
         "properties": {
-          "hbase.regionserver.global.memstore.lowerLimit": "0.4",
-          "hbase.regionserver.global.memstore.upperLimit": "0.5",
+          "hbase.regionserver.global.memstore.lowerLimit": "0.3",
+          "hbase.regionserver.global.memstore.upperLimit": "0.35",
           "hfile.block.cache.size": "0.3"
         }
       },

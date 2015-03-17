@@ -129,6 +129,17 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
             group = params.user_group
   )
 
+  # Phoenix spool file dir if not /tmp
+  if not os.path.exists(params.phoenix_server_spool_dir):
+    Directory(params.phoenix_server_spool_dir,
+              owner=params.ams_user,
+              mode = 0755,
+              group=params.user_group,
+              cd_access="a",
+              recursive=True
+    )
+  pass
+
   if 'ams-hbase-policy' in params.config['configurations']:
     XmlConfig("hbase-policy.xml",
             conf_dir = params.hbase_conf_dir,

@@ -135,9 +135,10 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
     putHbaseEnvProperty("hbase_regionserver_heapsize", "1024m")
+    # blockCache = 0.3, memstore = 0.35, phoenix-server = 0.15, phoenix-client = 0.25
     putAmsHbaseSiteProperty("hfile.block.cache.size", 0.3)
-    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.5)
-    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.4)
+    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.35)
+    putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.3)
     putTimelineServiceProperty("timeline.metrics.host.aggregator.ttl", 86400)
 
     # TODO recommend configuration for multiple AMBARI_METRICS collectors
@@ -145,23 +146,28 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       pass
     else:
       totalHostsCount = len(hosts["items"])
-      if totalHostsCount > 400:
+      # blockCache = 0.3, memstore = 0.3, phoenix-server = 0.2, phoenix-client = 0.3
+      if totalHostsCount >= 400:
         putHbaseEnvProperty("hbase_master_heapsize", "12288m")
+        putAmsEnvProperty("metrics_collector_heapsize", "8192m")
+        putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
+        putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
+        putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
+        putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", 0.3)
+        putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
+        putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
+        putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
+      elif totalHostsCount >= 100:
+        putHbaseEnvProperty("hbase_master_heapsize", "6144m")
         putAmsEnvProperty("metrics_collector_heapsize", "4096m")
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
-      elif totalHostsCount > 100:
-        putHbaseEnvProperty("hbase_master_heapsize", "6144m")
-        putAmsEnvProperty("metrics_collector_heapsize", "2048m")
-        putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
-        putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
-        putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
-        putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
-      elif totalHostsCount > 50:
+      elif totalHostsCount >= 50:
         putHbaseEnvProperty("hbase_master_heapsize", "2048m")
-        putAmsEnvProperty("metrics_collector_heapsize", "1024m")
+        putAmsEnvProperty("metrics_collector_heapsize", "2048m")
       else:
         putHbaseEnvProperty("hbase_master_heapsize", "1024m")
         putAmsEnvProperty("metrics_collector_heapsize", "512m")

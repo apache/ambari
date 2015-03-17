@@ -231,4 +231,21 @@
       JDBC resultset prefect size for aggregator queries.
     </description>
   </property>
+  <!-- Phoenix properties that would manifest in the hbase-site.xml on the client side -->
+  <property>
+    <name>phoenix.query.maxGlobalMemoryPercentage</name>
+    <value>25</value>
+    <description>
+      Percentage of total heap memory (i.e. Runtime.getRuntime().maxMemory())
+      that all threads may use.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.spool.directory</name>
+    <value>/tmp</value>
+    <description>
+      Set directory for Phoenix spill files. If possible set this to a
+      different mount point from the one for hbase.rootdir in embedded mode.
+    </description>
+  </property>
 </configuration>

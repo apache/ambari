@@ -575,7 +575,7 @@ public class PhoenixHBaseAccessor {
       }
     }
 
-    LOG.info("Aggregate records size: " + metrics.getMetrics().size());
+    LOG.debug("Aggregate records size: " + metrics.getMetrics().size());
     return metrics;
   }
 
