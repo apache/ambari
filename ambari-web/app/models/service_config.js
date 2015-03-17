@@ -316,6 +316,10 @@ App.ServiceConfigProperty = Em.Object.extend({
         var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
         this.setDefaultValue(hostWithPrefix,'://' + nnHost);
         break;
+      case 'instance.volumes':
+        var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
+        this.setDefaultValue(hostWithPrefix,'://' + nnHost);
+        break;
       case 'snamenode_host':
         // Secondary NameNode does not exist when NameNode HA is enabled
         var snn = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
@@ -556,6 +560,7 @@ App.ServiceConfigProperty = Em.Object.extend({
       case 'templeton.zookeeper.hosts':
       case 'hadoop.registry.zk.quorum':
       case 'hive.cluster.delegation.token.store.zookeeper.connectString':
+      case 'instance.zookeeper.host': // for accumulo
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         var zkHostPort = zkHosts;
         var regex = "\\w*:(\\d+)";   //regex to fetch the port

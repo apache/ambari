@@ -729,13 +729,13 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       App.get.restore();
       App.Service.find.restore();
     });
-    it('HA isn\'t enabled and no HBASE service', function () {
+    it('HA isn\'t enabled and no HBASE or ACCUMULO service', function () {
       isHaEnabled = false;
       var configs = {};
       controller.setSpecificNamenodeConfigs(configs, 'host1');
       expect(configs).to.eql({});
     });
-    it('HA isn\'t enabled and HBASE service', function () {
+    it('HA isn\'t enabled and HBASE and ACCUMULO service', function () {
       isHaEnabled = false;
       service = Em.Object.create({
         isLoaded: true
@@ -743,10 +743,14 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
       var configs = {
         'hbase-site': {
           'hbase.rootdir': 'hdfs://localhost:8020/apps/hbase/data'
+        },
+        'accumulo-site': {
+          'instance.volumes': 'hdfs://localhost:8020/apps/accumulo/data'
         }
       };
       controller.setSpecificNamenodeConfigs(configs, 'host1');
       expect(configs['hbase-site']['hbase.rootdir']).to.equal('hdfs://host1:8020/apps/hbase/data');
+      expect(configs['accumulo-site']['instance.volumes']).to.equal('hdfs://host1:8020/apps/accumulo/data');
     });
     it('HA enabled and namenode 1', function () {
       isHaEnabled = true;
