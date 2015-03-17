@@ -32,6 +32,10 @@
       <outputDirectory>ambari-server-${project.version}/resources</outputDirectory>
     </file>
     <file>
+      <source>${project.build.directory}/bootstrap.zip</source>
+      <outputDirectory>/ambari-server-${project.version}/bootstrap</outputDirectory>
+    </file>
+    <file>
       <source>${basedir}/conf/windows/ambari.properties</source>
       <outputDirectory>/ambari-server-${project.version}/conf</outputDirectory>
     </file>
@@ -57,10 +61,6 @@
     </file>
     <file>
       <source>${basedir}/src/main/python/bootstrap.py</source>
-      <outputDirectory>/ambari-server-${project.version}/bootstrap</outputDirectory>
-    </file>
-    <file>
-      <source>${basedir}/src/main/python/setupAgent.py</source>
       <outputDirectory>/ambari-server-${project.version}/bootstrap</outputDirectory>
     </file>
     <file>

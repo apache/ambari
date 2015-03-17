@@ -134,17 +134,40 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
-            <descriptor>${assemblydescriptor}</descriptor>
+            <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
           </descriptors>
-          <tarLongFileMode>gnu</tarLongFileMode>
         </configuration>
         <executions>
+          <execution>
+            <id>bootstrap-zip</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+            <configuration>
+              <attach>false</attach>
+              <finalName>bootstrap</finalName>
+              <appendAssemblyId>false</appendAssemblyId>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <descriptors>
+                <descriptor>${assemblybootstrap}</descriptor>
+              </descriptors>
+            </configuration>
+          </execution>
           <execution>
             <id>build-tarball</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
+            <configuration>
+              <attach>false</attach>
+              <appendAssemblyId>true</appendAssemblyId>
+              <tarLongFileMode>gnu</tarLongFileMode>
+              <descriptors>
+                <descriptor>${assemblydescriptor}</descriptor>
+              </descriptors>
+            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -1309,6 +1332,7 @@
         <fileextension.dot.shell-default>.cmd</fileextension.dot.shell-default>
         <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari-server-state;${project.basedir}\src\main\resources\custom_actions;${project.basedir}\src\main\resources\scripts;${project.basedir}\src\test\python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
+        <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
         <packagingFormat>jar</packagingFormat>
       </properties>
       <build>
