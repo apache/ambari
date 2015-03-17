@@ -181,9 +181,8 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
           host_component.id = host_component.HostRoles.component_name + "_" + host_component.HostRoles.host_name;
           previousComponentStatuses[host_component.id] = host_component.HostRoles.state;
           previousComponentPassiveStates[host_component.id] = host_component.HostRoles.maintenance_state;
-          if (host_component.HostRoles.component_name == "HBASE_MASTER") {
-            this.config3.ha_status = 'metrics.hbase.master.IsActiveMaster';
-          }
+          this.config3.ha_status = host_component.HostRoles.component_name == "HBASE_MASTER" ?
+            'metrics.hbase.master.IsActiveMaster' : 'HostRoles.ha_state';
           var comp = this.parseIt(host_component, this.config3);
           comp.service_id = serviceName;
           hostComponents.push(comp);
