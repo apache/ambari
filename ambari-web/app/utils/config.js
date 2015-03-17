@@ -87,7 +87,7 @@ App.config = Em.Object.create({
       var nonServiceTab = require('data/service_configs');
       var miscService = nonServiceTab.findProperty('serviceName', 'MISC');
       var tagTypes = {};
-      servicesWithConfigTypes.mapProperty('configTypes').forEach(function(configTypes) {
+      servicesWithConfigTypes.mapProperty('configTypes').forEach(function (configTypes) {
         for (var fileName in configTypes) {
           if (fileName.endsWith('-env') && !miscService.get('configTypes')[fileName]) {
             tagTypes[fileName] = configTypes[fileName];
@@ -124,10 +124,10 @@ App.config = Em.Object.create({
 
   preDefinedCustomConfigs: require('data/HDP2/custom_configs'),
 
-  preDefinedConfigFile: function(file) {
+  preDefinedConfigFile: function (file) {
     try {
       return require('data/{0}/{1}'.format(App.get('currentStackName'), file));
-    } catch(err) {
+    } catch (err) {
       // the file doesn't exist, which might be expected.
     }
   },
@@ -353,6 +353,7 @@ App.config = Em.Object.create({
           }
         }
 
+        this.tweakConfigVisibility(serviceConfigObj, properties);
         if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
           if (configsPropertyDef) {
             if (configsPropertyDef.isRequiredByAgent === false) {
@@ -384,7 +385,14 @@ App.config = Em.Object.create({
     }
   },
 
-  setValueByDisplayType: function(serviceConfigObj) {
+  tweakConfigVisibility: function (config, allSiteConfigs) {
+    var kdcType = allSiteConfigs['kdc_type'];
+    if (kdcType === 'active-directory' && (config.name === 'container_dn' || config.name === 'ldap_url')) {
+      config.isVisible = true;
+    }
+  },
+
+  setValueByDisplayType: function (serviceConfigObj) {
     if (serviceConfigObj.get('displayType') == 'directories' && (serviceConfigObj.get('category') == 'DataNode' || serviceConfigObj.get('category') == 'NameNode')) {
       var dirs = serviceConfigObj.get('value').split(',').sort();
       serviceConfigObj.set('value', dirs.join(','));
@@ -583,7 +591,7 @@ App.config = Em.Object.create({
       var definedConfigs = (serviceName) ? definedService.get('configs') : [];
 
       if (definedConfigs.length) {
-        advancedConfigs = advancedConfigs.filter(function(property) {
+        advancedConfigs = advancedConfigs.filter(function (property) {
           return !(definedConfigs.someProperty('name', property.name) && !serviceConfigs.someProperty('name', property.name));
         }, this);
       }
@@ -750,8 +758,8 @@ App.config = Em.Object.create({
    * @param {Object[]} configs - config properties to change
    * @param {App.ServiceConfigProperty[]} descriptor - parsed kerberos descriptor
    */
-  addKerberosDescriptorConfigs: function(configs, descriptor) {
-    descriptor.forEach(function(item) {
+  addKerberosDescriptorConfigs: function (configs, descriptor) {
+    descriptor.forEach(function (item) {
       var property = configs.findProperty('name', item.get('name'));
       if (property) {
         Em.set(property, 'isSecureConfig', true);
@@ -896,7 +904,7 @@ App.config = Em.Object.create({
    * @param {Function} callback
    * @returns {jqXHR}
    */
-  loadAdvancedConfigPartial: function(serviceNames, opt, callback) {
+  loadAdvancedConfigPartial: function (serviceNames, opt, callback) {
     var data = {
       serviceList: serviceNames.join(','),
       stackVersionUrl: App.get('stackVersionURL'),
@@ -930,11 +938,13 @@ App.config = Em.Object.create({
     params.callback([], request);
   },
 
-  loadAdvancedConfigPartialSuccess: function(data, opt, params, request) {
+  loadAdvancedConfigPartialSuccess: function (data, opt, params, request) {
     var properties = [];
-    if(data.items.length && data.items.mapProperty('configurations').length) {
-      var configurations = data.items.mapProperty('configurations').reduce(function(p,c) { return p.concat(c); });
-      configurations.forEach(function(item) {
+    if (data.items.length && data.items.mapProperty('configurations').length) {
+      var configurations = data.items.mapProperty('configurations').reduce(function (p, c) {
+        return p.concat(c);
+      });
+      configurations.forEach(function (item) {
         var property = this.createAdvancedPropertyObject(item.StackConfigurations);
         if (property) properties.push(property);
       }, this);
@@ -948,9 +958,9 @@ App.config = Em.Object.create({
    *
    * @method createAdvancedPropertyObject
    * @param {Object} item
-   * @returns {Object|Boolean} 
+   * @returns {Object|Boolean}
    */
-  createAdvancedPropertyObject: function(item) {
+  createAdvancedPropertyObject: function (item) {
     var serviceName = item.service_name;
     var fileName = item.type;
     /**
@@ -973,7 +983,7 @@ App.config = Em.Object.create({
 
     return $.extend(property, this.advancedConfigIdentityData(item));
   },
-  
+
   /**
    * Add additional properties to advanced property config object.
    * Additional logic based on `property_type`.
@@ -982,7 +992,7 @@ App.config = Em.Object.create({
    * @param {Object} config
    * @return {Object}
    */
-  advancedConfigIdentityData: function(config) {
+  advancedConfigIdentityData: function (config) {
     var propertyData = {};
     var proxyUserGroupServices = ['HIVE', 'OOZIE', 'FALCON'];
     var nameToDisplayNameMap = {
@@ -1193,7 +1203,7 @@ App.config = Em.Object.create({
             globalValue = allConfigs.findProperty('name', config.foreignKey[index]).value;
           }
           config._name = config.name.replace(_fkName, globalValue);
-        }else{
+        } else {
           config.noMatchSoSkipThisConfig = true;
         }
       }, this);
@@ -1384,7 +1394,7 @@ App.config = Em.Object.create({
       case 'directories':
       case 'directory':
       case 'datanodedirs':
-        rez = value.replace(/,/g,' ').trim().split(/\s+/g).join(',');
+        rez = value.replace(/,/g, ' ').trim().split(/\s+/g).join(',');
         break;
       case 'host':
         rez = value.trim();
@@ -1442,10 +1452,10 @@ App.config = Em.Object.create({
   persistWizardStep7ConfigGroups: function () {
     var installerController = App.router.get('installerController');
     var step7Controller = App.router.get('wizardStep7Controller');
-      installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
-      App.clusterStatus.setClusterStatus({
-        localdb: App.db.data
-      });
+    installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
+    App.clusterStatus.setClusterStatus({
+      localdb: App.db.data
+    });
   },
   /**
    * exclude configs that depends on services which are uninstalled
@@ -1477,7 +1487,7 @@ App.config = Em.Object.create({
       availableConfigGroups[0] : null;
     var serviceName = App.format.role(serviceId);
     App.ModalPopup.show({
-      classNames: [ 'sixty-percent-width-modal' ],
+      classNames: ['sixty-percent-width-modal'],
       header: Em.I18n.t('config.group.selection.dialog.title').format(serviceName),
       subTitle: Em.I18n.t('config.group.selection.dialog.subtitle').format(serviceName),
       selectExistingGroupLabel: Em.I18n.t('config.group.selection.dialog.option.select').format(serviceName),
@@ -1778,7 +1788,7 @@ App.config = Em.Object.create({
    * @param hostName
    *          (string) host name used to register
    */
-   getConfigGroupsForHost: function (hostName) {
+  getConfigGroupsForHost: function (hostName) {
 
   },
 
@@ -1805,7 +1815,7 @@ App.config = Em.Object.create({
    * @param {Object} properties - additional properties which will merge with base object definition
    * @returns {*}
    */
-  generateConfigPropertiesByName: function(names, properties) {
+  generateConfigPropertiesByName: function (names, properties) {
     return names.map(function (item) {
       var baseObj = {
         name: item,
@@ -1841,7 +1851,7 @@ App.config = Em.Object.create({
    * @returns {$.ajax}
    * @method loadConfigsFromStack
    */
-  loadConfigsFromStack: function(serviceNames) {
+  loadConfigsFromStack: function (serviceNames) {
     serviceNames = serviceNames || [];
     var name = serviceNames.length > 0 ? 'configs.stack_configs.load.services' : 'configs.stack_configs.load.all';
     return App.ajax.send({
@@ -1859,7 +1869,7 @@ App.config = Em.Object.create({
    * runs <code>stackConfigPropertiesMapper<code>
    * @param data
    */
-  saveConfigsToModel: function(data) {
+  saveConfigsToModel: function (data) {
     App.stackConfigPropertiesMapper.map(data);
   },
 
@@ -1869,7 +1879,7 @@ App.config = Em.Object.create({
    * @returns {$.Deferred()}
    * @method loadConfigGroups
    */
-  loadConfigGroups: function(serviceNames) {
+  loadConfigGroups: function (serviceNames) {
     var dfd = $.Deferred();
     if (!serviceNames || serviceNames.length === 0) {
       dfd.resolve();
@@ -1893,7 +1903,7 @@ App.config = Em.Object.create({
    * @param opt
    * @param params
    */
-  saveConfigGroupsToModel: function(data, opt, params) {
+  saveConfigGroupsToModel: function (data, opt, params) {
     App.configGroupsMapper.map(data, params.serviceList.split(','));
     params.dfd.resolve();
   },
@@ -1905,7 +1915,7 @@ App.config = Em.Object.create({
    * @returns {$.ajax}
    * @method loadConfigGroups
    */
-  loadConfigVersions: function(serviceName, configGroupId, configVersion) {
+  loadConfigVersions: function (serviceName, configGroupId, configVersion) {
     var info = this.generateAjaxDataForVersions(serviceName, configGroupId, configVersion);
     return App.ajax.send({
       name: info.name,
@@ -1922,7 +1932,7 @@ App.config = Em.Object.create({
    * @param configVersion
    * @returns {{name: string, data: {}}}
    */
-  generateAjaxDataForVersions: function(serviceName, configGroupId, configVersion) {
+  generateAjaxDataForVersions: function (serviceName, configGroupId, configVersion) {
     var result = {
       name: 'configs.config_versions.load.all.min',
       data: {}
@@ -1948,7 +1958,7 @@ App.config = Em.Object.create({
    * @param opt
    * @param params
    */
-  saveConfigVersionsToModel: function(data) {
+  saveConfigVersionsToModel: function (data) {
     App.configVersionsMapper.map(data);
   }
 });
