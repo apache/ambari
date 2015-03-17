@@ -4545,36 +4545,42 @@ var hdp2properties = [
     "name": "smokeuser_principal_name",
     "displayName": "Smoke user principal",
     "category": "Ambari Principals",
+    "filename": "cluster-env.xml",
     "index": 1
   },
   {
     "name": "smokeuser_keytab",
     "displayName": "Smoke user keytab",
     "category": "Ambari Principals",
+    "filename": "cluster-env.xml",
     "index": 2
   },
   {
     "name": "hdfs_principal_name",
     "displayName": "HDFS user principal",
     "category": "Ambari Principals",
+    "filename": "hadoop-env.xml",
     "index": 3
   },
   {
     "name": "hdfs_user_keytab",
     "displayName": "HDFS user keytab",
     "category": "Ambari Principals",
+    "filename": "hadoop-env.xml",
     "index": 4
   },
   {
     "name": "hbase_principal_name",
     "displayName": "HBase user principal",
     "category": "Ambari Principals",
+    "filename": "hbase-env.xml",
     "index": 5
   },
   {
     "name": "hbase_user_keytab",
     "displayName": "HBase user keytab",
     "category": "Ambari Principals",
+    "filename": "hbase-env.xml",
     "index": 6
   }
 ];
