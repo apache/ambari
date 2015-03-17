@@ -24,7 +24,8 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_klist_path
 from ambari_commons.os_check import OSConst, OSCheck
-from os import getpid, sep
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+import os
 from urlparse import urlparse
 
 RESULT_CODE_OK = 'OK'
@@ -36,12 +37,69 @@ SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
 OOZIE_PRINCIPAL = '{{oozie-site/oozie.authentication.kerberos.principal}}'
 OOZIE_KEYTAB = '{{oozie-site/oozie.authentication.kerberos.keytab}}'
 
+class KerberosPropertiesNotFound(Exception): pass
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def get_tokens():
+  """
+  Returns a tuple of tokens in the format {{site/property}} that will be used
+  to build the dictionary passed into execute
+  """
+  return (OOZIE_URL_KEY,)
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
   return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB)
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def get_check_command(oozie_url, host_name, parameters):
+  from resource_management.libraries.functions import reload_windows_env
+  reload_windows_env()
+  oozie_home = os.environ['OOZIE_HOME']
+  command = format("{oozie_home}\\bin\\oozie.cmd admin -oozie {oozie_url} -status")
+  return (command, None)
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def get_check_command(oozie_url, host_name, parameters):
+  security_enabled = False
+  if SECURITY_ENABLED in parameters:
+    security_enabled = str(parameters[SECURITY_ENABLED]).upper() == 'TRUE'
+  kerberos_env = None
+  if security_enabled:
+    if OOZIE_KEYTAB in parameters and OOZIE_PRINCIPAL in parameters:
+      oozie_keytab = parameters[OOZIE_KEYTAB]
+      oozie_principal = parameters[OOZIE_PRINCIPAL]
+
+      # substitute _HOST in kerberos principal with actual fqdn
+      oozie_principal = oozie_principal.replace('_HOST', host_name)
+    else:
+      raise KerberosPropertiesNotFound('The Oozie keytab and principal are required parameters when security is enabled.')
+
+    # Create the kerberos credentials cache (ccache) file and set it in the environment to use
+    # when executing curl
+    env = Environment.get_instance()
+    ccache_file = "{0}{1}oozie_alert_cc_{2}".format(env.tmp_dir, os.sep, os.getpid())
+    kerberos_env = {'KRB5CCNAME': ccache_file}
+
+    klist_path_local = get_klist_path()
+    klist_command = format("{klist_path_local} -s {ccache_file}")
+
+    # Determine if we need to kinit by testing to see if the relevant cache exists and has
+    # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
+    # it kinits we do but recover quickly when keytabs are regenerated
+    return_code, _ = call(klist_command)
+    if return_code != 0:
+      kinit_path_local = get_kinit_path()
+      kinit_command = format("{kinit_path_local} -l 5m -kt {oozie_keytab} {oozie_principal}; ")
+
+      # kinit
+      Execute(kinit_command, environment=kerberos_env)
+  command = format("source /etc/oozie/conf/oozie-env.sh ; oozie admin -oozie {oozie_url} -status")
+  return (command, kerberos_env)
 
 def execute(parameters=None, host_name=None):
   """
@@ -65,50 +123,13 @@ def execute(parameters=None, host_name=None):
   oozie_url = parameters[OOZIE_URL_KEY]
   oozie_url = oozie_url.replace(urlparse(oozie_url).hostname,localhost_address)
 
-  security_enabled = False
-  if SECURITY_ENABLED in parameters:
-    security_enabled = str(parameters[SECURITY_ENABLED]).upper() == 'TRUE'
-
-  command = format("source /etc/oozie/conf/oozie-env.sh ; oozie admin -oozie {oozie_url} -status")
-
   try:
-    # kinit if security is enabled so that oozie-env.sh can make the web request
-    kerberos_env = None
-
-    if security_enabled:
-      if OOZIE_KEYTAB in parameters and OOZIE_PRINCIPAL in parameters:
-        oozie_keytab = parameters[OOZIE_KEYTAB]
-        oozie_principal = parameters[OOZIE_PRINCIPAL]
-
-        # substitute _HOST in kerberos principal with actual fqdn
-        oozie_principal = oozie_principal.replace('_HOST', host_name)
-      else:
-        return (RESULT_CODE_UNKNOWN, ['The Oozie keytab and principal are required parameters when security is enabled.'])
-
-      # Create the kerberos credentials cache (ccache) file and set it in the environment to use
-      # when executing curl
-      env = Environment.get_instance()
-      ccache_file = "{0}{1}oozie_alert_cc_{2}".format(env.tmp_dir, sep, getpid())
-      kerberos_env = {'KRB5CCNAME': ccache_file}
-
-      klist_path_local = get_klist_path()
-      klist_command = format("{klist_path_local} -s {ccache_file}")
-
-      # Determine if we need to kinit by testing to see if the relevant cache exists and has
-      # non-expired tickets.  Tickets are marked to expire after 5 minutes to help reduce the number
-      # it kinits we do but recover quickly when keytabs are regenerated
-      return_code, _ = call(klist_command)
-      if return_code != 0:
-        kinit_path_local = get_kinit_path()
-        kinit_command = format("{kinit_path_local} -l 5m -kt {oozie_keytab} {oozie_principal}; ")
-
-        # kinit
-        Execute(kinit_command, environment=kerberos_env)
-
+    command, env = get_check_command(oozie_url, host_name, parameters)
     # execute the command
-    Execute(command, environment=kerberos_env)
+    Execute(command, environment=env)
 
     return (RESULT_CODE_OK, ["Successful connection to {0}".format(oozie_url)])
-
+  except KerberosPropertiesNotFound, ex:
+    return (RESULT_CODE_UNKNOWN, [str(ex)])
   except Exception, ex:
     return (RESULT_CODE_CRITICAL, [str(ex)])

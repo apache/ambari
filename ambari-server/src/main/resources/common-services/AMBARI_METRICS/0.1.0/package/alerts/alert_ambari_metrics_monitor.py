@@ -23,7 +23,11 @@ import socket
 
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.exceptions import ComponentIsNotRunning
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+if OSCheck.is_windows_family():
+  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
@@ -37,7 +41,21 @@ def get_tokens():
   """
   return (AMS_MONITOR_PID_DIR,)
 
+@OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+def is_monitor_process_live(pid_file=None):
+  """
+  Gets whether the Metrics Monitor Service is running.
+  :param pid_file: ignored
+  :return: True if the monitor is running, False otherwise
+  """
+  try:
+    check_windows_service_status("AmbariMetricsHostMonitoring")
+    ams_monitor_process_running = True
+  except:
+    ams_monitor_process_running = False
+  return ams_monitor_process_running
 
+@OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def is_monitor_process_live(pid_file):
   """
   Gets whether the Metrics Monitor represented by the specified file is running.
