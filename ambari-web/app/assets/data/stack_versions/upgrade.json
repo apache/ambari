@@ -623,6 +623,8 @@
         "progress_percent" : 0.0,
         "request_id" : 23,
         "status" : "IN_PROGRESS",
+        "completed_task_count" : 2,
+        "total_task_count" : 3,
         "title" : "Core Slaves"
       },
       "upgrade_items" : [

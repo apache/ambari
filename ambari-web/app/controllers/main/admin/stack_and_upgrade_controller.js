@@ -221,6 +221,7 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       oldData.upgradeGroups.forEach(function (oldGroup) {
         oldGroup.set('status', groupsMap[oldGroup.get('group_id')].status);
         oldGroup.set('progress_percent', groupsMap[oldGroup.get('group_id')].progress_percent);
+        oldGroup.set('completed_task_count', groupsMap[oldGroup.get('group_id')].completed_task_count);
         oldGroup.upgradeItems.forEach(function (item) {
           item.set('status', itemsMap[item.get('stage_id')].status);
           item.set('progress_percent', itemsMap[item.get('stage_id')].progress_percent);

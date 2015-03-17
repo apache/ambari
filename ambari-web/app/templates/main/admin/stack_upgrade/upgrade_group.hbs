@@ -24,9 +24,11 @@
   </div>
   {{#if view.content.isRunning}}
     <div class="span3">
-      {{view App.ProgressBarView
+      {{view view.progressBarView
         progressBinding="view.content.progress"
         statusBinding="view.content.status"
+        totalTasksBinding="view.content.total_task_count"
+        completedTasksBinding="view.content.completed_task_count"
       }}
     </div>
     <div class="span1">

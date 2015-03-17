@@ -23,6 +23,16 @@ App.upgradeGroupView = Em.View.extend({
   templateName: require('templates/main/admin/stack_upgrade/upgrade_group'),
 
   /**
+   * customized view of progress bar that show completed/total counters
+   * @class App.ProgressBarView
+   */
+  progressBarView: App.ProgressBarView.extend({
+    classNames: ['progress-counter'],
+    template: Ember.Handlebars.compile('<div class="bar" {{bindAttr style="view.progressWidth"}}></div>' +
+    '<div class="counters-label">{{view.completedTasks}}/{{view.totalTasks}}</div>')
+  }),
+
+  /**
    * Only one UpgradeGroup or UpgradeItem could be expanded at a time
    * @param {object} event
    */

@@ -417,7 +417,8 @@ describe('App.MainAdminStackAndUpgradeController', function() {
             UpgradeGroup: {
               group_id: 1,
               status: 'COMPLETED',
-              progress_percent: 100
+              progress_percent: 100,
+              completed_task_count: 3
             },
             upgrade_items: [
               {
@@ -435,6 +436,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       controller.updateUpgradeData(newData);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('status')).to.equal('COMPLETED');
       expect(controller.get('upgradeData.upgradeGroups')[0].get('progress_percent')).to.equal(100);
+      expect(controller.get('upgradeData.upgradeGroups')[0].get('completed_task_count')).to.equal(3);
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('status')).to.equal('COMPLETED');
       expect(controller.get('upgradeData.upgradeGroups')[0].get('upgradeItems')[0].get('progress_percent')).to.equal(100);
     });
