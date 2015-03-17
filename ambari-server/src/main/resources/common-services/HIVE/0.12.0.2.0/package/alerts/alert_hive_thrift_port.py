@@ -34,6 +34,7 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 HIVE_SERVER2_AUTHENTICATION_KEY = '{{hive-site/hive.server2.authentication}}'
 HIVE_SERVER_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.principal}}'
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
+SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 
 PERCENT_WARNING = 200
@@ -44,6 +45,7 @@ HIVE_SERVER_TRANSPORT_MODE_DEFAULT = 'binary'
 HIVE_SERVER_PRINCIPAL_DEFAULT = 'hive/_HOST@EXAMPLE.COM'
 HIVE_SERVER2_AUTHENTICATION_DEFAULT = 'NOSASL'
 SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
 def get_tokens():
@@ -52,7 +54,7 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY,HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
-          SMOKEUSER_KEYTAB_KEY,SMOKEUSER_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,HIVE_SERVER_TRANSPORT_MODE_KEY)
+          SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,HIVE_SERVER_TRANSPORT_MODE_KEY)
 
 
 def execute(parameters=None, host_name=None):
@@ -85,6 +87,10 @@ def execute(parameters=None, host_name=None):
   if HIVE_SERVER2_AUTHENTICATION_KEY in parameters:
     hive_server2_authentication = parameters[HIVE_SERVER2_AUTHENTICATION_KEY]
 
+  smokeuser_principal = SMOKEUSER_PRINCIPAL_DEFAULT
+  if SMOKEUSER_PRINCIPAL_KEY in parameters:
+    smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_KEY]
+
   smokeuser = SMOKEUSER_DEFAULT
   if SMOKEUSER_KEY in parameters:
     smokeuser = parameters[SMOKEUSER_KEY]
@@ -99,7 +105,7 @@ def execute(parameters=None, host_name=None):
     if SMOKEUSER_KEYTAB_KEY in parameters:
       smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
     kinit_path_local = get_kinit_path()
-    kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
+    kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
   else:
     hive_server_principal = None
     kinitcmd=None

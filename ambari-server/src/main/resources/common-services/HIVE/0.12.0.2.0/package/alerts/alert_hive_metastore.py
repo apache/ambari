@@ -30,6 +30,7 @@ CRITICAL_MESSAGE = "Metastore on {0} failed ({1})"
 
 SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
+SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 HIVE_METASTORE_URIS_KEY = '{{hive-site/hive.metastore.uris}}'
 
@@ -37,6 +38,7 @@ PERCENT_WARNING = 200
 PERCENT_CRITICAL = 200
 
 SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
 def get_tokens():
@@ -44,7 +46,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_KEY,HIVE_METASTORE_URIS_KEY)
+  return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_METASTORE_URIS_KEY)
 
 
 def execute(parameters=None, host_name=None):
@@ -67,6 +69,10 @@ def execute(parameters=None, host_name=None):
   if SECURITY_ENABLED_KEY in parameters:
     security_enabled = str(parameters[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
 
+  smokeuser_principal = SMOKEUSER_PRINCIPAL_DEFAULT
+  if SMOKEUSER_PRINCIPAL_KEY in parameters:
+    smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_KEY]
+
   smokeuser = SMOKEUSER_DEFAULT
   if SMOKEUSER_KEY in parameters:
     smokeuser = parameters[SMOKEUSER_KEY]
@@ -81,7 +87,7 @@ def execute(parameters=None, host_name=None):
         smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
 
       kinit_path_local = get_kinit_path()
-      kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser}; ")
+      kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
 
       Execute(kinitcmd, user=smokeuser,
         path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
