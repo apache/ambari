@@ -277,4 +277,20 @@
       Controls the number of pre-allocated regions for SYSTEM.SEQUENCE table.
     </description>
   </property>
+  <property>
+    <name>phoenix.query.maxGlobalMemoryPercentage</name>
+    <value>15</value>
+    <description>
+      Percentage of total heap memory (i.e. Runtime.getRuntime().maxMemory())
+      that all threads may use.
+    </description>
+  </property>
+  <property>
+    <name>phoenix.spool.directory</name>
+    <value>${hbase.tmp.dir}/phoenix-spool</value>
+    <description>
+      Set directory for Phoenix spill files. If possible set this to a
+      different mount point from the one for hbase.rootdir in embedded mode.
+    </description>
+  </property>
 </configuration>

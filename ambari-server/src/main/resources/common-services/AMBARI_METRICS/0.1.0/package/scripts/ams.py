@@ -142,6 +142,10 @@ def ams(name=None):
     if params.security_enabled:
       merged_ams_hbase_site.update(params.config['configurations']['ams-hbase-security-site'])
 
+    # Add phoenix client side overrides
+    merged_ams_hbase_site['phoenix.query.maxGlobalMemoryPercentage'] = str(params.phoenix_max_global_mem_percent)
+    merged_ams_hbase_site['phoenix.spool.directory'] = params.phoenix_client_spool_dir
+
     XmlConfig( "hbase-site.xml",
                conf_dir = params.ams_collector_conf_dir,
                configurations = merged_ams_hbase_site,
@@ -188,6 +192,15 @@ def ams(name=None):
          mode=0755
     )
 
+    # Phoenix spool file dir if not /tmp
+    if not os.path.exists(params.phoenix_client_spool_dir):
+      Directory(params.phoenix_client_spool_dir,
+                owner=params.ams_user,
+                mode = 0755,
+                group=params.user_group,
+                cd_access="a",
+                recursive=True
+      )
     pass
 
   elif name == 'monitor':

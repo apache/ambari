@@ -94,6 +94,13 @@ hbase_tmp_dir = config['configurations']['ams-hbase-site']['hbase.tmp.dir']
 _local_dir_conf = default('/configurations/ams-hbase-site/hbase.local.dir', "${hbase.tmp.dir}/local")
 local_dir = substitute_vars(_local_dir_conf, config['configurations']['ams-hbase-site'])
 
+phoenix_max_global_mem_percent = default('/configurations/ams-site/phoenix.query.maxGlobalMemoryPercentage', '20')
+phoenix_client_spool_dir = default('/configurations/ams-site/phoenix.spool.directory', '/tmp')
+phoenix_server_spool_dir = default('/configurations/ams-hbase-site/phoenix.spool.directory', '/tmp')
+# Substitute vars if present
+phoenix_client_spool_dir = substitute_vars(phoenix_client_spool_dir, config['configurations']['ams-hbase-site'])
+phoenix_server_spool_dir = substitute_vars(phoenix_server_spool_dir, config['configurations']['ams-hbase-site'])
+
 client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
 master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
 regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
