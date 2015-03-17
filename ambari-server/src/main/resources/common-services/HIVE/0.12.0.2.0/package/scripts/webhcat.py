@@ -150,6 +150,7 @@ def webhcat():
   
   Directory(params.webhcat_conf_dir,
        cd_access='a',
+       recursive=True
   )
 
   log4j_webhcat_filename = 'webhcat-log4j.properties'

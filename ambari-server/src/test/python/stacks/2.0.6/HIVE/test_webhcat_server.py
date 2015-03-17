@@ -214,6 +214,7 @@ class TestWebHCatServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
         cd_access = 'a',
+        recursive=True
     )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',
@@ -325,6 +326,7 @@ class TestWebHCatServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/etc/hive-webhcat/conf',
         cd_access = 'a',
+        recursive=True
     )
     self.assertResourceCalled('File', '/etc/hcatalog/conf/webhcat-log4j.properties',
                               content = 'log4jproperties\nline2',
