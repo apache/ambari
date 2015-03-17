@@ -1910,38 +1910,37 @@ App.config = Em.Object.create({
 
   /**
    * load config groups
-   * @param {String} serviceName
-   * @param {Number} configGroupId
+   * @param {string} [serviceName=null]
+   * @param {number} [configGroupId=null]
+   * @param {number} [configVersion=null]
+   * @param {boolean} [isForCompare=false]
    * @returns {$.ajax}
    * @method loadConfigGroups
    */
-  loadConfigVersions: function (serviceName, configGroupId, configVersion) {
-    var info = this.generateAjaxDataForVersions(serviceName, configGroupId, configVersion);
-    return App.ajax.send({
-      name: info.name,
-      sender: this,
-      data: info.data,
-      success: 'saveConfigVersionsToModel'
-    });
+  loadConfigVersions: function (serviceName, configGroupId, configVersion, isForCompare) {
+    var info = this.generateAjaxDataForVersions(serviceName, configGroupId, configVersion, isForCompare);
+    return App.ajax.send($.extend({sender: this, success: 'saveConfigVersionsToModel'}, info));
   },
 
   /**
    * generate ajax info
-   * @param serviceName
-   * @param configGroupId
-   * @param configVersion
+   * @param {string} [serviceName=null]
+   * @param {number} [configGroupId=null]
+   * @param {number} [configVersion=null]
+   * @param {boolean} [isForCompare=false]
    * @returns {{name: string, data: {}}}
    */
-  generateAjaxDataForVersions: function (serviceName, configGroupId, configVersion) {
+  generateAjaxDataForVersions: function (serviceName, configGroupId, configVersion, isForCompare) {
     var result = {
       name: 'configs.config_versions.load.all.min',
       data: {}
-    }
+    };
     if (serviceName) {
       result.data.serviceName = serviceName;
       if (configVersion) {
         result.name = 'configs.config_versions.load';
-        result.data.configVersion = configVersion
+        result.data.configVersion = configVersion;
+        result.data.isForCompare = isForCompare;
       } else if (configGroupId) {
         result.name = 'configs.config_versions.load.group';
         result.data.configGroupId = configGroupId;
@@ -1958,7 +1957,31 @@ App.config = Em.Object.create({
    * @param opt
    * @param params
    */
-  saveConfigVersionsToModel: function (data) {
-    App.configVersionsMapper.map(data);
+  saveConfigVersionsToModel: function (data, opt, params) {
+    App.configVersionsMapper.map(data, params.isForCompare);
+  },
+
+  /**
+   * load config themes
+   * @param {string} serviceName
+   * @returns {$.ajax}
+   */
+  loadConfigTheme: function(serviceName) {
+    return App.ajax.send({
+      name: 'configs.theme',
+      sender: this,
+      data: {
+        serviceName: serviceName
+      },
+      success: 'saveThemeToModel'
+    });
+  },
+
+  /**
+   * runs <code>themeMapper<code>
+   * @param data
+   */
+  saveThemeToModel: function(data) {
+    App.themesMapper.map(data);
   }
 });

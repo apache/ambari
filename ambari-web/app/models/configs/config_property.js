@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.ConfigProperty = App.StackConfigProperty.extend({
+App.ConfigProperty = DS.Model.extend({
 
   /**
    * id is consist of property <code>name<code>+<code>fileName<code>+<code>configVersion.version<code>
@@ -33,16 +33,35 @@ App.ConfigProperty = App.StackConfigProperty.extend({
   value: DS.attr('string'),
 
   /**
+   * default value of property
+   * @property {string}
+   */
+  defaultValue: DS.attr('string'),
+
+  /**
    * defines if property is final
    * @property {boolean}
    */
-  isFinal:  DS.attr('boolean', {defaultValue: false}),
+  isFinal: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * defines if property is final by default
+   * @property {boolean}
+   */
+  defaultIsFinal: DS.attr('boolean', {defaultValue: false}),
 
   /**
    * link to config version
    * @property {App.ConfigVersion}
    */
   configVersion: DS.belongsTo('App.ConfigVersion'),
+
+  /**
+   * link to config version
+   * from this model we can get all static info about property
+   * @property {App.ConfigVersion}
+   */
+  stackConfigProperty: DS.belongsTo('App.StackConfigProperty'),
 
   /**
    * defines if property should be visible for user
@@ -82,12 +101,6 @@ App.ConfigProperty = App.StackConfigProperty.extend({
    * @property {boolean}
    */
   isSecureConfig: DS.attr('boolean', {defaultValue: false}),
-
-  /**
-   * defines if property is added by user
-   * @property {boolean}
-   */
-  isUserProperty: DS.attr('boolean', {defaultValue: false}),
 
   /**
    * if true - don't show property
@@ -142,6 +155,23 @@ App.ConfigProperty = App.StackConfigProperty.extend({
   isOriginalSCP: function() {
     return this.get('configVersion.isDefault');
   }.property('configVersion.isDefault'),
+
+  /**
+   * defines if property is added by user
+   * @property {boolean}
+   */
+  isUserProperty: function() {
+    return Em.isNone(this.get('stackConfigProperty'));
+  }.property('stackConfigProperty'),
+
+  /**
+   * defines if this property is belongs to version
+   * with which we make comparison
+   * @property {boolean}
+   */
+  isForCompare: function() {
+    return this.get('configVersion.isForCompare');
+  }.property('configVersion.isForCompare'),
 
   /**
    * Indicates when value is not the default value.

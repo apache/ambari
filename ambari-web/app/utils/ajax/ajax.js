@@ -603,7 +603,13 @@ var urls = {
       }
     }
   },
+  /*************************CONFIG THEME****************************************/
 
+  'configs.theme': {
+    'real': '{stackVersionUrl}/services/{serviceName}/artifacts/theme',
+    'mock': '/data/configurations/theme.json'
+  },
+  
   /*************************CONFIG GROUPS***************************************/
 
   'configs.config_groups.load.all': {

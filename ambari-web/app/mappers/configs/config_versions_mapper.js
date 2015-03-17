@@ -32,10 +32,11 @@ App.configVersionsMapper = App.QuickDataMapper.create({
     author: 'user',
     notes: 'service_config_version_note',
     is_current: 'is_current',
-    index: 'index'
+    index: 'index',
+    is_for_compare: 'is_for_compare'
   },
 
-  map: function (json) {
+  map: function (json, isForCompare) {
     var configVersions = [];
     var itemIds = {};
     var serviceToHostMap = {};
@@ -48,6 +49,7 @@ App.configVersionsMapper = App.QuickDataMapper.create({
         itemIds[parsedItem.id] = true;
         parsedItem.index = index;
         parsedItem.config_properties = [];
+        parsedItem.is_for_compare = Boolean(isForCompare);
 
         if (serviceToHostMap[item.service_name]) {
           serviceToHostMap[item.service_name] = serviceToHostMap[item.service_name].concat(item.hosts);
@@ -66,12 +68,14 @@ App.configVersionsMapper = App.QuickDataMapper.create({
             var properties_array = Object.keys(config.properties);
             for (var i = 0; i < properties_array.length; i++) {
               var key = properties_array[i];
-              var property = App.StackConfigProperty.find(key  + '_' + type).toJSON();
 
-              property.id = key  + '_' + type + '_' + item.service_config_version;
+              var property = {
+                id: key  + '_' + type + '_' + item.service_config_version,
+                config_version_id: parsedItem.id,
+                stack_config_property_id: key  + '_' + type
+              };
               property.value = property.default_value = config.properties[key];
               property.is_final = property.default_is_final = !!item.properties_attributes && item.properties_attributes.final[key] === "true";
-              property.config_version_id = parsedItem.id;
 
               properties.push(property);
             }

@@ -65,3 +65,6 @@ require('models/configs/stack_config_property');
 //require('models/configs/config_group');
 require('models/configs/config_version');
 require('models/configs/config_property');
+require('models/configs/tab');
+require('models/configs/section');
+require('models/configs/sub_section');

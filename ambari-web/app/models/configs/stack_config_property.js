@@ -147,7 +147,13 @@ App.StackConfigProperty = DS.Model.extend({
    * }
    * @property {object}
    */
-  valueAttributes: DS.attr('object', {defaultValue: null})
+  valueAttributes: DS.attr('object', {defaultValue: null}),
+
+  /**
+   * sub section to which belongs this property
+   * @property {App.SubSection}
+   */
+  subSection: DS.belongsTo('App.SubSection')
 
 });
 

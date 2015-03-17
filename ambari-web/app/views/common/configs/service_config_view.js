@@ -85,43 +85,13 @@ App.ServiceConfigView = Em.View.extend({
       'App.router.wizardStep7Controller.selectedConfigGroup.name'
   ),
 
-  // TODO remove workaround for `Advanced` tab after Tab model implementation
-  /**
-   * Create `Advanced` tab which is not related to fancy tab section.
-   * This tab contains properties without widgets.
-   *
-   * @returns {Ember.Object}
-   */
-  getAdvancedTab: function() {
-    var tabId = 'advanced-' + this.get('controller.selectedService.serviceName').toLowerCase() + '-tab';
-    return this.createTabObject(Em.Object.create({
-      id: tabId,
-      name: Em.I18n.t('common.advanced')
-    }));
-  },
-
-  /**
-   * @param {Ember.Object} model
-   * @returns {Ember.Object}
-   */
-  createTabObject: function(model) {
-    return Em.Object.create({
-      id: model.get('id'),
-      displayName: model.get('name'),
-      tabClassName: '.' + model.get('id'),
-      isAdvanced: model.get('name') == Em.I18n.t('common.advanced')
-    });
-  },
-
   /**
    * Object that used for Twitter Bootstrap tabs markup.
    *
    * @returns {Ember.A}
    */
   tabs: function() {
-    var tabs = Em.A([]);
-    // filter Tab models by service name and create object here
-    tabs.pushObject(this.getAdvancedTab());
+    var tabs = App.Tab.find();
     // make first tab active
     tabs.get('firstObject').set('isActive', true);
     return tabs;

@@ -16,19 +16,19 @@
  * limitations under the License.
  */
 
-
 var App = require('app');
 
-App.ConfigVersion = App.ServiceConfigVersion.extend({
-  configProperties: DS.hasMany('App.ConfigProperty'),
-
-  /**
-   * this flag is true when we compare some version with
-   * this config version
-   * this flag make influence on displaying properties
-   * @property {boolean} [isForCompare=false]
-   */
-  isForCompare: DS.attr('boolean', {defaultValue: false})
+App.Tab = DS.Model.extend({
+  id: DS.attr('string'),
+  name: DS.attr('string'),
+  displayName: DS.attr('string'),
+  columns: DS.attr('number', {defaultValue: 1}),
+  rows: DS.attr('number', {defaultValue: 1}),
+  isAdvanced: DS.attr('boolean', {defaultValue: false}),
+  serviceName: DS.attr('string'),
+  sections: DS.hasMany('App.Section')
 });
 
-App.ConfigVersion.FIXTURES = [];
+
+App.Tab.FIXTURES = [];
+
