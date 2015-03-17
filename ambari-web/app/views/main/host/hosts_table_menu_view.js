@@ -237,7 +237,7 @@ App.HostTableMenuView = Em.View.extend({
      * @returns {Array}
      */
     operationsInfo: function () {
-      return Em.A([
+      var options = [
         Em.Object.create({
           label: Em.I18n.t('hosts.host.details.startAllComponents'),
           operationData: Em.Object.create({
@@ -277,7 +277,19 @@ App.HostTableMenuView = Em.View.extend({
             message: Em.I18n.t('passiveState.turnOffFor').format('hosts')
           })
         })
-      ]);
+      ];
+      if(App.get('supports.setRackId')) {
+        options.push(
+          Em.Object.create({
+            label: Em.I18n.t('hosts.host.details.setRackId'),
+            operationData: Em.Object.create({
+              action: 'SET_RACK_INFO',
+              message: Em.I18n.t('hosts.host.details.setRackId').format('hosts')
+            })
+          })
+        );
+      }
+      return options;
     }.property(),
 
     /**

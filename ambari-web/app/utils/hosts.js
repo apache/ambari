@@ -18,7 +18,7 @@
 require('views/common/table_view');
 
 var App = require('app');
-var lazyloading = require('utils/lazy_loading');
+var validator = require('utils/validator');
 
 module.exports = {
 
@@ -178,5 +178,56 @@ module.exports = {
         }
       })
     });
+  },
+
+   /**
+   * Bulk setting of for rack id
+   * @param {Object} operationData - data about bulk operation (action, hostComponents etc)
+   * @param {Ember.Enumerable} hosts - list of affected hosts
+   */
+  setRackInfo: function (operationData, hosts, rackId) {
+    var self = this;
+    var hostNames = hosts.mapProperty('hostName');
+    return App.ModalPopup.show({
+      header: Em.I18n.t('hosts.host.details.setRackId'),
+      disablePrimary: false,
+      rackId: rackId,
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/rack_id_popup'),
+        errorMessage: null,
+        isValid: true,
+        validation: function () {
+          this.set('isValid', validator.isValidRackId(this.get('parentView.rackId')));
+          this.set('errorMessage', this.get('isValid') ? '' : Em.I18n.t('hostPopup.setRackId.invalid'));
+          this.set('parentView.disablePrimary', !this.get('isValid'));
+        }.observes('parentView.rackId')
+      }),
+      onPrimary: function() {
+        var rackId = this.get('rackId');
+        if (hostNames.length) {
+          App.ajax.send({
+            name: 'bulk_request.hosts.update_rack_id',
+            sender: self,
+            data: {
+              hostNames: hostNames.join(','),
+              requestInfo: operationData.message,
+              rackId: rackId
+            },
+            error: 'errorRackId'
+          });
+        }
+        this.hide();
+      },
+      onSecondary: function() {
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * Warn user that the rack id will not be updated
+   */
+  errorRackId: function () {
+    App.showAlertPopup(Em.I18n.t('common.error'), Em.I18n.t('hostPopup.setRackId.error'));
   }
 };

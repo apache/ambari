@@ -34,16 +34,13 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   },
 
   /**
-   * get hosts from server
+   * get hosts from the root controller
    */
   getHosts: function () {
-    App.ajax.send({
-      name: 'hosts.heatmaps',
-      sender: this,
-      data: {},
-      success: 'getHostsSuccessCallback',
-      error: 'getHostsErrorCallback'
-    });
+    var controller = App.router.get('mainChartsHeatmapController');
+    var rackId = this.get('rack.rackId');
+    var rackMap = controller.get('rackMap');
+    this.pushHostsToRack(rackMap[rackId].hosts);
   },
 
   getHostsSuccessCallback: function (data, opt, params) {
@@ -56,9 +53,10 @@ App.MainChartsHeatmapRackView = Em.View.extend({
    */
   displayHosts: function () {
     var rackHosts = this.get('rack.hosts');
+    var rackCount = App.router.get('mainChartsHeatmapController.modelRacks.length');
 
     if (this.get('hosts.length') === 0) {
-      if (rackHosts.length > 100) {
+      if (rackHosts.length > 100 && rackCount == 1) {
         lazyloading.run({
           initSize: 100,
           chunkSize: 200,
@@ -81,25 +79,9 @@ App.MainChartsHeatmapRackView = Em.View.extend({
    * push hosts to rack
    * @param data
    */
-  pushHostsToRack: function (data) {
-    var newHostsData = [];
+  pushHostsToRack: function (hosts) {
+    var newHostsData = hosts;
     var rackHosts = this.get('rack.hosts');
-
-    data.items.forEach(function (item) {
-      newHostsData.push({
-        hostName: item.Hosts.host_name,
-        publicHostName: item.Hosts.public_host_name,
-        osType: item.Hosts.os_type,
-        ip: item.Hosts.ip,
-        diskTotal: item.metrics ? item.metrics.disk.disk_total : 0,
-        diskFree: item.metrics ? item.metrics.disk.disk_free : 0,
-        cpuSystem: item.metrics ? item.metrics.cpu.cpu_system : 0,
-        cpuUser: item.metrics ? item.metrics.cpu.cpu_user : 0,
-        memTotal: item.metrics ? item.metrics.memory.mem_total : 0,
-        memFree: item.metrics ? item.metrics.memory.mem_free : 0,
-        hostComponents: item.host_components.mapProperty('HostRoles.component_name')
-      })
-    });
 
     if (rackHosts.length > 0) {
       this.updateLoadedHosts(rackHosts, newHostsData);
@@ -161,6 +143,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
       this.displayHosts();
     }
     this.getHosts();
+    App.router.get('mainChartsHeatmapController').addRackView(this);
   },
   /**
    * Provides the CSS style for an individual host.

@@ -134,6 +134,11 @@
                         <dt class="summary-ipaddress-label">{{t common.ipAddress}}:</dt>
                           <dd class="summary-ipaddress-value">&nbsp;{{view.content.ip}}</dd>
 
+                        {{#if App.supports.setRackId}}
+                          <dt>{{t common.rack}}:</dt>
+                          <dd>&nbsp;{{view.content.rack}}</dd>
+                        {{/if}}
+
                         <dt class="summary-os-label">{{t common.os}}:</dt>
                           <dd class="summary-os-value">&nbsp;{{view.content.osType}}&nbsp;({{view.content.osArch}})</dd>
 

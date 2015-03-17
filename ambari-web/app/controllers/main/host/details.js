@@ -19,6 +19,7 @@
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
 var componentsUtils = require('utils/components');
+var hostsManagement = require('utils/hosts');
 var stringUtils = require('utils/string_utils');
 
 App.MainHostDetailsController = Em.Controller.extend({
@@ -1477,6 +1478,9 @@ App.MainHostDetailsController = Em.Controller.extend({
       case "onOffPassiveModeForHost":
         this.onOffPassiveModeForHost(option.context);
         break;
+      case "setRackId":
+        this.setRackIdForHost();
+        break;
     }
   },
 
@@ -1494,6 +1498,17 @@ App.MainHostDetailsController = Em.Controller.extend({
       },
       Em.I18n.t('hosts.passiveMode.popup').format(context.active ? 'On' : 'Off', this.get('content.hostName'))
     );
+  },
+
+  /**
+   * Set rack id for host
+   * @method setRackIdForHost
+   */
+  setRackIdForHost: function () {
+    var hostNames = [{hostName: this.get('content.hostName')}];
+    var rack = this.get('content.rack');
+    var operationData = {message: Em.I18n.t('hosts.host.details.setRackId')};
+    hostsManagement.setRackInfo(operationData, hostNames, rack);
   },
 
   /**

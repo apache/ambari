@@ -16,24 +16,10 @@
 * limitations under the License.
 }}
 
-<b>{{view.details.publicHostName}}</b><br/>
-{{t common.os}}: {{view.details.osType}}<br/>
-{{t common.ipAddress}}: {{view.details.ip}}<br/>
-{{#if App.supports.setRackId}}
-  {{t common.rack}}: {{view.details.rack}}<br/>
-{{/if}}
-{{#if view.details.metricName}}
-  {{view.details.metricName}}: {{view.details.metricValue}}<br/>
-{{/if}}
-{{#if view.details.diskUsage}}
-  {{t common.disk}}: {{view.details.diskUsage}}% <br/>
-{{/if}}
-{{#if view.details.cpuUsage}}
-  {{t common.cpu}}: {{view.details.cpuUsage}}%<br/>
-{{/if}}
-{{#if view.details.memoryUsage}}
-  {{t common.memory}}: {{view.details.memoryUsage}}%<br/>
-{{/if}}
-{{#if view.details.hostComponents}}
-  {{t common.components}}: {{view.details.hostComponents}}<br/>
-{{/if}}
+<div id="host-rack-id-popup">
+  <div {{bindAttr class=":control-group :inline view.isValid::error"}}>
+    <span>{{t hostPopup.RackId}}:&nbsp;</span>
+    {{view Em.TextField valueBinding="view.parentView.rackId" class="input-xlarge"}}
+    <span class="help-inline">{{view.errorMessage}}</span>
+  </div>
+</div>

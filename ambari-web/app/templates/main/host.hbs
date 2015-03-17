@@ -64,6 +64,9 @@
         <th> </th>
         <th> </th>
         {{view view.parentView.ipSort}}
+        {{#if App.supports.setRackId}}
+          {{view view.parentView.rackSort}}
+        {{/if}}
         {{view view.parentView.cpuSort}}
         {{view view.parentView.memorySort}}
         {{view view.parentView.diskUsageSort}}
@@ -80,6 +83,9 @@
         <th> </th>
         <th> </th>
         <th>{{view view.ipFilterView}}</th>
+        {{#if App.supports.setRackId}}
+          <th>{{view view.rackFilterView}}</th>
+        {{/if}}
         <th>{{view view.cpuFilterView}}</th>
         <th>{{view view.ramFilterView}}</th>
         <th> </th>
@@ -122,6 +128,9 @@
               <span rel="ComponentsTooltip" {{bindAttr data-original-title="view.componentsInPassiveStateMessage" class="host.componentsInPassiveStateCount:icon-medkit"}}></span>
           </td>
           <td class="host-ip">{{host.ip}}</td>
+          {{#if App.supports.setRackId}}
+            <td>{{host.rack}}</td>
+          {{/if}}
           <td class="cores-formatted">{{host.coresFormatted}}</td>
           <td class="memory-formatted">{{host.memoryFormatted}}</td>
 
@@ -154,7 +163,7 @@
       {{/each}}
     {{else}}
       <tr>
-        <td class="first"> </td>
+        <td class="first"></td>
         <td {{bindAttr colspan="view.colspan"}}>
           {{t hosts.table.noHosts}}
         </td>

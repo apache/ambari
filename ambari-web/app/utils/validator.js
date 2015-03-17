@@ -218,5 +218,10 @@ module.exports = {
       // true is there is no host with this component
       return hostComponents.filterProperty("componentName", item["component-name"]).filterProperty("hostName", item.host).length === 0;
     });
+  }, 
+
+  isValidRackId: function(path) {
+    // See app/message.js:hostPopup.setRackId.invalid
+    return /^\/[/.\w-]+$/.test(path);
   }
 };

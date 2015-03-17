@@ -27,6 +27,7 @@ App.MainChartsHeatmapHostDetailView = Em.View.extend({
     publicHostName:'test node',
     osType: 'OS',
     ip: '192.168.0.0',
+    rack: '/default_rack',
     metricName: 'metric-name',
     metricValue: 'metric-value',
     diskUsage: '10',

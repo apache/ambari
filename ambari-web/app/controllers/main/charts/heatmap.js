@@ -19,18 +19,89 @@ var App = require('app');
 
 App.MainChartsHeatmapController = Em.Controller.extend({
   name: 'mainChartsHeatmapController',
-  modelRacks: App.Rack.find(),
+  rackMap: [],
+  modelRacks: [],
+  rackViews: [],
+
   racks: function () {
-    var racks = [];
-    this.get('modelRacks').forEach(function (rack) {
-      racks.push(Em.Object.create({
-        name: rack.get('name'),
-        hosts: rack.get('hosts'),
-        isLoaded: false
-      }));
-    });
-    return racks;
+    return this.get('modelRacks');
   }.property('modelRacks.@each.isLoaded'),
+
+  /**
+   * get hosts from server
+   */
+  loadRacks: function () {
+    this.get('modelRacks').clear();
+    this.get('rackMap').clear();
+    App.ajax.send({
+      name: 'hosts.heatmaps',
+      sender: this,
+      data: {},
+      success: 'getHostsSuccessCallback'
+    });
+  },
+
+  getHostsSuccessCallback: function (data, opt, params) {
+    var hosts = [];
+    data.items.forEach(function (item) {
+      hosts.push({
+        hostName: item.Hosts.host_name,
+        publicHostName: item.Hosts.public_host_name,
+        osType: item.Hosts.os_type,
+        ip: item.Hosts.ip,
+        rack: item.Hosts.rack_info,
+        diskTotal: item.metrics ? item.metrics.disk.disk_total : 0,
+        diskFree: item.metrics ? item.metrics.disk.disk_free : 0,
+        cpuSystem: item.metrics ? item.metrics.cpu.cpu_system : 0,
+        cpuUser: item.metrics ? item.metrics.cpu.cpu_user : 0,
+        memTotal: item.metrics ? item.metrics.memory.mem_total : 0,
+        memFree: item.metrics ? item.metrics.memory.mem_free : 0,
+        hostComponents: item.host_components.mapProperty('HostRoles.component_name')
+      });
+    });
+    var rackMap = this.indexByRackId(hosts);
+    var modelRacks = this.toList(rackMap);
+    //this list has an empty host array property
+    this.set('rackMap', rackMap);
+    this.set('modelRacks', modelRacks);
+  },
+
+  indexByRackId: function (hosts) {
+    var rackMap = [];
+    hosts.forEach(function (host) {
+      var rackId = host.rack;
+      if(!rackMap[rackId]) {
+        rackMap[rackId] =
+          Em.Object.create({
+            name: rackId,
+            rackId: rackId,
+            hosts: [host]
+          });
+      } else {
+        rackMap[rackId].hosts.push(host);
+      }
+    });
+    return rackMap;
+  },
+
+  toList: function (rackMap) {
+    var racks = [];
+    var i = 0;
+    for (var rackKey in rackMap) {
+      if (rackMap.hasOwnProperty(rackKey)) {
+        racks.push(
+          Em.Object.create({
+            name: rackKey,
+            rackId: rackKey,
+            hosts: [],
+            isLoaded: false,
+            index: i++
+          })
+        );
+      }
+    }
+    return racks;
+  },
 
   allMetrics: function () {
     var metrics = [];
@@ -112,6 +183,21 @@ App.MainChartsHeatmapController = Em.Controller.extend({
       }
     }
   }.observes('inputMaximum'),
+
+
+  addRackView: function (view) {
+    this.get('rackViews').push(view);
+    if (this.get('rackViews').length == this.get('modelRacks').length) {
+      this.displayAllRacks();
+    }
+  },
+
+  displayAllRacks: function () {
+    if (this.get('rackViews').length) {
+      this.get('rackViews').pop().displayHosts();
+      this.displayAllRacks();
+    }
+  },
 
   showHeatMapMetric: function (event) {
     var metricItem = event.context;

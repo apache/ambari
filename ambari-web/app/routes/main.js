@@ -142,7 +142,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       heatmap: Em.Route.extend({
         route: '/heatmap',
         connectOutlets: function (router, context) {
-          router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
+          router.get('mainController').dataLoading().done(function () {
+            router.get('mainChartsHeatmapController').loadRacks();
+            router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
+          });
         }
       }),
       horizon_chart: Em.Route.extend({

@@ -45,8 +45,8 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
   requestError: null,
 
   colspan: function () {
-    return App.get('supports.stackUpgrade') ? 11 : 10;
-  }.property("App.supports.stackUpgrade"),
+    return 10 + +App.get('supports.stackUpgrade') + +App.get('supports.setRackId');
+  }.property("App.supports.stackUpgrade", 'App.supports.setRackId'),
 
   /**
    * List of hosts in cluster
@@ -498,6 +498,12 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     displayName: Em.I18n.t('common.ipAddress'),
     type: 'ip'
   }),
+  rackSort: sort.fieldView.extend({
+    column: 12,
+    name:'rack',
+    displayName: Em.I18n.t('common.rack'),
+    type: 'rack'
+  }),
   cpuSort: sort.fieldView.extend({
     column: 3,
     name:'cpu',
@@ -835,6 +841,18 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   ipFilterView: filters.createTextView({
     column: 2,
+    fieldType: 'filter-input-width',
+    onChangeValue: function(){
+      this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
+    }
+  }),
+
+   /**
+   * Filter view for rack column
+   * Based on <code>filters</code> library
+   */
+  rackFilterView: filters.createTextView({
+    column: 12,
     fieldType: 'filter-input-width',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
