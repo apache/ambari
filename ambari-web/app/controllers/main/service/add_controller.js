@@ -115,6 +115,12 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
           var self = this;
           var dfd = $.Deferred();
           this.loadKerberosDescriptorConfigs().done(function() {
+            if (App.get('supports.enhancedConfigs')) {
+              var serviceNames = App.StackService.find().filter(function(s) {
+                return s.get('isSelected') || s.get('isInstalled');
+              }).mapProperty('serviceName');
+              App.themesMapper.generateAdvancedTabs(serviceNames);
+            }
             self.loadServiceConfigGroups();
             self.loadServiceConfigProperties();
             dfd.resolve();

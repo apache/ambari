@@ -257,6 +257,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
+    if (App.get('supports.enhancedConfigs')) {
+      App.themesMapper.generateAdvancedTabs([this.get('content.serviceName')]);
+    }
     this.clearStep();
     this.loadClusterEnvSite();
   },

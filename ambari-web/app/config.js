@@ -72,7 +72,8 @@ App.supports = {
   customizeAgentUserAccount: false,
   installGanglia: false,
   opsDuringRollingUpgrade: false,
-  customizedWidgets: false
+  customizedWidgets: false,
+  enhancedConfigs: false
 };
 
 if (App.enableExperimental) {

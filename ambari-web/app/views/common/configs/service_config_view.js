@@ -44,7 +44,9 @@ App.ServiceConfigView = Em.View.extend({
   supportsConfigLayout: function() {
     var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController'];
     var unSupportedServices = ['MISC'];
-
+    if (!App.get('supports.enhancedConfigs')) {
+      return false;
+    }
     return supportedControllers.contains(this.get('controllerName')) || !unSupportedServices.contains(this.get('controller.selectedService.serviceName'));
   }.property('controller.name', 'controller.selectedService'),
 
@@ -91,7 +93,10 @@ App.ServiceConfigView = Em.View.extend({
    * @returns {Ember.A}
    */
   tabs: function() {
-    var tabs = App.Tab.find();
+    if (!App.get('supports.enhancedConfigs')) {
+      return Em.A([]);
+    }
+    var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
     // make first tab active
     tabs.get('firstObject').set('isActive', true);
     return tabs;

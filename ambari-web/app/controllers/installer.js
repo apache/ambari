@@ -658,6 +658,12 @@ App.InstallerController = App.WizardController.extend({
       {
         type: 'sync',
         callback: function () {
+          if (App.get('supports.enhancedConfigs')) {
+            var serviceNames = App.StackService.find().filter(function(s) {
+              return s.get('isSelected');
+            }).mapProperty('serviceName');
+            App.themesMapper.generateAdvancedTabs(serviceNames);
+          }
           this.loadServiceConfigGroups();
           this.loadServiceConfigProperties();
           this.loadCurrentHostGroups();
