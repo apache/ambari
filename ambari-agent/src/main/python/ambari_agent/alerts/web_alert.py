@@ -23,6 +23,7 @@ import time
 import subprocess
 import os
 import urllib2
+from urllib2 import HTTPError
 import uuid
 
 from  tempfile import gettempdir
@@ -89,10 +90,12 @@ class WebAlert(BaseAlert):
     if status_code == 0:
       return (self.RESULT_CRITICAL, [status_code, url, time_seconds, error_message])
 
+    # anything that's less than 400 is OK
     if status_code < 400:
       return (self.RESULT_OK, [status_code, url, time_seconds])
 
-    return (self.RESULT_WARNING, [status_code, url, time_seconds])
+    # everything else is WARNING
+    return (self.RESULT_WARNING, [status_code, url, time_seconds, error_message])
 
 
   def _build_web_query(self, alert_uri):
@@ -140,6 +143,7 @@ class WebAlert(BaseAlert):
     """    
 
     try:
+      response_code = 0
       kerberos_keytab = None
       kerberos_principal = None
 
@@ -199,22 +203,26 @@ class WebAlert(BaseAlert):
             '%{http_code}', url, '--connect-timeout', CURL_CONNECTION_TIMEOUT,
             '-o', '/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
-          out, err = curl.communicate()
+          curl_stdout, curl_stderr = curl.communicate()
         finally:
           if os.path.isfile(cookie_file):
             os.remove(cookie_file)
 
-        if err != '':
-          raise Exception(err)
+        # empty quotes evaluates to false
+        if curl_stderr:
+          raise Exception(curl_stderr)
 
-        response_code = int(out)
+        # empty quotes evaluates to false
+        if curl_stdout:
+          response_code = int(curl_stdout)
+
         time_millis = time.time() - start_time
       else:
         # kerberos is not involved; use urllib2
-        response_code, time_millis = self._make_web_request_urllib(url)
+        response_code, time_millis, error_msg = self._make_web_request_urllib(url)
 
       return WebResponse(status_code=response_code, time_millis=time_millis,
-        error_msg=None)
+        error_msg=error_msg)
 
     except Exception, exception:
       if logger.isEnabledFor(logging.DEBUG):
@@ -230,6 +238,8 @@ class WebAlert(BaseAlert):
     :return: a tuple of the response code and the total time in ms
     """
     response = None
+    error_message = None
+
     start_time = time.time()
 
     try:
@@ -237,7 +247,12 @@ class WebAlert(BaseAlert):
       response_code = response.getcode()
       time_millis = time.time() - start_time
 
-      return response_code, time_millis
+      return response_code, time_millis, error_message
+    except HTTPError, httpError:
+      time_millis = time.time() - start_time
+      error_message = str(httpError)
+
+      return httpError.code, time_millis, error_message
     finally:
       if response is not None:
         try:

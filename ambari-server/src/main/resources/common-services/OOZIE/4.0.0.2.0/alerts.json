@@ -17,10 +17,10 @@
           },
           "reporting": {
             "ok": {
-              "text": "HTTP {0} response in {2:.3f} seconds"
+              "text": "HTTP {0} response in {2:.3f}s"
             },
             "warning":{
-              "text": "HTTP {0} response in {2:.3f} seconds"
+              "text": "HTTP {0} response from {1} in {2:.3f}s ({3})"
             },
             "critical": {
               "text": "Connection failed to {1} ({3})"

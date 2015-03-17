@@ -380,9 +380,7 @@ class TestAlerts(TestCase):
     self.assertEquals('OK', alerts[0]['state'])
 
     # run the alert and check HTTP 500
-
-
-    wa_make_web_request_mock.return_value = WebResponse(500,1.234,None)
+    wa_make_web_request_mock.return_value = WebResponse(500,1.234,"Internal Server Error")
     collector = AlertCollector()
     alert = WebAlert(definition_json, definition_json['source'], None)
     alert.set_helpers(collector, cluster_configuration)
@@ -393,7 +391,7 @@ class TestAlerts(TestCase):
     self.assertEquals(0, len(collector.alerts()))
     
     self.assertEquals('WARNING', alerts[0]['state'])
-    self.assertEquals('(Unit Tests) warning: 500', alerts[0]['text'])
+    self.assertEquals('(Unit Tests) warning: 500 (Internal Server Error)', alerts[0]['text'])
 
     # run the alert and check critical
     wa_make_web_request_mock.return_value = WebResponse(0,0,'error message')
@@ -1067,7 +1065,7 @@ class TestAlerts(TestCase):
             "text": "(Unit Tests) ok: {0}",
           },
           "warning": {
-            "text": "(Unit Tests) warning: {0}",
+            "text": "(Unit Tests) warning: {0} ({3})",
           },
           "critical": {
             "text": "(Unit Tests) critical: {1}. {3}",
