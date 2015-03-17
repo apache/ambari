@@ -1899,6 +1899,7 @@ var hdp2properties = [
     "isOverridable": false,
     "isVisible": true,
     "isRequiredByAgent": true,
+    "isReconfigurable": false,
     "serviceName": "KERBEROS",
     "filename": "kerberos-env.xml",
     "category": "KDC",

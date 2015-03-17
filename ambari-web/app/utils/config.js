@@ -353,6 +353,7 @@ App.config = Em.Object.create({
           }
         }
 
+        this.tweakConfigVisibility(serviceConfigObj, properties);
         if (!this.getBySitename(serviceConfigObj.get('filename')).someProperty('name', index)) {
           if (configsPropertyDef) {
             if (configsPropertyDef.isRequiredByAgent === false) {
@@ -381,6 +382,13 @@ App.config = Em.Object.create({
     return {
       configs: configs,
       mappingConfigs: mappingConfigs
+    }
+  },
+
+  tweakConfigVisibility: function (config, allSiteConfigs) {
+    var kdcType = allSiteConfigs['kdc_type'];
+    if (kdcType === 'active-directory' && (config.name === 'container_dn' || config.name === 'ldap_url')) {
+      config.isVisible = true;
     }
   },
 
