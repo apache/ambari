@@ -48,7 +48,7 @@ class TestFileResource(TestCase):
       
       self.fail("Must fail when directory with name 'path' exist")
     except Fail as e:
-      self.assertEqual('Applying u"File[\'/existent_directory\']" failed, directory with name /existent_directory exists',
+      self.assertEqual('Applying File[\'/existent_directory\'] failed, directory with name /existent_directory exists',
                        str(e))
     self.assertFalse(dirname_mock.called)
 
@@ -72,7 +72,7 @@ class TestFileResource(TestCase):
       self.fail('Must fail on non existent parent directory')
     except Fail as e:
       self.assertEqual(
-        'Applying u"File[\'/non_existent_directory/file\']" failed, parent directory /non_existent_directory doesn\'t exist',
+        'Applying File[\'/non_existent_directory/file\'] failed, parent directory /non_existent_directory doesn\'t exist',
         str(e))
     self.assertTrue(dirname_mock.called)
 

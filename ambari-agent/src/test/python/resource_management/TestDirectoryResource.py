@@ -111,7 +111,7 @@ class TestDirectoryResource(TestCase):
         )
       self.fail("Must fail because parent directory /a/b/c doesn't exist")
     except Fail as e:
-      self.assertEqual('Applying u"Directory[\'/a/b/c/d\']" failed, parent directory /a/b/c doesn\'t exist',
+      self.assertEqual('Applying Directory[\'/a/b/c/d\'] failed, parent directory /a/b/c doesn\'t exist',
                        str(e))
 
   @patch.object(sudo, "path_exists")
@@ -130,7 +130,7 @@ class TestDirectoryResource(TestCase):
         )
       self.fail("Must fail because file /a/b/c/d already exists")
     except Fail as e:
-      self.assertEqual('Applying u"Directory[\'/a/b/c/d\']" failed, file /a/b/c/d already exists',
+      self.assertEqual('Applying Directory[\'/a/b/c/d\'] failed, file /a/b/c/d already exists',
                        str(e))
   
   @patch.object(sudo, "rmtree")
@@ -170,5 +170,5 @@ class TestDirectoryResource(TestCase):
         )
       self.fail("Must fail because /a/b/c/d is not a directory")
     except Fail as e:
-      self.assertEqual('Applying u"Directory[\'/a/b/c/d\']" failed, /a/b/c/d is not a directory',
+      self.assertEqual('Applying Directory[\'/a/b/c/d\'] failed, /a/b/c/d is not a directory',
                        str(e))

@@ -110,7 +110,7 @@ class TestLinkResource(TestCase):
         )  
         self.fail("Must fail when target directory do doenst exist")
       except Fail as e:
-        self.assertEqual('Failed to apply u"Link[\'/some_path\']", linking to nonexistent location /a/b/link_to_path',
+        self.assertEqual('Failed to apply Link[\'/some_path\'], linking to nonexistent location /a/b/link_to_path',
                        str(e))
         
   @patch.object(sudo, "path_isdir") 
@@ -130,7 +130,7 @@ class TestLinkResource(TestCase):
         )  
         self.fail("Must fail when hardlinking to directory")
       except Fail as e:
-        self.assertEqual('Failed to apply u"Link[\'/some_path\']", cannot create hard link to a directory (/a/b/link_to_path)',
+        self.assertEqual('Failed to apply Link[\'/some_path\'], cannot create hard link to a directory (/a/b/link_to_path)',
                        str(e)) 
         
   @patch.object(sudo, "unlink")

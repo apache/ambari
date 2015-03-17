@@ -66,7 +66,13 @@ def log_function_call(function):
       ('logoutput' in kwargs and kwargs['logoutput']==None and Logger.logger.isEnabledFor(logging.DEBUG)) or \
       (not 'logoutput' in kwargs and not is_internal_call and Logger.logger.isEnabledFor(logging.DEBUG))
        
-    return function(command, **kwargs)
+    result = function(command, **kwargs)
+    
+    if quiet == False or (quiet == None and not is_internal_call):
+      log_msg = "{0} returned {1}".format(function.__name__, result)
+      Logger.info(log_msg)
+      
+    return result
     
   return inner
 

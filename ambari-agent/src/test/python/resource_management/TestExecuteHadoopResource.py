@@ -176,7 +176,7 @@ class TestExecuteHadoopResource(TestCase):
       )
       self.assertEqual(execute_mock.call_count, 2)
       self.assertEqual(str(execute_mock.call_args_list[0][0][0]),
-                       'u"Execute[\'path -kt keytab principal\']"')
+                       'Execute[\'path -kt keytab principal\']')
       self.assertEqual(execute_mock.call_args_list[0][0][0].command,
                        'path -kt keytab principal')
       self.assertEqual(execute_mock.call_args_list[0][0][0].arguments,

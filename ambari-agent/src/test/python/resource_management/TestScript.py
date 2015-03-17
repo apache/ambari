@@ -89,7 +89,7 @@ class TestScript(TestCase):
       Script.config = dummy_config
       script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEqual(resource_dump, '[u"Package[\'hbase\']", u"Package[\'yet-another-package\']"]')
+    self.assertEqual(resource_dump, '[Package[\'hbase\'], Package[\'yet-another-package\']]')
 
   @patch("__builtin__.open")
   def test_structured_out(self, open_mock):
@@ -130,7 +130,7 @@ class TestScript(TestCase):
       Script.config = good_config
       script.set_version()
     resource_dump = pprint.pformat(env.resource_list)
-    self.assertEquals(resource_dump, '[u"Execute[\'(\'/usr/bin/hdp-select\', \'set\', \'kafka-broker\', \'2.2.0.0-2041\')\']"]')
+    self.assertEquals(resource_dump, '[Execute[\'(\'/usr/bin/hdp-select\', \'set\', \'kafka-broker\', \'2.2.0.0-2041\')\']]')
 
     # Component does not provide mapping
     get_stack_to_component_mock.return_value = {}

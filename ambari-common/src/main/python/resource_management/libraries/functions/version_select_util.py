@@ -57,7 +57,7 @@ def get_component_version(stack_name, component_name):
       if code != 0 or out is None:
         raise Exception("Code is nonzero or output is empty")
 
-      Logger.info("Command: %s\nOutput: %s" % (get_hdp_comp_version_cmd, str(out)))
+      Logger.debug("Command: %s\nOutput: %s" % (get_hdp_comp_version_cmd, str(out)))
       matches = re.findall(r"([\d\.]+\-\d+)", out)
       version = matches[0] if matches and len(matches) > 0 else None
     except Exception, e:
