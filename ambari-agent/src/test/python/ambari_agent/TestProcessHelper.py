@@ -47,13 +47,13 @@ class TestProcessHelper(unittest.TestCase):
     self.assertFalse(os.path.exists(tf3.name))
 
 
-  @patch("os._exit")
+  @patch("sys.exit")
   @patch.object(ProcessHelper, "_clean")
-  def test_stopAgent(self, _clean_mock, exitMock):
+  def test_stopAgent(self, _clean_mock, sys_exit_mock):
 
     ProcessHelper.stopAgent()
     self.assertTrue(_clean_mock.called)
-    self.assertTrue(exitMock.called)
+    self.assertTrue(sys_exit_mock.called)
 
 
   @patch("os.execvp")
