@@ -175,6 +175,9 @@ App.DashboardWidgetView = Em.View.extend({
     App.tooltip(this.$("[rel='ZoomInTooltip']"), {placement : 'left'});
   },
 
+  willDestroyElement : function() {
+    $('.tooltip').remove();
+  },
   /**
    * delete widget
    * @param {object} event
