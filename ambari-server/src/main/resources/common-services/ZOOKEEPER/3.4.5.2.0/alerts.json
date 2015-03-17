@@ -36,7 +36,7 @@
         "scope": "ANY",
         "source": {
           "type": "PORT",
-          "uri": "{{zookeeper-env/clientPort}}",
+          "uri": "{{zoo.cfg/clientPort}}",
           "default_port": 2181,
           "reporting": {
             "ok": {
