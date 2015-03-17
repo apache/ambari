@@ -339,12 +339,12 @@ class TestController(unittest.TestCase):
     self.assertTrue(sendRequestMock.call_count > 5)
 
 
-  @patch("os._exit")
-  def test_restartAgent(self, os_exit_mock):
+  @patch("sys.exit")
+  def test_restartAgent(self, sys_exit_mock):
 
     self.controller.restartAgent()
-    self.assertTrue(os_exit_mock.called)
-    self.assertTrue(os_exit_mock.call_args[0][0] == AGENT_AUTO_RESTART_EXIT_CODE)
+    self.assertTrue(sys_exit_mock.called)
+    self.assertTrue(sys_exit_mock.call_args[0][0] == AGENT_AUTO_RESTART_EXIT_CODE)
 
 
   @patch("urllib2.Request")
