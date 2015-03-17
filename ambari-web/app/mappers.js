@@ -42,3 +42,4 @@ require('mappers/alert_instances_mapper');
 require('mappers/alert_groups_mapper');
 require('mappers/alert_notification_mapper');
 require('mappers/root_service_mapper');
+require('mappers/widget_mapper');

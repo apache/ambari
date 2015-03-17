@@ -767,6 +767,27 @@ App.MainServiceItemController = Em.Controller.extend({
     console.warn('Error during executing custom command');
   },
 
-  isPending:true
+  isPending:true,
+
+  widgetsUrl: function () {
+    return App.get('apiPrefix') + App.get('stackVersionURL') + '/services/' + this.get('service.serviceName') + '/artifacts/widget_layout';
+  }.property('service.serviceName'),
+  widgetsMockUrl: '/data/widgets/service_widgets.json',
+
+  /**
+   * load service widgets
+   * @returns {$.Deferred}
+   */
+  loadWidgets: function () {
+    var dfd = $.Deferred();
+    var url = App.get('testMode') ? this.get('widgetsMockUrl') : this.get('widgetsUrl');
+
+    App.HttpClient.get(url, App.widgetMapper, {
+      complete: function () {
+        dfd.resolve();
+      }
+    });
+    return dfd.promise();
+  }
 
 });

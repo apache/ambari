@@ -757,4 +757,18 @@ describe('App.MainServiceItemController', function () {
       expect(App.showConfirmationPopup.calledOnce).to.equal(true);
     });
   });
+
+  describe("#loadWidgets()", function () {
+    var mainServiceItemController = App.MainServiceItemController.create();
+    before(function () {
+      sinon.stub(App.HttpClient, 'get');
+    });
+    after(function () {
+      App.HttpClient.get.restore();
+    });
+    it("make GET call", function () {
+      mainServiceItemController.loadWidgets();
+      expect(App.HttpClient.get.calledOnce).to.be.true;
+    });
+  });
 });

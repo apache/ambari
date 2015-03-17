@@ -68,3 +68,4 @@ require('models/configs/config_property');
 require('models/configs/tab');
 require('models/configs/section');
 require('models/configs/sub_section');
+require('models/widget');
