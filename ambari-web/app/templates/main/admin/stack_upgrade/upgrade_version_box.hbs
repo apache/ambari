@@ -30,7 +30,7 @@
 <div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
   {{#if view.stateElement.isButton}}
     <button class="btn btn-primary"
-      {{action runAction view.stateElement target="view"}}
+      {{action runAction target="view"}}
       {{bindAttr disabled="view.stateElement.isDisabled"}}>
       {{view.stateElement.text}}
     </button>
@@ -42,7 +42,7 @@
     {{#if view.stateElement.iconClass}}
       <i {{bindAttr class="view.stateElement.iconClass"}}></i>
     {{/if}}
-    <a href="#" {{action runAction view.stateElement target="view"}}>{{view.stateElement.text}}</a>
+    <a href="#" {{action runAction target="view"}}>{{view.stateElement.text}}</a>
     {{#if view.stateElement.isInstalling}}
       {{view App.ProgressBarView
         progressBinding="view.installProgress"
