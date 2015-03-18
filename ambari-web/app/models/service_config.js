@@ -191,7 +191,6 @@ App.ServiceConfigProperty = Em.Object.extend({
   restartRequiredMessage: 'Restart required',
   index: null, //sequence number in category
   editDone: false, //Text field: on focusOut: true, on focusIn: false
-  serviceValidator: null,
   isNotSaved: false, // user property was added but not saved
   hasInitialValue: false, //if true then property value is defined and saved to server
   isHiddenByFilter: false, //if true then hide this property (filtered out)

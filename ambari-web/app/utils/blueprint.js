@@ -190,7 +190,7 @@ module.exports = {
   },
 
   /**
-   * @method buildConfisJSON - generet JSON according to blueprint format
+   * @method buildConfigsJSON - generates JSON according to blueprint format
    * @param {Em.Array} stepConfigs - array of Ember Objects
    * @param {Array} services
    * @returns {Object}
@@ -210,7 +210,7 @@ module.exports = {
    *   }
    * }
    */
-  buildConfisJSON: function(services, stepConfigs) {
+  buildConfigsJSON: function(services, stepConfigs) {
     var configurations = {};
     services.forEach(function(service) {
       var config = stepConfigs.findProperty('serviceName', service.get('serviceName'));
@@ -237,10 +237,9 @@ module.exports = {
   /**
    * @method generateHostGroups
    * @param {Array} hostNames - list of all hostNames
-   * @param {Array} hostComponents - list of all hostComponents
    * @returns {{blueprint: {host_groups: Array}, blueprint_cluster_binding: {host_groups: Array}}}
    */
-  generateHostGroups: function(hostNames, hostComponents) {
+  generateHostGroups: function(hostNames) {
     var recommendations = {
       blueprint: {
         host_groups: []
@@ -255,7 +254,7 @@ module.exports = {
         name: "host-group-" + i,
         components: []
       };
-      var hcFiltered = hostComponents.filterProperty('hostName', hostNames[i-1]).mapProperty('componentName');
+      var hcFiltered = this.getComponentForHost(hostNames[i-1]);
       for (var j = 0; j < hcFiltered.length; j++) {
         host_group.components.push({
           name: hcFiltered[j]
@@ -270,5 +269,23 @@ module.exports = {
       });
     }
     return recommendations;
+  },
+
+  /**
+   * gets all component names that are present on current host
+   * @param {String} hostName
+   * @returns {Array}
+   */
+  getComponentForHost: function(hostName) {
+    var clients = App.ClientComponent.find().filter(function(c) {
+      return c.get('hostNames').contains(hostName);
+    }).mapProperty('componentName');
+    var slaves = App.SlaveComponent.find().filter(function(s) {
+      return s.get('hostNames').contains(hostName);
+    }).mapProperty('componentName');
+    var masters = App.HostComponent.find().filter(function(m) {
+      return m.get('isMaster') && m.get('hostName') === hostName;
+    }).mapProperty('componentName');
+    return masters.concat(slaves).concat(clients);
   }
 };

@@ -277,7 +277,7 @@ describe('utils/blueprint', function() {
     });
   });
 
-  describe('#buildConfisJSON', function () {
+  describe('#buildConfigsJSON', function () {
     var tests = [
       {
         "services": [
@@ -329,12 +329,20 @@ describe('utils/blueprint', function() {
     ];
     tests.forEach(function (test) {
       it("generate configs for request (use in validation)", function () {
-        expect(blueprintUtils.buildConfisJSON(test.services, test.stepConfigs)).to.eql(test.configurations);
+        expect(blueprintUtils.buildConfigsJSON(test.services, test.stepConfigs)).to.eql(test.configurations);
       });
     });
   });
 
   describe('#generateHostGroups', function () {
+    beforeEach(function() {
+      sinon.stub(blueprintUtils, 'getComponentForHost' ,function(host) {
+        return host == "host1" ? ["C1","C2"] : ["C1","C3"];
+      });
+    });
+    afterEach(function() {
+      blueprintUtils.getComponentForHost.restore();
+    })
     var tests = [
       {
         "hostNames": ["host1", "host2"],
@@ -408,7 +416,7 @@ describe('utils/blueprint', function() {
     ];
     tests.forEach(function (test) {
       it("generate host groups", function () {
-        expect(blueprintUtils.generateHostGroups(test.hostNames, test.hostComponents)).to.eql(test.result);
+        expect(blueprintUtils.generateHostGroups(test.hostNames)).to.eql(test.result);
       });
     });
   });

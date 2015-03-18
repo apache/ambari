@@ -41,7 +41,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   configGroups: [],
   allConfigs: [],
   uiConfigs: [],
-  customConfig: [],
   isApplyingChanges: false,
   saveConfigsFlag: true,
   isCompareMode: false,
@@ -75,9 +74,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   serviceConfigs: function () {
     return App.config.get('preDefinedServiceConfigs');
   }.property('App.config.preDefinedServiceConfigs'),
-  customConfigs: function () {
-    return App.config.get('preDefinedCustomConfigs');
-  }.property('App.config.preDefinedCustomConfigs'),
+
   configMapping: function () {
     return App.config.get('configMapping');
   }.property('App.config.configMapping'),
@@ -225,7 +222,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.get('stepConfigs').clear();
     this.get('allConfigs').clear();
     this.get('uiConfigs').clear();
-    this.get('customConfig').clear();
     this.set('loadedGroupToOverrideSiteToTagMap', {});
     this.set('serviceConfigVersionNote', '');
     this.set('savedSiteNameToServerServiceConfigDataMap', {});
@@ -574,8 +570,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       configSet = App.config.syncOrderWithPredefined(configSet);
 
       var configs = configSet.configs;
-      //add custom configs
-      App.config.addCustomConfigs(configs);
       //put properties from capacity-scheduler.xml into one config with textarea view
       if (self.get('content.serviceName') === 'YARN') {
         configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
@@ -735,7 +729,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * init attributes and wrap mock compare config into App.ServiceConfigProperty
    * @param serviceConfig
-   * @param compareConfig
+   * @param compareServiceVersion
    * @return {object}
    */
   getMockComparisonConfig: function (serviceConfig, compareServiceVersion) {
@@ -982,10 +976,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method loadConfigs
    */
   loadConfigs: function (configs, componentConfig) {
-    var serviceConfigsData = App.StackService.find().findProperty('serviceName', this.get('content.serviceName'));
     var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
     configs.forEach(function (_serviceConfigProperty) {
-      var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected, serviceConfigsData);
+      var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected);
       componentConfig.configs.pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
@@ -996,11 +989,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * create {Em.Object} service_cfg_property based on {Object}_serviceConfigProperty and additional info
    * @param {Object} _serviceConfigProperty - config object
    * @param {Boolean} defaultGroupSelected - true if selected cfg group is default
-   * @param {Object} serviceConfigsData - service cfg object
    * @returns {Ember.Object|null}
    * @method createConfigProperty
    */
-  createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected, serviceConfigsData) {
+  createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected) {
     if (!_serviceConfigProperty) return null;
 
     var overrides = _serviceConfigProperty.overrides;

@@ -31,7 +31,8 @@ App.componentsStateMapper = App.QuickDataMapper.create({
     service_name: 'ServiceComponentInfo.service_name',
     installed_count: 'ServiceComponentInfo.installed_count',
     started_count: 'ServiceComponentInfo.started_count',
-    total_count: 'ServiceComponentInfo.total_count'
+    total_count: 'ServiceComponentInfo.total_count',
+    host_names: 'host_names'
   },
 
   slaveModel: App.SlaveComponent,
@@ -145,10 +146,12 @@ App.componentsStateMapper = App.QuickDataMapper.create({
         var cacheService = App.cache['services'].findProperty('ServiceInfo.service_name', item.ServiceComponentInfo.service_name);
 
         if (item.ServiceComponentInfo.category === 'CLIENT') {
+          item.host_names = item.host_components.mapProperty('HostRoles.host_name');
           clients.push(this.parseIt(item, this.clientMap));
         }
         if (item.ServiceComponentInfo.category === 'SLAVE') {
           // for now map for slaves and clients are equal but it may vary in future.
+          item.host_names = item.host_components.mapProperty('HostRoles.host_name');
           slaves.push(this.parseIt(item, this.clientMap));
         }
 

@@ -591,8 +591,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
     //STEP 4: Add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs);
-    //STEP 5: Add custom configs
-    App.config.addCustomConfigs(configs);
 
     this.set('groupsToDelete', this.get('wizardController').getDBProperty('groupsToDelete') || []);
 
