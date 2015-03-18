@@ -497,6 +497,9 @@ App.format = {
     if (result === " Stopdemoldap Knox Gateway") {
       result = Em.I18n.t('services.service.actions.run.stopLdapKnox.title');
     }
+    if (result === ' Refreshqueues ResourceManager') {
+      result = Em.I18n.t('services.service.actions.run.yarnRefreshQueues.title');
+    }
     return result;
   },
 

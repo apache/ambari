@@ -1430,6 +1430,7 @@ Em.I18n.translations = {
   'services.service.actions.run.rebalanceHdfsNodes.promptError':'Value should be number between 1 and 100',
   'services.service.actions.run.rebalanceHdfsNodes.context':'Rebalance HDFS',
   'services.service.actions.run.rebalanceHdfsNodes.error':'Error during remote command: ',
+  'services.service.actions.run.yarnRefreshQueues.title':'Refresh Queues ResourceManager',
   'services.service.actions.run.yarnRefreshQueues.menu':'Refresh YARN Capacity Scheduler',
   'services.service.actions.run.yarnRefreshQueues.context':'Refresh YARN Capacity Scheduler',
   'services.service.actions.run.yarnRefreshQueues.error':'Error during remote command: ',
