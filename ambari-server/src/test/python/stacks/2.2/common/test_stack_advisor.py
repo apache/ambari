@@ -673,8 +673,8 @@ class TestHDP22StackAdvisor(TestCase):
     expected = {
       "ams-hbase-env": {
         "properties": {
-          "hbase_master_heapsize": "1024m",
-          "hbase_regionserver_heapsize": "1024m",
+          "hbase_master_heapsize": "512m",
+          "hbase_regionserver_heapsize": "512m",
           }
       },
       "ams-env": {
@@ -686,7 +686,8 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "hbase.regionserver.global.memstore.lowerLimit": "0.3",
           "hbase.regionserver.global.memstore.upperLimit": "0.35",
-          "hfile.block.cache.size": "0.3"
+          "hfile.block.cache.size": "0.3",
+          "hbase_master_xmn_size" : "128m"
         }
       },
       "ams-site": {

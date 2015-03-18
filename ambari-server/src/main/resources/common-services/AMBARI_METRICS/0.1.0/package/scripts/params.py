@@ -31,6 +31,15 @@ else:
 config = Script.get_config()
 exec_tmp_dir = Script.get_tmp_dir()
 
+def get_combined_memory_mb(value1, value2):
+  try:
+    part1 = int(value1.strip()[:-1]) if value1.lower().strip()[-1:] == 'm' else int(value1)
+    part2 = int(value2.strip()[:-1]) if value2.lower().strip()[-1:] == 'm' else int(value2)
+    return str(part1 + part2) + 'm'
+  except:
+    return None
+pass
+
 #AMBARI_METRICS data
 ams_pid_dir = status_params.ams_collector_pid_dir
 
@@ -77,13 +86,26 @@ metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
 master_heapsize = config['configurations']['ams-hbase-env']['hbase_master_heapsize']
-
 regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regionserver_heapsize']
-regionserver_xmn_max = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_max']
-regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
-regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
-# For embedded mode
-hbase_heapsize = master_heapsize
+
+regionserver_xmn_max = default('configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
+if regionserver_xmn_max:
+  regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
+  regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
+else:
+  regionserver_xmn_size = config['configurations']['ams-hbase-env']['regionserver_xmn_size']
+pass
+
+hbase_master_xmn_size = config['configurations']['ams-hbase-env']['hbase_master_xmn_size']
+hbase_master_maxperm_size = config['configurations']['ams-hbase-env']['hbase_master_maxperm_size']
+
+# Choose heap size for embedded mode as sum of master + regionserver
+if not is_hbase_distributed:
+  hbase_heapsize = get_combined_memory_mb(master_heapsize, regionserver_heapsize)
+  if hbase_heapsize is None:
+    hbase_heapsize = master_heapsize
+else:
+  hbase_heapsize = master_heapsize
 
 zookeeper_quorum_hosts = ','.join(ams_collector_hosts) if is_hbase_distributed else 'localhost'
 

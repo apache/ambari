@@ -148,7 +148,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       totalHostsCount = len(hosts["items"])
       # blockCache = 0.3, memstore = 0.3, phoenix-server = 0.2, phoenix-client = 0.3
       if totalHostsCount >= 400:
-        putHbaseEnvProperty("hbase_master_heapsize", "12288m")
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "12288m")
         putAmsEnvProperty("metrics_collector_heapsize", "8192m")
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
@@ -158,19 +158,31 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         putAmsHbaseSiteProperty("hbase.regionserver.global.memstore.lowerLimit", 0.25)
         putAmsHbaseSiteProperty("phoenix.query.maxGlobalMemoryPercentage", 20)
         putTimelineServiceProperty("phoenix.query.maxGlobalMemoryPercentage", 30)
+        putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
+        putAmsHbaseSiteProperty("regionserver_xmn_size", "512m")
       elif totalHostsCount >= 100:
-        putHbaseEnvProperty("hbase_master_heapsize", "6144m")
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "6144m")
         putAmsEnvProperty("metrics_collector_heapsize", "4096m")
         putAmsHbaseSiteProperty("hbase.regionserver.handler.count", 60)
         putAmsHbaseSiteProperty("hbase.regionserver.hlog.blocksize", 134217728)
         putAmsHbaseSiteProperty("hbase.regionserver.maxlogs", 64)
         putAmsHbaseSiteProperty("hbase.hregion.memstore.flush.size", 268435456)
+        putAmsHbaseSiteProperty("hbase_master_xmn_size", "512m")
       elif totalHostsCount >= 50:
-        putHbaseEnvProperty("hbase_master_heapsize", "2048m")
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "2048m")
+        putHbaseEnvProperty("hbase_master_heapsize", "512m")
         putAmsEnvProperty("metrics_collector_heapsize", "2048m")
+        putAmsHbaseSiteProperty("hbase_master_xmn_size", "256m")
       else:
-        putHbaseEnvProperty("hbase_master_heapsize", "1024m")
+        # Embedded mode heap size : master + regionserver
+        putHbaseEnvProperty("hbase_regionserver_heapsize", "512m")
+        putHbaseEnvProperty("hbase_master_heapsize", "512m")
         putAmsEnvProperty("metrics_collector_heapsize", "512m")
+        putAmsHbaseSiteProperty("hbase_master_xmn_size", "128m")
+      pass
+    pass
+
+
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components):
 
@@ -377,7 +389,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
                 masterHostMessage.format(
                   collectorHostName, str(", ".join(hostMasterComponents[collectorHostName]))))
 
-            # No enough physical memory
+            # Not enough physical memory
             # TODO Add AMBARI_METRICS Collector Xmx property to ams-env
             requiredMemory = getMemorySizeRequired(hostComponents[collectorHostName], configurations)
             if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
@@ -388,8 +400,17 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               regionServerItem = self.getErrorItem(message)
               masterItem = self.getErrorItem(message)
               break
+      pass
+
+    # Check RS memory in distributed mode since we set default as 512m
+    hbase_site = getSiteProperties(configurations, "ams-hbase-site")
+    hbase_rootdir = hbase_site.get("hbase.rootdir")
+    regionServerMinMemItem = None
+    if hbase_rootdir.startswith("hdfs://"):
+      regionServerMinMemItem = self.validateMinMemorySetting(properties, 1024, 'hbase_regionserver_heapsize')
 
     validationItems = [{"config-name": "hbase_regionserver_heapsize", "item": regionServerItem},
+                       {"config-name": "hbase_regionserver_heapsize", "item": regionServerMinMemItem},
                        {"config-name": "hbase_master_heapsize", "item": masterItem},
                        {"config-name": "hbase_master_heapsize", "item": masterHostItem},
                        {"config-name": "hbase_log_dir", "item": logDirItem}]
@@ -468,6 +489,27 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
              "for properties {0} and {1}".format(propertyName1, propertyName2))
 
     return None
+
+  def validateMinMemorySetting(self, properties, defaultValue, propertyName):
+    if not propertyName in properties:
+      return self.getErrorItem("Value should be set")
+    if defaultValue is None:
+      return self.getErrorItem("Config's default value can't be null or undefined")
+
+    value = properties[propertyName]
+    if value is None:
+      return self.getErrorItem("Value can't be null or undefined")
+    try:
+      valueInt = int(value.strip()[:-1])
+      # TODO: generify for other use cases
+      defaultValueInt = int(str(defaultValue).strip())
+      if valueInt < defaultValueInt:
+        return self.getWarnItem("Value is less than the minimum recommended default of -Xmx" + str(defaultValue))
+    except:
+      return None
+
+    return None
+
 
   def validateXmxValue(self, properties, recommendedDefaults, propertyName):
     if not propertyName in properties:

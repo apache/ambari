@@ -34,22 +34,44 @@
   <property>
     <name>hbase_regionserver_heapsize</name>
     <value>1024m</value>
-    <description>HBase RegionServer Heap Size.</description>
+    <description>
+        HBase RegionServer Heap Size. In embedded mode, total heap size is
+        sum of master and regionserver heap sizes.
+    </description>
   </property>
   <property>
-    <name>hbase_regionserver_xmn_max</name>
-    <value>512m</value>
-    <description>HBase RegionServer maximum value for minimum heap size.</description>
+    <name>regionserver_xmn_size</name>
+    <value>256m</value>
+    <description>HBase RegionServer maximum value for young generation heap size.</description>
+  </property>
+  <property>
+    <name>hbase_master_xmn_size</name>
+    <value>256m</value>
+    <description>
+      HBase Master maximum value for young generation heap size.
+    </description>
+  </property>
+  <property>
+    <name>hbase_master_maxperm_size</name>
+    <value>128m</value>
+    <description>HBase RegionServer maximum value for perm heap size.</description>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
-    <description>HBase RegionServer minimum heap size is calculated as a percentage of max heap size.</description>
+    <description>
+        HBase RegionServer minimum heap size is calculated as a percentage
+        of max heap size. If hbase_regionserver_xmn_max is defined, the ratio
+        will be used to calculate -Xmn setting.
+    </description>
   </property>
   <property>
     <name>hbase_master_heapsize</name>
     <value>1024m</value>
-    <description>HBase Master Heap Size</description>
+    <description>
+        HBase Master Heap Size. In embedded mode, total heap size is
+        sum of master and regionserver heap sizes.
+    </description>
   </property>
 
   <!-- hbase-env.sh -->
@@ -85,8 +107,8 @@ export SERVER_GC_OPTS="-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -X
 # More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html
 #
 # export HBASE_JMX_BASE="-Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false"
-export HBASE_MASTER_OPTS="-Xmx{{master_heapsize}}"
-export HBASE_REGIONSERVER_OPTS="-Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70  -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
+export HBASE_MASTER_OPTS=" -XX:PermSize=64m -XX:MaxPermSize={{hbase_master_maxperm_size}} -Xms{{hbase_heapsize}} -Xmx{{hbase_heapsize}} -Xmn{{hbase_master_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly"
+export HBASE_REGIONSERVER_OPTS="-XX:MaxPermSize=128m -Xmn{{regionserver_xmn_size}} -XX:CMSInitiatingOccupancyFraction=70 -XX:+UseCMSInitiatingOccupancyOnly -Xms{{regionserver_heapsize}} -Xmx{{regionserver_heapsize}}"
 # export HBASE_THRIFT_OPTS="$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103"
 # export HBASE_ZOOKEEPER_OPTS="$HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104"
 
