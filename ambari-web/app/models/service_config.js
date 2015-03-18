@@ -781,6 +781,7 @@ App.ServiceConfigProperty = Em.Object.extend({
 
       mountPointsPerHost = mountPointsPerHost.filter(function (mPoint) {
         return !(['/', '/home'].contains(mPoint.mountpoint)
+        || ['/etc/resolv.conf', '/etc/hostname', '/etc/hosts'].contains(mPoint.mountpoint) // docker specific mount points
         || mPoint.mountpoint && (mPoint.mountpoint.startsWith('/boot') || mPoint.mountpoint.startsWith('/mnt'))
         || ['devtmpfs', 'tmpfs', 'vboxsf', 'CDFS'].contains(mPoint.type)
         || mPoint.available == 0);
