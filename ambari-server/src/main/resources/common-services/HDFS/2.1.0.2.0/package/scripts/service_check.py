@@ -33,7 +33,7 @@ class HdfsServiceCheck(Script):
 
     create_dir_cmd = format("fs -mkdir {dir}")
     chmod_command = format("fs -chmod 777 {dir}")
-    test_dir_exists = as_user(format("{hadoop_bin_dir}/hadoop --config {hadoop_conf_dir} fs -test -e {dir}"), params.smoke_user)
+    test_dir_exists = as_user(format("{hadoop_bin_dir}/hadoop --config {hadoop_conf_dir} fs -test -e {dir}"), params.hdfs_user)
     cleanup_cmd = format("fs -rm {tmp_file}")
     #cleanup put below to handle retries; if retrying there wil be a stale file
     #that needs cleanup; exit code is fn of second command
@@ -41,11 +41,11 @@ class HdfsServiceCheck(Script):
       "{cleanup_cmd}; hadoop --config {hadoop_conf_dir} fs -put /etc/passwd {tmp_file}")
     test_cmd = format("fs -test -e {tmp_file}")
     if params.security_enabled:
-      Execute(format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}"),
-        user=params.smoke_user
+      Execute(format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name}"),
+        user=params.hdfs_user
       )
     ExecuteHadoop(safemode_command,
-                  user=params.smoke_user,
+                  user=params.hdfs_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
@@ -53,7 +53,7 @@ class HdfsServiceCheck(Script):
                   bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(create_dir_cmd,
-                  user=params.smoke_user,
+                  user=params.hdfs_user,
                   logoutput=True,
                   not_if=test_dir_exists,
                   conf_dir=params.hadoop_conf_dir,
@@ -62,7 +62,7 @@ class HdfsServiceCheck(Script):
                   bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(chmod_command,
-                  user=params.smoke_user,
+                  user=params.hdfs_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
@@ -70,7 +70,7 @@ class HdfsServiceCheck(Script):
                   bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(create_file_cmd,
-                  user=params.smoke_user,
+                  user=params.hdfs_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
@@ -78,7 +78,7 @@ class HdfsServiceCheck(Script):
                   bin_dir=params.hadoop_bin_dir
     )
     ExecuteHadoop(test_cmd,
-                  user=params.smoke_user,
+                  user=params.hdfs_user,
                   logoutput=True,
                   conf_dir=params.hadoop_conf_dir,
                   try_sleep=3,
