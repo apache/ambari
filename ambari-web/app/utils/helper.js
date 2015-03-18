@@ -491,6 +491,12 @@ App.format = {
     if (result === ' Rebalancehdfs NameNode') {
        result = Em.I18n.t('services.service.actions.run.rebalanceHdfsNodes.title');
     }
+    if (result === " Startdemoldap Knox Gateway") {
+      result = Em.I18n.t('services.service.actions.run.startLdapKnox.title');
+    }
+    if (result === " Stopdemoldap Knox Gateway") {
+      result = Em.I18n.t('services.service.actions.run.stopLdapKnox.title');
+    }
     return result;
   },
 
