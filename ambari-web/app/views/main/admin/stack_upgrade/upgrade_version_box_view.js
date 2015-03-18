@@ -165,12 +165,11 @@ App.UpgradeVersionBoxView = Em.View.extend({
 
   /**
    * run custom action of controller
-   * @param {object} event
    */
-  runAction: function (event) {
-    var stateElement = event.context;
-    if (stateElement.get('action')) {
-      this.get('controller')[stateElement.get('action')](this.get('content'));
+  runAction: function () {
+    var action = this.get('stateElement.action');
+    if (action) {
+      this.get('controller')[action](this.get('content'));
     }
   },
 

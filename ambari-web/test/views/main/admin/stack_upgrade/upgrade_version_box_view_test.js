@@ -119,18 +119,21 @@ describe('App.UpgradeVersionBoxView', function () {
 
   describe("#runAction()", function () {
     beforeEach(function () {
+      view.set('stateElement', Em.Object.create({}));
       sinon.stub(view.get('controller'), 'upgrade').returns(1);
     });
     afterEach(function () {
       view.get('controller').upgrade.restore();
     });
     it("action = null", function () {
-      view.runAction({context: Em.Object.create({action: null})});
+      view.set('stateElement.action', null);
+      view.runAction();
       expect(view.get('controller').upgrade.called).to.be.false;
     });
     it("action = 'upgrade'", function () {
       view.set('content', 'content');
-      view.runAction({context: Em.Object.create({action: 'upgrade'})});
+      view.set('stateElement.action', 'upgrade');
+      view.runAction();
       expect(view.get('controller').upgrade.calledWith('content')).to.be.true;
     });
   });
