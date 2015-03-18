@@ -44,24 +44,24 @@
   {{/isAccessible}}
 {{/if}}
 
-<div class="row-fluid service-block">
-  <div class="span6">
-    <div class="box">
-      <div class="box-header summary-box-header">
-        <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
-        {{#if view.hasAlertDefinitions}}
-          {{#if view.alertsCount}}
-            <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-              {{bindAttr class=":label :pull-right view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
-              {{view.alertsCount}} {{pluralize view.alertsCount singular="alert" plural="alerts"}}</span>
-          {{else}}
-            <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-              class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
-          {{/if}}
+<div class="service-block">
+  <div class="box">
+    <div class="box-header summary-box-header">
+      <h4>{{controller.content.label}} {{t services.service.info.menu.summary}}</h4>
+      {{#if view.hasAlertDefinitions}}
+        {{#if view.alertsCount}}
+          <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
+            {{bindAttr class=":label :pull-right view.hasCriticalAlerts:alerts-crit-count:alerts-warn-count"}}>
+            {{view.alertsCount}} {{pluralize view.alertsCount singular="alert" plural="alerts"}}</span>
+        {{else}}
+          <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
+            class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
         {{/if}}
-      </div>
-      <div class="service-content">
-        <table id="summary-info" class="table no-borders table-condensed">
+      {{/if}}
+    </div>
+    <div class="service-content row-fluid">
+      <div class="span6">
+        <table class="summary-info table no-borders table-condensed">
           <tbody>
           {{#if view.serviceSummaryView}}
             {{view view.serviceSummaryView}}
@@ -74,7 +74,7 @@
 
   {{#if view.isServiceMetricLoaded}}
     {{#if view.serviceMetricGraphs.length}}
-      <div class="span6 service-metrics-block">
+      <div class="service-metrics-block">
         <div class="box">
           <div class="box-header">
             <h4>{{t services.service.metrics}}</h4>
@@ -88,6 +88,13 @@
                 {{/each}}
               </ul>
             </div>
+            {{#if App.supports.customizedWidgets}}
+              <div class="btn-group pull-right">
+                <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                  {{t common.actions}} &nbsp;<span class="caret"></span>
+                </button>
+              </div>
+            {{/if}}
           </div>
           <div class="">
             <table class="graphs">
@@ -108,7 +115,6 @@
       </div>
     {{/if}}
   {{/if}}
-
 </div>
 
 {{#if view.collapsedSections}}

@@ -297,11 +297,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
 
    /*
    * Find the graph class associated with the graph name, and split
-   * the array into sections of 2 for displaying on the page
-   * (will only display rows with 2 items)
+   * the array into sections of 5 for displaying on the page
+   * (will only display rows with 5 items)
    */
   constructGraphObjects: function(graphNames) {
-    var result = [], graphObjects = [], chunkSize = 2;
+    var result = [], graphObjects = [], chunkSize = 5;
     var self = this;
 
     if (!graphNames) {
@@ -317,6 +317,13 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
           currentTimeIndex : index
         }));
       });
+
+      if (App.get('supports.customizedWidgets')) {
+        graphObjects.push(Ember.View.extend({
+          classNames: ['last-child'],
+          template: Ember.Handlebars.compile('<div id="add-widget-action-box"><i class="icon-plus"></i></div>')
+        }));
+      }
 
       while(graphObjects.length) {
         result.push(graphObjects.splice(0, chunkSize));
