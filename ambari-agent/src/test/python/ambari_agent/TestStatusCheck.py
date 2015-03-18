@@ -21,11 +21,19 @@ import string
 import random
 import os
 from unittest import TestCase
+from ambari_commons import OSCheck
 from ambari_agent.StatusCheck import StatusCheck
-import AmbariConfig
 import logging
-from mock.mock import patch, Mock
 
+from mock.mock import patch
+from mock.mock import MagicMock
+
+from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 USERNAME_LENGTH=10
 USERNAME_CHARS=string.ascii_uppercase +string.ascii_lowercase + string.digits + '-_'
@@ -81,6 +89,7 @@ class TestStatusCheck(TestCase):
 
     
   # Ensure that status checker return True for running process
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(StatusCheck, 'getIsLive')
   def test_live(self, get_is_live_mock):
 
@@ -96,7 +105,8 @@ class TestStatusCheck(TestCase):
     
     status = statusCheck.getStatus(COMPONENT_LIVE)
     self.assertEqual(status, True)
-    
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(logger, 'info')
   def test_dont_relog_serToPidDict(self, logger_info_mock):
     TestStatusCheck.timesLogged = 0
@@ -119,6 +129,7 @@ class TestStatusCheck(TestCase):
 
   # Ensure that status checker return True for running process even if multiple
   # pids for a service component exist
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(StatusCheck, 'getIsLive')
   def test_live_if_multiple_pids(self, get_is_live_mock):
 
@@ -141,6 +152,7 @@ class TestStatusCheck(TestCase):
     
   # Ensure that status checker prints error message if there is no linux user
   # for service, which pid depends on user
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(StatusCheck, 'getIsLive')
   @patch.object(logger, "error")
   def test_no_user_mapping(self, error_mock, get_is_live_mock):
@@ -160,6 +172,7 @@ class TestStatusCheck(TestCase):
     self.assertTrue(error_mock.called)
 
   # Ensure that status checker return False for dead process
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(StatusCheck, 'getIsLive')
   def test_dead(self, get_is_live_mock):
     statusCheck = StatusCheck(self.serviceToPidDict, self.pidPathVars,

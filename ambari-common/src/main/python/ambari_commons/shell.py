@@ -30,11 +30,8 @@ import traceback
 import pprint
 import platform
 
-if platform.system() != "Windows":
-  try:
-    import pwd
-  except ImportError:
-    import winpwd as pwd
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 
 logger = logging.getLogger()
 
@@ -62,11 +59,19 @@ class _dict_to_object:
 
 
 # windows specific code
-def _kill_process_with_children_windows(parent_pid):
-  shellRunner().run(["taskkill", "/T", "/PID", "{0}".format(parent_pid)])
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def kill_process_with_children(parent_pid):
+  shellRunnerWindows().run(["taskkill", "/F", "/T", "/PID", "{0}".format(parent_pid)])
 
+class shellRunner(object):
+  def run(self, script, user=None):
+    pass
 
-class shellRunnerWindows:
+  def runPowershell(self, file=None, script_block=None, args=[]):
+    raise NotImplementedError()
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class shellRunnerWindows(shellRunner):
   # Run any command
   def run(self, script, user=None):
     logger.warn("user argument ignored on windows")
@@ -100,7 +105,8 @@ class shellRunnerWindows:
 
 
 #linux specific code
-def _kill_process_with_children_linux(parent_pid):
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def kill_process_with_children(parent_pid):
   def kill_tree_function(pid, signal):
     '''
     Kills process tree starting from a given pid.
@@ -143,9 +149,12 @@ def _changeUid():
     logger.warn("can not switch user for running command.")
 
 
-class shellRunnerLinux:
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class shellRunnerLinux(shellRunner):
   # Run any command
   def run(self, script, user=None):
+    import pwd
+
     try:
       if user != None:
         user = pwd.getpwnam(user)[2]
@@ -154,8 +163,7 @@ class shellRunnerLinux:
       threadLocal.uid = user
     except Exception:
       logger.warn("can not switch user for RUN_COMMAND.")
-    code = 0
-    
+
     cmd = script
     
     if isinstance(script, list):
@@ -170,20 +178,11 @@ class shellRunnerLinux:
     return {'exitCode': code, 'output': out, 'error': err}
 
 
-def kill_process_with_children(parent_pid):
-  if platform.system() == "Windows":
-    _kill_process_with_children_windows(parent_pid)
-  else:
-    _kill_process_with_children_linux(parent_pid)
-
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def changeUid():
-  if not platform.system() == "Windows":
-    try:
-      os.setuid(threadLocal.uid)
-    except Exception:
-      logger.warn("can not switch user for running command.")
+  #No Windows implementation
+  pass
 
-if platform.system() == "Windows":
-  shellRunner = shellRunnerWindows
-else:
-  shellRunner = shellRunnerLinux
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def changeUid():
+  _changeUid()
