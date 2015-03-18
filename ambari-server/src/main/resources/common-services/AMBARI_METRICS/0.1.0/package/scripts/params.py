@@ -77,13 +77,19 @@ metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_
 
 hbase_log_dir = config['configurations']['ams-hbase-env']['hbase_log_dir']
 master_heapsize = config['configurations']['ams-hbase-env']['hbase_master_heapsize']
-
 regionserver_heapsize = config['configurations']['ams-hbase-env']['hbase_regionserver_heapsize']
-regionserver_xmn_max = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_max']
-regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
-regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
+
+regionserver_xmn_max = default('configurations/ams-hbase-env/hbase_regionserver_xmn_max', None)
+if regionserver_xmn_max:
+  regionserver_xmn_percent = config['configurations']['ams-hbase-env']['hbase_regionserver_xmn_ratio']
+  regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
+else:
+  regionserver_xmn_size = config['configurations']['ams-hbase-env']['regionserver_xmn_size']
+pass
 # For embedded mode
 hbase_heapsize = master_heapsize
+hbase_master_xmn_size = config['configurations']['ams-hbase-env']['hbase_master_xmn_size']
+hbase_master_maxperm_size = config['configurations']['ams-hbase-env']['hbase_master_maxperm_size']
 
 zookeeper_quorum_hosts = ','.join(ams_collector_hosts) if is_hbase_distributed else 'localhost'
 
