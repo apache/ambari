@@ -1670,6 +1670,8 @@ Em.I18n.translations = {
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing',
 
+  'services.service.widgets.list-widget.nothingSelected': 'Nothing selected',
+
   'services.add.header':'Add Service Wizard',
   'services.reassign.header':'Move Master Wizard',
   'services.service.add':'Add Service',
