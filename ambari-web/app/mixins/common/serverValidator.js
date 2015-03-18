@@ -27,7 +27,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @type {boolean}
    */
   isWizard: function() {
-    return this.get('wizardController') && ['addServiceController' || 'installerController'].contains(this.get('wizardController.name'));
+    return this.get('wizardController') && ['addServiceController', 'installerController'].contains(this.get('wizardController.name'));
   }.property('wizardController.name'),
 
   /**
