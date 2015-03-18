@@ -140,8 +140,8 @@ class WebAlert(BaseAlert):
     """
     Makes an http(s) request to a web resource and returns the http code. If
     there was an error making the request, return 0 for the status code.
-    """    
-
+    """
+    error_msg = None
     try:
       response_code = 0
       kerberos_keytab = None
@@ -210,7 +210,7 @@ class WebAlert(BaseAlert):
 
         # empty quotes evaluates to false
         if curl_stderr:
-          raise Exception(curl_stderr)
+          error_msg = curl_stderr
 
         # empty quotes evaluates to false
         if curl_stdout:
