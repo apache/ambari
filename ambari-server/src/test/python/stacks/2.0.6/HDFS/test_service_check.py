@@ -57,16 +57,16 @@ class TestServiceCheck(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         try_sleep = 3,
         bin_dir = '/usr/bin',
-        user = 'ambari-qa',
+        user = 'hdfs',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp',
         conf_dir = '/etc/hadoop/conf',
         logoutput = True,
-        not_if = "ambari-sudo.sh su ambari-qa -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]/usr/bin/hadoop --config /etc/hadoop/conf fs -test -e /tmp'",
+        not_if = "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]/usr/bin/hadoop --config /etc/hadoop/conf fs -test -e /tmp'",
         try_sleep = 3,
         tries = 5,
         bin_dir = '/usr/bin',
-        user = 'ambari-qa',
+        user = 'hdfs',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -chmod 777 /tmp',
         conf_dir = '/etc/hadoop/conf',
@@ -74,7 +74,7 @@ class TestServiceCheck(RMFTestCase):
         try_sleep = 3,
         tries = 5,
         bin_dir = '/usr/bin',
-        user = 'ambari-qa',
+        user = 'hdfs',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -rm /tmp/; hadoop --config /etc/hadoop/conf fs -put /etc/passwd /tmp/',
         logoutput = True,
@@ -82,7 +82,7 @@ class TestServiceCheck(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         bin_dir = '/usr/bin',
         try_sleep = 3,
-        user = 'ambari-qa',
+        user = 'hdfs',
     )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /tmp/',
         logoutput = True,
@@ -90,5 +90,5 @@ class TestServiceCheck(RMFTestCase):
         conf_dir = '/etc/hadoop/conf',
         bin_dir = '/usr/bin',
         try_sleep = 3,
-        user = 'ambari-qa',
+        user = 'hdfs',
     )
