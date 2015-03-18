@@ -99,6 +99,8 @@ class Controller(threading.Thread):
       stacks_cache_dir, common_services_cache_dir, host_scripts_cache_dir,
       self.cluster_configuration, config)
 
+    self.alert_scheduler_handler.start()
+
 
   def __del__(self):
     logger.info("Server connection disconnected.")
@@ -346,8 +348,6 @@ class Controller(threading.Thread):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
     logger.info("Registration response from %s was %s", self.serverHostname, message)
-
-    self.alert_scheduler_handler.start()
 
     if self.isRegistered:
       # Clearing command queue to stop executing "stale" commands
