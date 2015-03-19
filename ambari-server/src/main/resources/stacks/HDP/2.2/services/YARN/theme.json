@@ -129,7 +129,7 @@
     },
     "widgets":[
       {
-        "config":"yarn.nodemanager.resource.memory-mb",
+        "config":"yarn-site/yarn.nodemanager.resource.memory-mb",
         "widget":{
           "type":"slider",
           "units":[
@@ -140,7 +140,7 @@
         }
       },
       {
-        "config": "yarn.nodemanager.vmem-pmem-ratio",
+        "config": "yarn-site/yarn.nodemanager.vmem-pmem-ratio",
         "widget": {
           "type": "slider",
           "units": [
@@ -151,7 +151,7 @@
         }
       },
       {
-        "config": "yarn.nodemanager.resource.percentage-physical-cpu-limit",
+        "config": "yarn-site/yarn.nodemanager.resource.percentage-physical-cpu-limit",
         "widget": {
           "type": "slider",
           "units": [
@@ -162,7 +162,7 @@
         }
       },
       {
-        "config": "yarn.nodemanager.resource.cpu-vcores",
+        "config": "yarn-site/yarn.nodemanager.resource.cpu-vcores",
         "widget": {
           "type": "slider",
           "units": [
@@ -173,7 +173,7 @@
         }
       },
       {
-        "config":"yarn.scheduler.minimum-allocation-mb",
+        "config":"yarn-site/yarn.scheduler.minimum-allocation-mb",
         "widget":{
           "type":"slider",
           "units":[
@@ -184,7 +184,7 @@
         }
       },
       {
-        "config":"yarn.scheduler.maximum-allocation-mb",
+        "config":"yarn-site/yarn.scheduler.maximum-allocation-mb",
         "widget":{
           "type":"slider",
           "units":[
@@ -195,7 +195,7 @@
         }
       },
       {
-        "config":"yarn.scheduler.minimum-allocation-vcores",
+        "config":"yarn-site/yarn.scheduler.minimum-allocation-vcores",
         "widget":{
           "type":"slider",
           "units":[
@@ -206,7 +206,7 @@
         }
       },
       {
-        "config":"yarn.scheduler.maximum-allocation-vcores",
+        "config":"yarn-site/yarn.scheduler.maximum-allocation-vcores",
         "widget":{
           "type":"slider",
           "units":[
