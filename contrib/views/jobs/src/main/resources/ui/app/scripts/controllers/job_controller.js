@@ -52,13 +52,18 @@ App.JobController = Ember.ObjectController.extend(App.RunPeriodically, {
    * @method showPopup
    */
   showPopup: function (title) {
-    Bootstrap.ModalManager.open(
+    var self = this,
+    modal = Bootstrap.ModalManager.open(
       'errorPopup',
       title,
       'job/error_popup',
       this.get('showPopupButtons'),
       this
     );
+    this.stop();
+    modal.on('closed', function ( ) {
+      self.transitionToRoute('jobs');
+    });
   },
 
   /**
@@ -95,11 +100,12 @@ App.JobController = Ember.ObjectController.extend(App.RunPeriodically, {
                 break;
               case 'job.dag.id.loaderror':
               case 'job.dag.name.loaderror':
+                self.transitionToRoute('jobs');
                 break;
               default:
+                self.transitionToRoute('jobs');
                 break;
             }
-            this.transitionToRoute('jobs');
           }
         );
       }
