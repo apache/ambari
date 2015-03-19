@@ -95,13 +95,5 @@ public interface Job extends Serializable,Indexed,PersonalResource {
 
   String getDagName();
 
-  void setDagName(String dagName);
-
-  String getDagId();
-
-  void setDagId(String dagId);
-
-  String getSessionTag();
-
-  void setSessionTag(String sessionTag);
+  void setDagName(String DagName);
 }

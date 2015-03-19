@@ -28,7 +28,6 @@ import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceMana
 import org.apache.ambari.view.hive.utils.*;
 import org.apache.ambari.view.hive.utils.HdfsApi;
 import org.apache.ambari.view.hive.utils.HdfsUtil;
-import org.apache.hive.service.cli.thrift.TSessionHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +47,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
   private boolean modified;
 
   private OperationHandleControllerFactory opHandleControllerFactory;
-  private ConnectionController hiveConnection;
+  private ConnectionController hiveSession;
   private SavedQueryResourceManager savedQueryResourceManager;
   private IATSParser atsParser;
 
@@ -57,7 +56,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
    * Warning: Create JobControllers ONLY using JobControllerFactory!
    */
   public JobControllerImpl(ViewContext context, Job job,
-                           ConnectionController hiveConnection,
+                           ConnectionController hiveSession,
                            OperationHandleControllerFactory opHandleControllerFactory,
                            SavedQueryResourceManager savedQueryResourceManager,
                            IATSParser atsParser,
@@ -65,7 +64,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     this.context = context;
     setJobPOJO(job);
     this.opHandleControllerFactory = opHandleControllerFactory;
-    this.hiveConnection = hiveConnection;
+    this.hiveSession = hiveSession;
     this.savedQueryResourceManager = savedQueryResourceManager;
     this.atsParser = atsParser;
     this.hdfsApi = hdfsApi;
@@ -98,24 +97,16 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     setupHiveBeforeQueryExecute();
 
     String query = getQueryForJob();
-    OperationHandleController handleController = hiveConnection.executeQuery(getSession(), query);
+    OperationHandleController handleController = hiveSession.executeQuery(query);
 
     handleController.persistHandleForJob(job);
+
+//    atsParser.getHiveQuieryIdsList()
   }
 
   private void setupHiveBeforeQueryExecute() {
     String database = getJobDatabase();
-    hiveConnection.selectDatabase(getSession(), database);
-  }
-
-  private TSessionHandle getSession() {
-    if (job.getSessionTag() != null) {
-      return hiveConnection.getSessionByTag(getJob().getSessionTag());
-    } else {
-      String tag = hiveConnection.openSession();
-      job.setSessionTag(tag);
-      return hiveConnection.getSessionByTag(tag);
-    }
+    hiveSession.selectDatabase(database);
   }
 
   @Override

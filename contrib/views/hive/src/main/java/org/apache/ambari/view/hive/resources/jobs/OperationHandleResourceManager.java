@@ -40,7 +40,7 @@ public class OperationHandleResourceManager extends SharedCRUDResourceManager<St
 
   @Override
   public List<StoredOperationHandle> readJobRelatedHandles(final Job job) {
-    return storageFactory.getStorage().loadAll(StoredOperationHandle.class, new FilteringStrategy() {
+    return storageFabric.getStorage().loadAll(StoredOperationHandle.class, new FilteringStrategy() {
       @Override
       public boolean isConform(Indexed item) {
         StoredOperationHandle handle = (StoredOperationHandle) item;

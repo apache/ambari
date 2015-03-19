@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive.resources.jobs.atsJobs;
 
+import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -40,7 +41,7 @@ public class ATSParser implements IATSParser {
   }
 
   @Override
-  public List<HiveQueryId> getHiveQueryIdsList(String username) {
+  public List<HiveQueryId> getHiveQuieryIdsList(String username) {
     JSONObject entities = delegate.hiveQueryIdList(username);
     JSONArray jobs = (JSONArray) entities.get("entities");
 
@@ -58,13 +59,15 @@ public class ATSParser implements IATSParser {
   }
 
   @Override
-  public HiveQueryId getHiveQueryIdByOperationId(String guidString) {
+  public HiveQueryId getHiveQuieryIdByOperationId(byte[] guid) {
+    String guidString = new String(guid);
     JSONObject entities = delegate.hiveQueryIdByOperationId(guidString);
     JSONArray jobs = (JSONArray) entities.get("entities");
 
     assert jobs.size() <= 1;
     if (jobs.size() == 0) {
-      return new HiveQueryId();
+      //TODO: throw appropriate exception
+      throw new ServiceFormattedException("HIVE_QUERY_ID with operationid=" + guidString + " not found");
     }
 
     return parseAtsHiveJob((JSONObject) jobs.get(0));
@@ -81,7 +84,6 @@ public class ATSParser implements IATSParser {
 
     TezDagId parsedDag = new TezDagId();
     JSONArray applicationIds = (JSONArray) ((JSONObject) tezDagEntity.get("primaryfilters")).get("applicationId");
-    parsedDag.entity = (String) tezDagEntity.get("entity");
     parsedDag.applicationId = (String) applicationIds.get(0);
     parsedDag.status = (String) ((JSONObject) tezDagEntity.get("otherinfo")).get("status");
     return parsedDag;

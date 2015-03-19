@@ -371,18 +371,18 @@ public class AggregatorTest {
     }
 
     @Override
-    public List<HiveQueryId> getHiveQueryIdsList(String username) {
+    public List<HiveQueryId> getHiveQuieryIdsList(String username) {
       return hiveQueryIds;
     }
 
     @Override
-    public HiveQueryId getHiveQueryIdByOperationId(String guid) {
-      return new HiveQueryId();
+    public HiveQueryId getHiveQuieryIdByOperationId(byte[] guid) {
+      return null;
     }
 
     @Override
     public TezDagId getTezDAGByName(String name) {
-      return new TezDagId();
+      return null;
     }
 
     public List<HiveQueryId> getHiveQueryIds() {

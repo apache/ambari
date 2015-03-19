@@ -36,15 +36,15 @@ abstract public class CRUDResourceManager<T extends Indexed> implements IResourc
   private Storage storage = null;
 
   protected final Class<? extends T> resourceClass;
-  protected IStorageFactory storageFactory;
+  protected IStorageFactory storageFabric;
 
   /**
    * Constructor
    * @param resourceClass model class
    */
-  public CRUDResourceManager(Class<? extends T> resourceClass, IStorageFactory storageFactory) {
+  public CRUDResourceManager(Class<? extends T> resourceClass, IStorageFactory storageFabric) {
     this.resourceClass = resourceClass;
-    this.storageFactory = storageFactory;
+    this.storageFabric = storageFabric;
   }
   // CRUD operations
 
@@ -68,7 +68,7 @@ abstract public class CRUDResourceManager<T extends Indexed> implements IResourc
   @Override
   public T read(Object id) throws ItemNotFound {
     T object = null;
-    object = storageFactory.getStorage().load(this.resourceClass, id);
+    object = storageFabric.getStorage().load(this.resourceClass, id);
     if (!checkPermissions(object))
       throw new ItemNotFound();
     return object;
@@ -81,7 +81,7 @@ abstract public class CRUDResourceManager<T extends Indexed> implements IResourc
    */
   @Override
   public List<T> readAll(FilteringStrategy filteringStrategy) {
-    return storageFactory.getStorage().loadAll(this.resourceClass, filteringStrategy);
+    return storageFabric.getStorage().loadAll(this.resourceClass, filteringStrategy);
   }
 
   /**
@@ -105,16 +105,16 @@ abstract public class CRUDResourceManager<T extends Indexed> implements IResourc
    */
   @Override
   public void delete(Object resourceId) throws ItemNotFound {
-    if (!storageFactory.getStorage().exists(this.resourceClass, resourceId)) {
+    if (!storageFabric.getStorage().exists(this.resourceClass, resourceId)) {
       throw new ItemNotFound();
     }
-    storageFactory.getStorage().delete(this.resourceClass, resourceId);
+    storageFabric.getStorage().delete(this.resourceClass, resourceId);
   }
 
   // UTILS
 
   protected T save(T object) {
-    storageFactory.getStorage().store(resourceClass, object);
+    storageFabric.getStorage().store(resourceClass, object);
     return object;
   }
 

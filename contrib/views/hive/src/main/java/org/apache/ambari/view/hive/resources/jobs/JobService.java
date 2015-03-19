@@ -66,7 +66,6 @@ public class JobService extends BaseService {
   private IOperationHandleResourceManager opHandleResourceManager;
   protected final static Logger LOG =
       LoggerFactory.getLogger(JobService.class);
-  private Aggregator aggregator;
 
   protected synchronized JobResourceManager getResourceManager() {
     if (resourceManager == null) {
@@ -76,24 +75,11 @@ public class JobService extends BaseService {
     return resourceManager;
   }
 
-  protected IOperationHandleResourceManager getOperationHandleResourceManager() {
+  private IOperationHandleResourceManager getOperationHandleResourceManager() {
     if (opHandleResourceManager == null) {
       opHandleResourceManager = new OperationHandleResourceManager(getSharedObjectsFactory());
     }
     return opHandleResourceManager;
-  }
-
-  protected Aggregator getAggregator() {
-    if (aggregator == null) {
-      ATSRequestsDelegate transport = new ATSRequestsDelegateImpl(context, "http://127.0.0.1:8188");
-      IATSParser atsParser = new ATSParser(transport);
-      aggregator = new Aggregator(getResourceManager(), getOperationHandleResourceManager(), atsParser);
-    }
-    return aggregator;
-  }
-
-  protected void setAggregator(Aggregator aggregator) {
-    this.aggregator = aggregator;
   }
 
   /**
@@ -119,15 +105,7 @@ public class JobService extends BaseService {
   }
 
   private JSONObject jsonObjectFromJob(JobController jobController) throws IllegalAccessException, NoSuchMethodException, InvocationTargetException {
-    Job hiveJob = jobController.getJobPOJO();
-
-    Job mergedJob;
-    try {
-      mergedJob = getAggregator().readATSJob(hiveJob);
-    } catch (ItemNotFound itemNotFound) {
-      throw new ServiceFormattedException("Job not found", itemNotFound);
-    }
-    Map createdJobMap = PropertyUtils.describe(mergedJob);
+    Map createdJobMap = PropertyUtils.describe(jobController.getJob());
     createdJobMap.remove("class"); // no need to show Bean class on client
 
     JSONObject jobJson = new JSONObject();
@@ -338,10 +316,10 @@ public class JobService extends BaseService {
   public Response getList() {
     try {
       LOG.debug("Getting all job");
-      List<Job> allJobs = getAggregator().readAll(context.getUsername());
-      for(Job job : allJobs) {
-        job.setSessionTag(null);
-      }
+      ATSRequestsDelegate transport = new ATSRequestsDelegateImpl(context, "http://127.0.0.1:8188");
+      IATSParser atsParser = new ATSParser(transport);
+      Aggregator aggregator = new Aggregator(getResourceManager(), getOperationHandleResourceManager(), atsParser);
+      List allJobs = aggregator.readAll(context.getUsername());
 
       JSONObject object = new JSONObject();
       object.put("jobs", allJobs);
@@ -367,7 +345,6 @@ public class JobService extends BaseService {
 
       JobController createdJobController = getResourceManager().readController(job.getId());
       createdJobController.submit();
-      getResourceManager().saveIfModified(createdJobController);
 
       response.setHeader("Location",
           String.format("%s/%s", ui.getAbsolutePath().toString(), job.getId()));

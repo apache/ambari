@@ -21,9 +21,9 @@ package org.apache.ambari.view.hive.resources.jobs.atsJobs;
 import java.util.List;
 
 public interface IATSParser {
-  List<HiveQueryId> getHiveQueryIdsList(String username);
+  List<HiveQueryId> getHiveQuieryIdsList(String username);
 
-  HiveQueryId getHiveQueryIdByOperationId(String guidString);
+  HiveQueryId getHiveQuieryIdByOperationId(byte[] guid);
 
   TezDagId getTezDAGByName(String name);
 }

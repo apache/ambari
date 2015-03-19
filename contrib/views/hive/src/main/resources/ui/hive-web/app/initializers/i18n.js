@@ -159,11 +159,5 @@ TRANSLATIONS = {
       }
     },
     add: 'Add'
-  },
-  tez: {
-    errors: {
-      'not.deployed': "Tez View isn't deployed.",
-      'no.instance': "No instance of Tez View found."
-    }
   }
 };

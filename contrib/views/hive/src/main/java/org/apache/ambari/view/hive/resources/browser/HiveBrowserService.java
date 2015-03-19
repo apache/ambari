@@ -29,7 +29,6 @@ import org.apache.ambari.view.hive.utils.BadRequestFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
-import org.apache.hive.service.cli.thrift.TSessionHandle;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,8 +89,7 @@ public class HiveBrowserService {
     String curl = null;
     try {
       JSONObject response = new JSONObject();
-      TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-      List<String> tables = getConnectionFactory().getHiveConnection().ddl().getDBList(session, like);
+      List<String> tables = getConnectionFactory().getHiveConnection().ddl().getDBList(like);
       response.put("databases", tables);
       return Response.ok(response).build();
     } catch (WebApplicationException ex) {
@@ -126,8 +124,7 @@ public class HiveBrowserService {
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {
-                  TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-                  return getConnectionFactory().getHiveConnection().ddl().getDBListCursor(session, finalLike);
+                  return getConnectionFactory().getHiveConnection().ddl().getDBListCursor(finalLike);
                 }
               }).build();
     } catch (WebApplicationException ex) {
@@ -157,8 +154,7 @@ public class HiveBrowserService {
     String curl = null;
     try {
       JSONObject response = new JSONObject();
-      TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-      List<String> tables = getConnectionFactory().getHiveConnection().ddl().getTableList(session, db, like);
+      List<String> tables = getConnectionFactory().getHiveConnection().ddl().getTableList(db, like);
       response.put("tables", tables);
       response.put("database", db);
       return Response.ok(response).build();
@@ -195,8 +191,7 @@ public class HiveBrowserService {
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {
-                  TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableListCursor(session, db, finalLike);
+                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableListCursor(db, finalLike);
                   cursor.selectColumns(requestedColumns);
                   return cursor;
                 }
@@ -225,9 +220,8 @@ public class HiveBrowserService {
     String curl = null;
     try {
       JSONObject response = new JSONObject();
-      TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
       List<ColumnDescription> columnDescriptions = getConnectionFactory().getHiveConnection().ddl()
-          .getTableDescription(session, db, table, like, extendedTableDescription);
+          .getTableDescription(db, table, like, extendedTableDescription);
       response.put("columns", columnDescriptions);
       response.put("database", db);
       response.put("table", table);
@@ -261,9 +255,7 @@ public class HiveBrowserService {
               new Callable<Cursor>() {
                 @Override
                 public Cursor call() throws Exception {
-                  TSessionHandle session = getConnectionFactory().getHiveConnection().getOrCreateSessionByTag("DDL");
-                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().
-                      getTableDescriptionCursor(session, db, table, like);
+                  Cursor cursor = getConnectionFactory().getHiveConnection().ddl().getTableDescriptionCursor(db, table, like);
                   cursor.selectColumns(requestedColumns);
                   return cursor;
                 }
