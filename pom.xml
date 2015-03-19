@@ -173,7 +173,7 @@
             <configuration>
               <name>package-version</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-).*</regex>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)((\.|-).*)?</regex>
               <replacement>$1.$2.$3</replacement>
               <failIfNoMatch>true</failIfNoMatch>
             </configuration>
@@ -186,8 +186,8 @@
             <configuration>
               <name>package-release</name>
               <value>${project.version}</value>
-              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)(\.|-)(([0-9]+)|(SNAPSHOT)|(techwin)).*</regex>
-              <replacement>$5</replacement>
+              <regex>^([0-9]+)\.([0-9]+)\.([0-9]+)((\.|-)(([0-9]+)|(SNAPSHOT)|(techwin)).*)?</regex>
+              <replacement>$6</replacement>
               <failIfNoMatch>true</failIfNoMatch>
             </configuration>
           </execution>

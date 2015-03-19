@@ -17,7 +17,7 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 <view>
   <name>SLIDER</name>
   <label>Slider Apps View</label>
-  <version>1.0.0</version>
+  <version>2.0.0</version>
 	<parameter>
 		<name>ambari.server.url</name>
 		<description>Ambari Server Cluster REST API URL (for example:

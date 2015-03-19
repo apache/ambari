@@ -27,26 +27,13 @@
     <tez.version>0.6.0</tez.version>
   </properties>
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.apache.ambari</groupId>
-  <artifactId>tez-ambari-view</artifactId>
+  <groupId>org.apache.ambari.contrib.views</groupId>
+  <artifactId>tez-view</artifactId>
   <name>Tez</name>
   <version>${tez.view.version}</version>
-  <description>Tez Ambari View</description>
-  <repositories>
-    <repository>
-      <id>apache.snapshots</id>
-      <name>Apache Development Snapshot Repository</name>
-      <url>https://repository.apache.org/content/repositories/snapshots/</url>
-      <releases>
-        <enabled>false</enabled>
-      </releases>
-      <snapshots>
-        <enabled>true</enabled>
-      </snapshots>
-    </repository>
-  </repositories>
-  <build>
+  <description>Tez View</description>
 
+  <build>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>

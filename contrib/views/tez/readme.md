@@ -35,7 +35,7 @@ The view can be built as a maven project.
 
 The build will produce the view archive.
 
-    target/tez-ambari-view-0.6.0-SNAPSHOT.jar
+    target/tez-view-0.6.0-SNAPSHOT.jar
 
 Configuration
 -----
@@ -71,7 +71,7 @@ Use the [Ambari Vagrant](https://cwiki.apache.org/confluence/display/AMBARI/Quic
 
 Deploy the TEZ view into Ambari.
 
-    cp tez-ambari-view-0.6.0-SNAPSHOT.jar /var/lib/ambari-server/resources/views/
+    cp tez-view-0.6.0-SNAPSHOT.jar /var/lib/ambari-server/resources/views/
     ambari-server restart
 
 From the Ambari Administration interface, create a TEZ view instance.
