@@ -37,8 +37,8 @@ public class DDLDelegator {
    * @return list of table names
    * @throws HiveClientException
    */
-  public List<String> getTableList(String db, String like) throws HiveClientException {
-    Cursor cursor = getTableListCursor(db, like);
+  public List<String> getTableList(TSessionHandle session, String db, String like) throws HiveClientException {
+    Cursor cursor = getTableListCursor(session, db, like);
     return cursor.getValuesInColumn(0);
   }
 
@@ -48,9 +48,9 @@ public class DDLDelegator {
    * @return list of table names
    * @throws HiveClientException
    */
-   public Cursor getTableListCursor(String db, String like) throws HiveClientException {
-    connection.executeSync(String.format("use %s", db));
-    TOperationHandle handle = connection.executeSync(String.format("show tables like '%s'", like));
+   public Cursor getTableListCursor(TSessionHandle session, String db, String like) throws HiveClientException {
+    connection.executeSync(session, String.format("use %s", db));
+    TOperationHandle handle = connection.executeSync(session, String.format("show tables like '%s'", like));
 
     return new Cursor(connection, handle);
   }
@@ -61,8 +61,8 @@ public class DDLDelegator {
    * @return list of databases
    * @throws HiveClientException
    */
-  public List<String> getDBList(String like) throws HiveClientException {
-    Cursor cursor = getDBListCursor(like);
+  public List<String> getDBList(TSessionHandle session, String like) throws HiveClientException {
+    Cursor cursor = getDBListCursor(session, like);
     return cursor.getValuesInColumn(0);
   }
 
@@ -72,8 +72,8 @@ public class DDLDelegator {
    * @return list of databases
    * @throws HiveClientException
    */
-  public Cursor getDBListCursor(String like) throws HiveClientException {
-    TOperationHandle handle = connection.executeSync(String.format("show databases like '%s'", like));
+  public Cursor getDBListCursor(TSessionHandle session, String like) throws HiveClientException {
+    TOperationHandle handle = connection.executeSync(session, String.format("show databases like '%s'", like));
     return new Cursor(connection, handle);
   }
 
@@ -84,9 +84,9 @@ public class DDLDelegator {
    * @return schema
    * @throws HiveClientException
    */
-  public List<ColumnDescription> getTableDescription(final String db, final String table, String like, boolean extended) throws HiveClientException {
+  public List<ColumnDescription> getTableDescription(TSessionHandle session, final String db, final String table, String like, boolean extended) throws HiveClientException {
     List<ColumnDescription> columnDescriptions = new LinkedList<ColumnDescription>();
-    Cursor cursor = getTableDescriptionCursor(db, table, like);
+    Cursor cursor = getTableDescriptionCursor(session, db, table, like);
     for(Row row : cursor) {
       Object[] rowObjects = row.getRow();
 
@@ -112,7 +112,7 @@ public class DDLDelegator {
    * @return schema
    * @throws HiveClientException
    */
-  public Cursor getTableDescriptionCursor(final String db, final String table, String like) throws HiveClientException {
+  public Cursor getTableDescriptionCursor(final TSessionHandle session, final String db, final String table, String like) throws HiveClientException {
     if (like == null)
       like = ".*";
     else
@@ -122,7 +122,7 @@ public class DDLDelegator {
       @Override
       public TGetColumnsResp body() throws HiveClientException {
 
-        TGetColumnsReq req = new TGetColumnsReq(conn.getSessHandle());
+        TGetColumnsReq req = new TGetColumnsReq(session);
         req.setSchemaName(db);
         req.setTableName(table);
         req.setColumnName(finalLike);

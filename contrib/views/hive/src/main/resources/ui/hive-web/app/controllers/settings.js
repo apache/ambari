@@ -84,23 +84,30 @@ export default Ember.ArrayController.extend({
       return;
     }
 
+    var Setting = Ember.Object.extend({
+      key: Ember.Object.create(),
+      valid: true,
+      selection: Ember.Object.create(),
+      value: Ember.computed.alias('selection.value')
+    });
+
     query.set('fileContent', content.replace(regex, '').trim());
     settings = settings.map(function (setting) {
       var KV = setting.split('=');
-      var obj = {
-        key: {
-          name: KV[0].replace('set', '').trim()
-        },
-        value: KV[1].replace(';', '').trim()
-      };
+      var name = KV[0].replace('set', '').trim();
+      var value = KV[1].replace(';', '').trim();
 
-      if (!self.get('predefinedSettings').findBy('name', obj.key.name)) {
+      var newSetting = Setting.create({});
+      newSetting.set('key.name', name);
+      newSetting.set('selection.value', value);
+
+      if (!self.get('predefinedSettings').findBy('name', name)) {
         self.get('predefinedSettings').pushObject({
-          name: obj.key.name
+          name: name
         });
       }
 
-      return obj;
+      return newSetting;
     });
 
     this.setSettingForQuery(id, settings);

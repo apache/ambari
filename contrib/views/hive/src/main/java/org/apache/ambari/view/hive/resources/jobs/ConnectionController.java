@@ -21,7 +21,9 @@ package org.apache.ambari.view.hive.resources.jobs;
 import org.apache.ambari.view.hive.client.Connection;
 import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.commons.codec.binary.Hex;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
+import org.apache.hive.service.cli.thrift.TSessionHandle;
 
 
 public class ConnectionController {
@@ -33,14 +35,39 @@ public class ConnectionController {
     this.operationHandleControllerFactory = operationHandleControllerFactory;
   }
 
-  public void selectDatabase(String database) {
-    executeQuery("use " + database + ";");
+  public TSessionHandle getSessionByTag(String tag) {
+    try {
+      return connection.getSessionByTag(tag);
+    } catch (HiveClientException e) {
+      throw new ServiceFormattedException(e.toString(), e);
+    }
   }
 
-  public OperationHandleController executeQuery(String cmd) {
+  public String openSession() {
+    try {
+      TSessionHandle sessionHandle = connection.openSession();
+      return getTagBySession(sessionHandle);
+    } catch (HiveClientException e) {
+      throw new ServiceFormattedException(e.toString(), e);
+    }
+  }
+
+  public static String getTagBySession(TSessionHandle sessionHandle) {
+    return Hex.encodeHexString(sessionHandle.getSessionId().getGuid());
+  }
+
+  public void selectDatabase(TSessionHandle session, String database) {
+    try {
+      connection.executeSync(session, "use " + database + ";");
+    } catch (HiveClientException e) {
+      throw new ServiceFormattedException(e.toString(), e);
+    }
+  }
+
+  public OperationHandleController executeQuery(TSessionHandle session, String cmd) {
     TOperationHandle operationHandle = null;
     try {
-      operationHandle = connection.executeAsync(cmd);
+      operationHandle = connection.executeAsync(session, cmd);
     } catch (HiveClientException e) {
       throw new ServiceFormattedException(e.toString(), e);
     }

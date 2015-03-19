@@ -30,6 +30,8 @@ import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.codec.binary.Hex;
+import org.apache.hive.service.cli.thrift.TOperationHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,8 +42,22 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * View Jobs and ATS Jobs aggregator
- * Not all ViewJobs create ATS job
+ * View Jobs and ATS Jobs aggregator.
+ * There are 4 options:
+ * 1) ATS Job without operationId
+ *    *Meaning*: executed outside of HS2
+ *    - Job info only from ATS
+ * 2) ATS Job with operationId
+  *    a) Hive View Job with same operationId is not present
+ *        *Meaning*: executed with HS2
+ *      - Job info only from ATS
+ *    b) Hive View Job with operationId is present (need to merge)
+ *        *Meaning*: executed with HS2 through Hive View
+ *      - Job info merged from ATS and from Hive View DataStorage
+ * 3) Job present only in Hive View, ATS does not have it
+ *   *Meaning*: executed through Hive View, but Hadoop Job was not created
+ *   it can happen if user executes query without aggregation, like just "select * from TABLE"
+ *   - Job info only from Hive View
  */
 public class Aggregator {
   protected final static Logger LOG =
@@ -63,7 +79,7 @@ public class Aggregator {
       Set<String> addedOperationIds = new HashSet<String>();
 
     List<Job> allJobs = new LinkedList<Job>();
-    for (HiveQueryId atsHiveQuery : ats.getHiveQuieryIdsList(username)) {
+    for (HiveQueryId atsHiveQuery : ats.getHiveQueryIdsList(username)) {
 
       TezDagId atsTezDag;
       if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0) {
@@ -112,6 +128,25 @@ public class Aggregator {
     return allJobs;
   }
 
+  public Job readATSJob(Job viewJob) throws ItemNotFound {
+    TOperationHandle operationHandle = operationHandleResourceManager.getHandleForJob(viewJob);
+
+    String hexGuid = Hex.encodeHexString(operationHandle.getOperationId().getGuid());
+    HiveQueryId atsHiveQuery = ats.getHiveQueryIdByOperationId(hexStringToUrlSafeBase64(hexGuid));
+
+    TezDagId atsTezDag;
+    if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0) {
+      String dagName = atsHiveQuery.dagNames.get(0);
+
+      atsTezDag = ats.getTezDAGByName(dagName);
+    } else {
+      atsTezDag = new TezDagId();
+    }
+
+    saveJobInfoIfNeeded(atsHiveQuery, atsTezDag, viewJob);
+    return mergeAtsJobWithViewJob(atsHiveQuery, atsTezDag, viewJob);
+  }
+
   protected boolean hasOperationId(HiveQueryId atsHiveQuery) {
     return atsHiveQuery.operationId != null;
   }
@@ -135,11 +170,15 @@ public class Aggregator {
   }
 
   protected void saveJobInfoIfNeeded(HiveQueryId hiveQueryId, TezDagId tezDagId, Job viewJob) throws ItemNotFound {
-    if (viewJob.getDagName() == null) {
-      viewJob.setDagName(tezDagId.dagName);
-      viewJobResourceManager.update(viewJob, viewJob.getId());
+    if (viewJob.getDagName() == null || viewJob.getDagName().isEmpty()) {
+      if (hiveQueryId.dagNames != null && hiveQueryId.dagNames.size() > 0) {
+        viewJob.setDagName(hiveQueryId.dagNames.get(0));
+        viewJob.setDagId(tezDagId.entity);
+        viewJobResourceManager.update(viewJob, viewJob.getId());
+      }
     }
-    if (viewJob.getStatus().equals(tezDagId.status)) {
+    if ((tezDagId.status.compareToIgnoreCase(Job.JOB_STATE_UNKNOWN) != 0) &&
+        !viewJob.getStatus().equals(tezDagId.status)) {
       viewJob.setStatus(tezDagId.status);
       viewJobResourceManager.update(viewJob, viewJob.getId());
     }
@@ -160,8 +199,10 @@ public class Aggregator {
   protected JobImpl fillAtsJobFields(JobImpl atsJob, HiveQueryId atsHiveQuery, TezDagId atsTezDag) {
     atsJob.setApplicationId(atsTezDag.applicationId);
 
-    atsJob.setDagName(atsTezDag.dagName);
-    if (!atsTezDag.status.equals(TezDagId.STATUS_UNKNOWN))
+    if (atsHiveQuery.dagNames != null && atsHiveQuery.dagNames.size() > 0)
+      atsJob.setDagName(atsHiveQuery.dagNames.get(0));
+    atsJob.setDagId(atsTezDag.entity);
+    if (atsTezDag.status != null && !atsTezDag.status.equals(TezDagId.STATUS_UNKNOWN))
       atsJob.setStatus(atsTezDag.status);
     if (atsHiveQuery.starttime != 0)
       atsJob.setDateSubmitted(atsHiveQuery.starttime);

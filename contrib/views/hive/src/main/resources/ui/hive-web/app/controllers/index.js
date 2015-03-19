@@ -42,6 +42,10 @@ export default Ember.Controller.extend({
   visualExplain: Ember.computed.alias('controllers.' + constants.namingConventions.visualExplain),
   tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
 
+  shouldShowTez: function() {
+    return this.get('model.dagId') && this.get('tezUI.isTezViewAvailable');
+  }.property('model.dagId', 'tezUI.isTezViewAvailable'),
+
   canExecute: function () {
     var isModelRunning = this.get('model.isRunning');
     var hasParams = this.get('queryParams.length');
@@ -89,6 +93,7 @@ export default Ember.Controller.extend({
 
     job = this.store.createRecord(constants.namingConventions.job, {
       title: originalModel.get('title'),
+      sessionTag: originalModel.get('sessionTag'),
       dataBase: this.get('databases.selectedDatabase.name')
     });
 

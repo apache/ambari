@@ -39,7 +39,7 @@ public class ATSParserTest {
   public void testGetHiveJobsList() throws Exception {
     IATSParser jobLoader = new ATSParser(new ATSRequestsDelegateStub());
 
-    List<HiveQueryId> jobs = jobLoader.getHiveQuieryIdsList("hive");
+    List<HiveQueryId> jobs = jobLoader.getHiveQueryIdsList("hive");
 
     Assert.assertEquals(1, jobs.size());
 
@@ -62,6 +62,7 @@ public class ATSParserTest {
 
     TezDagId tezDag = jobLoader.getTezDAGByName("hive_20150209144848_c3a5a07b-c3b6-4f57-a6d5-3dadecdd6fd0:4");
 
+    Assert.assertEquals("dag_1423156117563_0005_2", tezDag.entity);
     Assert.assertEquals("application_1423156117563_0005", tezDag.applicationId);
     Assert.assertEquals("SUCCEEDED", tezDag.status);
   }

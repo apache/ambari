@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive.client;
 
+import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -37,6 +38,7 @@ import javax.security.sasl.Sasl;
 import javax.security.sasl.SaslException;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -51,7 +53,7 @@ public class Connection {
   private Map<String, String> authParams;
 
   private TCLIService.Client client = null;
-  private TSessionHandle sessHandle = null;
+  private Map<String, TSessionHandle> sessHandles = null;
   private TProtocolVersion protocol = null;
   private TTransport transport;
 
@@ -63,6 +65,8 @@ public class Connection {
     this.port = port;
     this.authParams = authParams;
     this.username = username;
+
+    this.sessHandles = new HashMap<String, TSessionHandle>();
 
     openConnection();
     ddl = new DDLDelegator(this);
@@ -189,8 +193,11 @@ public class Connection {
     return defaultValue;
   }
 
-  private synchronized void openSession() throws HiveClientException {
-    //It's possible to set proxy user configuration here
+  public synchronized TSessionHandle openSession() throws HiveClientException {
+    return openSession(null);
+  }
+
+  public synchronized TSessionHandle openSession(String forcedTag) throws HiveClientException {
     TOpenSessionResp openResp = new HiveCall<TOpenSessionResp>(this) {
       @Override
       public TOpenSessionResp body() throws HiveClientException {
@@ -205,15 +212,41 @@ public class Connection {
     }.call();
     Utils.verifySuccess(openResp.getStatus(), "Unable to open Hive session");
 
-    protocol = openResp.getServerProtocolVersion();
-    sessHandle = openResp.getSessionHandle();
+    if (protocol == null)
+      protocol = openResp.getServerProtocolVersion();
     LOG.info("Hive session opened");
+
+    TSessionHandle sessionHandle = openResp.getSessionHandle();
+    String tag;
+    if (forcedTag == null)
+      tag = Hex.encodeHexString(sessionHandle.getSessionId().getGuid());
+    else
+      tag = forcedTag;
+
+    sessHandles.put(tag, sessionHandle);
+
+    return sessionHandle;
   }
 
-  private synchronized void closeSession() throws HiveClientException {
+  public TSessionHandle getSessionByTag(String tag) throws HiveClientException {
+    TSessionHandle sessionHandle = sessHandles.get(tag);
+    if (sessionHandle == null) {
+      throw new HiveClientException("Session with provided tag not found", null);
+    }
+    return sessionHandle;
+  }
+
+  public TSessionHandle getOrCreateSessionByTag(String tag) throws HiveClientException {
+    try {
+      return getSessionByTag(tag);
+    } catch (HiveClientException e) {
+      return openSession(tag);
+    }
+  }
+
+  private synchronized void closeSession(TSessionHandle sessHandle) throws HiveClientException {
     if (sessHandle == null) return;
     TCloseSessionReq closeReq = new TCloseSessionReq(sessHandle);
-    //It's possible to set proxy user configuration here
     TCloseSessionResp closeResp = null;
     try {
       closeResp = client.CloseSession(closeReq);
@@ -221,23 +254,28 @@ public class Connection {
     } catch (TException e) {
       throw new HiveClientException("Unable to close Hive session", e);
     }
-
-    sessHandle = null;
-    protocol = null;
     LOG.info("Hive session closed");
   }
 
   public synchronized void closeConnection() throws HiveClientException {
     if (client == null) return;
     try {
-      closeSession();
-    } catch (HiveClientException e) {
-      LOG.error("Unable to close Hive session: " + e.getMessage());
+
+      for(Iterator<Map.Entry<String, TSessionHandle>> it = sessHandles.entrySet().iterator(); it.hasNext(); ) {
+        Map.Entry<String, TSessionHandle> entry = it.next();
+        try {
+          closeSession(entry.getValue());
+        } catch (HiveClientException e) {
+          LOG.error("Unable to close Hive session: " + e.getMessage());
+        } finally {
+          it.remove();
+        }
+      }
+
     } finally {
       transport.close();
       transport = null;
       client = null;
-      sessHandle = null;
       protocol = null;
     }
     LOG.info("Connection to Hive closed");
@@ -250,19 +288,29 @@ public class Connection {
    * @return handle of operation
    * @throws HiveClientException
    */
-  public TOperationHandle execute(final String cmd, final boolean async) throws HiveClientException {
+  public TOperationHandle execute(final TSessionHandle session, final String cmd, final boolean async) throws HiveClientException {
     TOperationHandle handle = null;
-    for(final String oneCmd : cmd.split(";")) {
+
+    String[] commands = cmd.split(";");
+    for(int i=0; i<commands.length; i++) {
+      final String oneCmd = commands[i];
+      final boolean lastCommand = i == commands.length-1;
 
       TExecuteStatementResp execResp = new HiveCall<TExecuteStatementResp>(this) {
         @Override
         public TExecuteStatementResp body() throws HiveClientException {
 
           TExecuteStatementReq execReq = null;
-          openSession();
-          execReq = new TExecuteStatementReq(getSessHandle(), oneCmd);
-          execReq.setRunAsync(async);
-          execReq.setConfOverlay(new HashMap<String, String>()); //maybe it's hive configuration? use it, Luke!
+          execReq = new TExecuteStatementReq(session, oneCmd);
+
+          // only last command should be asynchronous and return some results
+          // all previous commands are supposed to be set properties entries
+          if (lastCommand) {
+            execReq.setRunAsync(async);
+          } else {
+            execReq.setRunAsync(false);
+          }
+          execReq.setConfOverlay(new HashMap<String, String>());
           try {
             return client.ExecuteStatement(execReq);
           } catch (TException e) {
@@ -282,12 +330,12 @@ public class Connection {
     return handle;
   }
 
-  public TOperationHandle executeAsync(String cmd) throws HiveClientException {
-    return execute(cmd, true);
+  public TOperationHandle executeAsync(TSessionHandle session, String cmd) throws HiveClientException {
+    return execute(session, cmd, true);
   }
 
-  public TOperationHandle executeSync(String cmd) throws HiveClientException {
-    return execute(cmd, false);
+  public TOperationHandle executeSync(TSessionHandle session, String cmd) throws HiveClientException {
+    return execute(session, cmd, false);
   }
 
   public String getLogs(TOperationHandle handle) {
@@ -373,16 +421,6 @@ public class Connection {
 
   public void setHost(String host) {
     this.host = host;
-  }
-
-  public TSessionHandle getSessHandle() throws HiveClientException {
-    if (sessHandle == null)
-      openSession();
-    return sessHandle;
-  }
-
-  public void setSessHandle(TSessionHandle sessHandle) {
-    this.sessHandle = sessHandle;
   }
 
   public TCLIService.Client getClient() {
