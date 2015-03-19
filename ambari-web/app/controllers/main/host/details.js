@@ -434,6 +434,8 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param event
    */
   addComponentWithCheck: function(event) {
+    var componentName = event.context ? event.context.get('componentName') : "";
+    event.hiveMetastoreHost = (componentName == "HIVE_METASTORE" && !!this.get('content.hostName')) ? this.get('content.hostName') : null;
     App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
   },
   /**
@@ -445,7 +447,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var
       returnFunc,
       self = this,
-      hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : this.get('content.hostName');
+      hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : "";
       component = event.context,
       componentName = component.get('componentName'),
       missedComponents = !!hiveHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
