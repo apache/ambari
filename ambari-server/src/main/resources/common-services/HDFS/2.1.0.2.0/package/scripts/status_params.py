@@ -29,6 +29,7 @@ namenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-namenode.pid")
 snamenode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-secondarynamenode.pid")
 journalnode_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-journalnode.pid")
 zkfc_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-zkfc.pid")
+nfsgateway_pid_file = format("{hdp_pid_dir}/hadoop-{hdfs_user}-nfs3.pid")
 
 # Security related/required params
 hostname = config['hostname']

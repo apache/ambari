@@ -83,7 +83,22 @@ var configs = [
     "filename": "core-site.xml",
     "isOverridable": true
   },
-
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+    "templateName": [],
+    "foreignKey": ["hdfs_user"],
+    "value": "*",
+    "filename": "core-site.xml",
+    "isOverridable": true
+  },
+  {
+    "name": "hadoop.proxyuser.<foreignKey[0]>.hosts",
+    "templateName": [],
+    "foreignKey": ["hdfs_user"],
+    "value": "*",
+    "filename": "core-site.xml",
+    "isOverridable": true
+  },
 /**********************************Oozie******************************/
 
   {
