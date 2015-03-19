@@ -196,7 +196,9 @@ App.WizardStep9Controller = Em.Controller.extend({
         if (self.get('currentOpenTaskId')) {
           self.loadCurrentTaskLog();
         }
-        self.doPolling();
+        if (App.router.loggedIn) {
+          self.doPolling();
+        }
       }, this.get('POLL_INTERVAL'));
     }
   },
