@@ -49,7 +49,7 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
 
   @Override
   public T update(T newObject, String id) throws ItemNotFound {
-    T object = storageFabric.getStorage().load(this.resourceClass, id);
+    T object = storageFactory.getStorage().load(this.resourceClass, id);
     if (object.getOwner().compareTo(this.context.getUsername()) != 0) {
       throw new ItemNotFound();
     }

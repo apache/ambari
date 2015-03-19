@@ -97,6 +97,6 @@
 
     <span {{bind-attr class="visualExplain.showOverlay:active :fa :fa-bar-chart :queries-icon"}} {{action 'toggleOverlay' 'visualExplain'}}></span>
 
-    <span {{bind-attr class="tezUI.showOverlay:active :queries-icon :text-icon"}} {{action 'toggleOverlay' 'tezUI'}}>TEZ</span>
+    <span {{bind-attr class="tezUI.showOverlay:active shouldShowTez::hide :queries-icon :text-icon"}} {{action 'toggleOverlay' 'tezUI'}}>TEZ</span>
   </div>
 </div>

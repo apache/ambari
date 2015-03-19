@@ -18,5 +18,12 @@
 
 <div id="tez-ui">
   {{#panel-widget headingTranslation="titles.query.tez"}}
+    {{#if dagURL}}
+      <iframe {{bind-attr src=dagURL}}></iframe>
+    {{else}}
+      {{#if error}}
+        <div class="alert alert-danger" role="alert"><strong>{{tb-helper error}}</strong></div>
+      {{/if}}
+    {{/if}}
   {{/panel-widget}}
 </div>

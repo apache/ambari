@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.util.*;
 
 /**
- * Object that provides CRUD operations for query objects
+ * Object that provides CRUD operations for job objects
  */
 public class JobResourceManager extends PersonalCRUDResourceManager<Job> {
   private final static Logger LOG =

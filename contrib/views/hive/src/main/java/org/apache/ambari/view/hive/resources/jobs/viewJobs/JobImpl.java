@@ -38,7 +38,10 @@ public class JobImpl implements Job {
   private String queryId = null;
 
   private String applicationId;
+  private String dagId;
   private String dagName;
+
+  private String sessionTag;
 
   private String id = null;
   private String owner = null;
@@ -220,7 +223,27 @@ public class JobImpl implements Job {
   }
 
   @Override
-  public void setDagName(String DagName) {
-    this.dagName = DagName;
+  public void setDagName(String dagName) {
+    this.dagName = dagName;
+  }
+
+  @Override
+  public String getDagId() {
+    return dagId;
+  }
+
+  @Override
+  public void setDagId(String dagId) {
+    this.dagId = dagId;
+  }
+
+  @Override
+  public String getSessionTag() {
+    return sessionTag;
+  }
+
+  @Override
+  public void setSessionTag(String sessionTag) {
+    this.sessionTag = sessionTag;
   }
 }

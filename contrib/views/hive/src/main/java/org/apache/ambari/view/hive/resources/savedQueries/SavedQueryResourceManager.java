@@ -19,7 +19,6 @@
 package org.apache.ambari.view.hive.resources.savedQueries;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.persistence.IStorageFactory;
 import org.apache.ambari.view.hive.persistence.utils.FilteringStrategy;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.PersonalCRUDResourceManager;
@@ -31,9 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Object that provides CRUD operations for query objects
@@ -85,7 +82,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
     HdfsUtil.putStringToFile(sharedObjectsFactory.getHdfsApi(), newFilePath, "");
 
     object.setQueryFile(newFilePath);
-    storageFabric.getStorage().store(SavedQuery.class, object);
+    storageFactory.getStorage().store(SavedQuery.class, object);
   }
 
   @Override
@@ -110,7 +107,7 @@ public class SavedQueryResourceManager extends PersonalCRUDResourceManager<Saved
       }
       savedQuery.setShortQuery(query.substring(0, (query.length() > 42)?42:query.length()));
     }
-    storageFabric.getStorage().store(SavedQuery.class, savedQuery);
+    storageFactory.getStorage().store(SavedQuery.class, savedQuery);
   }
 
   @Override

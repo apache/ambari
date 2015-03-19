@@ -29,6 +29,9 @@ export default DS.Model.extend({
   dateSubmitted: DS.attr('date'),
   forcedContent: DS.attr('string'),
   logFile: DS.attr('string'),
+  dagName:  DS.attr('string'),
+  dagId: DS.attr('string'),
+  sessionTag: DS.attr('string'),
 
   dateSubmittedTimestamp: function () {
     var date = this.get('dateSubmitted');

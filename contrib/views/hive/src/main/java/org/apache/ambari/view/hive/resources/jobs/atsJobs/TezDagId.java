@@ -21,6 +21,6 @@ package org.apache.ambari.view.hive.resources.jobs.atsJobs;
 public class TezDagId {
   public static final String STATUS_UNKNOWN = "UNKNOWN";
   public String applicationId = "";
-  public String dagName = "";
+  public String entity = "";
   public String status = STATUS_UNKNOWN;
 }
