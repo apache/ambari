@@ -129,7 +129,9 @@
           </td>
           <td class="host-ip">{{host.ip}}</td>
           {{#if App.supports.setRackId}}
-            <td>{{host.rack}}</td>
+            <td>
+              {{host.rack}} <a class="set-rack-id" {{action setRackId host target="controller"}}><i class="icon-pencil"></i></a>
+            </td>
           {{/if}}
           <td class="cores-formatted">{{host.coresFormatted}}</td>
           <td class="memory-formatted">{{host.memoryFormatted}}</td>
