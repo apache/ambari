@@ -463,7 +463,7 @@ public class TestActionDBAccessorImpl {
   public void testGetRequestsByStatusWithParams() throws AmbariException {
     List<Long> ids = new ArrayList<Long>();
 
-    for (long l = 0; l < 10; l++) {
+    for (long l = 1; l <= 10; l++) {
       ids.add(l);
     }
 

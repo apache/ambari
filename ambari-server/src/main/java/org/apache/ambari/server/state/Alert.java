@@ -27,7 +27,7 @@ public class Alert {
   private String instance = null;
   private String service = null;
   private String component = null;
-  private String host = null;
+  private String hostName = null;
   private AlertState state = AlertState.UNKNOWN;
   private String label = null;
   private String text = null;
@@ -50,7 +50,7 @@ public class Alert {
     instance = alertInstance;
     service = serviceName;
     component = componentName;
-    host = hostName;
+    this.hostName = hostName;
     state = alertState;
   }
 
@@ -86,8 +86,8 @@ public class Alert {
    * @return the host
    */
   @JsonProperty("host")
-  public String getHost() {
-    return host;
+  public String getHostName() {
+    return hostName;
   }
 
   /**
@@ -156,8 +156,8 @@ public class Alert {
   }
 
   @JsonProperty("host")
-  public void setHost(String host) {
-    this.host = host;
+  public void setHostName(String hostName) {
+    this.hostName = hostName;
   }
 
   @JsonProperty("state")
@@ -217,7 +217,7 @@ public class Alert {
     int result = (null != name) ? name.hashCode() : 0;
     result += 31 * result + (null != service ? service.hashCode() : 0);
     result += 31 * result + (null != component ? component.hashCode() : 0);
-    result += 31 * result + (null != host ? host.hashCode() : 0);
+    result += 31 * result + (null != hostName ? hostName.hashCode() : 0);
 
     return result;
   }
@@ -242,7 +242,7 @@ public class Alert {
     sb.append("name=").append(name).append(", ");
     sb.append("service=").append(service).append(", ");
     sb.append("component=").append(component).append(", ");
-    sb.append("host=").append(host).append(", ");
+    sb.append("host=").append(hostName).append(", ");
     sb.append("instance=").append(instance).append(", ");
     sb.append("text='").append(text).append("'");
     sb.append('}');

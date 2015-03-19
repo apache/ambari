@@ -293,8 +293,8 @@ public class HeartBeatHandler {
 
     if (null != heartbeat.getAlerts()) {
       for (Alert alert : heartbeat.getAlerts()) {
-        if (null == alert.getHost()) {
-          alert.setHost(hostname);
+        if (null == alert.getHostName()) {
+          alert.setHostName(hostname);
         }
 
         try {

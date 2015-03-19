@@ -158,10 +158,12 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     for (SingularAttribute<?, ?> singularAttribute : singularAttributes) {
       lastSingularAttribute = singularAttribute;
 
-      if (null == path) {
-        path = m_root.get(singularAttribute.getName());
-      } else {
-        path = path.get(singularAttribute.getName());
+      if (singularAttribute != null) {
+        if (null == path) {
+          path = m_root.get(singularAttribute.getName());
+        } else {
+          path = path.get(singularAttribute.getName());
+        }
       }
     }
 
@@ -173,10 +175,12 @@ public abstract class JpaPredicateVisitor<T> implements PredicateVisitor {
     Comparable<?> value = predicate.getValue();
 
     // convert string to enum for proper JPA comparisons
-    Class<?> clazz = lastSingularAttribute.getJavaType();
-    if (clazz.isEnum()) {
-      Class<? extends Enum> enumClass = (Class<? extends Enum>) clazz;
-      value = Enum.valueOf(enumClass, value.toString());
+    if (lastSingularAttribute != null) {
+      Class<?> clazz = lastSingularAttribute.getJavaType();
+      if (clazz.isEnum()) {
+        Class<? extends Enum> enumClass = (Class<? extends Enum>) clazz;
+        value = Enum.valueOf(enumClass, value.toString());
+      }
     }
 
     javax.persistence.criteria.Predicate jpaPredicate = null;

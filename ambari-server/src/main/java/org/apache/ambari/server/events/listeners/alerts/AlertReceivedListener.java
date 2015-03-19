@@ -41,6 +41,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -136,10 +137,10 @@ public class AlertReceivedListener {
 
     AlertCurrentEntity current = null;
 
-    if (null == alert.getHost() || definition.isHostIgnored()) {
+    if (StringUtils.isBlank(alert.getHostName()) || definition.isHostIgnored()) {
       current = m_alertsDao.findCurrentByNameNoHost(clusterId, alert.getName());
     } else {
-      current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHost(),
+      current = m_alertsDao.findCurrentByHostAndName(clusterId, alert.getHostName(),
           alert.getName());
     }
 
@@ -221,7 +222,7 @@ public class AlertReceivedListener {
     String clusterName = alert.getCluster();
     String serviceName = alert.getService();
     String componentName = alert.getComponent();
-    String hostName = alert.getHost();
+    String hostName = alert.getHostName();
 
     // if the alert is not bound to a cluster, then it's most likely a
     // host alert and is always valid
@@ -260,7 +261,7 @@ public class AlertReceivedListener {
       return false;
     }
 
-    if (null != hostName) {
+    if (StringUtils.isNotBlank(hostName)) {
       List<Host> hosts = m_clusters.get().getHosts();
       if (null == hosts) {
         LOG.error("Unable to process alert {} for an invalid host named {}",
@@ -287,7 +288,7 @@ public class AlertReceivedListener {
 
     // if the alert is for a host/component then verify that the component
     // is actually installed on that host
-    if (null != hostName && null != componentName) {
+    if (StringUtils.isNotBlank(hostName) && null != componentName) {
       boolean validServiceComponentHost = false;
       List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostName);
 
@@ -338,7 +339,7 @@ public class AlertReceivedListener {
     if (definition.isHostIgnored()) {
       history.setHostName(null);
     } else {
-      history.setHostName(alert.getHost());
+      history.setHostName(alert.getHostName());
     }
 
     return history;

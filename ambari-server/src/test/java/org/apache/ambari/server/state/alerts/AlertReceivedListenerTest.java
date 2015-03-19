@@ -184,7 +184,7 @@ public class AlertReceivedListenerTest {
     assertEquals(1, allCurrent.size());
 
     // invalid host
-    alert1.setHost("INVALID");
+    alert1.setHostName("INVALID");
 
     // remove all
     m_dao.removeCurrentByHost(HOST1);

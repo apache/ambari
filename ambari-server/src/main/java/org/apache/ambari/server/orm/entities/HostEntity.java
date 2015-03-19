@@ -23,13 +23,18 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.Lob;
 import javax.persistence.ManyToMany;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.TableGenerator;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -37,10 +42,24 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 
 @javax.persistence.Table(name = "hosts")
 @Entity
+@TableGenerator(name = "host_id_generator",
+    table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
+    , pkColumnValue = "host_id_seq"
+    , initialValue = 0
+    , allocationSize = 1
+)
+@NamedQueries({
+    @NamedQuery(name = "HostEntity.findByHostName", query = "SELECT host FROM HostEntity host WHERE host.hostName = :hostName"),
+})
 public class HostEntity implements Comparable<HostEntity> {
 
   @Id
-  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
+  @Column(name = "id", nullable = false, insertable = true, updatable = false)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "host_id_generator")
+  private Long id;
+
+  @Column(name = "host_name", nullable = false, insertable = true, updatable = true, unique = true)
+  @Basic
   private String hostName;
 
   @Column(name = "ipv4", nullable = true, insertable = true, updatable = true)
@@ -114,7 +133,7 @@ public class HostEntity implements Comparable<HostEntity> {
 
   @ManyToMany
   @JoinTable(name = "ClusterHostMapping",
-      joinColumns = {@JoinColumn(name = "host_name", referencedColumnName = "host_name")},
+      joinColumns = {@JoinColumn(name = "host_id", referencedColumnName = "id")},
       inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")}
   )
   private Collection<ClusterEntity> clusterEntities;
@@ -124,7 +143,15 @@ public class HostEntity implements Comparable<HostEntity> {
 
   @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE)
   private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
-  
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
+
   public String getHostName() {
     return hostName;
   }
@@ -360,5 +387,4 @@ public class HostEntity implements Comparable<HostEntity> {
   public void setHostVersionEntities(Collection<HostVersionEntity> hostVersionEntities) { 
     this.hostVersionEntities = hostVersionEntities;
   }
-
 }

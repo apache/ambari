@@ -755,7 +755,6 @@ public class AlertsDAO {
    * Locate the current alert for the provided service and alert name, but when
    * host is not set ({@code IS NULL}).
    * @param clusterId the cluster id
-   * @param serviceName the service name
    * @param alertName the name of the alert
    * @return the current record, or {@code null} if not found
    */

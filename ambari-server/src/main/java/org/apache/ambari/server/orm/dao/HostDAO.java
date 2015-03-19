@@ -38,9 +38,26 @@ public class HostDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
+  /**
+   * Looks for Host by ID
+   * @param id ID of Host
+   * @return Found entity or NULL
+   */
+  @RequiresSession
+  public HostEntity findById(long id) {
+    return entityManagerProvider.get().find(HostEntity.class, id);
+  }
+
   @RequiresSession
   public HostEntity findByName(String hostName) {
-    return entityManagerProvider.get().find(HostEntity.class, hostName);
+    TypedQuery<HostEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostEntity.findByHostName", HostEntity.class);
+    query.setParameter("hostName", hostName);
+    try {
+      return query.getSingleResult();
+    } catch (NoResultException ignored) {
+      return null;
+    }
   }
 
   @RequiresSession
