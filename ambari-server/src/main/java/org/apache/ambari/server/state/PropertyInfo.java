@@ -25,6 +25,7 @@ import org.w3c.dom.Element;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlList;
 
 import java.util.ArrayList;
@@ -46,6 +47,23 @@ public class PropertyInfo {
 
   @XmlAnyElement
   private List<Element> propertyAttributes = new ArrayList<Element>();
+
+  @XmlElement(name = "value-attributes")
+  private ValueAttributesInfo propertyValueAttributes =
+    new ValueAttributesInfo();
+
+  @XmlElementWrapper(name="depends-on")
+  @XmlElement(name = "property")
+  private Set<PropertyDependencyInfo> dependsOnProperties =
+    new HashSet<PropertyDependencyInfo>();
+
+  @XmlElementWrapper(name="property_depended_by")
+  private Set<PropertyDependencyInfo> dependedByProperties =
+    new HashSet<PropertyDependencyInfo>();
+
+  public PropertyInfo() {
+
+  }
 
   public String getName() {
     return name;
@@ -91,7 +109,9 @@ public class PropertyInfo {
   
   public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(),
-      getDescription() , getFilename(), isRequireInput(), getPropertyTypes(), getAttributesMap());
+      getDescription() , getFilename(), isRequireInput(), getPropertyTypes(),
+      getAttributesMap(), getPropertyValueAttributes(),
+      getDependsOnProperties(), getDependedByProperties());
   }
 
   public boolean isDeleted() {
@@ -108,6 +128,18 @@ public class PropertyInfo {
       attributes.put(propertyAttribute.getTagName(), propertyAttribute.getFirstChild().getNodeValue());
     }
     return attributes;
+  }
+
+  public ValueAttributesInfo getPropertyValueAttributes() {
+    return propertyValueAttributes;
+  }
+
+  public Set<PropertyDependencyInfo> getDependsOnProperties() {
+    return dependsOnProperties;
+  }
+
+  public Set<PropertyDependencyInfo> getDependedByProperties() {
+    return dependedByProperties;
   }
 
   @XmlAttribute(name = "require-input")
@@ -161,6 +193,23 @@ public class PropertyInfo {
     } else if (!value.equals(other.value))
       return false;
     return true;
+  }
+
+  @Override
+  public String toString() {
+    return "PropertyInfo{" +
+      "name='" + name + '\'' +
+      ", value='" + value + '\'' +
+      ", description='" + description + '\'' +
+      ", filename='" + filename + '\'' +
+      ", deleted=" + deleted +
+      ", requireInput=" + requireInput +
+      ", propertyTypes=" + propertyTypes +
+      ", propertyAttributes=" + propertyAttributes +
+      ", propertyValueAttributes=" + propertyValueAttributes +
+      ", dependsOnProperties=" + dependsOnProperties +
+      ", dependedByProperties=" + dependedByProperties +
+      '}';
   }
 
   public enum PropertyType {

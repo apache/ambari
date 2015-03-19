@@ -26,11 +26,24 @@
 
   <property>
     <name>mapreduce.task.io.sort.mb</name>
-    <value>200</value>
+    <value>358</value>
     <description>
       The total amount of buffer memory to use while sorting files, in megabytes.
       By default, gives each merge stream 1MB, which should minimize seeks.
     </description>
+    <display-name>MapReduce Sort Allocation</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2047</maximum>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>mapred-site.xml</type>
+        <name>mapreduce.map.memory.mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -160,14 +173,40 @@
 
   <property>
     <name>mapreduce.map.memory.mb</name>
-    <value>1024</value>
+    <value>512</value>
     <description>Virtual memory for single Map task</description>
+    <display-name>MR Map RAM Allocation</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
     <description>Virtual memory for single Reduce task</description>
+    <display-name>MR Reduce RAM Allocation</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -229,11 +268,24 @@
     <name>yarn.app.mapreduce.am.resource.mb</name>
     <value>512</value>
     <description>The amount of memory the MR AppMaster needs.</description>
+    <display-name>MR AppMaster RAM Allocation </display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>512</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>yarn.app.mapreduce.am.command-opts</name>
-    <value>-Xmx312m</value>
+    <value>-Xmx410m</value>
     <description>
       Java opts for the MR App Master processes.
       The following symbol, if present, will be interpolated: @taskid@ is replaced
@@ -247,6 +299,13 @@
       of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
       mapreduce.reduce.env config settings.
     </description>
+    <display-name>MR AppMaster Java Heap Size</display-name>
+    <depends-on>
+      <property>
+        <type>mapred-site.xml</type>
+        <name>yarn.app.mapreduce.am.resource.mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -262,6 +321,13 @@
       of LD_LIBRARY_PATH in the map / reduce JVM env using the mapreduce.map.env and
       mapreduce.reduce.env config settings.
     </description>
+    <display-name>MR AppMaster Java Heap Size</display-name>
+    <depends-on>
+      <property>
+        <type>mapred-site.xml</type>
+        <name>yarn.app.mapreduce.am.resource.mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -306,10 +372,17 @@
 
   <property>
     <name>mapreduce.map.java.opts</name>
-    <value>-Xmx756m</value>
+    <value>-Xmx410m</value>
     <description>
       Larger heap-size for child jvms of maps.
     </description>
+    <display-name>MR Map Java Heap Size</display-name>
+    <depends-on>
+      <property>
+        <type>mapred-site.xml</type>
+        <name>mapreduce.map.memory.mb</name>
+      </property>
+    </depends-on>
   </property>
 
 
@@ -319,6 +392,13 @@
     <description>
       Larger heap-size for child jvms of reduces.
     </description>
+    <display-name>MR Reduce Java Heap Size</display-name>
+    <depends-on>
+      <property>
+        <type>mapred-site.xml</type>
+        <name>mapreduce.reduce.memory.mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

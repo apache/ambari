@@ -43,11 +43,16 @@ public class PropertyInfoTest {
     property.setValue("value");
     property.setDescription("desc");
     property.setFilename("filename");
+    PropertyDependencyInfo pdi = new PropertyDependencyInfo("type", "name");
+    property.getDependsOnProperties().add(pdi);
 
     assertEquals("name", property.getName());
     assertEquals("value", property.getValue());
     assertEquals("desc", property.getDescription());
     assertEquals("filename", property.getFilename());
+
+    assertEquals(1, property.getDependsOnProperties().size());
+    assertTrue(property.getDependsOnProperties().contains(pdi));
   }
 
   @Test

@@ -183,11 +183,23 @@
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>8</value>
     <description></description>
+    <display-name>Total NM CPU vCores available to Containers</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>32</maximum>
+    </value-attributes>
   </property>
   <property>
     <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
-    <value>100</value>
+    <value>80</value>
     <description>The amount of CPU allocated for YARN containers - only effective when used with CGroups</description>
+    <display-name>% of Total NM CPU available to Containers</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>100</maximum>
+    </value-attributes>
   </property>
   <property>
     <name>yarn.node-labels.manager-class</name>
@@ -322,5 +334,39 @@
     <name>yarn.node-labels.fs-store.root-dir</name>
     <value>/system/yarn/node-labels</value>
     <description></description>
+  </property>
+  <property>
+    <name>yarn.scheduler.minimum-allocation-vcores</name>
+    <value>1</value>
+    <description></description>
+    <display-name>YARN Container Minimum vCores</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>yarn.scheduler.maximum-allocation-vcores</name>
+    <value>8</value>
+    <description></description>
+    <display-name>YARN Container Maximum vCores</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+      </property>
+    </depends-on>
   </property>
 </configuration>

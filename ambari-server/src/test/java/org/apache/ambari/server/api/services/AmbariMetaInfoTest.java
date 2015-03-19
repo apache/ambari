@@ -64,6 +64,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -737,7 +738,11 @@ public class AmbariMetaInfoTest {
     PropertyInfo redefinedProperty3 = null;
     PropertyInfo inheritedProperty = null;
     PropertyInfo newProperty = null;
+    PropertyInfo newEnhancedProperty = null;
     PropertyInfo originalProperty = null;
+
+    PropertyDependencyInfo propertyDependencyInfo =
+      new PropertyDependencyInfo("yarn-site.xml", "new-enhanced-yarn-property");
 
     for (PropertyInfo propertyInfo : redefinedService.getProperties()) {
       if (propertyInfo.getName().equals("yarn.resourcemanager.resource-tracker.address")) {
@@ -754,6 +759,8 @@ public class AmbariMetaInfoTest {
         inheritedProperty = propertyInfo;
       } else if (propertyInfo.getName().equals("new-yarn-property")) {
         newProperty = propertyInfo;
+      } else if (propertyInfo.getName().equals("new-enhanced-yarn-property")) {
+        newEnhancedProperty = propertyInfo;
       } else if (propertyInfo.getName().equals("yarn.nodemanager.aux-services")) {
         originalProperty = propertyInfo;
       }
@@ -776,6 +783,24 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("some-value", newProperty.getValue());
     Assert.assertEquals("some description.", newProperty.getDescription());
     Assert.assertEquals("yarn-site.xml", newProperty.getFilename());
+    Assert.assertEquals(1, newProperty.getDependedByProperties().size());
+    Assert.assertTrue(newProperty.getDependedByProperties().contains(propertyDependencyInfo));
+    // New enhanced property
+    Assert.assertNotNull(newEnhancedProperty);
+    Assert.assertEquals("1024", newEnhancedProperty.getValue());
+    Assert.assertEquals("some enhanced description.", newEnhancedProperty.getDescription());
+    Assert.assertEquals("yarn-site.xml", newEnhancedProperty.getFilename());
+    Assert.assertEquals(2, newEnhancedProperty.getDependsOnProperties().size());
+    Assert.assertTrue(newEnhancedProperty.getDependsOnProperties().contains(new PropertyDependencyInfo("yarn-site.xml", "new-yarn-property")));
+    Assert.assertTrue(newEnhancedProperty.getDependsOnProperties().contains(new PropertyDependencyInfo("global.xml", "yarn_heapsize")));
+    Assert.assertEquals("MB", newEnhancedProperty.getPropertyValueAttributes().getUnit());
+    Assert.assertEquals("int", newEnhancedProperty.getPropertyValueAttributes().getType());
+    Assert.assertEquals("512", newEnhancedProperty.getPropertyValueAttributes().getMinimum());
+    Assert.assertEquals("15360", newEnhancedProperty.getPropertyValueAttributes().getMaximum());
+    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntries());
+    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntriesEditable());
+    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryDescriptions());
+    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryLabels());
     // Original property
     Assert.assertNotNull(originalProperty);
     Assert.assertEquals("mapreduce.shuffle", originalProperty.getValue());

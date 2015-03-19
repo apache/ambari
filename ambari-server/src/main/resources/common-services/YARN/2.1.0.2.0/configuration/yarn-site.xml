@@ -70,16 +70,42 @@
       in MBs. Memory requests lower than this won't take effect,
       and the specified value will get allocated at minimum.
     </description>
+    <display-name>YARN Container Minimum RAM</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
     <name>yarn.scheduler.maximum-allocation-mb</name>
-    <value>2048</value>
+    <value>5120</value>
     <description>
       The maximum allocation for every container request at the RM,
       in MBs. Memory requests higher than this won't take effect,
       and will get capped to this value.
     </description>
+    <display-name>YARN Container Maximum RAM</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>5120</maximum>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site.xml</type>
+        <name>yarn.nodemanager.resource.memory-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -107,6 +133,13 @@
     <value>5120</value>
     <description>Amount of physical memory, in MB, that can be allocated
       for containers.</description>
+    <display-name>Total NM Physical Memory Available to Containers</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>268435456</maximum>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
 
   <property>
@@ -123,6 +156,12 @@
       expressed in terms of physical memory, and virtual memory usage
       is allowed to exceed this allocation by this ratio.
     </description>
+    <display-name>Virtual Memory Ratio</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0.1</minimum>
+      <maximum>5.0</maximum>
+    </value-attributes>
   </property>
 
   <property>
