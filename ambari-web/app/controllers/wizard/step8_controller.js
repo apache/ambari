@@ -1255,10 +1255,10 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     }, this);
   },
 
-  getClientsToMasterMap: function () {
+  getClientsMap: function (flag) {
     var clientNames = App.StackServiceComponent.find().filterProperty('isClient').mapProperty('componentName'),
       clientsMap = {},
-      dependedComponents = App.StackServiceComponent.find().filterProperty('isMaster');
+      dependedComponents = flag ? App.StackServiceComponent.find().filterProperty(flag) : App.StackServiceComponent.find();
     clientNames.forEach(function (clientName) {
       clientsMap[clientName] = Em.A([]);
       dependedComponents.forEach(function (component) {
@@ -1290,7 +1290,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
      *  }
      * </code>
      */
-    var clientsToMasterMap = this.getClientsToMasterMap();
+    var clientsToMasterMap = this.getClientsMap('isMaster');
 
     slaveHosts.forEach(function (_slave) {
       if (_slave.componentName !== 'CLIENT') {
@@ -1324,7 +1324,13 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   createAdditionalClientComponents: function () {
     var masterHosts = this.get('content.masterComponentHosts');
-    var clientsToMasterMap = this.getClientsToMasterMap();
+    var clientHosts = [];
+    if (this.get('content.slaveComponentHosts').someProperty('componentName', 'CLIENT')) {
+      clientHosts = this.get('content.slaveComponentHosts').findProperty('componentName', 'CLIENT').hosts;
+    }
+    var clients = this.get('content.clients').filterProperty('isInstalled', false);
+    var clientsToMasterMap = this.getClientsMap('isMaster');
+    var clientsToClientMap = this.getClientsMap('isClient');
     var installedClients = [];
 
     // Get all the installed Client components
@@ -1337,13 +1343,25 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
 
     // Check if there is a dependency for being co-hosted between existing client and selected new master
     installedClients.forEach(function (_clientName) {
-      if (clientsToMasterMap[_clientName]) {
+      if (clientsToMasterMap[_clientName] || clientsToClientMap[_clientName]) {
         var hostNames = [];
-        clientsToMasterMap[_clientName].forEach(function (componentName) {
-          masterHosts.filterProperty('component', componentName).filterProperty('isInstalled', false).forEach(function (_masterHost) {
-            hostNames.pushObject(_masterHost.hostName);
+        if (clientsToMasterMap[_clientName]) {
+          clientsToMasterMap[_clientName].forEach(function (componentName) {
+            masterHosts.filterProperty('component', componentName).filterProperty('isInstalled', false).forEach(function (_masterHost) {
+              hostNames.pushObject(_masterHost.hostName);
+            }, this);
           }, this);
-        }, this);
+        }
+        if (clientsToClientMap[_clientName]) {
+          clientsToClientMap[_clientName].forEach(function (componentName) {
+            clientHosts.forEach(function (_clientHost) {
+              var host = this.get('content.hosts')[_clientHost.hostName];
+              if (host.isInstalled && !host.hostComponents.someProperty('HostRoles.component_name', componentName)) {
+                hostNames.pushObject(_clientHost.hostName);
+              }
+            }, this);
+          }, this);
+        }
         hostNames = hostNames.uniq();
         if (hostNames.length > 0) {
           this.get('content.additionalClients').pushObject({hostNames: hostNames, componentName: _clientName});

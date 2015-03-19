@@ -1731,4 +1731,235 @@ describe('App.WizardStep8Controller', function () {
 
   });
 
+  describe('#getClientsMap', function () {
+
+    var cases = [
+      {
+        flag: 'isMaster',
+        result: {
+          c8: ['c1', 'c2'],
+          c9: ['c1', 'c2']
+        },
+        title: 'dependencies for masters'
+      },
+      {
+        flag: 'isSlave',
+        result: {
+          c8: ['c5', 'c6'],
+          c9: ['c5', 'c6']
+        },
+        title: 'dependencies for slaves'
+      },
+      {
+        flag: 'isClient',
+        result: {
+          c8: ['c9', 'c10'],
+          c9: ['c9', 'c10']
+        },
+        title: 'dependencies for clients'
+      },
+      {
+        flag: null,
+        result: {
+          c8: ['c1', 'c2', 'c5', 'c6', 'c9', 'c10'],
+          c9: ['c1', 'c2', 'c5', 'c6', 'c9', 'c10']
+        },
+        title: 'dependencies for all components'
+      }
+    ];
+
+    before(function () {
+      sinon.stub(App.StackServiceComponent, 'find').returns([
+        Em.Object.create({
+          componentName: 'c0',
+          isMaster: true,
+          dependencies: [
+            {
+              componentName: 'c1'
+            },
+            {
+              componentName: 'c2'
+            },
+            {
+              componentName: 'c4'
+            },
+            {
+              componentName: 'c5'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c1',
+          isMaster: true,
+          dependencies: [
+            {
+              componentName: 'c4'
+            },
+            {
+              componentName: 'c5'
+            },
+            {
+              componentName: 'c8'
+            },
+            {
+              componentName: 'c9'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c2',
+          isMaster: true,
+          dependencies: [
+            {
+              componentName: 'c1'
+            },
+            {
+              componentName: 'c2'
+            },
+            {
+              componentName: 'c8'
+            },
+            {
+              componentName: 'c9'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c3',
+          isMaster: true,
+          dependencies: []
+        }),
+        Em.Object.create({
+          componentName: 'c4',
+          isSlave: true,
+          dependencies: [
+            {
+              componentName: 'c1'
+            },
+            {
+              componentName: 'c2'
+            },
+            {
+              componentName: 'c4'
+            },
+            {
+              componentName: 'c5'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c5',
+          isSlave: true,
+          dependencies: [
+            {
+              componentName: 'c4'
+            },
+            {
+              componentName: 'c5'
+            },
+            {
+              componentName: 'c8'
+            },
+            {
+              componentName: 'c9'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c6',
+          isSlave: true,
+          dependencies: [
+            {
+              componentName: 'c1'
+            },
+            {
+              componentName: 'c2'
+            },
+            {
+              componentName: 'c8'
+            },
+            {
+              componentName: 'c9'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c7',
+          isSlave: true,
+          dependencies: []
+        }),
+        Em.Object.create({
+          componentName: 'c8',
+          isClient: true,
+          dependencies: [
+            {
+              componentName: 'c1'
+            },
+            {
+              componentName: 'c2'
+            },
+            {
+              componentName: 'c4'
+            },
+            {
+              componentName: 'c5'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c9',
+          isClient: true,
+          dependencies: [
+            {
+              componentName: 'c4'
+            },
+            {
+              componentName: 'c5'
+            },
+            {
+              componentName: 'c8'
+            },
+            {
+              componentName: 'c9'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c10',
+          isClient: true,
+          dependencies: [
+            {
+              componentName: 'c1'
+            },
+            {
+              componentName: 'c2'
+            },
+            {
+              componentName: 'c8'
+            },
+            {
+              componentName: 'c9'
+            }
+          ]
+        }),
+        Em.Object.create({
+          componentName: 'c11',
+          isClient: true,
+          dependencies: []
+        })
+      ]);
+    });
+
+    after(function () {
+      App.StackServiceComponent.find.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(installerStep8Controller.getClientsMap(item.flag)).to.eql(item.result);
+      });
+    });
+
+  });
+
 });
