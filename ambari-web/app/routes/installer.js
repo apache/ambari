@@ -381,8 +381,9 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       }
     },
     unroutePath: function (router, context) {
-      // exclusion for transition to Admin View
-      if (context === '/adminView') {
+      // exclusion for transition to Admin view or Views view
+      if (context === '/adminView' ||
+          context === '/main/views.index') {
         this._super(router, context);
       } else {
         return false;
