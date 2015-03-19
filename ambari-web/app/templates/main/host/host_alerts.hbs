@@ -52,15 +52,15 @@
             <a href="#" {{action routeToAlertDefinition alertInstance.definitionId target="controller"}}>{{alertInstance.label}}</a>
           </td>
           <td>{{{alertInstance.status}}} <time class="timeago" {{bindAttr data-original-title="alertInstance.statusChangedAndLastCheckedFormatted"}}>{{alertInstance.lastTriggeredForFormatted}}</time></td>
-          <td><span class="alert-text" {{bindAttr data-original-title="alertInstance.text"}} class="alert-text">{{alertInstance.text}}</span></td>
+          <td><span class="alert-text" {{bindAttr data-original-title="alertInstance.escapeSpecialCharactersFromTooltip"}} class="alert-text">{{alertInstance.text}}</span></td>
         </tr>
       {{/each}}
     {{else}}
       <tr>
-        <td class="first"></td>
-        <td colspan="3">
+        <td class="first">
           {{t alerts.table.noAlerts}}
         </td>
+        <td colspan="3"></td>
       </tr>
     {{/if}}
     </tbody>

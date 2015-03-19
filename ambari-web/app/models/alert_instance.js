@@ -118,6 +118,15 @@ App.AlertInstance = DS.Model.extend({
   }.property('originalTimestamp'),
 
   /**
+  * escaped '<' and '>' special characters.
+  * @type {string}
+  */  
+  escapeSpecialCharactersFromTooltip: function () {
+    var displayedText = this.get('text');
+    return  displayedText.replace(/[<>]/g, '');
+  }.property('text'),
+
+  /**
    * Formatted lastChecked and lastTriggered timestamp
    * @returns {string}
    */

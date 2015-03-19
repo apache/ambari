@@ -29,7 +29,7 @@
               {{alert.latestText}}
             </div>
           </div>
-          <div class="span5 status-col" rel="alert-status-tooltip" {{bindAttr title="alert.lastTriggered"}}>
+          <div class="span5 status-col" rel="alert-status-tooltip" >
             <span class="timeago" {{bindAttr data-original-title="alert.lastTriggeredVerboseDisplay"}}>
               <span class="status-icon">{{{alert.status}}}</span>
               <time>{{alert.lastTriggeredForFormatted}}</time>

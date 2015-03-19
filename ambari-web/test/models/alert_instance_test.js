@@ -81,4 +81,14 @@ describe('App.AlertInstance', function () {
 
   });
 
+  describe('#escapeSpecialCharactersFromTooltip', function () {
+    it('it Should Display Alert Without special characters "<" and ">"', function () {
+
+      model.set('text', '<urlopen error [Errno 111] Connection refused>');
+      var resultedText = model.get('escapeSpecialCharactersFromTooltip');
+
+      expect(resultedText).to.equal('urlopen error [Errno 111] Connection refused');
+    });
+  });
+
 });
