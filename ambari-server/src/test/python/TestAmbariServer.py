@@ -2316,10 +2316,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     self.assertEqual(0, retcode)
 
     serverConfiguration.OS_TYPE = OSConst.OS_SUSE
-    p.poll.return_value = 4
+    run_os_command_mock.return_value = (0, None, None)
+    p.poll.return_value = 0
     get_postgre_status_mock.return_value = "stopped", 0, "", ""
     pg_status, retcode, out, err = PGConfig._check_postgre_up()
-    self.assertEqual(4, retcode)
+    self.assertEqual(0, retcode)
     pass
 
   @patch("platform.linux_distribution")
