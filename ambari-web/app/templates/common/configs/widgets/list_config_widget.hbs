@@ -16,20 +16,24 @@
 * limitations under the License.
 }}
 
-{{view.config.name}}
 <div class="widget list-widget">
+  {{view.config.name}}
   <div class="btn-group">
     <a class="btn dropdown-toggle" data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
     {{#if view.valueIsChanged}}
-    <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
-      <i class="icon-undo"></i>
-    </a>
+      <div class="undo-button">
+        <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
+          <i class="icon-undo"></i>
+        </a>
+      </div>
     {{/if}}
     <ul class="dropdown-menu">
       {{#each option in view.options}}
         <li>
-          <a rel="tooltip" href="javascript:void(0);" {{action "toggleOption" option target="view"}} {{bindAttr data-original-title="option.description"}}>
-            <label class="checkbox">{{view view.checkBoxWithoutAction valueBinding="option.value" disabledBinding="option.isDisabled" checkedBinding="option.isSelected"}} {{option.label}}</label>
+          <a rel="tooltip"
+             href="javascript:void(0);" {{action "toggleOption" option target="view"}} {{bindAttr data-original-title="option.description"}}>
+            <label
+                class="checkbox">{{view view.checkBoxWithoutAction valueBinding="option.value" disabledBinding="option.isDisabled" checkedBinding="option.isSelected"}} {{option.label}}</label>
           </a>
         </li>
       {{/each}}

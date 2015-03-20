@@ -28,12 +28,14 @@ describe('App.ListConfigWidgetView', function () {
         name: 'a.b.c',
         defaultValue: '2,1',
         value: '2,1',
-        valueAttributes: {
-          entries: ['1', '2', '3', '4', '5'],
-          entry_labels: ['first label', 'second label', 'third label', '4th label', '5th label'],
-          entry_descriptions: ['1', '2', '3', '4', '5'],
-          selection_cardinality: '3'
-        }
+        stackConfigProperty: Em.Object.create({
+          valueAttributes: {
+            entries: ['1', '2', '3', '4', '5'],
+            entry_labels: ['first label', 'second label', 'third label', '4th label', '5th label'],
+            entry_descriptions: ['1', '2', '3', '4', '5'],
+            selection_cardinality: '3'
+          }
+        })
       })
     });
     view.willInsertElement();
@@ -62,14 +64,14 @@ describe('App.ListConfigWidgetView', function () {
   describe('#calculateOptions', function () {
 
     it('should trigger error', function () {
-      view.set('config.valueAttributes.entry_descriptions', ['1', '2', '3', '4']);
+      view.set('config.stackConfigProperty.valueAttributes.entry_descriptions', ['1', '2', '3', '4']);
       expect(view.calculateOptions.bind(view)).to.throw(Error, 'assertion failed');
     });
 
     it('should create options for each entry', function () {
       view.set('options', []);
       view.calculateOptions();
-      expect(view.get('options.length')).to.equal(view.get('config.valueAttributes.entries.length'));
+      expect(view.get('options.length')).to.equal(view.get('config.stackConfigProperty.valueAttributes.entries.length'));
     });
 
     it('should selected options basing on `value`-property', function () {

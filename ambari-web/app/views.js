@@ -51,6 +51,7 @@ require('views/common/configs/config_history_flow');
 require('views/common/configs/custom_category_views/notification_configs_view');
 require('views/common/configs/widgets/config_widget_view');
 require('views/common/configs/widgets/list_config_widget_view');
+require('views/common/configs/widgets/slider_config_widget_view');
 require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
 require('views/common/table_view');

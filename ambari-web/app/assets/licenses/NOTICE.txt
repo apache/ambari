@@ -45,3 +45,6 @@ Copyright (c) 2011 Felix Gnass [fgnass at neteye dot de]
 This product includes Moment.js (https://github.com/moment/moment/ - MIT license)
 
 This product includes Ember QUnit (https://github.com/rwjblue/ember-qunit - MIT license)
+
+This product includes bootstrap-slider 4.5.6 (https://github.com/seiyria/bootstrap-slider - MIT License)
+Copyright (C) 2015 by Kyle Kemp, Rohit Kalkur, and contributors

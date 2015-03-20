@@ -25,5 +25,49 @@
       color: #333 !important;
     }
   }
+}
 
+.slider-widget {
+
+  @slider-widget-border-color: #999;
+
+  .ui-slider-wrapper {
+    margin: 0 30px;
+  }
+
+  .slider-track {
+    height: 20px !important;
+    border: 1px solid @slider-widget-border-color;
+    border-radius: 10px;
+  }
+  .slider-tick {
+    margin-top: 6px !important;
+    width: 0px;
+    font-size: 8px;
+    margin-left: 0px !important;
+    &:before {
+      content: '|';
+    }
+    &:nth-of-type(1):before {
+      content: '$$$' !important;
+    }
+  }
+  .slider-handle {
+    margin-top: -2px !important;
+    height: 22px;
+    width: 22px;
+    margin-left: -12px !important;
+    background-color: transparent !important;
+    background-image: radial-gradient(#aaa 5px, #eee 5px) !important;
+    border: 1px solid @slider-widget-border-color;
+  }
+  .slider-tick-label {
+    font-size: 10px;
+  }
+  .slider-selection {
+    background-image: none;
+    background-color: lighten(@blue, 20%);
+    border-radius: 11px;
+    box-shadow: none;
+  }
 }

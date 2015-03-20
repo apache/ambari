@@ -25,7 +25,7 @@ var App = require('app');
 App.ConfigWidgetView = Em.View.extend({
 
   /**
-   * @type {App.StackConfigProperty}
+   * @type {App.ConfigProperty}
    */
   config: null,
 
@@ -34,7 +34,7 @@ App.ConfigWidgetView = Em.View.extend({
    * @type {boolean}
    */
   valueIsChanged: function () {
-    return this.get('config.value') !== this.get('config.defaultValue');
+    return this.get('config.value') != this.get('config.defaultValue');
   }.property('config.value'),
 
   /**

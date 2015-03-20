@@ -124,7 +124,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * @method calculateOptions
    */
   calculateOptions: function () {
-    var valueAttributes = this.get('config.valueAttributes'),
+    var valueAttributes = this.get('config.stackConfigProperty.valueAttributes'),
       options = [];
     Em.assert('valueAttributes `entries`, `entry_label` and `entry_descriptions` should have the same length', valueAttributes.entries.length == valueAttributes.entry_labels.length && valueAttributes.entries.length == valueAttributes.entry_descriptions.length);
     valueAttributes.entries.forEach(function (entryValue, indx) {
@@ -193,7 +193,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * @method parseCardinality
    */
   parseCardinality: function () {
-    var cardinality = numberUtils.getCardinalityValue(this.get('config.valueAttributes.selection_cardinality'), true);
+    var cardinality = numberUtils.getCardinalityValue(this.get('config.stackConfigProperty.valueAttributes.selection_cardinality'), true);
     this.set('allowedToSelect', cardinality);
   },
 
