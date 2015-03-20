@@ -80,12 +80,6 @@ JAVA_HOME_PROPERTY = "java.home"
 JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
 
-DEFAULT_JDK16_LOCATION = "/usr/jdk64/jdk1.6.0_31"
-JDK_NAMES = ["jdk-8u40-linux-x64.tar.gz", "jdk-7u67-linux-x64.tar.gz", "jdk-6u31-linux-x64.bin"]
-
-#JCE Policy files
-JCE_POLICY_FILENAMES = ["jce_policy-8.zip", "UnlimitedJCEPolicyJDK7.zip", "jce_policy-6.zip"]
-
 # JDBC
 JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
 
@@ -796,10 +790,10 @@ def update_ambari_properties():
     new_properties.load(open(conf_file))
 
     for prop_key, prop_value in old_properties.getPropertyDict().items():
-      if ("agent.fqdn.service.url" == prop_key):
-        #BUG-7179 what is agent.fqdn property in ambari.props?
+      if "agent.fqdn.service.url" == prop_key:
+        # BUG-7179 what is agent.fqdn property in ambari.props?
         new_properties.process_pair(GET_FQDN_SERVICE_URL, prop_value)
-      elif ("server.os_type" == prop_key):
+      elif "server.os_type" == prop_key:
         new_properties.process_pair(OS_TYPE_PROPERTY, OS_FAMILY + OS_VERSION)
       else:
         new_properties.process_pair(prop_key, prop_value)
@@ -807,17 +801,10 @@ def update_ambari_properties():
     # Adding custom user name property if it is absent
     # In previous versions without custom user support server was started as
     # "root" anyway so it's a reasonable default
-    if not NR_USER_PROPERTY in new_properties.keys():
+    if NR_USER_PROPERTY not in new_properties.keys():
       new_properties.process_pair(NR_USER_PROPERTY, "root")
 
-    isJDK16Installed = new_properties.get_property(JAVA_HOME_PROPERTY) == DEFAULT_JDK16_LOCATION
-    if not JDK_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
-      new_properties.process_pair(JDK_NAME_PROPERTY, JDK_NAMES[2])
-
-    if not JCE_NAME_PROPERTY in new_properties.keys() and isJDK16Installed:
-      new_properties.process_pair(JCE_NAME_PROPERTY, JCE_POLICY_FILENAMES[2])
-
-    if not OS_FAMILY_PROPERTY in new_properties.keys():
+    if OS_FAMILY_PROPERTY not in new_properties.keys():
       new_properties.process_pair(OS_FAMILY_PROPERTY, OS_FAMILY + OS_VERSION)
 
     new_properties.store(open(conf_file, 'w'))
@@ -827,8 +814,8 @@ def update_ambari_properties():
     return -1
 
   timestamp = datetime.datetime.now()
-  format = '%Y%m%d%H%M%S'
-  os.rename(prev_conf_file, prev_conf_file + '.' + timestamp.strftime(format))
+  fmt = '%Y%m%d%H%M%S'
+  os.rename(prev_conf_file, prev_conf_file + '.' + timestamp.strftime(fmt))
 
   return 0
 

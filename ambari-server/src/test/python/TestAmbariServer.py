@@ -2166,7 +2166,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     path_existsMock.side_effect = [True, False, True, False]
     path_isfileMock.return_value = False
     args.jdk_location = None
-    run_os_command_mock.return_value = (0, "Creating jdk1/jre" , None)
+    run_os_command_mock.return_value = (0, "Creating jdk1/jre", None)
     statResult = MagicMock()
     statResult.st_size = 32000
     statMock.return_value = statResult
@@ -4560,8 +4560,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
                   "agent.fqdn.service.url=URL\n"]
 
     NEW_PROPERTY = 'some_new_property=some_value\n'
-    JDK_NAME_PROPERTY = 'jdk.name=jdk-6u31-linux-x64.bin\n'
-    JCE_NAME_PROPERTY = 'jce.name=jce_policy-6.zip\n'
     CHANGED_VALUE_PROPERTY = 'server.jdbc.database_name=should_not_overwrite_value\n'
 
     get_conf_dir_mock.return_value = '/etc/ambari-server/conf'
@@ -4604,12 +4602,6 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
           self.fail()
 
     if not NEW_PROPERTY in ambari_properties_content:
-      self.fail()
-
-    if not JDK_NAME_PROPERTY in ambari_properties_content:
-      self.fail()
-
-    if not JCE_NAME_PROPERTY in ambari_properties_content:
       self.fail()
 
     if CHANGED_VALUE_PROPERTY in ambari_properties_content:

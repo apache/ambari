@@ -520,7 +520,7 @@ class JDKSetup(object):
     jdk_choice_prompt += self.JDK_CUSTOM_CHOICE_PROMPT.format(n_config, jdk_num)
     jdk_valid_choices = self.JDK_VALID_CHOICES.format(jdk_choices, n_config)
 
-    return (jdks, jdk_choice_prompt, jdk_valid_choices, n_config - 1)
+    return jdks, jdk_choice_prompt, jdk_valid_choices, n_config - 1
 
   def _download_jdk(self, jdk_url, dest_file):
     jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that the " \
@@ -641,11 +641,11 @@ class JDKSetupLinux(JDKSetup):
   def __init__(self):
     super(JDKSetupLinux, self).__init__()
     self.JDK_DEFAULT_CONFIGS = [
-      JDKRelease("jdk6.31", "Oracle JDK 1.6",
-                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-6u31-linux-x64.bin", "jdk-6u31-linux-x64.bin",
-                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-6.zip", "jce_policy-6.zip",
-                 "/usr/jdk64/jdk1.6.0_31",
-                 "Creating (jdk.*)/jre")
+      JDKRelease("jdk1.8", "Oracle JDK 1.8",
+                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jdk-8u40-linux-x64.tar.gz", "jdk-8u40-linux-x64.tar.gz",
+                 "http://public-repo-1.hortonworks.com/ARTIFACTS/jce_policy-8.zip", "jce_policy-8.zip",
+                 "/usr/jdk64/jdk1.8.0_40",
+                 "(jdk.*)/jre")
     ]
 
     self.jdks = self.JDK_DEFAULT_CONFIGS
@@ -655,7 +655,6 @@ class JDKSetupLinux(JDKSetup):
 
     self.CREATE_JDK_DIR_CMD = "/bin/mkdir -p {0}"
     self.CHMOD_JDK_DIR_CMD = "chmod a+x {0}"
-    self.MAKE_FILE_EXECUTABLE_CMD = "chmod a+x {0}"
 
     # use --no-same-owner when running as root to prevent uucp as the user (AMBARI-6478)
     self.UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
@@ -670,10 +669,7 @@ class JDKSetupLinux(JDKSetup):
     os.chdir(jdk_inst_dir)
 
     try:
-      if java_inst_file.endswith(".bin"):
-        retcode, out, err = run_os_command(self.MAKE_FILE_EXECUTABLE_CMD.format(java_inst_file))
-        retcode, out, err = run_os_command(java_inst_file + ' -noregister')
-      elif java_inst_file.endswith(".gz"):
+      if java_inst_file.endswith(".gz"):
         retcode, out, err = run_os_command(self.UNTAR_JDK_ARCHIVE.format(java_inst_file))
       else:
         err = "JDK installation failed.Unknown file extension."
