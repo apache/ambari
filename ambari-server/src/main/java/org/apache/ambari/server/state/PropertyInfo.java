@@ -215,6 +215,7 @@ public class PropertyInfo {
   public enum PropertyType {
     PASSWORD,
     USER,
-    GROUP
+    GROUP,
+    ADDITIONAL_USER_PROPERTY
   }
 }

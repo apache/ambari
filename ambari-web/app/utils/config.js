@@ -989,7 +989,7 @@ App.config = Em.Object.create({
       'ignore_groupsusers_create': 'Skip group modifications during install'
     };
     if (Em.isArray(config.property_type)) {
-      if (config.property_type.contains('USER') || config.property_type.contains('GROUP')) {
+      if (config.property_type.contains('USER') || config.property_type.contains('ADDITIONAL_USER_PROPERTY') || config.property_type.contains('GROUP')) {
         propertyData.id = "puppet var";
         propertyData.category = 'Users and Groups';
         propertyData.isVisible = !App.get('isHadoopWindowsStack');
