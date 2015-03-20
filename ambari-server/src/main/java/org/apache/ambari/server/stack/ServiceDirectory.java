@@ -42,6 +42,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   private File alertsFile;
 
   /**
+   * theme file
+   */
+  private File themeFile;
+
+  /**
    * kerberos descriptor file
    */
   private File kerberosDescriptorFile;
@@ -103,6 +108,10 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
     File kdf = new File(directory.getAbsolutePath()
         + File.separator + AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME);
     kerberosDescriptorFile = kdf.exists() ? kdf : null;
+
+    File themeFile = new File(directory.getAbsolutePath() + File.separator + AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
+    this.themeFile = themeFile.exists() ? themeFile : null;
+
   }
 
   /**
@@ -130,6 +139,14 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getAlertsFile() {
     return alertsFile;
+  }
+
+  /**
+   * Obtain theme file
+   * @return theme file
+   */
+  public File getThemeFile() {
+    return themeFile;
   }
 
   /**
@@ -178,4 +195,5 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
       metaInfoXml.setSchemaVersion(getAbsolutePath().replace(f.getParentFile().getParentFile().getParent()+File.separator, ""));
     }
   }
+
 }

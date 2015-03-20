@@ -15,34 +15,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.ambari.server.state;
 
-package org.apache.ambari.server.stack;
-
-import java.util.Collection;
+import java.util.Map;
 
 /**
- *
- * @author root
+ * Wrapper for theme description
  */
-public interface Validable {
-  
-  /**
-   * 
-   * @return valid xml flag
-   */
-  public boolean isValid();
+public class ThemeInfo {
+  private Map<String, Object> themeMap = null;
 
-  /**
-   * 
-   * @param valid set validity flag
-   */
-  public void setValid(boolean valid);
-  
-  public void setErrors(String error);
-  
-  public void setErrors(Collection<String> error);
-  
-  public Collection<String> getErrors();
-  
-  
+  public ThemeInfo() {
+  }
+
+  public Map<String, Object> getThemeMap() {
+    return themeMap;
+  }
+
+  public void setThemeMap(Map<String, Object> themeMap) {
+    this.themeMap = themeMap;
+  }
+
+  @Override
+  public String toString() {
+    return "ThemeInfo{" +
+      "themeMap=" + themeMap +
+      '}';
+  }
 }

@@ -61,6 +61,11 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
       new HashMap<String, ComponentModule>();
 
   /**
+   * Map of themes, single value currently
+   */
+  private Map<String, ThemeModule> themeModules = new HashMap<String, ThemeModule>();
+
+  /**
    * Encapsulates IO operations on service directory
    */
   private ServiceDirectory serviceDirectory;
@@ -73,8 +78,8 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
   /**
    * validity flag
    */
-  protected boolean valid = true;  
-  
+  protected boolean valid = true;
+
   /**
    * Constructor.
    *
@@ -109,6 +114,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
     populateComponentModules();
     populateConfigurationModules();
+    populateThemeModules();
   }
 
   @Override
@@ -168,6 +174,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     mergeConfigDependencies(parent);
     mergeComponents(parentModule, allStacks, commonServices);
     mergeConfigurations(parentModule, allStacks, commonServices);
+    mergeThemes(parentModule, allStacks, commonServices);
     mergeExcludedConfigTypes(parent);
   }
 
@@ -271,6 +278,27 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
         }
       }
     }
+  }
+
+  private void populateThemeModules() {
+
+    ThemeModule themeModule = new ThemeModule(serviceDirectory.getThemeFile());
+
+    if (themeModule.isValid()) {
+      serviceInfo.setThemeInfo(themeModule.getModuleInfo());
+      themeModules.put(themeModule.getId(), themeModule);
+    }
+
+    //lets not fail if theme contain errors
+  }
+
+  /**
+   * Merge theme modules.
+   */
+  private void mergeThemes(ServiceModule parent, Map<String, StackModule> allStacks,
+                           Map<String, ServiceModule> commonServices) throws AmbariException {
+    mergeChildModules(allStacks, commonServices, themeModules, parent.themeModules);
+
   }
 
   /**

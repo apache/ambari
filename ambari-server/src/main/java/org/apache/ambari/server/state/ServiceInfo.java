@@ -99,7 +99,10 @@ public class ServiceInfo implements Validable{
 
   public void setRestartRequiredAfterChange(Boolean restartRequiredAfterChange) {
     this.restartRequiredAfterChange = restartRequiredAfterChange;
-  }  
+  }
+
+  @XmlTransient
+  private ThemeInfo themeInfo = null;
   
   @XmlTransient
   private File metricsFile = null;
@@ -604,6 +607,20 @@ public class ServiceInfo implements Validable{
     return excludedConfigTypes;
   }
 
+  /**
+   * @return theme description map
+   */
+  public ThemeInfo getThemeInfo() {
+    return themeInfo;
+  }
+
+  /**
+   * @param themeInfo map with theme description
+   */
+  public void setThemeInfo(ThemeInfo themeInfo) {
+    this.themeInfo = themeInfo;
+  }
+
   public void setExcludedConfigTypes(Set<String> excludedConfigTypes) {
     this.excludedConfigTypes = excludedConfigTypes;
   }
@@ -627,4 +644,6 @@ public class ServiceInfo implements Validable{
     }
     return result;
   }
+
+
 }

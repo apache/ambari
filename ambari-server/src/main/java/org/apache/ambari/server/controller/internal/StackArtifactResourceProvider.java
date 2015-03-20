@@ -35,6 +35,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.ThemeInfo;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
@@ -46,6 +47,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -111,6 +113,11 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
    */
   public static final String KERBEROS_DESCRIPTOR_NAME = "kerberos_descriptor";
 
+  /**
+   * Name of theme artifact
+   */
+  public static final String THEME_ARTIFACT_NAME = "theme";
+
 
   /**
    * KerberosDescriptorFactory used to create KerberosDescriptor instances
@@ -164,6 +171,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     Set<Resource> resources = new HashSet<Resource>();
 
     resources.addAll(getKerberosDescriptors(request, predicate));
+    resources.addAll(getThemes(request, predicate));
     // add other artifacts types here
 
     if (resources.isEmpty()) {
@@ -257,6 +265,63 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
             setResourceProperty(resource, STACK_SERVICE_NAME_PROPERTY_ID, stackService, requestedIds);
           }
           resources.add(resource);
+        }
+      }
+    }
+    return resources;
+  }
+
+  private Set<Resource> getThemes(Request request, Predicate predicate) throws NoSuchParentResourceException,
+    NoSuchResourceException, UnsupportedPropertyException, SystemException {
+
+    Set<Resource> resources = new HashSet<Resource>();
+    for (Map<String, Object> properties : getPropertyMaps(predicate)) {
+      String artifactName = (String) properties.get(ARTIFACT_NAME_PROPERTY_ID);
+      if (artifactName == null || artifactName.equals(THEME_ARTIFACT_NAME)) {
+        String stackName = (String) properties.get(STACK_NAME_PROPERTY_ID);
+        String stackVersion = (String) properties.get(STACK_VERSION_PROPERTY_ID);
+        String stackService = (String) properties.get(STACK_SERVICE_NAME_PROPERTY_ID);
+
+        StackInfo stackInfo;
+        try {
+          stackInfo = getManagementController().getAmbariMetaInfo().getStack(stackName, stackVersion);
+        } catch (AmbariException e) {
+          throw new NoSuchParentResourceException(String.format(
+            "Parent stack resource doesn't exist: stackName='%s', stackVersion='%s'", stackName, stackVersion));
+        }
+
+        List<ServiceInfo> serviceInfoList = new ArrayList<ServiceInfo>();
+
+        if (stackService == null) {
+          serviceInfoList.addAll(stackInfo.getServices());
+        } else {
+          ServiceInfo service = stackInfo.getService(stackService);
+          if (service == null) {
+            throw new NoSuchParentResourceException(String.format(
+              "Parent stack/service resource doesn't exist: stackName='%s', stackVersion='%s', serviceName='%s'",
+              stackName, stackVersion, stackService));
+          }
+          serviceInfoList.add(service);
+        }
+
+        for (ServiceInfo serviceInfo : serviceInfoList) {
+          ThemeInfo themeInfo = serviceInfo.getThemeInfo();
+          LOG.info("Theme for stackName={}, stackVersion={}, serviceName={}, themeInfo={}", stackName, stackVersion, stackService, themeInfo);
+          if (themeInfo != null) {
+            Map<String, Object> themeMap = serviceInfo.getThemeInfo().getThemeMap();
+            if (themeMap != null) {
+              Resource resource = new ResourceImpl(Resource.Type.StackArtifact);
+              Set<String> requestedIds = getRequestPropertyIds(request, predicate);
+              setResourceProperty(resource, ARTIFACT_NAME_PROPERTY_ID, THEME_ARTIFACT_NAME, requestedIds);
+              setResourceProperty(resource, ARTIFACT_DATA_PROPERTY_ID, themeMap, requestedIds);
+              setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackName, requestedIds);
+              setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackVersion, requestedIds);
+              setResourceProperty(resource, STACK_SERVICE_NAME_PROPERTY_ID, serviceInfo.getName(), requestedIds);
+
+              resources.add(resource);
+            }
+          }
+
         }
       }
     }
