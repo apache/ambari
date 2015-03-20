@@ -55,7 +55,7 @@ def get_mount_point_for_dir(dir):
   """
   best_mount_found = None
   if dir:
-    dir = dir.strip().lower()
+    dir = dir.strip()
 
     cached_mounts = get_and_cache_mount_points()
 

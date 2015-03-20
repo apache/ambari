@@ -68,7 +68,7 @@ def _get_data_dir_to_mount_from_file():
           # Ignore comments
           if line and len(line) > 0 and line[0] == "#":
             continue
-          line = line.strip().lower()
+          line = line.strip()
           line_array = line.split(",")
           if line_array and len(line_array) == 2:
             data_dir_to_mount[line_array[0]] = line_array[1]
@@ -108,7 +108,7 @@ def handle_dfs_data_dir(func, params):
     if data_dir is None or data_dir.strip() == "":
       continue
 
-    data_dir = data_dir.strip().lower()
+    data_dir = data_dir.strip()
     valid_data_dirs.append(data_dir)
 
     if not os.path.isdir(data_dir):
