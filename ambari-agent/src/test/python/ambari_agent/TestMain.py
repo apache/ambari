@@ -28,7 +28,7 @@ import tempfile
 import ConfigParser
 
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
+from only_for_platform import get_platform, not_for_platform, only_for_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
 from mock.mock import MagicMock, patch, ANY, Mock
 
 if get_platform() != PLATFORM_WINDOWS:
@@ -46,7 +46,8 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   import ambari_agent.HeartbeatHandlers as HeartbeatHandlers
   from ambari_commons.os_check import OSConst, OSCheck
 
-  from ambari_commons.shell import shellRunner
+  if get_platform() != PLATFORM_WINDOWS:
+    from ambari_commons.shell import shellRunnerLinux
 
 class TestMain(unittest.TestCase):
 
@@ -82,7 +83,8 @@ class TestMain(unittest.TestCase):
   @patch.object(main.logger, "addHandler")
   @patch.object(main.logger, "setLevel")
   @patch("logging.handlers.RotatingFileHandler")
-  def test_setup_logging(self, rfh_mock, setLevel_mock, addHandler_mock):
+  @patch("logging.basicConfig")
+  def test_setup_logging(self, basicConfig_mock, rfh_mock, setLevel_mock, addHandler_mock):
     # Testing silent mode
     main.setup_logging(False)
     self.assertTrue(addHandler_mock.called)
@@ -199,9 +201,10 @@ class TestMain(unittest.TestCase):
     main.perform_prestart_checks(None)
     self.assertFalse(exit_mock.called)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("time.sleep")
-  @patch.object(shellRunner,"run")
+  @patch.object(shellRunnerLinux,"run")
   @patch("sys.exit")
   @patch("os.path.exists")
   def test_daemonize_and_stop(self, exists_mock, sys_exit_mock, kill_mock, sleep_mock):

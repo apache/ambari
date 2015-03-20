@@ -148,12 +148,12 @@ def daemonize():
 def stop_agent():
 # stop existing Ambari agent
   pid = -1
+  runner = shellRunner()
   try:
     f = open(ProcessHelper.pidfile, 'r')
     pid = f.read()
     pid = int(pid)
     f.close()
-    runner = shellRunner()
     runner.run([AMBARI_SUDO_BINARY, 'kill', '-15', str(pid)])
     time.sleep(5)
     if os.path.exists(ProcessHelper.pidfile):
