@@ -71,3 +71,44 @@
     box-shadow: none;
   }
 }
+
+.spinner-input-widget {
+
+  .spinner-input {
+    display: inline-block;
+    padding: 0 5px;
+    line-height: normal;
+    float: left;
+
+    .input-append.input-prepend {
+       margin: 0;
+    }
+
+    input {
+      width: 20px;
+      font-size: 12px;
+      text-align: center;
+    }
+
+    .btn {
+      &:first-child {
+        padding-left: 4px;
+        padding-right: 2px;
+      }
+
+      &:last-child {
+        padding-left: 2px;
+        padding-right: 4px;
+      }
+    }
+
+    .spinner-input-label {
+      font-size: 11px;
+    }
+  }
+
+  .restore-btn {
+    padding: 2px 10px;
+    float: left;
+  }
+}

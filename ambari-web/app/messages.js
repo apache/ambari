@@ -250,6 +250,11 @@ Em.I18n.translations = {
   'common.stdout': "stdout",
   'common.stderr': "stderr",
   'common.fileName': 'File name',
+  'common.days': "Days",
+  'common.hours': "Hours",
+  'common.minutes': "Minutes",
+  'common.seconds': "Seconds",
+  'common.milliseconds': "Milliseconds",
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
@@ -332,12 +337,6 @@ Em.I18n.translations = {
   'popup.invalid.KDC.msg': ' Please enter admin principal and password.',
   'popup.invalid.KDC.admin.principal': 'Admin principal',
   'popup.invalid.KDC.admin.password': 'Admin password',
-
-  'popup.dependent.configs.header': 'Dependent Properties',
-  'popup.dependent.configs.title': 'Properties that was changed has dependent properties. It\'s recommended to update these properties!',
-  'popup.dependent.configs.table.saveProperty': 'Save property',
-  'popup.dependent.configs.table.currentValue': 'Current value',
-  'popup.dependent.configs.table.recommendedValue': 'Recommended value',
 
   'login.header':'Sign in',
   'login.username':'Username',
