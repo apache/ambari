@@ -7725,6 +7725,12 @@
             "property_description" : "By default, Tez uses the java options from map tasks. Use this property to override that value.",
             "property_name" : "hive.tez.container.size",
             "property_type" : [ ],
+            "property_depended_by": [
+              {
+                "property_type": "hdfs-site",
+                "property_name": "dfs.replication.max"
+              }
+            ],
             "property_value" : "682",
             "service_name" : "HIVE",
             "stack_name" : "HDP",
@@ -16759,6 +16765,16 @@
             "property_description" : "\n      The minimum allocation for every container request at the RM,\n      in MBs. Memory requests lower than this won't take effect,\n      and the specified value will get allocated at minimum.\n    ",
             "property_name" : "yarn.scheduler.minimum-allocation-mb",
             "property_type" : [ ],
+            "property_depended_by": [
+              {
+                "property_type": "hive-site",
+                "property_name": "hive.tez.container.size"
+              },
+              {
+                "property_type": "mapred-site",
+                "property_name": "mapreduce.map.memory.mb"
+              }
+            ],
             "property_value" : "512",
             "service_name" : "YARN",
             "stack_name" : "HDP",

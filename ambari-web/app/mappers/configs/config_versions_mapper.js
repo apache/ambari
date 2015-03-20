@@ -40,6 +40,7 @@ App.configVersionsMapper = App.QuickDataMapper.create({
     var configVersions = [];
     var itemIds = {};
     var serviceToHostMap = {};
+    var requestedProperties = [];
 
     if (json && json.items) {
       json.items.forEach(function (item, index) {
@@ -71,6 +72,8 @@ App.configVersionsMapper = App.QuickDataMapper.create({
 
               var property = {
                 id: key  + '_' + type + '_' + item.service_config_version,
+                name: key,
+                file_name: App.config.getOriginalFileName(type),
                 config_version_id: parsedItem.id,
                 stack_config_property_id: key  + '_' + type
               };
@@ -78,6 +81,7 @@ App.configVersionsMapper = App.QuickDataMapper.create({
               property.is_final = property.default_is_final = !!item.properties_attributes && item.properties_attributes.final[key] === "true";
 
               properties.push(property);
+              requestedProperties.push(property.id);
             }
           }, this);
         }
@@ -117,6 +121,21 @@ App.configVersionsMapper = App.QuickDataMapper.create({
       });
       App.store.commit();
       App.store.loadMany(this.get('model'), configVersions);
+
+      this.deleteUnusedProperties(requestedProperties);
     }
+  },
+
+
+  /**
+   * delete unused Properties
+   * @param requestedProperties
+   */
+  deleteUnusedProperties: function(requestedProperties) {
+    App.ConfigProperty.find().filterProperty('id').forEach(function(p) {
+      if (!requestedProperties.contains(p.get('id'))) {
+        this.deleteRecord(p);
+      }
+    }, this);
   }
 });

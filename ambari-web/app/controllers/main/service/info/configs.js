@@ -65,6 +65,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded'),
 
   /**
+   * @type {[Object]} that will contain items like
+   *{
+   *  "type": "yarn-site",
+   *  "name": "yarn.nodemanager.resource.memory-mb"
+   *}
+   */
+  changedConfigWithDependencies: [],
+  /**
    * @type {boolean}
    */
   canEdit: function () {
@@ -101,12 +109,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * }
    */
   loadedClusterSiteToTagMap: {},
-  /**
-   * Holds the actual base service-config server data uploaded.
-   * This is used by the host-override mechanism to update host
-   * specific values.
-   */
-  savedSiteNameToServerServiceConfigDataMap: {},
 
   isSubmitDisabled: function () {
     return (!(this.get('stepConfigs').everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
@@ -224,7 +226,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.get('uiConfigs').clear();
     this.set('loadedGroupToOverrideSiteToTagMap', {});
     this.set('serviceConfigVersionNote', '');
-    this.set('savedSiteNameToServerServiceConfigDataMap', {});
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
     }
@@ -319,6 +320,73 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         self.trackRequest(self.loadServiceConfigVersions());
       }));
     }));
+  },
+
+  /**
+   * this method defines dependent file names for configs
+   * and load them to model
+   * @method loadDependentConfigs
+   */
+  loadDependentConfigs: function() {
+    /**
+     * filter out configs for current service with
+     * <code>propertyDependedBy<code>
+     * @type {Array}
+     */
+    var serviceStackProperties = App.StackConfigProperty.find().filter(function(stackProperty) {
+      return stackProperty.get('serviceName') === this.get('content.serviceName') && stackProperty.get('propertyDependedBy.length') > 0
+    }, this);
+
+    /**
+     * defines what fileNames should UI load
+     */
+    serviceStackProperties.forEach(function(serviceStackProperty) {
+      this.calculateDependentFileNames(serviceStackProperty);
+    }, this);
+
+    var serviceConfigsToLoad = this.getServiceNamesForConfigs();
+
+    /**
+     * load serviceConfigVersion
+     * by serviceName that has dependent properties
+     */
+    if (serviceConfigsToLoad.length > 0) {
+      App.config.loadConfigCurrentVersions(serviceConfigsToLoad);
+    }
+  },
+
+  /**
+   * get required fileNames that has dependencies
+   * @returns {string[]}
+   */
+  getServiceNamesForConfigs: function() {
+    return App.StackService.find().filter(function(s) {
+      for (var i = 0; i < this.get('dependentFileNames.length'); i++) {
+        if (Object.keys(s.get('configTypes')).contains(App.config.getConfigTagFromFileName(this.get('dependentFileNames')[i])))
+          return true;
+      }
+      return false;
+    }, this).mapProperty('serviceName').concat(this.get('content.serviceName'));
+  },
+
+  /**
+   * dependent file names for configs
+   */
+  dependentFileNames: [],
+
+  /**
+   * defines file names for configs
+   * @param {App.StackConfigProperty} stackProperty
+   */
+  calculateDependentFileNames: function(stackProperty) {
+    if (stackProperty.get('propertyDependedBy.length') > 0) {
+      stackProperty.get('propertyDependedBy').forEach(function(dependent) {
+        if (!this.get('dependentFileNames').contains(dependent.type)) {
+          this.get('dependentFileNames').push(dependent.type);
+        }
+        this.calculateDependentFileNames(App.StackConfigProperty.find(dependent.name + "_" + dependent.type));
+      }, this);
+    }
   },
 
   /**
@@ -917,6 +985,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.set('versionLoaded', true);
     this.set('hash', this.getHash());
     this.set('isInit', false);
+    this.loadDependentConfigs();
   },
 
   /**
@@ -1173,6 +1242,63 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
+   *
+   * @param modifiedProperties
+   * @param configs
+   * @returns {Array}
+   */
+  generateModifiedConfigs: function(modifiedProperties, configs) {
+
+    var modifiedConfigs = modifiedProperties
+      // get file names and add file names that was modified, for example after property removing
+      .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
+      // get configs by filename
+      .map(function(fileName) {
+        return configs.filterProperty('filename', fileName);
+      });
+
+    /**
+     * make same operations to find what configs need to be saved
+     * for configs from model
+     * @type {Ember.Enumerable}
+     */
+    var modifiedFileNames = App.ConfigProperty.find().filter(function(cp) {
+      return cp.get('isNotDefaultValue') && this.get('dependentFileNames').contains(cp.get('fileName'));
+    }, this).mapProperty('fileName').uniq();
+
+    /**
+     * create default ServiceConfigProperty objects from model
+     * and pushing properties that need to be saved to modified configs
+     * @type {Array}
+     */
+    App.ConfigProperty.find().filter(function(cp) {
+      return modifiedFileNames.contains(cp.get('fileName'));
+    }).forEach(function(configFromModel) {
+      var configData = {
+        name: configFromModel.get('name'),
+        displayName: configFromModel.get('stackConfigProperty.displayName'),
+        serviceName: configFromModel.get('stackConfigProperty.serviceName'),
+        value: configFromModel.get('value'),
+        defaultValue: configFromModel.get('defaultValue'),
+        filename: App.config.getOriginalFileName(configFromModel.get('fileName')),
+        isFinal: configFromModel.get('isFinal')
+      };
+      if (configFromModel.get('stackConfigProperty.serviceName') === this.get('content.serviceName')) {
+        var confObject = modifiedConfigs.findProperty('name', configFromModel.get('name'));
+        if (confObject && configFromModel.get('allowSave')) {
+          confObject.set('value', configFromModel.get('value'));
+        } else {
+          modifiedConfigs.push(App.ServiceConfigProperty.create(configData));
+        }
+      } else {
+        modifiedConfigs.push(App.ServiceConfigProperty.create(configData));
+      }
+    }, this);
+
+    return modifiedConfigs;
+  },
+
+  /**
    * Save changed configs and config groups
    */
   saveConfigs: function () {
@@ -1184,28 +1310,62 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       if (this.get('content.serviceName') === 'YARN') {
         configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
       }
-      var modifiedConfigs = configs
-        // get only modified and created configs
-        .filter(function(config) { return config.get('isNotDefaultValue') || config.get('isNotSaved'); })
-        // get file names and add file names that was modified, for example after property removing
-        .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
-        // get configs by filename
-        .map(function(fileName) {
-          return configs.filterProperty('filename', fileName);
-        });
-      if (!!modifiedConfigs.length) {
-        // concatenate results
-        modifiedConfigs = modifiedConfigs.reduce(function(current, prev) { return current.concat(prev); });
-      }
-
-      // save modified original configs that have no group
-      this.saveSiteConfigs(modifiedConfigs.filter(function(config) { return !config.get('group'); }));
 
       /**
-       * First we put cluster configurations, which automatically creates /configurations
-       * resources. Next we update host level overrides.
+       * generates list of properties that was chabged
+       * @type {Array}
        */
-      this.doPUTClusterConfigurations();
+      var modifiedProperties = configs
+        // get only modified and created configs
+        .filter(function(config) { return config.get('isNotDefaultValue') || config.get('isNotSaved'); });
+
+      /**
+       * check if some of properties that was changed has dependencies;
+       */
+      modifiedProperties.forEach(function(p) {
+        /**
+         * step configs don't have <code>propertyDependedBy<code> property
+         * so we need to look in <code>stackConfigProperty<code>;
+         * use <code>App.ConfigProperty<code> that has link to <code>stackConfigProperty<code>
+         */
+        var cfgFromModel = App.ConfigProperty.find().find(function(cp) {
+          return cp.get('name') === p.get('name') && cp.get('fileName') === p.get('filename');
+        }, this);
+
+        if (cfgFromModel) {
+
+          cfgFromModel.set('defaultValue', p.get('value'));
+          /**
+           * generates <code>changedConfigWithDependencies<code>
+           * this array will be send for recommendations as <code>changed_configurations<code>
+           */
+          if (cfgFromModel.get('stackConfigProperty.propertyDependedBy.length') > 0) {
+            this.get('changedConfigWithDependencies').push({
+              "type": cfgFromModel.get('fileName'),
+              "name": cfgFromModel.get("name")
+            });
+          }
+        }
+      }, this);
+
+      this.getRecommendationsForDependencies(this.get('changedConfigWithDependencies')).done(function() {
+
+        var modifiedConfigs = self.generateModifiedConfigs(modifiedProperties, configs);
+
+        if (!!modifiedConfigs.length) {
+          // concatenate results
+          modifiedConfigs = modifiedConfigs.reduce(function(current, prev) { return current.concat(prev); });
+        }
+        // save modified original configs that have no group
+        self.saveSiteConfigs(modifiedConfigs.filter(function(config) { return !config.get('group'); }));
+
+        /**
+         * First we put cluster configurations, which automatically creates /configurations
+         * resources. Next we update host level overrides.
+         */
+        self.doPUTClusterConfigurations();
+      });
+
     } else {
       var overridenConfigs = [];
       var groupHosts = [];
@@ -1866,6 +2026,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   doPUTClusterConfigurations: function () {
     this.set('saveConfigsFlag', true);
     var serviceConfigTags = this.get('serviceConfigTags');
+    /**
+     * adding config tags for dependentConfigs
+     */
+    for (var i = 0; i < this.get('dependentFileNames.length'); i++) {
+      serviceConfigTags.pushObject({siteName: this.get('dependentFileNames')[i]});
+    }
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
     var configsToSave = [];
@@ -1882,7 +2048,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     } else {
       this.onDoPUTClusterConfigurations();
     }
-    this.set("savedSiteNameToServerServiceConfigDataMap", siteNameToServerDataMap);
   },
 
   /**
@@ -1904,7 +2069,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         }
         break;
       default:
-        var filename = (App.config.get('filenameExceptions').contains(siteName)) ? siteName : siteName + '.xml';
+        var filename = App.config.getOriginalFileName(siteName);
         if (filename === 'mapred-queue-acls.xml') {
           return null;
         }

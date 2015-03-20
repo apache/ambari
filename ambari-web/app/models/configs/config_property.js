@@ -26,6 +26,17 @@ App.ConfigProperty = DS.Model.extend({
   id: DS.attr('string'),
 
   /**
+   * config property name
+   * @property {string}
+   */
+  name: DS.attr('string'),
+
+  /**
+   * config property name
+   * @property {string}
+   */
+  fileName: DS.attr('string'),
+  /**
    * value of property
    * by default is same as <code>defaultValue<code>
    * @property {string}
@@ -107,6 +118,12 @@ App.ConfigProperty = DS.Model.extend({
    * @property {boolean}
    */
   isHiddenByFilter: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * properties with this flag set to false will not be saved
+   * @property {boolean}
+   */
+  allowSave: DS.attr('boolean', {defaultValue: true}),
 
   /**
    * Don't show "Undo" for hosts on Installer Step7

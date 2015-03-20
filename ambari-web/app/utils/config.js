@@ -1336,7 +1336,7 @@ App.config = Em.Object.create({
   textareaIntoFileConfigs: function (configs, filename) {
     var complexConfigName = this.get('complexConfigsTemplate').findProperty('filename', filename).name;
     var configsTextarea = configs.findProperty('name', complexConfigName);
-    if (configsTextarea) {
+    if (configsTextarea && !App.get('testMode')) {
       var properties = configsTextarea.get('value').split('\n');
 
       properties.forEach(function (_property) {
@@ -1910,6 +1910,22 @@ App.config = Em.Object.create({
     return App.ajax.send($.extend({sender: this, success: 'saveConfigVersionsToModel'}, info));
   },
 
+  /**
+   *
+   * @param serviceNames
+   * @returns {$.ajax}
+   */
+  loadConfigCurrentVersions: function (serviceNames) {
+    Em.assert('serviceNames should be not empty array', Em.isArray(serviceNames) && serviceNames.length > 0);
+    return App.ajax.send({
+      name: 'configs.config_versions.load.current_versions',
+      sender: this,
+      data: {
+        serviceNames: serviceNames.join(",")
+      },
+      success: 'saveConfigVersionsToModel'
+    });
+  },
   /**
    * generate ajax info
    * @param {string} [serviceName=null]

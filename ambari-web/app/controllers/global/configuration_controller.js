@@ -84,7 +84,7 @@ App.ConfigurationController = Em.Controller.extend({
       jqXhr.done(function (data) {
         configTags = data.Clusters.desired_configs;
         tags.forEach(function (_tag) {
-          if (_tag.siteName && !_tag.tagName) {
+          if (_tag.siteName && configTags[_tag.siteName] && !_tag.tagName) {
             _tag.tagName = configTags[_tag.siteName].tag;
           }
         }, self);

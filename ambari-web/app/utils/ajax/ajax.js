@@ -630,7 +630,7 @@ var urls = {
   },
 
   'configs.stack_configs.load.services': {
-    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceList})?fields=configurations/*,StackServices/config_types/*',
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceList})&fields=configurations/*,StackServices/config_types/*',
     'mock': '/data/stacks/HDP-2.2/configurations.json'
   },
 
@@ -661,6 +661,10 @@ var urls = {
     'mock': '/data/configurations/config_versions.json'
   },
 
+  'configs.config_versions.load.current_versions': {
+    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&group_id=-1&is_current=true&fields=*',
+    'mock': '/data/configurations/config_versions.json'
+  },
 
 
   'service.load_config_groups': {
@@ -1804,18 +1808,14 @@ var urls = {
 
 
   // TODO: merge with wizard.loadrecommendations query
-  'wizard.step7.loadrecommendations.configs': {
+  'config.recommendations': {
     'real': '{stackVersionUrl}/recommendations',
-    'mock': '/data/stacks/HDP-2.1/recommendations_configs.json',
+    'mock': '/data/configurations/recommendations/configuration_dependencies.json',
+    //'mock': '/data/stacks/HDP-2.1/recommendations_configs.json',
     'type': 'POST',
     'format': function (data) {
       return {
-        data: JSON.stringify({
-          hosts: data.hosts,
-          services: data.services,
-          recommendations: data.recommendations,
-          recommend: "configurations"
-        })
+        data: JSON.stringify(data.dataToSend)
       }
     }
   },

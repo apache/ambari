@@ -118,17 +118,92 @@ App.ServerValidatorMixin = Em.Mixin.create({
       return $.Deferred().resolve();
     }
     return App.ajax.send({
-      'name': 'wizard.step7.loadrecommendations.configs',
+      'name': 'config.recommendations',
       'sender': this,
       'data': {
         stackVersionUrl: App.get('stackVersionURL'),
-        hosts: this.get('hostNames'),
-        services: this.get('serviceNames'),
-        recommendations: this.get('hostGroups')
+        dataToSend: {
+          recommend: 'configurations',
+          hosts: this.get('hostNames'),
+          services: this.get('serviceNames'),
+          recommendations: this.get('hostGroups')
+        }
       },
       'success': 'loadRecommendationsSuccess',
       'error': 'loadRecommendationsError'
     });
+  },
+
+  /**
+   *
+   * @param changedConfigs
+   */
+  getRecommendationsForDependencies: function(changedConfigs) {
+    var dfd = $.Deferred();
+    if (Em.isArray(changedConfigs) && changedConfigs.length > 0) {
+      var recommendations = this.get('hostGroups');
+      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
+
+      var dataToSend = {
+        recommend: 'configurations',
+        hosts: this.get('hostNames'),
+        services: this.get('serviceNames'),
+        recommendations: recommendations
+      };
+      if (App.get('supports.enhancedConfigs')) {
+        dataToSend.recommend = 'configuration-dependencies';
+        dataToSend.changed_configurations = changedConfigs;
+      }
+      App.ajax.send({
+        name: 'config.recommendations',
+        sender: this,
+        data: {
+          stackVersionUrl: App.get('stackVersionURL'),
+          dataToSend: dataToSend,
+          dfd: dfd
+        },
+        success: 'dependenciesSuccess',
+        error: 'dependenciesError'
+      });
+    } else {
+      dfd.resolve();
+    }
+    return dfd.promise();
+  },
+
+  /**
+   *
+   * @param data
+   * @param opt
+   * @param params
+   */
+  dependenciesSuccess: function(data, opt, params) {
+    Em.assert('invalid data', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
+    var configs = data.resources[0].recommendations.blueprint.configurations;
+    var currentProperties = App.ConfigProperty.find().filterProperty('configVersion.isCurrent').filterProperty('configVersion.groupId', -1);
+    for (var key in configs) {
+      for (var propertyName in configs[key].properties) {
+        var property = currentProperties.findProperty('name', propertyName)
+        if (property) {
+          property.set('value', configs[key].properties[propertyName]);
+        }
+      }
+    }
+    var configsToShow = currentProperties.filterProperty('isNotDefaultValue');
+    App.showDependentConfigsPopup(configsToShow, params.dfd);
+  },
+
+  /**
+   *
+   * @param jqXHR
+   * @param ajaxOptions
+   * @param error
+   * @param opt
+   * @param params
+   */
+  dependenciesError: function(jqXHR, ajaxOptions, error, opt, params) {
+    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
+    params.dfd.reject();
   },
 
   /**
@@ -280,7 +355,7 @@ App.ServerValidatorMixin = Em.Mixin.create({
         },
         bodyClass: Em.View.extend({
           controller: self,
-          templateName: require('templates/common/configs/config_recommendation_popup')
+          templateName: require('templates/common/modal_popups/config_recommendation_popup')
         })
       });
     } else {
