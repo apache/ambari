@@ -80,6 +80,8 @@ public class Role {
   public static final Role PEERSTATUS = valueOf("PEERSTATUS");
   public static final Role PIG = valueOf("PIG");
   public static final Role PIG_SERVICE_CHECK = valueOf("PIG_SERVICE_CHECK");
+  public static final Role MAHOUT = valueOf("MAHOUT");
+  public static final Role MAHOUT_SERVICE_CHECK = valueOf("MAHOUT_SERVICE_CHECK");
   public static final Role RESOURCEMANAGER = valueOf("RESOURCEMANAGER");
   public static final Role SECONDARY_NAMENODE = valueOf("SECONDARY_NAMENODE");
   public static final Role SQOOP = valueOf("SQOOP");
