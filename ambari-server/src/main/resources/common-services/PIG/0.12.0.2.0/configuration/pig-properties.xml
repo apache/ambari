@@ -55,7 +55,7 @@ debug=INFO
 # verbose print all log messages to screen (default to print only INFO and above to screen)
 verbose=false
 
-# exectype local|mapreduce, mapreduce is default
+# exectype local|mapreduce|tez, mapreduce is default
 exectype=mapreduce
 
 # Enable insertion of information about script into hadoop job conf 
