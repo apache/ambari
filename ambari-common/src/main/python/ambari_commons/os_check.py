@@ -163,6 +163,10 @@ class OSCheck:
         distribution = platform.dist()
       else:
         distribution = platform.linux_distribution()
+
+    if distribution[0] == '' and platform.system().lower() == 'darwin':
+      # mac - used for unit tests
+      distribution = ("Darwin", "TestOnly", "1.1.1", "1.1.1", "1.1")
     
     return distribution
 
@@ -188,6 +192,8 @@ class OSCheck:
       return 'sles'
     elif operatingSystem.startswith('red hat enterprise linux'):
       return 'redhat'
+    elif operatingSystem.startswith('darwin'):
+      return 'mac'
 
     if operatingSystem != '':
       return operatingSystem

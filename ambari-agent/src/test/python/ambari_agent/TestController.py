@@ -29,7 +29,7 @@ import platform
 from threading import Event
 import json
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+from only_for_platform import not_for_platform, only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -44,7 +44,7 @@ with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_
   from ambari_agent.Hardware import Hardware
   import ambari_commons
 
-@only_for_platform(PLATFORM_LINUX)
+@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(OSCheck, "os_distribution", new = os_distro_value)
 class TestController(unittest.TestCase):
 

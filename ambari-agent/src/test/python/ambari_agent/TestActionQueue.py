@@ -37,7 +37,7 @@ from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
 from FileCache import FileCache
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+from only_for_platform import only_for_platform, get_platform, not_for_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -661,7 +661,7 @@ class TestActionQueue(TestCase):
     report = actionQueue.result()
     self.assertEqual(len(report['reports']),1)
 
-  @only_for_platform(PLATFORM_LINUX)
+  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
   def test_execute_python_executor(self, read_stack_version_mock, resolve_script_path_mock):

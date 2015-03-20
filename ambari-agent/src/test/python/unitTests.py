@@ -106,7 +106,7 @@ def main():
       exit(1)
   else:
     logger.info('------------------------------------------------------------------------')
-    logger.info('Python unit tests finished succesfully')
+    logger.info('Python unit tests finished successfully')
     logger.info('------------------------------------------------------------------------')
 
 if __name__ == '__main__':
