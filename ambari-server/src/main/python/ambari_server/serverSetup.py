@@ -66,7 +66,6 @@ MAKE_FILE_EXECUTABLE_CMD = "chmod a+x {0}"
 UNTAR_JDK_ARCHIVE = "tar --no-same-owner -xvf {0}"
 
 JDK_PROMPT = "[{0}] {1}\n"
-JDK_CUSTOM_CHOICE_PROMPT = "[{0}] - Custom JDK\n==============================================================================\nEnter choice ({1}): "
 JDK_VALID_CHOICES = "^[{0}{1:d}]$"
 
 def get_supported_jdbc_drivers():
@@ -312,7 +311,7 @@ class JDKSetup(object):
     self.JDK_DEFAULT_CONFIGS = []
 
     self.JDK_PROMPT = "[{0}] {1}\n"
-    self.JDK_CUSTOM_CHOICE_PROMPT = "[{0}] - Custom JDK\n==============================================================================\nEnter choice ({1}): "
+    self.JDK_CUSTOM_CHOICE_PROMPT = "[{0}] Custom JDK\n==============================================================================\nEnter choice ({1}): "
     self.JDK_VALID_CHOICES = "^[{0}{1:d}]$"
     self.JDK_MIN_FILESIZE = 5000
     self.JAVA_BIN = ""
