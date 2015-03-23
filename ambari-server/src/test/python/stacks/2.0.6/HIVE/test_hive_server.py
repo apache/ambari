@@ -316,6 +316,17 @@ class TestHiveServer(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
+                              content = Template('hive.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
+                              )
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',
                                           '/usr/share/java/mysql-connector-java.jar',
@@ -439,6 +450,17 @@ class TestHiveServer(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
+                              )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
+                              content = Template('hive.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
                               )
     self.assertResourceCalled('Execute', ('cp',
                                           '--remove-destination',

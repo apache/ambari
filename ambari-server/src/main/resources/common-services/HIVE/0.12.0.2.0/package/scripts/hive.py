@@ -72,6 +72,20 @@ def hive(name=None):
        content=InlineTemplate(params.hive_env_sh_template)
   )
 
+  # On some OS this folder could be not exists, so we will create it before pushing there files
+  Directory(params.limits_conf_dir,
+            recursive=True,
+            owner='root',
+            group='root'
+            )
+
+  File(os.path.join(params.limits_conf_dir, 'hive.conf'),
+       owner='root',
+       group='root',
+       mode=0644,
+       content=Template("hive.conf.j2")
+       )
+
   if name == 'metastore' or name == 'hiveserver2':
     jdbc_connector()
 

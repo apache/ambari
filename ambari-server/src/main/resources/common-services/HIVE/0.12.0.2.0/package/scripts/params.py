@@ -93,6 +93,7 @@ hive_conf_dir_prefix = "/etc/hive"
 hive_conf_dir = format("{hive_conf_dir_prefix}/conf")
 hive_client_conf_dir = format("{hive_conf_dir_prefix}/conf")
 hive_server_conf_dir = format("{hive_conf_dir_prefix}/conf.server")
+limits_conf_dir = "/etc/security/limits.d"
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
   hcat_conf_dir = '/etc/hcatalog/conf'

@@ -81,6 +81,17 @@ class TestHiveClient(RMFTestCase):
                               owner = 'hive',
                               group = 'hadoop',
                               )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
+                              content = Template('hive.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
+                              )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
     )
@@ -144,6 +155,17 @@ class TestHiveClient(RMFTestCase):
                               content = InlineTemplate(self.getConfig()['configurations']['hive-env']['content']),
                               owner = 'hive',
                               group = 'hadoop',
+                              )
+    self.assertResourceCalled('Directory', '/etc/security/limits.d',
+                              owner = 'root',
+                              group = 'root',
+                              recursive = True,
+                              )
+    self.assertResourceCalled('File', '/etc/security/limits.d/hive.conf',
+                              content = Template('hive.conf.j2'),
+                              owner = 'root',
+                              group = 'root',
+                              mode = 0644,
                               )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
