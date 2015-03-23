@@ -34,12 +34,12 @@
     <tbody>
     {{#each config in view.parentView.configs}}
       <tr>
-        <td>{{view Em.Checkbox checkedBinding="config.allowSave"}}</td>
+        <td>{{view Em.Checkbox checkedBinding="config.saveRecommended"}}</td>
         <td>{{config.name}}</td>
         <td>{{config.fileName}}</td>
         <td>{{config.stackConfigProperty.serviceName}}</td>
-        <td>{{config.defaultValue}}</td>
         <td>{{config.value}}</td>
+        <td>{{config.recommendedValue}}</td>
       </tr>
     {{/each}}
     </tbody>

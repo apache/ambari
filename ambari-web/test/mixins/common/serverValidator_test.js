@@ -61,7 +61,7 @@ describe('App.ServerValidatorMixin', function() {
           { prop: 'configValidationWarning', value: true },
           { prop: 'configValidationGlobalMessage.length', value: 1 },
           { prop: 'configValidationGlobalMessage[0].serviceName', value: 'Some Service' },
-          { prop: 'configValidationGlobalMessage[0].propertyName', value: 'prop2' },
+          { prop: 'configValidationGlobalMessage[0].propertyName', value: 'prop2' }
         ],
         message: 'validation failed on absent property from step configs. global message should be showed.'
       },
@@ -74,7 +74,7 @@ describe('App.ServerValidatorMixin', function() {
         ]),
         resources: [
           genResponse([
-            ['prop1', 'some-site', 'WARN', 'Some warn'],
+            ['prop1', 'some-site', 'WARN', 'Some warn']
           ])
         ],
         expected: [

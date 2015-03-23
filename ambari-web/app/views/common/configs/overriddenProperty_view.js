@@ -76,6 +76,17 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
       var group = controller.get('selectedService.configGroups').findProperty('name', controller.get('selectedConfigGroup.name'));
       group.get('properties').removeObject(scpToBeRemoved);
     }
+    if (App.get('supports.enhancedConfigs')) {
+      var deletedConfig = App.ConfigProperty.find().find(function(cp) {
+        return cp.get('name') === scpToBeRemoved.get('name')
+          && cp.get('fileName') === scpToBeRemoved.get('filename')
+          && cp.get('configVersion.groupName') === this.get('controller.selectedConfigGroup.name');
+      }, this);
+      if (deletedConfig) {
+        deletedConfig.deleteRecord();
+        App.store.commit();
+      }
+    }
     overrides = overrides.without(scpToBeRemoved);
     this.set('serviceConfigProperty.overrides', overrides);
     Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed

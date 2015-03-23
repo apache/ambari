@@ -579,6 +579,15 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
   removeProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     this.get('serviceConfigs').removeObject(serviceConfigProperty);
+    if (App.get('supports.enhancedConfigs')) {
+      var deletedConfig = App.ConfigProperty.find().find(function(cp) {
+        return cp.get('name') === serviceConfigProperty.get('name')
+          && cp.get('fileName') === serviceConfigProperty.get('filename')
+          && cp.get('isDefault');
+      });
+      deletedConfig.deleteRecord();
+      App.store.commit();
+    }
     // push config's file name if this config was stored on server
     if (!serviceConfigProperty.get('isNotSaved')) {
       this.get('controller').get('modifiedFileNames').push(serviceConfigProperty.get('filename'));

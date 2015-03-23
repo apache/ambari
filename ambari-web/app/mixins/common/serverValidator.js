@@ -150,10 +150,12 @@ App.ServerValidatorMixin = Em.Mixin.create({
         services: this.get('serviceNames'),
         recommendations: recommendations
       };
+      /** TODO uncomment when be will be ready
       if (App.get('supports.enhancedConfigs')) {
         dataToSend.recommend = 'configuration-dependencies';
         dataToSend.changed_configurations = changedConfigs;
       }
+       **/
       App.ajax.send({
         name: 'config.recommendations',
         sender: this,
@@ -185,12 +187,21 @@ App.ServerValidatorMixin = Em.Mixin.create({
       for (var propertyName in configs[key].properties) {
         var property = currentProperties.findProperty('name', propertyName)
         if (property) {
-          property.set('value', configs[key].properties[propertyName]);
+          property.set('recommendedValue', configs[key].properties[propertyName]);
         }
       }
     }
-    var configsToShow = currentProperties.filterProperty('isNotDefaultValue');
-    App.showDependentConfigsPopup(configsToShow, params.dfd);
+
+    var configsToShow = currentProperties.filter(function(p) {
+      return p.get('recommendedValue') && p.get('recommendedValue') !== p.get('value');
+    });
+
+    if (configsToShow.length > 0) {
+      App.showDependentConfigsPopup(configsToShow, params.dfd);
+    } else {
+      params.dfd.resolve();
+    }
+
   },
 
   /**

@@ -662,7 +662,7 @@ var urls = {
   },
 
   'configs.config_versions.load.current_versions': {
-    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&group_id=-1&is_current=true&fields=*',
+    'real': '/clusters/{clusterName}/configurations/service_config_versions?service_name.in({serviceNames})&is_current=true&fields=*',
     'mock': '/data/configurations/config_versions.json'
   },
 

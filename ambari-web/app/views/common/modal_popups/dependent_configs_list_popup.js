@@ -42,8 +42,8 @@ App.showDependentConfigsPopup = function (configs, dfd) {
     }),
     onPrimary: function () {
       this.hide();
-      configs.filterProperty('allowSave', false).forEach(function(c) {
-        c.set('value', c.get('defaultValue'));
+      configs.filterProperty('saveRecommended', true).forEach(function(c) {
+        c.set('value', c.get('recommendedValue'));
       });
       dfd.resolve();
     },
@@ -59,7 +59,7 @@ App.showDependentConfigsPopup = function (configs, dfd) {
       dfd.reject();
       this.hide();
     },
-    onClose:  function () {
+    onClose: function () {
       this.onSecondary();
     }
   });

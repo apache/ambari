@@ -50,6 +50,13 @@ App.ConfigProperty = DS.Model.extend({
   defaultValue: DS.attr('string'),
 
   /**
+   * recommended value of property
+   * that is returned from server
+   * @property {string}
+   */
+  recommendedValue: DS.attr('string'),
+
+  /**
    * defines if property is final
    * @property {boolean}
    */
@@ -114,6 +121,19 @@ App.ConfigProperty = DS.Model.extend({
   isSecureConfig: DS.attr('boolean', {defaultValue: false}),
 
   /**
+   * if false - don't save property
+   * @property {boolean}
+   */
+  isRequiredByAgent: DS.attr('boolean', {defaultValue: true}),
+
+  /**
+   * if true - property is not saved
+   * used for properties added by user
+   * @property {boolean}
+   */
+  isNotSaved: DS.attr('boolean', {defaultValue: false}),
+
+  /**
    * if true - don't show property
    * @property {boolean}
    */
@@ -123,7 +143,7 @@ App.ConfigProperty = DS.Model.extend({
    * properties with this flag set to false will not be saved
    * @property {boolean}
    */
-  allowSave: DS.attr('boolean', {defaultValue: true}),
+  saveRecommended: DS.attr('boolean', {defaultValue: true}),
 
   /**
    * Don't show "Undo" for hosts on Installer Step7
@@ -190,6 +210,13 @@ App.ConfigProperty = DS.Model.extend({
     return this.get('configVersion.isForCompare');
   }.property('configVersion.isForCompare'),
 
+  /**
+   * if this property can be final
+   * @property {boolean}
+   */
+  supportsFinal: function () {
+    return this.get('stackConfigProperty.supportsFinal') || this.get('isUserProperty');
+  }.property('stackConfigProperty.supportsFinal', 'isUserProperty'),
   /**
    * Indicates when value is not the default value.
    * Returns false when there is no default value.
