@@ -1263,7 +1263,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }
 
       /**
-       * generates list of properties that was chabged
+       * generates list of properties that was changed
        * @type {Array}
        */
       var modifiedProperties = configs
@@ -1281,7 +1281,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
           var modifiedConfigs = modifiedProperties
             // get file names and add file names that was modified, for example after property removing
-            .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
+            .mapProperty('filename').concat(self.get('modifiedFileNames')).uniq()
             // get configs by filename
             .map(function(fileName) {
               return configs.filterProperty('filename', fileName);
