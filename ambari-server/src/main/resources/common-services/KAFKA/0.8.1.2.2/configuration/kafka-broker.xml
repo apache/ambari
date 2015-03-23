@@ -155,12 +155,7 @@
       The byte interval at which we add an entry to the offset index. When executing a fetch request the server must do a linear scan for up to this many bytes to find the correct position in the log to begin and end the fetch. So setting this value to be larger will mean larger index files (and a bit more memory usage) but less scanning. However the server will never add more than one index entry per log append (even if more than log.index.interval worth of messages are appended). In general you probably don't need to mess with this value.
     </description>
   </property>
-  <property>
-    <name>log.flush.interval.messages</name>
-    <value>10000</value>
-    <description>The number of messages written to a log partition before we force an fsync on the log. Setting this higher will improve performance a lot but will increase the window of data at risk in the event of a crash (though that is usually best addressed through replication). If both this setting and log.flush.interval.ms are both used the log will be flushed when either criteria is met.
-    </description>
-  </property>
+
   <property>
     <name>log.flush.scheduler.interval.ms</name>
     <value>3000</value>
