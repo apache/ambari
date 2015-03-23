@@ -235,6 +235,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         servicesMasters: [],
         isInitialLayout: true
       });
+      controller.set('stackConfigsLoaded', false);
       controller.setCurrentStep('5');
       controller.loadAllPriorSteps().done(function () {
         controller.connectOutlet('wizardStep5', controller.get('content'));

@@ -656,18 +656,13 @@ App.InstallerController = App.WizardController.extend({
     ],
     '7': [
       {
-        type: 'sync',
+        type: 'async',
         callback: function () {
-          if (App.get('supports.enhancedConfigs')) {
-            var serviceNames = App.StackService.find().filter(function(s) {
-              return s.get('isSelected');
-            }).mapProperty('serviceName');
-            App.themesMapper.generateAdvancedTabs(serviceNames);
-          }
           this.loadServiceConfigGroups();
           this.loadServiceConfigProperties();
           this.loadCurrentHostGroups();
           this.loadRecommendationsConfigs();
+          return this.loadConfigThemes();
         }
       }
     ]
@@ -714,4 +709,3 @@ App.InstallerController = App.WizardController.extend({
     }
   }
 });
-

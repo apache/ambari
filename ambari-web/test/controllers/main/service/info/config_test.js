@@ -23,7 +23,14 @@ var mainServiceInfoConfigsController = null;
 describe("App.MainServiceInfoConfigsController", function () {
 
   beforeEach(function () {
+    sinon.stub(App.config, 'loadConfigTheme').returns($.Deferred().resolve().promise());
+    sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
     mainServiceInfoConfigsController = App.MainServiceInfoConfigsController.create({});
+  });
+
+  afterEach(function() {
+    App.config.loadConfigTheme.restore();
+    App.themesMapper.generateAdvancedTabs.restore();
   });
 
   describe("#showSavePopup", function () {

@@ -609,7 +609,12 @@ var urls = {
     'real': '{stackVersionUrl}/services/{serviceName}/artifacts/theme',
     'mock': '/data/configurations/theme.json'
   },
-  
+
+  'configs.theme.services': {
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&artifacts/Artifacts/artifact_name=theme&fields=artifacts/*',
+    'mock': '/data/configurations/theme_services.json'
+  },
+
   /*************************CONFIG GROUPS***************************************/
 
   'configs.config_groups.load.all': {

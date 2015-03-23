@@ -18,25 +18,6 @@
 
 var App = require('app');
 
-App.Tab = DS.Model.extend({
-  id: DS.attr('string'),
-  name: DS.attr('string'),
-  displayName: DS.attr('string'),
-  columns: DS.attr('number', {defaultValue: 1}),
-  rows: DS.attr('number', {defaultValue: 1}),
-  isAdvanced: DS.attr('boolean', {defaultValue: false}),
-  serviceName: DS.attr('string'),
-  sections: DS.hasMany('App.Section'),
-  /**
-   * Class name used for tab switching
-   *
-   * @type {String}
-   * @property headingClass
-   */
-  headingClass: function() {
-    return '.' + this.get('id');
-  }.property('id')
+App.ServiceConfigLayoutTabView = Em.View.extend({
+  templateName: require('templates/common/configs/service_config_layout_tab')
 });
-
-
-App.Tab.FIXTURES = [];

@@ -32,6 +32,7 @@ describe('App.themeMapper', function () {
     App.resetDsStoreTypeMap(App.StackConfigProperty);
     sinon.stub(App.store, 'commit', Em.K);
   });
+
   afterEach(function () {
     App.store.commit.restore();
   });
@@ -39,67 +40,58 @@ describe('App.themeMapper', function () {
   describe("#map", function () {
 
     var json = {
-      "Theme": {
-        "service_name": "HDFS",
-        "name": "default",
-        "description": "Default theme for HDFS service",
-        "configuration": {
-          "layouts": [
-            {
-              "name": "default",
-              "tabs": [
-                {
-                  "name": "settings",
-                  "display-name": "Settings",
-                  "layout": {
-                    "tab-columns": "2",
-                    "tab-rows": "1",
-                    "sections": [
-                      {
-                        "name": "Section-1",
-                        "display-name": "Section One",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1",
-                        "section-columns": "2",
-                        "section-rows": "3",
-                        "subsections": [
-                          {
-                            "name": "subsection1",
-                            "display-name": "Storage",
-                            "border": "false",
-                            "row-index": "0",
-                            "column-index": "0",
-                            "column-span": "1",
-                            "row-span": "1"
-                          }
-                        ]
-                      },
-                      {
-                        "name": "Section-2",
-                        "display-name": "Section Two",
-                        "row-index": "0",
-                        "column-index": "1"
-                      }
-                    ]
+      "Artifacts": {
+        "service_name": "HDFS"
+      },
+      "artifact_data": {
+        "Theme": {
+          "name": "default",
+          "description": "Default theme for HDFS service",
+          "configuration": {
+            "layouts": [
+              {
+                "name": "default",
+                "tabs": [
+                  {
+                    "name": "settings",
+                    "display-name": "Settings",
+                    "layout": {
+                      "tab-columns": "2",
+                      "tab-rows": "1",
+                      "sections": [
+                        {
+                          "name": "Section-1",
+                          "display-name": "Section One",
+                          "row-index": "0",
+                          "column-index": "0",
+                          "row-span": "1",
+                          "column-span": "1",
+                          "section-columns": "2",
+                          "section-rows": "3",
+                          "subsections": [
+                            {
+                              "name": "subsection1",
+                              "display-name": "Storage",
+                              "border": "false",
+                              "row-index": "0",
+                              "column-index": "0",
+                              "column-span": "1",
+                              "row-span": "1"
+                            }
+                          ]
+                        },
+                        {
+                          "name": "Section-2",
+                          "display-name": "Section Two",
+                          "row-index": "0",
+                          "column-index": "1"
+                        }
+                      ]
+                    }
                   }
-                }
-              ]
-            }
-          ],
-          "placement": {
-            "configuration-layout": "default",
-            "configs": [
-              {
-                "config": "c1/p1",
-                "subsection-name": "subsection1"
-              },
-              {
-                "config": "c1/p2",
-                "subsection-name": "subsection1"
+                ]
               }
-            ]
+            ],
           },
           "widgets": [
             {
@@ -127,7 +119,20 @@ describe('App.themeMapper', function () {
                 ]
               }
             }
-          ]
+          ],
+          "placement": {
+            "configuration-layout": "default",
+            "configs": [
+              {
+                "config": "c1/p1",
+                "subsection-name": "subsection1"
+              },
+              {
+                "config": "c1/p2",
+                "subsection-name": "subsection1"
+              }
+            ]
+          }
         }
       }
     };

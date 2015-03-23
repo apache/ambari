@@ -1148,5 +1148,34 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
     if (this.get('content.skipSlavesStep')) {
       this.get('isStepDisabled').findProperty('step', step).set('value', this.get('content.skipSlavesStep'));
     }
+  },
+
+  /**
+   * Load config themes for enhanced config layout.
+   *
+   * @method loadConfigThemes
+   * @return {$.Deferred}
+   */
+   loadConfigThemes: function() {
+    var self = this;
+    var dfd = $.Deferred();
+    if (App.get('supports.enhancedConfigs') && !this.get('stackConfigsLoaded')) {
+      var serviceNames = App.StackService.find().filter(function(s) {
+        return s.get('isSelected') || s.get('isInstalled');
+      }).mapProperty('serviceName');
+      // Load stack configs before loading themes
+      App.config.loadConfigsFromStack(serviceNames).done(function() {
+        App.config.loadConfigThemeForServices(serviceNames).always(function() {
+          self.set('stackConfigsLoaded', true);
+          App.themesMapper.generateAdvancedTabs(serviceNames);
+          dfd.resolve();
+        });
+      });
+    }
+    else {
+      dfd.resolve();
+      this.set('stackConfigsLoaded', true);
+    }
+    return dfd.promise();
   }
 });

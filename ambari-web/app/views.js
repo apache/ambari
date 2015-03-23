@@ -55,6 +55,7 @@ require('views/common/configs/widgets/config_widget_view');
 require('views/common/configs/widgets/list_config_widget_view');
 require('views/common/configs/widgets/slider_config_widget_view');
 require('views/common/configs/widgets/time_interval_spinner_view');
+require('views/common/configs/service_config_layout_tab_view');
 require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
 require('views/common/table_view');

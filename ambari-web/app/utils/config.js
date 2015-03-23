@@ -1975,7 +1975,8 @@ App.config = Em.Object.create({
       name: 'configs.theme',
       sender: this,
       data: {
-        serviceName: serviceName
+        serviceName: serviceName,
+        stackVersionUrl: App.get('stackVersionURL')
       },
       success: 'saveThemeToModel'
     });
@@ -1987,5 +1988,38 @@ App.config = Em.Object.create({
    */
   saveThemeToModel: function(data) {
     App.themesMapper.map(data);
+  },
+
+  /**
+   * Load themes for specified services by one API call.
+   *
+   * @method loadConfigThemeForServices
+   * @param {String|String[]} serviceNames
+   * @returns {$.Deferred}
+   */
+  loadConfigThemeForServices: function (serviceNames) {
+    var data = {
+      serviceNames: Em.isArray(serviceNames) ? serviceNames.join(',') : serviceNames,
+      stackVersionUrl: App.get('stackVersionURL')
+    };
+    return App.ajax.send({
+      name: 'configs.theme.services',
+      sender: this,
+      data: data,
+      success: 'loadConfigThemeForServicesSuccess',
+      error: 'loadConfigThemeForServicesError'
+    });
+  },
+
+  loadConfigThemeForServicesSuccess: function(data) {
+    if (!data.items.length) return;
+    data.items.mapProperty('artifacts.firstObject').forEach(function(item) {
+      App.themesMapper.map(item);
+    });
+  },
+
+  loadConfigThemeForServicesError: function(request, ajaxOptions, error, opt, params) {
+    console.log('ERROR: failed to load theme configs for', params.serviceNames);
   }
+
 });

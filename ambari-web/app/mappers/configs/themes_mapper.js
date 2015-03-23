@@ -8,7 +8,6 @@
  * with the License.  You may obtain a copy of the License at
  *
  *     http://www.apache.org/licenses/LICENSE-2.0
- *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -61,9 +60,9 @@ App.themesMapper = App.QuickDataMapper.create({
 
   map: function (json) {
     var tabs = [];
-    if (Em.get(json, "Theme.configuration.layouts")) {
-      var serviceName = Em.get(json, "Theme.service_name");
-      Em.get(json, "Theme.configuration.layouts").forEach(function(layout) {
+    if (Em.get(json, "artifact_data.Theme.configuration.layouts")) {
+      var serviceName = Em.get(json, "Artifacts.service_name");
+      Em.get(json, "artifact_data.Theme.configuration.layouts").forEach(function(layout) {
 
         if (layout.tabs) {
           layout.tabs.forEach(function(tab) {
@@ -97,17 +96,17 @@ App.themesMapper = App.QuickDataMapper.create({
             }
 
             tabs.push(parsedTab);
-          }, this)
+          }, this);
         }
 
       }, this);
     }
-
+    // TODO  Foreign key reference below throw some unclear error
     /**
      * create tie between <code>stackConfigProperty<code> and <code>subSection<code>
      */
-    if (Em.get(json, "Theme.configuration.placement.configs")) {
-      Em.get(json, "Theme.configuration.placement.configs").forEach(function(configLink) {
+    if (Em.get(json, "artifact_data.Theme.placement.configs")) {
+      Em.get(json, "artifact_data.Theme.placement.configs").forEach(function(configLink) {
 
         var configId = this.getConfigId(configLink);
         var subSectionId = configLink["subsection-name"];
@@ -126,8 +125,8 @@ App.themesMapper = App.QuickDataMapper.create({
     /**
      * add widget object to <code>stackConfigProperty<code>
      */
-    if (Em.get(json, "Theme.configuration.widgets")) {
-      Em.get(json, "Theme.configuration.widgets").forEach(function(widget) {
+    if (Em.get(json, "artifact_data.Theme.widgets")) {
+      Em.get(json, "artifact_data.Theme.widgets").forEach(function(widget) {
         var configId = this.getConfigId(widget);
 
         var configProperty = App.StackConfigProperty.find(configId);

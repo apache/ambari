@@ -86,29 +86,29 @@
   {{#if view.supportsConfigLayout}}
     <ul class="nav nav-tabs">
       {{#each tab in view.tabs}}
-        <li {{bindAttr class="tab.isActive:active" }}><a href="#" {{bindAttr data-target="tab.className"}} data-toggle="tab">{{tab.displayName}}</a></li>
+        <li {{bindAttr class="tab.isActive:active" }}><a href="#" {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">{{tab.displayName}}</a></li>
       {{/each}}
     </ul>
-
-    {{#each tab in view.tabs}}
-      <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
-        {{#if tab.isAdvanced}}
-          {{#each category in selectedService.configCategories}}
-            <div class="accordion">
-              {{#if category.isCustomView}}
-                {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-              {{else}}
-                {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-              {{/if}}
-            </div>
-          {{/each}}
-        {{else}}
-          {{!
-            @TODO Fancy Config view goes here
-            }}
-        {{/if}}
-      </div>
-    {{/each}}
+    <div class="tab-content">
+      {{#each tab in view.tabs}}
+        <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
+          {{#if tab.isAdvanced}}
+            {{#each category in selectedService.configCategories}}
+              <div class="accordion">
+                {{#if category.isCustomView}}
+                  {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+                {{else}}
+                  {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
+                {{/if}}
+              </div>
+            {{/each}}
+          {{else}}
+            {{! Render Enhanced Config Section }}
+            {{view App.ServiceConfigLayoutTabView contentBinding="tab"}}
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
   {{else}}
     {{#each category in selectedService.configCategories}}
       <div class="accordion">

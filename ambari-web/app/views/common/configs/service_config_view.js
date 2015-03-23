@@ -43,11 +43,14 @@ App.ServiceConfigView = Em.View.extend({
    */
   supportsConfigLayout: function() {
     var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController'];
-    var unSupportedServices = ['MISC'];
     if (!App.get('supports.enhancedConfigs')) {
       return false;
     }
-    return supportedControllers.contains(this.get('controllerName')) || !unSupportedServices.contains(this.get('controller.selectedService.serviceName'));
+    if (App.Tab.find().someProperty('serviceName', this.get('controller.selectedService.serviceName')) && supportedControllers.contains(this.get('controller.name'))) {
+      return !Em.isEmpty(App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).filterProperty('isAdvanced', false));
+    } else {
+      return false;
+    }
   }.property('controller.name', 'controller.selectedService'),
 
   showConfigHistoryFeature: false,
@@ -98,7 +101,42 @@ App.ServiceConfigView = Em.View.extend({
     }
     var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
     // make first tab active
+    this.processTabs(tabs);
     tabs.get('firstObject').set('isActive', true);
     return tabs;
-  }.property('controller.selectedService.serviceName')
+  }.property('controller.selectedService.serviceName'),
+
+  /**
+   * Data reordering before rendering.
+   * Reorder all sections/subsections into rows based on their rowIndex
+   * @param tabs
+   */
+  processTabs: function (tabs) {
+    for (var i = 0; i < tabs.length; i++) {
+      var tab = tabs[i];
+
+      // process sections
+      var sectionRows = [];
+      var sections = tab.get('sections');
+      for (var j = 0; j < sections.get('length'); j++) {
+        var section = sections.objectAt(j);
+        var sectionRow = sectionRows[section.get('rowIndex')];
+        if (!sectionRow) { sectionRow = sectionRows[section.get('rowIndex')] = []; }
+        sectionRow.push(section);
+
+        //process subsections
+        var subsections = section.get('subSections');
+        var subsectionRows = [];
+        for (var k = 0; k < subsections.get('length'); k++) {
+          var subsection = subsections.objectAt(k);
+          var subsectionRow = subsectionRows[subsection.get('rowIndex')];
+          if (!subsectionRow) { subsectionRow = subsectionRows[subsection.get('rowIndex')] = []; }
+          subsectionRow.push(subsection);
+        }
+        section.set('subsectionRows', subsectionRows);
+      }
+      tab.set('sectionRows', sectionRows);
+    }
+  }
+
 });
