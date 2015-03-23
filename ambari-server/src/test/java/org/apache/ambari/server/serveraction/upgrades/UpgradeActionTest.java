@@ -29,6 +29,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -41,6 +42,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.junit.After;
@@ -127,6 +129,70 @@ public class UpgradeActionTest {
     hostVersionDao.create(entity);
   }
 
+  private void makeUpgradeCluster() throws Exception {
+    String clusterName = "c1";
+    String hostName = "h1";
+
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    clusters.addCluster(clusterName);
+
+    StackId stackId = new StackId("HDP-2.1.1");
+
+    Cluster c = clusters.getCluster(clusterName);
+    c.setDesiredStackVersion(stackId);
+
+    // add a host component
+    clusters.addHost(hostName);
+
+    Host host = clusters.getHost(hostName);
+
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6");
+    host.setHostAttributes(hostAttributes);
+    host.persist();
+
+    OrmTestHelper helper = m_injector.getInstance(OrmTestHelper.class);
+    RepositoryVersionDAO repositoryVersionDAO = m_injector.getInstance (RepositoryVersionDAO.class);
+
+    String urlInfo = "[{'repositories':[" +
+        "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.1.1'}" +
+        "], 'OperatingSystems/os_type':'redhat6'}]";
+
+    helper.getOrCreateRepositoryVersion(stackId.getStackId(), DOWNGRADE_VERSION);
+//    helper.getOrCreateRepositoryVersion(stackId.getStackId(), UPGRADE_VERSION);
+    repositoryVersionDAO.create(
+        stackId.getStackId (), UPGRADE_VERSION, String.valueOf(System.currentTimeMillis()), "pack",
+          urlInfo);
+
+    RepositoryVersionDAO repoVersionDao = m_injector.getInstance(RepositoryVersionDAO.class);
+    HostVersionDAO hostVersionDao = m_injector.getInstance(HostVersionDAO.class);
+
+    c.createClusterVersion(stackId.getStackId(), DOWNGRADE_VERSION, "admin",
+        RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(stackId.getStackId(), UPGRADE_VERSION, "admin",
+        RepositoryVersionState.INSTALLING);
+
+    c.transitionClusterVersion(stackId.getStackId(), DOWNGRADE_VERSION, RepositoryVersionState.CURRENT);
+    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.UPGRADED);
+    c.setCurrentStackVersion(stackId);
+
+    c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
+        RepositoryVersionState.CURRENT);
+
+    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
+
+    HostVersionEntity entity = new HostVersionEntity();
+    entity.setHostEntity(hostDAO.findByName(hostName));
+    entity.setHostName(hostName);
+    entity.setRepositoryVersion(
+        repoVersionDao.findByStackAndVersion(stackId.getStackId(), UPGRADE_VERSION));
+    entity.setState(RepositoryVersionState.UPGRADED);
+    hostVersionDao.create(entity);
+  }
+
 
   @Test
   public void testFinalizeDowngrade() throws Exception {
@@ -169,7 +235,36 @@ public class UpgradeActionTest {
         assertEquals(RepositoryVersionState.INSTALLED, entity.getState());
       }
     }
+  }
 
+  @Test
+  public void testFinalizeUpgrade() throws Exception {
+    makeUpgradeCluster();
+
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put("upgrade_direction", "upgrade");
+    commandParams.put("version", UPGRADE_VERSION);
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+
+    HostRoleCommand hostRoleCommand = new HostRoleCommand(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+    assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
+
+
+    // !!! verify the metainfo url has been updated
+    AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
+    RepositoryInfo repo = metaInfo.getRepository("HDP", "2.1.1", "redhat6", "HDP-2.1.1");
+    assertEquals("http://foo1", repo.getBaseUrl());
   }
 
 
