@@ -28,6 +28,7 @@
       "debian"
     ],
     "versions": [
+      7,
       12
     ]
   },
