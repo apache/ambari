@@ -65,4 +65,16 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
+  <os family="ubuntu7">
+    <repo>
+      <baseurl>http://s3.amazonaws.com/dev.hortonworks.com/HDP/debian6/2.x/updates/2.3.0.0</baseurl>
+      <repoid>HDP-2.3</repoid>
+      <reponame>HDP</reponame>
+    </repo>
+    <repo>
+      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.20/repos/debian6</baseurl>
+      <repoid>HDP-UTILS-1.1.0.20</repoid>
+      <reponame>HDP-UTILS</reponame>
+    </repo>
+  </os>
 </reposinfo>

@@ -33,6 +33,7 @@ import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.security.ClientSecurityType;
 import org.apache.ambari.server.security.authorization.LdapServerProperties;
 import org.apache.ambari.server.security.encryption.CredentialProvider;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.RandomStringUtils;
@@ -40,6 +41,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.inject.Inject;
 import com.google.inject.Singleton;
 
 
@@ -49,6 +51,9 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class Configuration {
+  
+  @Inject
+  private OsFamily osFamily;
 
   public static final String CONFIG_FILE = "ambari.properties";
   public static final String BOOTSTRAP_DIR = "bootstrap.dir";
@@ -297,8 +302,6 @@ public class Configuration {
 
   private static final String SERVER_PERSISTENCE_TYPE_DEFAULT = "local";
   private static final String SERVER_CONNECTION_MAX_IDLE_TIME = "server.connection.max.idle.millis";
-
-  private static final String UBUNTU_OS = "ubuntu12";
 
   /**
    * Default for repo validation suffixes.
@@ -1139,10 +1142,11 @@ public class Configuration {
   /**
    * @return a string array of suffixes used to validate repo URLs.
    */
-  public String[] getRepoValidationSuffixes(String osFamily) {
+  public String[] getRepoValidationSuffixes(String osType) {
+    String osFamily = this.osFamily.find_family(osType);
     String repoSuffixes;
 
-    if(osFamily.equals(UBUNTU_OS)) {
+    if(osFamily.equals(OsFamily.UBUNTU_FAMILY)) {
       repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_UBUNTU,
           REPO_SUFFIX_UBUNTU);
     } else {
