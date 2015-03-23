@@ -23,6 +23,14 @@
       <version>0.15.0.2.3</version>
       <osSpecifics>
         <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>datafu</name>
+            </package>
+          </packages>
+        </osSpecific>
+        <osSpecific>
           <osFamily>redhat5,redhat6,suse11</osFamily>
           <packages>
             <package>
