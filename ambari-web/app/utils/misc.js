@@ -63,5 +63,5 @@ module.exports = {
         }
       }
     return sorted;
-  },
+  }
 };
