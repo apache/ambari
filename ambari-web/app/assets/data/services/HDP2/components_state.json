@@ -11,15 +11,6 @@
     },
     {
       "ServiceComponentInfo" : {
-        "component_name" : "GANGLIA_MONITOR",
-        "installed_count" : 0,
-        "service_name" : "GANGLIA",
-        "started_count" : 1,
-        "total_count" : 1
-      }
-    },
-    {
-      "ServiceComponentInfo" : {
         "component_name" : "HBASE_CLIENT",
         "installed_count" : 1,
         "service_name" : "HBASE",

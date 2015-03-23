@@ -1640,7 +1640,7 @@ var urls = {
     }
   },
   'wizard.service_components': {
-    'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope',
+    'real': '{stackUrl}/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,artifacts/Artifacts/artifact_name',
     'mock': '/data/stacks/HDP-2.1/service_components.json',
     'format': function (data) {
       return {
@@ -2396,6 +2396,16 @@ var urls = {
           "Requests/resource_filters": [{"hosts": data.hosts}]})
       }
     }
+  },
+
+  'widgets.layout.stackDefined.get': {
+    real: '{stackVersionURL}/services/{serviceName}/artifacts/widget_descriptor',
+    mock: '/data/widget_layouts/HBASE/stack_layout.json'
+  },
+
+  'widgets.layout.userDefined.get': {
+    real: '/users/{loginName}/widget_layouts?section_name={sectionName}',
+    mock: '/data/widget_layouts/HBASE/empty_user_layout.json'
   }
 };
 /**

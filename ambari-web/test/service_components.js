@@ -110,7 +110,8 @@ module.exports = {
             }
           ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME",
@@ -162,7 +163,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA",
@@ -221,7 +223,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE",
@@ -334,7 +337,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS",
@@ -478,7 +482,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE",
@@ -717,7 +722,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2",
@@ -805,7 +811,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE",
@@ -930,7 +937,8 @@ module.exports = {
             }
           ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/PIG",
@@ -982,7 +990,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP",
@@ -1045,7 +1054,8 @@ module.exports = {
             }
           ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM",
@@ -1167,7 +1177,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ",
@@ -1214,7 +1225,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN",
@@ -1328,7 +1340,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     },
     {
       "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER",
@@ -1394,7 +1407,8 @@ module.exports = {
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      artifacts: []
     }
   ]
 };

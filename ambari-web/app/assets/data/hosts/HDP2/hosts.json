@@ -167,24 +167,6 @@
         },
         {
           "HostRoles" : {
-            "component_name" : "GANGLIA_MONITOR",
-            "maintenance_state" : "OFF",
-            "service_name" : "GANGLIA",
-            "stale_configs" : true,
-            "state" : "INSTALL_FAILED"
-          }
-        },
-        {
-          "HostRoles" : {
-            "component_name" : "GANGLIA_SERVER",
-            "maintenance_state" : "OFF",
-            "service_name" : "GANGLIA",
-            "stale_configs" : true,
-            "state" : "INSTALL_FAILED"
-          }
-        },
-        {
-          "HostRoles" : {
             "component_name" : "HBASE_CLIENT",
             "maintenance_state" : "OFF",
             "service_name" : "HBASE",

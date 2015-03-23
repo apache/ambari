@@ -34,6 +34,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
     is_selected: 'is_selected',
     is_installed: 'is_installed',
     is_installable: 'is_installable',
+    is_service_with_widgets: 'is_service_with_widgets',
     required_services: 'required_services',
     service_check_supported: 'service_check_supported',
     service_components_key: 'service_components',
@@ -96,6 +97,7 @@ App.stackServiceMapper = App.QuickDataMapper.create({
       }, this);
       stackService.stack_id = stackService.stack_name + '-' + stackService.stack_version;
       stackService.service_components = serviceComponents;
+      stackService.is_service_with_widgets = item.artifacts.someProperty('Artifacts.artifact_name', 'widget_descriptor');
       // @todo: replace with server response value after API implementation
       if (nonInstallableServices.contains(stackService.service_name)) {
         stackService.is_installable = false;

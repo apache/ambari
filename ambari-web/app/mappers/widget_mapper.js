@@ -20,7 +20,7 @@
 App.widgetMapper = App.QuickDataMapper.create({
   model: App.Widget,
   config: {
-    id: 'widget_name',
+    id: 'id',
     widget_name: 'widget_name',
     default_order: 'default_order',
     widget_type: 'widget_type',
@@ -31,23 +31,24 @@ App.widgetMapper = App.QuickDataMapper.create({
     time_created: 'time_created',
     author: 'author',
     properties: 'properties',
-    expression: 'expression'
+    metrics: 'metrics',
+    values: 'values',
+    description: 'description'
   },
   map: function (json) {
     if (!this.get('model')) return;
 
-    if (json.artifact_data) {
+    if (json) {
       var result = [];
-      var serviceName = json.artifact_data.name;
+      var serviceName = '';//TODO assign when API structure approved
 
-      json.artifact_data.sections.forEach(function (section) {
-        var sectionName = section.name;
-        section.widgets.forEach(function (item, index) {
-          item.service_name = serviceName;
-          item.section_name = sectionName;
-          item.default_order = (index + 1);
-          result.push(this.parseIt(item, this.config));
-        }, this);
+      var sectionName = json.section_name;
+      json.widgetLayoutInfo.forEach(function (item, index) {
+        item.service_name = serviceName;
+        item.section_name = sectionName;
+        item.id = item.widget_name + "_" + (item.id || "0");     // user created widgets will have id as their primary id. stack created widgets will not have id and will have their widget_name as unique id
+        item.default_order = (index + 1);
+        result.push(this.parseIt(item, this.config));
       }, this);
 
       App.store.loadMany(this.get('model'), result);

@@ -82,27 +82,6 @@
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/GANGLIA_SERVER",
-      "ServiceComponentInfo" : {
-        "category" : "MASTER",
-        "cluster_name" : "perf",
-        "component_name" : "GANGLIA_SERVER",
-        "service_name" : "GANGLIA"
-      },
-      "host_components" : [
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/hosts/dev01.hortonworks.com/host_components/GANGLIA_SERVER",
-          "HostRoles" : {
-            "cluster_name" : "perf",
-            "component_name" : "GANGLIA_SERVER",
-            "host_name" : "dev01.hortonworks.com",
-            "maintenance_state" : "OFF",
-            "state" : "STARTED"
-          }
-        }
-      ]
-    },
-    {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/perf/components/HBASE_MASTER",
       "ServiceComponentInfo" : {
         "category" : "MASTER",

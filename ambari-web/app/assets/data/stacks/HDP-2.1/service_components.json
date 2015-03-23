@@ -93,6 +93,17 @@
             }
           ]
         }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/FALCON/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "FALCON",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        }
       ]
     },
     {
@@ -145,66 +156,8 @@
           },
           "dependencies" : [ ]
         }
-      ]
-    },
-    {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA",
-      "StackServices" : {
-        "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
-        "custom_commands" : [ ],
-        "display_name" : "Ganglia",
-        "required_services" : null,
-        "service_check_supported" : false,
-        "service_name" : "GANGLIA",
-        "service_version" : "3.5.0",
-        "stack_name" : "HDP",
-        "stack_version" : "2.1",
-        "user_name" : null,
-        "config_types" : {
-          "ganglia-env" : {
-            "supports" : {
-              "final" : "false"
-            }
-          }
-        }
-      },
-      "components" : [
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA/components/GANGLIA_MONITOR",
-          "StackServiceComponents" : {
-            "cardinality" : "ALL",
-            "component_category" : "SLAVE",
-            "component_name" : "GANGLIA_MONITOR",
-            "custom_commands" : [ ],
-            "display_name" : "Ganglia Monitor",
-            "is_client" : false,
-            "is_master" : false,
-            "service_name" : "GANGLIA",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "auto_deploy" : {
-            "enabled" : true
-          },
-          "dependencies" : [ ]
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA/components/GANGLIA_SERVER",
-          "StackServiceComponents" : {
-            "cardinality" : "1",
-            "component_category" : "MASTER",
-            "component_name" : "GANGLIA_SERVER",
-            "custom_commands" : [ ],
-            "display_name" : "Ganglia Server",
-            "is_client" : false,
-            "is_master" : true,
-            "service_name" : "GANGLIA",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [ ]
-        }
-      ]
+      ],
+      "artifacts": []
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE",
@@ -316,6 +269,26 @@
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
+        }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HBASE/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "HBASE",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        },
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HBASE/artifacts/widget_descriptor",
+          "Artifacts": {
+            "artifact_name": "widget_descriptor",
+            "service_name": "HBASE",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
         }
       ]
     },
@@ -461,6 +434,26 @@
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
+        }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "HDFS",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        },
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/artifacts/widget_descriptor",
+          "Artifacts": {
+            "artifact_name": "widget_descriptor",
+            "service_name": "HDFS",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
         }
       ]
     },
@@ -697,6 +690,17 @@
           },
           "dependencies" : [ ]
         }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HIVE/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "HIVE",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        }
       ]
     },
     {
@@ -774,6 +778,17 @@
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
+        }
+      ] ,
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/MAPREDUCE2/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "MAPREDUCE2",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
         }
       ]
     },
@@ -895,6 +910,17 @@
             }
           ]
         }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/OOZIE/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "OOZIE",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        }
       ]
     },
     {
@@ -947,7 +973,8 @@
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      "artifacts": []
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP",
@@ -1010,7 +1037,8 @@
             }
           ]
         }
-      ]
+      ],
+      "artifacts": []
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM",
@@ -1132,6 +1160,17 @@
           },
           "dependencies" : [ ]
         }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/STORM/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "STORM",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        }
       ]
     },
     {
@@ -1179,7 +1218,8 @@
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      "artifacts": []
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN",
@@ -1288,6 +1328,26 @@
           },
           "dependencies" : [ ]
         }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/YARN/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "YARN",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        },
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/YARN/artifacts/widget_descriptor",
+          "Artifacts": {
+            "artifact_name": "widget_descriptor",
+            "service_name": "YARN",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
+        }
       ]
     },
     {
@@ -1348,6 +1408,17 @@
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
+        }
+      ],
+      "artifacts": [
+        {
+          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/ZOOKEEPER/artifacts/kerberos_descriptor",
+          "Artifacts": {
+            "artifact_name": "kerberos_descriptor",
+            "service_name": "ZOOKEEPER",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          }
         }
       ]
     },
@@ -1438,7 +1509,8 @@
           },
           "dependencies" : [ ]
         }
-      ]
+      ],
+      "artifacts": []
     }
   ]
 }

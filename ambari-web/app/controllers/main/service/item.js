@@ -769,25 +769,57 @@ App.MainServiceItemController = Em.Controller.extend({
 
   isPending:true,
 
-  widgetsUrl: function () {
-    return App.get('apiPrefix') + App.get('stackVersionURL') + '/services/' + this.get('service.serviceName') + '/artifacts/widget_layout';
-  }.property('service.serviceName'),
-  widgetsMockUrl: '/data/widgets/service_widgets.json',
-
   /**
-   * load service widgets
-   * @returns {$.Deferred}
+   * load widgets defined by user
+   * @returns {$.ajax}
    */
   loadWidgets: function () {
-    var dfd = $.Deferred();
-    var url = App.get('testMode') ? this.get('widgetsMockUrl') : this.get('widgetsUrl');
-
-    App.HttpClient.get(url, App.widgetMapper, {
-      complete: function () {
-        dfd.resolve();
-      }
+    return App.ajax.send({
+      name: 'widgets.layout.userDefined.get',
+      sender: this,
+      data: {
+        loginName: App.router.get('loginName'),
+        sectionName: this.get('content.serviceName') + "_SUMMARY"
+      },
+      success: 'loadWidgetsSuccessCallback'
     });
-    return dfd.promise();
+  },
+
+  /**
+   * success callback of <code>loadWidgets()</code>
+   * @param {object|null} data
+   */
+  loadWidgetsSuccessCallback: function (data) {
+    if (data.items[0]) {
+      App.widgetMapper.map(data.items[0]);
+    } else {
+      this.loadStackWidgetsLayout();
+    }
+  },
+
+  /**
+   * load widgets defined by stack
+   * @returns {$.ajax}
+   */
+  loadStackWidgetsLayout: function () {
+    return App.ajax.send({
+      name: 'widgets.layout.stackDefined.get',
+      sender: this,
+      data: {
+        stackVersionURL: App.get('stackVersionURL'),
+        serviceName: this.get('content.serviceName')
+      },
+      success: 'loadStackWidgetsLayoutSuccessCallback',
+      error: 'loadStackWidgetsLayoutErrorCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>loadStackWidgetsLayout()</code>
+   * @param {object|null} data
+   */
+  loadStackWidgetsLayoutSuccessCallback: function (data) {
+    App.widgetMapper.map(data.artifact_data.layouts.findProperty('section_name', (this.get('content.serviceName') + "_SUMMARY")));
   }
 
 });

@@ -235,7 +235,11 @@ App.MainServiceItemView = Em.View.extend({
   didInsertElement: function () {
     this.get('controller').setStartStopState();
     if (App.get('supports.customizedWidgets')) {
-      this.get('controller').loadWidgets();
+      var serviceName = this.get('controller.content.serviceName');
+      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+      if (stackService.get('isServiceWithWidgets')) {
+        this.get('controller').loadWidgets();
+      }
     }
   },
 
