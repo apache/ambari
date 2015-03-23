@@ -86,18 +86,21 @@ def yarn(name = None):
   Directory([params.yarn_pid_dir_prefix, params.yarn_pid_dir, params.yarn_log_dir],
             owner=params.yarn_user,
             group=params.user_group,
-            recursive=True
+            recursive=True,
+            cd_access = 'a',
   )
 
   Directory([params.mapred_pid_dir_prefix, params.mapred_pid_dir, params.mapred_log_dir_prefix, params.mapred_log_dir],
             owner=params.mapred_user,
             group=params.user_group,
-            recursive=True
+            recursive=True,
+            cd_access = 'a',
   )
   Directory([params.yarn_log_dir_prefix],
             owner=params.yarn_user,
             recursive=True,
             ignore_failures=True,
+            cd_access = 'a',
   )
 
   XmlConfig("core-site.xml",
