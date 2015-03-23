@@ -210,6 +210,9 @@ App.BackgroundOperationsController = Em.Controller.extend({
    
     data.items.forEach(function (request) {
       if (this.isUpgradeRequest(request)) {
+        if (!App.get('upgradeIsRunning')) {
+          App.router.get('clusterController').restoreUpgradeState();
+        }
         return;
       }
       var rq = this.get("services").findProperty('id', request.Requests.id);

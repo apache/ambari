@@ -505,4 +505,21 @@ describe('App.clusterController', function () {
     });
   });
 
+  describe('#getAllUpgrades()', function () {
+
+    beforeEach(function () {
+      sinon.stub(App.ajax, 'send', Em.K);
+    });
+
+    afterEach(function () {
+      App.ajax.send.restore();
+    });
+
+    it('should send request to get upgrades data', function () {
+      controller.getAllUpgrades();
+      expect(App.ajax.send.calledOnce).to.be.true;
+    });
+
+  });
+
 });

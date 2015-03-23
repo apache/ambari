@@ -315,18 +315,30 @@ App.ClusterController = Em.Controller.extend({
   },
 
   /**
-   * restore upgrade status from local storage
+   * restore upgrade status from server
    * and make call to get latest status from server
    */
   restoreUpgradeState: function () {
-    var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
-    if (!Em.isNone(dbUpgradeState)) {
-      App.set('upgradeState', dbUpgradeState);
-    }
-    App.router.get('mainAdminStackAndUpgradeController').initDBProperties();
-    App.router.get('mainAdminStackAndUpgradeController').loadUpgradeData(true);
-    App.router.get('mainAdminStackAndUpgradeController').loadStackVersionsToModel(true).done(function () {
-      App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
+    this.getAllUpgrades().done(function (data) {
+      var upgradeController = App.router.get('mainAdminStackAndUpgradeController');
+      var lastUpgradeData = data.items.sortProperty('Upgrade.request_id').pop();
+
+      if (lastUpgradeData) {
+        upgradeController.setDBProperty('upgradeId', lastUpgradeData.Upgrade.request_id);
+        upgradeController.setDBProperty('isDowngrade', lastUpgradeData.Upgrade.direction === 'DOWNGRADE');
+        upgradeController.setDBProperty('upgradeState', lastUpgradeData.Upgrade.request_status);
+        upgradeController.setDBProperty('upgradeVersion', lastUpgradeData.Upgrade.to_version);
+      }
+
+      var dbUpgradeState = App.db.get('MainAdminStackAndUpgrade', 'upgradeState');
+      if (!Em.isNone(dbUpgradeState)) {
+        App.set('upgradeState', dbUpgradeState);
+      }
+      upgradeController.initDBProperties();
+      upgradeController.loadUpgradeData(true);
+      upgradeController.loadStackVersionsToModel(true).done(function () {
+        App.set('stackVersionsAvailable', App.StackVersion.find().content.length > 0);
+      });
     });
   },
 
@@ -478,5 +490,16 @@ App.ClusterController = Em.Controller.extend({
   },
   checkDetailedRepoVersionErrorCallback: function () {
     App.set('isStormMetricsSupported', true);
+  },
+
+  /**
+   * Load required data for all upgrades from API
+   * @returns {$.ajax}
+   */
+  getAllUpgrades: function () {
+    return App.ajax.send({
+      name: 'cluster.load_last_upgrade',
+      sender: this
+    });
   }
 });

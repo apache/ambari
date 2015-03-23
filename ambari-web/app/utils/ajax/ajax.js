@@ -1187,6 +1187,10 @@ var urls = {
     'real': '/clusters',
     'mock': '/data/clusters/info.json'
   },
+  'cluster.load_last_upgrade': {
+    'real': '/clusters/{clusterName}/upgrades?fields=Upgrade/request_status,Upgrade/request_id,Upgrade/to_version,Upgrade/direction',
+    'mock': '/data/stack_versions/upgrades.json'
+  },
   'cluster.update_upgrade_version': {
     'real': '/stacks/{stackName}/versions?fields=services/StackServices,Versions',
     'mock': '/data/wizard/stack/stacks.json',

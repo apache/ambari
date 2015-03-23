@@ -1,0 +1,15 @@
+{
+  "href": "http://c6401.ambari.apache.org:8080/api/v1/clusters/c/upgrades?fields=Upgrade/request_status,Upgrade/to_version,Upgrade/request_id,Upgrade/direction",
+  "items": [
+    {
+      "href": "http://c6401.ambari.apache.org:8080/api/v1/clusters/c/upgrades/19",
+      "Upgrade": {
+        "cluster_name": "c",
+        "direction": "UPGRADE",
+        "request_id": 19,
+        "request_status": "COMPLETED",
+        "to_version": "2.2.3.0-2610"
+      }
+    }
+  ]
+}
