@@ -35,13 +35,13 @@
       </div>
     </div>
   </div>
-  
+
   <div class="panel panel-default">
     <div class="panel-heading">
       <h3 class="panel-title">Details</h3>
     </div>
     <div class="panel-body">
-      <div class="form-group" 
+      <div class="form-group"
       ng-class="{'has-error' : ( (form.instanceCreateForm.instanceNameInput.$error.required || form.instanceCreateForm.instanceNameInput.$error.pattern) && form.instanceCreateForm.submitted) || instanceExists }"
       >
         <label for="" class="control-label col-sm-2">Instance Name</label>
@@ -98,6 +98,9 @@
       <h3 class="panel-title">Properties</h3>
     </div>
     <div class="panel-body property-form">
+      <div class="alert alert-danger bottom-margin top-margin" ng-show='form.instanceCreateForm.generalValidationError'>
+        {{form.instanceCreateForm.generalValidationError}}
+      </div>
       <div class="form-group" ng-repeat="parameter in instance.properties"
         ng-class="{'has-error' : ((form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted) || form.instanceCreateForm[parameter.name].validationError)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}">{{parameter.label || parameter.displayName}}{{parameter.required ? '*' : ''}}</label>
@@ -121,11 +124,11 @@
       </div>
     </div>
   </div>
-  
+
   <div class="col-sm-12 ">
     <button class="btn btn-primary pull-right left-margin save-button"
             ng-class="{'disabled' : (form.instanceCreateForm.isSaving)}" ng-click="save()" type="submit">Save</button>
     <a href ng-click="cancel()" class="btn btn-default pull-right cancel-button">Cancel</a>
   </div>
-    
+
 </form>

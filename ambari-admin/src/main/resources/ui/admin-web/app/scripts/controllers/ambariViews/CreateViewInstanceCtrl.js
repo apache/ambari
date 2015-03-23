@@ -90,6 +90,8 @@ angular.module('ambariAdminConsole')
         })
         .catch(function (data) {
           var errorMessage = data.message;
+          var showGeneralError = true;
+
           if (data.status >= 400) {
             try {
               var errorObject = JSON.parse(errorMessage);
@@ -97,9 +99,14 @@ angular.module('ambariAdminConsole')
               angular.forEach(errorObject.propertyResults, function (item, key) {
                 $scope.form.instanceCreateForm[key].validationError = !item.valid;
                 if (!item.valid) {
+                  showGeneralError = false;
                   $scope.form.instanceCreateForm[key].validationMessage = item.detail;
                 }
               });
+
+              if (showGeneralError) {
+                $scope.form.instanceCreateForm.generalValidationError = errorMessage;  
+              }
             } catch (e) {
               console.error('Unable to parse error message:', data.message);
             }
