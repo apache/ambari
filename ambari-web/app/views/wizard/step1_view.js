@@ -75,17 +75,17 @@ App.WizardStep1View = Em.View.extend({
    * Verify if some repo has empty base-url
    * @type {bool}
    */
-  emptyRepoExist: function () {
-    return this.get('allRepositories').someProperty('emptyError', true);
-  }.property('allRepositories.@each.emptyError'),
+  invalidFormatUrlExist: function () {
+    return this.get('allRepositories').someProperty('invalidFormatError', true);
+  }.property('allRepositories.@each.invalidFormatError'),
 
   /**
    * Disable submit button flag
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return this.get('emptyRepoExist') || this.get('isNoOsChecked') || this.get('invalidUrlExist');
-  }.property('emptyRepoExist', 'isNoOsChecked', 'invalidUrlExist'),
+    return this.get('invalidFormatUrlExist') || this.get('isNoOsChecked') || this.get('invalidUrlExist');
+  }.property('invalidFormatUrlExist', 'isNoOsChecked', 'invalidUrlExist'),
 
   /**
    * Verify if some invalid repo-urls exist
@@ -108,16 +108,16 @@ App.WizardStep1View = Em.View.extend({
    * @type {number}
    */
   totalErrorCnt: function () {
-    var emptyCnt = this.get('allRepositories').filterProperty('emptyError').length;
+    var invalidFormatCnt = this.get('allRepositories').filterProperty('invalidFormatError').length;
     var invalidCnt = this.get('allRepositories').filterProperty('validation', App.Repository.validation['INVALID']).length;
     if (this.get('isNoOsChecked')) {
       return 1;
-    } else if (emptyCnt || invalidCnt) {
-      return emptyCnt + invalidCnt;
+    } else if (invalidFormatCnt || invalidCnt) {
+      return invalidFormatCnt + invalidCnt;
     } else {
       return 0;
     }
-  }.property('allRepositories.@each.emptyError', 'isNoOsChecked', 'allRepositories.@each.validation'),
+  }.property('allRepositories.@each.invalidFormatError', 'isNoOsChecked', 'allRepositories.@each.validation'),
 
   /**
    * Checkbox for each stack

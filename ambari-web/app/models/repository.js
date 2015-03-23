@@ -39,8 +39,10 @@ App.Repository = DS.Model.extend({
     return this.get('operatingSystem.isSelected');
   }.property('id','operatingSystem.isSelected'),
 
-  emptyError: function() {
-    return !this.get('baseUrl');
+  invalidFormatError: function() {
+    var remotePattern = /^(?:(?:https?|ftp):\/{2})(?:\S+(?::\S*)?@)?(?:(?:(?:[\w\-.]))*)(?::[0-9]+)?(?:\/\S*)?$/,
+      localPattern = /^file:\/{2,3}([a-zA-Z][:|]\/){0,1}[\w~!*'();@&=\/\\\-+$,?%#.\[\]]+$/;
+    return !(remotePattern.test(this.get('baseUrl')) || localPattern.test(this.get('baseUrl')));
   }.property('baseUrl'),
 
   invalidError: function() {

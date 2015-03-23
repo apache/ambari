@@ -184,7 +184,7 @@ describe('App.WizardStep1View', function () {
     });
   });
 
-  describe('#emptyRepoExist', function () {
+  describe('#invalidFormatUrlExist', function () {
 
     controller = App.WizardStep1Controller.create({
       content: {
@@ -199,8 +199,8 @@ describe('App.WizardStep1View', function () {
       return Em.Object.create({hide: Em.K, toggle: Em.K});
     });
 
-    it(view.get('allRepositories').mapProperty('emptyError').join(', '), function () {
-      expect(view.get('emptyRepoExist')).to.equal(false);
+    it(view.get('allRepositories').mapProperty('invalidFormatError').join(', '), function () {
+      expect(view.get('invalidFormatUrlExist')).to.equal(false);
     });
   });
 
@@ -280,49 +280,49 @@ describe('App.WizardStep1View', function () {
 
     var tests = Em.A([
       {
-        emptyRepoExist: false,
+        invalidFormatUrlExist: false,
         isNoOsChecked: false,
         invalidUrlExist: false,
         e: false
       },
       {
-        emptyRepoExist: true,
+        invalidFormatUrlExist: true,
         isNoOsChecked: false,
         invalidUrlExist: false,
         e: true
       },
       {
-        emptyRepoExist: false,
+        invalidFormatUrlExist: false,
         isNoOsChecked: true,
         invalidUrlExist: false,
         e: true
       },
       {
-        emptyRepoExist: false,
+        invalidFormatUrlExist: false,
         isNoOsChecked: false,
         invalidUrlExist: true,
         e: true
       },
       {
-        emptyRepoExist: true,
+        invalidFormatUrlExist: true,
         isNoOsChecked: false,
         invalidUrlExist: true,
         e: true
       },
       {
-        emptyRepoExist: true,
+        invalidFormatUrlExist: true,
         isNoOsChecked: true,
         invalidUrlExist: false,
         e: true
       },
       {
-        emptyRepoExist: false,
+        invalidFormatUrlExist: false,
         isNoOsChecked: true,
         invalidUrlExist: true,
         e: true
       },
       {
-        emptyRepoExist: true,
+        invalidFormatUrlExist: true,
         isNoOsChecked: true,
         invalidUrlExist: true,
         e: true
@@ -330,10 +330,10 @@ describe('App.WizardStep1View', function () {
     ]);
 
     tests.forEach(function (test) {
-      it(test.emptyRepoExist.toString() + ' ' + test.isNoOsChecked.toString() + ' ' + test.invalidUrlExist.toString(), function () {
+      it(test.invalidFormatUrlExist.toString() + ' ' + test.isNoOsChecked.toString() + ' ' + test.invalidUrlExist.toString(), function () {
         view = App.WizardStep1View.create();
         view.reopen({
-          emptyRepoExist: test.emptyRepoExist,
+          invalidFormatUrlExist: test.invalidFormatUrlExist,
           isNoOsChecked: test.isNoOsChecked,
           invalidUrlExist: test.invalidUrlExist
         });
@@ -383,8 +383,8 @@ describe('App.WizardStep1View', function () {
       },
       {
         allRepositories: [
-          {'emptyError': true},
-          {'emptyError': true}
+          {'invalidFormatError': true},
+          {'invalidFormatError': true}
         ],
         isNoOsChecked: false,
         m: 'two with empty-error',
@@ -401,8 +401,8 @@ describe('App.WizardStep1View', function () {
       },
       {
         allRepositories: [
-          {'emptyError': true, 'validation': 'icon-exclamation-sign'},
-          {'emptyError': true, 'validation': 'icon-exclamation-sign'}
+          {'invalidFormatError': true, 'validation': 'icon-exclamation-sign'},
+          {'invalidFormatError': true, 'validation': 'icon-exclamation-sign'}
         ],
         isNoOsChecked: false,
         m: 'two with empty-error, two with validation="icon-exclamation-sign"',
