@@ -51,7 +51,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>ubuntu7,ubuntu12</osFamily>
           <packages>
             <package>
               <name>hadoop-2-3-.*-client</name>
@@ -79,9 +79,6 @@
             </package>
             <package>
               <name>hadooplzo-2-3-.*</name>
-            </package>
-            <package>
-              <name>liblzo2-3</name>
             </package>
             <package>
               <name>libhdfs0-2-3-.*</name>

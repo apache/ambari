@@ -37,7 +37,7 @@
               </packages>
             </osSpecific>
             <osSpecific>
-              <osFamily>ubuntu12</osFamily>
+              <osFamily>ubuntu7,ubuntu12</osFamily>
               <packages>
                 <package>
                   <name>spark-2-3-.*</name>

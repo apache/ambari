@@ -39,7 +39,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>ubuntu7,ubuntu12</osFamily>
           <packages>
             <package>
               <name>hadoop-2-3-.*-yarn</name>
@@ -65,7 +65,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>ubuntu7,ubuntu12</osFamily>
           <packages>
             <package>
               <name>hadoop-2-3-.*-mapreduce</name>
