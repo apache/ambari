@@ -1830,7 +1830,9 @@ App.MainHostDetailsController = Em.Controller.extend({
   deleteHostSuccessCallback: function (data, rq, requestBody) {
     var self = this;
     App.router.get('updateController').updateHost(function () {
-      self.loadConfigs('loadHiveConfigs');
+      if (!!App.Service.find().findProperty('serviceName', 'HIVE')) {
+        self.loadConfigs('loadHiveConfigs');
+      }
       self.loadConfigs();
       App.router.transitionTo('hosts.index');
     });
