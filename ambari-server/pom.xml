@@ -134,40 +134,17 @@
         <artifactId>maven-assembly-plugin</artifactId>
         <configuration>
           <descriptors>
-            <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
+            <descriptor>${assemblydescriptor}</descriptor>
           </descriptors>
+          <tarLongFileMode>gnu</tarLongFileMode>
         </configuration>
         <executions>
-          <execution>
-            <id>bootstrap-zip</id>
-            <phase>prepare-package</phase>
-            <goals>
-              <goal>single</goal>
-            </goals>
-            <configuration>
-              <attach>false</attach>
-              <finalName>bootstrap</finalName>
-              <appendAssemblyId>false</appendAssemblyId>
-              <tarLongFileMode>gnu</tarLongFileMode>
-              <descriptors>
-                <descriptor>${assemblybootstrap}</descriptor>
-              </descriptors>
-            </configuration>
-          </execution>
           <execution>
             <id>build-tarball</id>
             <phase>package</phase>
             <goals>
               <goal>single</goal>
             </goals>
-            <configuration>
-              <attach>false</attach>
-              <appendAssemblyId>true</appendAssemblyId>
-              <tarLongFileMode>gnu</tarLongFileMode>
-              <descriptors>
-                <descriptor>${assemblydescriptor}</descriptor>
-              </descriptors>
-            </configuration>
           </execution>
         </executions>
       </plugin>
@@ -1337,6 +1314,47 @@
       </properties>
       <build>
         <plugins>
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <configuration>
+              <descriptors>
+                <descriptor>../ambari-project/src/main/assemblies/empty.xml</descriptor>
+              </descriptors>
+            </configuration>
+            <executions>
+              <execution>
+                <id>bootstrap-zip</id>
+                <phase>prepare-package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <finalName>bootstrap</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                  <descriptors>
+                    <descriptor>${assemblybootstrap}</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+              <execution>
+                <id>build-tarball</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                  <descriptors>
+                    <descriptor>${assemblydescriptor}</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
