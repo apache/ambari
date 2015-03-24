@@ -18,6 +18,7 @@
 
 var App = require('app');
 var validator = require('utils/validator');
+var numericUtils = require('utils/number_utils');
 
 App.AlertConfigProperty = Ember.Object.extend({
 
@@ -389,10 +390,23 @@ App.AlertConfigProperties = {
      * @return {boolean}
      */
     isValid: function () {
-      if (!this.get('showInputForValue')) return true;
+      if (!this.get('showInputForValue')) {
+        return true;
+      }
+
       var value = this.get('displayValue');
-      if (Em.isNone(value)) return false;
+
+      if (Em.isNone(value)) {
+        return false;
+      }
+
       value = ('' + value).trim();
+
+      //only allow 1/10th of a second
+      if (numericUtils.getFloatDecimals(value) > 1) {
+        return false;
+      }
+
       return validator.isValidFloat(value);
     }.property('displayValue', 'showInputForValue')
 
@@ -532,9 +546,23 @@ App.AlertConfigProperties.Thresholds = {
 
     isValid: function () {
       var value = this.get('displayValue');
-      if (!value) return false;
+
+      if (!value) {
+        return false;
+      }
+
       value = ('' + value).trim();
+      if (numericUtils.getFloatDecimals(value)) {
+        return false;
+      }
+
       value = parseFloat(value);
+
+      //do not allow float values
+      if (parseInt(value, 10) !== value) {
+        return false;
+      }
+
       return this.get('showInputForValue') ? !isNaN(value) && value > 0 && value <= 100 : true;
     }.property('displayValue', 'showInputForValue'),
 
@@ -566,11 +594,23 @@ App.AlertConfigProperties.Thresholds = {
   PositiveMixin: Em.Mixin.create({
 
     isValid: function () {
-      if (!this.get('showInputForValue')) return true;
+      if (!this.get('showInputForValue')) {
+        return true;
+      }
       var value = this.get('displayValue');
-      if (!value) return false;
+
+      if (!value) {
+        return false;
+      }
+
+      //only allow 1/10th of a second
+      if (numericUtils.getFloatDecimals(value) > 1) {
+        return false;
+      }
+
       value = ('' + value).trim();
       value = parseFloat(value);
+
       return !isNaN(value) && value > 0;
     }.property('displayValue', 'showInputForValue')
 

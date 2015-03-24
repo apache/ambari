@@ -156,14 +156,86 @@ describe('App.AlertConfigProperties', function () {
         expect(model.get('isValid')).to.be.false;
       });
 
-      it('should be true if displayValue is valid float', function () {
-        model.set('displayValue', '123.456');
-        expect(model.get('isValid')).to.be.true;
-
+      it('should be false if METRIC displayValue is not valid float', function () {
         model.set('displayValue', '$1234.444');
+        expect(model.get('isValid')).to.be.false;
+
+        model.set('displayValue', 'hello-world!');
         expect(model.get('isValid')).to.be.false;
       });
 
+      it('should be true if METRIC displayValue is valid float with at most one decimal', function () {
+        model.set('displayValue', '123.4');
+        expect(model.get('isValid')).to.be.true;
+
+        model.set('displayValue', '123.0');
+        expect(model.get('isValid')).to.be.true;
+
+        model.set('displayValue', '666');
+        expect(model.get('isValid')).to.be.true;
+      });
+
+      it('should be false if METRIC displayValue is valid float with more than one decimal', function () {
+        model.set('displayValue', '123.48');
+        expect(model.get('isValid')).to.be.false;
+      });
+
+      it('should be true for AGGREGATE percentage with precision of 1', function () {
+        model = Em.Object.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
+          displayValue: '1',
+          showInputForValue: true
+        });
+
+        expect(model.get('isValid')).to.be.true;
+
+        model.set('displayValue', '88');
+        expect(model.get('isValid')).to.be.true;
+      });
+
+      it('should be false for AGGREGATE percentage values with precision smaller than 1', function () {
+        model = Em.Object.create(App.AlertConfigProperties.Thresholds.PercentageMixin, {
+          displayValue: '70.01',
+          showInputForValue: true
+        });
+
+        expect(model.get('isValid')).to.be.false;
+
+        model.set('displayValue', '70.0');
+        expect(model.get('isValid')).to.be.false;
+
+        model.set('displayValue', '80.000');
+        expect(model.get('isValid')).to.be.false;
+      });
+
+      it('should be true for PORT percentage values with precision of 1/10th', function () {
+        model = App.AlertConfigProperties.Threshold.create({
+          value: '0.4',
+          showInputForValue: true
+        })
+
+        expect(model.get('isValid')).to.be.true;
+
+        model.set('value', '3');
+        expect(model.get('isValid')).to.be.true;
+
+        model.set('value', '33.0');
+        expect(model.get('isValid')).to.be.true;
+      });
+
+      it('should be false for PORT percentage values with precision greater than 1/10th', function() {
+        model = App.AlertConfigProperties.Threshold.create({
+          value: '4.234',
+          showInputForValue: true
+        });
+
+        expect(model.get('isValid')).to.be.false;
+
+        model.set('value', '44.001');
+        expect(model.get('isValid')).to.be.false;
+
+        model.set('value', '112.01');
+        expect(model.get('isValid')).to.be.false;
+      });
 
     });
 
