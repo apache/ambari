@@ -77,6 +77,13 @@
     <value/>
   </property>
 
+  <property>
+    <name>executable_search_paths</name>
+    <description>
+      A comma-delimited list of search paths to use to find Kerberos utilities like kadmin and kinit.
+    </description>
+    <value>/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin</value>
+  </property>
 
   <property require-input="true">
     <name>create_attributes_template</name>

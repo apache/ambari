@@ -340,6 +340,50 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
     handler.setAdministratorCredentials(credentials);
   }
 
+  @Test
+  public void testSetExecutableSearchPaths() throws KerberosOperationException {
+    KerberosOperationHandler handler = createHandler();
+
+    handler.setExecutableSearchPaths((String)null);
+    Assert.assertNull(handler.getExecutableSearchPaths());
+
+    handler.setExecutableSearchPaths((String[])null);
+    Assert.assertNull(handler.getExecutableSearchPaths());
+
+    handler.setExecutableSearchPaths("");
+    Assert.assertNotNull(handler.getExecutableSearchPaths());
+    Assert.assertEquals(0, handler.getExecutableSearchPaths().length);
+
+    handler.setExecutableSearchPaths(new String[0]);
+    Assert.assertNotNull(handler.getExecutableSearchPaths());
+    Assert.assertEquals(0, handler.getExecutableSearchPaths().length);
+
+    handler.setExecutableSearchPaths(new String[]{""});
+    Assert.assertNotNull(handler.getExecutableSearchPaths());
+    Assert.assertEquals(1, handler.getExecutableSearchPaths().length);
+
+    handler.setExecutableSearchPaths("/path1, path2, path3/");
+    Assert.assertNotNull(handler.getExecutableSearchPaths());
+    Assert.assertEquals(3, handler.getExecutableSearchPaths().length);
+    Assert.assertEquals("/path1", handler.getExecutableSearchPaths()[0]);
+    Assert.assertEquals("path2", handler.getExecutableSearchPaths()[1]);
+    Assert.assertEquals("path3/", handler.getExecutableSearchPaths()[2]);
+
+    handler.setExecutableSearchPaths("/path1, path2, ,path3/");
+    Assert.assertNotNull(handler.getExecutableSearchPaths());
+    Assert.assertEquals(3, handler.getExecutableSearchPaths().length);
+    Assert.assertEquals("/path1", handler.getExecutableSearchPaths()[0]);
+    Assert.assertEquals("path2", handler.getExecutableSearchPaths()[1]);
+    Assert.assertEquals("path3/", handler.getExecutableSearchPaths()[2]);
+
+    handler.setExecutableSearchPaths(new String[]{"/path1", "path2", "path3/"});
+    Assert.assertNotNull(handler.getExecutableSearchPaths());
+    Assert.assertEquals(3, handler.getExecutableSearchPaths().length);
+    Assert.assertEquals("/path1", handler.getExecutableSearchPaths()[0]);
+    Assert.assertEquals("path2", handler.getExecutableSearchPaths()[1]);
+    Assert.assertEquals("path3/", handler.getExecutableSearchPaths()[2]);
+  }
+
   private KerberosOperationHandler createHandler() throws KerberosOperationException {
     KerberosOperationHandler handler = new KerberosOperationHandler() {
 
@@ -347,6 +391,7 @@ public abstract class KerberosOperationHandlerTest extends EasyMockSupport {
       public void open(KerberosCredential administratorCredentials, String defaultRealm, Map<String, String> kerberosConfiguration) throws KerberosOperationException {
         setAdministratorCredentials(administratorCredentials);
         setDefaultRealm(defaultRealm);
+        setExecutableSearchPaths("/usr/bin, /usr/kerberos/bin, /usr/sbin");
       }
 
       @Override

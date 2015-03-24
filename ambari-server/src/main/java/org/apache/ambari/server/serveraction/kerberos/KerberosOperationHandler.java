@@ -91,10 +91,20 @@ public abstract class KerberosOperationHandler {
   public final static String KERBEROS_ENV_ADMIN_SERVER_HOST = "admin_server_host";
 
   /**
+   * Kerberos-env configuration property name: executable_search_paths
+   */
+  public final static String KERBEROS_ENV_EXECUTABLE_SEARCH_PATHS = "executable_search_paths";
+
+  /**
    * The set of available characters to use when generating a secure password
    */
   private final static char[] SECURE_PASSWORD_CHARS =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?.!$%^*()-_+=~".toCharArray();
+
+  /**
+   * An array of String values declaring the default (ordered) list of path to search for executables
+   */
+  private static final String[] DEFAULT_EXECUTABLE_SEARCH_PATHS = {"/usr/bin", "/usr/kerberos/bin", "/usr/sbin", "/usr/lib/mit/bin", "/usr/lib/mit/sbin"};
 
   /**
    * A Map of MIT KDC Encryption types to EncryptionType values.
@@ -191,6 +201,13 @@ public abstract class KerberosOperationHandler {
   private String defaultRealm = null;
   private Set<EncryptionType> keyEncryptionTypes = new HashSet<EncryptionType>(DEFAULT_CIPHERS);
   private boolean open = false;
+
+  /**
+   * An array of String indicating an ordered list of filesystem paths to use to search for executables
+   * needed to perform Kerberos-related operations. For example, kadmin
+   */
+  private String[] executableSearchPaths = null;
+
 
   /**
    * Create a secure (random) password using a secure random number generator and a set of (reasonable)
@@ -588,6 +605,62 @@ public abstract class KerberosOperationHandler {
     );
   }
 
+
+  /**
+   * Gets the ordered array of search paths used to find Kerberos-related executables.
+   *
+   * @return an array of String values indicating an order list of filesystem paths to search
+   */
+  public String[] getExecutableSearchPaths() {
+    return executableSearchPaths;
+  }
+
+  /**
+   * Sets the ordered array of search paths used to find Kerberos-related executables.
+   * <p/>
+   * If null, a default set of paths will be assumed when searching:
+   * <ul>
+   * <li>/usr/bin</li>
+   * <li>/usr/kerberos/bin</li>
+   * <li>/usr/sbin</li>
+   * <li>/usr/lib/mit/bin</li>
+   * <li>/usr/lib/mit/sbin</li>
+   * </ul>
+   *
+   * @param executableSearchPaths an array of String values indicating an ordered list of filesystem paths to search
+   */
+  public void setExecutableSearchPaths(String[] executableSearchPaths) {
+    this.executableSearchPaths = executableSearchPaths;
+  }
+
+  /**
+   * Sets the ordered array of search paths used to find Kerberos-related executables.
+   * <p/>
+   * If null, a default set of paths will be assumed when searching:
+   * <ul>
+   * <li>/usr/bin</li>
+   * <li>/usr/kerberos/bin</li>
+   * <li>/usr/sbin</li>
+   * </ul>
+   *
+   * @param delimitedExecutableSearchPaths a String containing a comma-delimited (ordered) list of filesystem paths to search
+   */
+  public void setExecutableSearchPaths(String delimitedExecutableSearchPaths) {
+    List<String> searchPaths = null;
+
+    if (delimitedExecutableSearchPaths != null) {
+      searchPaths = new ArrayList<String>();
+      for (String path : delimitedExecutableSearchPaths.split(",")) {
+        path = path.trim();
+        if (!path.isEmpty()) {
+          searchPaths.add(path);
+        }
+      }
+    }
+
+    setExecutableSearchPaths((searchPaths == null) ? null : searchPaths.toArray(new String[searchPaths.size()]));
+  }
+
   /**
    * Test this KerberosOperationHandler to see whether is was previously open or not
    *
@@ -776,5 +849,35 @@ public abstract class KerberosOperationHandler {
 
       return builder.toString();
     }
+  }
+
+  /**
+   * Given the name of an executable, searches the configured executable search path for an executable
+   * file with that name.
+   *
+   * @param executable a String declaring the name of the executable to find within the search path
+   * @return the absolute path of the found execute or the name of the executable if not found
+   * within the search path
+   * @see #setExecutableSearchPaths(String)
+   * @see #setExecutableSearchPaths(String[])
+   */
+  protected String getExecutable(String executable) {
+    String[] searchPaths = getExecutableSearchPaths();
+    String executablePath = null;
+
+    if (searchPaths == null) {
+      searchPaths = DEFAULT_EXECUTABLE_SEARCH_PATHS;
+    }
+
+    for (String searchPath : searchPaths) {
+      File executableFile = new File(searchPath, executable);
+
+      if (executableFile.canExecute()) {
+        executablePath = executableFile.getAbsolutePath();
+        break;
+      }
+    }
+
+    return (executablePath == null) ? executable : executablePath;
   }
 }

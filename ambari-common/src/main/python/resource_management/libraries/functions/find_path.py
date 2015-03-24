@@ -26,7 +26,7 @@ import os
 
 def find_path(search_directories, filename):
   """
-  @param search_directories: comma separated list of (absolute paths to) directories to search (in order of preference)
+  @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
   @param filename: the name of the file for which to search
   """
   path = ""

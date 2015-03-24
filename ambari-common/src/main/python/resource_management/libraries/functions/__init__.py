@@ -25,6 +25,7 @@ import platform
 from resource_management.libraries.functions.default import *
 from resource_management.libraries.functions.format import *
 from resource_management.libraries.functions.find_path import *
+from resource_management.libraries.functions.find_executable import *
 from resource_management.libraries.functions.get_kinit_path import *
 from resource_management.libraries.functions.get_kdestroy_path import *
 from resource_management.libraries.functions.get_klist_path import *
