@@ -18,8 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import com.google.inject.Inject;
-import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,10 +49,17 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
   private final static Logger LOG = LoggerFactory.getLogger(MITKerberosOperationHandler.class);
 
-  @Inject
-  private Configuration configuration;
-
   private String adminServerHost = null;
+
+  /**
+   * A String containing the resolved path to the kdamin executable
+   */
+  private String executableKadmin = null;
+
+  /**
+   * A String containing the resolved path to the kdamin.local executable
+   */
+  private String executableKadminLocal = null;
 
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler
@@ -83,7 +88,12 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
     if (kerberosConfiguration != null) {
       setKeyEncryptionTypes(translateEncryptionTypes(kerberosConfiguration.get(KERBEROS_ENV_ENCRYPTION_TYPES), "\\s+"));
       setAdminServerHost(kerberosConfiguration.get(KERBEROS_ENV_ADMIN_SERVER_HOST));
+      setExecutableSearchPaths(kerberosConfiguration.get(KERBEROS_ENV_EXECUTABLE_SEARCH_PATHS));
     }
+
+    // Pre-determine the paths to relevant Kerberos executables
+    executableKadmin = getExecutable("kadmin");
+    executableKadminLocal = getExecutable("kadmin.local");
 
     setOpen(true);
   }
@@ -92,6 +102,9 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   public void close() throws KerberosOperationException {
     // There is nothing to do here.
     setOpen(false);
+
+    executableKadmin = null;
+    executableKadminLocal = null;
   }
 
   /**
@@ -234,18 +247,6 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
   }
 
   /**
-   * Initialize this MITKerberosOperationHandler with instances of objects that should normally
-   * be injected.
-   * <p/>
-   * This should only be used for unit tests.
-   *
-   * @param configuration the Configuration to (manually) inject
-   */
-  public void init(Configuration configuration) {
-    this.configuration = configuration;
-  }
-
-  /**
    * Retrieves the current key number assigned to the identity identified by the specified principal
    *
    * @param principal a String declaring the principal to look up
@@ -326,24 +327,25 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
           ? null
           : administratorCredentials.getPrincipal();
 
-      String pathToCommand = "";
-
-      if (configuration.getServerOsFamily().equals("redhat5")) {
-        pathToCommand = "/usr/kerberos/sbin/";
-      }
-
       if ((adminPrincipal == null) || adminPrincipal.isEmpty()) {
         // Set the kdamin interface to be kadmin.local
-        command.add(pathToCommand + "kadmin.local");
+        if((executableKadminLocal == null) || executableKadminLocal.isEmpty()) {
+          throw new KerberosOperationException("No path for kadmin.local is available - this KerberosOperationHandler may not have been opened.");
+        }
+
+        command.add(executableKadminLocal);
       } else {
+        if((executableKadmin == null) || executableKadmin.isEmpty()) {
+          throw new KerberosOperationException("No path for kadmin is available - this KerberosOperationHandler may not have been opened.");
+        }
         String adminPassword = administratorCredentials.getPassword();
         String adminKeyTab = administratorCredentials.getKeytab();
 
         // Set the kdamin interface to be kadmin
-        command.add(pathToCommand + "kadmin");
+        command.add(executableKadmin);
 
         // Add explicit KDC admin host, if available
-        if(getAdminServerHost() != null) {
+        if (getAdminServerHost() != null) {
           command.add("-s");
           command.add(getAdminServerHost());
         }

@@ -21,14 +21,14 @@ Ambari Agent
 """
 
 __all__ = ["get_klist_path"]
-from find_path import find_path
+from find_executable import find_executable
 
 
-def get_klist_path():
+def get_klist_path(search_directories=None):
   """
-  Searches for the klist executable using a default set of of paths to search:
-    /usr/bin
-    /usr/kerberos/bin
-    /usr/sbin
+  Searches for the klist executable using the specified search paths or a default set of of paths to search
+
+  @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
+  :return: the path to the found klist executable
   """
-  return find_path(["/usr/bin", "/usr/kerberos/bin", "/usr/sbin"], "klist")
+  return find_executable(search_directories, "klist")
