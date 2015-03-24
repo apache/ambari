@@ -5552,29 +5552,32 @@ input[type="checkbox"].align-checkbox {
   }
 }
 
-.section-layout-container {
-  width: 104%; // fallback option
-  width: ~"calc(100% + 40px)";
-  .config-section-table {
-    width: 100%;
-    height: 100%;
-    border-spacing: 20px;
-    border-collapse: separate;
-    table-layout: fixed; // for width to be equally distributed
-    margin: 0 -20px;
-    .config-section {
-      padding: 10px;
-      border: 1px solid #aaa;
-      td:not(:first-of-type) {
-        border-left: 2px solid #ccc; // horizontal splitter
-        padding-left: 20px;
-      }
-      .config-subsection-table {
-        width: 100%;
-        height: 100%;
-        border-spacing: 5px;
-        border-collapse: separate;
-        table-layout: fixed;
+.enhanced-config-tab-content {
+  overflow: hidden;
+  .section-layout-container {
+    width: 104%; // fallback option
+    width: ~"calc(100% + 40px)";
+    .config-section-table {
+      width: 100%;
+      height: 100%;
+      border-spacing: 20px;
+      border-collapse: separate;
+      table-layout: fixed; // for width to be equally distributed
+      margin: 0 -20px;
+      .config-section {
+        padding: 10px;
+        border: 1px solid #aaa;
+        td:not(:first-of-type) {
+          border-left: 2px solid #ccc; // horizontal splitter
+          padding-left: 20px;
+        }
+        .config-subsection-table {
+          width: 100%;
+          height: 100%;
+          border-spacing: 5px;
+          border-collapse: separate;
+          table-layout: fixed;
+        }
       }
     }
   }

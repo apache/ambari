@@ -22,6 +22,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend({
 
   templateName: require('templates/common/configs/service_config_layout_tab'),
 
+  classNames: ['enhanced-config-tab-content'],
   /**
    * ConfigType-Widget map
    * key - widget type
@@ -62,7 +63,8 @@ App.ServiceConfigLayoutTabView = Em.View.extend({
     });
   },
 
-  beforeRender: function () {
+  willInsertElement: function () {
+    this._super();
     this.prepareConfigProperties();
   }
 
