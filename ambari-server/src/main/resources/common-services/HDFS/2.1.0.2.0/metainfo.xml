@@ -141,6 +141,28 @@
         </component>
 
         <component>
+          <name>NFS_GATEWAY</name>
+          <displayName>NFSGateway</displayName>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>false</versionAdvertised>
+          <category>SLAVE</category>
+          <commandScript>
+            <script>scripts/nfsgateway.py</script>
+            <scriptType>PYTHON</scriptType>
+            <timeout>1200</timeout>
+          </commandScript>
+          <dependencies>
+            <dependency>
+              <name>HDFS/HDFS_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+            </dependency>
+          </dependencies>
+        </component>
+
+        <component>
           <name>ZKFC</name>
           <displayName>ZKFailoverController</displayName>
           <category>SLAVE</category>
@@ -154,28 +176,6 @@
           </commandScript>
         </component>
       </components>
-
-      <component>
-        <name>NFS_GATEWAY</name>
-        <displayName>NFSGateway</displayName>
-        <cardinality>0+</cardinality>
-        <versionAdvertised>false</versionAdvertised>
-        <category>SLAVE</category>
-        <commandScript>
-          <script>scripts/nfsgateway.py</script>
-          <scriptType>PYTHON</scriptType>
-          <timeout>1200</timeout>
-        </commandScript>
-        <dependencies>
-          <dependency>
-            <name>HDFS/HDFS_CLIENT</name>
-            <scope>host</scope>
-            <auto-deploy>
-              <enabled>true</enabled>
-            </auto-deploy>
-          </dependency>
-        </dependencies>
-      </component>
 
       <osSpecifics>
         <osSpecific>
