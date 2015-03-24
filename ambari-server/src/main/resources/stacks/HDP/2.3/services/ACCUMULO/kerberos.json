@@ -31,7 +31,6 @@
             "type" : "service",
             "configuration": "accumulo-site/general.kerberos.principal",
             "local_username": "${accumulo-env/accumulo_user}"
-
           },
           "keytab": {
             "file": "${keytab_dir}/accumulo.service.keytab",
@@ -47,10 +46,44 @@
           }
         },
         {
+          "name": "accumulo_tracer",
+          "principal": {
+            "value": "tracer@${realm}",
+            "type" : "user",
+            "configuration": "accumulo-site/trace.user",
+            "local_username": "${accumulo-env/accumulo_user}"
+          },
+          "keytab": {
+            "file": "${keytab_dir}/accumulo-tracer.headless.keytab",
+            "owner": {
+              "name": "${accumulo-env/accumulo_user}",
+              "access": "r"
+            },
+            "group": {
+              "name": "${cluster-env/user_group}",
+              "access": ""
+            },
+            "configuration": "accumulo-site/trace.token.property.keytab"
+          }
+        },
+        {
           "name": "/hdfs"
         },
         {
           "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "accumulo-site": {
+            "instance.rpc.sasl.enabled": "true",
+            "instance.security.authenticator": "org.apache.accumulo.server.security.handler.KerberosAuthenticator",
+            "instance.security.authorizor": "org.apache.accumulo.server.security.handler.KerberosAuthorizor",
+            "instance.security.permissionHandler": "org.apache.accumulo.server.security.handler.KerberosPermissionHandler",
+            "trace.token.type": "org.apache.accumulo.core.client.security.tokens.KerberosToken",
+            "general.delegation.token.lifetime": "7d",
+            "general.delegation.token.update.interval": "1d"
+          }
         }
       ],
       "components": [
@@ -75,6 +108,9 @@
           "identities": [
             {
               "name": "./accumulo_service"
+            },
+            {
+              "name": "./accumulo_tracer"
             }
           ]
         },
@@ -83,6 +119,22 @@
           "identities": [
             {
               "name": "./accumulo_service"
+            }
+          ]
+        },
+        {
+          "name": "ACCUMULO_TRACER",
+          "identities": [
+            {
+              "name": "./accumulo_tracer"
+            }
+          ]
+        },
+        {
+          "name": "ACCUMULO_CLIENT",
+          "identities": [
+            {
+              "name": "./accumulo"
             }
           ]
         }

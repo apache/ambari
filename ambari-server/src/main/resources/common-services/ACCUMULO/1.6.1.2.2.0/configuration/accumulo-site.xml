@@ -41,32 +41,6 @@
   </property>
 
   <property>
-    <name>general.kerberos.principal</name>
-    <value>*</value>
-    <description>Name of the kerberos principal to use.</description>
-  </property>
-
-  <property>
-    <name>general.kerberos.keytab</name>
-    <value>*</value>
-    <description>Path to the kerberos keytab to use.</description>
-  </property>
-
-  <property>
-    <name>instance.rpc.ssl.enabled</name>
-    <value>false</value>
-    <description>Controls whether or not SSL is enabled for
-      Accumulo RPC.</description>
-  </property>
-
-  <property>
-    <name>instance.rpc.ssl.clientAuth</name>
-    <value>false</value>
-    <description>Controls whether or not client authentication is required
-      when SSL is enabled for Accumulo.</description>
-  </property>
-
-  <property>
     <name>tserver.memory.maps.max</name>
     <value>80M</value>
     <description>Amount of memory to use for Accumulo's in-memory

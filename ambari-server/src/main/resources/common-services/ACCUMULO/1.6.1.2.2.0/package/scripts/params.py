@@ -19,12 +19,23 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 import status_params
 
 # server configurations
 config = Script.get_config()
 exec_tmp_dir = status_params.tmp_dir
+
+# security enabled
+security_enabled = status_params.security_enabled
+
+# hdp version
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+has_secure_user_auth = True
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') == 0:
+  has_secure_user_auth = False
 
 # accumulo local directory structure
 log_dir = config['configurations']['accumulo-env']['accumulo_log_dir']
@@ -86,11 +97,11 @@ info_num_logs = config['configurations']['accumulo-log4j']['info_num_logs']
 # metrics2 properties
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
-ams_collector_hosts = default("/clusterHostInfo/metric_collector_hosts", [])
+ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
-  metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:8188")
+  metric_collector_port = default("/configurations/ams-site/timeline.metrics.service.webapp.address", "0.0.0.0:6188")
   if metric_collector_port and metric_collector_port.find(':') != -1:
     metric_collector_port = metric_collector_port.split(':')[1]
   pass
@@ -99,7 +110,7 @@ if has_metric_collector:
 accumulo_user_keytab = config['configurations']['accumulo-env']['accumulo_user_keytab']
 accumulo_principal_name = config['configurations']['accumulo-env']['accumulo_principal_name']
 
-security_enabled = status_params.security_enabled
+# kinit properties
 kinit_path_local = status_params.kinit_path_local
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {accumulo_user_keytab} {accumulo_principal_name};")

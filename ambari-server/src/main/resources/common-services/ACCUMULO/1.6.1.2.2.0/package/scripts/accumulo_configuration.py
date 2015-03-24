@@ -26,7 +26,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
 
   # create the conf directory
   Directory( params.conf_dir,
-      mode=0750,
+      mode=0755,
       owner = params.accumulo_user,
       group = params.user_group,
       recursive = True
@@ -107,6 +107,8 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
   configs = {}
   configs["instance.name"] = params.instance_name
   configs["instance.zookeeper.host"] = params.config['configurations']['accumulo-site']['instance.zookeeper.host']
+  if 'instance.rpc.sasl.enabled' in params.config['configurations']['accumulo-site']:
+    configs["instance.rpc.sasl.enabled"] = params.config['configurations']['accumulo-site']['instance.rpc.sasl.enabled']
   PropertiesFile(format("{dest_conf_dir}/client.conf"),
                  properties = configs,
                  owner = params.accumulo_user,
@@ -158,16 +160,10 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                          mode=0700
     )
     params.HdfsDirectory(None, action="create")
-    passfile = format("{params.exec_tmp_dir}/pass")
-    try:
-      File(passfile,
-           mode=0600,
-           group=params.user_group,
-           owner=params.accumulo_user,
-           content=InlineTemplate('{{root_password}}\n'
-                                  '{{root_password}}\n')
-      )
-      Execute( format("cat {passfile} | {params.daemon_script} init "
+    if params.security_enabled and params.has_secure_user_auth:
+      Execute( format("{params.kinit_cmd} "
+                      "{params.daemon_script} init "
+                      "--user {params.accumulo_principal_name} "
                       "--instance-name {params.instance_name} "
                       "--clear-instance-name "
                       ">{params.log_dir}/accumulo-init.out "
@@ -178,12 +174,109 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                                      "{params.instance_volumes}"),
                               params.accumulo_user),
                user=params.accumulo_user)
-    finally:
-      os.remove(passfile)
+    else:
+      passfile = format("{params.exec_tmp_dir}/pass")
+      try:
+        File(passfile,
+             mode=0600,
+             group=params.user_group,
+             owner=params.accumulo_user,
+             content=InlineTemplate('{{root_password}}\n'
+                                    '{{root_password}}\n')
+        )
+        Execute( format("cat {passfile} | {params.daemon_script} init "
+                        "--instance-name {params.instance_name} "
+                        "--clear-instance-name "
+                        ">{params.log_dir}/accumulo-init.out "
+                        "2>{params.log_dir}/accumulo-init.err"),
+                 not_if=as_user(format("{params.kinit_cmd} "
+                                       "{params.hadoop_bin_dir}/hadoop --config "
+                                       "{params.hadoop_conf_dir} fs -stat "
+                                       "{params.instance_volumes}"),
+                                params.accumulo_user),
+                 user=params.accumulo_user)
+      finally:
+        os.remove(passfile)
 
   if name == 'tracer':
+    if params.security_enabled and params.has_secure_user_auth:
+      Execute( format("{params.kinit_cmd} "
+                      "{params.daemon_script} init --reset-security "
+                      "--user {params.accumulo_principal_name} "
+                      "--password NA "
+                      ">{params.log_dir}/accumulo-reset.out "
+                      "2>{params.log_dir}/accumulo-reset.err"),
+               not_if=as_user(format("{params.kinit_cmd} "
+                                     "{params.daemon_script} shell -e "
+                                     "\"userpermissions -u "
+                                     "{params.accumulo_principal_name}\" | "
+                                     "grep System.CREATE_TABLE"),
+                              params.accumulo_user),
+               user=params.accumulo_user)
+      create_user(params.smokeuser_principal, params.smoke_test_password)
+    else:
+      # do not try to reset security in nonsecure mode, for now
+      # Execute( format("{params.daemon_script} init --reset-security "
+      #                 "--user root "
+      #                 ">{params.log_dir}/accumulo-reset.out "
+      #                 "2>{params.log_dir}/accumulo-reset.err"),
+      #          not_if=as_user(format("cat {rpassfile} | "
+      #                                "{params.daemon_script} shell -e "
+      #                                "\"userpermissions -u root\" | "
+      #                                "grep System.CREATE_TABLE"),
+      #                         params.accumulo_user),
+      #          user=params.accumulo_user)
+      create_user(params.smoke_test_user, params.smoke_test_password)
     create_user(params.trace_user, params.trace_password)
-    create_user(params.smoke_test_user, params.smoke_test_password)
+    rpassfile = format("{params.exec_tmp_dir}/pass0")
+    cmdfile = format("{params.exec_tmp_dir}/resetcmds")
+    try:
+      File(cmdfile,
+           mode=0600,
+           group=params.user_group,
+           owner=params.accumulo_user,
+           content=InlineTemplate('grant -t trace -u {{trace_user}} Table.ALTER_TABLE\n'
+                                  'grant -t trace -u {{trace_user}} Table.READ\n'
+                                  'grant -t trace -u {{trace_user}} Table.WRITE\n')
+      )
+      if params.security_enabled and params.has_secure_user_auth:
+        Execute( format("{params.kinit_cmd} {params.daemon_script} shell -f "
+                        "{cmdfile}"),
+                 only_if=as_user(format("{params.kinit_cmd} "
+                                        "{params.daemon_script} shell "
+                                        "-e \"table trace\""),
+                                 params.accumulo_user),
+                 not_if=as_user(format("{params.kinit_cmd} "
+                                       "{params.daemon_script} shell "
+                                       "-e \"userpermissions -u "
+                                       "{params.trace_user} | "
+                                       "grep Table.READ | grep trace"),
+                                params.accumulo_user),
+                 user=params.accumulo_user)
+      else:
+        File(rpassfile,
+             mode=0600,
+             group=params.user_group,
+             owner=params.accumulo_user,
+             content=InlineTemplate('{{root_password}}\n')
+        )
+        Execute( format("cat {rpassfile} | {params.daemon_script} shell -f "
+                        "{cmdfile} -u root"),
+                 only_if=as_user(format("cat {rpassfile} | "
+                                       "{params.daemon_script} shell -u root "
+                                       "-e \"table trace\""),
+                                params.accumulo_user),
+                 not_if=as_user(format("cat {rpassfile} | "
+                                       "{params.daemon_script} shell -u root "
+                                       "-e \"userpermissions -u "
+                                       "{params.trace_user} | "
+                                       "grep Table.READ | grep trace"),
+                                params.accumulo_user),
+                 user=params.accumulo_user)
+    finally:
+      try_remove(rpassfile)
+      try_remove(cmdfile)
+
 
 def create_user(user, password):
   import params
@@ -198,27 +291,36 @@ def create_user(user, password):
          content=InlineTemplate(format("createuser {user}\n"
                                        "grant -s System.CREATE_TABLE -u {user}\n"))
     )
-    File(rpassfile,
-         mode=0600,
-         group=params.user_group,
-         owner=params.accumulo_user,
-         content=InlineTemplate('{{root_password}}\n')
-    )
-    File(passfile,
-         mode=0600,
-         group=params.user_group,
-         owner=params.accumulo_user,
-         content=InlineTemplate(format("{params.root_password}\n"
-                                       "{password}\n"
-                                       "{password}\n"))
-    )
-    Execute( format("cat {passfile} | {params.daemon_script} shell -u root "
-                    "-f {cmdfile}"),
-             not_if=as_user(format("cat {rpassfile} | "
-                                   "{params.daemon_script} shell -u root "
-                                   "-e \"userpermissions -u {user}\""),
-                            params.accumulo_user),
-             user=params.accumulo_user)
+    if params.security_enabled and params.has_secure_user_auth:
+      Execute( format("{params.kinit_cmd} {params.daemon_script} shell -f "
+                      "{cmdfile}"),
+               not_if=as_user(format("{params.kinit_cmd} "
+                                     "{params.daemon_script} shell "
+                                     "-e \"userpermissions -u {user}\""),
+                              params.accumulo_user),
+               user=params.accumulo_user)
+    else:
+      File(rpassfile,
+           mode=0600,
+           group=params.user_group,
+           owner=params.accumulo_user,
+           content=InlineTemplate('{{root_password}}\n')
+      )
+      File(passfile,
+           mode=0600,
+           group=params.user_group,
+           owner=params.accumulo_user,
+           content=InlineTemplate(format("{params.root_password}\n"
+                                         "{password}\n"
+                                         "{password}\n"))
+      )
+      Execute( format("cat {passfile} | {params.daemon_script} shell -u root "
+                      "-f {cmdfile}"),
+               not_if=as_user(format("cat {rpassfile} | "
+                                     "{params.daemon_script} shell -u root "
+                                     "-e \"userpermissions -u {user}\""),
+                              params.accumulo_user),
+               user=params.accumulo_user)
   finally:
     try_remove(rpassfile)
     try_remove(passfile)
