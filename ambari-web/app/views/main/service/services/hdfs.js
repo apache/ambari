@@ -70,6 +70,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     return this.get('service.dataNodesInstalled');
   }.property('service.dataNodesInstalled'),
 
+  nfsGatewaysLive: function () {
+    return this.get('service.nfsGatewaysStarted');
+  }.property('service.nfsGatewaysStarted'),
+  nfsGatewaysDead: function () {
+    return this.get('service.nfsGatewaysInstalled');
+  }.property('service.nfsGatewaysInstalled'),
+
   showJournalNodes: function () {
     return this.get('service.journalNodes.length') > 0;
   }.property('service.journalNodes.length'),
@@ -184,6 +191,13 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     //return this.get('service.dataNodes').objectAt(0);
   }.property(),
 
+  nfsGatewayComponent: function () {
+    return Em.Object.create({
+      componentName: 'NFS_GATEWAY'
+    });
+    //return this.get('service.dataNodes').objectAt(0);
+  }.property(),
+  
   journalNodeComponent: function () {
     return this.get('service.journalNodes').objectAt(0);
   }.property(),

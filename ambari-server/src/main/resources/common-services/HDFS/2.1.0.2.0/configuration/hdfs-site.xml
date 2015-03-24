@@ -428,4 +428,20 @@
     </description>
   </property>
 
+  <property>
+    <name>nfs.dump.dir</name>
+    <value>/tmp/.hdfs-nfs</value>
+    <description>
+      This directory is used to temporarily save out-of-order writes before
+      writing to HDFS. For each file, the out-of-order writes are dumped after
+      they are accumulated to exceed certain threshold (e.g., 1MB) in memory.
+      One needs to make sure the directory has enough space.
+    </description>
+  </property>
+
+  <property>
+    <name>nfs.exports.allowed.hosts</name>
+    <value>* rw</value>
+  </property>
+
 </configuration>

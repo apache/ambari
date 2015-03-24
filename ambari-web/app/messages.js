@@ -2278,6 +2278,7 @@ Em.I18n.translations = {
   'dashboard.services.hdfs.totalFilesAndDirs':'Total Files + Directories',
   'dashboard.services.hdfs.datanodes':'DataNodes',
   'dashboard.services.hdfs.datanodecounts':'DataNodes Status',
+  'dashboard.services.hdfs.nfsgateways':'NFSGateways',
   'dashboard.services.hdfs.version':'Version',
   'dashboard.services.hdfs.nameNodeWebUI':'NameNode Web UI',
   'dashboard.services.hdfs.nodes.live':'live',

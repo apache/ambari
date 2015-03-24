@@ -224,7 +224,8 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'NAMENODE', displayName: 'NameNode'}),
         App.ServiceConfigCategory.create({ name: 'SECONDARY_NAMENODE', displayName: 'Secondary NameNode'}),
         App.ServiceConfigCategory.create({ name: 'DATANODE', displayName: 'DataNode'}),
-        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'}),
+        App.ServiceConfigCategory.create({ name: 'NFS_GATEWAY', displayName: 'NFS Gateway'})
       ]);
       break;
     case 'GLUSTERFS':

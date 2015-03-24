@@ -112,6 +112,39 @@ var hdp2properties = [
   },
   {
     "id": "site property",
+    "name": "nfs.dump.dir",
+    "displayName": "NFSGateway dump directory",
+    "defaultDirectory": "/tmp/.hdfs-nfs",
+    "displayType": "directory",
+    "category": "NFS_GATEWAY",
+    "serviceName": "HDFS",
+    "filename": "hdfs-site.xml",
+    "index": 1
+  },
+  {
+    "id": "site property",
+    "name": "dfs.namenode.accesstime.precision",
+    "displayName": "Access time precision",
+    "defaultValue": "0",
+    "displayType": "long",
+    "category": "NFS_GATEWAY",
+    "serviceName": "HDFS",
+    "filename": "hdfs-site.xml",
+    "index": 2
+  },
+  {
+    "id": "site property",
+    "name": "nfs.exports.allowed.hosts",
+    "displayName": "Allowed hosts",
+    "defaultValue": "* rw",
+    "displayType": "string",
+    "category": "NFS_GATEWAY",
+    "serviceName": "HDFS",
+    "filename": "hdfs-site.xml",
+    "index": 3
+  },
+  {
+    "id": "site property",
     "name": "dfs.replication",
     "displayName": "Block replication",
     "displayType": "int",
@@ -2218,6 +2251,37 @@ var hdp2properties = [
     "filename": "hadoop-env.xml",
     "category": "DATANODE",
     "index": 2
+  },
+  {
+    "id": "puppet var",
+    "name": "nfsgateway_hosts", //not in the schema. For UI purpose
+    "displayName": "NFSGateway hosts",
+    "value": "",
+    "defaultValue": "",
+    "description": "The hosts that have been assigned to run NFSGateway",
+    "displayType": "slaveHosts",
+    "isRequired": false,
+    "isOverridable": false,
+    "isVisible": true,
+    "isRequiredByAgent": false,
+    "serviceName": "HDFS",
+    "filename": "hadoop-env.xml",
+    "category": "NFS_GATEWAY",
+    "index": 0
+  },
+    {
+    "id": "puppet var",
+    "name": "nfsgateway_heapsize",
+    "displayName": "NFSGateway maximum Java heap size",
+    "description": "Maximum Java heap size for NFSGateway (Java option -Xmx)",
+    "defaultValue": "1024",
+    "displayType": "int",
+    "unit": "MB",
+    "isVisible": true,
+    "serviceName": "HDFS",
+    "filename": "hadoop-env.xml",
+    "category": "NFS_GATEWAY",
+    "index": 1
   },
   {
     "id": "puppet var",

@@ -319,6 +319,7 @@ jtnode_heapsize =  "1024m"
 ttnode_heapsize = "1024m"
 
 dtnode_heapsize = config['configurations']['hadoop-env']['dtnode_heapsize']
+nfsgateway_heapsize = config['configurations']['hadoop-env']['nfsgateway_heapsize']
 mapred_pid_dir_prefix = default("/configurations/mapred-env/mapred_pid_dir_prefix","/var/run/hadoop-mapreduce")
 mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefix","/var/log/hadoop-mapreduce")
 

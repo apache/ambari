@@ -31,6 +31,9 @@ App.HDFSService = App.Service.extend({
   dataNodesStarted: DS.attr('number'),
   dataNodesInstalled: DS.attr('number'),
   dataNodesTotal: DS.attr('number'),
+  nfsGatewaysStarted: DS.attr('number'),
+  nfsGatewaysInstalled: DS.attr('number'),
+  nfsGatewaysTotal: DS.attr('number'),
   journalNodes: function () {
     return this.get('hostComponents').filterProperty('componentName', 'JOURNALNODE');
   }.property('hostComponents.@each'),
