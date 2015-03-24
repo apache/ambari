@@ -23,7 +23,6 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
-
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
@@ -34,7 +33,6 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.AmbariSessionManager;
-import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.orm.dao.MemberDAO;
@@ -86,7 +84,6 @@ import org.springframework.security.core.GrantedAuthority;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
-
 import java.beans.IntrospectionException;
 import java.io.File;
 import java.util.Collection;
@@ -260,7 +257,7 @@ public class ViewRegistry {
       String archivePath = args[1];
 
       try {
-        Injector injector = Guice.createInjector(new ControllerModule());
+        Injector injector = Guice.createInjector();
 
         ViewExtractor      extractor      = injector.getInstance(ViewExtractor.class);
         ViewArchiveUtility archiveUtility = injector.getInstance(ViewArchiveUtility.class);

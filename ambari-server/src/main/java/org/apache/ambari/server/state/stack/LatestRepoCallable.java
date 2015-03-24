@@ -108,9 +108,7 @@ public class LatestRepoCallable implements Callable<Void> {
               // Agents do the reverse action (take the base url, and append <name>.repo)
 
               String repo_file_format;
-              String osFamily = os_family.find_family(ri.getOsType());
-              
-              if(osFamily.equals(OsFamily.UBUNTU_FAMILY)) {
+              if(ri.getOsType().equals("ubuntu12")) {
                 repo_file_format = "list";
               } else {
                 repo_file_format = "repo";
