@@ -495,7 +495,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
           serviceName: self.get('displayedServiceVersion.serviceName'),
           groupName: self.get('controller.selectedConfigGroup.name')
         }));
-        self.get('controller').restartServicePopup();
+        self.get('controller').saveStepConfigs();
         this.hide();
       },
       onDiscard: function () {

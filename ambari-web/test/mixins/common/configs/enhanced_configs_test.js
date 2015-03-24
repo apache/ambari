@@ -138,6 +138,33 @@ describe('App.EnhancedConfigsMixin', function() {
         "service_config_version_note": 'note'
       })
     })
-  })
+  });
+
+  describe('#generateDesiredConfigsJSON()', function() {
+    beforeEach(function() {
+      sinon.stub(instanceObject, 'createDesiredConfig', function(type) {
+        return 'desiredConfig_' + type;
+      });
+      sinon.stub(instanceObject, 'allowSaveSite', function() {
+        return true;
+      });
+
+    });
+    afterEach(function() {
+      instanceObject.createDesiredConfig.restore();
+      instanceObject.allowSaveSite.restore();
+    });
+
+    it('generates empty array as data is missing', function() {
+      expect(instanceObject.generateDesiredConfigsJSON()).to.eql([]);
+      expect(instanceObject.generateDesiredConfigsJSON(1,1)).to.eql([]);
+      expect(instanceObject.generateDesiredConfigsJSON([],[])).to.eql([]);
+    });
+
+    it('generates array with desired configs', function() {
+      expect(instanceObject.generateDesiredConfigsJSON([Em.Object.create({'name': 'p1', 'fileName': 'f1.xml'})], ['f1'])).to.eql(['desiredConfig_f1']);
+      expect(instanceObject.createDesiredConfig).to.be.calledOnce
+    })
+  });
 });
 

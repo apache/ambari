@@ -137,9 +137,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
   /**
    *
    * @param changedConfigs
+   * @returns {$.ajax|null}
    */
   getRecommendationsForDependencies: function(changedConfigs) {
-    var dfd = $.Deferred();
     if (Em.isArray(changedConfigs) && changedConfigs.length > 0) {
       var recommendations = this.get('hostGroups');
       recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
@@ -156,32 +156,31 @@ App.ServerValidatorMixin = Em.Mixin.create({
         dataToSend.changed_configurations = changedConfigs;
       }
        **/
-      App.ajax.send({
+    return App.ajax.send({
         name: 'config.recommendations',
         sender: this,
         data: {
           stackVersionUrl: App.get('stackVersionURL'),
-          dataToSend: dataToSend,
-          dfd: dfd
+          dataToSend: dataToSend
         },
         success: 'dependenciesSuccess',
         error: 'dependenciesError'
       });
     } else {
-      dfd.resolve();
+      return null;
     }
-    return dfd.promise();
   },
 
   /**
    *
    * @param data
-   * @param opt
-   * @param params
    */
-  dependenciesSuccess: function(data, opt, params) {
+  dependenciesSuccess: function(data) {
     Em.assert('invalid data', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var configs = data.resources[0].recommendations.blueprint.configurations;
+
+    this.loadConfigsToModel(this.get('stepConfigs')[0].get('configs'), this.get('selectedVersion'));
+
     var currentProperties = App.ConfigProperty.find().filterProperty('configVersion.isCurrent').filterProperty('configVersion.groupId', -1);
     for (var key in configs) {
       for (var propertyName in configs[key].properties) {
@@ -197,11 +196,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
     });
 
     if (configsToShow.length > 0) {
-      App.showDependentConfigsPopup(configsToShow, params.dfd);
-    } else {
-      params.dfd.resolve();
+      App.showDependentConfigsPopup(configsToShow);
     }
-
   },
 
   /**
@@ -210,11 +206,9 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @param ajaxOptions
    * @param error
    * @param opt
-   * @param params
    */
-  dependenciesError: function(jqXHR, ajaxOptions, error, opt, params) {
+  dependenciesError: function(jqXHR, ajaxOptions, error, opt) {
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    params.dfd.reject();
   },
 
   /**

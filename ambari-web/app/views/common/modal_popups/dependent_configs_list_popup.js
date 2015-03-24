@@ -21,46 +21,45 @@ var App = require('app');
 /**
  * Show confirmation popup
  * @param {[Object]} configs
+ * @param {function} [callback=null]
+ * @param {function} [secondaryCallback=null]
  * we use this parameter to defer saving configs before we make some decisions.
- * @param {$.Deferred} dfd
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (configs, dfd) {
-  if (!configs || configs.length === 0) {
-    dfd.resolve();
-  }
+App.showDependentConfigsPopup = function (configs, callback, secondaryCallback) {
   return App.ModalPopup.show({
     encodeBody: false,
     primary: Em.I18n.t('common.save'),
     secondary: Em.I18n.t('common.cancel'),
-    third: Em.I18n.t('common.discard'),
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['full-width-modal'],
     configs: configs,
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/dependent_configs_list')
     }),
+    stepConfigs: function() {
+      return App.get('router.mainServiceInfoConfigsController.stepConfigs').objectAt(0).get('configs');
+    }.property('controller.stepConfigs.@each'),
     onPrimary: function () {
       this.hide();
       configs.filterProperty('saveRecommended', true).forEach(function(c) {
         c.set('value', c.get('recommendedValue'));
-      });
-      dfd.resolve();
+        var stepConfig = this.get('stepConfigs').find(function(stepConf) {
+          return stepConf.get('name') === c.get('name') && stepConf.get('filename') === c.get('fileName');
+        });
+        if (stepConfig) {
+          stepConfig.set('value', c.get('recommendedValue'));
+        }
+      }, this);
+      if (callback) {
+        callback();
+      }
     },
-    onSecondary: function () {
-      App.get('router.mainServiceInfoConfigsController').set('isApplyingChanges', false);
-      dfd.reject();
+    onSecondary: function() {
       this.hide();
-    },
-    onThird: function () {
-      App.get('router.mainServiceInfoConfigsController').set('isApplyingChanges', false);
-      App.get('router.mainServiceInfoConfigsController').set('preSelectedConfigVersion', null);
-      App.get('router.mainServiceInfoConfigsController').onConfigGroupChange();
-      dfd.reject();
-      this.hide();
-    },
-    onClose: function () {
-      this.onSecondary();
+      if(secondaryCallback) {
+        secondaryCallback();
+      }
     }
   });
 };

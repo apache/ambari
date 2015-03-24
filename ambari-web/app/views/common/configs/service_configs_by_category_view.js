@@ -583,10 +583,12 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
       var deletedConfig = App.ConfigProperty.find().find(function(cp) {
         return cp.get('name') === serviceConfigProperty.get('name')
           && cp.get('fileName') === serviceConfigProperty.get('filename')
-          && cp.get('isDefault');
+          && cp.get('isOriginalSCP');
       });
-      deletedConfig.deleteRecord();
-      App.store.commit();
+      if (deletedConfig) {
+        deletedConfig.deleteRecord();
+        App.store.commit();
+      }
     }
     // push config's file name if this config was stored on server
     if (!serviceConfigProperty.get('isNotSaved')) {

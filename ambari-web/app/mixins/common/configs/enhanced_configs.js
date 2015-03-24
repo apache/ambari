@@ -63,36 +63,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   },
 
   /**
-   *
-   * @param modifiedProperties
-   * @param versionNumber
-   */
-  loadStepConfigsToModel: function(modifiedProperties, versionNumber) {
-
-    this.loadConfigsToModel(modifiedProperties, versionNumber);
-
-    this.generateChangedConfigWithDependencies();
-
-  },
-
-  /**
-   * generates <code>changedConfigWithDependencies<code>
-   * this array will be send for recommendations as <code>changed_configurations<code>
-   * @method generateChangedConfigWithDependencies
-   */
-  generateChangedConfigWithDependencies: function() {
-    App.ConfigProperty.find().forEach(function(cp) {
-      if (cp.get('isNotDefaultValue') && cp.get('stackConfigProperty.propertyDependedBy.length') > 0) {
-        this.get('changedConfigWithDependencies').push({
-          "type": cp.get('fileName'),
-          "name": cp.get("name")
-        });
-      }
-    }, this);
-  },
-
-
-  /**
    * generates data and save configs for default group
    * @method saveEnhancedConfigs
    */
@@ -143,7 +113,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   },
 
   /**
-   * get file names that need t obe saved
+   * get file names that need to be saved
    * @param {Array} modifiedFileNames
    * @returns {Ember.Enumerable}
    */
@@ -161,7 +131,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   getConfigsToSave: function(fileNamesToSave) {
     if (Em.isArray(fileNamesToSave) && fileNamesToSave.length) {
       return App.ConfigProperty.find().filter(function(cp) {
-        return fileNamesToSave.contains(cp.get('fileName'));
+        return (fileNamesToSave.contains(cp.get('fileName')) && cp.get('isOriginalSCP')) || cp.get('isNotSaved');
       });
     } else {
       return Em.A([]);

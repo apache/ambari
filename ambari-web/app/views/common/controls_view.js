@@ -59,6 +59,27 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   }.property('serviceConfig.isEditable')
 });
 
+App.supportsDependentConfigs = Ember.Mixin.create({
+
+  /**
+   * method send request to check if some of dependent configs was changes
+   * and in case there was changes shows popup with info about changed configs
+   */
+  sendRequestRorDependentConfigs: function() {
+    if (App.get('supports.enhancedConfigs') && this.get('controller.name') === 'mainServiceInfoConfigsController') {
+      var name = this.get('serviceConfig.name');
+      var type = App.config.getConfigTagFromFileName(this.get('serviceConfig.filename'));
+      var p = App.StackConfigProperty.find(name + '_' + type);
+      if (p && p.get('propertyDependedBy.length') > 0) {
+        this.get('controller').getRecommendationsForDependencies([{
+          "type": type,
+          "name": name
+        }]);
+      }
+    }
+  }
+});
+
 /**
  * mixin set class that serve as unique element identificator,
  * id not used in order to avoid collision with ember ids
@@ -78,7 +99,7 @@ App.ServiceConfigCalculateId = Ember.Mixin.create({
  * Default input control
  * @type {*}
  */
-App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
+App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.supportsDependentConfigs, {
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
@@ -91,6 +112,9 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   },
   //Set editDone true for last edited config text field parameter
   focusOut: function (event) {
+    if (this.get('serviceConfig.isNotDefaultValue')) {
+      this.sendRequestRorDependentConfigs();
+    }
     this.get('serviceConfig').set("editDone", true);
   },
   //Set editDone false for all current category config text field parameter
@@ -116,11 +140,17 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
  * Customized input control with Units type specified
  * @type {Em.View}
  */
-App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, {
+App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, App.supportsDependentConfigs, {
   valueBinding: 'serviceConfig.value',
   classNames: ['input-append', 'with-unit'],
   placeholderBinding: 'serviceConfig.defaultValue',
 
+  //Set editDone true for last edited config text field parameter
+  focusOut: function (event) {
+    if (this.get('serviceConfig.isNotDefaultValue')) {
+      this.sendRequestRorDependentConfigs();
+    }
+  },
   templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
 

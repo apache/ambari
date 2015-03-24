@@ -41,7 +41,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   configGroups: [],
   allConfigs: [],
   uiConfigs: [],
-  isApplyingChanges: false,
+  saveInProgress: false,
   saveConfigsFlag: true,
   isCompareMode: false,
   compareServiceVersion: null,
@@ -65,13 +65,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded'),
 
   /**
-   * @type {[Object]} that will contain items like
-   *{
-   *  "type": "yarn-site",
-   *  "name": "yarn.nodemanager.resource.memory-mb"
-   *}
+   * array that contains config properties that were changed and
+   * belongs to not current service
+   * @returns {*|Array}
    */
-  changedConfigWithDependencies: [],
+  unsavedDependentConfigs: function() {
+    return App.ConfigProperty.find().filter(function(cp) {
+      return cp.get('stackConfigProperty.serviceName') !== this.get('content.serviceName')
+        && this.get('dependentFileNames').contains(cp.get('fileName'))
+        && cp.get('isNotDefaultValue');
+    }, this);
+  },
+
   /**
    * @type {boolean}
    */
@@ -111,8 +116,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadedClusterSiteToTagMap: {},
 
   isSubmitDisabled: function () {
-    return (!(this.get('stepConfigs').everyProperty('errorCount', 0)) || this.get('isApplyingChanges'));
-  }.property('stepConfigs.@each.errorCount', 'isApplyingChanges'),
+    return (!(this.get('stepConfigs').everyProperty('errorCount', 0)) || this.get('saveInProgress'));
+  }.property('stepConfigs.@each.errorCount', 'saveInProgress'),
 
   isPropertiesChanged: function(){
     return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
@@ -212,7 +217,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       this.get('requestInProgress').abort();
       this.set('requestInProgress', null);
     }
-    this.set("isApplyingChanges", false);
+    this.set("saveInProgress", false);
     this.set('modifiedFileNames', []);
     this.set('isInit', true);
     this.set('hash', null);
@@ -1199,31 +1204,71 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * Initialize save configs popup
+   * tells controller in saving configs was started
+   * for now just changes flag <code>saveInProgress<code> to true
+   */
+  startSave: function() {
+    this.set("saveInProgress", true);
+  },
+
+  /**
+   * tells controller that save has been finished
+   * for now just changes flag <code>saveInProgress<code> to true
+   */
+  completeSave: function() {
+    this.set("saveInProgress", false);
+  },
+
+  /**
+   * method to run saving configs
+   * @method saveStepConfigs
+   */
+  saveStepConfigs: function() {
+    if (!this.get("isSubmitDisabled")) {
+      this.startSave();
+      this.showWarningPopupsBeforeSave();
+    }
+  },
+
+  /**
+   * show some warning popups before user save configs
+   * @method showWarningPopupsBeforeSave
+   */
+  showWarningPopupsBeforeSave: function() {
+    var displayName = this.get('content.displayName');
+    if (this.isDirChanged()) {
+      App.showConfirmationPopup(this.showDependenciesAndSave.bind(this),
+        Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName),
+        this.completeSave.bind(this)
+      );
+    } else {
+      this.showDependenciesAndSave();
+    }
+  },
+
+  /**
+   * if there are some dependent configs in different services
+   * this popup will be shown with info about this configs
+   * @method showDependenciesAndSave
+   */
+  showDependenciesAndSave: function() {
+    var dependentConfigs = this.unsavedDependentConfigs();
+    if (dependentConfigs.length > 0) {
+      App.showDependentConfigsPopup(dependentConfigs,
+        this.restartServicePopup.bind(this),
+        this.completeSave.bind(this));
+    } else {
+      this.restartServicePopup();
+    }
+  },
+
+  /**
+   * Runs config validation before save
    */
   restartServicePopup: function () {
-    if (this.get("isSubmitDisabled")) {
-      return;
-    }
-    this.set("isApplyingChanges", true);
-    var self = this;
-    var header, message, messageClass, status;
-    var serviceName = this.get('content.serviceName'),
-      displayName = this.get('content.displayName'),
-      urlParams = '';
-    this.serverSideValidation().done(function () {
-      if (self.isDirChanged()) {
-        App.showConfirmationPopup(function () {
-          self.saveConfigs();
-        }, Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName), function () {
-          self.set('isApplyingChanges', false);
-        });
-      } else {
-        self.saveConfigs();
-      }
-    }).fail(function () {
-      self.set('isApplyingChanges', false);
-    });
+    this.serverSideValidation()
+      .done(this.saveConfigs.bind(this))
+      .fail(this.completeSave.bind(this));
   },
 
   /**
@@ -1264,48 +1309,45 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         } else if (this.get('content.serviceName') === 'OOZIE') {
           this.setOozieHostName(configs);
         }
-      }
 
-      /**
-       * generates list of properties that was changed
-       * @type {Array}
-       */
-      var modifiedProperties = configs
-        // get only modified and created configs
-        .filter(function(config) { return config.get('isNotDefaultValue') || config.get('isNotSaved'); });
+        this.loadConfigsToModel(configs, self.get('selectedVersion'));
 
-      if (App.get('supports.enhancedConfigs')) {
-        this.loadStepConfigsToModel(modifiedProperties, self.get('selectedVersion'));
-      }
-      this.getRecommendationsForDependencies(this.get('changedConfigWithDependencies')).done(function() {
+        this.saveEnhancedConfigs();
 
-        if (App.get('supports.enhancedConfigs')) {
-          self.saveEnhancedConfigs();
-        } else {
+      } else {
+        /**
+         * generates list of properties that was changed
+         * @type {Array}
+         */
+        var modifiedConfigs = configs
+          // get only modified and created configs
+          .filter(function (config) {
+            return config.get('isNotDefaultValue') || config.get('isNotSaved');
+          })
+          // get file names and add file names that was modified, for example after property removing
+          .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
+          // get configs by filename
+          .map(function (fileName) {
+            return configs.filterProperty('filename', fileName);
+          });
 
-          var modifiedConfigs = modifiedProperties
-            // get file names and add file names that was modified, for example after property removing
-            .mapProperty('filename').concat(self.get('modifiedFileNames')).uniq()
-            // get configs by filename
-            .map(function(fileName) {
-              return configs.filterProperty('filename', fileName);
-            });
-
-          if (!!modifiedConfigs.length) {
-            // concatenate results
-            modifiedConfigs = modifiedConfigs.reduce(function(current, prev) { return current.concat(prev); });
-          }
-          // save modified original configs that have no group
-          self.saveSiteConfigs(modifiedConfigs.filter(function(config) { return !config.get('group'); }));
-
-          /**
-           * First we put cluster configurations, which automatically creates /configurations
-           * resources. Next we update host level overrides.
-           */
-          self.doPUTClusterConfigurations();
+        if (!!modifiedConfigs.length) {
+          // concatenate results
+          modifiedConfigs = modifiedConfigs.reduce(function (current, prev) {
+            return current.concat(prev);
+          });
         }
-      });
+        // save modified original configs that have no group
+        this.saveSiteConfigs(modifiedConfigs.filter(function (config) {
+          return !config.get('group');
+        }));
 
+        /**
+         * First we put cluster configurations, which automatically creates /configurations
+         * resources. Next we update host level overrides.
+         */
+        this.doPUTClusterConfigurations();
+      }
     } else {
       var overridenConfigs = [];
       var groupHosts = [];
@@ -1318,7 +1360,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
       if (App.get('supports.enhancedConfigs')) {
 
-        this.loadStepConfigsToModel(overridenConfigs, this.get('selectedVersion'));
+        this.loadConfigsToModel(overridenConfigs, this.get('selectedVersion'));
 
         this.saveEnhancedConfigsAndGroup(this.get('selectedConfigGroup'));
 
@@ -1405,12 +1447,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       onPrimary: function () {
         this.hide();
         if (!flag) {
-          self.set('isApplyingChanges', false);
+          self.completeSave();
         }
       },
       onClose: function () {
         this.hide();
-        self.set('isApplyingChanges', false);
+        self.completeSave();
       },
       disablePrimary: true,
       bodyClass: Ember.View.extend({
@@ -2828,7 +2870,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
         self.set('serviceConfigVersionNote', this.get('serviceConfigNote'));
-        self.restartServicePopup();
+        self.saveStepConfigs();
         this.hide();
       },
       onDiscard: function () {

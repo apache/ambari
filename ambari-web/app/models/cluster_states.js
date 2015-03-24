@@ -233,16 +233,18 @@ App.clusterStatus = Em.Object.create(App.UserPref, {
         App.db.setUser(user);
         App.db.setLoginName(login);
       }
-      this.postUserPref(this.get('key'), val)
-          .done(function () {
-            !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this, opt.successCallbackData);
-          })
-          .fail(function () {
-            !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback.call(opt.sender || this, opt.errorCallbackData);
-          })
-          .always(function () {
-            !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback.call(opt.sender || this, opt.alwaysCallbackData);
-          });
+      if (!$.mocho) {
+        this.postUserPref(this.get('key'), val)
+            .done(function () {
+              !!opt && Em.typeOf(opt.successCallback) === 'function' && opt.successCallback.call(opt.sender || this, opt.successCallbackData);
+            })
+            .fail(function () {
+              !!opt && Em.typeOf(opt.errorCallback) === 'function' && opt.errorCallback.call(opt.sender || this, opt.errorCallbackData);
+            })
+            .always(function () {
+              !!opt && Em.typeOf(opt.alwaysCallback) === 'function' && opt.alwaysCallback.call(opt.sender || this, opt.alwaysCallbackData);
+            });
+      }
       return newValue;
     }
   },
