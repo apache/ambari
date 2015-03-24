@@ -18,17 +18,20 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
 
 /**
  * RepositoryVersionDAO unit tests.
@@ -37,11 +40,20 @@ public class RepositoryVersionDAOTest {
 
   private static Injector injector;
   private RepositoryVersionDAO repositoryVersionDAO;
+  private ClusterVersionDAO clusterVersionDAO;
+  private HostVersionDAO hostVersionDAO;
+  
+  private ClusterDAO clusterDAO;
+  private OrmTestHelper helper;
 
   @Before
   public void before() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
+    hostVersionDAO = injector.getInstance(HostVersionDAO.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
+    helper = injector.getInstance(OrmTestHelper.class);    
     injector.getInstance(GuiceJpaInitializer.class);
   }
 
@@ -76,6 +88,38 @@ public class RepositoryVersionDAOTest {
     Assert.assertEquals(1, repositoryVersionDAO.findByStack("stack").size());
   }
 
+  @Test
+  public void testDelete() {
+    createSingleRecord();
+    Assert.assertNotNull(repositoryVersionDAO.findByStackAndVersion("stack", "version"));
+    final RepositoryVersionEntity entity = repositoryVersionDAO.findByStackAndVersion("stack", "version");
+    repositoryVersionDAO.remove(entity);
+    Assert.assertNull(repositoryVersionDAO.findByStackAndVersion("stack", "version"));
+  }  
+
+  @Test
+  public void testDeleteCascade() {   
+    long clusterId = helper.createCluster();
+    ClusterEntity cluster = clusterDAO.findById(clusterId);
+    createSingleRecord();
+    final RepositoryVersionEntity entity = repositoryVersionDAO.findByStackAndVersion("stack", "version");
+    
+    ClusterVersionEntity cvA = new ClusterVersionEntity(cluster, entity, RepositoryVersionState.INSTALLED, System.currentTimeMillis(), System.currentTimeMillis(), "admin");
+    clusterVersionDAO.create(cvA);
+    long cvAId = cvA.getId();
+    cvA = clusterVersionDAO.findByPK(cvAId);
+    Assert.assertNotNull(cvA.getRepositoryVersion());
+    final RepositoryVersionEntity newEntity = repositoryVersionDAO.findByStackAndVersion("stack", "version");
+    try {
+      repositoryVersionDAO.remove(newEntity);
+    } catch (Exception e) {
+      //Cascade deletion will fail because absent integrity in in-memory DB
+      Assert.assertNotNull(clusterVersionDAO.findByPK(cvAId));
+    } 
+    //
+   
+  }    
+  
   @After
   public void after() {
     injector.getInstance(PersistService.class).stop();

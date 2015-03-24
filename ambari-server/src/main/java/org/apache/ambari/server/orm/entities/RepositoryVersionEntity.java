@@ -41,6 +41,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import java.util.Collection;
+import javax.persistence.CascadeType;
+import javax.persistence.OneToMany;
 
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
@@ -88,6 +91,12 @@ public class RepositoryVersionEntity {
   @Lob
   @Column(name = "repositories")
   private String operatingSystems;
+  
+  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
+  private Collection<ClusterVersionEntity> clusterVersionEntities;
+  
+  @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
+  private Collection<HostVersionEntity> hostVersionEntities;
 
   // ----- RepositoryVersionEntity -------------------------------------------------------
 
