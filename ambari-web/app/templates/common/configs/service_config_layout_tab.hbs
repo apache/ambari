@@ -22,12 +22,18 @@
       <tr>
         {{#each section in row}}
           <td class="config-section" {{bindAttr colspan="section.columnSpan" rowspan="section.rowSpan"}}>
-            {{section.displayName}}
+            <h3>{{section.displayName}}</h3>
             <table class="config-subsection-table">
               {{#each subRow in section.subsectionRows}}
                 <tr>
                   {{#each subsection in subRow}}
-                    <td class="config-subsection">{{subsection.name}}</td>
+                    <td class="config-subsection">
+                      {{#each config in subsection.configs}}
+                        {{#if config.view}}
+                          {{view config.widget configBinding="config"}}
+                        {{/if}}
+                      {{/each}}
+                    </td>
                   {{/each}}
                 </tr>
               {{/each}}

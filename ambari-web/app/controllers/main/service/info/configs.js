@@ -257,7 +257,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var self = this;
     if (App.get('supports.enhancedConfigs')) {
       App.config.loadConfigTheme(this.get('content.serviceName')).then(function() {
-        App.themesMapper.generateAdvancedTabs([self.get('content.serviceName')]);
+        self.loadDependentConfigs().done(function () {
+          App.themesMapper.generateAdvancedTabs([self.get('content.serviceName')]);
+        });
       });
     }
     this.clearStep();
@@ -354,7 +356,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
      * by serviceName that has dependent properties
      */
     if (serviceConfigsToLoad.length > 0) {
-      App.config.loadConfigCurrentVersions(serviceConfigsToLoad);
+      return App.config.loadConfigCurrentVersions(serviceConfigsToLoad);
     }
   },
 
@@ -988,7 +990,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.set('versionLoaded', true);
     this.set('hash', this.getHash());
     this.set('isInit', false);
-    this.loadDependentConfigs();
   },
 
   /**

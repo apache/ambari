@@ -28,13 +28,13 @@ describe('App.SliderConfigWidgetView', function () {
       config: Em.Object.create({
         name: 'a.b.c',
         description: 'A B C',
-        value: 486,
-        defaultValue: 486,
+        value: '486',
+        defaultValue: '486',
         stackConfigProperty: Em.Object.create({
           valueAttributes: Em.Object.create({
             type: 'int',
-            minimum: 0,
-            maximum: 2096,
+            minimum: '0',
+            maximum: '2096',
             unit: 'MB'
           })
         })
@@ -47,13 +47,13 @@ describe('App.SliderConfigWidgetView', function () {
       config: Em.Object.create({
         name: 'a.b.c2',
         description: 'A B C 2',
-        value: 72.2,
-        defaultValue: 72.2,
+        value: '72.2',
+        defaultValue: '72.2',
         stackConfigProperty: Em.Object.create({
           valueAttributes: Em.Object.create({
             type: 'float',
-            minimum: 0,
-            maximum: 100,
+            minimum: '0',
+            maximum: '100',
             unit: '%'
           })
         })
@@ -65,8 +65,8 @@ describe('App.SliderConfigWidgetView', function () {
 
   describe('#mirrorValue', function () {
     it('should be equal to config.value after init', function () {
-      expect(viewInt.get('mirrorValue')).to.equal(viewInt.get('config.value'));
-      expect(viewFloat.get('mirrorValue')).to.equal(viewFloat.get('config.value'));
+      expect(viewInt.get('mirrorValue')).to.equal('' + viewInt.get('config.value'));
+      expect(viewFloat.get('mirrorValue')).to.equal('' + viewFloat.get('config.value'));
     });
   });
 
@@ -90,6 +90,34 @@ describe('App.SliderConfigWidgetView', function () {
       viewFloat.set('mirrorValue', 100500.5);
       expect(viewFloat.get('isMirrorValueValid')).to.be.false;
       expect(viewFloat.get('config.value')).to.equal(55.5);
+    });
+
+  });
+
+  describe('#prepareValueAttributes', function () {
+
+    it('should parse string to int', function () {
+
+      var max = viewInt.get('config.stackConfigProperty.valueAttributes.maximum'),
+        min = viewInt.get('config.stackConfigProperty.valueAttributes.minimum');
+      viewInt.set('config.stackConfigProperty.valueAttributes.maximum', '' + max);
+      viewInt.set('config.stackConfigProperty.valueAttributes.minimum', '' + min);
+      viewInt.prepareValueAttributes();
+      expect(viewInt.get('config.stackConfigProperty.valueAttributes.maximum')).to.equal(max);
+      expect(viewInt.get('config.stackConfigProperty.valueAttributes.minimum')).to.equal(min);
+
+    });
+
+    it('should parse string to float', function () {
+
+      var max = viewFloat.get('config.stackConfigProperty.valueAttributes.maximum'),
+        min = viewFloat.get('config.stackConfigProperty.valueAttributes.minimum');
+      viewFloat.set('config.stackConfigProperty.valueAttributes.maximum', '' + max);
+      viewFloat.set('config.stackConfigProperty.valueAttributes.minimum', '' + min);
+      viewFloat.prepareValueAttributes();
+      expect(viewFloat.get('config.stackConfigProperty.valueAttributes.maximum')).to.equal(max);
+      expect(viewFloat.get('config.stackConfigProperty.valueAttributes.minimum')).to.equal(min);
+
     });
 
   });

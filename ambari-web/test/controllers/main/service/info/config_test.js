@@ -25,7 +25,11 @@ describe("App.MainServiceInfoConfigsController", function () {
   beforeEach(function () {
     sinon.stub(App.config, 'loadConfigTheme').returns($.Deferred().resolve().promise());
     sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
-    mainServiceInfoConfigsController = App.MainServiceInfoConfigsController.create({});
+    mainServiceInfoConfigsController = App.MainServiceInfoConfigsController.create({
+      loadDependentConfigs: function () {
+        return {done: Em.K}
+      }
+    });
   });
 
   afterEach(function() {
@@ -1310,7 +1314,6 @@ describe("App.MainServiceInfoConfigsController", function () {
       });
     });
   });
-
 
   describe('#calculateDependentFileNames()', function() {
 

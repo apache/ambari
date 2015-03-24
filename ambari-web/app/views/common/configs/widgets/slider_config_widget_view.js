@@ -48,6 +48,24 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   isMirrorValueValid: true,
 
+  /**
+   * Function used to parse config value (based on <code>config.stackConfigProperty.valueAttributes.type</code>)
+   * For integer - parseInt, for float - parseFloat
+   * @type {Function}
+   */
+  parseFunction: function () {
+    return this.get('config.stackConfigProperty.valueAttributes.type') === 'int' ? parseInt : parseFloat;
+  }.property('config.stackConfigProperty.valueAttributes.type'),
+
+  /**
+   * Function used to validate config value (based on <code>config.stackConfigProperty.valueAttributes.type</code>)
+   * For integer - validator.isValidInt, for float - validator.isValidFloat
+   * @type {Function}
+   */
+  validateFunction: function () {
+    return this.get('config.stackConfigProperty.valueAttributes.type') === 'int' ? validator.isValidInt : validator.isValidFloat;
+  }.property('config.stackConfigProperty.valueAttributes.type'),
+
   willInsertElement: function () {
     this._super();
     this.addObserver('mirrorValue', this, this.mirrorValueObs);
@@ -56,6 +74,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   didInsertElement: function () {
     this._super();
     this.set('mirrorValue', this.get('config.value'));
+    this.prepareValueAttributes();
     this.initSlider();
   },
 
@@ -69,15 +88,15 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       slider = this.get('slider'),
       min = this.get('config.stackConfigProperty.valueAttributes.minimum'),
       max = this.get('config.stackConfigProperty.valueAttributes.maximum'),
-      validationFunction = this.get('config.stackConfigProperty.valueAttributes.type') == 'int' ? validator.isValidInt : validator.isValidFloat,
-      parseFunction = this.get('config.stackConfigProperty.valueAttributes.type') == 'int' ? parseInt : parseFloat;
+      validationFunction = this.get('validateFunction'),
+      parseFunction = this.get('parseFunction');
     if (validationFunction(mirrorValue)) {
       var parsed = parseFunction(mirrorValue);
       if (parsed >= min && parsed <=max) {
         this.set('isMirrorValueValid', true);
         this.set('config.value', parsed);
         if (slider) {
-          slider.setValue(this.get('config.value'));
+          slider.setValue(parsed);
         }
       }
       else {
@@ -90,6 +109,19 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * valueAttributes are strings, but should be numbers
+   * parse them using <code>parseFunction</code>
+   * @method prepareValueAttributes
+   */
+  prepareValueAttributes: function () {
+    var valueAttributes = this.get('config.stackConfigProperty.valueAttributes'),
+      parseFunction = this.get('parseFunction');
+    if (!valueAttributes) return;
+    Em.set(valueAttributes, 'maximum', parseFunction(valueAttributes.maximum));
+    Em.set(valueAttributes, 'minimum', parseFunction(valueAttributes.minimum));
+  },
+
+  /**
    * Draw slider for current config
    * @method initSlider
    */
@@ -97,30 +129,40 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var self = this,
       config = this.get('config'),
       valueAttributes = config.get('stackConfigProperty.valueAttributes'),
-      unit = valueAttributes.get('unit'),
+      unit = Em.getWithDefault(valueAttributes, 'unit', ''),
+      parseFunction = this.get('parseFunction'),
       ticks = [valueAttributes.minimum],
       ticksLabels = [];
+
+    // ticks and labels
     for (var i = 1; i <= 3; i++) {
-      ticks.push(Math.round((valueAttributes.minimum + valueAttributes.maximum) / 4 * i));
+      var val = (valueAttributes.minimum + valueAttributes.maximum) / 4 * i;
+      // if value's type is float, ticks may be float too
+      ticks.push(valueAttributes.type === 'int' ? Math.round(val) : parseFloat(val.toFixed(1)));
     }
     ticks.push(valueAttributes.maximum);
-    ticks.forEach(function (tick, indx) {
-      ticksLabels.push(indx  % 2===0 ? tick + ' ' + unit : '');
+    ticks.forEach(function (tick, index) {
+      ticksLabels.push(index % 2 === 0 ? tick + ' ' + unit : '');
     });
+
     var slider = new Slider('#' + this.get('elementId') + ' input.slider-input', {
-      value: this.get('config.value'),
+      value: parseFunction(this.get('config.value')),
       ticks: ticks,
       tooltip: 'hide',
       ticks_labels: ticksLabels,
-      ticks_snap_bounds: valueAttributes.get('type') === 'int' ? 1 : 0.1,
-      step: valueAttributes.get('type') === 'int' ? 1 : 0.1
+      ticks_snap_bounds: Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1,
+      step: Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1
     });
-    slider.on('slide', function (newValue) {
-      self.set('config.value', newValue);
-      self.set('mirrorValue', newValue);
+
+    slider.on('change', function (obj) {
+      var val = parseFunction(obj.newValue);
+      self.set('config.value', val);
+      self.set('mirrorValue', val);
     });
+
     this.set('slider', slider);
-    this.$('.slider-tick:first, .slider-tick:last').hide(); // hide some ticks. can't do this via css
+    // hide some ticks. can't do this via css
+    this.$('.slider-tick:first, .slider-tick:last').hide();
   },
 
   /**
@@ -130,8 +172,10 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   restoreValue: function () {
     this._super();
-    this.get('slider').setValue(this.get('config.value'));
-    this.set('mirrorValue', this.get('config.value'));
+    var parseFunction = this.get('parseFunction'),
+      val = parseFunction(this.get('config.value'));
+    this.get('slider').setValue(val);
+    this.set('mirrorValue', val);
   }
 
 });
