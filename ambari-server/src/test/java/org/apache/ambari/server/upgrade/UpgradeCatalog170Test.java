@@ -116,6 +116,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.Capture;
 import org.easymock.IAnswer;
@@ -620,6 +621,7 @@ public class UpgradeCatalog170Test {
       @Override
       public void configure(Binder binder) {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     };
     Injector injector = Guice.createInjector(module);

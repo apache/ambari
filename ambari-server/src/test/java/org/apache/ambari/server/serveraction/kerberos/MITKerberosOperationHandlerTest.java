@@ -21,10 +21,13 @@ package org.apache.ambari.server.serveraction.kerberos;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
@@ -38,6 +41,7 @@ import java.util.Map;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.createNiceMock;
 
 public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTest {
 
@@ -66,6 +70,7 @@ public class MITKerberosOperationHandlerTest extends KerberosOperationHandlerTes
 
         bind(Clusters.class).toInstance(EasyMock.createNiceMock(Clusters.class));
         bind(Configuration.class).toInstance(configuration);
+        bind(OsFamily.class).toInstance(EasyMock.createNiceMock(OsFamily.class));
       }
     });
   }

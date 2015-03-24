@@ -25,7 +25,9 @@ import java.util.Properties;
 import java.util.Random;
 
 import com.google.common.io.Files;
+
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -40,6 +42,7 @@ import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 
+import static org.easymock.EasyMock.createNiceMock;
 import junit.framework.TestCase;
 
 public class CertGenerationTest {
@@ -67,6 +70,7 @@ public class CertGenerationTest {
     protected void configure() {
       bind(Properties.class).toInstance(buildTestProperties());
       bind(Configuration.class).toConstructor(getConfigurationConstructor());
+      bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       requestStaticInjection(CertGenerationTest.class);
     }
   }

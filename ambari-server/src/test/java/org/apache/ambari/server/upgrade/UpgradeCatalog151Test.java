@@ -21,9 +21,11 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Test;
@@ -99,6 +101,7 @@ public class UpgradeCatalog151Test {
       @Override
       public void configure(Binder binder) {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     };
     Injector injector = Guice.createInjector(module);

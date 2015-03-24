@@ -77,6 +77,7 @@ import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.junit.After;
@@ -409,6 +410,7 @@ public class UpgradeCatalog200Test {
         bind(Clusters.class).toInstance(mockClusters);
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
         bind(EntityManager.class).toInstance(createNiceMock(EntityManager.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     });
 
@@ -481,6 +483,7 @@ public class UpgradeCatalog200Test {
         bind(Clusters.class).toInstance(mockClusters);
 
         bind(DBAccessor.class).toInstance(createNiceMock(DBAccessor.class));
+        bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     });
 
@@ -590,6 +593,7 @@ public class UpgradeCatalog200Test {
       @Override
       public void configure(Binder binder) {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     };
 

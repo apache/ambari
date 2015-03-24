@@ -41,6 +41,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
@@ -129,6 +130,7 @@ public class UpgradeCatalog160Test {
       @Override
       public void configure(Binder binder) {
         binder.bind(DBAccessor.class).toInstance(dbAccessor);
+        binder.bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       }
     };
     Injector injector = Guice.createInjector(module);

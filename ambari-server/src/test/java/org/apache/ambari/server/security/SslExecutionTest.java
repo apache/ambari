@@ -21,16 +21,22 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.junit.*;
 import org.junit.rules.TemporaryFolder;
+
+import static org.easymock.EasyMock.createNiceMock;
 import static org.junit.Assert.assertTrue;
 
 import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.Properties;
+
+import static org.easymock.EasyMock.createNiceMock;
 
 public class SslExecutionTest {
 
@@ -52,6 +58,7 @@ public class SslExecutionTest {
     protected void configure() {
       bind(Properties.class).toInstance(buildTestProperties());
       bind(Configuration.class).toConstructor(getConfigurationConstructor());
+      bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
       requestStaticInjection(SslExecutionTest.class);
     }
   }

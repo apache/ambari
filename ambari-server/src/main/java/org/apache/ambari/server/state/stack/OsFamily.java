@@ -41,6 +41,8 @@ import org.apache.commons.io.IOUtils;
  */
 @Singleton
 public class OsFamily {
+    public final static String UBUNTU_FAMILY = "ubuntu";
+    
     private final String os_pattern = "([^\\d]*)([\\d]*)";
     private final String OS_DISTRO = "distro";
     private final String OS_VERSION = "versions";
@@ -124,7 +126,7 @@ public class OsFamily {
     }
 
     /**
-     * Finds the family for the specific OS
+     * Finds the family for the specific OS + it's version number
      * @param os the OS
      * @return the family, or <code>null</code> if not defined
      */
@@ -134,6 +136,22 @@ public class OsFamily {
         Map<String, Set<String>> fam = osMap.get(family);
         if (fam.get(OS_DISTRO).contains(pos.get(OS_DISTRO)) && fam.get(OS_VERSION).contains(pos.get(OS_VERSION))){
           return family + pos.get(OS_VERSION);
+        }
+      }
+      return null;
+    }
+    
+    /**
+     * Finds the family for the specific OS
+     * @param os the OS
+     * @return the family, or <code>null</code> if not defined
+     */
+    public String find_family(String os) {
+      Map<String,String>  pos = parse_os(os);
+      for ( String family : osMap.keySet()) {
+        Map<String, Set<String>> fam = osMap.get(family);
+        if (fam.get(OS_DISTRO).contains(pos.get(OS_DISTRO)) && fam.get(OS_VERSION).contains(pos.get(OS_VERSION))){
+          return family;
         }
       }
       return null;

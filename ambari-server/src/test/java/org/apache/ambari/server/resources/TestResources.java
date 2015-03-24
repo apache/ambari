@@ -26,6 +26,7 @@ import java.util.Properties;
 import junit.framework.TestCase;
 
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.io.FileUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -36,6 +37,8 @@ import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+
+import static org.easymock.EasyMock.createNiceMock;
 
 public class TestResources extends TestCase {
 	
@@ -76,6 +79,7 @@ public class TestResources extends TestCase {
     protected void configure() {
       bind(Properties.class).toInstance(buildTestProperties());
       bind(Configuration.class).toConstructor(getConfigurationConstructor());
+      bind(OsFamily.class).toInstance(createNiceMock(OsFamily.class));
 	  requestStaticInjection(TestResources.class);
 	}
   }
