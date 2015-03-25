@@ -22,17 +22,19 @@ from unittest import TestCase
 from mock.mock import patch, MagicMock
 import unittest
 import platform
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+import socket
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+from ambari_agent import hostname
+from ambari_agent.Hardware import Hardware
+from ambari_agent.Facter import Facter, FacterLinux
+from ambari_commons import OSCheck
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  from ambari_agent import hostname
-  from ambari_agent.Hardware import Hardware
-  from ambari_agent.Facter import Facter, FacterLinux
-  from ambari_commons import OSCheck
-
-@only_for_platform(PLATFORM_LINUX)
+@not_for_platform(PLATFORM_WINDOWS)
 @patch.object(platform,"linux_distribution", new = ('Suse','11','Final'))
+@patch.object(socket, "getfqdn", new = MagicMock(return_value = "ambari.apache.org"))
+@patch.object(socket, "gethostbyname", new = MagicMock(return_value = "192.168.1.1"))
 class TestHardware(TestCase):
+
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(OSCheck, "get_os_type")
   @patch.object(OSCheck, "get_os_version")

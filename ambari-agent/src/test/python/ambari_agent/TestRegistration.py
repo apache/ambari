@@ -24,16 +24,14 @@ import tempfile
 from mock.mock import patch
 from mock.mock import MagicMock
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+from ambari_commons.os_check import OSCheck
+from ambari_agent.Register import Register
+from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent.Hardware import Hardware
 
-with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
-  from ambari_commons.os_check import OSCheck
-  from ambari_agent.Register import Register
-  from ambari_agent.AmbariConfig import AmbariConfig
-  from ambari_agent.Hardware import Hardware
-
+@not_for_platform(PLATFORM_WINDOWS)
 class TestRegistration(TestCase):
 
-  @not_for_platform(PLATFORM_WINDOWS)
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch("ambari_commons.firewall.run_os_command")
   @patch.object(OSCheck, "get_os_type")

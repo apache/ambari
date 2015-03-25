@@ -30,35 +30,30 @@ from threading import Event
 import json
 from ambari_commons import OSCheck
 from only_for_platform import not_for_platform, only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+from ambari_agent import Controller, ActionQueue, Register
+from ambari_agent import hostname
+from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
+from ambari_commons import OSCheck
+from ambari_agent.Hardware import Hardware
+import ambari_commons
 
-if get_platform() != PLATFORM_WINDOWS:
-  os_distro_value = ('Suse','11','Final')
-else:
-  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
-
-with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
-  from ambari_agent import Controller, ActionQueue, Register
-  from ambari_agent import hostname
-  from ambari_agent.Controller import AGENT_AUTO_RESTART_EXIT_CODE
-  from ambari_commons import OSCheck
-  from ambari_agent.Hardware import Hardware
-  import ambari_commons
+OPERATING_SYSTEM_DISTRO = ('Suse','11','Final')
 
 @not_for_platform(PLATFORM_WINDOWS)
-@patch.object(OSCheck, "os_distribution", new = os_distro_value)
+@patch.object(OSCheck, "os_distribution", new = OPERATING_SYSTEM_DISTRO)
 class TestController(unittest.TestCase):
 
   logger = logging.getLogger()
 
+  @patch.object(Controller, "NetUtil", MagicMock())
+  @patch.object(Controller, "AlertSchedulerHandler", MagicMock())
   @patch("threading.Thread")
   @patch("threading.Lock")
-  @patch.object(Controller, "NetUtil")
   @patch.object(hostname, "hostname")
-  def setUp(self, hostname_method, NetUtil_mock, lockMock, threadMock):
+  def setUp(self, hostname_method, lockMock, threadMock):
 
     Controller.logger = MagicMock()
     lockMock.return_value = MagicMock()
-    NetUtil_mock.return_value = MagicMock()
     hostname_method.return_value = "test_hostname"
 
 
