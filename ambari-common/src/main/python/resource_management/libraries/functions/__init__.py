@@ -38,6 +38,7 @@ from resource_management.libraries.functions.hive_check import *
 from resource_management.libraries.functions.version import *
 from resource_management.libraries.functions.format_jvm_option import *
 from resource_management.libraries.functions.constants import *
+from resource_management.libraries.functions.get_hdp_version import *
 
 IS_WINDOWS = platform.system() == "Windows"
 

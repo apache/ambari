@@ -186,6 +186,17 @@ mapreduce_jobhistory_intermediate_done_dir = config['configurations']['mapred-si
 mapreduce_jobhistory_done_dir = config['configurations']['mapred-site']['mapreduce.jobhistory.done-dir']
 jobhistory_heapsize = default("/configurations/mapred-env/jobhistory_heapsize", "900")
 
+# Tez-related properties
+tez_user = config['configurations']['tez-env']['tez_user']
+
+# Tez jars
+tez_local_api_jars = '/usr/lib/tez/tez*.jar'
+tez_local_lib_jars = '/usr/lib/tez/lib/*.jar'
+app_dir_files = {tez_local_api_jars:None}
+
+# Tez libraries
+tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
+
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

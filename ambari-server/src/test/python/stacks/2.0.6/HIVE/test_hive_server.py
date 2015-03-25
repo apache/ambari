@@ -57,7 +57,6 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.printResources()
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020/apps/hive/warehouse ',
         environment = {'PATH' : "/bin:/usr/lib/hive/bin:/usr/bin"},
         user = 'hive',
@@ -183,56 +182,6 @@ class TestHiveServer(RMFTestCase):
     self.assertFalse(socket_mock.called)
 
   def assert_configure_default(self):
-    self.assertResourceCalled('HdfsDirectory', '/apps/tez/',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
-                              owner = 'tez',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/apps/tez/lib/',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0755,
-                              owner = 'tez',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              action = ['create'],
-                              bin_dir = '/usr/bin',
-                              )
-    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/tez*.jar',
-                              hadoop_bin_dir = '/usr/bin',
-                              hdfs_user = 'hdfs',
-                              owner = 'tez',
-                              dest_file = None,
-                              kinnit_if_needed = '',
-                              dest_dir = '/apps/tez/',
-                              hadoop_conf_dir = '/etc/hadoop/conf',
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('CopyFromLocal', '/usr/lib/tez/lib/*.jar',
-                              hadoop_conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              owner = 'tez',
-                              kinnit_if_needed = '',
-                              dest_dir = '/apps/tez/lib/',
-                              hadoop_bin_dir = '/usr/bin',
-                              mode = 0755,
-                              )
     self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
@@ -335,33 +284,34 @@ class TestHiveServer(RMFTestCase):
                               sudo = True,
                               )
     self.assertResourceCalled('File', '/usr/lib/hive/lib//mysql-connector-java.jar',
-        mode = 0644,
-    )
+                              mode = 0644,
+                              )
     self.assertResourceCalled('File', '/usr/lib/ambari-agent/DBConnectionVerification.jar',
-        content = DownloadSource('http://c6401.ambari.apache.org:8080/resources/DBConnectionVerification.jar'),
-    )
+                              content = DownloadSource('http://c6401.ambari.apache.org:8080/resources'
+                                                       '/DBConnectionVerification.jar'),
+                              )
     self.assertResourceCalled('File', '/tmp/start_hiveserver2_script',
                               content = Template('startHiveserver2.sh.j2'),
                               mode = 0755,
                               )
     self.assertResourceCalled('Directory', '/var/run/hive',
                               owner = 'hive',
-                              group = 'hadoop',
                               mode = 0755,
+                              group = 'hadoop',
                               recursive = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/log/hive',
                               owner = 'hive',
-                              group = 'hadoop',
                               mode = 0755,
+                              group = 'hadoop',
                               recursive = True,
                               cd_access = 'a',
                               )
     self.assertResourceCalled('Directory', '/var/lib/hive',
                               owner = 'hive',
-                              group = 'hadoop',
                               mode = 0755,
+                              group = 'hadoop',
                               recursive = True,
                               cd_access = 'a',
                               )

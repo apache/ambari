@@ -60,8 +60,8 @@ class TestTezClient(RMFTestCase):
 
     self.assertNoMoreResources()
 
-
-  def test_upgrade(self):
+  @patch("resource_management.libraries.functions.get_hdp_version")
+  def test_upgrade(self, get_hdp_version_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
                        classname = "TezClient",
                        command = "restart",
@@ -69,6 +69,7 @@ class TestTezClient(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    get_hdp_version_mock.return_value = "2.2.1.0-2067"
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
 
     # for now, it's enough that hdp-select is confirmed

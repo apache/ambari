@@ -21,10 +21,11 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-
+from install_jars import install_tez_jars
 from yarn import yarn
 from service import service
 
@@ -56,6 +57,11 @@ class Resourcemanager(Script):
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
+    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.1') == 0:
+      install_tez_jars()
+    else:
+      # will work only for stack versions >=2.2
+      copy_tarballs_to_hdfs('tez', 'hadoop-yarn-resourcemanager', params.tez_user, params.hdfs_user, params.user_group)
     service('resourcemanager',
             action='start'
     )

@@ -26,7 +26,6 @@ from resource_management.libraries.functions.dynamic_variable_interpretation imp
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-from install_jars import install_tez_jars
 from setup_ranger_hive import setup_ranger_hive
 
 class HiveServer(Script):
@@ -42,9 +41,6 @@ class HiveServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    if not (params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >=0):
-      install_tez_jars()
-
     hive(name='hiveserver2')
 
 
@@ -55,7 +51,6 @@ class HiveServer(Script):
 
     # This function is needed in HDP 2.2, but it is safe to call in earlier versions.
     copy_tarballs_to_hdfs('mapreduce', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
-    copy_tarballs_to_hdfs('tez', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
     setup_ranger_hive()    
     hive_service( 'hiveserver2', action = 'start',
       rolling_restart=rolling_restart )
