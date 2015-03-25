@@ -327,10 +327,8 @@ GRANT ALL PRIVILEGES ON TABLE ambari.requestoperationlevel TO :username;
 
 CREATE TABLE ambari.ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
-  PRIMARY KEY (cluster_id, host_name));
-  --PRIMARY KEY (cluster_id, host_id));
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY (cluster_id, host_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.ClusterHostMapping TO :username;
 
 CREATE TABLE ambari.key_value_store (

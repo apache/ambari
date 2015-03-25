@@ -290,10 +290,8 @@ CREATE TABLE requestoperationlevel (
 
 CREATE TABLE ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
-  PRIMARY KEY (cluster_id, host_name));
-  --PRIMARY KEY (cluster_id, host_id));
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY (cluster_id, host_id));
 
 CREATE TABLE key_value_store (
   "key" VARCHAR(255),

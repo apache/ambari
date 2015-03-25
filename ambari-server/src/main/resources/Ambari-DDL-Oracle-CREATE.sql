@@ -310,10 +310,8 @@ CREATE TABLE metainfo (
 
 CREATE TABLE ClusterHostMapping (
   cluster_id NUMBER(19) NOT NULL,
-  host_name VARCHAR2(255) NOT NULL,
-  --host_id NUMBER(19) NOT NULL,
-  PRIMARY KEY (cluster_id, host_name));
-  --PRIMARY KEY (cluster_id, host_id));
+  host_id NUMBER(19) NOT NULL,
+  PRIMARY KEY (cluster_id, host_id));
 
 CREATE TABLE ambari_sequences (
   sequence_name VARCHAR2(50) NOT NULL,

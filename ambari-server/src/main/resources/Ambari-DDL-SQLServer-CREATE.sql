@@ -84,7 +84,12 @@ CREATE TABLE stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluste
 CREATE TABLE request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, exclusive_execution BIT NOT NULL DEFAULT 0, inputs VARBINARY(8000), request_context VARCHAR(255), request_type VARCHAR(255), request_schedule_id BIGINT, start_time BIGINT NOT NULL, status VARCHAR(255), PRIMARY KEY CLUSTERED (request_id));
 CREATE TABLE requestresourcefilter (filter_id BIGINT NOT NULL, request_id BIGINT NOT NULL, service_name VARCHAR(255), component_name VARCHAR(255), hosts VARBINARY(8000), PRIMARY KEY CLUSTERED (filter_id));
 CREATE TABLE requestoperationlevel (operation_level_id BIGINT NOT NULL, request_id BIGINT NOT NULL, level_name VARCHAR(255), cluster_name VARCHAR(255), service_name VARCHAR(255), host_component_name VARCHAR(255), host_name VARCHAR(255), PRIMARY KEY CLUSTERED (operation_level_id));
-CREATE TABLE ClusterHostMapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (cluster_id, host_name));
+
+CREATE TABLE ClusterHostMapping (
+  cluster_id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (cluster_id, host_id));
+
 CREATE TABLE key_value_store ([key] VARCHAR(255), [value] VARCHAR(MAX), PRIMARY KEY CLUSTERED ([key]));
 CREATE TABLE hostconfigmapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY CLUSTERED (cluster_id, host_name, type_name, create_timestamp));
 CREATE TABLE metainfo ([metainfo_key] VARCHAR(255), [metainfo_value] VARCHAR(255), PRIMARY KEY CLUSTERED ([metainfo_key]));
