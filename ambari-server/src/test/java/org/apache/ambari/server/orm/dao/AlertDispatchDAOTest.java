@@ -26,6 +26,7 @@ import static org.junit.Assert.assertTrue;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -581,6 +582,43 @@ public class AlertDispatchDAOTest {
       List<AlertGroupEntity> groups = m_dao.findGroupsByDefinition(definition);
       assertEquals(2, groups.size());
     }
+  }
+
+  /**
+   * Tests finding groups by a definition ID that they are associatd with in
+   * order to get any targets associated with that group. This exercises the
+   * bi-directional
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testFindTargetsViaGroupsByDefinition() throws Exception {
+    List<AlertDefinitionEntity> definitions = createDefinitions();
+    AlertGroupEntity group = m_helper.createAlertGroup(
+        m_cluster.getClusterId(), null);
+
+    group = m_dao.findGroupById(group.getGroupId());
+    assertNotNull(group);
+
+    AlertDefinitionEntity definition = definitions.get(0);
+    group.addAlertDefinition(definition);
+
+    m_dao.merge(group);
+
+    List<AlertTargetEntity> targets = m_dao.findAllTargets();
+    AlertTargetEntity target = targets.get(0);
+    Set<AlertTargetEntity> setTargets = Collections.singleton(target);
+
+    group.setAlertTargets(setTargets);
+    m_dao.merge(group);
+
+    List<AlertGroupEntity> groups = m_dao.findGroupsByDefinition(definition);
+    assertEquals(2, groups.size());
+
+    group = groups.get(groups.indexOf(group));
+    assertEquals(1, group.getAlertTargets().size());
+    assertEquals(target.getTargetId(),
+        group.getAlertTargets().iterator().next().getTargetId());
   }
 
   /**

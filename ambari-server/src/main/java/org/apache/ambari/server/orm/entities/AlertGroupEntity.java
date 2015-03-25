@@ -82,7 +82,7 @@ public class AlertGroupEntity {
   /**
    * Unidirectional many-to-many association to {@link AlertTargetEntity}
    */
-  @ManyToMany(cascade = CascadeType.MERGE)
+  @ManyToMany(cascade = { CascadeType.MERGE, CascadeType.REFRESH })
   @JoinTable(name = "alert_group_target", joinColumns = { @JoinColumn(name = "group_id", nullable = false) }, inverseJoinColumns = { @JoinColumn(name = "target_id", nullable = false) })
   private Set<AlertTargetEntity> alertTargets;
 
