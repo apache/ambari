@@ -22,6 +22,10 @@ require('data/service_graph_config');
 
 App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   templateName: require('templates/main/service/info/summary'),
+  /**
+   * @property {Number} chunkSize - number of columns in Metrics section
+   */
+  chunkSize: 5,
   attributes:null,
 
   /**
@@ -301,7 +305,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
    * (will only display rows with 5 items)
    */
   constructGraphObjects: function(graphNames) {
-    var result = [], graphObjects = [], chunkSize = 5;
+    var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
     var self = this;
 
     if (!graphNames) {
@@ -391,7 +395,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       self.set('currentTimeRangeIndex', event.context.index);
       var svcName = self.get('service.serviceName');
       if (svcName) {
-        var result = [], graphObjects = [], chunkSize = 2;
+        var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
         App.service_graph_config[svcName.toLowerCase()].forEach(function(graphName) {
           graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
             currentTimeIndex : event.context.index

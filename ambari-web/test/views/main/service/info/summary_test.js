@@ -36,7 +36,7 @@ describe('App.MainServiceInfoSummaryView', function() {
   });
 
   describe('#servers', function () {
-    it('services shuldn\'t have servers except FLUME and ZOOKEEPER', function () {
+    it('services shouldn\'t have servers except FLUME and ZOOKEEPER', function () {
       expect(view.get('servers')).to.be.empty;
     });
 
@@ -176,6 +176,211 @@ describe('App.MainServiceInfoSummaryView', function() {
         sinon.stub(App, 'get').withArgs('isStormMetricsSupported').returns(item.isStormMetricsSupported);
         view.didInsertElement();
         expect(view.constructGraphObjects.calledOnce).to.equal(item.isConstructGraphObjectsCalled);
+      });
+    });
+
+  });
+
+  describe('#setTimeRange', function () {
+
+    var cases = [
+      {
+        currentTimeRangeIndex: 0,
+        isServiceMetricLoaded: false,
+        graphIds: [],
+        title: 'no event passed'
+      },
+      {
+        event: {},
+        currentTimeRangeIndex: 0,
+        isServiceMetricLoaded: false,
+        graphIds: [],
+        title: 'no event context passed'
+      },
+      {
+        event: {
+          context: {
+            index: 1
+          }
+        },
+        currentTimeRangeIndex: 1,
+        isServiceMetricLoaded: false,
+        graphIds: [],
+        title: 'no service name set'
+      },
+      {
+        event: {
+          context: {
+            index: 2
+          }
+        },
+        serviceName: 'HDFS',
+        currentTimeRangeIndex: 2,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-hdfs-space-utilization', 'service-metrics-hdfs-file-operations',
+            'service-metrics-hdfs-block-status', 'service-metrics-hdfs-io', 'service-metrics-hdfs-rpc'
+          ],
+          [
+            'service-metrics-hdfs-gc', 'service-metrics-hdfs-jvm-heap', 'service-metrics-hdfs-jvm-threads'
+          ]
+        ]
+      },
+      {
+        event: {
+          context: {
+            index: 3
+          }
+        },
+        serviceName: 'YARN',
+        currentTimeRangeIndex: 3,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-yarn-queue-allocated', 'service-metrics-yarn-queue-memory-resource',
+            'service-metrics-yarn-queue-allocated-container', 'service-metrics-yarn-node-manager-statuses',
+            'service-metrics-yarn-apps-current-states'
+          ],
+          [
+            'service-metrics-yarn-apps-finished-states', 'service-metrics-yarn-rpc', 'service-metrics-yarn-gc',
+            'service-metrics-yarn-jvm-threads', 'service-metrics-yarn-jvm-heap'
+          ]
+        ]
+      },
+      {
+        event: {
+          context: {
+            index: 4
+          }
+        },
+        serviceName: 'HBASE',
+        currentTimeRangeIndex: 4,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-hbase-cluster-requests', 'service-metrics-hbase-regionserver-rw-requests',
+            'service-metrics-hbase-regionserver-regions', 'service-metrics-hbase-regionserver-queuesize',
+            'service-metrics-hbase-hlog-split-time'
+          ],
+          [
+            'service-metrics-hbase-hlog-split-size'
+          ]
+        ]
+      },
+      {
+        event: {
+          context: {
+            index: 5
+          }
+        },
+        serviceName: 'AMBARI_METRICS',
+        currentTimeRangeIndex: 5,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-ambari-metrics-master-average-load',
+            'service-metrics-ambari-metrics-region-server-store-files',
+            'service-metrics-ambari-metrics-region-server-regions',
+            'service-metrics-ambari-metrics-region-server-requests',
+            'service-metrics-ambari-metrics-region-server-block-cache-hit-percent'
+          ],
+          [
+            'service-metrics-ambari-metrics-region-server-compaction-queue-size'
+          ]
+        ]
+      },
+      {
+        event: {
+          context: {
+            index: 6
+          }
+        },
+        serviceName: 'FLUME',
+        currentTimeRangeIndex: 6,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-flume-channel-size-mma', 'service-metrics-flume-channel-size-sum',
+            'service-metrics-flume-incoming_mma', 'service-metrics-flume-incoming_sum',
+            'service-metrics-flume-outgoing_mma'
+          ],
+          [
+            'service-metrics-flume-outgoing_sum'
+          ]
+        ]
+      },
+      {
+        event: {
+          context: {
+            index: 7
+          }
+        },
+        serviceName: 'STORM',
+        currentTimeRangeIndex: 7,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-storm-supervisor-allocated', 'service-metrics-storm-executors',
+            'service-metrics-storm-topologies', 'service-metrics-storm-tasks'
+          ]
+        ]
+      },
+      {
+        event: {
+          context: {
+            index: 8
+          }
+        },
+        serviceName: 'KAFKA',
+        chunkSize: 4,
+        currentTimeRangeIndex: 8,
+        isServiceMetricLoaded: true,
+        graphIds: [
+          [
+            'service-metrics-kafka-broker-topic-metrics', 'service-metrics-kafka-controller-metrics',
+            'service-metrics-kafka-controler-status-metrics', 'service-metrics-kafka-replica-manager-metrics'
+          ],
+          [
+            'service-metrics-kafka-log-metrics', 'service-metrics-kafka-replica-fetcher-metrics'
+          ]
+        ]
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(view, 'postUserPref', Em.K);
+      view.setProperties({
+        chunkSize: 5,
+        currentTimeRangeIndex: 0,
+        isServiceMetricLoaded: false,
+        serviceMetricGraphs: []
+      });
+    });
+
+    afterEach(function () {
+      view.postUserPref.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.serviceName || item.title, function () {
+        view.set('chunkSize', Em.isNone(item.chunkSize) ? 5 : item.chunkSize);
+        view.set('service.serviceName', item.serviceName);
+        view.setTimeRange(item.event);
+        var graphIndices = [],
+          graphIds = view.get('serviceMetricGraphs').map(function (graphs) {
+          return graphs.map(function (graph) {
+            var graphView = graph.create();
+            graphIndices.push(graphView.get('currentTimeIndex'));
+            return graphView.get('id');
+          });
+        });
+        expect(view.get('currentTimeRangeIndex')).to.equal(item.currentTimeRangeIndex);
+        expect(view.get('isServiceMetricLoaded')).to.equal(item.isServiceMetricLoaded);
+        if (item.event && item.event.context && item.serviceName) {
+          expect(graphIndices.uniq()).to.eql([item.currentTimeRangeIndex]);
+        }
+        expect(graphIds).to.eql(item.graphIds);
       });
     });
 
