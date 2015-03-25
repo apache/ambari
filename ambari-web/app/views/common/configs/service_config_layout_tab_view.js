@@ -44,18 +44,25 @@ App.ServiceConfigLayoutTabView = Em.View.extend({
   prepareConfigProperties: function () {
     var widgetTypeMap = this.get('widgetTypeMap');
     var self = this;
+    var serviceName = self.get('controller.content.serviceName');
     this.get('content.sectionRows').forEach(function (row) {
       row.forEach(function (section) {
         section.get('subsectionRows').forEach(function (subRow) {
           subRow.forEach(function (subsection) {
             subsection.set('configs', []);
             subsection.get('configProperties').forEach(function (config) {
-              var c = App.ConfigProperty.find(config.get('id') + '_' + self.get('controller.selectedVersion'));
-              subsection.get('configs').pushObject(c);
+
+              var service = self.get('controller.stepConfigs').findProperty('serviceName', serviceName);
+              if (!service) return;
+              var configProperty = service.get('configs').findProperty('name', config.get('name'));
+              if (!configProperty) return;
+
+              subsection.get('configs').pushObject(configProperty);
               var configWidgetType = config.get('widget.type');
               var widget = widgetTypeMap[configWidgetType];
-              Em.assert('Unknown config widget view for config ' + c.get('id') + ' with type ' + configWidgetType, widget);
-              c.set('widget', widget);
+              Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
+              configProperty.set('widget', widget);
+              configProperty.set('stackConfigProperty', config);
             });
           });
         });

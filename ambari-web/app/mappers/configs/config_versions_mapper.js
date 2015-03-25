@@ -37,6 +37,7 @@ App.configVersionsMapper = App.QuickDataMapper.create({
   },
 
   map: function (json, isForCompare) {
+    console.time("App.configVersionsMapper execution time");
     var configVersions = [];
     var itemIds = {};
     var serviceToHostMap = {};
@@ -124,6 +125,7 @@ App.configVersionsMapper = App.QuickDataMapper.create({
 
       this.deleteUnusedProperties(requestedProperties);
     }
+    console.timeEnd("App.configVersionsMapper execution time");
   },
 
 
