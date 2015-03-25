@@ -38,6 +38,7 @@ import org.junit.rules.TemporaryFolder;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
@@ -66,7 +67,7 @@ public class UpdateKerberosConfigsServerActionTest {
     replay(controller);
 
     configHelper.updateConfigType(anyObject(Cluster.class), anyObject(AmbariManagementController.class),
-        anyObject(String.class), anyObject(Map.class), anyObject(String.class), anyObject(String.class));
+        anyObject(String.class), anyObject(Map.class), anyObject(Collection.class), anyObject(String.class), anyObject(String.class));
     expectLastCall().atLeastOnce();
     replay(configHelper);
 

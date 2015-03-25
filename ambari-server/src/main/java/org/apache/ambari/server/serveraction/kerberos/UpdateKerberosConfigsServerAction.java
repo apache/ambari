@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -76,7 +78,8 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
 
     String authenticatedUserName = getCommandParameterValue(getCommandParameters(), KerberosServerAction.AUTHENTICATED_USER_NAME);
     String dataDirectoryPath = getCommandParameterValue(getCommandParameters(), KerberosServerAction.DATA_DIRECTORY);
-    HashMap<String, Map<String, String>> configurations = new HashMap<String, Map<String, String>>();
+    HashMap<String, Map<String, String>> propertiesToSet = new HashMap<String, Map<String, String>>();
+    HashMap<String, Collection<String>> propertiesToRemove = new HashMap<String, Collection<String>>();
 
     // If the data directory path is set, attempt to process further, else assume there is no work to do
     if (dataDirectoryPath != null) {
@@ -101,7 +104,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
               if (principalTokens.length == 2) {
                 String principalConfigType = principalTokens[0];
                 String principalConfigProp = principalTokens[1];
-                addConfigTypePropVal(configurations, principalConfigType, principalConfigProp, principal);
+                addConfigTypePropVal(propertiesToSet, principalConfigType, principalConfigProp, principal);
               }
 
               String keytabPath = record.get(KerberosActionDataFile.KEYTAB_FILE_PATH);
@@ -110,7 +113,7 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
               if (keytabTokens.length == 2) {
                 String keytabConfigType = keytabTokens[0];
                 String keytabConfigProp = keytabTokens[1];
-                addConfigTypePropVal(configurations, keytabConfigType, keytabConfigProp, keytabPath);
+                addConfigTypePropVal(propertiesToSet, keytabConfigType, keytabConfigProp, keytabPath);
               }
             }
           }
@@ -124,17 +127,25 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
               String configType = record.get(KerberosConfigDataFile.CONFIGURATION_TYPE);
               String configKey = record.get(KerberosConfigDataFile.KEY);
               String configVal = record.get(KerberosConfigDataFile.VALUE);
-              addConfigTypePropVal(configurations, configType, configKey, configVal);
+              String configOp = record.get(KerberosConfigDataFile.OPERATION);
+
+              if (KerberosConfigDataFile.OPERATION_TYPE_REMOVE.equals(configOp)) {
+                removeConfigTypeProp(propertiesToRemove, configType, configKey);
+              } else {
+                addConfigTypePropVal(propertiesToSet, configType, configKey, configVal);
+              }
             }
           }
 
-          if (!configurations.isEmpty()) {
+          if (!propertiesToSet.isEmpty()) {
             String configNote = cluster.getSecurityType() == SecurityType.KERBEROS
                 ? "Enabling Kerberos"
                 : "Disabling Kerberos";
 
-            for (Map.Entry<String, Map<String, String>> entry : configurations.entrySet()) {
-                configHelper.updateConfigType(cluster, controller, entry.getKey(), entry.getValue(),
+            for (Map.Entry<String, Map<String, String>> entry : propertiesToSet.entrySet()) {
+              String type = entry.getKey();
+
+              configHelper.updateConfigType(cluster, controller, type, entry.getValue(), propertiesToRemove.get(type),
                   authenticatedUserName, configNote);
             }
           }
@@ -185,18 +196,35 @@ public class UpdateKerberosConfigsServerAction extends AbstractServerAction {
   /**
    * Adds a property to properties of a given service config type
    *
-   * @param configurations
-   * @param configtype     service config type
+   * @param configurations a map of configurations
+   * @param configType     service config type
    * @param prop           property to be added
-   * @param val            value for the proeprty
+   * @param val            value for the property
    */
-  private void addConfigTypePropVal(HashMap<String, Map<String, String>> configurations, String configtype, String prop, String val) {
-    Map<String, String> configtypePropsVal = configurations.get(configtype);
-    if (configtypePropsVal == null) {
-      configtypePropsVal = new HashMap<String, String>();
-      configurations.put(configtype, configtypePropsVal);
+  private void addConfigTypePropVal(HashMap<String, Map<String, String>> configurations, String configType, String prop, String val) {
+    Map<String, String> configTypePropsVal = configurations.get(configType);
+    if (configTypePropsVal == null) {
+      configTypePropsVal = new HashMap<String, String>();
+      configurations.put(configType, configTypePropsVal);
     }
-    configtypePropsVal.put(prop, val);
+    configTypePropsVal.put(prop, val);
+    actionLog.writeStdOut(String.format("Setting property %s/%s: %s", configType, prop, (val == null) ? "<null>" : val));
   }
 
+  /**
+   * Removes a property from the set of properties of a given service config type
+   *
+   * @param configurations a map of configurations
+   * @param configType     service config type
+   * @param prop           property to be removed
+   */
+  private void removeConfigTypeProp(HashMap<String, Collection<String>> configurations, String configType, String prop) {
+    Collection<String> configTypeProps = configurations.get(configType);
+    if (configTypeProps == null) {
+      configTypeProps = new HashSet<String>();
+      configurations.put(configType, configTypeProps);
+    }
+    configTypeProps.add(prop);
+    actionLog.writeStdOut(String.format("Removing property %s/%s", configType, prop));
+  }
 }

@@ -411,7 +411,7 @@ public class KerberosHelper {
       setAuthToLocalRules(kerberosDescriptor, cluster, kerberosDetails.getDefaultRealm(), configurations, kerberosConfigurations);
 
       for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
-        configHelper.updateConfigType(cluster, ambariManagementController, entry.getKey(), entry.getValue(),
+        configHelper.updateConfigType(cluster, ambariManagementController, entry.getKey(), entry.getValue(), null,
             ambariManagementController.getAuthName(), String.format("Enabling Kerberos for %s", serviceName));
       }
     }
@@ -2253,7 +2253,8 @@ public class KerberosHelper {
               for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
                 kerberosConfDataFileBuilder.addRecord(type,
                     configTypeEntry.getKey(),
-                    configTypeEntry.getValue());
+                    configTypeEntry.getValue(),
+                    KerberosConfigDataFile.OPERATION_TYPE_SET);
               }
             }
           }
@@ -2373,8 +2374,20 @@ public class KerberosHelper {
       // If there are configurations to set, create a (temporary) data file to store the configuration
       // updates and fill it will the relevant configurations.
       if (!kerberosConfigurations.isEmpty()) {
+        Map<String, Collection<String>> configurationsToRemove = new HashMap<String, Collection<String>>();
         File configFile = new File(dataDirectory, KerberosConfigDataFile.DATA_FILE_NAME);
         KerberosConfigDataFileBuilder kerberosConfDataFileBuilder = null;
+
+        // Fill the configurationsToRemove map with all Kerberos-related configurations.  Values
+        // needed to be kept will have new values from the stack definition and thus pruned from
+        // this map.
+        for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
+          configurationsToRemove.put(entry.getKey(), new HashSet<String>(entry.getValue().keySet()));
+        }
+
+        // Remove cluster-env from the set of configurations to remove since it has no default set
+        // or properties and the logic below will remove all from this set - which is not desirable.
+        configurationsToRemove.remove("cluster-env");
 
         if (serviceComponentHosts != null) {
           Set<String> visitedServices = new HashSet<String>();
@@ -2395,10 +2408,18 @@ public class KerberosHelper {
                     String filename = propertyInfo.getFilename();
 
                     if (filename != null) {
-                      Map<String, String> kerberosConfiguration = kerberosConfigurations.get(ConfigHelper.fileNameToConfigType(filename));
+                      String type = ConfigHelper.fileNameToConfigType(filename);
+                      String propertyName = propertyInfo.getName();
 
-                      if ((kerberosConfiguration != null) && (kerberosConfiguration.containsKey(propertyInfo.getName()))) {
-                        kerberosConfiguration.put(propertyInfo.getName(), propertyInfo.getValue());
+                      Map<String, String> kerberosConfiguration = kerberosConfigurations.get(type);
+                      if ((kerberosConfiguration != null) && (kerberosConfiguration.containsKey(propertyName))) {
+                        kerberosConfiguration.put(propertyName, propertyInfo.getValue());
+                      }
+
+                      // Remove the relevant from the set of properties (for the given type) to remove
+                      Collection<String> propertiesToRemove = configurationsToRemove.get(type);
+                      if(propertiesToRemove != null) {
+                        propertiesToRemove.remove(propertyName);
                       }
                     }
                   }
@@ -2417,9 +2438,25 @@ public class KerberosHelper {
 
             if (properties != null) {
               for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
+                String value = configTypeEntry.getValue();
+
                 kerberosConfDataFileBuilder.addRecord(type,
                     configTypeEntry.getKey(),
-                    configTypeEntry.getValue());
+                    value,
+                    (value == null) ? KerberosConfigDataFile.OPERATION_TYPE_REMOVE : KerberosConfigDataFile.OPERATION_TYPE_SET
+                );
+              }
+            }
+          }
+
+          // Declare which properties to remove from the configurations
+          for (Map.Entry<String, Collection<String>> entry : configurationsToRemove.entrySet()) {
+            String type = entry.getKey();
+            Collection<String> properties = entry.getValue();
+
+            if (properties != null) {
+              for (String propertyName : properties) {
+                kerberosConfDataFileBuilder.addRecord(type, propertyName, null, KerberosConfigDataFile.OPERATION_TYPE_REMOVE);
               }
             }
           }

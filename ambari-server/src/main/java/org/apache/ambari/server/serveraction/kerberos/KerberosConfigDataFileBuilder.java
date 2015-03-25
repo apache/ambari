@@ -49,17 +49,18 @@ public class KerberosConfigDataFileBuilder extends AbstractKerberosDataFileBuild
   /**
    * Appends a new record to the data file
    *
-   * @param config a String declaring the relevant configuration type for the key and value
-   * @param key    a String declaring the key (or property name) with in the relevant configuration type
-   * @param value  a String containing the value of the configuration property
+   * @param config    a String declaring the relevant configuration type for the key and value
+   * @param key       a String declaring the key (or property name) with in the relevant configuration type
+   * @param value     a String containing the value of the configuration property
+   * @param operation a String containing the operation to perform, expected "SET" or "REMOVE"
    * @throws java.io.IOException
    */
-  public void addRecord(String config, String key, String value) throws IOException {
-    super.appendRecord(config, key, value);
+  public void addRecord(String config, String key, String value, String operation) throws IOException {
+    super.appendRecord(config, key, value, operation);
   }
 
   @Override
   protected Iterable<String> getHeaderRecord() {
-    return Arrays.asList(CONFIGURATION_TYPE, KEY, VALUE);
+    return Arrays.asList(CONFIGURATION_TYPE, KEY, VALUE, OPERATION);
   }
 }

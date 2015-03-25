@@ -46,7 +46,10 @@ public class KerberosConfigDataFileTest {
     Assert.assertFalse(builder.isClosed());
 
     for (int i = 0; i < 10; i++) {
-      builder.addRecord("config-type" + i, "key" + i, "value" + i);
+      builder.addRecord("config-type" + i, "key" + i, "value" + i, KerberosConfigDataFile.OPERATION_TYPE_SET);
+    }
+    for (int i = 10; i < 15; i++) {
+      builder.addRecord("config-type" + i, "key" + i, "value" + i, KerberosConfigDataFile.OPERATION_TYPE_REMOVE);
     }
 
     builder.close();
@@ -64,14 +67,23 @@ public class KerberosConfigDataFileTest {
     while (iterator.hasNext()) {
       Map<String, String> record = iterator.next();
 
-      if (i < 10) {
+      if (i < 15) {
         Assert.assertEquals("config-type" + i, record.get(KerberosConfigDataFile.CONFIGURATION_TYPE));
         Assert.assertEquals("key" + i, record.get(KerberosConfigDataFile.KEY));
         Assert.assertEquals("value" + i, record.get(KerberosConfigDataFile.VALUE));
+
+        if(i<10) {
+          Assert.assertEquals("SET", record.get(KerberosConfigDataFile.OPERATION));
+        }
+        else {
+          Assert.assertEquals("REMOVE", record.get(KerberosConfigDataFile.OPERATION));
+        }
       }
 
       i++;
     }
+
+    Assert.assertEquals(15, i);
 
     reader.close();
     Assert.assertTrue(reader.isClosed());
@@ -89,6 +101,8 @@ public class KerberosConfigDataFileTest {
       i++;
     }
 
+    Assert.assertEquals(15, i);
+
     reader.close();
     Assert.assertTrue(reader.isClosed());
 
@@ -96,7 +110,7 @@ public class KerberosConfigDataFileTest {
     builder.open();
     Assert.assertFalse(builder.isClosed());
 
-    builder.addRecord("config-type", "key", "value");
+    builder.addRecord("config-type", "key", "value", KerberosConfigDataFile.OPERATION_TYPE_SET);
 
     builder.close();
     Assert.assertTrue(builder.isClosed());
@@ -109,7 +123,7 @@ public class KerberosConfigDataFileTest {
       i++;
     }
 
-    Assert.assertEquals(11, i);
+    Assert.assertEquals(16, i);
 
     reader.close();
     Assert.assertTrue(reader.isClosed());
@@ -118,7 +132,7 @@ public class KerberosConfigDataFileTest {
     builder = new KerberosConfigDataFileBuilder(file);
     Assert.assertFalse(builder.isClosed());
 
-    builder.addRecord("config-type", "key", "value");
+    builder.addRecord("config-type", "key", "value", KerberosConfigDataFile.OPERATION_TYPE_REMOVE);
 
     builder.close();
     Assert.assertTrue(builder.isClosed());
@@ -131,7 +145,7 @@ public class KerberosConfigDataFileTest {
       i++;
     }
 
-    Assert.assertEquals(12, i);
+    Assert.assertEquals(17, i);
 
     reader.close();
     Assert.assertTrue(reader.isClosed());

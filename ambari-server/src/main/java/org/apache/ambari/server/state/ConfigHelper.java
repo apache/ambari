@@ -655,13 +655,15 @@ public class ConfigHelper {
    * @param controller
    * @param configType
    * @param updates
+   * @param removals a collection of property names to remove from the configuration type
    * @param authenticatedUserName
    * @param serviceVersionNote
    * @throws AmbariException
    */
   public void updateConfigType(Cluster cluster,
                                AmbariManagementController controller, String configType,
-                               Map<String, String> updates, String authenticatedUserName,
+                               Map<String, String> updates, Collection<String> removals,
+                               String authenticatedUserName,
                                String serviceVersionNote) throws AmbariException {
 
     if((configType != null) && (updates != null) && !updates.isEmpty()) {
@@ -679,6 +681,13 @@ public class ConfigHelper {
       }
 
       properties.putAll(updates);
+
+      // Remove properties that need to be removed.
+      if(removals != null) {
+        for (String propertyName : removals) {
+          properties.remove(propertyName);
+        }
+      }
 
       if ((oldConfigProperties == null) || !Maps.difference(oldConfigProperties, properties).areEqual()) {
         createConfigType(cluster, controller, configType, properties, authenticatedUserName, serviceVersionNote);
