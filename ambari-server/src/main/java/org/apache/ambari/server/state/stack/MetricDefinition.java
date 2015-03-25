@@ -18,8 +18,13 @@
 
 package org.apache.ambari.server.state.stack;
 
+import org.codehaus.jackson.annotate.JsonIgnore;
+import org.codehaus.jackson.annotate.JsonProperty;
+
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Map.Entry;
 
 /**
  * Used to represent metrics for a stack component.
@@ -27,7 +32,7 @@ import java.util.Map;
 public class MetricDefinition {
   private String type = null;
   private Map<String, String> properties = null;
-  private Map<String, Metric> metrics = null;
+  private Map<String, Map<String, Metric>> metrics = null;
   
   public String getType() {
     return type;
@@ -36,16 +41,29 @@ public class MetricDefinition {
   public Map<String, String> getProperties() {
     return properties;
   }
-  
-  public Map<String, Metric> getMetrics() {
+
+  @JsonProperty("metrics")
+  public Map<String, Map<String, Metric>> getMetricsByCategory() {
     return metrics;
+  }
+
+  /**
+   * Return flat metric map without category
+   */
+  @JsonIgnore
+  public Map<String, Metric> getMetrics() {
+    Map<String, Metric> metricMap = new HashMap<String, Metric>();
+    for (Entry<String, Map<String, Metric>> metricMapEntry : metrics.entrySet()) {
+      metricMap.putAll(metricMapEntry.getValue());
+    }
+    return metricMap;
   }
   
   public String toString() {
     StringBuilder sb = new StringBuilder();
     sb.append("{type=").append(type);
     sb.append(";properties=").append(properties);
-    sb.append(";metric_count=").append(metrics.size());
+    sb.append(";metric_count=").append(getMetrics().size());
     sb.append('}');
     
     return sb.toString();

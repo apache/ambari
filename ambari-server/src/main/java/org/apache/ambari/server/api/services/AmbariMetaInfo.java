@@ -229,7 +229,7 @@ public class AmbariMetaInfo {
     // Need to be initialized before all actions
     ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
     readServerVersion();
-    stackManager = new StackManager(stackRoot,commonServicesRoot,
+    stackManager = new StackManager(stackRoot, commonServicesRoot,
         new StackContext(metaInfoDAO, actionMetadata, os_family));
     getCustomActionDefinitions(customActionRoot);
   }
@@ -800,12 +800,10 @@ public class AmbariMetaInfo {
   }
 
   /**
-   * Gets the metrics for a Role (component).
-   * @return the list of defined metrics.
+   * Return metrics for a stack service.
    */
-  public List<MetricDefinition> getMetrics(String stackName, String stackVersion,
-      String serviceName, String componentName, String metricType)
-  throws AmbariException {
+  public Map<String, Map<String, List<MetricDefinition>>> getServiceMetrics(String stackName,
+            String stackVersion, String serviceName) throws AmbariException {
 
     ServiceInfo svc = getService(stackName, stackVersion, serviceName);
 
@@ -836,7 +834,21 @@ public class AmbariMetaInfo {
       }
     }
 
-    if (map.containsKey(componentName)) {
+    return map;
+  }
+
+  /**
+   * Gets the metrics for a Role (component).
+   * @return the list of defined metrics.
+   */
+  public List<MetricDefinition> getMetrics(String stackName, String stackVersion,
+      String serviceName, String componentName, String metricType)
+      throws AmbariException {
+
+    Map<String, Map<String, List<MetricDefinition>>> map =
+      getServiceMetrics(stackName, stackVersion, serviceName);
+
+    if (map != null && map.containsKey(componentName)) {
       if (map.get(componentName).containsKey(metricType)) {
         return map.get(componentName).get(metricType);
       }

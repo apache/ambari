@@ -6259,6 +6259,7 @@
         "temporal":true
       }
     },
+
     "HBASE_MASTER":{
       "metrics/boottime":{
         "metric":"boottime",
@@ -10789,6 +10790,7 @@
         "temporal":true
       }
     },
+
     "FLUME_HANDLER":{
       "metrics/boottime":{
         "metric":"boottime",
@@ -11077,7 +11079,6 @@
       }
     }
   },
-
   "HostComponent":{
 
     "NAMENODE":{
@@ -19902,6 +19903,7 @@
         "temporal":true
       }
     },
+
     "FLUME_HANDLER":{
       "metrics/boottime":{
         "metric":"boottime",
