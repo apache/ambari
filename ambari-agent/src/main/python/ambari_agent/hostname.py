@@ -29,6 +29,7 @@ logger = logging.getLogger()
 
 cached_hostname = None
 cached_public_hostname = None
+cached_server_hostname = None
 
 
 def hostname(config):
@@ -66,6 +67,7 @@ def public_hostname(config):
       out, err = output.communicate()
       if (0 == output.returncode and 0 != len(out.strip())):
         cached_public_hostname = out.strip()
+        logger.info("Read public hostname " + cached_public_hostname + "using agent:public_hostname_script")
         return cached_public_hostname
   except:
     #ignore for now.
@@ -84,9 +86,31 @@ def public_hostname(config):
     cached_public_hostname = socket.getfqdn().lower()
   return cached_public_hostname
 
+def server_hostname(config):
+  global cached_server_hostname
+  if cached_server_hostname is not None:
+    return cached_server_hostname
+
+  if config.has_option('server', 'hostname_script'):
+    scriptname = config.get('server', 'hostname_script')
+    try:
+      osStat = subprocess.Popen([scriptname], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+      out, err = osStat.communicate()
+      if (0 == osStat.returncode and 0 != len(out.strip())):
+        cached_server_hostname = out.strip()
+        logger.info("Read server hostname " + cached_server_hostname + "using server:hostname_script")
+    except Exception, err:
+      logger.info("Unable to execute hostname_script for server hostname. " + str(err))
+
+  if cached_server_hostname is None:
+    cached_server_hostname  = config.get('server', 'hostname')
+  return cached_server_hostname
+
+
 def main(argv=None):
   print hostname()
   print public_hostname()
+  print server_hostname()
 
 if __name__ == '__main__':
   main()

@@ -247,7 +247,7 @@ def main(heartbeat_stop_callback=None):
 
   update_log_level(config)
 
-  server_hostname = config.get('server', 'hostname')
+  server_hostname = hostname.server_hostname(config)
   server_url = config.get_api_url()
 
   if not OSCheck.get_os_family() == OSConst.WINSRV_FAMILY:

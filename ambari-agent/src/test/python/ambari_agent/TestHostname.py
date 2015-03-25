@@ -28,7 +28,7 @@ import shutil
 import os, pprint, json,stat
 from mock.mock import patch, MagicMock
 from ambari_commons import OSCheck
-from only_for_platform import only_for_platform, get_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
+from only_for_platform import only_for_platform, get_platform, not_for_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
 
 if get_platform() != PLATFORM_WINDOWS:
   os_distro_value = ('Suse','11','Final')
@@ -44,6 +44,38 @@ class TestHostname(TestCase):
     config = AmbariConfig()
     self.assertEquals(hostname.hostname(config), socket.getfqdn().lower(),
                       "hostname should equal the socket-based hostname")
+    pass
+
+  def test_server_hostname(self):
+    hostname.cached_server_hostname = None
+    config = AmbariConfig()
+    default_server_hostname = config.get('server', 'hostname')
+    config.set('server', 'hostname', 'ambari-host')
+    self.assertEquals('ambari-host', hostname.server_hostname(config),
+                      "hostname should equal the socket-based hostname")
+    config.set('server', 'hostname', default_server_hostname)
+    pass
+
+  @not_for_platform(PLATFORM_WINDOWS)
+  def test_server_hostname_override(self):
+    hostname.cached_server_hostname = None
+    fd = tempfile.mkstemp(text=True)
+    tmpname = fd[1]
+    os.close(fd[0])
+    os.chmod(tmpname, os.stat(tmpname).st_mode | stat.S_IXUSR)
+
+    tmpfile = file(tmpname, "w+")
+    config = AmbariConfig()
+    try:
+      tmpfile.write("#!/bin/sh\n\necho 'test.example.com'")
+      tmpfile.close()
+
+      config.set('server', 'hostname_script', tmpname)
+
+      self.assertEquals(hostname.server_hostname(config), 'test.example.com', "expected hostname 'test.example.com'")
+    finally:
+      os.remove(tmpname)
+      config.remove_option('server', 'hostname_script')
     pass
 
   @only_for_platform(PLATFORM_LINUX)

@@ -63,7 +63,7 @@ class Controller(threading.Thread):
     self.credential = None
     self.config = config
     self.hostname = hostname.hostname(config)
-    self.serverHostname = config.get('server', 'hostname')
+    self.serverHostname = hostname.server_hostname(config)
     server_secured_url = 'https://' + self.serverHostname + \
                          ':' + config.get('server', 'secured_url_port')
     self.registerUrl = server_secured_url + '/agent/v1/register/' + self.hostname

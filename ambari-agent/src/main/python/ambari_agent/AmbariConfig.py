@@ -20,6 +20,7 @@ limitations under the License.
 
 import ConfigParser
 import StringIO
+import hostname
 import json
 from NetUtil import NetUtil
 import os
@@ -231,7 +232,7 @@ class AmbariConfig:
 
   def get_api_url(self):
     return "%s://%s:%s" % (self.CONNECTION_PROTOCOL,
-                           self.get('server', 'hostname'),
+                           hostname.server_hostname(self),
                            self.get('server', 'url_port'))
 
   def isTwoWaySSLConnection(self):

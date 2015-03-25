@@ -106,7 +106,7 @@ class CachedHTTPSConnection:
   def __init__(self, config):
     self.connected = False
     self.config = config
-    self.server = config.get('server', 'hostname')
+    self.server = hostname.server_hostname(config)
     self.port = config.get('server', 'secured_url_port')
     self.connect()
 
@@ -143,7 +143,7 @@ class CertificateManager():
     self.config = config
     self.keysdir = os.path.abspath(self.config.get('security', 'keysdir'))
     self.server_crt = self.config.get('security', 'server_crt')
-    self.server_url = 'https://' + self.config.get('server', 'hostname') + ':' \
+    self.server_url = 'https://' + hostname.server_hostname(config) + ':' \
        + self.config.get('server', 'url_port')
 
   def getAgentKeyName(self):
