@@ -94,11 +94,11 @@ def set_file_permissions(file, mod, user, recursive):
   else:
     print_info_msg("File %s does not exist" % file)
 
-def run_os_command(cmd, env=None):
-  return os_run_os_command(cmd, env, False)
+def run_os_command(cmd, env=None, cwd=None):
+  return os_run_os_command(cmd, env, False, cwd)
 
-def run_in_shell(cmd, env=None):
-  return os_run_os_command(cmd, env, True)
+def run_in_shell(cmd, env=None, cwd=None):
+  return os_run_os_command(cmd, env, True, cwd)
 
 def is_root():
   return os_is_root()

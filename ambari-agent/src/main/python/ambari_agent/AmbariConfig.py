@@ -23,6 +23,10 @@ import StringIO
 import json
 from NetUtil import NetUtil
 import os
+
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
 content = """
 
 [server]
@@ -173,6 +177,15 @@ class AmbariConfig:
     return self.config
 
   @staticmethod
+  @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
+  def getConfigFile():
+    if 'AMBARI_AGENT_CONF_DIR' in os.environ:
+      return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
+    else:
+      return "ambari-agent.ini"
+
+  @staticmethod
+  @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
   def getConfigFile():
     if 'AMBARI_AGENT_CONF_DIR' in os.environ:
       return os.path.join(os.environ['AMBARI_AGENT_CONF_DIR'], "ambari-agent.ini")
@@ -230,6 +243,18 @@ class AmbariConfig:
       return True
     else:
       return False
+
+
+def updateConfigServerHostname(configFile, new_host):
+  # update agent config file
+  agent_config = ConfigParser.ConfigParser()
+  agent_config.read(configFile)
+  server_host = agent_config.get('server', 'hostname')
+  if new_host is not None and server_host != new_host:
+    print "Updating server host from " + server_host + " to " + new_host
+    agent_config.set('server', 'hostname', new_host)
+    with (open(configFile, "wb")) as new_agent_config:
+      agent_config.write(new_agent_config)
 
 
 def main():

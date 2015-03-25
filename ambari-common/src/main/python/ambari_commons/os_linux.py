@@ -33,7 +33,7 @@ NR_CHOWN_CMD = 'chown {0} {1} {2}'
 ULIMIT_CMD = "ulimit -n"
 
 
-def os_run_os_command(cmd, env=None, shell=False):
+def os_run_os_command(cmd, env=None, shell=False, cwd=None):
   print_info_msg('about to run command: ' + str(cmd))
   if type(cmd) == str:
     cmd = shlex.split(cmd)
@@ -42,6 +42,7 @@ def os_run_os_command(cmd, env=None, shell=False):
                              stdin=subprocess.PIPE,
                              stderr=subprocess.PIPE,
                              env=env,
+                             cwd=cwd,
                              shell=shell
                              )
   (stdoutdata, stderrdata) = process.communicate()

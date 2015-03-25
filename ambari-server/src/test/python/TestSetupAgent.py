@@ -20,7 +20,23 @@ from mock.mock import MagicMock
 from unittest import TestCase
 from mock.mock import patch
 import sys
-setup_agent = __import__('setupAgent')
+
+from ambari_commons import OSCheck
+from only_for_platform import get_platform, not_for_platform, only_for_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
+from mock.mock import MagicMock, patch, ANY, Mock
+
+if get_platform() != PLATFORM_WINDOWS:
+  os_distro_value = ('Suse','11','Final')
+else:
+  os_distro_value = ('win2012serverr2','6.3','WindowsServer')
+
+with patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value)):
+#  from ambari_agent import NetUtil, security
+
+#  if get_platform() != PLATFORM_WINDOWS:
+#    from ambari_commons.shell import shellRunnerLinux
+
+  setup_agent = __import__('setupAgent')
 
 class TestSetupAgent(TestCase):
 
@@ -42,6 +58,7 @@ class TestSetupAgent(TestCase):
     pass
 
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'execOsCommand')
   def test_configureAgent(self, execOsCommand_mock):
     # Test if expected_hostname is passed
@@ -110,6 +127,7 @@ class TestSetupAgent(TestCase):
     execOsCommand_mock.reset_mock()
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
@@ -126,6 +144,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
@@ -142,6 +161,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
@@ -163,6 +183,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
   @patch.object(setup_agent, 'findNearestAgentPackageVersion')
@@ -184,6 +205,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
@@ -201,6 +223,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["log"] == projectVersion)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'getAvaliableAgentPackageVersions')
   @patch('ambari_commons.OSCheck.is_suse_family')
   @patch('ambari_commons.OSCheck.is_ubuntu_family')
@@ -223,10 +246,12 @@ class TestSetupAgent(TestCase):
     self.assertTrue(result_version["exitstatus"] == 1)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(subprocess, 'Popen')
   def test_execOsCommand(self, Popen_mock):
     self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'tryStopAgent')
   @patch.object(setup_agent, 'isAgentPackageAlreadyInstalled')
   @patch.object(setup_agent, 'runAgent')
@@ -399,6 +424,7 @@ class TestSetupAgent(TestCase):
     self.assertTrue(execOsCommand_mock.called)
     pass
 
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch.object(setup_agent, 'execOsCommand')
   def test_installAgent(self, execOsCommand_mock):
     setup_agent.installAgent("1.1.1")

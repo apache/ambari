@@ -161,7 +161,7 @@ def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_ver
   save_dir = os.path.abspath(save_dir)
   msi_save_dir = save_dir
   # system wide lock to prevent simultaneous installations(when first task failed on timeout)
-  install_lock = SystemWideLock("hdp_msi_lock")
+  install_lock = SystemWideLock("Global\\hdp_msi_lock")
   try:
     # try to acquire lock
     if not install_lock.lock():

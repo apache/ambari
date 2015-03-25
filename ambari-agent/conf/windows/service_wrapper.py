@@ -15,6 +15,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import ConfigParser
 import os
 import optparse
 import sys
@@ -29,7 +30,7 @@ from ambari_commons.exceptions import *
 from ambari_commons.logging_utils import *
 from ambari_commons.os_windows import WinServiceController
 from ambari_commons.os_utils import find_in_path
-from ambari_agent.AmbariConfig import AmbariConfig
+from ambari_agent.AmbariConfig import AmbariConfig, updateConfigServerHostname
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers
 
 AMBARI_VERSION_VAR = "AMBARI_VERSION_VAR"
@@ -120,10 +121,17 @@ def ctrlHandler(ctrlType):
   return True
 
 
-def svcsetup():
+#
+# Configures the Ambari Agent settings and registers the Windows service.
+#
+def setup(options):
+  config = AmbariConfig()
+  configFile = config.getConfigFile()
+
+  updateConfigServerHostname(configFile, options.host_name)
+
   AmbariAgentService.set_ctrl_c_handler(ctrlHandler)
   AmbariAgentService.Install()
-  pass
 
 
 #
@@ -210,8 +218,7 @@ def agent_main():
   options.exit_message = "Ambari Agent '%s' completed successfully." % action
   try:
     if action == SETUP_ACTION:
-      #TODO Insert setup(options) here upon need
-      svcsetup()
+      setup(options)
     elif action == START_ACTION:
       svcstart(options)
     elif action == DEBUG_ACTION:
