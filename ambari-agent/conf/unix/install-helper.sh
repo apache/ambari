@@ -52,7 +52,7 @@ do_install(){
   
   chmod 440 "$SUDOERS_FILE"
   
-  grep '^#includedir /etc/sudoers.d$' /etc/sudoers
+  grep '^#includedir /etc/sudoers.d$' /etc/sudoers > /dev/null
   if [ $? -ne 0 ] ; then
     echo '#includedir /etc/sudoers.d' >> /etc/sudoers
   fi

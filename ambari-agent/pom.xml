@@ -385,6 +385,7 @@
               <directory>${sudoers.d.dir}</directory>
               <username>root</username>
               <groupname>root</groupname>
+              <directoryIncluded>false</directoryIncluded>
               <sources>
                 <source>
                   <location>etc/sudoers.d</location>
