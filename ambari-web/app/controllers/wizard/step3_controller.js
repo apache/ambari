@@ -466,9 +466,9 @@ App.WizardStep3Controller = Em.Controller.extend({
     App.router.get('installerController.isStepDisabled').filter(function (step) {
       return step.step >= 0 && step.step <= 2;
     }).setEach('value', this.get('isBackDisabled'));
-    if (this.get('isBackDisabled')) {
-      this.set('isSubmitDisabled', true);
-    }
+    App.router.get('addHostController.isStepDisabled').filter(function (step) {
+      return step.step >= 0 && step.step <= 1;
+    }).setEach('value', this.get('isBackDisabled'));
   }.observes('isBackDisabled'),
 
   /**
