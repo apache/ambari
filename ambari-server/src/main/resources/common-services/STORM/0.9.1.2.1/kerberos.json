@@ -37,7 +37,12 @@
             "drpc.authorizer": "backtype.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer",
             "ui.filter": "org.apache.hadoop.security.authentication.server.AuthenticationFilter",
             "storm.principal.tolocal": "backtype.storm.security.auth.KerberosPrincipalToLocal",
-            "supervisor.enable": "true"
+            "supervisor.enable": "true",
+            "storm.zookeeper.superACL": "sasl:{{storm_bare_jaas_principal}}",
+            "java.security.auth.login.config": "{{conf_dir}}/storm_jaas.conf",
+            "nimbus.admins": "['{{storm_user}}']",
+            "nimbus.supervisor.users": "['{{storm_user}}']",
+            "ui.filter.params": "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}"
           }
         }
       ],

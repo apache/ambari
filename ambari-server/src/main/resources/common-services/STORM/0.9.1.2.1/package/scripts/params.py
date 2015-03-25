@@ -111,6 +111,12 @@ if security_enabled:
     nimbus_bare_jaas_principal = get_bare_principal(_nimbus_principal_name)
     nimbus_keytab_path = config['configurations']['storm-env']['nimbus_keytab']
 
+if stack_is_hdp22_or_further:
+  if security_enabled:
+    storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.secure.transport']
+  else:
+    storm_thrift_transport = config['configurations']['storm-site']['_storm.thrift.nonsecure.transport']
+
 ams_collector_hosts = default("/clusterHostInfo/metrics_collector_hosts", [])
 has_metric_collector = not len(ams_collector_hosts) == 0
 if has_metric_collector:

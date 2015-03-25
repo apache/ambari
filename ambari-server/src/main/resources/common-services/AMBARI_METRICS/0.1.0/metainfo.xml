@@ -129,6 +129,10 @@
         <config-type>ams-hbase-log4j</config-type>
       </configuration-dependencies>
 
+      <excluded-config-types>
+        <config-type>storm-site</config-type>
+      </excluded-config-types>
+
     </service>
   </services>
 </metainfo>

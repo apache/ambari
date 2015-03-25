@@ -19,6 +19,8 @@ limitations under the License.
 """
 
 import re
+import resource_management
+from resource_management.core.source import InlineTemplate
 
 def escape_yaml_propetry(value):
   unquouted = False
@@ -26,10 +28,10 @@ def escape_yaml_propetry(value):
   if value in unquouted_values:
     unquouted = True
 
-  # if is list [a,b,c]
-  if re.match('^\w*\[.+\]\w*$', value):
+  # if is list [a,b,c] or dictionary {a: v, b: v2, c: v3}
+  if re.match('^\w*\[.+\]\w*$', value) or re.match('^\w*\{.+\}\w*$', value):
     unquouted = True
-    
+
   try:
     int(value)
     unquouted = True
@@ -47,3 +49,20 @@ def escape_yaml_propetry(value):
     value = "'"+value+"'"
     
   return value
+
+def replace_jaas_placeholder(name, security_enabled, conf_dir):
+  if name.find('_JAAS_PLACEHOLDER') > -1:
+    if security_enabled:
+      return name.replace('_JAAS_PLACEHOLDER', '-Djava.security.auth.login.config=' + conf_dir + '/storm_jaas.conf')
+    else:
+      return name.replace('_JAAS_PLACEHOLDER', '')
+  else:
+    return name
+
+storm_yaml_template = """{% for key, value in configurations|dictsort if not key.startswith('_') %}{{key}} : {{ escape_yaml_propetry(replace_jaas_placeholder(resource_management.core.source.InlineTemplate(value).get_content().strip(), security_enabled, conf_dir)) }}
+{% endfor %}"""
+
+def yaml_config_template(configurations):
+  return InlineTemplate(storm_yaml_template, configurations=configurations,
+                        extra_imports=[escape_yaml_propetry, replace_jaas_placeholder, resource_management,
+                                       resource_management.core, resource_management.core.source])

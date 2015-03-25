@@ -18,6 +18,7 @@ limitations under the License.
 
 """
 
+import resource_management
 from resource_management.core.resources import File
 from resource_management.core.resources import Execute
 from resource_management.core.resources import Directory
@@ -26,7 +27,7 @@ from resource_management.libraries.resources.template_config import TemplateConf
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import Template
 from resource_management.libraries.functions import compare_versions
-from yaml_utils import escape_yaml_propetry
+from yaml_utils import yaml_config_template
 
 def storm():
   import params
@@ -58,12 +59,9 @@ def storm():
   )
 
   configurations = params.config['configurations']['storm-site']
-  
+
   File(format("{conf_dir}/storm.yaml"),
-       content=Template(
-                        "storm.yaml.j2", 
-                         extra_imports=[escape_yaml_propetry], 
-                        configurations = configurations),
+       content=yaml_config_template(configurations),
        owner=params.storm_user,
        group=params.user_group
   )

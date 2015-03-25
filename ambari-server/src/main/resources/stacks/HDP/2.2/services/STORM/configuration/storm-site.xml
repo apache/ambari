@@ -24,10 +24,8 @@
 
   <property>
     <name>storm.thrift.transport</name>
-    <value>--</value>
-    <deleted>true</deleted>
-    <description>This is calculated field that is based of security state and _storm.thrift.nonsecure.transport and _storm.thrift.secure.transport
-    </description> 
+    <value>{{storm_thrift_transport}}</value>
+    <description>The transport plug-in that used for Thrift client/server communication.</description>
   </property>
   <property>
     <name>_storm.thrift.nonsecure.transport</name>

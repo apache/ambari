@@ -19,8 +19,8 @@ limitations under the License.
 '''
 
 from mock.mock import MagicMock, call, patch
-from stacks.utils.RMFTestCase import *
 import resource_management.core.source
+from stacks.utils.RMFTestCase import *
 import re
 
 
@@ -62,7 +62,7 @@ class TestStormBase(RMFTestCase):
     storm_yarn_content = self.call_storm_template_and_assert()
     
     self.assertTrue(storm_yarn_content.find('_JAAS_PLACEHOLDER') == -1, 'Placeholder have to be substituted')
-    
+
     self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
                               owner = 'storm',
                               content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
@@ -111,18 +111,17 @@ class TestStormBase(RMFTestCase):
       owner = 'storm',
     )
     return storm_yarn_content
-    
+
   def call_storm_template_and_assert(self):
     import yaml_utils
-    storm_yarn_template = Template(
-                        "storm.yaml.j2", 
-                        extra_imports=[yaml_utils.escape_yaml_propetry], 
-                        configurations = self.getConfig()['configurations']['storm-site'])
-    storm_yarn_content = storm_yarn_template.get_content()
-    
-    self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
-      owner = 'storm',
-      content= storm_yarn_template, 
-      group = 'hadoop'
-    )
-    return storm_yarn_content
+
+    with RMFTestCase.env as env:
+      storm_yarn_temlate = yaml_utils.yaml_config_template(self.getConfig()['configurations']['storm-site'])
+
+      self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
+        owner = 'storm',
+        content= storm_yarn_temlate,
+        group = 'hadoop'
+      )
+
+      return storm_yarn_temlate.get_content()

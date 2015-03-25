@@ -76,6 +76,7 @@
             "worker.heartbeat.frequency.secs": "1",
             "zmq.hwm": "0",
             "storm.zookeeper.connection.timeout": "15000",
+            "storm.thrift.transport": "{{storm_thrift_transport}}",
             "_storm.thrift.secure.transport": "SECURED_TRANSPORT_CLASS",
             "storm.messaging.netty.server_worker_threads": "1",
             "supervisor.worker.start.timeout.secs": "120",
