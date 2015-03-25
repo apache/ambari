@@ -29,6 +29,8 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.junit.After;
@@ -40,8 +42,6 @@ import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.capture;
@@ -80,21 +80,19 @@ public class UpgradeCatalog210Test {
     ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
+    HostDAO hostDao = createNiceMock(HostDAO.class);
+    HostEntity mockHost = createNiceMock(HostEntity.class);
+    expect(hostDao.findByName("foo")).andReturn(mockHost).anyTimes();
+
     // Column Capture section
     Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
-    // Collection to capture all tables that will have the host_id column added to it.
-    List<Capture<DBColumnInfo>> hostRelatedCaptures = new ArrayList<Capture<DBColumnInfo>>();
-    Capture<DBAccessor.DBColumnInfo> hostStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-
-    hostRelatedCaptures.add(hostStateColumnCapture);
-
     // Add columns and alter table section
     dbAccessor.addColumn(eq("hosts"), capture(hostsColumnCapture));
-    dbAccessor.addColumn(eq("hoststate"), capture(hostStateColumnCapture));
 
     // Replay section
     replay(dbAccessor, configuration, resultSet);
+    replay(hostDao, mockHost);
 
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
@@ -107,23 +105,12 @@ public class UpgradeCatalog210Test {
 
     // Verification section
     verifyHosts(hostsColumnCapture);
-
-    for (Capture<DBColumnInfo> columnCapture : hostRelatedCaptures) {
-      verifyContainsHostIdColumn(columnCapture);
-    }
-
   }
 
   private void verifyHosts(Capture<DBAccessor.DBColumnInfo> hostsColumnCapture) {
     DBColumnInfo hostsIdColumn = hostsColumnCapture.getValue();
     Assert.assertEquals(Long.class, hostsIdColumn.getType());
     Assert.assertEquals("id", hostsIdColumn.getName());
-  }
-
-  private void verifyContainsHostIdColumn(Capture<DBAccessor.DBColumnInfo> columnCapture) {
-    DBColumnInfo idColumn = columnCapture.getValue();
-    Assert.assertEquals(Long.class, idColumn.getType());
-    Assert.assertEquals("host_id", idColumn.getName());
   }
 
   /**

@@ -148,10 +148,12 @@ CREATE TABLE hoststate (
   available_mem BIGINT NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   health_status VARCHAR(255),
-  host_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  --host_id BIGINT NOT NULL,
   time_in_state BIGINT NOT NULL,
   maintenance_state VARCHAR(512),
-  PRIMARY KEY (host_id));
+  PRIMARY KEY (host_name));
+  --PRIMARY KEY (host_id));
 
 CREATE TABLE host_version (
   id BIGINT NOT NULL,
@@ -561,7 +563,8 @@ ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnnt
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 --ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
-ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
+--ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 --ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);

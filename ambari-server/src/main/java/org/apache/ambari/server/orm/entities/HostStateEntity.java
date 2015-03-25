@@ -35,9 +35,9 @@ import org.apache.ambari.server.state.HostState;
 @Entity
 public class HostStateEntity {
   
-  @javax.persistence.Column(name = "host_id", nullable = false, insertable = false, updatable = false)
+  @javax.persistence.Column(name = "host_name", nullable = false, insertable = false, updatable = false)
   @Id
-  private Long hostId;
+  private String hostName;
 
   @Column(name = "available_mem", nullable = false, insertable = true, updatable = true)
   @Basic
@@ -64,8 +64,16 @@ public class HostStateEntity {
   
 
   @OneToOne
-  @JoinColumn(name = "host_id", referencedColumnName = "id", nullable = false)
+  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
   private HostEntity hostEntity;
+
+  public String getHostName() {
+    return hostName;
+  }
+
+  public void setHostName(String hostName) {
+    this.hostName = hostName;
+  }
 
   public Long getAvailableMem() {
     return availableMem;
@@ -122,27 +130,22 @@ public class HostStateEntity {
 
     HostStateEntity that = (HostStateEntity) o;
 
-    if (hostId != null ? hostId != that.hostId : that.hostId != null) return false;
-
-    /*
     if (availableMem != null ? !availableMem.equals(that.availableMem) : that.availableMem != null) return false;
     if (timeInState != null ? !timeInState.equals(that.timeInState) : that.timeInState!= null) return false;
     if (agentVersion != null ? !agentVersion.equals(that.agentVersion) : that.agentVersion != null) return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
-    */
+    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
 
     return true;
   }
 
   @Override
   public int hashCode() {
-    int result = hostId != null ? hostId.intValue() : 0;
-    /*
+    int result = hostName != null ? hostName.hashCode() : 0;
     result = 31 * result + (availableMem != null ? availableMem.intValue() : 0);
     result = 31 * result + (timeInState != null ? timeInState.intValue() : 0);
     result = 31 * result + (agentVersion != null ? agentVersion.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
-    */
     return result;
   }
 
