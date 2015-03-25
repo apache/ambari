@@ -46,24 +46,19 @@ public class HostComponentDesiredStateDAOTest {
     EntityManager entityManager = createNiceMock(EntityManager.class);
     HostDAO hostDAO = createNiceMock(HostDAO.class);
     HostEntity hostEntity = createNiceMock(HostEntity.class);
-
+    
     HostComponentDesiredStateEntity hostComponentDesiredStateEntity = createNiceMock(HostComponentDesiredStateEntity.class);
-
-    expect(hostComponentDesiredStateEntity.getHostName()).andReturn("host1");
-    expect(hostDAO.findByName("host1")).andReturn(hostEntity);
+    expect(hostComponentDesiredStateEntity.getHostEntity()).andReturn(hostEntity);
     expect(entityManagerProvider.get()).andReturn(entityManager).anyTimes();
-
 
     expect(entityManager.merge(hostComponentDesiredStateEntity)).andReturn(hostComponentDesiredStateEntity).anyTimes();
     entityManager.remove(hostComponentDesiredStateEntity);
-
 
     hostEntity.removeHostComponentDesiredStateEntity(hostComponentDesiredStateEntity);
 
     expect(hostDAO.merge(hostEntity)).andReturn(hostEntity).anyTimes();
 
     replay(entityManagerProvider, entityManager, hostDAO, hostEntity, hostComponentDesiredStateEntity);
-
 
     HostComponentDesiredStateDAO dao = new HostComponentDesiredStateDAO();
     dao.entityManagerProvider = entityManagerProvider;

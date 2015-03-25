@@ -75,6 +75,11 @@ public class UpgradeCatalogTest {
     public String getTargetVersion() {
       return "1.4.9";
     }
+
+    @Override
+    public String[] getCompatibleVersions() {
+      return new String[] {"1.4.9", "1.5.*", "1.7.*", "2.0.*"};
+    }
   }
 
   private static class UpgradeHelperModuleTest extends InMemoryDefaultTestModule {
@@ -85,8 +90,11 @@ public class UpgradeCatalogTest {
       // Add binding to each newly created catalog
       Multibinder<UpgradeCatalog> catalogBinder =
         Multibinder.newSetBinder(binder(), UpgradeCatalog.class);
-      catalogBinder.addBinding().to(UpgradeCatalog150.class);
       catalogBinder.addBinding().to(UpgradeCatalog149.class);
+      catalogBinder.addBinding().to(UpgradeCatalog150.class);
+      catalogBinder.addBinding().to(UpgradeCatalog170.class);
+      catalogBinder.addBinding().to(UpgradeCatalog200.class);
+      catalogBinder.addBinding().to(UpgradeCatalog210.class);
     }
   }
 
@@ -109,15 +117,52 @@ public class UpgradeCatalogTest {
     Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
 
     Assert.assertNotNull(upgradeCatalogSet);
-    Assert.assertEquals(2, upgradeCatalogSet.size());
+    Assert.assertEquals(5, upgradeCatalogSet.size());
 
-    List<UpgradeCatalog> upgradeCatalogs =
-      schemaUpgradeHelper.getUpgradePath(null, "1.5.1");
+    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "1.5.1");
 
     Assert.assertNotNull(upgradeCatalogs);
     Assert.assertEquals(2, upgradeCatalogs.size());
     Assert.assertEquals("1.4.9", upgradeCatalogs.get(0).getTargetVersion());
     Assert.assertEquals("1.5.0", upgradeCatalogs.get(1).getTargetVersion());
+
+    schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, "1.5.0");
+  }
+
+  @Test
+  public void testValidateUpgradePath() throws Exception {
+    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
+
+    Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
+
+    Assert.assertNotNull(upgradeCatalogSet);
+    Assert.assertEquals(5, upgradeCatalogSet.size());
+
+    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.1.0");
+
+    Assert.assertNotNull(upgradeCatalogs);
+    Assert.assertEquals(5, upgradeCatalogs.size());
+    Assert.assertEquals("1.4.9", upgradeCatalogs.get(0).getTargetVersion());
+    Assert.assertEquals("1.5.0", upgradeCatalogs.get(1).getTargetVersion());
+    Assert.assertEquals("1.7.0", upgradeCatalogs.get(2).getTargetVersion());
+    Assert.assertEquals("2.0.0", upgradeCatalogs.get(3).getTargetVersion());
+    Assert.assertEquals("2.1.0", upgradeCatalogs.get(4).getTargetVersion());
+
+    try {
+      // This is a valid path, so should not throw exception.
+      schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, "2.0.0");
+    } catch (Throwable ex) {
+      Assert.assertTrue(false);
+    }
+
+    Throwable e = null;
+    try {
+      // This is an invalid path, so should throw exception.
+      schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, "2.1.0");
+    } catch (Throwable ex) {
+      e = ex;
+    }
+    Assert.assertTrue(e instanceof AmbariException);
   }
 
   @Test

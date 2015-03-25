@@ -88,6 +88,19 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   }
 
   @Override
+  public String getTargetVersion() {
+    return "1.5.0";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String[] getCompatibleVersions() {
+    return new String[] {"1.5.*", "1.6.*", "1.7.*", "2.0.*"};
+  }
+
+  @Override
   public void executeDDLUpdates() throws AmbariException, SQLException {
     LOG.debug("Upgrading schema...");
     DatabaseType databaseType = configuration.getDatabaseType();
@@ -577,6 +590,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostDAO hostDao = injector.getInstance(HostDAO.class);
 
     List<ClusterEntity> clusterEntities = clusterDAO.findAll();
     for (final ClusterEntity clusterEntity : clusterEntities) {
@@ -626,8 +640,13 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
       serviceComponentDesiredStateEntity.setHostComponentDesiredStateEntities(new ArrayList<HostComponentDesiredStateEntity>());
 
+      final HostEntity host = hostDao.findByName(jtHostname);
+      if (host == null) {
+        continue;
+      }
+
       final HostComponentStateEntity stateEntity = new HostComponentStateEntity();
-      stateEntity.setHostName(jtHostname);
+      stateEntity.setHostEntity(host);
       stateEntity.setCurrentState(jtCurrState);
       stateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
 
@@ -645,7 +664,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostDAO hostDAO = injector.getInstance(HostDAO.class);
 
-    HostEntity hostEntity = hostDAO.findByName(stateEntity.getHostName());
+    HostEntity hostEntity = stateEntity.getHostEntity();
     hostEntity.addHostComponentStateEntity(stateEntity);
     hostEntity.addHostComponentDesiredStateEntity(desiredStateEntity);
 
@@ -754,6 +773,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
   protected void processDecommissionedDatanodes() {
     KeyValueDAO keyValueDAO = injector.getInstance(KeyValueDAO.class);
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
     Gson gson = injector.getInstance(Gson.class);
     HostComponentDesiredStateDAO desiredStateDAO = injector.getInstance
       (HostComponentDesiredStateDAO.class);
@@ -777,12 +797,13 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
                   String[] nodes = decommissionedNodes.split(",");
                   if (nodes.length > 0) {
                     for (String node : nodes) {
+                      HostEntity hostEntity = hostDAO.findByName(node.trim());
                       HostComponentDesiredStateEntityPK entityPK =
                         new HostComponentDesiredStateEntityPK();
                       entityPK.setClusterId(clusterId);
                       entityPK.setServiceName("HDFS");
                       entityPK.setComponentName("DATANODE");
-                      entityPK.setHostName(node.trim());
+                      entityPK.setHostId(hostEntity.getHostId());
                       HostComponentDesiredStateEntity desiredStateEntity =
                         desiredStateDAO.findByPK(entityPK);
                       desiredStateEntity.setAdminState(HostComponentAdminState.DECOMMISSIONED);
@@ -874,10 +895,5 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       LOG.error("Error reading file.", e);
     }
 
-  }
-
-  @Override
-  public String getTargetVersion() {
-    return "1.5.0";
   }
 }

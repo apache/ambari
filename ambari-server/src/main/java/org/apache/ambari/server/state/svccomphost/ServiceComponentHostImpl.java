@@ -690,12 +690,24 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     this.serviceComponent = serviceComponent;
     clusterGlobalLock = serviceComponent.getClusterGlobalLock();
 
+    HostEntity hostEntity = null;
+    try {
+      host = clusters.getHost(hostName);
+      hostEntity = hostDAO.findByName(hostName);
+      if (hostEntity == null) {
+        throw new AmbariException("Could not find host " + hostName);
+      }
+    } catch (AmbariException e) {
+      LOG.error("Host '{}' was not found" + hostName);
+      throw new RuntimeException(e);
+    }
+
     stateEntity = new HostComponentStateEntity();
     stateEntity.setClusterId(serviceComponent.getClusterId());
     stateEntity.setComponentName(serviceComponent.getName());
     stateEntity.setServiceName(serviceComponent.getServiceName());
     stateEntity.setVersion(State.UNKNOWN.toString());
-    stateEntity.setHostName(hostName);
+    stateEntity.setHostEntity(hostEntity);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
     stateEntity.setUpgradeState(UpgradeState.NONE);
     stateEntity.setCurrentStackVersion(gson.toJson(new StackId()));
@@ -706,7 +718,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredStateEntity.setClusterId(serviceComponent.getClusterId());
     desiredStateEntity.setComponentName(serviceComponent.getName());
     desiredStateEntity.setServiceName(serviceComponent.getServiceName());
-    desiredStateEntity.setHostName(hostName);
+    desiredStateEntity.setHostEntity(hostEntity);
     desiredStateEntity.setDesiredState(State.INIT);
     desiredStateEntity.setDesiredStackVersion(
         gson.toJson(serviceComponent.getDesiredStackVersion()));
@@ -717,14 +729,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     }
 
     desiredStateEntityPK = getHostComponentDesiredStateEntityPK(desiredStateEntity);
-
-    try {
-      host = clusters.getHost(hostName);
-    } catch (AmbariException e) {
-      //TODO exception?
-      LOG.error("Host '{}' was not found" + hostName);
-      throw new RuntimeException(e);
-    }
 
     resetLastOpInfo();
   }
@@ -1321,7 +1325,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     pk.setClusterId(stateEntity.getClusterId());
     pk.setComponentName(stateEntity.getComponentName());
     pk.setServiceName(stateEntity.getServiceName());
-    pk.setHostName(stateEntity.getHostName());
+    pk.setHostId(stateEntity.getHostId());
 
     hostComponentStateDAO.removeByPK(pk);
 
@@ -1329,7 +1333,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredPK.setClusterId(desiredStateEntity.getClusterId());
     desiredPK.setComponentName(desiredStateEntity.getComponentName());
     desiredPK.setServiceName(desiredStateEntity.getServiceName());
-    desiredPK.setHostName(desiredStateEntity.getHostName());
+    desiredPK.setHostId(desiredStateEntity.getHostId());
 
     hostComponentDesiredStateDAO.removeByPK(desiredPK);
 
@@ -1542,7 +1546,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     dpk.setClusterId(desiredStateEntity.getClusterId());
     dpk.setComponentName(desiredStateEntity.getComponentName());
     dpk.setServiceName(desiredStateEntity.getServiceName());
-    dpk.setHostName(desiredStateEntity.getHostName());
+    dpk.setHostId(desiredStateEntity.getHostId());
     return dpk;
   }
 
@@ -1552,7 +1556,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     pk.setClusterId(stateEntity.getClusterId());
     pk.setComponentName(stateEntity.getComponentName());
     pk.setServiceName(stateEntity.getServiceName());
-    pk.setHostName(stateEntity.getHostName());
+    pk.setHostId(stateEntity.getHostId());
     return pk;
   }
 }

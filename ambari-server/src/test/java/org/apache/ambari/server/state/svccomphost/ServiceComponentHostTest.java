@@ -35,10 +35,12 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -99,6 +101,8 @@ public class ServiceComponentHostTest {
   private ConfigHelper configHelper;
   @Inject
   private OrmTestHelper helper;
+  @Inject
+  HostDAO hostDAO;
 
   @Before
   public void setup() throws Exception {
@@ -1082,6 +1086,8 @@ public class ServiceComponentHostTest {
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     clusters.mapHostToCluster(hostName, clusterName);
+    HostEntity hostEntity = hostDAO.findByName(hostName);
+    Assert.assertNotNull(hostEntity);
 
     Cluster cluster = clusters.getCluster(clusterName);
 
@@ -1093,7 +1099,7 @@ public class ServiceComponentHostTest {
     pk.setClusterId(Long.valueOf(cluster.getClusterId()));
     pk.setComponentName(sch1.getServiceComponentName());
     pk.setServiceName(sch1.getServiceName());
-    pk.setHostName(hostName);
+    pk.setHostId(hostEntity.getHostId());
 
     HostComponentDesiredStateDAO dao = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntity entity = dao.findByPK(pk);
@@ -1105,7 +1111,6 @@ public class ServiceComponentHostTest {
 
     entity = dao.findByPK(pk);
     Assert.assertEquals(MaintenanceState.ON, entity.getMaintenanceState());
-
   }
 
 
@@ -1119,6 +1124,9 @@ public class ServiceComponentHostTest {
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
+    HostEntity hostEntity = hostDAO.findByName(hostName);
+    Assert.assertNotNull(hostEntity);
+
     Cluster c2 = clusters.getCluster(clusterName);
     StackId stackId = new StackId(stackVersion);
     c2.setDesiredStackVersion(stackId);
@@ -1136,7 +1144,7 @@ public class ServiceComponentHostTest {
     pkHostComponentDesiredState.setClusterId(cluster.getClusterId());
     pkHostComponentDesiredState.setComponentName(sch1.getServiceComponentName());
     pkHostComponentDesiredState.setServiceName(sch1.getServiceName());
-    pkHostComponentDesiredState.setHostName(hostName);
+    pkHostComponentDesiredState.setHostId(hostEntity.getHostId());
 
     HostComponentStateDAO daoHostComponentState = injector.getInstance(HostComponentStateDAO.class);
     HostComponentStateEntity entityHostComponentState;
@@ -1144,7 +1152,7 @@ public class ServiceComponentHostTest {
     pkHostComponentState.setClusterId(cluster.getClusterId());
     pkHostComponentState.setComponentName(sch1.getServiceComponentName());
     pkHostComponentState.setServiceName(sch1.getServiceName());
-    pkHostComponentState.setHostName(hostName);
+    pkHostComponentState.setHostId(hostEntity.getHostId());
 
     for(SecurityState state: SecurityState.values()) {
       sch1.setSecurityState(state);

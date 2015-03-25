@@ -51,6 +51,7 @@ import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ConfigGroupConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.DaoUtils;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
 import org.apache.ambari.server.orm.dao.PermissionDAO;
@@ -72,6 +73,7 @@ import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity_;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
@@ -142,6 +144,14 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   @Override
   public String getTargetVersion() {
     return "1.7.0";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String[] getCompatibleVersions() {
+    return new String[] {"1.7.*", "2.0.*"};
   }
 
   /**
@@ -714,6 +724,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     ClusterServiceDAO clusterServiceDAO = injector.getInstance(ClusterServiceDAO.class);
     ServiceDesiredStateDAO serviceDesiredStateDAO = injector.getInstance(ServiceDesiredStateDAO.class);
     ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostDAO hostDAO = injector.getInstance(HostDAO.class);
 
     List<ClusterEntity> clusterEntities = clusterDAO.findAll();
     for (final ClusterEntity clusterEntity : clusterEntities) {
@@ -762,7 +773,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         hostComponentDesiredStateEntity.setComponentName(hcDesiredStateEntityToBeDeleted.getComponentName());
         hostComponentDesiredStateEntity.setDesiredStackVersion(hcDesiredStateEntityToBeDeleted.getDesiredStackVersion());
         hostComponentDesiredStateEntity.setDesiredState(hcDesiredStateEntityToBeDeleted.getDesiredState());
-        hostComponentDesiredStateEntity.setHostName(hcDesiredStateEntityToBeDeleted.getHostName());
         hostComponentDesiredStateEntity.setHostEntity(hcDesiredStateEntityToBeDeleted.getHostEntity());
         hostComponentDesiredStateEntity.setAdminState(hcDesiredStateEntityToBeDeleted.getAdminState());
         hostComponentDesiredStateEntity.setMaintenanceState(hcDesiredStateEntityToBeDeleted.getMaintenanceState());
@@ -775,12 +785,16 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
       while (hostComponentStateIterator.hasNext()) {
         HostComponentStateEntity hcStateToBeDeleted = hostComponentStateIterator.next();
+        HostEntity hostToBeDeleted = hostDAO.findByName(hcStateToBeDeleted.getHostName());
+        if (hostToBeDeleted == null) {
+          continue;
+        }
+
         HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
         hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());
         hostComponentStateEntity.setComponentName(hcStateToBeDeleted.getComponentName());
         hostComponentStateEntity.setCurrentStackVersion(hcStateToBeDeleted.getCurrentStackVersion());
         hostComponentStateEntity.setCurrentState(hcStateToBeDeleted.getCurrentState());
-        hostComponentStateEntity.setHostName(hcStateToBeDeleted.getHostName());
         hostComponentStateEntity.setHostEntity(hcStateToBeDeleted.getHostEntity());
         hostComponentStateEntity.setServiceName(serviceName);
         hostComponentStateEntity.setServiceComponentDesiredStateEntity(serviceComponentDesiredStateEntity);

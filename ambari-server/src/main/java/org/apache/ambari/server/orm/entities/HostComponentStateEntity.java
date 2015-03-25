@@ -32,7 +32,7 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 @NamedQueries({
     @NamedQuery(name = "HostComponentStateEntity.findAll", query = "SELECT hcs from HostComponentStateEntity hcs"),
     @NamedQuery(name = "HostComponentStateEntity.findByHost", query =
-        "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.hostName=:hostName"),
+        "SELECT hcs from HostComponentStateEntity hcs WHERE hcs.hostEntity.hostName=:hostName"),
 })
 public class HostComponentStateEntity {
 
@@ -45,8 +45,8 @@ public class HostComponentStateEntity {
   private String serviceName;
 
   @Id
-  @Column(name = "host_name", insertable = false, updatable = false)
-  private String hostName = "";
+  @Column(name = "host_id", nullable=false, insertable = false, updatable = false)
+  private Long hostId;
 
   @Id
   @Column(name = "component_name", nullable = false, insertable = false, updatable = false)
@@ -79,7 +79,7 @@ public class HostComponentStateEntity {
   private ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity;
 
   @ManyToOne
-  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
+  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
   private HostEntity hostEntity;
 
   public Long getClusterId() {
@@ -99,11 +99,11 @@ public class HostComponentStateEntity {
   }
 
   public String getHostName() {
-    return defaultString(hostName);
+    return this.hostEntity.getHostName();
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public Long getHostId() {
+    return hostEntity != null ? hostEntity.getHostId() : null;
   }
 
   public String getComponentName() {
@@ -167,7 +167,7 @@ public class HostComponentStateEntity {
       return false;
     if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
     if (upgradeState != null ? !upgradeState.equals(that.upgradeState) : that.upgradeState != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
     if (version != null ? !version.equals(that.version) : that.version != null) return false;
 
@@ -177,7 +177,7 @@ public class HostComponentStateEntity {
   @Override
   public int hashCode() {
     int result = clusterId != null ? clusterId.intValue() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);

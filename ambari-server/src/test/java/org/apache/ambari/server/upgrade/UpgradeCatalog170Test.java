@@ -541,6 +541,11 @@ public class UpgradeCatalog170Test {
 
   @Test
   public void testMoveHcatalogIntoHiveService()  throws AmbariException {
+    UpgradeCatalog170 upgradeCatalog170 = injector.getInstance(UpgradeCatalog170.class);
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+
     final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
         injector, CLUSTER_NAME, DESIRED_STACK_VERSION);
     final ClusterServiceEntity clusterServiceEntityHDFS = upgradeCatalogHelper.addService(
@@ -563,10 +568,9 @@ public class UpgradeCatalog170Test {
     upgradeCatalogHelper.addComponent(injector, clusterEntity,
         clusterServiceEntityWEBHCAT, hostEntity, "WEBHCAT_SERVER",
         DESIRED_STACK_VERSION);
-    UpgradeCatalog170 upgradeCatalog170 = injector.getInstance(UpgradeCatalog170.class);
+
     upgradeCatalog170.moveHcatalogIntoHiveService();
 
-    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     ServiceComponentDesiredStateEntityPK pkHCATInHive = new ServiceComponentDesiredStateEntityPK();
     pkHCATInHive.setComponentName("HCAT");
     pkHCATInHive.setClusterId(clusterEntity.getClusterId());
@@ -574,21 +578,19 @@ public class UpgradeCatalog170Test {
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkHCATInHive);
     assertNotNull(serviceComponentDesiredStateEntity);
 
-    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntityPK hcDesiredStateEntityPk  = new HostComponentDesiredStateEntityPK();
     hcDesiredStateEntityPk.setServiceName("HIVE");
     hcDesiredStateEntityPk.setClusterId(clusterEntity.getClusterId());
     hcDesiredStateEntityPk.setComponentName("HCAT");
-    hcDesiredStateEntityPk.setHostName(HOST_NAME);
+    hcDesiredStateEntityPk.setHostId(hostEntity.getHostId());
     HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
     assertNotNull(hcDesiredStateEntity);
 
-    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     HostComponentStateEntityPK hcStateEntityPk  = new HostComponentStateEntityPK();
     hcStateEntityPk.setServiceName("HIVE");
     hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
     hcStateEntityPk.setComponentName("HCAT");
-    hcStateEntityPk.setHostName(HOST_NAME);
+    hcStateEntityPk.setHostId(hostEntity.getHostId());
     HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
     assertNotNull(hcStateEntity);
   }

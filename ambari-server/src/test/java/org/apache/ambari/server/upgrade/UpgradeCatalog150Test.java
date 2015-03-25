@@ -136,7 +136,6 @@ public class UpgradeCatalog150Test {
     hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
-    hostComponentDesiredStateEntity.setHostName(hostEntity.getHostName());
 
     hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
 

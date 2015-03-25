@@ -48,6 +48,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -76,6 +77,8 @@ public class ClustersTest {
   private AmbariMetaInfo metaInfo;
   @Inject
   private OrmTestHelper helper;
+  @Inject
+  private HostDAO hostDAO;
 
   @Before
   public void setup() throws Exception {
@@ -403,6 +406,8 @@ public class ClustersTest {
 
     ServiceComponentHost nameNodeHost = nameNode.addServiceComponentHost(h1);
     nameNodeHost.persist();
+    HostEntity nameNodeHostEntity = hostDAO.findByName(nameNodeHost.getHostName());
+    Assert.assertNotNull(nameNodeHostEntity);
 
     ServiceComponentHost dataNodeHost = dataNode.addServiceComponentHost(h2);
     dataNodeHost.persist();
@@ -415,12 +420,12 @@ public class ClustersTest {
     HostComponentDesiredStateEntityPK hkdspk = new HostComponentDesiredStateEntityPK();
 
     hkspk.setClusterId(nameNodeHost.getClusterId());
-    hkspk.setHostName(nameNodeHost.getHostName());
+    hkspk.setHostId(nameNodeHostEntity.getHostId());
     hkspk.setServiceName(nameNodeHost.getServiceName());
     hkspk.setComponentName(nameNodeHost.getServiceComponentName());
 
     hkdspk.setClusterId(nameNodeHost.getClusterId());
-    hkdspk.setHostName(nameNodeHost.getHostName());
+    hkdspk.setHostId(nameNodeHostEntity.getHostId());
     hkdspk.setServiceName(nameNodeHost.getServiceName());
     hkdspk.setComponentName(nameNodeHost.getServiceComponentName());
 
@@ -432,7 +437,7 @@ public class ClustersTest {
 
     clusters.deleteCluster(c1);
 
-    Assert.assertEquals(2, injector.getInstance(HostDAO.class).findAll().size());
+    Assert.assertEquals(2, hostDAO.findAll().size());
     Assert.assertNull(injector.getInstance(HostComponentStateDAO.class).findByPK(hkspk));
     Assert.assertNull(injector.getInstance(HostComponentDesiredStateDAO.class).findByPK(hkdspk));
     Assert.assertEquals(0, injector.getProvider(EntityManager.class).get().createQuery("SELECT config FROM ClusterConfigEntity config").getResultList().size());

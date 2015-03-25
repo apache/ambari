@@ -178,7 +178,6 @@ public class UpgradeCatalogHelper {
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
     hostComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
-    hostComponentDesiredStateEntity.setHostName(hostEntity.getHostName());
     hostComponentDesiredStateEntity.setComponentName(componentName);
     hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentDesiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
@@ -188,7 +187,6 @@ public class UpgradeCatalogHelper {
 
     HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
     hostComponentStateEntity.setHostEntity(hostEntity);
-    hostComponentStateEntity.setHostName(hostEntity.getHostName());
     hostComponentStateEntity.setComponentName(componentName);
     hostComponentStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());

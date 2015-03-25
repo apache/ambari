@@ -54,9 +54,9 @@ import static org.apache.commons.lang.StringUtils.defaultString;
 public class HostEntity implements Comparable<HostEntity> {
 
   @Id
-  @Column(name = "id", nullable = false, insertable = true, updatable = false)
+  @Column(name = "host_id", nullable = false, insertable = true, updatable = false)
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "host_id_generator")
-  private Long id;
+  private Long hostId;
 
   @Column(name = "host_name", nullable = false, insertable = true, updatable = true, unique = true)
   @Basic
@@ -133,7 +133,7 @@ public class HostEntity implements Comparable<HostEntity> {
 
   @ManyToMany
   @JoinTable(name = "ClusterHostMapping",
-      joinColumns = {@JoinColumn(name = "host_id", referencedColumnName = "id")},
+      joinColumns = {@JoinColumn(name = "host_id", referencedColumnName = "host_id")},
       inverseJoinColumns = {@JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id")}
   )
   private Collection<ClusterEntity> clusterEntities;
@@ -144,12 +144,12 @@ public class HostEntity implements Comparable<HostEntity> {
   @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE)
   private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
 
-  public Long getId() {
-    return id;
+  public Long getHostId() {
+    return hostId;
   }
 
-  public void setId(Long id) {
-    this.id = id;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   public String getHostName() {
@@ -279,14 +279,12 @@ public class HostEntity implements Comparable<HostEntity> {
 
     HostEntity that = (HostEntity) o;
 
-    if (!hostName.equals(that.hostName)) return false;
-
-    return true;
+    return this.hostId == that.hostId && this.hostName.equals(that.hostName);
   }
 
   @Override
   public int hashCode() {
-    return hostName.hashCode();
+    return hostId.hashCode();
   }
 
   @Override

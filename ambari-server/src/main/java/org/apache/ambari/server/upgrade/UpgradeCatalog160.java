@@ -41,6 +41,19 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     return "1.5.1";
   }
 
+  @Override
+  public String getTargetVersion() {
+    return "1.6.0";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String[] getCompatibleVersions() {
+    return new String[] {"1.6.*", "1.7.*", "2.0.*"};
+  }
+
   // ----- Constructors ------------------------------------------------------
 
   @Inject
@@ -189,10 +202,5 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
     // Add missing property for YARN
     updateConfigurationProperties("global", Collections.singletonMap("jobhistory_heapsize", "900"), false, false);
-  }
-
-  @Override
-  public String getTargetVersion() {
-    return "1.6.0";
   }
 }

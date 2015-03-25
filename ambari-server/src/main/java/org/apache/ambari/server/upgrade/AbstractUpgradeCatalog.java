@@ -91,6 +91,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return null;
   }
 
+  @Override
+  public String[] getCompatibleVersions() {
+    return null;
+  }
+
   protected static UpgradeCatalog getUpgradeCatalog(String version) {
     return upgradeCatalogMap.get(version);
   }

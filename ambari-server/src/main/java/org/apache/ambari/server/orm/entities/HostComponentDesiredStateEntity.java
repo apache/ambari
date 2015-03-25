@@ -49,8 +49,8 @@ public class HostComponentDesiredStateEntity {
   private String serviceName;
 
   @Id
-  @Column(name = "host_name", insertable = false, updatable = false)
-  private String hostName = "";
+  @Column(name = "host_id", nullable = false, insertable = false, updatable = false)
+  private Long hostId;
 
   @Id
   @Column(name = "component_name", insertable = false, updatable = false)
@@ -82,7 +82,7 @@ public class HostComponentDesiredStateEntity {
   private ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity;
 
   @ManyToOne
-  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
+  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
   private HostEntity hostEntity;
   
   @Enumerated(value = EnumType.STRING)
@@ -109,12 +109,8 @@ public class HostComponentDesiredStateEntity {
     this.serviceName = serviceName;
   }
 
-  public String getHostName() {
-    return defaultString(hostName);
-  }
-
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public Long getHostId() {
+    return hostEntity != null ? hostEntity.getHostId() : null;
   }
 
   public String getComponentName() {
@@ -178,7 +174,7 @@ public class HostComponentDesiredStateEntity {
     if (desiredStackVersion != null ? !desiredStackVersion.equals(that.desiredStackVersion) : that.desiredStackVersion != null)
       return false;
     if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
 
     return true;
@@ -187,7 +183,7 @@ public class HostComponentDesiredStateEntity {
   @Override
   public int hashCode() {
     int result = clusterId != null ? clusterId.intValue() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
     result = 31 * result + (desiredStackVersion != null ? desiredStackVersion.hashCode() : 0);

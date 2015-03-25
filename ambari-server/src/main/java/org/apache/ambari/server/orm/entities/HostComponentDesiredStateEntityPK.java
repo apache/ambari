@@ -47,16 +47,16 @@ public class HostComponentDesiredStateEntityPK implements Serializable {
     this.serviceName = serviceName;
   }
 
-  private String hostName;
+  private Long hostId;
 
   @Id
-  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
-  public String getHostName() {
-    return hostName;
+  @Column(name = "host_id", nullable = false, insertable = true, updatable = true)
+  public Long getHostId() {
+    return hostId;
   }
 
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   private String componentName;
@@ -80,7 +80,7 @@ public class HostComponentDesiredStateEntityPK implements Serializable {
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (hostId != null ? !hostId.equals(that.hostId) : that.hostId != null) return false;
 
     return true;
   }
@@ -88,7 +88,7 @@ public class HostComponentDesiredStateEntityPK implements Serializable {
   @Override
   public int hashCode() {
     int result = clusterId !=null ? clusterId.intValue() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     return result;
   }

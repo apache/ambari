@@ -26,6 +26,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Properties;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -126,7 +128,6 @@ public class SchemaUpgradeHelper {
    */
   protected List<UpgradeCatalog> getUpgradePath(String sourceVersion,
                                                        String targetVersion) throws AmbariException {
-
     List<UpgradeCatalog> upgradeCatalogs = new ArrayList<UpgradeCatalog>();
     List<UpgradeCatalog> candidateCatalogs = new ArrayList<UpgradeCatalog>(allUpgradeCatalogs);
 
@@ -147,6 +148,33 @@ public class SchemaUpgradeHelper {
     LOG.info("Upgrade path: " + upgradeCatalogs);
 
     return upgradeCatalogs;
+  }
+
+  /**
+   * Determine if the class definitions in the target version allow running the Upgrade Catalogs in the path.
+   * @param upgradeCatalogs Ordered list of upgrade catalogs
+   * @param targetVersion Destination version
+   * @throws AmbariException If invalid path, will throw an exception.
+   */
+  public void validateUpgradePath(List<UpgradeCatalog> upgradeCatalogs, String targetVersion) throws AmbariException {
+    for(UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
+      if (upgradeCatalog.getCompatibleVersions() != null) {
+        boolean validPath = false;
+        for (String version : upgradeCatalog.getCompatibleVersions()) {
+          // Treat dots as dots instead of match-any-char, and * as wildcard
+          String regexVersion = version.replace(".", "\\.").replace("*", ".*");
+          Matcher m = Pattern.compile(regexVersion).matcher(targetVersion);
+          if (m.matches()) {
+            validPath = true;
+            break;
+          }
+        }
+        if (!validPath) {
+          throw new AmbariException("Cannot upgrade because UpgradeCatalog " +
+              upgradeCatalog.getTargetVersion() + " is not supported in Ambari version " + targetVersion + ".");
+        }
+      }
+    }
   }
 
   /**
@@ -243,6 +271,8 @@ public class SchemaUpgradeHelper {
       List<UpgradeCatalog> upgradeCatalogs =
         schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
 
+      schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, targetVersion);
+
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
 
       schemaUpgradeHelper.startPersistenceService();
@@ -256,7 +286,7 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.stopPersistenceService();
     } catch (Throwable e) {
       if (e instanceof AmbariException) {
-        LOG.error("Exception occured during upgrade, failed", e);
+        LOG.error("Exception occurred during upgrade, failed", e);
         throw (AmbariException)e;
       }else{
         LOG.error("Unexpected error, upgrade failed", e);

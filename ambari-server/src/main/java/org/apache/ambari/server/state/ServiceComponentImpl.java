@@ -120,7 +120,7 @@ public class ServiceComponentImpl implements ServiceComponent {
       pk.setClusterId(hostComponentStateEntity.getClusterId());
       pk.setServiceName(hostComponentStateEntity.getServiceName());
       pk.setComponentName(hostComponentStateEntity.getComponentName());
-      pk.setHostName(hostComponentStateEntity.getHostName());
+      pk.setHostId(hostComponentStateEntity.getHostId());
 
       HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(pk);
 

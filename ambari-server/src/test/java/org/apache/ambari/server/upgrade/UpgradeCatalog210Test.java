@@ -29,8 +29,6 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.HostDAO;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.easymock.Capture;
 import org.junit.After;
@@ -42,6 +40,8 @@ import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
 
 import static org.easymock.EasyMock.capture;
@@ -59,10 +59,6 @@ import static org.easymock.EasyMock.verify;
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
  */
 public class UpgradeCatalog210Test {
-  private final String CLUSTER_NAME = "c1";
-  private final String HOST_NAME = "h1";
-  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.6\"}";
-
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
   private EntityManager entityManager = createNiceMock(EntityManager.class);
@@ -92,40 +88,18 @@ public class UpgradeCatalog210Test {
     ResultSet resultSet = createNiceMock(ResultSet.class);
     expect(configuration.getDatabaseUrl()).andReturn(Configuration.JDBC_IN_MEMORY_URL).anyTimes();
 
-    HostDAO hostDao = createNiceMock(HostDAO.class);
-    HostEntity mockHost = createNiceMock(HostEntity.class);
-    expect(hostDao.findByName("foo")).andReturn(mockHost).anyTimes();
+    // Create DDL sections with their own capture groups
+    HostSectionDDL hostSectionDDL = new HostSectionDDL();
+    WidgetSectionDDL widgetSectionDDL = new WidgetSectionDDL();
+    ViewSectionDDL viewSectionDDL = new ViewSectionDDL();
 
-    // Column Capture section
-    Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-    Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    // Execute any DDL schema changes
+    hostSectionDDL.execute(dbAccessor);
+    widgetSectionDDL.execute(dbAccessor);
+    viewSectionDDL.execute(dbAccessor);
 
-    // Add columns and alter table section
-    dbAccessor.addColumn(eq("hosts"), capture(hostsColumnCapture));
-
-    dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceColumnCapture));
-    dbAccessor.addColumn(eq("viewparameter"), capture(viewParamColumnCapture));
-
-    Capture<List<DBColumnInfo>> userWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
-    Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = new Capture<List<DBColumnInfo>>();
-    Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
-
-    // User Widget
-    dbAccessor.createTable(eq("user_widget"),
-        capture(userWidgetColumnsCapture), eq("id"));
-
-    // Widget Layout
-    dbAccessor.createTable(eq("widget_layout"),
-            capture(widgetLayoutColumnsCapture), eq("id"));
-
-    // Widget Layout User Widget
-    dbAccessor.createTable(eq("widget_layout_user_widget"),
-            capture(widgetLayoutUserWidgetColumnsCapture), eq("widget_layout_id"), eq("user_widget_id"));
-
-    // Replay section
+    // Replay sections
     replay(dbAccessor, configuration, resultSet);
-    replay(hostDao, mockHost);
 
     AbstractUpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
     Class<?> c = AbstractUpgradeCatalog.class;
@@ -136,35 +110,10 @@ public class UpgradeCatalog210Test {
     upgradeCatalog.executeDDLUpdates();
     verify(dbAccessor, configuration, resultSet);
 
-    // Verification section
-    verifyHosts(hostsColumnCapture);
-    verifyViewInstance(viewInstanceColumnCapture);
-    verifyViewParameter(viewParamColumnCapture);
-
-
-    // Verify widget tables
-    assertEquals(12, userWidgetColumnsCapture.getValue().size());
-    assertEquals(4, widgetLayoutColumnsCapture.getValue().size());
-    assertEquals(3, widgetLayoutUserWidgetColumnsCapture.getValue().size());
-  }
-
-  private void verifyHosts(Capture<DBAccessor.DBColumnInfo> hostsColumnCapture) {
-    DBColumnInfo hostsIdColumn = hostsColumnCapture.getValue();
-    Assert.assertEquals(Long.class, hostsIdColumn.getType());
-    Assert.assertEquals("id", hostsIdColumn.getName());
-  }
-
-  private void verifyViewInstance(Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture) {
-    DBColumnInfo clusterIdColumn = viewInstanceColumnCapture.getValue();
-    Assert.assertEquals(String.class, clusterIdColumn.getType());
-    Assert.assertEquals("cluster_handle", clusterIdColumn.getName());
-  }
-
-
-  private void verifyViewParameter(Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture) {
-    DBColumnInfo clusterConfigColumn = viewParamColumnCapture.getValue();
-    Assert.assertEquals(String.class, clusterConfigColumn.getType());
-    Assert.assertEquals("cluster_config", clusterConfigColumn.getName());
+    // Verify sections
+    hostSectionDDL.verify(dbAccessor);
+    widgetSectionDDL.verify(dbAccessor);
+    viewSectionDDL.verify(dbAccessor);
   }
 
   /**
@@ -198,5 +147,181 @@ public class UpgradeCatalog210Test {
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
 
     Assert.assertEquals("2.1.0", upgradeCatalog.getTargetVersion());
+  }
+
+  // *********** Inner Classes that represent sections of the DDL ***********
+  // ************************************************************************
+
+  /**
+   * Verify that all of the host-related tables added a column for the host_id
+   */
+  class HostSectionDDL implements SectionDDL {
+
+    HashMap<String, Capture<DBColumnInfo>> captures;
+
+    public HostSectionDDL() {
+      // Capture all tables that will have the host_id column added to it.
+      captures = new HashMap<String, Capture<DBColumnInfo>>();
+
+      // Column Capture section
+      // Hosts
+      Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> clusterHostMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+      // TODO, include other tables.
+      captures.put("hosts", hostsColumnCapture);
+      captures.put("hostcomponentstate", hostComponentStateColumnCapture);
+      captures.put("hostcomponentdesiredstate", hostComponentDesiredStateColumnCapture);
+      captures.put("hoststate", hostStateColumnCapture);
+      captures.put("ClusterHostMapping", clusterHostMappingColumnCapture);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void execute(DBAccessor dbAccessor) throws SQLException {
+      // Add columns and alter table section
+      dbAccessor.addColumn(eq("hosts"), capture(captures.get("hosts")));
+      dbAccessor.addColumn(eq("hostcomponentstate"), capture(captures.get("hostcomponentstate")));
+      dbAccessor.addColumn(eq("hostcomponentdesiredstate"), capture(captures.get("hostcomponentdesiredstate")));
+      dbAccessor.addColumn(eq("hoststate"), capture(captures.get("hoststate")));
+      dbAccessor.addColumn(eq("ClusterHostMapping"), capture(captures.get("ClusterHostMapping")));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void verify(DBAccessor dbAccessor) throws SQLException {
+      // Verification section
+      for (Capture<DBColumnInfo> columnCapture : captures.values()) {
+        verifyContainsHostIdColumn(columnCapture);
+      }
+    }
+
+    /**
+     * Verify that the column capture of the table contains a host_id column of type Long.
+     * This is needed for all of the host-related tables that are switching from the
+     * host_name to the host_id.
+     * @param columnCapture
+     */
+    private void verifyContainsHostIdColumn(Capture<DBAccessor.DBColumnInfo> columnCapture) {
+      DBColumnInfo idColumn = columnCapture.getValue();
+      Assert.assertEquals(Long.class, idColumn.getType());
+      Assert.assertEquals("host_id", idColumn.getName());
+    }
+  }
+
+  /**
+   * Verify that the user_widget, widget_layout, and widget_layout_user_widget tables are created correctly.
+   */
+  class WidgetSectionDDL implements SectionDDL {
+
+    HashMap<String, Capture<List<DBColumnInfo>>> captures;
+
+    public WidgetSectionDDL() {
+      captures = new HashMap<String, Capture<List<DBColumnInfo>>>();
+
+      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
+      Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = new Capture<List<DBColumnInfo>>();
+      Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
+
+      captures.put("user_widget", userWidgetColumnsCapture);
+      captures.put("widget_layout", widgetLayoutColumnsCapture);
+      captures.put("widget_layout_user_widget", widgetLayoutUserWidgetColumnsCapture);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void execute(DBAccessor dbAccessor) throws SQLException {
+      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = captures.get("user_widget");
+      Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = captures.get("widget_layout");
+      Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = captures.get("widget_layout_user_widget");
+
+      // User Widget
+      dbAccessor.createTable(eq("user_widget"),
+          capture(userWidgetColumnsCapture), eq("id"));
+
+      // Widget Layout
+      dbAccessor.createTable(eq("widget_layout"),
+          capture(widgetLayoutColumnsCapture), eq("id"));
+
+      // Widget Layout User Widget
+      dbAccessor.createTable(eq("widget_layout_user_widget"),
+          capture(widgetLayoutUserWidgetColumnsCapture), eq("widget_layout_id"), eq("user_widget_id"));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void verify(DBAccessor dbAccessor) throws SQLException {
+      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = captures.get("user_widget");
+      Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = captures.get("widget_layout");
+      Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = captures.get("widget_layout_user_widget");
+
+      // Verify widget tables
+      assertEquals(12, userWidgetColumnsCapture.getValue().size());
+      assertEquals(4, widgetLayoutColumnsCapture.getValue().size());
+      assertEquals(3, widgetLayoutUserWidgetColumnsCapture.getValue().size());
+    }
+  }
+  
+  /**
+   * Verify view changes
+   */
+  class ViewSectionDDL implements SectionDDL {
+
+    HashMap<String, Capture<DBColumnInfo>> captures;
+
+    public ViewSectionDDL() {
+      captures = new HashMap<String, Capture<DBColumnInfo>>();
+
+      Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+
+      captures.put("viewinstance", viewInstanceColumnCapture);
+      captures.put("viewparameter", viewParamColumnCapture);
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void execute(DBAccessor dbAccessor) throws SQLException {
+      Capture<DBColumnInfo> viewInstanceColumnCapture = captures.get("viewinstance");
+      Capture<DBColumnInfo> viewParamColumnCapture = captures.get("viewparameter");
+
+      dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceColumnCapture));
+      dbAccessor.addColumn(eq("viewparameter"), capture(viewParamColumnCapture));
+    }
+    
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void verify(DBAccessor dbAccessor) throws SQLException {
+      verifyViewInstance(captures.get("viewinstance"));
+      verifyViewParameter(captures.get("viewparameter"));
+    }
+    
+    private void verifyViewInstance(Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture) {
+      DBColumnInfo clusterIdColumn = viewInstanceColumnCapture.getValue();
+      Assert.assertEquals(String.class, clusterIdColumn.getType());
+      Assert.assertEquals("cluster_handle", clusterIdColumn.getName());
+    }
+
+
+    private void verifyViewParameter(Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture) {
+      DBColumnInfo clusterConfigColumn = viewParamColumnCapture.getValue();
+      Assert.assertEquals(String.class, clusterConfigColumn.getType());
+      Assert.assertEquals("cluster_config", clusterConfigColumn.getName());
+    }
   }
 }

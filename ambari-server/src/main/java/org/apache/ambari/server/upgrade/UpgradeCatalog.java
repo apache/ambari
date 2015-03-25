@@ -52,4 +52,10 @@ public interface UpgradeCatalog {
    * @return null : default
    */
   public String getSourceVersion();
+
+  /**
+   * Returns a list of versions using simplified regex of the Ambari versions that allow running this UpgradeCatalog.
+   * @return null : default
+   */
+  public String[] getCompatibleVersions();
 }

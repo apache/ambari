@@ -531,6 +531,12 @@ public class UpgradeCatalog200Test {
    */
   @Test
   public void testDeleteNagiosService() throws Exception {
+    UpgradeCatalog200 upgradeCatalog200 = injector.getInstance(UpgradeCatalog200.class);
+    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
+    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
+    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
+    ClusterServiceDAO clusterServiceDao = injector.getInstance(ClusterServiceDAO.class);
+
     final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
         injector, CLUSTER_NAME, DESIRED_STACK_VERSION);
 
@@ -544,9 +550,6 @@ public class UpgradeCatalog200Test {
         clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER",
         DESIRED_STACK_VERSION);
 
-    UpgradeCatalog200 upgradeCatalog200 = injector.getInstance(UpgradeCatalog200.class);
-
-    ServiceComponentDesiredStateDAO serviceComponentDesiredStateDAO = injector.getInstance(ServiceComponentDesiredStateDAO.class);
     ServiceComponentDesiredStateEntityPK pkNagiosServer = new ServiceComponentDesiredStateEntityPK();
     pkNagiosServer.setComponentName("NAGIOS_SERVER");
     pkNagiosServer.setClusterId(clusterEntity.getClusterId());
@@ -554,25 +557,22 @@ public class UpgradeCatalog200Test {
     ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = serviceComponentDesiredStateDAO.findByPK(pkNagiosServer);
     assertNotNull(serviceComponentDesiredStateEntity);
 
-    HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentDesiredStateEntityPK hcDesiredStateEntityPk = new HostComponentDesiredStateEntityPK();
     hcDesiredStateEntityPk.setServiceName("NAGIOS");
     hcDesiredStateEntityPk.setClusterId(clusterEntity.getClusterId());
     hcDesiredStateEntityPk.setComponentName("NAGIOS_SERVER");
-    hcDesiredStateEntityPk.setHostName(HOST_NAME);
+    hcDesiredStateEntityPk.setHostId(hostEntity.getHostId());
     HostComponentDesiredStateEntity hcDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(hcDesiredStateEntityPk);
     assertNotNull(hcDesiredStateEntity);
 
-    HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     HostComponentStateEntityPK hcStateEntityPk = new HostComponentStateEntityPK();
     hcStateEntityPk.setServiceName("NAGIOS");
     hcStateEntityPk.setClusterId(clusterEntity.getClusterId());
     hcStateEntityPk.setComponentName("NAGIOS_SERVER");
-    hcStateEntityPk.setHostName(HOST_NAME);
+    hcStateEntityPk.setHostId(hostEntity.getHostId());
     HostComponentStateEntity hcStateEntity = hostComponentStateDAO.findByPK(hcStateEntityPk);
     assertNotNull(hcStateEntity);
 
-    ClusterServiceDAO clusterServiceDao = injector.getInstance(ClusterServiceDAO.class);
     ClusterServiceEntity clusterService = clusterServiceDao.findByClusterAndServiceNames(
         CLUSTER_NAME, "NAGIOS");
 

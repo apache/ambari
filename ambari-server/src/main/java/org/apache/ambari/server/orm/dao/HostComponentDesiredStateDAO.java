@@ -73,7 +73,7 @@ public class HostComponentDesiredStateDAO {
 
   @Transactional
   public void remove(HostComponentDesiredStateEntity hostComponentDesiredStateEntity) {
-    HostEntity hostEntity = hostDAO.findByName(hostComponentDesiredStateEntity.getHostName());
+    HostEntity hostEntity = hostComponentDesiredStateEntity.getHostEntity();
 
     entityManagerProvider.get().remove(merge(hostComponentDesiredStateEntity));
 

@@ -40,12 +40,12 @@ public class HostDAO {
 
   /**
    * Looks for Host by ID
-   * @param id ID of Host
+   * @param hostId ID of Host
    * @return Found entity or NULL
    */
   @RequiresSession
-  public HostEntity findById(long id) {
-    return entityManagerProvider.get().find(HostEntity.class, id);
+  public HostEntity findById(long hostId) {
+    return entityManagerProvider.get().find(HostEntity.class, hostId);
   }
 
   @RequiresSession

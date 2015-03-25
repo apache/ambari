@@ -51,6 +51,20 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
     return "1.6.0";
   }
 
+
+  @Override
+  public String getTargetVersion() {
+    return "1.6.1";
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String[] getCompatibleVersions() {
+    return new String[] {"1.6.*", "1.7.*", "2.0.*"};
+  }
+
   /**
    * Logger.
    */
@@ -315,10 +329,5 @@ public class UpgradeCatalog161 extends AbstractUpgradeCatalog {
             "data.\npig.temp.dir=/tmp/\n\n# Threshold for merging FRJoin fragment files\npig.files.concatenation." +
             "threshold=100\npig.optimistic.files.concatenation=false;\n\npig.disable.counter=false\n\n" +
             "hcat.bin=/usr/bin/hcat"), true, false);
-  }
-
-  @Override
-  public String getTargetVersion() {
-    return "1.6.1";
   }
 }

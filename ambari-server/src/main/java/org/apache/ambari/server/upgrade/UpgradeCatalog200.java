@@ -96,6 +96,14 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * {@inheritDoc}
+   */
+  @Override
+  public String[] getCompatibleVersions() {
+    return new String[] {"2.0.*"};
+  }
+
+  /**
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger
