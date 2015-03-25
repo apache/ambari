@@ -206,9 +206,6 @@ describe('App.stackServiceMapper', function () {
       App.stackServiceMapper.clearStackModels();
     });
 
-    afterEach(function () {
-    });
-
     it('should sort and map data about services with their components', function () {
       App.stackServiceMapper.map(data);
       var services = App.StackService.find(),

@@ -205,5 +205,7 @@ App.MainConfigHistoryView = App.TableView.extend(App.TableServerViewMixin, {
    */
   colPropAssoc: function () {
     return this.get('controller.colPropAssoc');
-  }.property('controller.colPropAssoc')
+  }.property('controller.colPropAssoc'),
+
+  filter: Em.K
 });

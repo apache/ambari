@@ -379,6 +379,11 @@ describe('filters.getFilterByType', function () {
         condition: 'hello',
         value: '',
         result: false
+      },
+      {
+        condition: '?',
+        value: 'hello',
+        result: false
       }
     ];
 

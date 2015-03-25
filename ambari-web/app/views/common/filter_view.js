@@ -28,6 +28,8 @@
 
 var App = require('app');
 
+var validator = require('utils/validator');
+
 var wrapperView = Ember.View.extend({
   classNames: ['view-wrapper'],
   layout: Ember.Handlebars.compile('<a href="#" {{action "clearFilter" target="view"}} class="ui-icon ui-icon-circle-close"></a> {{yield}}'),
@@ -639,8 +641,12 @@ module.exports = {
       case 'string':
       default:
         return function (origin, compareValue) {
-          var regex = new RegExp(compareValue, "i");
-          return regex.test(origin);
+          if (validator.isValidMatchesRegexp(compareValue)) {
+            var regex = new RegExp(compareValue, "i");
+            return regex.test(origin);
+          } else {
+            return false;
+          }
         }
     }
   }
