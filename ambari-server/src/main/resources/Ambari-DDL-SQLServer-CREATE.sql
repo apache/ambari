@@ -62,7 +62,16 @@ CREATE TABLE hosts (
   total_mem BIGINT NOT NULL,
   PRIMARY KEY CLUSTERED (id));
 
-CREATE TABLE hoststate (agent_version VARCHAR(255) NOT NULL, available_mem BIGINT NOT NULL, current_state VARCHAR(255) NOT NULL, health_status VARCHAR(255), host_name VARCHAR(255) NOT NULL, time_in_state BIGINT NOT NULL, maintenance_state VARCHAR(512), PRIMARY KEY CLUSTERED (host_name));
+CREATE TABLE hoststate (
+  agent_version VARCHAR(255) NOT NULL,
+  available_mem BIGINT NOT NULL,
+  current_state VARCHAR(255) NOT NULL,
+  health_status VARCHAR(255),
+  host_id BIGINT NOT NULL,
+  time_in_state BIGINT NOT NULL,
+  maintenance_state VARCHAR(512),
+  PRIMARY KEY CLUSTERED (host_id));
+
 CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (component_name, cluster_id, service_name));
 CREATE TABLE servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_mapping INTEGER NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, maintenance_state VARCHAR(32) NOT NULL, security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED', PRIMARY KEY CLUSTERED (cluster_id, service_name));
 CREATE TABLE users (user_id INTEGER, principal_id BIGINT NOT NULL, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time DATETIME DEFAULT GETDATE(), user_password VARCHAR(255), active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY CLUSTERED (user_id), UNIQUE (ldap_user, user_name));
@@ -137,8 +146,7 @@ ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnnt
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 --ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
-ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
 --ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);

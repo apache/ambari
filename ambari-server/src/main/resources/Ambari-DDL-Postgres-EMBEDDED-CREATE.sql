@@ -171,12 +171,10 @@ CREATE TABLE ambari.hoststate (
   available_mem BIGINT NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   health_status VARCHAR(255),
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
   time_in_state BIGINT NOT NULL,
   maintenance_state VARCHAR(512),
-  PRIMARY KEY (host_name));
-  --PRIMARY KEY (host_id));
+  PRIMARY KEY (host_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.hoststate TO :username;
 
 CREATE TABLE ambari.host_version (
@@ -634,8 +632,7 @@ ALTER TABLE ambari.hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstat
 ALTER TABLE ambari.hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES ambari.servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE ambari.hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 --ALTER TABLE ambari.hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (id);
-ALTER TABLE ambari.hoststate ADD CONSTRAINT FK_hoststate_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
---ALTER TABLE ambari.hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
+ALTER TABLE ambari.hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
 ALTER TABLE ambari.host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
 --ALTER TABLE ambari.host_version ADD CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (id);
 ALTER TABLE ambari.host_version ADD CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES ambari.repo_version (repo_version_id);
