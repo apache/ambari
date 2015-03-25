@@ -141,9 +141,11 @@ class TestMain(unittest.TestCase):
     signal_mock.assert_any_call(signal.SIGUSR1, HeartbeatHandlers.debug)
 
 
+  @patch("platform.linux_distribution")
   @patch("os.path.exists")
   @patch("ConfigParser.RawConfigParser.read")
-  def test_resolve_ambari_config(self, read_mock, exists_mock):
+  def test_resolve_ambari_config(self, read_mock, exists_mock, platform_mock):
+    platform_mock.return_value = "Linux"
     # Trying case if conf file exists
     exists_mock.return_value = True
     main.resolve_ambari_config()
