@@ -43,7 +43,7 @@ function check_disks {
   for m in `awk '$3~/ext3/ {printf" %s ",$2}' /etc/fstab` ; do
     fsdev=""
     fsdev=`awk -v m=$m '$2==m {print $1}' /proc/mounts`;
-    if [ -z "$fsdev" ] ; then
+    if [ -z "$fsdev" -a "$m" != "/mnt" ] ; then
       msg_="$msg_ $m(u)"
     else
       msg_="$msg_`awk -v m=$m '$2==m { if ( $4 ~ /^ro,/ ) {printf"%s(ro)",$2 } ; }' /proc/mounts`"
@@ -58,36 +58,8 @@ function check_disks {
 
 }
 
-function check_taskcontroller {
-  if [ "<%=scope.function_hdp_template_var("::hdp::params::security_enabled")%>" == "true" ]; then
-    perm=`stat -c %a:%U:%G <%=scope.function_hdp_template_var("task_bin_exe")%> 2>/dev/null`
-    if [ $? -eq 0 ] && [ "$perm" == "6050:root:hadoop" ] ; then
-      echo "taskcontroller ok"
-    else
-      echo 'check taskcontroller' ; exit 1
-    fi
-  fi
-}
-
-function check_jetty {
-  hname=`hostname`
-  jmx=`curl -s -S -m 5 "http://$hname:<%=scope.function_hdp_template_var("::hdp::tasktracker_port")%>/jmx?qry=Hadoop:service=TaskTracker,name=ShuffleServerMetrics" 2>/dev/null` ;
-  if [ $? -eq 0 ] ; then
-    e=`echo $jmx | awk '/shuffle_exceptions_caught/ {printf"%d",$2}'` ;
-    e=${e:-0} # no jmx servlet ?
-    if [ $e -gt 10 ] ; then
-      echo "check jetty: shuffle_exceptions=$e" ; exit 1
-    else
-      echo "jetty ok"
-    fi
-  else
-    echo "check jetty: ping failed" ; exit 1
-  fi
-}
-
-
 # Run all checks
-for check in disks taskcontroller jetty; do
+for check in disks ; do
   msg=`check_${check}` ;
   if [ $? -eq 0 ] ; then
     ok_msg="$ok_msg$msg,"

@@ -59,7 +59,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/health_check',
-                              content = Template('health_check-v2.j2'),
+                              content = Template('health_check.j2'),
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File',
@@ -120,7 +120,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'root',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/health_check',
-                              content = Template('health_check-v2.j2'),
+                              content = Template('health_check.j2'),
                               owner = 'root',
                               )
     self.assertResourceCalled('File',
@@ -198,7 +198,7 @@ class TestHookBeforeStart(RMFTestCase):
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/health_check',
-                              content = Template('health_check-v2.j2'),
+                              content = Template('health_check.j2'),
                               owner = 'hdfs',
                               )
     self.assertResourceCalled('File',
