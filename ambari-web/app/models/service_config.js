@@ -342,7 +342,10 @@ App.ServiceConfigProperty = Em.Object.extend({
         this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'DATANODE').hosts.mapProperty('hostName'));
         break;
       case 'nfsgateway_hosts':
-        this.set('value', slaveComponentHostsInDB.findProperty('componentName', 'NFS_GATEWAY').hosts.mapProperty('hostName'));
+        var gwyHost = slaveComponentHostsInDB.findProperty('componentName', 'NFS_GATEWAY');
+        if(gwyHost) {
+          this.set('value', gwyHost.hosts.mapProperty('hostName'));
+        }
         break;
       case 'hs_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName'));

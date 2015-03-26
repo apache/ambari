@@ -25,8 +25,6 @@ import platform
 import re
 import shlex
 import socket
-import fcntl
-import struct
 import multiprocessing
 import subprocess
 from ambari_commons.shell import shellRunner
@@ -359,6 +357,8 @@ class FacterLinux(Facter):
 
   # Return  netmask
   def getNetmask(self):
+    import fcntl
+    import struct
     primary_ip = self.getIpAddress().strip()
     interface_pattern="(\w+)(?:.*Link encap:)"
     if OSCheck.is_redhat7():
@@ -371,6 +371,8 @@ class FacterLinux(Facter):
       
   # Return IP by interface name
   def get_ip_address_by_ifname(self, ifname):
+    import fcntl
+    import struct
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     return socket.inet_ntoa(fcntl.ioctl(
         s.fileno(),
