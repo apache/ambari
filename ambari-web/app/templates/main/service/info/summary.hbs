@@ -98,6 +98,15 @@
           </div>
           <div class="">
             <table class="graphs">
+              {{#if App.supports.customizedWidgets}}
+                <tr>
+                  {{#each widget in controller.widgets}}
+                    <td>
+                      {{view widget.viewClass contentBinding="widget"}}
+                    </td>
+                  {{/each}}
+                </tr>
+              {{/if}}
               {{#each graphs in view.serviceMetricGraphs}}
                 <tr>
                   {{#each graph in graphs}}

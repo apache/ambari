@@ -25,4 +25,4 @@ App.WidgetLayout = DS.Model.extend({
 });
 
 
-App.Widget.FIXTURES = [];
+App.WidgetLayout.FIXTURES = [];

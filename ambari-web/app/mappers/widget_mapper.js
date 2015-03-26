@@ -35,12 +35,12 @@ App.widgetMapper = App.QuickDataMapper.create({
     values: 'values',
     description: 'description'
   },
-  map: function (json) {
+  map: function (json, serviceName) {
+    //TODO add service name to user layout API response
     if (!this.get('model')) return;
 
     if (json) {
       var result = [];
-      var serviceName = '';//TODO assign when API structure approved
 
       var sectionName = json.section_name;
       json.widgetLayoutInfo.forEach(function (item, index) {

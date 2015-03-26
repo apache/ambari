@@ -2411,6 +2411,16 @@ var urls = {
   'widgets.layout.userDefined.get': {
     real: '/users/{loginName}/widget_layouts?section_name={sectionName}',
     mock: '/data/widget_layouts/HBASE/empty_user_layout.json'
+  },
+
+  'widgets.serviceComponent.metrics.get': {
+    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={widgetIds}',
+    mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'
+  },
+
+  'widgets.hostComponent.metrics.get': {
+    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{hostComponentCriteria}&fields={widgetIds}',
+    mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   }
 };
 /**

@@ -290,6 +290,74 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
       primary: Em.I18n.t('common.close'),
       secondary: null
     });
+  },
+
+  /**
+   * @type {boolean}
+   */
+  isWidgetsLoaded: false,
+
+  /**
+   * @type Em.A
+   */
+  widgets: function() {
+    return App.Widget.find().filterProperty('serviceName', this.get('content.serviceName'));
+  }.property('isWidgetsLoaded'),
+
+  /**
+   * load widgets defined by user
+   * @returns {$.ajax}
+   */
+  loadWidgets: function () {
+    this.set('isWidgetsLoaded', false);
+    return App.ajax.send({
+      name: 'widgets.layout.userDefined.get',
+      sender: this,
+      data: {
+        loginName: App.router.get('loginName'),
+        sectionName: this.get('content.serviceName') + "_SUMMARY"
+      },
+      success: 'loadWidgetsSuccessCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>loadWidgets()</code>
+   * @param {object|null} data
+   */
+  loadWidgetsSuccessCallback: function (data) {
+    if (data.items[0]) {
+      App.widgetMapper.map(data.items[0], this.get('content.serviceName'));
+      this.set('isWidgetsLoaded', true);
+    } else {
+      this.loadStackWidgetsLayout();
+    }
+  },
+
+  /**
+   * load widgets defined by stack
+   * @returns {$.ajax}
+   */
+  loadStackWidgetsLayout: function () {
+    return App.ajax.send({
+      name: 'widgets.layout.stackDefined.get',
+      sender: this,
+      data: {
+        stackVersionURL: App.get('stackVersionURL'),
+        serviceName: this.get('content.serviceName')
+      },
+      success: 'loadStackWidgetsLayoutSuccessCallback',
+      error: 'loadStackWidgetsLayoutErrorCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>loadStackWidgetsLayout()</code>
+   * @param {object|null} data
+   */
+  loadStackWidgetsLayoutSuccessCallback: function (data) {
+    App.widgetMapper.map(data.artifact_data.layouts.findProperty('section_name', (this.get('content.serviceName') + "_SUMMARY")), this.get('content.serviceName'));
+    this.set('isWidgetsLoaded', true);
   }
 
 });

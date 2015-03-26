@@ -20,7 +20,17 @@ var App = require('app');
 
 App.Widget = DS.Model.extend({
   widgetName: DS.attr('string'),
-  defaultOrder: "", // This field is not derived from API but needs to be filled in the mapper on the client side
+
+  /**
+   * types:
+   *  - GAUGE (shown as a percentage dial)
+   *  - HEATMAP
+   *  - GRAPH (Line graph and stack graph)
+   *  - NUMBER (e.g., “1 ms” for RPC latency)
+   *  - x / y (e.g., “2 / 3” DataNodes live)
+   *  - LINKS
+   *  - TEMPLATE
+   */
   widgetType: DS.attr('string'),
   displayName: DS.attr('string'),
   serviceName: DS.attr('string'),
@@ -29,7 +39,28 @@ App.Widget = DS.Model.extend({
   sectionName: DS.attr('string'),
   author: DS.attr('string'),
   properties: DS.attr('object'),
-  expression: DS.attr('array')
+  expression: DS.attr('array'),
+  metrics: DS.attr('array'),
+  values: DS.attr('array'),
+
+  /**
+   * @type {number}
+   * @default 0
+   */
+  defaultOrder: 0, // This field is not derived from API but needs to be filled in the mapper on the client side
+
+  /**
+   * @type Em.View
+   * @class
+   */
+  viewClass: function () {
+    switch (this.get('widgetType')) {
+      case 'GRAPH':
+        return App.GraphWidgetView;
+      default:
+        return Em.View;
+    }
+  }.property('widgetType')
 });
 
 

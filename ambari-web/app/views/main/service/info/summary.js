@@ -472,6 +472,15 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   didInsertElement: function () {
     var svcName = this.get('service.serviceName');
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
+
+    if (App.get('supports.customizedWidgets')) {
+      var serviceName = this.get('controller.content.serviceName');
+      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+      if (stackService.get('isServiceWithWidgets')) {
+        this.get('controller').loadWidgets();
+      }
+    }
+
     if (svcName && isMetricsSupported) {
       this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);
     }

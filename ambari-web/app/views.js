@@ -61,6 +61,7 @@ require('views/common/filter_combo_cleanable');
 require('views/common/table_view');
 require('views/common/progress_bar_view');
 require('views/common/controls_view');
+require('views/common/widget/graph_widget_view');
 require('views/login');
 require('views/main');
 require('views/main/menu');

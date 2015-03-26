@@ -2,11 +2,12 @@
   "href": "http://c6401.ambari.apache.org:8080//api/v1/users/admin/widget_layouts?section_name=HBASE_SUMMARY&fields=widgetLayoutInfo/WidgetInfo/*",
   "items": [
     {
-      "layout_name": "default_hdfs_layout",
-      "section_name": "HDFS_SUMMARY",
+      "layout_name": "default_hbase_layout",
+      "section_name": "HBASE_SUMMARY",
       "cluster_name": "c1",
       "widgetLayoutInfo": [
         {
+          "widget_name": "RS_READS_WRITES",
           "WidgetInfo": {
             "widget_name": "RS_READS_WRITES",
             "display_name": "RegionServer Reads and Writes",
@@ -15,42 +16,42 @@
             "metrics": [
               {
                 "name": "regionserver.Server.Get_num_ops",
-                "ambari_id": "metrics/hbase/regionserver/Server/Get_num_ops",
+                "widget_id": "metrics/hbase/regionserver/Server/Get_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
               },
               {
                 "name": "regionserver.Server.Scan_num_ops",
-                "ambari_id": "metrics/hbase/regionserver/Server/Scan_num_ops",
+                "widget_id": "metrics/hbase/regionserver/Server/Scan_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
               },
               {
                 "name": "regionserver.Server.Append_num_ops",
-                "ambari_id": "metrics/hbase/regionserver/Server/Append_num_ops",
+                "widget_id": "metrics/hbase/regionserver/Server/Append_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
               },
               {
                 "name": "regionserver.Server.Delete_num_ops",
-                "ambari_id": "metrics/hbase/regionserver/Server/Delete_num_ops",
+                "widget_id": "metrics/hbase/regionserver/Server/Delete_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
               },
               {
                 "name": "regionserver.Server.Increment_num_ops",
-                "ambari_id": "metrics/hbase/regionserver/Server/Increment_num_ops",
+                "widget_id": "metrics/hbase/regionserver/Server/Increment_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
               },
               {
                 "name": "regionserver.Server.Mutate_num_ops",
-                "ambari_id": "metrics/hbase/regionserver/Server/Mutate_num_ops",
+                "widget_id": "metrics/hbase/regionserver/Server/Mutate_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
@@ -59,22 +60,22 @@
             "values": [
               {
                 "name": "Read Requests",
-                "value": "`${regionserver.Server.Get_num_ops + regionserver.Server.Scan_num_ops}`"
+                "value": "${regionserver.Server.Get_num_ops + regionserver.Server.Scan_num_ops}"
               },
               {
                 "name": "Write Requests",
-                "value": "`${metrics.hbase.regionserver.Server.Append_num_ops + metrics.hbase.regionserver.Server.Delete_num_ops + metrics.hbase.regionserver.Server.Increment_num_ops + metrics.hbase.regionserver.Server.Mutate_num_ops}`"
+                "value": "${regionserver.Server.Append_num_ops + regionserver.Server.Delete_num_ops + regionserver.Server.Increment_num_ops + metrics.hbase.regionserver.Server.Mutate_num_ops}"
               }
             ],
             "properties": {
               "display_unit": "Requests",
               "graph_type": "LINE",
-              "time_ranger": "1 week"
+              "time_range": "1 week"
             }
           }
         },
         {
-          "widget_name": "RS_READS_WRITES",
+          "widget_name": "ACTIVE_HANDLER",
           "WidgetInfo": {
             "widget_name": "ACTIVE_HANDLER",
             "display_name": "Active Handlers vs Calls in General Queue",
@@ -82,14 +83,14 @@
             "metrics": [
               {
                 "name": "ipc.IPC.numOpenConnections",
-                "ambari_id": "metrics/hbase/ipc/IPC/numOpenConnections",
+                "widget_id": "metrics/hbase/ipc/IPC/numOpenConnections",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
               },
               {
                 "name": "ipc.IPC.numCallsInGeneralQueue",
-                "ambari_id": "metrics/hbase/ipc/IPC/numOpenConnections",
+                "widget_id": "metrics/hbase/ipc/IPC/numOpenConnections",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
@@ -98,21 +99,21 @@
             "values": [
               {
                 "name": "Active Handlers",
-                "value": "`${ipc.IPC.numActiveHandler}`"
+                "value": "${ipc.IPC.numActiveHandler}"
               },
               {
                 "name": "Calls in General Queue",
-                "value": "`${ipc.IPC.numCallsInGeneralQueue}`"
+                "value": "${ipc.IPC.numCallsInGeneralQueue}"
               }
             ],
             "properties": {
               "graph_type": "LINE",
-              "time_ranger": "1 hour"
+              "time_range": "1 hour"
             }
           }
         },
         {
-          "widget_name": "RS_READS_WRITES",
+          "widget_name": "OPEN_CONNECTIONS",
           "WidgetInfo": {
             "widget_name": "OPEN_CONNECTIONS",
             "display_name": "Open Connections",
@@ -121,7 +122,7 @@
             "metrics": [
               {
                 "name": "ipc.IPC.numOpenConnections",
-                "ambari_id": "metrics/hbase/ipc/IPC/numOpenConnections",
+                "widget_id": "metrics/hbase/ipc/IPC/numOpenConnections",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
@@ -130,18 +131,18 @@
             "values": [
               {
                 "name": "Open Connections",
-                "value": "`${ipc.IPC.numOpenConnections}`"
+                "value": "${ipc.IPC.numOpenConnections}"
               }
             ],
             "properties": {
               "display_unit": "Connections",
               "graph_type": "STACK",
-              "time_ranger": "1 hour"
+              "time_range": "1 hour"
             }
           }
         },
         {
-          "widget_name": "RS_READS_WRITES",
+          "widget_name": "FILES_LOCAL",
           "WidgetInfo": {
             "widget_name": "FILES_LOCAL",
             "display_name": "Files Local",
@@ -150,7 +151,7 @@
             "metrics": [
               {
                 "name": "regionserver.Server.percentFilesLocal",
-                "ambari_id": "metrics/hbase/regionserver/percentFilesLocal",
+                "widget_id": "metrics/hbase/regionserver/percentFilesLocal",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
@@ -159,7 +160,7 @@
             "values": [
               {
                 "name": "Files Local",
-                "value": "`${regionserver.Server.percentFilesLocal}`"
+                "value": "${regionserver.Server.percentFilesLocal}"
               }
             ],
             "properties": {
@@ -168,7 +169,7 @@
           }
         },
         {
-          "widget_name": "RS_READS_WRITES",
+          "widget_name": "UPDATED_BLOCKED_TIME",
           "WidgetInfo": {
             "widget_name": "UPDATED_BLOCKED_TIME",
             "display_name": "Updated Blocked Time",
@@ -177,7 +178,7 @@
             "metrics": [
               {
                 "name": "regionserver.Server.updatesBlockedTime",
-                "ambari_id": "metrics/hbase/regionserver/Server/updatesBlockedTime",
+                "widget_id": "metrics/hbase/regionserver/Server/updatesBlockedTime",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
@@ -186,13 +187,13 @@
             "values": [
               {
                 "name": "Updated Blocked Time",
-                "value": "`${regionserver.Server.updatesBlockedTime}`"
+                "value": "${regionserver.Server.updatesBlockedTime}"
               }
             ],
             "properties": {
               "display_unit": "seconds",
               "graph_type": "LINE",
-              "time_ranger": "1 day"
+              "time_range": "1 day"
             }
           }
         }
