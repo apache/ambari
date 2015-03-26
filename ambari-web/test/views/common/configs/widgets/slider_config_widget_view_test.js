@@ -25,6 +25,11 @@ describe('App.SliderConfigWidgetView', function () {
   beforeEach(function () {
     viewInt = App.SliderConfigWidgetView.create({
       initSlider: Em.K,
+      slider: {
+        enable: Em.K,
+        disable: Em.K,
+        setValue: Em.K
+      },
       config: Em.Object.create({
         name: 'a.b.c',
         description: 'A B C',
@@ -44,6 +49,11 @@ describe('App.SliderConfigWidgetView', function () {
     viewInt.didInsertElement();
     viewFloat = App.SliderConfigWidgetView.create({
       initSlider: Em.K,
+      slider: {
+        enable: Em.K,
+        disable: Em.K,
+        setValue: Em.K
+      },
       config: Em.Object.create({
         name: 'a.b.c2',
         description: 'A B C 2',

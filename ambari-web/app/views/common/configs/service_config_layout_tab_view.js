@@ -18,7 +18,14 @@
 
 var App = require('app');
 
-App.ServiceConfigLayoutTabView = Em.View.extend({
+App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
+
+  /**
+   * @type {App.Service}
+   */
+  service: function () {
+    return this.get('controller.selectedService');
+  }.property('controller.selectedService'),
 
   templateName: require('templates/common/configs/service_config_layout_tab'),
 
@@ -63,6 +70,11 @@ App.ServiceConfigLayoutTabView = Em.View.extend({
               Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
               configProperty.set('widget', widget);
               configProperty.set('stackConfigProperty', config);
+              if (configProperty.get('overrides'))
+              configProperty.get('overrides').forEach(function (override) {
+                override.set('widget', widget);
+                override.set('stackConfigProperty', config);
+              });
             });
           });
         });

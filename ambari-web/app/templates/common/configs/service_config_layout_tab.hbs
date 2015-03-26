@@ -30,7 +30,10 @@
                     <td class="config-subsection">
                       {{#each config in subsection.configs}}
                         {{#if config.view}}
-                          {{view config.widget configBinding="config"}}
+                          {{#unless config.isHiddenByFilter}}
+                            <p>{{config.name}}</p>
+                            {{view config.widget configBinding="config"}}
+                          {{/unless}}
                         {{/if}}
                       {{/each}}
                     </td>

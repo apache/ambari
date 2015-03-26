@@ -22,7 +22,7 @@ var validator = require('utils/validator');
 var stringUtils = require('utils/string_utils');
 require('utils/configs/modification_handlers/modification_handler');
 
-App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
+App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverridable, {
 
   templateName: require('templates/common/configs/service_config_category'),
 
@@ -620,42 +620,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, {
     }
     this.configChangeObserver(serviceConfigProperty);
     Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed
-  },
-
-  /**
-   *
-   * @method createOverrideProperty
-   */
-  createOverrideProperty: function (event) {
-    var serviceConfigProperty = event.contexts[0];
-    var serviceConfigController = this.get('controller');
-    var selectedConfigGroup = serviceConfigController.get('selectedConfigGroup');
-    var isInstaller = (this.get('controller.name') === 'wizardStep7Controller');
-    var configGroups = (isInstaller) ? serviceConfigController.get('selectedService.configGroups') : serviceConfigController.get('configGroups');
-
-    //user property is added, and it has not been saved, not allow override
-    if (serviceConfigProperty.get('isUserProperty') && serviceConfigProperty.get('isNotSaved') && !isInstaller) {
-      App.ModalPopup.show({
-        header: Em.I18n.t('services.service.config.configOverride.head'),
-        body: Em.I18n.t('services.service.config.configOverride.body'),
-        secondary: false
-      });
-      return;
-    }
-    if (selectedConfigGroup.get('isDefault')) {
-      // Launch dialog to pick/create Config-group
-      App.config.launchConfigGroupSelectionCreationDialog(this.get('service.serviceName'),
-        configGroups, serviceConfigProperty, function (selectedGroupInPopup) {
-          console.log("launchConfigGroupSelectionCreationDialog(): Selected/Created:", selectedGroupInPopup);
-          if (selectedGroupInPopup) {
-            serviceConfigController.set('overrideToAdd', serviceConfigProperty);
-            serviceConfigController.set('selectedConfigGroup', selectedGroupInPopup);
-          }
-        }, isInstaller);
-    }
-    else {
-      serviceConfigController.addOverrideProperty(serviceConfigProperty, selectedConfigGroup);
-    }
   }
 
 });

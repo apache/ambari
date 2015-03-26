@@ -17,30 +17,43 @@
 }}
 
 <div class="widget slider-widget">
-  <p>{{view.config.name}}</p>
-
-  <p>{{view.config.description}}</p>
-
   <div>
     <div {{bindAttr class="view.isMirrorValueValid::error :control-group :pull-left"}}>
       <div {{bindAttr class="view.config.stackConfigProperty.valueAttributes.unit:input-append"}}>
-        {{view Ember.TextField valueBinding="view.mirrorValue" class="input-mini"}}
+        {{view Ember.TextField valueBinding="view.mirrorValue" class="input-mini" disabledBinding="view.disabled"}}
         {{#if view.config.stackConfigProperty.valueAttributes.unit}}
           <span class="add-on">{{view.config.stackConfigProperty.valueAttributes.unit}}</span>
         {{/if}}
       </div>
     </div>
-    {{#if view.valueIsChanged}}
-      <div class="pull-left undo-button">
+    {{#if view.undoAllowed}}
+      <div class="pull-left action-button">
         <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
           <i class="icon-undo"></i>
         </a>
       </div>
+    {{/if}}
+    {{#if view.overrideAllowed}}
+      {{#isAccessible ADMIN}}
+        <div class="pull-left action-button">
+          <a class="btn btn-small" href="#" data-toggle="tooltip"
+            {{action "createOverrideProperty" view target="view.parentView"}}
+            {{translateAttr data-original-title="common.override"}}>
+            <i class="icon-plus-sign"></i>
+          </a>
+        </div>
+      {{/isAccessible}}
     {{/if}}
     <div class="clearfix"></div>
   </div>
   <div class="ui-slider-wrapper">
     {{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}
   </div>
+  {{#if view.config.isOverridden}}
+    {{view App.SliderConfigWidgetOverrideView
+      serviceConfigPropertyBinding="view.config"
+      isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
+    }}
+  {{/if}}
   <div class="clearfix"></div>
 </div>

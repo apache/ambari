@@ -38,11 +38,36 @@ App.ConfigWidgetView = Em.View.extend({
   }.property('config.value'),
 
   /**
+   * @type {boolean}
+   */
+  isComparison: false,
+
+  /**
    * Reset config-value to its default
    * @method restoreValue
    */
   restoreValue: function () {
     this.set('config.value', this.get('config.defaultValue'));
-  }
+  },
+
+  /**
+   * Determines if override is allowed for <code>config</code>
+   * @type {boolean}
+   */
+  overrideAllowed: function () {
+    var config = this.get('config');
+    if (!config) return false;
+    return config.get('isOriginalSCP') && config.get('isPropertyOverridable') && !this.get('isComparison');
+  }.property('config.isOriginalSCP', 'config.isPropertyOverridable', 'isComparison'),
+
+  /**
+   * Determines if undo is allowed for <code>config</code>
+   * @type {boolean}
+   */
+  undoAllowed: function () {
+    var config = this.get('config');
+    if (!config) return false;
+    return !config.get('cantBeUndone') && config.get('isNotDefaultValue');
+  }.property('config.cantBeUndone', 'config.isNotDefaultValue')
 
 });

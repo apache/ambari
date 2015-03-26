@@ -45,6 +45,7 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
     Em.$('body>.tooltip').remove();
     if (this.get('isDefaultGroupSelected')) {
       var overrides = this.get('serviceConfigProperty.overrides');
+      if (!overrides) return;
       overrides.forEach(function(overriddenSCP) {
         overriddenSCP.get('group').set('switchGroupTextShort',
           Em.I18n.t('services.service.config_groups.switchGroupTextShort').format(overriddenSCP.get('group.displayName')));
