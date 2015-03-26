@@ -35,6 +35,7 @@
         "Hosts/ph_cpu_count",
         "Hosts/os_arch",
         "Hosts/os_type",
+        "Hosts/os_family",
         "Hosts/rack_info",
         "Hosts/last_heartbeat_time",
         "Hosts/last_agent_env",

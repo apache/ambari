@@ -59,6 +59,7 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -93,6 +94,8 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
       PropertyHelper.getPropertyId("Hosts", "os_arch");
   protected static final String HOST_OS_TYPE_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "os_type");
+  protected static final String HOST_OS_FAMILY_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "os_family");
   protected static final String HOST_RACK_INFO_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "rack_info");
   protected static final String HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID =
@@ -130,6 +133,9 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
 
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
+
+  @Inject
+  private OsFamily osFamily;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -224,6 +230,15 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
           response.getOsArch(), requestedIds);
       setResourceProperty(resource, HOST_OS_TYPE_PROPERTY_ID,
           response.getOsType(), requestedIds);
+
+      String hostOsFamily = osFamily.find(response.getOsType());
+      if (hostOsFamily == null) {
+        LOG.error("Can not find host OS family. For OS type = '{}' and host name = '{}'",
+            response.getOsType(), response.getHostname());
+      }
+      setResourceProperty(resource, HOST_OS_FAMILY_PROPERTY_ID,
+          hostOsFamily, requestedIds);
+
       setResourceProperty(resource, HOST_RACK_INFO_PROPERTY_ID,
           response.getRackInfo(), requestedIds);
       setResourceProperty(resource, HOST_LAST_HEARTBEAT_TIME_PROPERTY_ID,
