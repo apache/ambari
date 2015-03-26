@@ -21,7 +21,7 @@ require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
 var lazyLoading = require('utils/lazy_loading');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, {
   name: 'mainServiceInfoConfigsController',
   isHostsConfigsPage: false,
   forceTransition: false,
@@ -2668,6 +2668,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   manageConfigurationGroups: function (controller) {
+    var configsController = this;
     var serviceData = (controller && controller.get('selectedService')) || this.get('content');
     var serviceName = serviceData.get('serviceName');
     var displayName = serviceData.get('displayName');
@@ -2695,7 +2696,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
             if (controller.get('selectedService.selected') === false && modifiedConfigGroups.toDelete.length > 0) {
               controller.setGroupsToDelete(modifiedConfigGroups.toDelete);
             }
-            App.config.persistWizardStep7ConfigGroups();
+            configsController.persistConfigGroups();
             this.updateConfigGroupOnServicePage();
           }
           this.hide();
@@ -2712,18 +2713,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           if (!deleteQueriesRun && deleteQueriesCounter > 0) {
             deleteQueriesRun = true;
             modifiedConfigGroups.toClearHosts.forEach(function (cg) {
-              App.config.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
+              configsController.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
             }, this);
             modifiedConfigGroups.toDelete.forEach(function (cg) {
-              App.config.deleteConfigGroup(cg, finishFunction, finishFunction);
+              configsController.deleteConfigGroup(cg, finishFunction, finishFunction);
             }, this);
           } else if (!createQueriesRun && deleteQueriesCounter < 1) {
             createQueriesRun = true;
             modifiedConfigGroups.toSetHosts.forEach(function (cg) {
-              App.config.updateConfigurationGroup(cg, finishFunction, finishFunction);
+              configsController.updateConfigurationGroup(cg, finishFunction, finishFunction);
             }, this);
             modifiedConfigGroups.toCreate.forEach(function (cg) {
-              App.config.postNewConfigurationGroup(cg, finishFunction);
+              configsController.postNewConfigurationGroup(cg, finishFunction);
             }, this);
           }
         };

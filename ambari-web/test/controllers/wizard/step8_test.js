@@ -988,15 +988,15 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#removeInstalledServicesConfigurationGroups', function() {
     beforeEach(function() {
-      sinon.stub(App.config, 'deleteConfigGroup', Em.K);
+      sinon.stub(installerStep8Controller, 'deleteConfigGroup', Em.K);
     });
     afterEach(function() {
-      App.config.deleteConfigGroup.restore();
+      installerStep8Controller.deleteConfigGroup.restore();
     });
     it('should call App.config.deleteConfigGroup for each received group', function() {
       var groups = [{}, {}, {}];
       installerStep8Controller.removeInstalledServicesConfigurationGroups(groups);
-      expect(App.config.deleteConfigGroup.callCount).to.equal(groups.length);
+      expect(installerStep8Controller.deleteConfigGroup.callCount).to.equal(groups.length);
     });
   });
 

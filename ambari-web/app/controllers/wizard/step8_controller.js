@@ -19,7 +19,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, {
+App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, {
 
   name: 'wizardStep8Controller',
 
@@ -1679,8 +1679,9 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    * @method removeInstalledServicesConfigurationGroups
    */
   removeInstalledServicesConfigurationGroups: function (groupsToDelete) {
+    var self = this;
     groupsToDelete.forEach(function (item) {
-      App.config.deleteConfigGroup(Em.Object.create(item));
+      self.deleteConfigGroup(Em.Object.create(item));
     });
   },
 

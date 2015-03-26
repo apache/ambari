@@ -126,17 +126,24 @@ describe('App.MainHostServiceConfigsController', function () {
 	});
 
 	describe("#switchHostGroup()", function () {
+
+    beforeEach(function() {
+      sinon.stub(controller, 'launchSwitchConfigGroupOfHostDialog', Em.K);
+      sinon.stub(controller, 'onConfigGroupChange', Em.K);
+    });
+
+    afterEach(function () {
+      controller.launchSwitchConfigGroupOfHostDialog.restore();
+      controller.onConfigGroupChange.restore();
+    });
+
 		it("should call launchSwitchConfigGroupOfHostDialog", function () {
-			sinon.stub(App.config, 'launchSwitchConfigGroupOfHostDialog', Em.K);
-			sinon.stub(controller, 'onConfigGroupChange', Em.K);
 			controller.set('selectedConfigGroup', {});
 			controller.set('configGroups', []);
 			controller.set('host', {hostName: 'host1'});
 			controller.switchHostGroup();
 
-			expect(App.config.launchSwitchConfigGroupOfHostDialog.calledWith({}, [], 'host1')).to.be.true;
-			App.config.launchSwitchConfigGroupOfHostDialog.restore();
-			controller.onConfigGroupChange.restore();
+			expect(controller.launchSwitchConfigGroupOfHostDialog.calledWith({}, [], 'host1')).to.be.true;
 		});
 	});
 
