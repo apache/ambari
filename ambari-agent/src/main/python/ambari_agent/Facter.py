@@ -64,10 +64,6 @@ class Facter(object):
   def getKernel(self):
     return platform.system()
 
-  # Returns the FQDN of the host
-  def getFqdn(self):
-    return socket.getfqdn().lower()
-
   # Returns the host's primary DNS domain name
   def getDomain(self):
     fqdn = self.getFqdn()
@@ -193,6 +189,10 @@ class FacterWindows(Facter):
   GET_UPTIME_CMD = 'echo $([int]((get-date)-[system.management.managementdatetimeconverter]::todatetime((get-wmiobject -class win32_operatingsystem).Lastbootuptime)).TotalSeconds)'
 
 
+  # Returns the FQDN of the host
+  def getFqdn(self):
+    return socket.getfqdn().lower()
+
   # Return  netmask
   def getNetmask(self):
     #TODO return correct netmask
@@ -289,6 +289,9 @@ class FacterLinux(Facter):
   GET_UPTIME_CMD = "cat /proc/uptime"
   GET_MEMINFO_CMD = "cat /proc/meminfo"
 
+  # hostname command
+  GET_HOSTNAME_CMD = "/bin/hostname -f"
+
   def __init__(self):
 
     self.DATA_IFCONFIG_OUTPUT = FacterLinux.setDataIfConfigOutput()
@@ -324,6 +327,20 @@ class FacterLinux(Facter):
     except OSError:
       log.warn("Can't execute {0}".format(FacterLinux.GET_MEMINFO_CMD))
     return ""
+
+  # Returns the FQDN of the host
+  def getFqdn(self):
+    # Try to use OS command to get hostname first due to Python Issue5004
+    try:
+      retcode, out, err = run_os_command(self.GET_HOSTNAME_CMD)
+      if (0 == retcode and 0 != len(out.strip())):
+        return out.strip()
+      else:
+        log.warn("Could not get fqdn using {0}".format(self.GET_HOSTNAME_CMD))
+    except OSError:
+      log.warn("Could not run {0} for fqdn".format(self.GET_HOSTNAME_CMD))
+    return socket.getfqdn().lower()
+
 
   def isSeLinux(self):
 
