@@ -531,6 +531,37 @@ CREATE TABLE repo_version (
   PRIMARY KEY(repo_version_id)
 );
 
+CREATE TABLE user_widget (
+  id BIGINT NOT NULL,
+  user_widget_name VARCHAR(255) NOT NULL,
+  user_widget_type VARCHAR(255) NOT NULL,
+  metrics TEXT,
+  time_created TIMESTAMP DEFAULT NOW(),
+  author VARCHAR(255),
+  description VARCHAR(255),
+  display_name VARCHAR(255) NOT NULL,
+  scope VARCHAR(255),
+  widget_values VARCHAR(255),
+  properties VARCHAR(255),
+  cluster_id BIGINT NOT NULL,
+  PRIMARY KEY(id)
+);
+
+CREATE TABLE widget_layout (
+  id BIGINT NOT NULL,
+  layout_name VARCHAR(255) NOT NULL,
+  section_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  PRIMARY KEY(id)
+);
+
+CREATE TABLE widget_layout_user_widget (
+  widget_layout_id BIGINT NOT NULL,
+  user_widget_id BIGINT NOT NULL,
+  widget_order smallint,
+  PRIMARY KEY(widget_layout_id, user_widget_id)
+);
+
 CREATE TABLE artifact (
   artifact_name VARCHAR(255) NOT NULL,
   artifact_data TEXT NOT NULL,
@@ -547,6 +578,7 @@ ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
+ALTER TABLE widget_layout ADD CONSTRAINT UQ_widget_layout UNIQUE (layout_name, section_name);
 
 --------altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
@@ -615,6 +647,8 @@ ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id);
 ALTER TABLE serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
+ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
+ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_user_widget_id FOREIGN KEY (user_widget_id) REFERENCES user_widget(id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (

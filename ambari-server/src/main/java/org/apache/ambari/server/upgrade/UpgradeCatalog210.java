@@ -31,6 +31,8 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -52,6 +54,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String CONFIG_GROUP_HOST_MAPPING_TABLE = "configgrouphostmapping";
   private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
   private static final String CLUSTER_HOST_MAPPING_TABLE = "ClusterHostMapping";
+  private static final String USER_WIDGET_TABLE = "user_widget";
+  private static final String WIDGET_LAYOUT_TABLE = "widget_layout";
+  private static final String WIDGET_LAYOUT_USER_WIDGET_TABLE = "widget_layout_user_widget";
 
   /**
    * {@inheritDoc}
@@ -95,6 +100,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     executeHostsDDLUpdates();
+    executeWidgetDDLUpdates();
   }
 
   /**
@@ -224,6 +230,40 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         "host_id", HOSTS_TABLE, "id", false);
 
     dbAccessor.dropColumn(CLUSTER_HOST_MAPPING_TABLE, "host_name");
+  }
+
+  private void executeWidgetDDLUpdates() throws AmbariException, SQLException {
+    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+
+    columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
+    columns.add(new DBColumnInfo("user_widget_name", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("user_widget_type", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("metrics", String.class,  32672,   null, true));
+    columns.add(new DBColumnInfo("time_created", Long.class,  255,   null, false));
+    columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("description", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("display_name", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("scope", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("widget_values", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("properties", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("cluster_id", Long.class,  255,   null, false));
+    dbAccessor.createTable(USER_WIDGET_TABLE, columns, "id");
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
+    columns.add(new DBColumnInfo("layout_name", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("section_name", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("cluster_id", Long.class,  255,   null, false));
+    dbAccessor.createTable(WIDGET_LAYOUT_TABLE, columns, "id");
+    dbAccessor.executeQuery("ALTER TABLE widget_layout ADD CONSTRAINT UQ_widget_layout UNIQUE (layout_name, section_name)");
+
+    columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("widget_layout_id", Long.class,    null,  null, false));
+    columns.add(new DBColumnInfo("user_widget_id", Long.class,    null,  null, false));
+    columns.add(new DBColumnInfo("widget_order", Integer.class,    null,  null, false));
+    dbAccessor.createTable(WIDGET_LAYOUT_USER_WIDGET_TABLE, columns, "widget_layout_id", "user_widget_id");
+    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_layout_id", "widget_layout_id", "widget_layout", "id", true, false);
+    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_user_widget_id", "user_widget_id", "user_widget", "id", true, false);
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------

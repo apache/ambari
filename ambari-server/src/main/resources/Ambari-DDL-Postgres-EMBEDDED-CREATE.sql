@@ -606,6 +606,40 @@ CREATE TABLE ambari.artifact (
   PRIMARY KEY (artifact_name, foreign_keys));
 GRANT ALL PRIVILEGES ON TABLE ambari.artifact TO :username;
 
+CREATE TABLE ambari.user_widget (
+  id BIGINT NOT NULL,
+  user_widget_name VARCHAR(255) NOT NULL,
+  user_widget_type VARCHAR(255) NOT NULL,
+  metrics TEXT,
+  time_created TIMESTAMP DEFAULT NOW(),
+  author VARCHAR(255),
+  description VARCHAR(255),
+  display_name VARCHAR(255) NOT NULL,
+  scope VARCHAR(255),
+  widget_values VARCHAR(255),
+  properties VARCHAR(255),
+  cluster_id BIGINT NOT NULL,
+  PRIMARY KEY(id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.user_widget TO :username;
+
+CREATE TABLE ambari.widget_layout (
+  id BIGINT NOT NULL,
+  layout_name VARCHAR(255) NOT NULL,
+  section_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  PRIMARY KEY(id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.widget_layout TO :username;
+
+CREATE TABLE ambari.widget_layout_user_widget (
+  widget_layout_id BIGINT NOT NULL,
+  user_widget_id BIGINT NOT NULL,
+  widget_order smallint,
+  PRIMARY KEY(widget_layout_id, user_widget_id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.widget_layout_user_widget TO :username;
+
 --------altering tables by creating unique constraints----------
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
@@ -616,6 +650,7 @@ ALTER TABLE ambari.serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (c
 ALTER TABLE ambari.adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
 ALTER TABLE ambari.repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
+ALTER TABLE ambari.widget_layout ADD CONSTRAINT UQ_widget_layout UNIQUE (layout_name, section_name);
 
 --------altering tables by creating foreign keys----------
 ALTER TABLE ambari.members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES ambari.groups (group_id);
@@ -684,6 +719,8 @@ ALTER TABLE ambari.adminprivilege ADD CONSTRAINT FK_privilege_principal_id FOREI
 ALTER TABLE ambari.users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
 ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
 ALTER TABLE ambari.clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
+ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES ambari.widget_layout(id);
+ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_user_widget_id FOREIGN KEY (user_widget_id) REFERENCES ambari.user_widget(id);
 
 -- Kerberos
 CREATE TABLE ambari.kerberos_principal (

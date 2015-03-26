@@ -42,14 +42,26 @@ import javax.persistence.EntityManager;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.util.List;
 
-import static org.easymock.EasyMock.*;
 import static org.easymock.EasyMock.capture;
+
+import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.verify;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
  */
 public class UpgradeCatalog210Test {
+  private final String CLUSTER_NAME = "c1";
+  private final String HOST_NAME = "h1";
+  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.6\"}";
 
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
@@ -90,6 +102,22 @@ public class UpgradeCatalog210Test {
     // Add columns and alter table section
     dbAccessor.addColumn(eq("hosts"), capture(hostsColumnCapture));
 
+    Capture<List<DBColumnInfo>> userWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
+    Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = new Capture<List<DBColumnInfo>>();
+    Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
+
+    // User Widget
+    dbAccessor.createTable(eq("user_widget"),
+        capture(userWidgetColumnsCapture), eq("id"));
+
+    // Widget Layout
+    dbAccessor.createTable(eq("widget_layout"),
+            capture(widgetLayoutColumnsCapture), eq("id"));
+
+    // Widget Layout User Widget
+    dbAccessor.createTable(eq("widget_layout_user_widget"),
+            capture(widgetLayoutUserWidgetColumnsCapture), eq("widget_layout_id"), eq("user_widget_id"));
+
     // Replay section
     replay(dbAccessor, configuration, resultSet);
     replay(hostDao, mockHost);
@@ -105,6 +133,12 @@ public class UpgradeCatalog210Test {
 
     // Verification section
     verifyHosts(hostsColumnCapture);
+
+
+    // Verify widget tables
+    assertEquals(12, userWidgetColumnsCapture.getValue().size());
+    assertEquals(4, widgetLayoutColumnsCapture.getValue().size());
+    assertEquals(3, widgetLayoutUserWidgetColumnsCapture.getValue().size());
   }
 
   private void verifyHosts(Capture<DBAccessor.DBColumnInfo> hostsColumnCapture) {
