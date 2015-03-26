@@ -26,7 +26,7 @@ import sys
 
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
-from ambari_commons.inet_utils import force_download_file
+from ambari_commons.inet_utils import force_download_file, download_progress
 from ambari_commons.logging_utils import get_silent, print_info_msg, print_warning_msg, print_error_msg
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -346,6 +346,10 @@ class JDKSetup(object):
       return
 
     java_home_var = get_JAVA_HOME()
+    if OS_FAMILY == OSConst.WINSRV_FAMILY:
+      progress_func = None
+    else:
+      progress_func = download_progress
 
     if get_silent():
       if not java_home_var:
@@ -424,7 +428,7 @@ class JDKSetup(object):
       jdk_url = jdk_cfg.url
 
       print 'Downloading JDK from ' + jdk_url + ' to ' + dest_file
-      self._download_jdk(jdk_url, dest_file)
+      self._download_jdk(jdk_url, dest_file, progress_func)
 
     try:
       (retcode, out, java_home_dir) = self._install_jdk(dest_file, jdk_cfg)
@@ -442,7 +446,7 @@ class JDKSetup(object):
           jdk_url = jdk_cfg.url
 
           print 'Re-downloading JDK from ' + jdk_url + ' to ' + dest_file
-          self._download_jdk(jdk_url, dest_file)
+          self._download_jdk(jdk_url, dest_file, progress_func)
           print 'Successfully re-downloaded JDK distribution to ' + dest_file
 
           try:
@@ -521,13 +525,13 @@ class JDKSetup(object):
 
     return jdks, jdk_choice_prompt, jdk_valid_choices, n_config - 1
 
-  def _download_jdk(self, jdk_url, dest_file):
+  def _download_jdk(self, jdk_url, dest_file, progress_func = None):
     jdk_download_fail_msg = " Failed to download JDK: {0}. Please check that the " \
                             "JDK is available at {1}. Also you may specify JDK file " \
                             "location in local filesystem using --jdk-location command " \
                             "line argument.".format("{0}", jdk_url)
     try:
-      force_download_file(jdk_url, dest_file)
+      force_download_file(jdk_url, dest_file, progress_func = progress_func)
 
       print 'Successfully downloaded JDK distribution to ' + dest_file
     except FatalException:
