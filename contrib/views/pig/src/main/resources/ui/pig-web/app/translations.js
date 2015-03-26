@@ -101,6 +101,7 @@ Ember.I18n.translations = {
     'execute':'Execute',
     'explain':'Explain',
     'syntax_check':'Syntax check',
+    'execute_on_tez':'Execute on Tez',
     'toggle_fullscreen':'Toggle fullscreen (F11)'
   },
   'job':{

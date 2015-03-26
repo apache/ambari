@@ -90,5 +90,11 @@ App.Job = DS.Model.extend({
     }
     var args = this.get('templetonArguments');
     return (args && args.length > 0)?args.w():[];
-  }.property('templetonArguments')
+  }.property('templetonArguments'),
+
+  notFound: function() {
+    if (this.get('isLoaded')) {
+      this.set('status','FAILED');
+    }
+  }
 });

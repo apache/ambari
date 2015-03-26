@@ -107,6 +107,9 @@ App.ScriptEditController = Em.ObjectController.extend({
         .then(this.executeSuccess.bind(this), this.executeError.bind(this))
         .finally(Em.run.bind(this,this.set,'isExec',false));
     },
+    toggleTez:function () {
+      this.toggleProperty('executeOnTez');
+    },
     fullscreen:function () {
       this.toggleProperty('fullscreen');
     }
@@ -123,6 +126,8 @@ App.ScriptEditController = Em.ObjectController.extend({
     var trace = (error.responseJSON)?error.responseJSON.trace:null;
     this.send('showAlert', {message:Em.I18n.t('job.alert.start_filed'),status:'error',trace:trace});
   },
+
+  executeOnTez:false,
 
   prepareJob:function (type, data) {
     var job, promise,
@@ -141,6 +146,10 @@ App.ScriptEditController = Em.ObjectController.extend({
       var rgParam = new RegExp(param.param,'g');
       fileContent = fileContent.replace(rgParam,param.value);
     });
+
+    if (this.get('executeOnTez') && args.indexOf('-x\ttez') < 0) {
+      args = args + (args ? "\t" : "") + '-x\ttez';
+    }
 
     job = this.store.createRecord('job', {
 

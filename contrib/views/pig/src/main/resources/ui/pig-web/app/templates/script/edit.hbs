@@ -35,6 +35,11 @@
             <li><a href="#" {{action "execute" content 'syntax_check' }} >{{t 'editor.syntax_check'}}</a></li>
           </ul>
         </div>
+        <div class="btn-group btn-group-xs pull-right tez-exec">
+          <label class="btn btn-default" {{action 'toggleTez'}}>
+            <i {{bind-attr class=":fa executeOnTez:fa-check-square-o:fa-square-o"}}></i> {{t 'editor.execute_on_tez'}}
+          </label>
+        </div>
         {{else}}
         <div class="spinner-sm pull-right"></div>
       {{/unless}}

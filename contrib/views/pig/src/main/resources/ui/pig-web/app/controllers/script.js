@@ -19,6 +19,10 @@
 var App = require('app');
 
 App.ScriptController = Em.ObjectController.extend({
+  init: function(){
+    this.pollster.set('target',this);
+    this._super();
+  },
   actions :{
     deactivateJob:function (jobId) {
       var rejected = this.get('activeJobs').rejectBy('id',jobId);
@@ -79,7 +83,7 @@ App.ScriptController = Em.ObjectController.extend({
 
   tabs:Em.computed.union('staticTabs','jobTabs'),
 
-  pollster:Em.Object.create({
+  pollster:Em.Object.createWithMixins(Ember.ActionHandler,{
     jobs:[],
     timer:null,
     start: function(jobs){
@@ -93,7 +97,14 @@ App.ScriptController = Em.ObjectController.extend({
     onPoll: function() {
       this.get('jobs').forEach(function (job) {
         if (job.get('jobInProgress')) {
-          job.reload();
+          job.reload().catch(function (error) {
+            this.send('showAlert',{
+              message:Em.I18n.t('job.alert.delete_filed'),
+              status:'error',
+              trace:(error.responseJSON)?error.responseJSON.trace:null
+            });
+            this.jobs.removeObject(job);
+          }.bind(this));
         } else {
           this.jobs.removeObject(job);
         }
@@ -102,7 +113,7 @@ App.ScriptController = Em.ObjectController.extend({
       if (this.get('jobs.length') > 0) {
         this.set('timer', Ember.run.later(this, function() {
           this.onPoll();
-        }, 3000));
+        }, 10000));
       }
     }
   }),
