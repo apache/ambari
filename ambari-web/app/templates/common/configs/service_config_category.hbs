@@ -26,9 +26,10 @@
     <form class="form-horizontal" autocomplete="off">
 
       {{#each view.categoryConfigs}}
-        <div {{bindAttr class=":entry-row isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
-          {{#if showLabel}}
-            <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
+        {{#unless widget}} {{! configs with widgets should be shown only on the EnhancedConfigs tabs  }}
+          <div {{bindAttr class=":entry-row isHiddenByFilter:hide isOverridden:overridden-property hasCompareDiffs:overridden-property"}}>
+            {{#if showLabel}}
+              <span {{bindAttr class="errorMessage:error: :control-group :control-label-span"}}>
               <label class="control-label">
                 {{formatWordBreak displayName}}
                 {{#if isSecureConfig}}
@@ -43,85 +44,89 @@
                 {{/if}}
               </label>
             </span>
-          {{/if}}
-          <div {{bindAttr class="showLabel:controls"}}>
-            {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
-            <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
-              {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
-              {{#if this.isComparison}}
-                {{#if controller.selectedConfigGroup.isDefault}}
-                  <span class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-                  {{#if controller.isCurrentSelected}}
-                    <span class="label label-success">{{t common.current}}</span>
+            {{/if}}
+            <div {{bindAttr class="showLabel:controls"}}>
+              {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
+              <div {{bindAttr class="errorMessage:error: warnMessage:warning: :control-group"}}>
+                {{view viewClass serviceConfigBinding="this" categoryConfigsAllBinding="view.categoryConfigsAll" }}
+                {{#if this.isComparison}}
+                  {{#if controller.selectedConfigGroup.isDefault}}
+                    <span
+                        class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+                    {{#if controller.isCurrentSelected}}
+                      <span class="label label-success">{{t common.current}}</span>
+                    {{/if}}
+                  {{else}}
+                    <span class="label label-info">{{t common.default}}
+                      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
                   {{/if}}
-                {{else}}
-                  <span class="label label-info">{{t common.default}}&nbsp;{{t services.service.config.configHistory.configGroup}}</span>
                 {{/if}}
-              {{/if}}
-              {{#if supportsFinal}}
-                <a href="#" data-toggle="tooltip"
-                  {{bindAttr class=":btn :btn-small :btn-final isFinal:active hideFinalIcon:hidden" disabled="isNotEditable"}}
-                  {{action "toggleFinalFlag" this target="view"}}
-                  {{translateAttr data-original-title="services.service.config.final"}}>
-                  <i class="icon-lock"></i>
-                </a>
-              {{/if}}
-              {{#if view.canEdit}}
-                {{#if isPropertyOverridable}}
-                  {{#if view.supportsHostOverrides}}
-                    {{#isAccessible ADMIN}}
-                      {{#unless this.isComparison}}
+                {{#if supportsFinal}}
+                  <a href="#" data-toggle="tooltip"
+                    {{bindAttr class=":btn :btn-small :btn-final isFinal:active hideFinalIcon:hidden" disabled="isNotEditable"}}
+                    {{action "toggleFinalFlag" this target="view"}}
+                    {{translateAttr data-original-title="services.service.config.final"}}>
+                    <i class="icon-lock"></i>
+                  </a>
+                {{/if}}
+                {{#if view.canEdit}}
+                  {{#if isPropertyOverridable}}
+                    {{#if view.supportsHostOverrides}}
+                      {{#isAccessible ADMIN}}
+                        {{#unless this.isComparison}}
                           <a class="btn btn-small" href="#" data-toggle="tooltip"
                             {{action "createOverrideProperty" this target="view"}}
                             {{translateAttr data-original-title="common.override"}}>
-                              <i class="icon-plus-sign"></i>
+                            <i class="icon-plus-sign"></i>
                           </a>
-                      {{/unless}}
-                    {{/isAccessible}}
+                        {{/unless}}
+                      {{/isAccessible}}
+                    {{/if}}
                   {{/if}}
-                {{/if}}
-                {{#unless cantBeUndone}}
-                  {{#if isNotDefaultValue}}
-                    <a class="btn btn-small" href="#" data-toggle="tooltip"
-                      {{action "doRestoreDefaultValue" this target="view"}}
-                      {{translateAttr data-original-title="common.undo"}}>
-                      <i class="icon-undo"></i>
-                    </a>
-                  {{/if}}
-                {{/unless}}
-                {{#if isRemovable}}
-                  {{#isAccessible ADMIN}}
-                    {{#unless this.isComparison}}
+                  {{#unless cantBeUndone}}
+                    {{#if isNotDefaultValue}}
+                      <a class="btn btn-small" href="#" data-toggle="tooltip"
+                        {{action "doRestoreDefaultValue" this target="view"}}
+                        {{translateAttr data-original-title="common.undo"}}>
+                        <i class="icon-undo"></i>
+                      </a>
+                    {{/if}}
+                  {{/unless}}
+                  {{#if isRemovable}}
+                    {{#isAccessible ADMIN}}
+                      {{#unless this.isComparison}}
                         <a class="btn btn-small" href="#" data-toggle="tooltip"
                           {{action "removeProperty" this target="view"}}
                           {{translateAttr data-original-title="common.remove"}}>
-                            <i class="icon-minus-sign"></i>
+                          <i class="icon-minus-sign"></i>
                         </a>
-                    {{/unless}}
-                  {{/isAccessible}}
-                {{/if}}
-                {{#unless isEditable}}
-                  {{#if group}}
-                    <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="this.group.switchGroupTextShort"}} class="action" {{action selectConfigGroup group target="controller"}}>
-                      {{group.switchGroupTextShort}}
-                    </a>
+                      {{/unless}}
+                    {{/isAccessible}}
                   {{/if}}
-                {{/unless}}
+                  {{#unless isEditable}}
+                    {{#if group}}
+                      <a rel='SwitchGroupTooltip' {{bindAttr data-original-title="this.group.switchGroupTextShort"}}
+                         class="action" {{action selectConfigGroup group target="controller"}}>
+                        {{group.switchGroupTextShort}}
+                      </a>
+                    {{/if}}
+                  {{/unless}}
+                {{/if}}
+                <span class="help-inline">{{errorMessage}}</span>
+                <span class="help-inline">{{warnMessage}}</span>
+              </div>
+              {{#if this.isOverridden}}
+                {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this" isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"}}
               {{/if}}
-              <span class="help-inline">{{errorMessage}}</span>
-              <span class="help-inline">{{warnMessage}}</span>
+              {{#if this.isComparison}}
+                {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
+              {{/if}}
             </div>
-            {{#if this.isOverridden}}
-              {{view App.ServiceConfigView.SCPOverriddenRowsView serviceConfigPropertyBinding="this" isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"}}
-            {{/if}}
-            {{#if this.isComparison}}
-              {{view App.ServiceConfigView.SCPComparisonRowsView serviceConfigPropertyBinding="this"}}
-            {{/if}}
           </div>
-        </div>
-        {{#if this.additionalView}}
-          {{view additionalView}}
-        {{/if}}
+          {{#if this.additionalView}}
+            {{view additionalView}}
+          {{/if}}
+        {{/unless}}
       {{/each}}
 
       {{! For Advanced, Advanced Core Site, Advanced HDFS Site sections, show the 'Add Property' link.}}
@@ -129,7 +134,8 @@
         {{#if view.canEdit}}
           {{#if view.category.customCanAddProperty }}
             <div>
-              <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}...</a>
+              <a href="#" {{action "showAddPropertyWindow" this target="view" }} >{{t installer.step7.config.addProperty}}
+                ...</a>
             </div>
           {{/if}}
         {{/if}}
