@@ -280,7 +280,6 @@ App.ClusterController = Em.Controller.extend({
         });
 
         updater.updateServiceMetric(function () {
-          App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName'));
           if (App.get('supports.enhancedConfigs')) {
             App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName'));
           }

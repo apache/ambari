@@ -16,18 +16,15 @@
 * limitations under the License.
 }}
 
-{{#each spinnerContent in view.content}}
-  {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
-{{/each}}
+<p>{{view.config.name}}</p>
+<div class="pull-left">
+  {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
+</div>
 {{#if view.valueIsChanged}}
-  <div class="action-button">
+  <div class="pull-left action-button">
     <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
       <i class="icon-undo"></i>
     </a>
   </div>
-{{/if}}
-{{#if view.errorMessage}}
-  <div class="clearfix"></div>
-  <p class="text-error">{{view.errorMessage}}</p>
 {{/if}}
 <div class="clearfix"></div>

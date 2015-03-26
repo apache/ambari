@@ -17,9 +17,12 @@
  */
 @import 'common.less';
 
+@undo-btn-margin: 20px;
+@combo-widget-width: 100px;
+
 .widget {
   .action-button {
-    margin-left: 20px;
+    margin-left: @undo-btn-margin;
   }
 }
 
@@ -72,7 +75,6 @@
     border-radius: 11px;
     box-shadow: none;
   }
-
 }
 
 .spinner-input-widget {
@@ -110,8 +112,42 @@
     }
   }
 
-  .restore-btn {
+  .undo-button {
     padding: 2px 10px;
     float: left;
+  }
+}
+
+.toggle-widget {
+  .undo-button {
+    margin-left: @undo-btn-margin;
+  }
+}
+
+.combo-widget {
+  .input-append {
+
+    > input {
+      border-radius: 3px 0 0 3px;
+      width: @combo-widget-width;
+
+      &[disabled] {
+        background: #fff;
+        cursor: default;
+      }
+    }
+
+    .btn-group {
+      display: inline-block;
+      margin-left: -1px;
+
+      .btn {
+        border-radius: 0 3px 3px 0;
+      }
+    }
+  }
+
+  .action-button {
+    margin-left: @undo-btn-margin;
   }
 }

@@ -131,6 +131,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
     var propertyUnit = property.get('stackConfigProperty.valueAttributes').unit;
     return this.convertToWidgetUnits(value, propertyUnit, widgetUnits);
   },
+
   /**
    * Convert property value to widget format units.
    *

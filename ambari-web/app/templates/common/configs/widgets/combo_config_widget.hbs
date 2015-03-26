@@ -16,18 +16,27 @@
 * limitations under the License.
 }}
 
-{{#each spinnerContent in view.content}}
-  {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
-{{/each}}
+<p>{{view.config.name}}</p>
+<div class="input-append pull-left">
+  {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}
+  <div class="dropdown btn-group">
+    <button class="btn dropdown-toggle" data-toggle="dropdown">
+      <span class="caret"></span>
+    </button>
+    <ul class="dropdown-menu">
+      {{#each item in view.content.valuesList}}
+        <li>
+          <a href="#" {{action setConfigValue item.configValue target="view"}}>{{item.widgetValue}}</a>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+</div>
 {{#if view.valueIsChanged}}
-  <div class="action-button">
+  <div class="action-button pull-left">
     <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
       <i class="icon-undo"></i>
     </a>
   </div>
-{{/if}}
-{{#if view.errorMessage}}
-  <div class="clearfix"></div>
-  <p class="text-error">{{view.errorMessage}}</p>
 {{/if}}
 <div class="clearfix"></div>

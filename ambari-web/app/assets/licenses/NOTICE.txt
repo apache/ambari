@@ -48,3 +48,6 @@ This product includes Ember QUnit (https://github.com/rwjblue/ember-qunit - MIT 
 
 This product includes bootstrap-slider 4.5.6 (https://github.com/seiyria/bootstrap-slider - MIT License)
 Copyright (C) 2015 by Kyle Kemp, Rohit Kalkur, and contributors
+
+This product includes bootstrap-slider 3.3.2 (https://github.com/nostalgiaz/bootstrap-switch - Apache License, Version 2.0)
+Copyright (C) 2015 by Mattia Larentis (mattia [at] larentis [*dot*] eu)
