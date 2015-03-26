@@ -18,7 +18,12 @@
 
 <div class="accordion-heading" {{action "onToggleBlock" category target="view"}}>
   <i {{bindAttr class=":pull-left :accordion-toggle view.category.isCollapsed:icon-caret-right:icon-caret-down"}}></i>
-  <a class="accordion-toggle">{{view.category.displayName}}</a>
+  <a class="accordion-toggle">
+    <span class="category-name">{{view.category.displayName}}</span>
+    {{#if view.category.errorCount}}
+      <span class="badge badge-important">{{view.category.errorCount}}</span>
+    {{/if}}
+  </a>
 </div>
 
 <div class="accordion-body collapse in" {{bindAttr style="view.isCategoryBodyVisible"}}>

@@ -27,6 +27,7 @@ var serviceConfig,
   serviceConfigPropertyInit,
   configsData = [
     Ember.Object.create({
+      category: 'c0',
       overrides: [
         {
           error: true,
@@ -39,23 +40,28 @@ var serviceConfig,
       ]
     }),
     Ember.Object.create({
+      category: 'c1',
       isValid: false,
       isVisible: true
     }),
-      Ember.Object.create({
+    Ember.Object.create({
+      category: 'c0',
       isValid: true,
       isVisible: true
     }),
     Ember.Object.create({
+      category: 'c1',
       isValid: false,
       isVisible: false
     })
   ],
   configCategoriesData = [
     Em.Object.create({
+      name: 'c0',
       slaveErrorCount: 1
     }),
     Em.Object.create({
+      name: 'c1',
       slaveErrorCount: 2
     })
   ],
@@ -365,6 +371,8 @@ describe('App.ServiceConfig', function () {
         configCategories: configCategoriesData
       });
       expect(serviceConfig.get('errorCount')).to.equal(6);
+      expect(serviceConfig.get('configCategories').findProperty('name', 'c0').get('nonSlaveErrorCount')).to.equal(2);
+      expect(serviceConfig.get('configCategories').findProperty('name', 'c1').get('nonSlaveErrorCount')).to.equal(1);
     });
   });
 
@@ -419,6 +427,19 @@ describe('App.ServiceConfigCategory', function () {
     it('should sum all errorCount values', function () {
       serviceConfigCategory.set('slaveConfigs', groupsData);
       expect(serviceConfigCategory.get('slaveErrorCount')).to.equal(3);
+    });
+  });
+
+  describe('#errorCount', function () {
+    it('should sum all errors for category', function () {
+      serviceConfigCategory.reopen({
+        slaveErrorCount: 1
+      });
+      expect(serviceConfigCategory.get('errorCount')).to.equal(1);
+      serviceConfigCategory.set('nonSlaveErrorCount', 2);
+      expect(serviceConfigCategory.get('errorCount')).to.equal(3);
+      serviceConfigCategory.set('slaveErrorCount', 0);
+      expect(serviceConfigCategory.get('errorCount')).to.equal(2);
     });
   });
 

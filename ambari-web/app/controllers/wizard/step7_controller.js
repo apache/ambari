@@ -224,6 +224,20 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
     }
   ],
 
+  issuesFilterText: function () {
+    return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked') &&
+      this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected')) ?
+        Em.I18n.t('installer.step7.showingPropertiesWithIssues') : '';
+  }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
+
+  issuesFilterLinkText: function () {
+    return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked')) ?
+      (
+        this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected') ?
+          Em.I18n.t('installer.step7.showAllProperties') : Em.I18n.t('installer.step7.showPropertiesWithIssues')
+      ) : '';
+  }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
+
   /**
    * Dropdown menu items in filter combobox
    */
@@ -510,7 +524,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
         break;
       case 'YARN':
         this.resolveYarnConfigs(configs);
-      default:
         break;
     }
   },
@@ -665,7 +678,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       serviceConfigs.setEach('selected', false);
       this.get('selectedServiceNames').forEach(function (serviceName) {
         if (!serviceConfigs.findProperty('serviceName', serviceName)) return;
-        var selectedService = serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
+        serviceConfigs.findProperty('serviceName', serviceName).set('selected', true);
       }, this);
       this.get('installedServiceNames').forEach(function (serviceName) {
         var serviceConfigObj = serviceConfigs.findProperty('serviceName', serviceName);
@@ -1262,6 +1275,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
         });
       }
     });
+  },
+
+  toggleIssuesFilter: function () {
+    this.get('filterColumns').findProperty('attributeName', 'isValid').toggleProperty('selected');
   }
 
 });

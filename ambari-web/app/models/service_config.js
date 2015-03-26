@@ -29,22 +29,32 @@ App.ServiceConfig = Ember.Object.extend({
   configGroups: [],
   initConfigsLength: 0, // configs length after initialization in order to watch changes
   errorCount: function () {
-    var overrideErrors = 0;
-    this.get('configs').filterProperty("overrides").forEach(function (e) {
-      e.overrides.forEach(function (e) {
-        if (e.error) {
-          overrideErrors += 1;
-        }
-      })
-    });
-    var categoryNames = this.get('configCategories').mapProperty('name');
-    var masterErrors = this.get('configs').filter(function (item) {
-      return categoryNames.contains(item.get('category'));
-    }).filterProperty('isValid', false).filterProperty('isVisible', true).get('length');
-    var slaveErrors = 0;
-    this.get('configCategories').forEach(function (_category) {
+    var overrideErrors = 0,
+      masterErrors = 0,
+      slaveErrors = 0,
+      configs = this.get('configs'),
+      configCategories = this.get('configCategories');
+    configCategories.forEach(function (_category) {
       slaveErrors += _category.get('slaveErrorCount');
-    }, this);
+      _category.set('nonSlaveErrorCount', 0);
+    });
+    configs.forEach(function (item) {
+      var category = configCategories.findProperty('name', item.get('category'));
+      if (category && !item.get('isValid') && item.get('isVisible')) {
+        category.incrementProperty('nonSlaveErrorCount');
+        masterErrors++;
+      }
+      if (item.get('overrides')) {
+        item.get('overrides').forEach(function (e) {
+          if (e.error) {
+            if (category) {
+              category.incrementProperty('nonSlaveErrorCount');
+            }
+            overrideErrors++;
+          }
+        });
+      }
+    });
     return masterErrors + slaveErrors + overrideErrors;
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
@@ -78,6 +88,7 @@ App.ServiceConfigCategory = Ember.Object.extend({
    * Can this category add new properties. Used for custom configurations.
    */
   canAddProperty: false,
+  nonSlaveErrorCount: 0,
   primaryName: function () {
     switch (this.get('name')) {
       case 'DataNode':
@@ -114,6 +125,10 @@ App.ServiceConfigCategory = Ember.Object.extend({
     }
     return length;
   }.property('slaveConfigs.groups.@each.errorCount'),
+
+  errorCount: function () {
+    return this.get('slaveErrorCount') + this.get('nonSlaveErrorCount');
+  }.property('slaveErrorCount', 'nonSlaveErrorCount'),
 
   isAdvanced : function(){
     var name = this.get('name');

@@ -22,7 +22,64 @@ require('mixins/common/localStorage');
 require('models/config_group');
 require('controllers/wizard/step7_controller');
 
-var installerStep7Controller;
+var installerStep7Controller,
+  issuesFilterCases = [
+    {
+      isSubmitDisabled: true,
+      submitButtonClicked: true,
+      isIssuesFilterActive: true,
+      issuesFilterText: '',
+      issuesFilterLinkText: '',
+      title: 'issues filter on, submit button clicked'
+    },
+    {
+      isSubmitDisabled: true,
+      submitButtonClicked: false,
+      isIssuesFilterActive: true,
+      issuesFilterText: Em.I18n.t('installer.step7.showingPropertiesWithIssues'),
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
+      title: 'issues filter on, submit button disabled'
+    },
+    {
+      isSubmitDisabled: true,
+      submitButtonClicked: true,
+      isIssuesFilterActive: false,
+      issuesFilterText: '',
+      issuesFilterLinkText: '',
+      title: 'issues filter off, submit button clicked'
+    },
+    {
+      isSubmitDisabled: true,
+      submitButtonClicked: false,
+      isIssuesFilterActive: false,
+      issuesFilterText: '',
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showPropertiesWithIssues'),
+      title: 'issues filter off, submit button disabled'
+    },
+    {
+      isSubmitDisabled: false,
+      submitButtonClicked: false,
+      isIssuesFilterActive: true,
+      issuesFilterText: '',
+      issuesFilterLinkText: '',
+      title: 'issues filter on, submit button enabled'
+    },
+    {
+      isSubmitDisabled: false,
+      submitButtonClicked: false,
+      isIssuesFilterActive: false,
+      issuesFilterText: '',
+      issuesFilterLinkText: '',
+      title: 'issues filter off, submit button enabled'
+    }
+  ],
+  issuesFilterTestSetup = function (controller, testCase) {
+    controller.set('submitButtonClicked', testCase.submitButtonClicked);
+    controller.reopen({
+      isSubmitDisabled: testCase.isSubmitDisabled
+    });
+    controller.get('filterColumns').findProperty('attributeName', 'isValid').set('selected', testCase.isIssuesFilterActive);
+  };
 
 describe('App.InstallerStep7Controller', function () {
 
@@ -468,9 +525,10 @@ describe('App.InstallerStep7Controller', function () {
       installerStep7Controller.resolveStormConfigs.restore();
       installerStep7Controller.resolveYarnConfigs.restore();
     });
-    var serviceNames = [
+    [
       {serviceName: 'STORM', method: "resolveStormConfigs"},
-      {serviceName: 'YARN', method: "resolveYarnConfigs"}].forEach(function(t) {
+      {serviceName: 'YARN', method: "resolveYarnConfigs"}
+    ].forEach(function(t) {
       it("should call " + t.method + " if serviceName is " + t.serviceName, function () {
         var configs = [
           {},
@@ -1455,6 +1513,39 @@ describe('App.InstallerStep7Controller', function () {
       });
     });
 
+  });
+
+  describe('#issuesFilterText', function () {
+
+    issuesFilterCases.forEach(function (item) {
+      it(item.title, function () {
+        issuesFilterTestSetup(installerStep7Controller, item);
+        expect(installerStep7Controller.get('issuesFilterText')).to.equal(item.issuesFilterText);
+      })
+    });
+
+  });
+
+  describe('#issuesFilterLinkText', function () {
+
+    issuesFilterCases.forEach(function (item) {
+      it(item.title, function () {
+        issuesFilterTestSetup(installerStep7Controller, item);
+        expect(installerStep7Controller.get('issuesFilterLinkText')).to.equal(item.issuesFilterLinkText);
+      })
+    });
+
+  });
+
+  describe('#toggleIssuesFilter', function () {
+    it('should toggle issues filter', function () {
+      var issuesFilter = installerStep7Controller.get('filterColumns').findProperty('attributeName', 'isValid');
+      issuesFilter.set('selected', false);
+      installerStep7Controller.toggleIssuesFilter();
+      expect(issuesFilter.get('selected')).to.be.true;
+      installerStep7Controller.toggleIssuesFilter();
+      expect(issuesFilter.get('selected')).to.be.false;
+    });
   });
 
 });

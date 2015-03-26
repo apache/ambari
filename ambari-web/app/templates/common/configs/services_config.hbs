@@ -36,7 +36,10 @@
     <p class="loading align-center"></p>
     {{#if isSubmitDisabled}}
       {{#unless submitButtonClicked}}
-        <div class="alert">{{t installer.step7.attentionNeeded}}</div>
+        <div class="alert">
+          <span class="icon-warning-sign"></span> {{t installer.step7.attentionNeeded}}<br />
+          {{issuesFilterText}} <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
+        </div>
       {{/unless}}
     {{/if}}
 {{/if}}
