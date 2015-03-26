@@ -99,6 +99,10 @@ IF OBJECT_ID('confgroupclusterconfigmapping', 'U') IS NOT NULL DROP TABLE confgr
 GO
 IF OBJECT_ID('configgroup', 'U') IS NOT NULL DROP TABLE configgroup
 GO
+IF OBJECT_ID('kerberos_principal_host', 'U') IS NOT NULL DROP TABLE kerberos_principal_host
+GO
+IF OBJECT_ID('kerberos_principal', 'U') IS NOT NULL DROP TABLE kerberos_principal
+GO
 IF OBJECT_ID('ambari_sequences', 'U') IS NOT NULL DROP TABLE ambari_sequences
 GO
 IF OBJECT_ID('metainfo', 'U') IS NOT NULL DROP TABLE metainfo
