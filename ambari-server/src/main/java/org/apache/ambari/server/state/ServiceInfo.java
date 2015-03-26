@@ -87,6 +87,10 @@ public class ServiceInfo implements Validable{
   @XmlElement(name = "restartRequiredAfterChange")
   private Boolean restartRequiredAfterChange;
 
+  @JsonIgnore
+  @XmlElement(name = "restartRequiredAfterRackChange")
+  private Boolean restartRequiredAfterRackChange;
+
   @XmlElement(name = "extends")
   private String parent;
 
@@ -645,5 +649,21 @@ public class ServiceInfo implements Validable{
     return result;
   }
 
+  /**
+   * Determine whether or not a restart is required for this service after a host rack info change.
+   *
+   * @return true if a restart is required
+   */
+  public Boolean isRestartRequiredAfterRackChange() {
+    return restartRequiredAfterRackChange;
+  }
 
+  /**
+   * Set indicator for required restart after a host rack info change.
+   *
+   * @param restartRequiredAfterRackChange  true if a restart is required
+   */
+  public void setRestartRequiredAfterRackChange(Boolean restartRequiredAfterRackChange) {
+    this.restartRequiredAfterRackChange = restartRequiredAfterRackChange;
+  }
 }

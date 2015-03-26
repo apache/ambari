@@ -152,6 +152,7 @@
         <config-type>hdfs-site</config-type>
         <config-type>hadoop-policy</config-type>
       </configuration-dependencies>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>
   </services>
 </metainfo>

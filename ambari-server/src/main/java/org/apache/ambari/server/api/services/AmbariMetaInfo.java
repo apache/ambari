@@ -525,7 +525,38 @@ public class AmbariMetaInfo {
     Collection<ServiceInfo> serviceInfos = getServices(stackName, version).values();
 
     for (ServiceInfo service : serviceInfos) {
-      if (service.isRestartRequiredAfterChange() != null && service.isRestartRequiredAfterChange()) {
+
+      Boolean restartRequiredAfterChange = service.isRestartRequiredAfterChange();
+
+      if (restartRequiredAfterChange != null && restartRequiredAfterChange) {
+        needRestartServices.add(service.getName());
+      }
+    }
+    return needRestartServices;
+  }
+
+  /**
+   * Get the set of names of services which require restart when host rack information is changed.
+   *
+   * @param stackName  the stack name
+   * @param version    the stack version
+   *
+   * @return the set of services which require restart when host rack information is changed
+   *
+   * @throws AmbariException if the service set can not be acquired
+   */
+  public Set<String> getRackSensitiveServicesNames(String stackName, String version)
+      throws AmbariException {
+
+    HashSet<String> needRestartServices = new HashSet<String>();
+
+    Collection<ServiceInfo> serviceInfos = getServices(stackName, version).values();
+
+    for (ServiceInfo service : serviceInfos) {
+
+      Boolean restartRequiredAfterRackChange = service.isRestartRequiredAfterRackChange();
+
+      if (restartRequiredAfterRackChange != null && restartRequiredAfterRackChange) {
         needRestartServices.add(service.getName());
       }
     }

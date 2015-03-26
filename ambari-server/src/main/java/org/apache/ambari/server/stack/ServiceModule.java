@@ -148,6 +148,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.isRestartRequiredAfterChange() == null) {
       serviceInfo.setRestartRequiredAfterChange(parent.isRestartRequiredAfterChange());
     }
+    if (serviceInfo.isRestartRequiredAfterRackChange() == null) {
+      serviceInfo.setRestartRequiredAfterRackChange(parent.isRestartRequiredAfterRackChange());
+    }
     if (serviceInfo.isMonitoringService() == null) {
       serviceInfo.setMonitoringService(parent.isMonitoringService());
     }

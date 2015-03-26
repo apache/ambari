@@ -61,10 +61,15 @@ import java.util.TreeSet;
 public class StageUtils {
 
   public static final Integer DEFAULT_PING_PORT = 8670;
+  public static final String DEFAULT_RACK = "/default-rack";
+  public static final String DEFAULT_IPV4_ADDRESS = "127.0.0.1";
+
   private static final Log LOG = LogFactory.getLog(StageUtils.class);
   static final String AMBARI_SERVER_HOST = "ambari_server_host";
   private static final String HOSTS_LIST = "all_hosts";
   private static final String PORTS = "all_ping_ports";
+  private static final String RACKS = "all_racks";
+  private static final String IPV4_ADDRESSES = "all_ipv4_ips";
   private static Map<String, String> componentToClusterInfoKeyMap =
       new HashMap<String, String>();
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
@@ -227,16 +232,23 @@ public class StageUtils {
     Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
 
     //Fill hosts and ports lists
-    Set<String> hostsSet = new LinkedHashSet<String>();
+    Set<String>   hostsSet  = new LinkedHashSet<String>();
     List<Integer> portsList = new ArrayList<Integer>();
+    List<String>  rackList  = new ArrayList<String>();
+    List<String>  ipV4List  = new ArrayList<String>();
 
     for (Host host : allHosts.values()) {
 
-      Integer currentPingPort = host.getCurrentPingPort() == null ?
-          DEFAULT_PING_PORT : host.getCurrentPingPort();
-
       hostsSet.add(host.getHostName());
-      portsList.add(currentPingPort);
+
+      Integer currentPingPort = host.getCurrentPingPort();
+      portsList.add(currentPingPort == null ? DEFAULT_PING_PORT : currentPingPort);
+
+      String rackInfo = host.getRackInfo();
+      rackList.add(rackInfo == null ? DEFAULT_RACK : rackInfo );
+
+      String iPv4 = host.getIPv4();
+      ipV4List.add(iPv4 == null ? DEFAULT_IPV4_ADDRESS : iPv4 );
     }
 
     List<String> hostsList = new ArrayList<String>(hostsSet);
@@ -307,6 +319,8 @@ public class StageUtils {
 
     clusterHostInfo.put(HOSTS_LIST, hostsSet);
     clusterHostInfo.put(PORTS, replaceMappedRanges(portsList));
+    clusterHostInfo.put(IPV4_ADDRESSES, replaceMappedRanges(ipV4List));
+    clusterHostInfo.put(RACKS, replaceMappedRanges(rackList));
 
     // Fill server host
     /*
@@ -367,13 +381,13 @@ public class StageUtils {
    *
    * @param values the source list to be ranged
    */
-  public static Set<String> replaceMappedRanges(List<Integer> values) {
+  public static <T> Set<String> replaceMappedRanges(List<T> values) {
 
-    Map<Integer, SortedSet<Integer>> convolutedValues = new HashMap<Integer, SortedSet<Integer>>();
+    Map<T, SortedSet<Integer>> convolutedValues = new HashMap<T, SortedSet<Integer>>();
 
     int valueIndex = 0;
 
-    for (Integer value : values) {
+    for (T value : values) {
 
       SortedSet<Integer> correspValues = convolutedValues.get(value);
 
@@ -387,7 +401,7 @@ public class StageUtils {
 
     Set<String> result = new HashSet<String>();
 
-    for (Entry<Integer, SortedSet<Integer>> entry : convolutedValues.entrySet()) {
+    for (Entry<T, SortedSet<Integer>> entry : convolutedValues.entrySet()) {
       Set<String> replacedRanges = replaceRanges(entry.getValue());
       result.add(entry.getKey() + ":" + Joiner.on(",").join(replacedRanges));
     }

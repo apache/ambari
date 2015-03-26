@@ -164,6 +164,13 @@ public class AmbariMetaInfoTest {
   }
 
   @Test
+  public void testGetRackSensitiveServicesNames() throws AmbariException {
+    Set<String> res = metaInfo.getRackSensitiveServicesNames(STACK_NAME_HDP, "2.0.7");
+    assertEquals(1, res.size());
+    assertEquals("HDFS", res.iterator().next());
+  }
+
+  @Test
   public void getComponentsByService() throws AmbariException {
     List<ComponentInfo> components = metaInfo.getComponentsByService(
         STACK_NAME_HDP, STACK_VERSION_HDP, SERVICE_NAME_HDFS);

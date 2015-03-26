@@ -1857,17 +1857,74 @@ public class AmbariManagementControllerImplTest {
     Set<RepositoryRequest> requests = new HashSet<RepositoryRequest>();
     RepositoryRequest request = new RepositoryRequest("stackName", "stackVersion", "redhat6", "repoId");
     request.setBaseUrl("file:///some/repo");
-	requests.add(request);
+    requests.add(request);
 
-	// A wrong file path is passed and IllegalArgumentException is expected
-	try{
-		controller.verifyRepositories(requests);
-		Assert.fail("IllegalArgumentException is expected");
-	}catch(IllegalArgumentException e){
-		Assert.assertEquals("Could not access base url . file:///some/repo/repodata/repomd.xml . ", e.getMessage());
-	}
+    // A wrong file path is passed and IllegalArgumentException is expected
+    try{
+      controller.verifyRepositories(requests);
+      Assert.fail("IllegalArgumentException is expected");
+    }catch(IllegalArgumentException e){
+      Assert.assertEquals("Could not access base url . file:///some/repo/repodata/repomd.xml . ", e.getMessage());
+    }
 
     verify(injector, clusters, ambariMetaInfo, configuration);
   }
 
+  @Test
+  public void testRegisterRackChange() throws Exception {
+    // member state mocks
+    Injector injector = createStrictMock(Injector.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+    ServiceComponent serviceComponent = createNiceMock(ServiceComponent.class);
+    ServiceComponentHost serviceComponentHost = createNiceMock(ServiceComponentHost.class);
+    StackId stackId = createNiceMock(StackId.class);
+    Capture<AmbariManagementController> controllerCapture = new Capture<AmbariManagementController>();
+
+    // expectations
+    // constructor init
+    injector.injectMembers(capture(controllerCapture));
+    expect(injector.getInstance(Gson.class)).andReturn(null);
+    expect(injector.getInstance(MaintenanceStateHelper.class)).andReturn(null);
+    expect(injector.getInstance(KerberosHelper.class)).andReturn(createNiceMock(KerberosHelper.class));
+
+    RepositoryInfo dummyRepoInfo = new RepositoryInfo();
+    dummyRepoInfo.setRepoName("repo_name");
+
+    expect(clusters.getCluster("c1")).andReturn(cluster).anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId);
+    expect(service.getName()).andReturn("HDFS").anyTimes();
+
+    Map<String, ServiceComponent> serviceComponents = new HashMap<String, ServiceComponent>();
+    serviceComponents.put("NAMENODE", serviceComponent);
+    expect(service.getServiceComponents()).andReturn(serviceComponents).anyTimes();
+
+
+    Map<String, ServiceComponentHost> schMap = new HashMap<String, ServiceComponentHost>();
+    schMap.put("host1", serviceComponentHost);
+    expect(serviceComponent.getServiceComponentHosts()).andReturn(schMap).anyTimes();
+
+    serviceComponentHost.setRestartRequired(true);
+
+    Set<String> services = new HashSet<String>();
+    services.add("HDFS");
+
+    expect(ambariMetaInfo.getRackSensitiveServicesNames(null, null)).andReturn(services);
+
+    Map<String, Service> serviceMap =  new HashMap<String, Service>();
+
+    serviceMap.put("HDFS", service);
+    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+
+    // replay mocks
+    replay(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);
+
+    // test
+    AmbariManagementController controller = new AmbariManagementControllerImpl(null, clusters, injector);
+    setAmbariMetaInfo(ambariMetaInfo, controller);
+
+    controller.registerRackChange("c1");
+
+    verify(injector, cluster, clusters, ambariMetaInfo, service, serviceComponent, serviceComponentHost, stackId);
+  }
 }

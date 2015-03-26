@@ -241,7 +241,7 @@
         <config-type>mapred-site</config-type>
         <config-type>mapred-env</config-type>
       </configuration-dependencies>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>
-
   </services>
 </metainfo>

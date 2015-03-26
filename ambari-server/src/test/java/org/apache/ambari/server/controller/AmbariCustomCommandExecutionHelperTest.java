@@ -152,47 +152,43 @@ public class
   }
 
   @Test
-  public void testHostsFilterHealthy(){
-    try {
-      createClusterFixture();
+  public void testHostsFilterHealthy() throws Exception {
+    createClusterFixture();
 
-      Map<String, String> requestProperties = new HashMap<String, String>() {
-        {
-          put("context" , "Restart all components for GANGLIA");
-          put("operation_level/level", "SERVICE");
-          put("operation_level/service_name", "GANGLIA");
-          put("operation_level/cluster_name", "c1");
-        }
-      };
+    Map<String, String> requestProperties = new HashMap<String, String>() {
+      {
+        put("context" , "Restart all components for GANGLIA");
+        put("operation_level/level", "SERVICE");
+        put("operation_level/service_name", "GANGLIA");
+        put("operation_level/cluster_name", "c1");
+      }
+    };
 
-      ExecuteActionRequest actionRequest = new ExecuteActionRequest(
-         "c1", "RESTART", null,
-         Arrays.asList(
-            new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6401")),
-            new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6402"))
-         ),
-         new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
-         new HashMap<String, String>(){{}},
-         false);
+    ExecuteActionRequest actionRequest = new ExecuteActionRequest(
+       "c1", "RESTART", null,
+       Arrays.asList(
+          new RequestResourceFilter("GANGLIA", "GANGLIA_SERVER", Collections.singletonList("c6401")),
+          new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6401")),
+          new RequestResourceFilter("GANGLIA", "GANGLIA_MONITOR", Collections.singletonList("c6402"))
+       ),
+       new RequestOperationLevel(Resource.Type.Service, "c1", "GANGLIA", null, null),
+       new HashMap<String, String>(){{}},
+       false);
 
-      controller.createAction(actionRequest, requestProperties);
+    controller.createAction(actionRequest, requestProperties);
 
-      //clusters.getHost("c6402").setState(HostState.HEARTBEAT_LOST);
+    //clusters.getHost("c6402").setState(HostState.HEARTBEAT_LOST);
 
-      Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
+    Mockito.verify(am, Mockito.times(1)).sendActions(requestCapture.capture(), any(ExecuteActionRequest.class));
 
-      Request request = requestCapture.getValue();
-      Assert.assertNotNull(request);
-      Assert.assertNotNull(request.getStages());
-      Assert.assertEquals(1, request.getStages().size());
-      Stage stage = request.getStages().iterator().next();
+    Request request = requestCapture.getValue();
+    Assert.assertNotNull(request);
+    Assert.assertNotNull(request.getStages());
+    Assert.assertEquals(1, request.getStages().size());
+    Stage stage = request.getStages().iterator().next();
 
-       // Check if was generated command, one for each host
-      Assert.assertEquals(2, stage.getHostRoleCommands().size());
-    }catch (Exception e) {
-      Assert.fail(e.getMessage());
-    }
+     // Check if was generated command, one for each host
+    Assert.assertEquals(2, stage.getHostRoleCommands().size());
   }
 
   @Test

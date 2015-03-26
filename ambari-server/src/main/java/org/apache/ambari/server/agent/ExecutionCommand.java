@@ -264,7 +264,7 @@ public class ExecutionCommand extends AgentCommand {
 
   /**
    * Sets parameters for kerberos commands
-   * @params  parameters for kerberos commands
+   * @param  params for kerberos commands
    */
   public void setKerberosCommandParams(List<Map<String, String>> params) {
     this.kerberosCommandParams =  params;
@@ -304,6 +304,7 @@ public class ExecutionCommand extends AgentCommand {
     String USER_LIST = "user_list";
     String GROUP_LIST = "group_list";
     String VERSION = "version";
+    String REFRESH_TOPOLOGY = "refresh_topology";
 
     String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";

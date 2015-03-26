@@ -258,6 +258,7 @@
         <config-type>hdfs-log4j</config-type>
         <config-type>ranger-hdfs-plugin-properties</config-type>
       </configuration-dependencies>
+      <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>
   </services>
 </metainfo>

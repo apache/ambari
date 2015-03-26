@@ -167,3 +167,20 @@ if (('hdfs-log4j' in config['configurations']) and ('content' in config['configu
     log4j_props += config['configurations']['yarn-log4j']['content']
 else:
   log4j_props = None
+
+refresh_topology = False
+command_params = config["commandParams"] if "commandParams" in config else None
+if command_params is not None:
+  refresh_topology = bool(command_params["refresh_topology"]) if "refresh_topology" in command_params else False
+
+#host info
+all_hosts = default("/clusterHostInfo/all_hosts", [])
+all_racks = default("/clusterHostInfo/all_racks", [])
+all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
+slave_hosts = default("/clusterHostInfo/slave_hosts", [])
+
+#topology files
+net_topology_script_file_path = default("/configurations/core-site/net.topology.script.file.name","/etc/hadoop/conf/topology_script.py")
+net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
+net_topology_mapping_data_file_name = 'topology_mappings.data'
+net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)

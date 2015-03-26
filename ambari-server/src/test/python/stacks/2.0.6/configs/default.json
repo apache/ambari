@@ -33,7 +33,8 @@
         "xml_configs_list":[{"hdfs-site.xml":"hdfs-site"}],
         "env_configs_list":[{"hadoop-env.sh":"hadoop-env"},{"log4j.properties":"hdfs-log4j,yarn-log4j"}],
         "properties_configs_list":[{"runtime.properties":"falcon-runtime.properties"},{"startup.properties":"falcon-startup.properties"}],
-        "output_file":"HDFS_CLIENT-configs.tar.gz"
+        "output_file":"HDFS_CLIENT-configs.tar.gz",
+        "refresh_topology": "True"
     },
     "taskId": 152, 
     "public_hostname": "c6401.ambari.apache.org", 
@@ -791,7 +792,15 @@
         "all_hosts": [
             "c6401.ambari.apache.org", 
             "c6402.ambari.apache.org"
-        ], 
+        ],
+        "all_racks": [
+            "/default/rack_01",
+            "/default/rack_02"
+        ],
+        "all_ipv4_ips": [
+            "127.0.0.1",
+            "127.0.0.1"
+        ],
         "storm_ui_server_hosts": [
             "c6401.ambari.apache.org"
         ], 

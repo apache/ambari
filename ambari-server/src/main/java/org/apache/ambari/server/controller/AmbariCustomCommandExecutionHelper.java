@@ -141,6 +141,7 @@ public class AmbariCustomCommandExecutionHelper {
   private OsFamily os_family;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
+  protected static final String RESTART_COMMAND_NAME = "RESTART";
   protected static final String INSTALL_COMMAND_NAME = "INSTALL";
   public static final String DECOMMISSION_COMMAND_NAME = "DECOMMISSION";
 
@@ -887,31 +888,43 @@ public class AmbariCustomCommandExecutionHelper {
         + ", serviceName=" + resourceFilter.getServiceName()
         + ", request=" + actionExecutionContext.toString());
 
-      if (actionExecutionContext.getActionName().contains(SERVICE_CHECK_COMMAND_NAME)) {
+      String actionName = actionExecutionContext.getActionName();
+
+      if (actionName.contains(SERVICE_CHECK_COMMAND_NAME)) {
         findHostAndAddServiceCheckAction(actionExecutionContext,
-          resourceFilter, stage, retryAllowed);
-      } else if (actionExecutionContext.getActionName().equals(DECOMMISSION_COMMAND_NAME)) {
+            resourceFilter, stage, retryAllowed);
+      } else if (actionName.equals(DECOMMISSION_COMMAND_NAME)) {
         addDecommissionAction(actionExecutionContext, resourceFilter, stage, retryAllowed);
       } else if (isValidCustomCommand(actionExecutionContext, resourceFilter)) {
+
         String commandDetail = getReadableCustomCommandDetail(actionExecutionContext, resourceFilter);
 
-        Map<String, String> extraParams = null;
+        Map<String, String> extraParams = new HashMap<String, String>();;
         String componentName = (null == resourceFilter.getComponentName()) ? null :
             resourceFilter.getComponentName().toLowerCase();
 
         if (null != componentName && requestParams.containsKey(componentName)) {
-          extraParams = new HashMap<String, String>();
           extraParams.put(componentName, requestParams.get(componentName));
         }
 
         if(requestParams.containsKey(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS)){
           actionExecutionContext.getParameters().put(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS, requestParams.get(KeyNames.REFRESH_ADITIONAL_COMPONENT_TAGS));
         }
+
+        RequestOperationLevel operationLevel = actionExecutionContext.getOperationLevel();
+        if (operationLevel != null) {
+          String clusterName = operationLevel.getClusterName();
+          String serviceName = operationLevel.getServiceName();
+
+          if (isTopologyRefreshRequired(actionName, clusterName, serviceName)) {
+            extraParams.put(KeyNames.REFRESH_TOPOLOGY, "True");
+          }
+        }
+
         addCustomCommandAction(actionExecutionContext, resourceFilter, stage,
           extraParams, commandDetail, retryAllowed);
       } else {
-        throw new AmbariException("Unsupported action " +
-          actionExecutionContext.getActionName());
+        throw new AmbariException("Unsupported action " + actionName);
       }
     }
   }
@@ -1021,8 +1034,32 @@ public class AmbariCustomCommandExecutionHelper {
     return hostLevelParams;
   }
 
+  // determine whether or not the action should trigger a topology refresh
+  private boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceName)
+      throws AmbariException {
+    if (actionName.contains(RESTART_COMMAND_NAME)) {
+      Cluster cluster = clusters.getCluster(clusterName);
+      StackId stackId = cluster.getDesiredStackVersion();
 
+      AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
 
+      StackInfo stack = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+      if (stack != null) {
+        ServiceInfo serviceInfo = stack.getService(serviceName);
+
+        if (serviceInfo != null) {
+          // if there is a chance that this action was triggered by a change in rack info then we want to
+          // force a topology refresh
+          // TODO : we may be able to be smarter about this and only refresh when the rack info has definitely changed
+          Boolean restartRequiredAfterRackChange = serviceInfo.isRestartRequiredAfterRackChange();
+          if (restartRequiredAfterRackChange != null && restartRequiredAfterRackChange) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
 
   private ServiceComponent getServiceComponent ( ActionExecutionContext actionExecutionContext,
                                                 RequestResourceFilter resourceFilter){

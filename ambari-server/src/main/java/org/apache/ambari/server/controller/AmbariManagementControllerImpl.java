@@ -625,6 +625,29 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  @Override
+  public void registerRackChange(String clusterName) throws AmbariException {
+    Cluster cluster = clusters.getCluster(clusterName);
+    StackId stackId = cluster.getCurrentStackVersion();
+
+    Set<String> rackSensitiveServices =
+        ambariMetaInfo.getRackSensitiveServicesNames(stackId.getStackName(), stackId.getStackVersion());
+
+    Map<String, Service> services = cluster.getServices();
+
+    for (Service service : services.values()) {
+      if(rackSensitiveServices.contains(service.getName())) {
+        Map<String, ServiceComponent> serviceComponents = service.getServiceComponents();
+        for (ServiceComponent serviceComponent : serviceComponents.values()) {
+          Map<String, ServiceComponentHost> schMap = serviceComponent.getServiceComponentHosts();
+          for (Entry<String, ServiceComponentHost> sch : schMap.entrySet()) {
+            ServiceComponentHost serviceComponentHost = sch.getValue();
+            serviceComponentHost.setRestartRequired(true);
+          }
+        }
+      }
+    }
+  }
 
   @Override
   public synchronized ConfigurationResponse createConfiguration(

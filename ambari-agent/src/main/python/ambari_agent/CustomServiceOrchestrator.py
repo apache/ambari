@@ -50,6 +50,9 @@ class CustomServiceOrchestrator():
 
   HOSTS_LIST_KEY = "all_hosts"
   PING_PORTS_KEY = "all_ping_ports"
+  RACKS_KEY = "all_racks"
+  IPV4_ADDRESSES_KEY = "all_ipv4_ips"
+
   AMBARI_SERVER_HOST = "ambari_server_host"
 
   def __init__(self, config, controller):
@@ -322,6 +325,9 @@ class CustomServiceOrchestrator():
     #Pop info not related to host roles
     hostsList = info.pop(self.HOSTS_LIST_KEY)
     pingPorts = info.pop(self.PING_PORTS_KEY)
+    racks = info.pop(self.RACKS_KEY)
+    ipv4_addresses = info.pop(self.IPV4_ADDRESSES_KEY)
+
     ambariServerHost = info.pop(self.AMBARI_SERVER_HOST)
 
     decompressedMap = {}
@@ -334,6 +340,8 @@ class CustomServiceOrchestrator():
 
     #Convert from ['1:0-2,4', '42:3,5-7'] to [1,1,1,42,1,42,42,42]
     pingPorts = self.convertMappedRangeToList(pingPorts)
+    racks = self.convertMappedRangeToList(racks)
+    ipv4_addresses = self.convertMappedRangeToList(ipv4_addresses)
 
     #Convert all elements to str
     pingPorts = map(str, pingPorts)
@@ -342,6 +350,10 @@ class CustomServiceOrchestrator():
     decompressedMap[self.PING_PORTS_KEY] = pingPorts
     #Add hosts list to result
     decompressedMap[self.HOSTS_LIST_KEY] = hostsList
+    #Add racks list to result
+    decompressedMap[self.RACKS_KEY] = racks
+    #Add ips list to result
+    decompressedMap[self.IPV4_ADDRESSES_KEY] = ipv4_addresses
     #Add ambari-server host to result
     decompressedMap[self.AMBARI_SERVER_HOST] = ambariServerHost
 
@@ -397,13 +409,13 @@ class CustomServiceOrchestrator():
           end = int(rangeIndexes[1])
 
           for k in range(start, end + 1):
-            resultDict[k] = int(value)
+            resultDict[k] = value if not value.isdigit() else int(value)
 
 
         elif len(rangeIndexes) == 1:
           index = int(rangeIndexes[0])
 
-          resultDict[index] = int(value)
+          resultDict[index] = value if not value.isdigit() else int(value)
 
 
     resultList = dict(sorted(resultDict.items())).values()

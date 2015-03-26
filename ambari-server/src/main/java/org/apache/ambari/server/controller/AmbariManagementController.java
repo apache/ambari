@@ -739,5 +739,14 @@ public interface AmbariManagementController {
    */
   List<ServiceOsSpecific.Package> getPackagesForServiceHost(ServiceInfo serviceInfo,
                                                             Map<String, String> hostParams, String osFamily);
+
+  /**
+   * Register a change in rack information for the hosts of the given cluster.
+   *
+   * @param clusterName  the name of the cluster
+   *
+   * @throws AmbariException if an error occurs during the rack change registration
+   */
+  public void registerRackChange(String clusterName) throws AmbariException;
 }
 
