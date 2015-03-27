@@ -55,7 +55,7 @@
       </components>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>python-rrdtool-1.4.5</name>
@@ -112,7 +112,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6</osFamily>
+          <osFamily>redhat6</osFamily>
           <packages>
             <package>
               <name>httpd</name>

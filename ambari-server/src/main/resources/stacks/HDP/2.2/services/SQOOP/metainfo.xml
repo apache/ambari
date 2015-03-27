@@ -31,7 +31,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>sqoop_2_2_*</name>

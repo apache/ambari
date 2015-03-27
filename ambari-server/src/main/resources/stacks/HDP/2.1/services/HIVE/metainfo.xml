@@ -61,7 +61,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>mysql</name>
@@ -69,7 +69,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat5,redhat6,ubuntu12</osFamily>
+          <osFamily>redhat6,ubuntu12</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>

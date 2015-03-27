@@ -45,7 +45,7 @@
         </osSpecific>
         
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>extjs-2.2-1</name>

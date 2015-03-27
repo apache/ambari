@@ -32,7 +32,7 @@
       
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>hadoop_2_2_*-yarn</name>
@@ -72,7 +72,7 @@
       <version>2.6.0.2.2</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>hadoop_2_2_*-mapreduce</name>

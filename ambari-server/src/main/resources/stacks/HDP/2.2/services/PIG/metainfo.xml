@@ -24,7 +24,7 @@
       <version>0.14.0.2.2</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>pig_2_2_*</name>

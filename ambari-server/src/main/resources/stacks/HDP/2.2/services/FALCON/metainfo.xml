@@ -24,7 +24,7 @@
       <version>0.6.0.2.2</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat5,redhat6,suse11</osFamily>
+          <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>falcon_2_2_*</name>

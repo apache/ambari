@@ -26,7 +26,7 @@
           <version>1.2.1.2.3</version>
           <osSpecifics>
             <osSpecific>
-              <osFamily>redhat5,redhat6,suse11</osFamily>
+              <osFamily>redhat6,suse11</osFamily>
               <packages>
                 <package>
                   <name>spark_2_3_*</name>
