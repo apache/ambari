@@ -16,15 +16,9 @@
 * limitations under the License.
 }}
 
-<p>{{view.config.name}}</p>
+<p>{{view.configLabel}}</p>
 <div class="pull-left">
   {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
 </div>
-{{#if view.valueIsChanged}}
-  <div class="pull-left action-button">
-    <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
-      <i class="icon-undo"></i>
-    </a>
-  </div>
-{{/if}}
+{{view App.RestoreConfigView}}
 <div class="clearfix"></div>

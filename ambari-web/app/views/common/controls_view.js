@@ -30,6 +30,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
   serviceConfig: null,
   attributeBindings:['readOnly'],
   isPopoverEnabled: true,
+  popoverPlacement: 'right',
 
   didInsertElement: function () {
     $('body').tooltip({
@@ -44,7 +45,7 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
           (this.get('serviceConfig.displayName') == this.get('serviceConfig.name')) ? '' : this.get('serviceConfig.name')
         ),
         content: this.get('serviceConfig.description'),
-        placement: 'right',
+        placement: this.get('popoverPlacement'),
         trigger: 'hover'
       });
     }
@@ -205,7 +206,9 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
-  classNames: ['span9', 'directories']
+  classNames: ['directories'],
+  classNameBindings: ['widthClass'],
+  widthClass: 'span9'
 });
 
 /**
@@ -1442,4 +1445,3 @@ App.BaseUrlTextField = Ember.TextField.extend({
   }
 
 });
-

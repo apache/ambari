@@ -17,6 +17,9 @@
 }}
 
 <div class="widget slider-widget">
+  {{#if view.config.isOriginalSCP}}
+    <p>{{view.configLabel}}</p>
+  {{/if}}
   <div>
     <div {{bindAttr class="view.isMirrorValueValid::error :control-group :pull-left"}}>
       <div {{bindAttr class="view.config.stackConfigProperty.valueAttributes.unit:input-append"}}>
@@ -26,13 +29,7 @@
         {{/if}}
       </div>
     </div>
-    {{#if view.undoAllowed}}
-      <div class="pull-left action-button">
-        <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
-          <i class="icon-undo"></i>
-        </a>
-      </div>
-    {{/if}}
+    {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
     {{#if view.overrideAllowed}}
       {{#isAccessible ADMIN}}
         <div class="pull-left action-button">

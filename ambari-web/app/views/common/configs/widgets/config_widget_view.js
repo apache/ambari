@@ -30,6 +30,23 @@ App.ConfigWidgetView = Em.View.extend({
   config: null,
 
   /**
+   * Config name to display.
+   * @type {String}
+   */
+  configLabel: function() {
+    return this.get('config.displayName') || this.get('config.name');
+  }.property('config.name', 'config.displayName'),
+
+
+  /**
+   * Error message computed in config property model
+   * @type {String|Boolean}
+   */
+  configErrorMessage: function() {
+    return this.get('config.errorMessage') || false;
+  }.property('config.errorMessage'),
+
+  /**
    * Determines if config-value was changed
    * @type {boolean}
    */

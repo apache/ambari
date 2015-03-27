@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<p>{{view.config.name}}</p>
+<p>{{view.configLabel}}</p>
 <div class="input-append pull-left">
   {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}
   <div class="dropdown btn-group">
@@ -32,11 +32,5 @@
     </ul>
   </div>
 </div>
-{{#if view.valueIsChanged}}
-  <div class="action-button pull-left">
-    <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
-      <i class="icon-undo"></i>
-    </a>
-  </div>
-{{/if}}
+{{view App.RestoreConfigView}}
 <div class="clearfix"></div>

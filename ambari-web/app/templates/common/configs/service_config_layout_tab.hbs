@@ -31,7 +31,6 @@
                       {{#each config in subsection.configs}}
                         {{#if config.view}}
                           {{#unless config.isHiddenByFilter}}
-                            <p>{{config.name}}</p>
                             {{view config.widget configBinding="config"}}
                           {{/unless}}
                         {{/if}}
