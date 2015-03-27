@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-App.GraphWidgetView = App.ChartLinearTimeView.extend({
+App.GraphWidgetView = App.ChartLinearTimeView.extend(App.WidgetMixin, {
 
   /**
    * @type {string}
@@ -42,22 +42,10 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend({
   }.property('properties.graph_type'),
 
   /**
-   * @type {RegExp}
-   * @const
+   * common metrics container
+   * @type {Array}
    */
-  EXPRESSION_REGEX: /\$\{([\w\.\+\-\*\/\(\)]*)\}/g,
-
-  /**
-   * @type {RegExp}
-   * @const
-   */
-  MATH_EXPRESSION_REGEX: /^[\d\+\-\*\/\(\)\.]+$/,
-
-  /**
-   * @type {RegExp}
-   * @const
-   */
-  VALUE_NAME_REGEX: /[\w\.]+/g,
+  metrics: [],
 
   /**
    * value in ms
@@ -70,49 +58,6 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend({
    * @type {number}
    */
   timeStep: 15,
-
-  /**
-   * common metrics container
-   * @type {Array}
-   */
-  metrics: [],
-
-  /**
-   * @type {boolean}
-   */
-  isLoaded: false,
-
-  /**
-   * @type {App.Widget}
-   * @default null
-   */
-  content: null,
-
-  /**
-   * load metrics
-   */
-  beforeRender: function () {
-    var requestData = this.getRequestData(this.get('content.metrics')),
-      request,
-      requestCounter = 0,
-      self = this;
-
-    for (var i in requestData) {
-      request = requestData[i];
-      requestCounter++;
-      if (request.host_component_criteria) {
-        this.getHostComponentMetrics(request).complete(function () {
-          requestCounter--;
-          if (requestCounter === 0) self.set('isLoaded', true);
-        });
-      } else {
-        this.getServiceComponentMetrics(request).complete(function () {
-          requestCounter--;
-          if (requestCounter === 0) self.set('isLoaded', true);
-        });
-      }
-    }
-  },
 
   didInsertElement: Em.K,
 
@@ -131,7 +76,6 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend({
    */
   calculateSeries: function () {
     var metrics = this.get('metrics');
-    var widgetType = this.get('content.widgetType');
     var seriesData = [];
 
     this.get('content.values').forEach(function (value) {
@@ -183,56 +127,6 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend({
   },
 
   /**
-   * TODO should be used for simple type of widgets
-   * @param expressions
-   * @param metrics
-   * @returns {object}
-   *//*
-   computeExpressions: function (expressions, metrics) {
-   var result = {};
-
-   expressions.forEach(function (_expression) {
-   var validExpression = true;
-   var value = "";
-
-   //replace values with metrics data
-   var beforeCompute = _expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
-   if (metrics.someProperty('name', match)) {
-   return metrics.findProperty('name', match).data;
-   } else {
-   validExpression = false;
-   console.warn('Metrics not found to compute expression');
-   }
-   });
-
-   if (validExpression) {
-   //check for correct math expression
-   validExpression = this.get('MATH_EXPRESSION_REGEX').test(beforeCompute);
-   !validExpression && console.warn('Value is not correct mathematical expression');
-   }
-
-   result['${' + _expression + '}'] = (validExpression) ? Number(window.eval(beforeCompute)).toString() : value;
-   }, this);
-   return result;
-   },*/
-
-  /**
-   * extract expressions
-   * @param {object} value
-   * @returns {Array}
-   */
-  extractExpressions: function (value) {
-    var pattern = this.get('EXPRESSION_REGEX'),
-      expressions = [],
-      match;
-
-    while (match = pattern.exec(value.value)) {
-      expressions.push(match[1]);
-    }
-    return expressions;
-  },
-
-  /**
    * make GET call to server in order to fetch service-component metrics
    * @param {object} request
    * @returns {$.ajax}
@@ -248,18 +142,6 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend({
       },
       success: 'getServiceComponentMetricsSuccessCallback'
     });
-  },
-
-  getServiceComponentMetricsSuccessCallback: function (data, opt, params) {
-    var metrics = [];
-    var metricsData = data.metrics[params.serviceName.toLowerCase()];
-
-    this.get('content.metrics').forEach(function (_metric) {
-      if (Em.get(metricsData, _metric.name)) {
-        _metric.data = Em.get(metricsData, _metric.name);
-        this.get('metrics').pushObject(_metric);
-      }
-    }, this);
   },
 
   /**
@@ -279,31 +161,6 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend({
       },
       success: 'getHostComponentMetricsSuccessCallback'
     });
-  },
-
-  getHostComponentMetricsSuccessCallback: function () {
-    //TODO push data to metrics after response structure approved
-  },
-
-  /**
-   * get data formatted for request
-   * @param {Array} metrics
-   */
-  getRequestData: function (metrics) {
-    var requestsData = {};
-
-    metrics.forEach(function (metric) {
-      var key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
-
-      if (requestsData[key]) {
-        requestsData[key]["widget_ids"].push(metric["widget_id"]);
-      } else {
-        metric["widget_ids"] = [metric["widget_id"]];
-        delete metric["widget_id"];
-        requestsData[key] = metric;
-      }
-    }, this);
-    return requestsData;
   },
 
   /**

@@ -38,3 +38,4 @@ require('mixins/wizard/selectHost');
 require('mixins/wizard/addSecurityConfigs');
 require('mixins/wizard/wizard_menu_view');
 require('mixins/common/configs/enhanced_configs');
+require('mixins/common/widget_mixin');

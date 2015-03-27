@@ -57,6 +57,8 @@ App.Widget = DS.Model.extend({
     switch (this.get('widgetType')) {
       case 'GRAPH':
         return App.GraphWidgetView;
+      case 'NUMBER':
+        return App.TemplateWidgetView;
       default:
         return Em.View;
     }

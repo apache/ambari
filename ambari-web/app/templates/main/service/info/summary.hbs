@@ -99,10 +99,12 @@
           <div class="">
             <table class="graphs">
               {{#if App.supports.customizedWidgets}}
-                <tr>
+                <tr id="widget_layout">
                   {{#each widget in controller.widgets}}
                     <td>
-                      {{view widget.viewClass contentBinding="widget"}}
+                      <div class="widget">
+                        {{view widget.viewClass contentBinding="widget"}}
+                      </div>
                     </td>
                   {{/each}}
                 </tr>

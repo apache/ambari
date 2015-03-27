@@ -19,21 +19,6 @@
             "widget_type": "GRAPH",
             "metrics":[
               {
-                "name": "regionserver.Server.Get_num_ops",
-                "widget_id": "metrics/hbase/regionserver/Server/Get_num_ops",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER",
-                "host_component_criteria" : "isActive=true"
-              },
-              {
-                "name": "regionserver.Server.Scan_num_ops",
-                "widget_id": "metrics/hbase/regionserver/Server/Scan_num_ops",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              },
-              {
                 "name": "regionserver.Server.Append_num_ops",
                 "widget_id": "metrics/hbase/regionserver/Server/Append_num_ops",
                 "category": "",
@@ -43,20 +28,6 @@
               {
                 "name": "regionserver.Server.Delete_num_ops",
                 "widget_id": "metrics/hbase/regionserver/Server/Delete_num_ops",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              },
-              {
-                "name": "regionserver.Server.Increment_num_ops",
-                "widget_id": "metrics/hbase/regionserver/Server/Increment_num_ops",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              },
-              {
-                "name": "regionserver.Server.Mutate_num_ops",
-                "widget_id": "metrics/hbase/regionserver/Server/Mutate_num_ops",
                 "category": "",
                 "service_name": "HBASE",
                 "component_name": "HBASE_REGIONSERVER"
@@ -76,67 +47,6 @@
               "display_unit": "Requests",
               "graph_type": "LINE",
               "time_range": "1 week"
-            }
-          },
-          {
-            "widget_name": "OPEN_CONNECTIONS",
-            "display_name": "Open Connections",
-            "description": "This widget shows number of current open connections",
-            "widget_type": "GRAPH",
-            "metrics":[
-              {
-                "name": "ipc.IPC.numOpenConnections",
-                "widget_id": "metrics/hbase/ipc/IPC/numOpenConnections",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              }
-            ],
-            "values": [
-              {
-                "name": "Open Connections",
-                "value": "${ipc.IPC.numOpenConnections}"
-              }
-            ],
-            "properties": {
-              "display_unit": "Connections",
-              "graph_type": "STACK",
-              "time_range": "1 hour"
-            }
-          },
-          {
-            "widget_name": "ACTIVE_HANDLER",
-            "display_name": "Active Handlers vs Calls in General Queue",
-            "widget_type": "GRAPH",
-            "metrics":[
-              {
-                "name": "ipc.IPC.numOpenConnections",
-                "widget_id": "metrics/hbase/ipc/IPC/numOpenConnections",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              },
-              {
-                "name": "ipc.IPC.numCallsInGeneralQueue",
-                "widget_id": "metrics/hbase/ipc/IPC/numOpenConnections",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              }
-            ],
-            "values": [
-              {
-                "name": "Active Handlers",
-                "value": "${ipc.IPC.numActiveHandler}"
-              },
-              {
-                "name": "Calls in General Queue",
-                "value": "${ipc.IPC.numCallsInGeneralQueue}"
-              }
-            ],
-            "properties": {
-              "graph_type": "LINE",
-              "time_range": "1 hour"
             }
           },
           {
@@ -161,32 +71,6 @@
             ],
             "properties": {
               "display_unit": "%"
-            }
-          },
-          {
-            "widget_name": "UPDATED_BLOCKED_TIME",
-            "display_name": "Updated Blocked Time",
-            "description": "",
-            "widget_type": "GRAPH",
-            "metrics":[
-              {
-                "name": "regionserver.Server.updatesBlockedTime",
-                "widget_id": "metrics/hbase/regionserver/Server/updatesBlockedTime",
-                "category": "",
-                "service_name": "HBASE",
-                "component_name": "HBASE_REGIONSERVER"
-              }
-            ],
-            "values": [
-              {
-                "name": "Updated Blocked Time",
-                "value": "${regionserver.Server.updatesBlockedTime}"
-              }
-            ],
-            "properties": {
-              "display_unit": "seconds",
-              "graph_type": "LINE",
-              "time_range": "1 day"
             }
           }
         ]

@@ -63,6 +63,7 @@ require('views/common/configs/widgets/time_interval_spinner_view');
 require('views/common/configs/widgets/toggle_config_widget_view');
 require('views/common/configs/widgets/overrides/slider_config_widget_override_view');
 require('views/common/configs/service_config_layout_tab_view');
+require('views/common/widget/template_widget_view');
 require('views/common/filter_combobox');
 require('views/common/filter_combo_cleanable');
 require('views/common/table_view');

@@ -1,4 +1,3 @@
-
 {
   "href" : "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services/HBASE/components/HBASE_REGIONSERVER?fields=metrics/hbase/regionserver/Server/Append_num_ops[1426795139,1426798739,15]",
   "ServiceComponentInfo" : {
@@ -8,8 +7,14 @@
   },
   "metrics" : {
     "hbase" : {
+      "ipc" : {
+        "IPC" : {
+          "numOpenConnections" : 11.5
+        }
+      },
       "regionserver" : {
         "Server" : {
+          "percentFilesLocal" : 99,
           "Append_num_ops" : [
             [
               2.0,
