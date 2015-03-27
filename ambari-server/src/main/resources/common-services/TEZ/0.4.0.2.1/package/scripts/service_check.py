@@ -22,8 +22,14 @@ Ambari Agent
 from resource_management import *
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 class TezServiceCheck(Script):
+  pass
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class TezServiceCheckLinux(TezServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
@@ -91,6 +97,14 @@ class TezServiceCheck(Script):
     )
 
 
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class TezServiceCheckWindows(TezServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    service = "TEZ"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.tez_user)
 
 
 if __name__ == "__main__":

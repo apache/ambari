@@ -20,7 +20,10 @@ Ambari Agent
 """
 
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def tez():
   import params
 
@@ -48,14 +51,14 @@ def tez():
   )
 
 
-def tez_TemplateConfig(name):
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def tez():
   import params
-
-  if not isinstance(name, list):
-    name = [name]
-
-  for x in name:
-    TemplateConfig(format("{config_dir}/{x}"),
-                   owner = params.tez_user
-    )
+  XmlConfig("tez-site.xml",
+             conf_dir=params.tez_conf_dir,
+             configurations=params.config['configurations']['tez-site'],
+             owner=params.tez_user,
+             mode="f",
+             configuration_attributes=params.config['configuration_attributes']['tez-site']
+  )
 
