@@ -72,10 +72,7 @@ class HostInfo(object):
     osType = OSCheck.get_os_family()
     for service in services:
       svcCheckResult = {}
-      if isinstance(service, dict):
-        serviceName = service[osType]
-      else:
-        serviceName = service
+      serviceName = service
       svcCheckResult['name'] = serviceName
       svcCheckResult['status'] = "UNKNOWN"
       svcCheckResult['desc'] = ""
@@ -121,6 +118,12 @@ class HostInfo(object):
       pass
     return False
 
+def get_ntp_service():
+  if OSCheck.is_redhat_family():
+    return "ntpd"
+  elif OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
+    return "ntp"
+
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class HostInfoLinux(HostInfo):
@@ -135,11 +138,11 @@ class HostInfoLinux(HostInfo):
     "ganglia-web"
   ]
 
+
   # List of live services checked for on the host, takes a map of plan strings
   DEFAULT_LIVE_SERVICES = [
-    {OSConst.REDHAT_FAMILY: "ntpd", OSConst.SUSE_FAMILY: "ntp", OSConst.UBUNTU_FAMILY: "ntp"}
+    get_ntp_service()
   ]
-
   # Set of default users (need to be replaced with the configured user names)
   DEFAULT_USERS = [
     "hive", "ambari-qa", "oozie", "hbase", "hcat", "mapred",
@@ -326,7 +329,7 @@ class HostInfoWindows(HostInfo):
   GET_USERS_CMD = '$accounts=(Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount=\'$True\'" -ComputerName "LocalHost" -ErrorAction Stop); foreach ($acc in $accounts) {echo $acc.Name}'
   GET_JAVA_PROC_CMD = 'foreach ($process in (gwmi Win32_Process -Filter "name = \'java.exe\'")){echo $process.ProcessId;echo $process.CommandLine; echo $process.GetOwner().User}'
   DEFAULT_LIVE_SERVICES = [
-    {OSConst.WINSRV_FAMILY: "W32Time"}
+    "W32Time"
   ]
   DEFAULT_USERS = ["hadoop"]
 

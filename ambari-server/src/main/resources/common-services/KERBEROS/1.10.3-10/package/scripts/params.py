@@ -19,16 +19,15 @@ limitations under the License.
 
 from resource_management import *
 from utils import get_property_value, get_unstructured_data
-
-os_family = System.get_instance().os_family
+from ambari_commons.os_check import OSCheck
 
 krb5_conf_dir = '/etc'
 krb5_conf_file = 'krb5.conf'
 krb5_conf_path = krb5_conf_dir + '/' + krb5_conf_file
 
-if os_family == 'suse':
+if OSCheck.is_suse_family():
   kdc_conf_dir = '/var/lib/kerberos/krb5kdc'
-elif os_family == 'ubuntu':
+elif OSCheck.is_ubuntu_family():
   kdc_conf_dir = '/etc/krb5kdc'
 else:
   kdc_conf_dir = '/var/kerberos/krb5kdc'

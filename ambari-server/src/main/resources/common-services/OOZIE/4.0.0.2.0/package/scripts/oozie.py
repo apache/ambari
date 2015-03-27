@@ -182,8 +182,8 @@ def oozie_server_specific():
     Execute(format('{sudo} chown {oozie_user}:{user_group} {oozie_libext_dir}/falcon-oozie-el-extension-*.jar'),
       not_if  = no_op_test,
     )
-  if params.lzo_enabled and len(params.lzo_packages_for_current_host) > 0:
-    Package(params.lzo_packages_for_current_host)
+  if params.lzo_enabled and len(params.all_lzo_packages) > 0:
+    Package(params.all_lzo_packages)
     Execute(format('{sudo} cp {hadoop_lib_home}/hadoop-lzo*.jar {oozie_lib_dir}'),
       not_if  = no_op_test,
     )

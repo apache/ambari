@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 from resource_management import *
+from ambari_commons.os_check import OSCheck
 import json
 
 # components_lits = repoName + postfix
@@ -51,7 +52,7 @@ def _alter_repo(action, repo_string, repo_template):
 
 def install_repos():
   import params
-  template = "repo_suse_rhel.j2" if System.get_instance().os_family in ["suse", "redhat"] else "repo_ubuntu.j2"
+  template = "repo_suse_rhel.j2" if OSCheck.is_suse_family() or OSCheck.is_redhat_family() else "repo_ubuntu.j2"
   _alter_repo("create", params.repo_info, template)
   if params.service_repo_info:
     _alter_repo("create", params.service_repo_info, template)

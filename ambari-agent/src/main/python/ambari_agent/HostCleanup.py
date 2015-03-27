@@ -41,12 +41,6 @@ from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 
 logger = logging.getLogger()
 
-PACKAGE_ERASE_CMD = {
-  "redhat": "yum erase -y {0}",
-  "suse": "zypper -n -q remove {0}",
-  "ubuntu": "/usr/bin/apt-get -y -q remove {0}"
-}
-
 USER_ERASE_CMD = "userdel -rf {0}"
 GROUP_ERASE_CMD = "groupdel {0}"
 PROC_KILL_CMD = "kill -9 {0}"
@@ -55,6 +49,7 @@ ALT_ERASE_CMD = "alternatives --remove {0} {1}"
 
 REPO_PATH_RHEL = "/etc/yum.repos.d"
 REPO_PATH_SUSE = "/etc/zypp/repos.d/"
+REPO_PATH_UBUNTU = "/etc/apt/sources.list.d"
 SKIP_LIST = []
 TMP_HOST_CHECK_FILE_NAME = "tmp_hostcheck.result"
 HOST_CHECK_FILE_NAME = "hostcheck.result"
@@ -89,6 +84,17 @@ DIRNAME_PATTERNS = [
 # resources that should not be cleaned
 REPOSITORY_BLACK_LIST = ["ambari.repo"]
 PACKAGES_BLACK_LIST = ["ambari-server", "ambari-agent"]
+
+def get_erase_cmd():
+  if OSCheck.is_redhat_family():
+    return "yum erase -y {0}"
+  elif OSCheck.is_suse_family():
+    return "zypper -n -q remove {0}"
+  elif OSCheck.is_ubuntu_family():
+    return "/usr/bin/apt-get -y -q remove {0}"
+  else:
+    raise Exception("Unsupported OS family '{0}', cannot remove package. ".format(OSCheck.get_os_family()))
+
 
 class HostCleanup:
 
@@ -349,10 +355,12 @@ class HostCleanup:
         repoNameList.append("name=" + repoName)
     if repoNameList:
       # get list of files
-      if osType == 'suse':
+      if OSCheck.is_suse_family():
         fileList = self.get_files_in_dir(REPO_PATH_SUSE)
-      elif osType == "redhat":
+      elif OSCheck.is_redhat_family():
         fileList = self.get_files_in_dir(REPO_PATH_RHEL)
+      elif OSCheck.is_ubuntu_family():
+        fileList = self.get_files_in_dir(REPO_PATH_UBUNTU)
       else:
         logger.warn("Unsupported OS type, cannot get repository location.")
         return []
@@ -376,12 +384,7 @@ class HostCleanup:
       packageStr = ' '.join(packageList)
       logger.debug("Erasing packages: " + packageStr)
     if packageStr is not None and packageStr:
-      os_name = OSCheck.get_os_family()
-      command = ''
-      if os_name in PACKAGE_ERASE_CMD:
-        command = PACKAGE_ERASE_CMD[os_name].format(packageStr)
-      else:
-        logger.warn("Unsupported OS type, cannot remove package.")
+      command = get_erase_cmd().format(packageStr)
 
       if command != '':
         logger.debug('Executing: ' + str(command))

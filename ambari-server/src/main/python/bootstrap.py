@@ -33,6 +33,7 @@ import traceback
 import re
 from datetime import datetime
 from resource_management.core.shell import quote_bash_args
+from ambari_commons.os_check import OSCheck
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
@@ -164,7 +165,7 @@ class Bootstrap(threading.Thread):
     self.host_log = HostLog(log_file)
     self.daemon = True
 
-    if self.is_ubuntu():
+    if OSCheck.is_ubuntu_family():
       self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".list"
     else:
       self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".repo"
@@ -192,26 +193,16 @@ class Bootstrap(threading.Thread):
     def _call(*args, **kwargs):
       self(obj, *args, **kwargs)
     return _call
-
-  def is_suse(self):
-    if os.path.isfile("/etc/issue"):
-      if "suse" in open("/etc/issue").read().lower():
-        return True
-    return False
-
-  def is_ubuntu(self):
-    if self.getServerFamily()[0] == "ubuntu":
-      return True
-    return False
-
+  
   def getRepoDir(self):
-    """ Ambari repo file for Ambari."""
-    if self.is_suse():
+    if OSCheck.is_redhat_family():
+      return "/etc/yum.repos.d"
+    elif OSCheck.is_suse_family():
       return "/etc/zypp/repos.d"
-    elif self.is_ubuntu():
+    elif OSCheck.is_ubuntu_family():
       return "/etc/apt/sources.list.d"
     else:
-      return "/etc/yum.repos.d"
+      raise Exception("Unsupported OS family '{0}'".format(OSCheck.get_os_family()))
 
 
   def getRepoFile(self):
@@ -325,7 +316,7 @@ class Bootstrap(threading.Thread):
     self.host_log.write("\n")
 
     # Update repo cache for ubuntu OS
-    if self.is_ubuntu():
+    if OSCheck.is_ubuntu_family():
       self.host_log.write("==========================\n")
       self.host_log.write("Update apt cache of repository...")
       command = self.getAptUpdateCommand()
@@ -430,17 +421,12 @@ class Bootstrap(threading.Thread):
       doneFile.write(str(retcode))
       doneFile.close()
 
-  def getServerFamily(self):
-    '''Return server OS family and version'''
-    cot = re.search("([^\d]+)([\d]*)", self.shared_state.cluster_os_type)
-    return cot.group(1).lower(),cot.group(2).lower()
-
   def checkSudoPackage(self):
     """ Checking 'sudo' package on remote host """
     self.host_log.write("==========================\n")
     self.host_log.write("Checking 'sudo' package on remote host...")
     params = self.shared_state
-    if self.getServerFamily()[0] == "ubuntu":
+    if OSCheck.is_ubuntu_family():
       command = "dpkg --get-selections|grep -e '^sudo\s*install'"
     else:
       command = "rpm -qa | grep -e '^sudo\-'"

@@ -44,11 +44,11 @@ class FirewallWindows(Firewall):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class FirewallLinux(Firewall):
   def getFirewallObject(self):
-    if self.OS_TYPE == OSConst.OS_UBUNTU:
+    if OSCheck.is_ubuntu_family():
       return UbuntuFirewallChecks()
     elif self.OS_TYPE == OSConst.OS_FEDORA and int(self.OS_VERSION) >= 18:
       return Fedora18FirewallChecks()
-    elif self.OS_FAMILY == OSConst.SUSE_FAMILY:
+    elif OSCheck.is_suse_family():
       return SuseFirewallChecks()
     else:
       return FirewallChecks()

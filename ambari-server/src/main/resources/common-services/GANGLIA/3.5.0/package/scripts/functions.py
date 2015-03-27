@@ -16,10 +16,11 @@
 # under the License.
 #
 from resource_management import *
+from ambari_commons.os_check import OSCheck
 
 
 def turn_off_autostart(service):
-  if System.get_instance().os_family == "ubuntu":
+  if OSCheck.is_ubuntu_family():
     Execute(('update-rc.d', service, 'disable'),
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
             sudo = True

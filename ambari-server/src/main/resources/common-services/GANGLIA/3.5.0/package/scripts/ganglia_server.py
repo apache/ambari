@@ -24,6 +24,7 @@ from ganglia import generate_daemon
 import ganglia
 import functions
 import ganglia_server_service
+from ambari_commons.os_check import OSCheck
 
 
 class GangliaServer(Script):
@@ -114,7 +115,7 @@ def server_files():
             recursive=True
   )
   
-  if System.get_instance().os_family in ["ubuntu","suse"]:
+  if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
     File( params.ganglia_apache_config_file,
       content = Template("ganglia.conf.j2"),
       mode = 0644

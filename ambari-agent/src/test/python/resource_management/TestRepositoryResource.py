@@ -23,7 +23,7 @@ from mock.mock import patch, MagicMock
 
 from resource_management import *
 from resource_management.libraries.providers import repository
-
+from ambari_commons.os_check import OSCheck
 
 class DummyTemplate(object):
 
@@ -53,9 +53,16 @@ gpgcheck=0
 
 
 class TestRepositoryResource(TestCase):
-    @patch.object(System, "os_family", new='redhat')
+    @patch.object(OSCheck, "is_suse_family")
+    @patch.object(OSCheck, "is_ubuntu_family")
+    @patch.object(OSCheck, "is_redhat_family")
     @patch("resource_management.libraries.providers.repository.File")
-    def test_create_repo_redhat(self, file_mock):
+    @patch.object(System, "os_family", new='redhat')
+    def test_create_repo_redhat(self, file_mock,
+                                is_redhat_family, is_ubuntu_family, is_suse_family):
+        is_redhat_family.return_value = True
+        is_ubuntu_family.return_value = False
+        is_suse_family.return_value = False
         with Environment('/') as env:
           with patch.object(repository,"Template", new=DummyTemplate.create(RHEL_SUSE_DEFAULT_TEMPLATE)):
             Repository('hadoop',
@@ -85,9 +92,16 @@ class TestRepositoryResource(TestCase):
             self.assertEqual('dummy.j2', template)
 
 
+    @patch.object(OSCheck, "is_suse_family")
+    @patch.object(OSCheck, "is_ubuntu_family")
+    @patch.object(OSCheck, "is_redhat_family")
     @patch.object(System, "os_family", new='suse')
     @patch("resource_management.libraries.providers.repository.File")
-    def test_create_repo_suse(self, file_mock):
+    def test_create_repo_suse(self, file_mock,
+                              is_redhat_family, is_ubuntu_family, is_suse_family):
+        is_redhat_family.return_value = False
+        is_ubuntu_family.return_value = False
+        is_suse_family.return_value = True
         with Environment('/') as env:
           with patch.object(repository,"Template", new=DummyTemplate.create(RHEL_SUSE_DEFAULT_TEMPLATE)):
             Repository('hadoop',
@@ -116,6 +130,9 @@ class TestRepositoryResource(TestCase):
             self.assertEqual(expected_template_arguments, template_item.context._dict)
             self.assertEqual('dummy.j2', template)
     
+    @patch.object(OSCheck, "is_suse_family")
+    @patch.object(OSCheck, "is_ubuntu_family")
+    @patch.object(OSCheck, "is_redhat_family")
     @patch("resource_management.libraries.providers.repository.checked_call")
     @patch.object(tempfile, "NamedTemporaryFile")
     @patch("resource_management.libraries.providers.repository.Execute")
@@ -125,7 +142,10 @@ class TestRepositoryResource(TestCase):
     @patch.object(System, "os_release_name", new='precise')        
     @patch.object(System, "os_family", new='ubuntu')
     def test_create_repo_ubuntu_repo_exists(self, file_mock, execute_mock,
-                                            tempfile_mock, checked_call_mock):
+                                            tempfile_mock, checked_call_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
+      is_redhat_family.return_value = False
+      is_ubuntu_family.return_value = True
+      is_suse_family.return_value = False
       tempfile_mock.return_value = MagicMock(spec=file)
       tempfile_mock.return_value.__enter__.return_value.name = "/tmp/1.txt"
       checked_call_mock.return_value = 0, "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY 123ABCD"
@@ -253,9 +273,15 @@ class TestRepositoryResource(TestCase):
       self.assertEqual(file_mock.call_count, 0)
       self.assertEqual(execute_mock.call_count, 0)
 
-    @patch.object(System, "os_family", new='redhat')
+    @patch.object(OSCheck, "is_suse_family")
+    @patch.object(OSCheck, "is_ubuntu_family")
+    @patch.object(OSCheck, "is_redhat_family")
     @patch("resource_management.libraries.providers.repository.File")
-    def test_remove_repo_redhat(self, file_mock):
+    def test_remove_repo_redhat(self, file_mock,
+                              is_redhat_family, is_ubuntu_family, is_suse_family):
+        is_redhat_family.return_value = True
+        is_ubuntu_family.return_value = False
+        is_suse_family.return_value = False
         with Environment('/') as env:
             Repository('hadoop',
                        action='remove',
@@ -270,13 +296,18 @@ class TestRepositoryResource(TestCase):
                                   'mirror_list': 'https://mirrors.base_url.org/?repo=Repository&arch=$basearch',
                                   'repo_file_name': 'Repository'}
             self.assertEqual(defined_arguments, expected_arguments)
-            self.assertEqual(file_mock.call_args[1]['action'], 'delete')
-            self.assertEqual(file_mock.call_args[0][0], '/etc/yum.repos.d/Repository.repo')
 
 
+    @patch.object(OSCheck, "is_suse_family")
+    @patch.object(OSCheck, "is_ubuntu_family")
+    @patch.object(OSCheck, "is_redhat_family")
     @patch.object(System, "os_family", new='suse')
     @patch("resource_management.libraries.providers.repository.File")
-    def test_remove_repo_suse(self, file_mock):
+    def test_remove_repo_suse(self, file_mock,
+                              is_redhat_family, is_ubuntu_family, is_suse_family):
+        is_redhat_family.return_value = False
+        is_ubuntu_family.return_value = False
+        is_suse_family.return_value = True
         with Environment('/') as env:
             Repository('hadoop',
                        action='remove',

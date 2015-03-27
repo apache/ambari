@@ -18,6 +18,7 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.core.system import System
+from ambari_commons.os_check import OSCheck
 import os
 
 config = Script.get_config()
@@ -42,7 +43,7 @@ for x in gmond_app_strs:
   a,b = x.strip().split(':')
   gmond_apps.append((a.strip(),b.strip()))
 
-if System.get_instance().os_family == "ubuntu":
+if OSCheck.is_ubuntu_family():
   gmond_service_name = "ganglia-monitor"
   modules_dir = "/usr/lib/ganglia"
 else:
@@ -145,7 +146,7 @@ if len(gmond_apps) > 0:
 
 ganglia_apache_config_file = "/etc/apache2/conf.d/ganglia.conf"
 ganglia_web_path="/var/www/html/ganglia"
-if System.get_instance().os_family == "suse":
+if OSCheck.is_suse_family():
   rrd_py_path = '/srv/www/cgi-bin'
   dwoo_path = '/var/lib/ganglia-web/dwoo'
   web_user = "wwwrun"
@@ -153,11 +154,11 @@ if System.get_instance().os_family == "suse":
   if not os.path.exists(ganglia_web_path):
     ganglia_web_path='/srv/www/htdocs/ganglia'
 
-elif  System.get_instance().os_family == "redhat":
+elif OSCheck.is_redhat_family():
   rrd_py_path = '/var/www/cgi-bin'
   dwoo_path = '/var/lib/ganglia/dwoo'
   web_user = "apache"
-elif  System.get_instance().os_family == "ubuntu":
+elif OSCheck.is_ubuntu_family():
   rrd_py_path = '/usr/lib/cgi-bin'
   ganglia_web_path = '/usr/share/ganglia-webfrontend'
   dwoo_path = '/var/lib/ganglia/dwoo'

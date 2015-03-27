@@ -1143,10 +1143,9 @@ public class Configuration {
    * @return a string array of suffixes used to validate repo URLs.
    */
   public String[] getRepoValidationSuffixes(String osType) {
-    String osFamily = this.osFamily.find_family(osType);
     String repoSuffixes;
 
-    if(osFamily.equals(OsFamily.UBUNTU_FAMILY)) {
+    if(osFamily.isUbuntuFamily(osType)) {
       repoSuffixes = properties.getProperty(REPO_SUFFIX_KEY_UBUNTU,
           REPO_SUFFIX_UBUNTU);
     } else {

@@ -25,6 +25,7 @@ from resource_management.core.providers import Provider
 from resource_management.libraries.functions.format import format
 from resource_management.core.shell import as_sudo
 from resource_management.core.system import System
+from ambari_commons.os_check import OSCheck
 
 
 class MonitorWebserverProvider(Provider):
@@ -49,7 +50,7 @@ class MonitorWebserverProvider(Provider):
 
   def get_serivice_params(self):
     self.system = System.get_instance()
-    if self.system.os_family in ["suse","ubuntu"]:
+    if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
       self.service_name = "apache2"
       self.httpd_conf_dir = '/etc/apache2'
     else:

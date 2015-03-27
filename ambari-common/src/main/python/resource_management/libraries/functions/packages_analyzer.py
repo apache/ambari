@@ -89,16 +89,16 @@ def allInstalledPackages(allInstalledPackages):
   """
   osType = OSCheck.get_os_family()
 
-  if osType == OSConst.SUSE_FAMILY:
+  if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
       ["zypper", "search", "--installed-only", "--details"],
       allInstalledPackages)
-  elif osType == OSConst.REDHAT_FAMILY:
+  elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
       ["yum", "list", "installed"],
       'Installed Packages',
       allInstalledPackages)
-  elif osType == OSConst.UBUNTU_FAMILY:
+  elif OSCheck.is_ubuntu_family():
      return _lookUpAptPackages(
       LIST_INSTALLED_PACKAGES_UBUNTU,
       allInstalledPackages)
@@ -107,16 +107,16 @@ def allInstalledPackages(allInstalledPackages):
 def allAvailablePackages(allAvailablePackages):
   osType = OSCheck.get_os_family()
 
-  if osType == OSConst.SUSE_FAMILY:
+  if OSCheck.is_suse_family():
     return _lookUpZypperPackages(
       ["zypper", "search", "--uninstalled-only", "--details"],
       allAvailablePackages)
-  elif osType == OSConst.REDHAT_FAMILY:
+  elif OSCheck.is_redhat_family():
     return _lookUpYumPackages(
       ["yum", "list", "available"],
       'Available Packages',
       allAvailablePackages)
-  elif osType == OSConst.UBUNTU_FAMILY:
+  elif OSCheck.is_ubuntu_family():
      return _lookUpAptPackages(
       LIST_AVAILABLE_PACKAGES_UBUNTU,
       allAvailablePackages)

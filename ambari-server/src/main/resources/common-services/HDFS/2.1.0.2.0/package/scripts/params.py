@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
@@ -269,28 +270,11 @@ HdfsDirectory = functools.partial(
 # The logic for LZO also exists in OOZIE's params.py
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)
 lzo_enabled = io_compression_codecs is not None and "com.hadoop.compression.lzo" in io_compression_codecs.lower()
-
-# stack_is_hdp22_or_further
-underscored_version = stack_version_unformatted.replace('.', '_')
-dashed_version = stack_version_unformatted.replace('.', '-')
-lzo_packages_to_family = {
-  "any": ["hadoop-lzo", ],
-  "redhat": ["lzo", "hadoop-lzo-native"],
-  "suse": ["lzo", "hadoop-lzo-native"],
-  "ubuntu": ["liblzo2-2", ]
-}
-
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  lzo_packages_to_family["redhat"] += [format("hadooplzo_{underscored_version}_*")]
-  lzo_packages_to_family["suse"] += [format("hadooplzo_{underscored_version}_*")]
-  lzo_packages_to_family["ubuntu"] += [format("hadooplzo_{dashed_version}_*")]
-
-lzo_packages_for_current_host = lzo_packages_to_family['any'] + lzo_packages_to_family[System.get_instance().os_family]
-all_lzo_packages = set(itertools.chain(*lzo_packages_to_family.values()))
+lzo_packages = get_lzo_packages(stack_version_unformatted)
 
 exclude_packages = []
 if not lzo_enabled:
-  exclude_packages += all_lzo_packages
+  exclude_packages += lzo_packages
   
 name_node_params = default("/commandParams/namenode", None)
 
@@ -300,7 +284,7 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and System.get_instance().os_family != "suse":
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and not OSCheck.is_suse_family():
   # deprecated rhel jsvc_path
   jsvc_path = "/usr/libexec/bigtop-utils"
 else:

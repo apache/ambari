@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
 from resource_management import *
@@ -279,7 +280,7 @@ app_dir_files = {tez_local_api_jars:None}
 # Tez libraries
 tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 
-if System.get_instance().os_family == "ubuntu":
+if OSCheck.is_ubuntu_family():
   mysql_configname = '/etc/mysql/my.cnf'
 else:
   mysql_configname = '/etc/my.cnf'

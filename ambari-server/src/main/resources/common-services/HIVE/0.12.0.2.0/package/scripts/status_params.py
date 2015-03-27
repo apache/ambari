@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons.os_check import OSCheck
 
 config = Script.get_config()
 
@@ -31,7 +32,7 @@ hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_di
 webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
 
 process_name = 'mysqld'
-if System.get_instance().os_family == "suse" or System.get_instance().os_family == "ubuntu":
+if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
   daemon_name = 'mysql'
 else:
   daemon_name = 'mysqld'

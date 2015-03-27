@@ -50,6 +50,9 @@ PROVIDERS = dict(
   ubuntu=dict(
     Package="resource_management.core.providers.package.apt.AptProvider",
   ),
+  debian=dict(
+    Package="resource_management.core.providers.package.apt.AptProvider",
+  ),
   winsrv=dict(
     Service="resource_management.core.providers.windows.service.ServiceProvider",
     Execute="resource_management.core.providers.windows.system.ExecuteProvider",

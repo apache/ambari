@@ -25,6 +25,7 @@ import logging
 import tempfile
 import pprint
 
+from ambari_commons.os_check import OSCheck
 from bootstrap import PBootstrap, Bootstrap, SharedState, HostLog, SCP, SSH
 from unittest import TestCase
 from subprocess import Popen
@@ -123,31 +124,22 @@ class TestBootstrap(TestCase):
     self.assertTrue(bootstrap_obj.generateRandomFileName(None) == bootstrap_obj.getUtime())
 
 
-  @patch("os.path.isfile")
-  @patch("__builtin__.open")
-  def test_is_suse(self, open_mock, isfile_mock):
-    shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
-                               "setupAgentFile", "ambariServer", "centos6",
-                               None, "8440", "root")
-    bootstrap_obj = Bootstrap("hostname", shared_state)
-    isfile_mock.return_value = True
-    f = open_mock.return_value
-    f.read.return_value = " suse  "
-    self.assertTrue(bootstrap_obj.is_suse())
 
-
-  @patch.object(Bootstrap, "is_suse")
-  def test_getRepoDir(self, is_suse_mock):
+  @patch.object(OSCheck, "is_redhat_family")
+  @patch.object(OSCheck, "is_suse_family")
+  def test_getRepoDir(self, is_suse_family, is_redhat_family):
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Suse
-    is_suse_mock.return_value = True
+    is_redhat_family.return_value = False
+    is_suse_family.return_value = True
     res = bootstrap_obj.getRepoDir()
     self.assertEquals(res, "/etc/zypp/repos.d")
     # non-Suse
-    is_suse_mock.return_value = False
+    is_suse_family.return_value = False
+    is_redhat_family.return_value = True
     res = bootstrap_obj.getRepoDir()
     self.assertEquals(res, "/etc/yum.repos.d")
 
@@ -389,10 +381,16 @@ class TestBootstrap(TestCase):
 
   @patch.object(Bootstrap, "getRemoteName")
   @patch.object(Bootstrap, "hasPassword")
-  def test_getRepoFile(self, hasPassword_mock, getRemoteName_mock):
+  @patch.object(OSCheck, "is_suse_family")
+  @patch.object(OSCheck, "is_ubuntu_family")
+  @patch.object(OSCheck, "is_redhat_family")
+  def test_getRepoFile(self, is_redhat_family, is_ubuntu_family, is_suse_family, hasPassword_mock, getRemoteName_mock):
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
+    is_redhat_family.return_value = True
+    is_ubuntu_family.return_value = False
+    is_suse_family.return_value = False
     bootstrap_obj = Bootstrap("hostname", shared_state)
     # Without password
     hasPassword_mock.return_value = False
@@ -406,6 +404,9 @@ class TestBootstrap(TestCase):
     self.assertEquals(rf, "sudo -S mv RemoteName target/ambari.repo < RemoteName")
 
 
+  @patch.object(OSCheck, "is_suse_family")
+  @patch.object(OSCheck, "is_ubuntu_family")
+  @patch.object(OSCheck, "is_redhat_family")
   @patch.object(Bootstrap, "getMoveRepoFileCommand")
   @patch.object(Bootstrap, "getRepoDir")
   @patch.object(Bootstrap, "getRepoFile")
@@ -418,10 +419,13 @@ class TestBootstrap(TestCase):
   def test_copyNeededFiles(self, write_mock, ssh_run_mock, ssh_init_mock,
                            scp_run_mock, scp_init_mock,
                            getRemoteName_mock, getRepoFile_mock, getRepoDir,
-                           getMoveRepoFileCommand):
+                           getMoveRepoFileCommand, is_redhat_family, is_ubuntu_family, is_suse_family):
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
+    is_redhat_family.return_value = True
+    is_ubuntu_family.return_value = False
+    is_suse_family.return_value = False
     bootstrap_obj = Bootstrap("hostname", shared_state)
     getMoveRepoFileCommand.return_value = "MoveRepoFileCommand"
     getRepoDir.return_value  = "RepoDir"
@@ -540,11 +544,13 @@ class TestBootstrap(TestCase):
       self.assertEqual(res, str(expected))
     os.unlink(done_file)
 
-  @patch.object(Bootstrap, "getServerFamily")
+  @patch.object(OSCheck, "is_suse_family")
+  @patch.object(OSCheck, "is_ubuntu_family")
+  @patch.object(OSCheck, "is_redhat_family")
   @patch.object(SSH, "__init__")
   @patch.object(SSH, "run")
   @patch.object(HostLog, "write")
-  def test_checkSudoPackage(self, write_mock, run_mock, init_mock, server_family_mock):
+  def test_checkSudoPackage(self, write_mock, run_mock, init_mock, is_redhat_family, is_ubuntu_family, is_suse_family):
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "centos6",
                                None, "8440", "root")
@@ -552,25 +558,32 @@ class TestBootstrap(TestCase):
     expected = 42
     init_mock.return_value = None
     run_mock.return_value = expected
-    server_family_mock.return_value = ["centos", "6"]
+    is_redhat_family.return_value = True
+    is_ubuntu_family.return_value = False
+    is_suse_family.return_value = False
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command, "rpm -qa | grep -e '^sudo\-'")
 
-  @patch.object(Bootstrap, "getServerFamily")
+  @patch.object(OSCheck, "is_suse_family")
+  @patch.object(OSCheck, "is_ubuntu_family")
+  @patch.object(OSCheck, "is_redhat_family")
   @patch.object(SSH, "__init__")
   @patch.object(SSH, "run")
   @patch.object(HostLog, "write")
-  def test_checkSudoPackageUbuntu(self, write_mock, run_mock, init_mock, server_family_mock):
+  def test_checkSudoPackageUbuntu(self, write_mock, run_mock, init_mock,
+                                  is_redhat_family, is_ubuntu_family, is_suse_family):
     shared_state = SharedState("root", "sshkey_file", "scriptDir", "bootdir",
                                "setupAgentFile", "ambariServer", "ubuntu12",
                                None, "8440", "root")
+    is_redhat_family.return_value = False
+    is_ubuntu_family.return_value = True
+    is_suse_family.return_value = False
     bootstrap_obj = Bootstrap("hostname", shared_state)
     expected = 42
     init_mock.return_value = None
     run_mock.return_value = expected
-    server_family_mock.return_value = ["ubuntu", "12"]
     res = bootstrap_obj.checkSudoPackage()
     self.assertEquals(res, expected)
     command = str(init_mock.call_args[0][3])

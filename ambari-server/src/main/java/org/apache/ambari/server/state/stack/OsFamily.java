@@ -25,8 +25,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-
 import com.google.inject.Singleton;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,7 +41,9 @@ import org.apache.commons.io.IOUtils;
  */
 @Singleton
 public class OsFamily {
-    public final static String UBUNTU_FAMILY = "ubuntu";
+    private final static String OS_FAMILY_UBUNTU = "ubuntu";
+    private final static String OS_FAMILY_SUSE = "suse";
+    private final static String OS_FAMILY_REDHAT = "redhat";
     
     private final String os_pattern = "([^\\d]*)([\\d]*)";
     private final String OS_DISTRO = "distro";
@@ -50,7 +52,7 @@ public class OsFamily {
     private final String FILE_NAME = "os_family.json";
     private final Logger LOG = LoggerFactory.getLogger(OsFamily.class);
 
-    private Map<String, Map<String, Set<String>>> osMap = null;
+    private Map<String, JsonOsFamilyEntry> osMap = null;
 
   /**
    * Initialize object
@@ -75,7 +77,7 @@ public class OsFamily {
         if (!f.exists()) throw new Exception();
         inputStream = new FileInputStream(f);
 
-        Type type = new TypeToken<Map<String, Map<String, Set<String>>>>() {}.getType();
+        Type type = new TypeToken<Map<String, JsonOsFamilyEntry>>() {}.getType();
         Gson gson = new Gson();
         osMap = gson.fromJson(new InputStreamReader(inputStream), type);
       } catch (Exception e) {
@@ -115,10 +117,10 @@ public class OsFamily {
     public Set<String> findTypes(String os) {
       Map<String,String>  pos = parse_os(os);
       for ( String family : osMap.keySet()) {
-        Map<String, Set<String>> fam = osMap.get(family);
-        if (fam.get(OS_DISTRO).contains(pos.get(OS_DISTRO)) && fam.get(OS_VERSION).contains(pos.get(OS_VERSION))){
+        JsonOsFamilyEntry fam = osMap.get(family);
+        if (fam.getDistro().contains(pos.get(OS_DISTRO)) && fam.getVersions().contains(pos.get(OS_VERSION))){
           Set<String> data=new HashSet<String>();
-          for (String item: fam.get(OS_DISTRO)) data.add(item + pos.get(OS_VERSION));
+          for (String item: fam.getDistro()) data.add(item + pos.get(OS_VERSION));
             return Collections.unmodifiableSet(data);
         }
       }
@@ -133,8 +135,8 @@ public class OsFamily {
     public String find(String os) {
       Map<String,String>  pos = parse_os(os);
       for ( String family : osMap.keySet()) {
-        Map<String, Set<String>> fam = osMap.get(family);
-        if (fam.get(OS_DISTRO).contains(pos.get(OS_DISTRO)) && fam.get(OS_VERSION).contains(pos.get(OS_VERSION))){
+        JsonOsFamilyEntry fam = osMap.get(family);
+        if (fam.getDistro().contains(pos.get(OS_DISTRO)) && fam.getVersions().contains(pos.get(OS_VERSION))){
           return family + pos.get(OS_VERSION);
         }
       }
@@ -149,14 +151,13 @@ public class OsFamily {
     public String find_family(String os) {
       Map<String,String>  pos = parse_os(os);
       for ( String family : osMap.keySet()) {
-        Map<String, Set<String>> fam = osMap.get(family);
-        if (fam.get(OS_DISTRO).contains(pos.get(OS_DISTRO)) && fam.get(OS_VERSION).contains(pos.get(OS_VERSION))){
+        JsonOsFamilyEntry fam = osMap.get(family);
+        if (fam.getDistro().contains(pos.get(OS_DISTRO)) && fam.getVersions().contains(pos.get(OS_VERSION))){
           return family;
         }
       }
       return null;
     }
-
     /**
      * Form list of all supported os types
      * @return one dimension list with os types
@@ -164,13 +165,38 @@ public class OsFamily {
     public Set<String> os_list(){
       Set<String> r= new HashSet<String>();
       for ( String family : osMap.keySet()) {
-        Map<String, Set<String>> fam = osMap.get(family);
-        for (String version: fam.get(OS_VERSION)){
+        JsonOsFamilyEntry fam = osMap.get(family);
+        for (String version: fam.getVersions()){
           Set<String> data=new HashSet<String>();
-          for (String item: fam.get(OS_DISTRO)) data.add(item + version);
+          for (String item: fam.getDistro()) data.add(item + version);
           r.addAll(data);
         }
       }
       return r;
+    }
+    
+    public boolean isUbuntuFamily(String osType) {
+      return isOsInFamily(osType, OS_FAMILY_UBUNTU);
+    }
+    
+    public boolean isSuseFamily(String osType) {
+      return isOsInFamily(osType, OS_FAMILY_SUSE);
+    }
+    
+    public boolean isRedhatFamily(String osType) {
+      return isOsInFamily(osType, OS_FAMILY_REDHAT);
+    }
+
+    public boolean isOsInFamily(String osType, String osFamily) {
+      String familyOfOsType = find_family(osType);
+      return (familyOfOsType != null && isFamilyExtendedByFamily(familyOfOsType, osFamily));
+    }
+
+    private boolean isFamilyExtendedByFamily(String currentFamily, String family) {
+      return (currentFamily.equals(family) || getOsFamilyParent(currentFamily)!=null && isFamilyExtendedByFamily(getOsFamilyParent(currentFamily), family));
+    }
+      
+    private String getOsFamilyParent(String osFamily) {
+      return osMap.get(osFamily).getExtendsFamily();
     }
 }

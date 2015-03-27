@@ -35,7 +35,7 @@ from ambari_server.dbConfiguration import DBMSConfig, USERNAME_PATTERN, SETUP_DB
     SETUP_DB_CONNECT_TIMEOUT, STORAGE_TYPE_LOCAL, DEFAULT_USERNAME, DEFAULT_PASSWORD
 from ambari_server.serverConfiguration import encrypt_password, store_password_file, \
     get_ambari_properties, get_resources_location, get_value_from_properties, configDefaults, \
-    OS_TYPE, OS_FAMILY, AMBARI_PROPERTIES_FILE, RESOURCES_DIR_PROPERTY, \
+    OS_FAMILY, AMBARI_PROPERTIES_FILE, RESOURCES_DIR_PROPERTY, \
     JDBC_DATABASE_PROPERTY, JDBC_DATABASE_NAME_PROPERTY, JDBC_POSTGRES_SCHEMA_PROPERTY, \
     JDBC_HOSTNAME_PROPERTY, JDBC_PORT_PROPERTY, \
     JDBC_USER_NAME_PROPERTY, JDBC_PASSWORD_PROPERTY, JDBC_PASSWORD_FILENAME, \
@@ -347,7 +347,7 @@ class PGConfig(LinuxDBMSConfig):
     self._is_user_changed = False
 
     if self.persistence_type == STORAGE_TYPE_LOCAL:
-      PGConfig.PG_STATUS_RUNNING = get_postgre_running_status(OS_TYPE)
+      PGConfig.PG_STATUS_RUNNING = get_postgre_running_status()
       PGConfig.PG_HBA_DIR = get_postgre_hba_dir(OS_FAMILY)
 
       PGConfig.PG_HBA_CONF_FILE = os.path.join(PGConfig.PG_HBA_DIR, "pg_hba.conf")
@@ -537,7 +537,7 @@ class PGConfig(LinuxDBMSConfig):
       return pg_status, 0, out, err
     else:
       # run initdb only on non ubuntu systems as ubuntu does not have initdb cmd.
-      if OS_TYPE != OSConst.OS_UBUNTU:
+      if not OSCheck.is_ubuntu_family():
         print "Running initdb: This may take upto a minute."
         retcode, out, err = run_os_command(PGConfig.PG_INITDB_CMD)
         if retcode == 0:
@@ -549,7 +549,7 @@ class PGConfig(LinuxDBMSConfig):
                                    stdin=subprocess.PIPE,
                                    stderr=subprocess.PIPE
         )
-        if OS_TYPE == OSConst.OS_SUSE:
+        if OSCheck.is_suse_family():
           time.sleep(20)
           result = process.poll()
           print_info_msg("Result of postgres start cmd: " + str(result))

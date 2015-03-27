@@ -21,13 +21,20 @@
       7
     ]
   },
-  "ubuntu": {
+  "debian": {
+    "extends" : "ubuntu",
     "distro": [
-      "ubuntu",
       "debian"
     ],
     "versions": [
-      7,
+      7
+    ]
+  },
+  "ubuntu": {
+    "distro": [
+      "ubuntu"
+    ],
+    "versions": [
       12
     ]
   },

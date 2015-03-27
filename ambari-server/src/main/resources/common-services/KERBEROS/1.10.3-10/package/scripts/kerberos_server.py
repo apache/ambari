@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from kerberos_common import *
+from ambari_commons.os_check import OSCheck
 
 class KerberosServer(KerberosScript):
   @staticmethod
@@ -81,18 +82,16 @@ class KerberosServer(KerberosScript):
 
 
   def start(self, env):
-    os_family = System.get_instance().os_family
-
     # Attempt to reconfigure the service before starting
     self.configure(env)
 
     # Create or update the administrator account
     KerberosScript.create_or_update_administrator_identity()
 
-    if os_family == "suse":
+    if OSCheck.is_suse_family():
       Execute('rckadmind start')
       Execute('rckrb5kdc start')
-    elif os_family == 'ubuntu':
+    elif OSCheck.is_ubuntu_family():
       Execute('service krb5-kdc start')
       Execute('service krb5-admin-server start')
     else:
@@ -100,12 +99,10 @@ class KerberosServer(KerberosScript):
       Execute('service kadmin start')
 
   def stop(self, env):
-    os_family = System.get_instance().os_family
-
-    if os_family == "suse":
+    if OSCheck.is_suse_family():
       Execute('rckadmind stop')
       Execute('rckrb5kdc stop')
-    elif os_family == 'ubuntu':
+    elif OSCheck.is_ubuntu_family():
       Execute('service krb5-kdc stop')
       Execute('service krb5-admin-server stop')
     else:
@@ -124,14 +121,14 @@ class KerberosServer(KerberosScript):
   def status(self, env):
     import params
 
-    if params.os_family == "suse":
+    if OSCheck.is_suse_family():
       try:
         Execute('checkproc `which krb5kdc`')
         Execute('checkproc `which kadmind`')
       except Fail as ex:
         raise ComponentIsNotRunning()
 
-    elif params.os_family == 'ubuntu':
+    elif OSCheck.is_ubuntu_family():
       check_process_status(params.kdamin_pid_path)
       check_process_status(params.krb5kdc_pid_path)
 

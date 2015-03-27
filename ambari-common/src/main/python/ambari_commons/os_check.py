@@ -57,6 +57,7 @@ RESOURCES_DIR = os.path.join(os.path.dirname(os.path.realpath(__file__)), "resou
 OSFAMILY_JSON_RESOURCE = "os_family.json"
 JSON_OS_TYPE = "distro"
 JSON_OS_VERSION = "versions"
+JSON_EXTENDS = "extends"
 
 #windows family constants
 SYSTEM_WINDOWS = "Windows"
@@ -104,6 +105,9 @@ class OS_CONST_TYPE(type):
           'name': family,
           'os_list': json_data[family][JSON_OS_TYPE]
         }]
+        
+        if JSON_EXTENDS in json_data[family]:
+          cls.OS_FAMILY_COLLECTION[-1][JSON_EXTENDS] = json_data[family][JSON_EXTENDS]
     except:
       raise Exception("Couldn't load '%s' file" % OSFAMILY_JSON_RESOURCE)
 
@@ -217,6 +221,15 @@ class OSCheck:
     return os_family.lower()
 
   @staticmethod
+  def get_os_family_parent(os_family):
+    for os_family_item in OSConst.OS_FAMILY_COLLECTION:
+      if os_family_item['name'] == os_family:
+        if JSON_EXTENDS in os_family_item:
+          return os_family_item[JSON_EXTENDS]
+        else:
+          return None
+
+  @staticmethod
   def get_os_version():
     """
     Returns the OS version
@@ -264,14 +277,9 @@ class OSCheck:
     """
      Return true if it is so or false if not
 
-     This is safe check for debian family, doesn't generate exception
+     This is safe check for ubuntu/debian families, doesn't generate exception
     """
-    try:
-      if OSCheck.get_os_family() == OSConst.UBUNTU_FAMILY:
-        return True
-    except Exception:
-      pass
-    return False
+    return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.UBUNTU_FAMILY)
 
   @staticmethod
   def is_suse_family():
@@ -280,12 +288,7 @@ class OSCheck:
 
      This is safe check for suse family, doesn't generate exception
     """
-    try:
-      if OSCheck.get_os_family() == OSConst.SUSE_FAMILY:
-        return True
-    except Exception:
-      pass
-    return False
+    return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.SUSE_FAMILY)
 
   @staticmethod
   def is_redhat_family():
@@ -294,12 +297,16 @@ class OSCheck:
 
      This is safe check for redhat family, doesn't generate exception
     """
+    return OSCheck.is_in_family(OSCheck.get_os_family(), OSConst.REDHAT_FAMILY)
+  
+  @staticmethod
+  def is_in_family(current_family, family):
     try:
-      if OSCheck.get_os_family() == OSConst.REDHAT_FAMILY:
+      if current_family == family or OSCheck.get_os_family_parent(current_family) and OSCheck.is_in_family(OSCheck.get_os_family_parent(current_family), family):
         return True
     except Exception:
       pass
-    return False
+    return False    
 
   @staticmethod
   def is_redhat7():

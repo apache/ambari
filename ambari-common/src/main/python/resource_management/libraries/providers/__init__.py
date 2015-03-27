@@ -30,6 +30,9 @@ PROVIDERS = dict(
   ubuntu=dict(
     Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
   ),
+  debian=dict(
+    Repository="resource_management.libraries.providers.repository.UbuntuRepositoryProvider",
+  ),
   winsrv=dict(
     Msi="resource_management.libraries.providers.msi.MsiProvider"
   ),
