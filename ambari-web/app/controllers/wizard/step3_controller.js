@@ -312,6 +312,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     return App.showConfirmationPopup(function () {
       App.router.send('removeHosts', hosts);
       self.hosts.removeObjects(hosts);
+      self.stopRegistration();
       if (!self.hosts.length) {
         self.set('isSubmitDisabled', true);
       }
