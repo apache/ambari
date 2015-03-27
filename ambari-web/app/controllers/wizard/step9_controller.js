@@ -18,7 +18,7 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.WizardStep9Controller = Em.Controller.extend({
+App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
 
   name: 'wizardStep9Controller',
 
@@ -1023,6 +1023,7 @@ App.WizardStep9Controller = Em.Controller.extend({
    * @return {$.ajax|null}
    */
   getLogsByRequest: function (polling, requestId) {
+    var self = this;
     return App.ajax.send({
       name: 'wizard.step9.load_log',
       sender: this,
@@ -1034,9 +1035,12 @@ App.WizardStep9Controller = Em.Controller.extend({
       },
       success: 'getLogsByRequestSuccessCallback',
       error: 'getLogsByRequestErrorCallback'
-    }).retry({times: App.maxRetries, timeout: 3000}).then(null,
+    }).retry({times: App.maxRetries, timeout: 3000}).then(
       function () {
-        App.showReloadPopup();
+        self.closeReloadPopup();
+      },
+      function () {
+        self.showReloadPopup();
         console.log('Install services all retries failed');
       }
     );

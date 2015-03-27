@@ -30,7 +30,6 @@ require('views/common/modal_popups/alert_popup');
 require('views/common/modal_popups/confirmation_feedback_popup');
 require('views/common/modal_popups/confirmation_popup');
 require('views/common/modal_popups/prompt_popup');
-require('views/common/modal_popups/reload_popup');
 require('views/common/modal_popups/cluster_check_popup');
 require('views/common/modal_popups/invalid_KDC_popup');
 require('views/common/modal_popups/dependent_configs_list_popup');

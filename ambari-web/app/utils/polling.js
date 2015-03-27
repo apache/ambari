@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-App.Poll = Em.Object.extend({
+App.Poll = Em.Object.extend(App.ReloadPopupMixin, {
   name: '',
   stage: '',
   label: '',
@@ -151,6 +151,7 @@ App.Poll = Em.Object.extend({
    */
   startPolling: function () {
     if (!this.get('requestId')) return false;
+    var self = this;
 
     this.pollTaskLog();
     App.ajax.send({
@@ -163,10 +164,15 @@ App.Poll = Em.Object.extend({
       error: 'startPollingErrorCallback'
     })
       .retry({times: App.maxRetries, timeout: App.timeout})
-      .then(null, function () {
-        App.showReloadPopup();
-        console.log('Install services all retries failed');
-      });
+      .then(
+        function () {
+          self.closeReloadPopup();
+        },
+        function () {
+          self.showReloadPopup();
+          console.log('Install services all retries failed');
+        }
+      );
     return true;
   },
 

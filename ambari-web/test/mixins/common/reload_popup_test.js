@@ -18,13 +18,44 @@
 
 var App = require('app');
 
-App.showReloadPopup = function () {
-  return App.ModalPopup.show({
-    primary: null,
-    secondary: null,
-    showFooter: false,
-    header: this.t('app.reloadPopup.header'),
-    body: "<div id='reload_popup' class='alert alert-info'><div class='spinner'><span>" + this.t('app.reloadPopup.text') + "</span></div></div><div><a href='#' onclick='location.reload();'>" + this.t('app.reloadPopup.link') + "</a></div>",
-    encodeBody: false
+require('mixins/common/reload_popup');
+
+describe('App.ReloadPopupMixin', function () {
+
+  var obj;
+
+  beforeEach(function () {
+    obj = Em.Object.create(App.ReloadPopupMixin);
   });
-};
+
+  describe('#showReloadPopup', function () {
+
+    var mockObj = {
+      key: 'value'
+    };
+
+    beforeEach(function () {
+      sinon.stub(App.ModalPopup, 'show').returns(mockObj);
+    });
+
+    afterEach(function () {
+      App.ModalPopup.show.restore();
+    });
+
+    it('should show modal popup', function () {
+      obj.showReloadPopup();
+      expect(obj.get('reloadPopup')).to.eql(mockObj);
+    });
+  });
+
+  describe('#closeReloadPopup', function () {
+
+    it('should hide modal popup', function () {
+      obj.showReloadPopup();
+      obj.closeReloadPopup();
+      expect(obj.get('reloadPopup')).to.be.null;
+    });
+
+  });
+
+});

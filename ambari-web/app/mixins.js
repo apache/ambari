@@ -22,6 +22,7 @@
 require('mixins/common/blueprint');
 require('mixins/common/localStorage');
 require('mixins/common/userPref');
+require('mixins/common/reload_popup');
 require('mixins/common/serverValidator');
 require('mixins/common/table_server_view_mixin');
 require('mixins/common/table_server_mixin');
