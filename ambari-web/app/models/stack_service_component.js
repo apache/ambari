@@ -102,7 +102,7 @@ App.StackServiceComponent = DS.Model.extend({
 
   /** @property {Boolean} isDeletable - component supports delete action **/
   isDeletable: function() {
-    var ignored = ['HBASE_MASTER'];
+    var ignored = [];
     return this.get('isAddableToHost') && !ignored.contains(this.get('componentName'));
   }.property('componentName'),
 
