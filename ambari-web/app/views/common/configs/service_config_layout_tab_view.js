@@ -51,7 +51,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   prepareConfigProperties: function () {
     var widgetTypeMap = this.get('widgetTypeMap');
     var self = this;
-    var serviceName = self.get('controller.content.serviceName');
+    var serviceName = self.get('controller.selectedService.serviceName');
     this.get('content.sectionRows').forEach(function (row) {
       row.forEach(function (section) {
         section.get('subsectionRows').forEach(function (subRow) {

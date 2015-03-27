@@ -60,84 +60,99 @@ App.themesMapper = App.QuickDataMapper.create({
 
   map: function (json) {
     var tabs = [];
-    if (Em.get(json, "artifact_data.Theme.configuration.layouts")) {
-      var serviceName = Em.get(json, "Artifacts.service_name");
-      Em.get(json, "artifact_data.Theme.configuration.layouts").forEach(function(layout) {
+    json.items.forEach(function(item) {
+      this.mapThemeLayouts(item, tabs);
+      this.mapThemeConfigs(item);
+      this.mapThemeWidgets(item);
+    }, this);
 
-        if (layout.tabs) {
-          layout.tabs.forEach(function(tab) {
-            var parsedTab = this.parseIt(tab, this.get("tabConfig"));
-            parsedTab.id = serviceName + "_" + tab.name;
-            parsedTab.service_name = serviceName;
-
-            if (Em.get(tab, "layout.sections")) {
-              var sections = [];
-              Em.get(tab, "layout.sections").forEach(function(section) {
-                var parsedSection = this.parseIt(section, this.get("sectionConfig"));
-                parsedSection.tab_id = parsedTab.id;
-
-                if (section.subsections) {
-                  var subSections = [];
-                  section.subsections.forEach(function(subSection) {
-                    var parsedSubSection = this.parseIt(subSection, this.get("subSectionConfig"));
-                    parsedSubSection.section_id = parsedSection.id;
-
-                    subSections.push(parsedSubSection);
-                  }, this);
-                  App.store.loadMany(this.get("subSectionModel"), subSections);
-                  parsedSection.sub_sections = subSections.mapProperty("id");
-                }
-
-                sections.push(parsedSection);
-              }, this);
-
-              App.store.loadMany(this.get("sectionModel"), sections);
-              parsedTab.sections = sections.mapProperty("id");
-            }
-
-            tabs.push(parsedTab);
-          }, this);
-        }
-
-      }, this);
-    }
-    // TODO  Foreign key reference below throw some unclear error
-    /**
-     * create tie between <code>stackConfigProperty<code> and <code>subSection<code>
-     */
-    if (Em.get(json, "artifact_data.Theme.placement.configs")) {
-      Em.get(json, "artifact_data.Theme.placement.configs").forEach(function(configLink) {
-
-        var configId = this.getConfigId(configLink);
-        var subSectionId = configLink["subsection-name"];
-
-        var subSection = App.SubSection.find(subSectionId);
-        var configProperty = App.StackConfigProperty.find(configId);
-        if (configProperty && subSection) {
-          subSection.get('configProperties').pushObject(configProperty);
-          configProperty.set('subSection', subSection);
-        } else {
-          console.warn('there is no such property: ' + configId + '. Or subsection: ' + subSectionId);
-        }
-      }, this);
-    }
-
-    /**
-     * add widget object to <code>stackConfigProperty<code>
-     */
-    if (Em.get(json, "artifact_data.Theme.widgets")) {
-      Em.get(json, "artifact_data.Theme.widgets").forEach(function(widget) {
-        var configId = this.getConfigId(widget);
-
-        var configProperty = App.StackConfigProperty.find(configId);
-        if (configProperty) {
-          configProperty.set('widget', widget.widget);
-        } else {
-          console.warn('there is no such property: ' + configId);
-        }
-      }, this);
-    }
     App.store.loadMany(this.get("tabModel"), tabs);
+  },
+
+  /**
+   * Bootstrap tab objects and link sections with subsections.
+   *
+   * @param {Object} json - json to parse
+   * @param {Object[]} tabs - tabs list
+   */
+  mapThemeLayouts: function(json, tabs) {
+     var serviceName = Em.get(json, "ThemeInfo.service_name");
+     Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.layouts", []).forEach(function(layout) {
+      if (layout.tabs) {
+        layout.tabs.forEach(function(tab) {
+          var parsedTab = this.parseIt(tab, this.get("tabConfig"));
+          parsedTab.id = serviceName + "_" + tab.name;
+          parsedTab.service_name = serviceName;
+
+          if (Em.get(tab, "layout.sections")) {
+            var sections = [];
+            Em.get(tab, "layout.sections").forEach(function(section) {
+              var parsedSection = this.parseIt(section, this.get("sectionConfig"));
+              parsedSection.tab_id = parsedTab.id;
+
+              if (section.subsections) {
+                var subSections = [];
+                section.subsections.forEach(function(subSection) {
+                  var parsedSubSection = this.parseIt(subSection, this.get("subSectionConfig"));
+                  parsedSubSection.section_id = parsedSection.id;
+
+                  subSections.push(parsedSubSection);
+                }, this);
+                App.store.loadMany(this.get("subSectionModel"), subSections);
+                parsedSection.sub_sections = subSections.mapProperty("id");
+              }
+
+              sections.push(parsedSection);
+            }, this);
+
+            App.store.loadMany(this.get("sectionModel"), sections);
+            parsedTab.sections = sections.mapProperty("id");
+          }
+
+          tabs.push(parsedTab);
+        }, this);
+      }
+
+    }, this);
+  },
+
+  /**
+   * create tie between <code>stackConfigProperty<code> and <code>subSection<code>
+   *
+   * @param {Object} json - json to parse
+   */
+  mapThemeConfigs: function(json) {
+    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.placement.configs", []).forEach(function(configLink) {
+      var configId = this.getConfigId(configLink);
+      var subSectionId = configLink["subsection-name"];
+      var subSection = App.SubSection.find(subSectionId);
+      var configProperty = App.StackConfigProperty.find(configId);
+
+      if (configProperty && subSection) {
+        subSection.get('configProperties').pushObject(configProperty);
+        configProperty.set('subSection', subSection);
+      } else {
+        console.warn('there is no such property: ' + configId + '. Or subsection: ' + subSectionId);
+      }
+    }, this);
+  },
+
+  /**
+   * add widget object to <code>stackConfigProperty<code>
+   *
+   * @param {Object} json - json to parse
+   */
+  mapThemeWidgets: function(json) {
+    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.widgets", []).forEach(function(widget) {
+      var configId = this.getConfigId(widget);
+      var configProperty = App.StackConfigProperty.find(configId);
+
+      if (configProperty) {
+        configProperty.set('widget', widget.widget);
+      } else {
+        console.warn('there is no such property: ' + configId);
+      }
+    }, this);
   },
 
   /**

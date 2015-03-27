@@ -606,12 +606,12 @@ var urls = {
   /*************************CONFIG THEME****************************************/
 
   'configs.theme': {
-    'real': '{stackVersionUrl}/services/{serviceName}/artifacts/theme',
+    'real': '{stackVersionUrl}/services/{serviceName}/themes?ThemeInfo/default=true&fields=*',
     'mock': '/data/configurations/theme.json'
   },
 
   'configs.theme.services': {
-    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&artifacts/Artifacts/artifact_name=theme&fields=artifacts/*',
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceNames})&themes/ThemeInfo/default=true&fields=themes/*',
     'mock': '/data/configurations/theme_services.json'
   },
 

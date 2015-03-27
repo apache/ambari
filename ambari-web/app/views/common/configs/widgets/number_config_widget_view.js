@@ -20,23 +20,18 @@ require('views/common/controls_view');
 
 var App = require('app');
 
-App.StringConfigWidgetView = App.ConfigWidgetView.extend({
+App.NumberConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/textfield_config_widget'),
-  classNames: ['widget', 'string-widget'],
+  classNames: ['widget', 'number-widget'],
 
-  /**
-   * Control to edit value.
-   *
-   * @type {App.ServiceConfigTextArea}
-   * @property configView
-   */
-  configView: App.ServiceConfigTextArea.extend({
-    widthClass: 'span12',
+  configView: App.ServiceConfigTextField.extend({
+    popoverPlacement: 'top',
     serviceConfigBinding: 'parentView.config',
-    popoverPlacement: 'top'
+    focusIn: function() {}
   }),
 
   didInsertElement: function() {
     this.set('config.displayType', this.get('config.stackConfigProperty.widget.type'));
   }
+
 });

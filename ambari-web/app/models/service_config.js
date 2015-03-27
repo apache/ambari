@@ -1079,7 +1079,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
         this.set('warn', true);
     }
-    
+
     if (!isError) {
         this.set('errorMessage', '');
         this.set('error', false);

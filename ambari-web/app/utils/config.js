@@ -1674,8 +1674,10 @@ App.config = Em.Object.create({
 
   loadConfigThemeForServicesSuccess: function(data) {
     if (!data.items.length) return;
-    data.items.mapProperty('artifacts.firstObject').forEach(function(item) {
-      App.themesMapper.map(item);
+    App.themesMapper.map({
+      items: data.items.mapProperty('themes').reduce(function(p,c) {
+        return p.concat(c);
+      })
     });
   },
 

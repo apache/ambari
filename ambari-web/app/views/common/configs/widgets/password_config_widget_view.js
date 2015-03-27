@@ -20,18 +20,11 @@ require('views/common/controls_view');
 
 var App = require('app');
 
-App.StringConfigWidgetView = App.ConfigWidgetView.extend({
+App.PasswordConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/textfield_config_widget'),
-  classNames: ['widget', 'string-widget'],
+  classNames: ['widget-config', 'password-widget'],
 
-  /**
-   * Control to edit value.
-   *
-   * @type {App.ServiceConfigTextArea}
-   * @property configView
-   */
-  configView: App.ServiceConfigTextArea.extend({
-    widthClass: 'span12',
+  configView: App.ServiceConfigPasswordField.extend({
     serviceConfigBinding: 'parentView.config',
     popoverPlacement: 'top'
   }),
