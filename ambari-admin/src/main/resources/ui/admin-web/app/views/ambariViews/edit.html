@@ -95,7 +95,7 @@
     <h3 class="panel-title pull-left">Permissions</h3>
   </div>
   <div class="panel-body">
-    
+
 
     <table class="table" ng-show="!isPermissionsEmpty">
       <thead>
@@ -143,7 +143,7 @@
               <input type="checkbox" class="propertie-input" ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" ng-true-value="true" ng-false-value="false" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter">
             </div>
             <div class="col-sm-9" ng-switch-default>
-              <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required"  ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter" placeholder="{{property.placeholder}}">
+              <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required" ng-change="propertiesForm[property.name].validationError=''" ng-disabled="editConfigurationDisabled" name="{{property.name}}" ng-model="configuration[property.name]" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter" placeholder="{{property.placeholder}}">
               <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled'>
                 This field is required.
               </div>

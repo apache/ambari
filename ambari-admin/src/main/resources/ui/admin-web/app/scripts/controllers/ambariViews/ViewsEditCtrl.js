@@ -77,7 +77,7 @@ angular.module('ambariAdminConsole')
   }
 
   $scope.permissions = [];
-  
+
   reloadViewPrivileges();
 
   $scope.editSettingsDisabled = true;
@@ -118,7 +118,7 @@ angular.module('ambariAdminConsole')
     $scope.settingsForm.$setPristine();
   };
 
-  
+
   $scope.editConfigurationDisabled = true;
   $scope.togglePropertiesEditing = function () {
     $scope.editConfigurationDisabled = !$scope.editConfigurationDisabled;
@@ -132,7 +132,7 @@ angular.module('ambariAdminConsole')
     }
   };
   $scope.saveConfiguration = function() {
-    if( $scope.propertiesForm.$valid ){
+
       return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, {
         'ViewInstanceInfo':{
           'properties': $scope.configuration
@@ -143,7 +143,11 @@ angular.module('ambariAdminConsole')
         $scope.propertiesForm.$setPristine();
       })
       .catch(function(data) {
-        var errorMessage = data.statusText;
+        var errorMessage = data.data.message;
+
+        //TODO: maybe the BackEnd should sanitize the string beforehand?
+        errorMessage = errorMessage.substr(errorMessage.indexOf("\{"));
+
         if (data.status >= 400) {
           try {
             var errorObject = JSON.parse(errorMessage);
@@ -160,8 +164,7 @@ angular.module('ambariAdminConsole')
         }
         Alert.error('Cannot save properties', errorMessage);
       });
-    }
-  };
+    };
   $scope.cancelConfiguration = function() {
     $scope.configuration = angular.copy($scope.configurationBeforeEdit);
     $scope.editConfigurationDisabled = true;
@@ -198,7 +201,7 @@ angular.module('ambariAdminConsole')
     if(newValue){
       $scope.savePermissions();
     }
-  }, true);  
+  }, true);
 
   $scope.deleteInstance = function(instance) {
     ConfirmationModal.show('Delete View Instance', 'Are you sure you want to delete View Instance '+ instance.ViewInstanceInfo.label +'?').then(function() {

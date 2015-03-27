@@ -109,7 +109,7 @@
             <input type="checkbox" class="viewproperty-input" name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" popover="{{parameter.description}}" popover-title="{{parameter.name}}" popover-trigger="mouseenter">
           </div>
           <div class="col-sm-9" ng-switch-default>
-            <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input" name="{{parameter.name}}" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off" popover="{{parameter.description}}" popover-title="{{parameter.name}}" popover-trigger="mouseenter" placeholder="{{parameter.placeholder}}">
+            <input type="{{parameter.masked ? 'password' : 'text'}}" class="form-control viewproperty-input" name="{{parameter.name}}" ng-change="form.instanceCreateForm[parameter.name].validationError=''" ng-required="parameter.required" ng-model="parameter.value" autocomplete="off" popover="{{parameter.description}}" popover-title="{{parameter.name}}" popover-trigger="mouseenter" placeholder="{{parameter.placeholder}}">
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted'>
               This field is required.
             </div>
