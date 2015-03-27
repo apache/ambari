@@ -98,6 +98,12 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    */
   allowedToSelect: 1,
 
+  /**
+   * Minimum number of options needed to select (based on <code>config.valueAttributes.selection_cardinality</code>)
+   * @type {number}
+   */
+  neededToSelect: 0,
+
   templateName: require('templates/common/configs/widgets/list_config_widget'),
 
   willInsertElement: function () {
@@ -177,24 +183,28 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
 
   /**
    * If user already selected maximum of allowed options, disable other options
+   * If user selected less than minimum of needed options, mark config.value as invalid
    * If user deselect some option, all disabled options become enabled
    * Triggers on each option select/deselect
    * @method checkSelectedItemsCount
    */
   checkSelectedItemsCount: function () {
     var allowedToSelect = this.get('allowedToSelect'),
+      neededToSelect = this.get('neededToSelect'),
       currentlySelected = this.get('options').filterProperty('isSelected').length,
       selectionDisabled = allowedToSelect <= currentlySelected;
     this.get('options').filterProperty('isSelected', false).setEach('isDisabled', selectionDisabled);
+    this.set('config.errorMessage', currentlySelected < neededToSelect ? 'You should select at least ' + neededToSelect + ' item(s)' : '');
   },
 
   /**
-   * Get maximum number of options allowed to select basing on config cardinality value
+   * Get maximum number of options allowed to select and needed to select basing on config cardinality value
    * @method parseCardinality
    */
   parseCardinality: function () {
-    var cardinality = numberUtils.getCardinalityValue(this.get('config.stackConfigProperty.valueAttributes.selection_cardinality'), true);
-    this.set('allowedToSelect', cardinality);
+    var cardinality = this.get('config.stackConfigProperty.valueAttributes.selection_cardinality');
+    this.set('allowedToSelect', numberUtils.getCardinalityValue(cardinality, true));
+    this.set('neededToSelect', numberUtils.getCardinalityValue(cardinality, false));
   },
 
   /**

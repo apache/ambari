@@ -251,8 +251,11 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
     else if (convertedValue > parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'))) {
       errorMessage = Em.I18n.t('number.validate.moreThanMaximum').format(this.dateToText(this.get('maxValue')));
     }
-    this.set('isValid', !errorMessage);
-    this.set('errorMessage', errorMessage);
+    this.setProperties({
+      isValid: !errorMessage,
+      errorMessage: errorMessage
+    });
+    this.get('config').set('errorMessage', errorMessage);
   },
 
   /**

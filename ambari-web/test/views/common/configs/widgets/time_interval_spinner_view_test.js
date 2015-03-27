@@ -19,6 +19,7 @@
 var App = require('app');
 
 describe('App.TimeIntervalSpinnerView', function() {
+
   describe('#convertToWidgetUnits', function(){
     beforeEach(function() {
       this.view = App.TimeIntervalSpinnerView.create({});
@@ -86,7 +87,7 @@ describe('App.TimeIntervalSpinnerView', function() {
         inputType: 'hours',
         desiredUnits: "hours",
         e: [
-          { label: 'Hours', value: 2},
+          { label: 'Hours', value: 2}
         ]
       }
     ];
@@ -139,4 +140,5 @@ describe('App.TimeIntervalSpinnerView', function() {
       });
     });
   });
+
 });

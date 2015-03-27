@@ -111,6 +111,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       var parsed = parseFunction(mirrorValue);
       if (parsed >= min && parsed <= max) {
         this.set('isMirrorValueValid', true);
+        this.set('config.errorMessage', '');
         this.set('config.value', '' + parsed);
         if (slider) {
           slider.setValue(parsed);
@@ -118,10 +119,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       }
       else {
         this.set('isMirrorValueValid', false);
+        this.set('config.errorMessage', 'Invalid value');
       }
     }
     else {
       this.set('isMirrorValueValid', false);
+      this.set('config.errorMessage', 'Invalid value');
     }
   },
 

@@ -86,20 +86,24 @@ describe('App.SliderConfigWidgetView', function () {
       viewInt.set('mirrorValue', 1000);
       expect(viewInt.get('isMirrorValueValid')).to.be.true;
       expect(viewInt.get('config.value')).to.equal('1000');
+      expect(viewInt.get('config.errorMessage')).to.equal('');
 
       viewInt.set('mirrorValue', 100500);
       expect(viewInt.get('isMirrorValueValid')).to.be.false;
       expect(viewInt.get('config.value')).to.equal('1000');
+      expect(viewInt.get('config.errorMessage')).to.have.property('length').that.is.least(1);
     });
 
     it('check float', function () {
       viewFloat.set('mirrorValue', 55.5);
       expect(viewFloat.get('isMirrorValueValid')).to.be.true;
       expect(viewFloat.get('config.value')).to.equal('55.5');
+      expect(viewFloat.get('config.errorMessage')).to.equal('');
 
       viewFloat.set('mirrorValue', 100500.5);
       expect(viewFloat.get('isMirrorValueValid')).to.be.false;
       expect(viewFloat.get('config.value')).to.equal('55.5');
+      expect(viewFloat.get('config.errorMessage')).to.have.property('length').that.is.least(1);
     });
 
   });

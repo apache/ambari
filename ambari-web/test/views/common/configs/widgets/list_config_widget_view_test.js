@@ -138,4 +138,20 @@ describe('App.ListConfigWidgetView', function () {
 
   });
 
+  describe('#checkSelectedItemsCount', function () {
+
+    beforeEach(function () {
+      view.set('config.stackConfigProperty.valueAttributes.selection_cardinality', '1+');
+      view.parseCardinality();
+    });
+
+    it('should check minimum count of the selected items', function () {
+      view.get('options').setEach('isSelected', false);
+      expect(view.get('config.errorMessage')).to.have.property('length').that.is.least(1);
+      view.get('options').setEach('isSelected', true);
+      expect(view.get('config.errorMessage')).to.equal('');
+    });
+
+  });
+
 });
