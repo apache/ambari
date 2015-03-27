@@ -109,4 +109,16 @@ limitations under the License.
     <description>The hdfs path to the Hadoop streaming jar file.</description>
   </property>
 
+   <property>
+    <name>templeton.hive.extra.files</name>
+    <value>/etc/tez/conf/tez-site.xml,/usr/hdp/current/tez-client,/usr/hdp/current/tez-client/lib</value>
+    <description>The resources in this list will be localized to the node running LaunchMapper and added to HADOOP_CLASSPTH
+      before launching 'hive' command.  If the path /foo/bar is a directory, the contents of the the entire dir will be localized
+      and ./foo/* will be added to HADOOP_CLASSPATH.  Note that since classpath path processing does not recurse into subdirectories,
+      the paths in this property may be overlapping.  In the example above, "./tez-site.xml:./tez-client/*:./lib/*" will be added to
+      HADOOP_CLASSPATH.
+      This can be used to specify config files, Tez artifacts, etc.  This will be sent -files option of hadoop jar command thus
+      each path is interpreted by Generic Option Parser.  It can be local or hdfs path.
+    </description>
+  </property>
 </configuration>
