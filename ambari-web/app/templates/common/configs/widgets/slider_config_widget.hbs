@@ -29,12 +29,14 @@
         {{/if}}
       </div>
     </div>
-    {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
+    {{#if view.config.isOriginalSCP}}
+      {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
+    {{/if}}
     {{#if view.overrideAllowed}}
       {{#isAccessible ADMIN}}
         <div class="pull-left action-button">
           <a class="btn btn-small" href="#" data-toggle="tooltip"
-            {{action "createOverrideProperty" view target="view.parentView"}}
+            {{action "createOverrideProperty" view.config target="view.parentView"}}
             {{translateAttr data-original-title="common.override"}}>
             <i class="icon-plus-sign"></i>
           </a>
@@ -46,7 +48,7 @@
   <div class="ui-slider-wrapper">
     {{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}
   </div>
-  {{#if view.config.isOverridden}}
+  {{#if view.config.overrides.length}}
     {{view App.SliderConfigWidgetOverrideView
       serviceConfigPropertyBinding="view.config"
       isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
