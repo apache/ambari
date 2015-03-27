@@ -68,6 +68,11 @@ public class StackDirectory extends StackDefinitionDirectory {
   private String kerberosDescriptorFilePath;
 
   /**
+   * kerberos descriptor file path
+   */
+  private String widgetsDescriptorFilePath;
+
+  /**
    * repository file
    */
   private RepositoryXml repoFile;
@@ -196,6 +201,15 @@ public class StackDirectory extends StackDefinitionDirectory {
   }
 
   /**
+   * Obtain the path to the (stack-level) widgets descriptor file
+   *
+   * @return the path to the (stack-level) widgets descriptor file
+   */
+  public String getWidgetsDescriptorFilePath() {
+    return widgetsDescriptorFilePath;
+  }
+
+  /**
    * Obtain the repository directory path.
    *
    * @return repository directory path
@@ -275,6 +289,10 @@ public class StackDirectory extends StackDefinitionDirectory {
     if (subDirs.contains(AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME)) {
       // kerberosDescriptorFilePath is expected to be absolute
       kerberosDescriptorFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME;
+    }
+
+    if (subDirs.contains(AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME)) {
+      widgetsDescriptorFilePath = getAbsolutePath() + File.separator + AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
     }
 
     parseUpgradePacks(subDirs);

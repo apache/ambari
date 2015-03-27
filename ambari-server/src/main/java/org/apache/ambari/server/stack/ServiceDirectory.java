@@ -52,6 +52,11 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
   private File kerberosDescriptorFile;
 
   /**
+   * widgets descriptor file
+   */
+  private File widgetsDescriptorFile;
+
+  /**
    * package directory path
    */
   protected String packageDir;
@@ -109,6 +114,12 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
         + File.separator + AmbariMetaInfo.KERBEROS_DESCRIPTOR_FILE_NAME);
     kerberosDescriptorFile = kdf.exists() ? kdf : null;
 
+    File wdf = new File(directory.getAbsolutePath()
+      + File.separator + AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME);
+    widgetsDescriptorFile = wdf.exists() ? wdf : null;
+
+    File themeFile = new File(directory.getAbsolutePath() + File.separator + AmbariMetaInfo.SERVICE_THEME_FILE_NAME);
+    this.themeFile = themeFile.exists() ? themeFile : null;
   }
 
   /**
@@ -153,6 +164,15 @@ public abstract class ServiceDirectory extends StackDefinitionDirectory {
    */
   public File getKerberosDescriptorFile() {
     return kerberosDescriptorFile;
+  }
+
+  /**
+   * Obtain the Widgets Descriptor file.
+   *
+   * @return Widgets Descriptor file
+   */
+  public File getWidgetsDescriptorFile() {
+    return widgetsDescriptorFile;
   }
 
   /**

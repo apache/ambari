@@ -102,6 +102,16 @@ public class AmbariMetaInfo {
   public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
 
   /**
+   * The filename name for a Widgets descriptor file at either the stack or service level
+   */
+  public static final String WIDGETS_DESCRIPTOR_FILE_NAME = "widgets.json";
+
+  /**
+   * Filename for theme file at service layer
+   */
+  public static final String SERVICE_THEME_FILE_NAME = "theme.json";
+
+  /**
    * This string is used in placeholder in places that are common for
    * all operating systems or in situations where os type is not important.
    */

@@ -116,6 +116,9 @@ public class ServiceInfo implements Validable{
 
   @XmlTransient
   private File kerberosDescriptorFile = null;
+
+  @XmlTransient
+  private File widgetsDescriptorFile = null;
   
   @XmlTransient
   private boolean valid = true;
@@ -612,6 +615,17 @@ public class ServiceInfo implements Validable{
    */
   public File getKerberosDescriptorFile() {
     return kerberosDescriptorFile;
+  }
+
+  /**
+   * @return the widgets descriptor file, or <code>null</code> if none exists
+   */
+  public File getWidgetsDescriptorFile() {
+    return widgetsDescriptorFile;
+  }
+
+  public void setWidgetsDescriptorFile(File widgetsDescriptorFile) {
+    this.widgetsDescriptorFile = widgetsDescriptorFile;
   }
 
   /**

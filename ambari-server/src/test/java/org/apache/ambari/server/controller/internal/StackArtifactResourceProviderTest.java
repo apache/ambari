@@ -30,12 +30,14 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.stack.MetricDefinition;
+import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import static org.apache.ambari.server.controller.internal.StackArtifactResourceProvider.ARTIFACT_DATA_PROPERTY_ID;
@@ -116,8 +118,50 @@ public class StackArtifactResourceProviderTest {
     MetricDefinition md = (MetricDefinition) ((ArrayList) descriptor.get
       ("Component")).iterator().next();
     Assert.assertEquals(326, md.getMetrics().size());
+
     verify(managementController);
   }
 
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testGetWidgetDescriptorForService() throws Exception {
+    AmbariManagementController managementController = createNiceMock(AmbariManagementController.class);
+
+    expect(managementController.getAmbariMetaInfo()).andReturn(metaInfo).anyTimes();
+
+    replay(managementController);
+
+    StackArtifactResourceProvider resourceProvider = getStackArtifactResourceProvider(managementController);
+
+    Set<String> propertyIds = new HashSet<String>();
+    propertyIds.add(ARTIFACT_NAME_PROPERTY_ID);
+    propertyIds.add(STACK_NAME_PROPERTY_ID);
+    propertyIds.add(STACK_VERSION_PROPERTY_ID);
+    propertyIds.add(STACK_SERVICE_NAME_PROPERTY_ID);
+    propertyIds.add(ARTIFACT_DATA_PROPERTY_ID);
+
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Predicate predicate = new PredicateBuilder().property
+      (ARTIFACT_NAME_PROPERTY_ID).equals("widgets_descriptor").and().property
+      (STACK_NAME_PROPERTY_ID).equals("OTHER").and().property
+      (STACK_VERSION_PROPERTY_ID).equals("2.0").and().property
+      (STACK_SERVICE_NAME_PROPERTY_ID).equals("HBASE").toPredicate();
+
+    Set<Resource> resources = resourceProvider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    Resource resource = resources.iterator().next();
+    Map<String, Map<String, Object>> propertyMap = resource.getPropertiesMap();
+    Map<String, Object> descriptor = propertyMap.get(ARTIFACT_DATA_PROPERTY_ID);
+    Assert.assertNotNull(descriptor);
+    Assert.assertEquals(1, ((List<Object>) descriptor.get("layouts")).size());
+    WidgetLayout layout = ((List<WidgetLayout>) descriptor.get("layouts")).iterator().next();
+    Assert.assertEquals("default_hbase_layout", layout.getLayoutName());
+    Assert.assertEquals("HBASE_SUMMARY", layout.getSectionName());
+    Assert.assertEquals(5, layout.getWidgetLayoutInfoList().size());
+
+    verify(managementController);
+  }
 
 }

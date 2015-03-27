@@ -224,6 +224,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setKerberosDescriptorFileLocation(parentStack.getModuleInfo().getKerberosDescriptorFileLocation());
     }
 
+    if (stackInfo.getWidgetsDescriptorFileLocation() == null) {
+      stackInfo.setWidgetsDescriptorFileLocation(parentStack.getModuleInfo().getWidgetsDescriptorFileLocation());
+    }
+
     mergeServicesWithParent(parentStack, allStacks, commonServices);
   }
 
@@ -412,6 +416,7 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
       stackInfo.setStackHooksFolder(stackDirectory.getHooksDir());
       stackInfo.setRcoFileLocation(stackDirectory.getRcoFilePath());
       stackInfo.setKerberosDescriptorFileLocation(stackDirectory.getKerberosDescriptorFilePath());
+      stackInfo.setWidgetsDescriptorFileLocation(stackDirectory.getWidgetsDescriptorFilePath());
       stackInfo.setUpgradesFolder(stackDirectory.getUpgradesDir());
       stackInfo.setUpgradePacks(stackDirectory.getUpgradePacks());
       stackInfo.setRoleCommandOrder(stackDirectory.getRoleCommandOrder());

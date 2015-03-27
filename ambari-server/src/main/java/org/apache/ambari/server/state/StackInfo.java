@@ -40,6 +40,7 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
   private boolean active;
   private String rcoFileLocation;
   private String kerberosDescriptorFileLocation;
+  private String widgetsDescriptorFileLocation;
   private List<RepositoryInfo> repositories;
   private Collection<ServiceInfo> services;
   private String parentStackVersion;
@@ -234,6 +235,8 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
     // Get the stack-level Kerberos descriptor file path
     String stackDescriptorFileFilePath = getKerberosDescriptorFileLocation();
 
+    String widgetDescriptorFilePath = getWidgetsDescriptorFileLocation();
+
     // Collect the services' Kerberos descriptor files
     Collection<ServiceInfo> serviceInfos = getServices();
     // The collection of service descriptor files. A Set is being used because some Kerberos descriptor
@@ -314,6 +317,14 @@ public class StackInfo implements Comparable<StackInfo>, Validable{
    */
   public void setKerberosDescriptorFileLocation(String kerberosDescriptorFileLocation) {
     this.kerberosDescriptorFileLocation = kerberosDescriptorFileLocation;
+  }
+
+  public String getWidgetsDescriptorFileLocation() {
+    return widgetsDescriptorFileLocation;
+  }
+
+  public void setWidgetsDescriptorFileLocation(String widgetsDescriptorFileLocation) {
+    this.widgetsDescriptorFileLocation = widgetsDescriptorFileLocation;
   }
 
   public String getStackHooksFolder() {

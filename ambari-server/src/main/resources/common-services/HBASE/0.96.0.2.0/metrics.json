@@ -655,6 +655,76 @@
               "pointInTime": false,
               "temporal": true
             },
+            "metrics/hbase/regionserver/Server/Get_num_ops": {
+              "metric": "regionserver.Server.Get_num_ops",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Append_num_ops": {
+              "metric": "regionserver.Server.Append_num_ops",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Delete_num_ops": {
+              "metric": "regionserver.Server.Delete_num_ops",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Mutate_num_ops": {
+              "metric": "regionserver.Server.Mutate_num_ops",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Get_95th_percentile": {
+              "metric": "regionserver.Server.Get_95th_percentile",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Mutate_95th_percentile": {
+              "metric": "regionserver.Server.Mutate_95th_percentile",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Increment_95th_percentile": {
+              "metric": "regionserver.Server.Increment_95th_percentile",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Append_95th_percentile": {
+              "metric": "regionserver.Server.Append_95th_percentile",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/Delete_95th_percentile": {
+              "metric": "regionserver.Server.Delete_95th_percentile",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/percentFilesLocal": {
+              "metric": "regionserver.Server.percentFilesLocal",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/updatesBlockedTime": {
+              "metric": "regionserver.Server.updatesBlockedTime",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/ipc/IPC/numOpenConnections": {
+              "metric": "ipc.IPC.numOpenConnections",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/ipc/IPC/numActiveHandler": {
+              "metric": "ipc.IPC.numActiveHandler",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/hbase/ipc/IPC/numCallsInGeneralQueue": {
+              "metric": "ipc.IPC.numCallsInGeneralQueue",
+              "pointInTime": false,
+              "temporal": true
+            },
             "metrics/rpc/enableTable_avg_time": {
               "metric": "rpc.rpc.enableTable_avg_time",
               "pointInTime": true,

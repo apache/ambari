@@ -111,6 +111,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile());
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
     serviceInfo.setKerberosDescriptorFile(serviceDirectory.getKerberosDescriptorFile());
+    serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile());
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
 
@@ -176,6 +177,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     }
     if (serviceInfo.getThemesMap().isEmpty()) {
       serviceInfo.setThemesMap(parent.getThemesMap());
+    }
+    if (serviceInfo.getWidgetsDescriptorFile() == null) {
+      serviceInfo.setWidgetsDescriptorFile(parent.getWidgetsDescriptorFile());
     }
 
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
