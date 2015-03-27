@@ -30,6 +30,7 @@
   <name>Ambari Metrics Assembly</name>
   <packaging>pom</packaging>
   <version>2.0.0-SNAPSHOT</version>
+  <description>Ambari Metrics</description>
 
   <properties>
     <collector.dir>${project.basedir}/../ambari-metrics-timelineservice</collector.dir>
@@ -40,6 +41,10 @@
     <kafka-sink.dir>${project.basedir}/../ambari-metrics-kafka-sink</kafka-sink.dir>
     <python.ver>python &gt;= 2.6</python.ver>
     <python.devel>python-devel</python.devel>
+    <deb.publisher>Apache</deb.publisher>
+    <deb.section>universe/admin</deb.section>
+    <deb.architecture>i386 amd64</deb.architecture>
+    <deb.priority>extra</deb.priority>
     <deb.python.ver>python (&gt;= 2.6)</deb.python.ver>
     <deb.architecture>amd64</deb.architecture>
     <deb.dependency.list>${deb.python.ver},python-dev,gcc</deb.dependency.list>
