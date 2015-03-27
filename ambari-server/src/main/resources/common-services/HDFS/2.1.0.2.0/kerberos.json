@@ -150,6 +150,32 @@
           ]
         },
         {
+          "name": "NFS_GATEWAY",
+          "identities": [
+            {
+              "name": "nfsgateway",
+              "principal": {
+                "value": "nfs/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hdfs-site/nfs.kerberos.principal",
+                "local_username" : "${hadoop-env/hdfs_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/nfs.service.keytab",
+                "owner": {
+                  "name": "${hadoop-env/hdfs_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hdfs-site/nfs.keytab.file"
+              }
+            },
+          ]
+        },
+        {
           "name": "JOURNALNODE",
           "identities": [
             {
