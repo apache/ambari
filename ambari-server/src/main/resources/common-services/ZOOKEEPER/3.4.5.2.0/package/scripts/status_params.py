@@ -19,16 +19,20 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons import OSCheck
 
 config = Script.get_config()
 
-zk_pid_dir = config['configurations']['zookeeper-env']['zk_pid_dir']
-zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")
+if OSCheck.is_windows_family():
+  zookeeper_win_service_name = "zkServer"
+else:
+  zk_pid_dir = config['configurations']['zookeeper-env']['zk_pid_dir']
+  zk_pid_file = format("{zk_pid_dir}/zookeeper_server.pid")
 
-# Security related/required params
-hostname = config['hostname']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path()
-tmp_dir = Script.get_tmp_dir()
-config_dir = "/etc/zookeeper/conf"
-zk_user =  config['configurations']['zookeeper-env']['zk_user']
+  # Security related/required params
+  hostname = config['hostname']
+  security_enabled = config['configurations']['cluster-env']['security_enabled']
+  kinit_path_local = functions.get_kinit_path()
+  tmp_dir = Script.get_tmp_dir()
+  config_dir = "/etc/zookeeper/conf"
+  zk_user =  config['configurations']['zookeeper-env']['zk_user']

@@ -20,8 +20,14 @@ Ambari Agent
 """
 
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class ZookeeperServiceCheck(Script):
+  pass
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ZookeeperServiceCheckLinux(ZookeeperServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
@@ -48,6 +54,16 @@ class ZookeeperServiceCheck(Script):
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
             logoutput=True
     )
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ZookeeperServiceCheckWindows(ZookeeperServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+
+    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    service = "Zookeeper"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
 
 if __name__ == "__main__":
   ZookeeperServiceCheck().execute()

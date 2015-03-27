@@ -19,6 +19,7 @@ Ambari Agent
 
 """
 import random
+import sys
 
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_unique_id_and_date
@@ -34,9 +35,30 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.validate import call_and_match_output
 from zookeeper import zookeeper
 from zookeeper_service import zookeeper_service
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 
 class ZookeeperServer(Script):
+
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    zookeeper(type='server')
+
+  def start(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    zookeeper_service(action = 'start')
+
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    zookeeper_service(action = 'stop')
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ZookeeperServerLinux(ZookeeperServer):
 
   def get_stack_to_component(self):
     return {"HDP": "zookeeper-server"}
@@ -45,11 +67,6 @@ class ZookeeperServer(Script):
     self.install_packages(env)
     self.configure(env)
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    zookeeper(type='server')
-
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade pre-restart")
     import params
@@ -57,12 +74,6 @@ class ZookeeperServer(Script):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set zookeeper-server {version}"))
-
-  def start(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    self.configure(env)
-    zookeeper_service(action = 'start')
 
   def post_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")
@@ -87,11 +98,6 @@ class ZookeeperServer(Script):
       if code == 0 and out:
         Logger.info(out)
 
-  def stop(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    zookeeper_service(action = 'stop')
-
   def status(self, env):
     import status_params
     env.set_params(status_params)
@@ -99,7 +105,6 @@ class ZookeeperServer(Script):
 
   def security_status(self, env):
     import status_params
-
     env.set_params(status_params)
 
     if status_params.security_enabled:
@@ -149,6 +154,20 @@ class ZookeeperServer(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ZookeeperServerWindows(ZookeeperServer):
+  def install(self, env):
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
+    import params
+    if not check_windows_service_exists(params.zookeeper_win_service_name):
+      self.install_packages(env)
+    self.configure(env)
+
+  def status(self, env):
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
+    import status_params
+    check_windows_service_status(status_params.zookeeper_win_service_name)
 
 if __name__ == "__main__":
   ZookeeperServer().execute()

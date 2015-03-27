@@ -20,7 +20,10 @@ Ambari Agent
 """
 
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def zookeeper_service(action='start'):
   import params
 
@@ -48,3 +51,11 @@ def zookeeper_service(action='start'):
             user=params.zk_user
     )
     Execute(rm_pid)
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def zookeeper_service(action='start'):
+  import params
+  if action == 'start':
+    Service(params.zookeeper_win_service_name, action="start")
+  elif action == 'stop':
+    Service(params.zookeeper_win_service_name, action="stop")

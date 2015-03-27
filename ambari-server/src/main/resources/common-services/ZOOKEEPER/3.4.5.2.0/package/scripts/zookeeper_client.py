@@ -23,31 +23,17 @@ import sys
 from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 from zookeeper import zookeeper
 
 class ZookeeperClient(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "zookeeper-client"}
-
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
-
   def configure(self, env):
     import params
     env.set_params(params)
-
     zookeeper(type='client')
-
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing Rolling Upgrade pre-restart")
-    import params
-    env.set_params(params)
-
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      Execute(format("hdp-select set zookeeper-client {version}"))
+    pass
 
   def start(self, env, rolling_restart=False):
     import params
@@ -62,6 +48,31 @@ class ZookeeperClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ZookeeperClientLinux(ZookeeperClient):
+  def get_stack_to_component(self):
+    return {"HDP": "zookeeper-client"}
+
+  def install(self, env):
+    self.install_packages(env)
+    self.configure(env)
+
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set zookeeper-client {version}"))
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ZookeeperClientWindows(ZookeeperClient):
+  def install(self, env):
+    # client checks env var to determine if it is installed
+    if not os.environ.has_key("ZOOKEEPER_HOME"):
+      self.install_packages(env)
+    self.configure(env)
 
 if __name__ == "__main__":
   ZookeeperClient().execute()

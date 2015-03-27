@@ -19,14 +19,14 @@ Ambari Agent
 
 """
 from ambari_commons.str_utils import ensure_double_backslashes
-
 from resource_management import *
+import status_params
 
 # server configurations
 config = Script.get_config()
 
 # notused zookeeper_home_dir = os.environ["ZOOKEEPER_HOME"]
-zookeeper_conf_dir = os.environ["ZOOKEEPER_CONF_DIR"]
+config_dir = os.environ["ZOOKEEPER_CONF_DIR"]
 hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
 zk_user = "hadoop"
 
@@ -51,6 +51,8 @@ hostname = config['hostname']
 
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
+user_group = None
+zookeeper_win_service_name = status_params.zookeeper_win_service_name
 
 #log4j.properties
 if (('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j'])):

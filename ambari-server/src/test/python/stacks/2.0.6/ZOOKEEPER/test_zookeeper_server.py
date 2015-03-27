@@ -21,6 +21,7 @@ from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestZookeeperServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ZOOKEEPER/3.4.5.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -127,11 +128,13 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       content = Template('zoo.cfg.j2'),
       group = 'hadoop',
+      mode = None,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',
       owner = 'zookeeper',
       content = Template('configuration.xsl.j2'),
       group = 'hadoop',
+      mode = None,
     )
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
@@ -180,11 +183,13 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       content = Template('zoo.cfg.j2'),
       group = 'hadoop',
+      mode = None,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/configuration.xsl',
       owner = 'zookeeper',
       content = Template('configuration.xsl.j2'),
       group = 'hadoop',
+      mode = None,
     )
     self.assertResourceCalled('Directory', '/var/run/zookeeper',
       owner = 'zookeeper',
@@ -217,11 +222,13 @@ class TestZookeeperServer(RMFTestCase):
       owner = 'zookeeper',
       content = Template('zookeeper_jaas.conf.j2'),
       group = 'hadoop',
+      mode = None,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zookeeper_client_jaas.conf',
       owner = 'zookeeper',
       content = Template('zookeeper_client_jaas.conf.j2'),
       group = 'hadoop',
+      mode = None,
     )
     self.assertResourceCalled('File', '/etc/zookeeper/conf/zoo_sample.cfg',
       owner = 'zookeeper',
