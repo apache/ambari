@@ -182,12 +182,13 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   describe("#addOverrideProperty", function () {
     var serviceConfigProperty = Em.Object.create({
-      overrides: []
+      overrides: [],
+      isOriginalSCP: true
     });
 
     var group = {};
     var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    newSCP.set('value', '');
+    newSCP.set('value', '1');
     newSCP.set('isOriginalSCP', false);
     newSCP.set('parentSCP', serviceConfigProperty);
     newSCP.set('isEditable', true);
@@ -195,8 +196,12 @@ describe("App.MainServiceInfoConfigsController", function () {
 
 
     it("add new overridden property", function () {
-      mainServiceInfoConfigsController.addOverrideProperty(serviceConfigProperty, group);
-      expect(serviceConfigProperty.get("overrides")[0]).to.eql(newSCP);
+      mainServiceInfoConfigsController.addOverrideProperty(serviceConfigProperty, group, '1');
+      expect(serviceConfigProperty.get("overrides")[0].get('name')).to.equal(newSCP.get('name'));
+      expect(serviceConfigProperty.get("overrides")[0].get('isOriginalSCP')).to.be.false;
+      expect(serviceConfigProperty.get("overrides")[0].get('isEditable')).to.be.true;
+      expect(serviceConfigProperty.get("overrides")[0].get('group')).to.eql({});
+      expect(serviceConfigProperty.get("overrides")[0].get('parentSCP')).to.eql(serviceConfigProperty);
     });
   });
 

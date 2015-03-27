@@ -1120,16 +1120,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   setValuesForOverrides: function (overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     if (Em.isNone(overrides)) return;
     overrides.forEach(function (override) {
-      var newSCP = this.createNewSCP(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
-      var parentOverridesArray = serviceConfigProperty.get('overrides');
-      if (parentOverridesArray == null) {
-        parentOverridesArray = Em.A([]);
-        serviceConfigProperty.set('overrides', parentOverridesArray);
+      if (defaultGroupSelected || (Em.get(override, 'group') && this.get('selectedConfigGroup.name') === Em.get(override, 'group.name'))) {
+        var newSCP = this.createNewSCP(override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected);
+        var parentOverridesArray = serviceConfigProperty.get('overrides');
+        if (parentOverridesArray == null) {
+          parentOverridesArray = Em.A([]);
+          serviceConfigProperty.set('overrides', parentOverridesArray);
+        }
+        parentOverridesArray.pushObject(newSCP);
+        serviceConfigProperty.set('overrideValues', parentOverridesArray.mapProperty('value'));
+        serviceConfigProperty.set('overrideIsFinalValues', parentOverridesArray.mapProperty('isFinal'));
+        console.debug("createOverrideProperty(): Added override to main-property:", serviceConfigProperty.get('name'));
       }
-      parentOverridesArray.pushObject(newSCP);
-      serviceConfigProperty.set('overrideValues', parentOverridesArray.mapProperty('value'));
-      serviceConfigProperty.set('overrideIsFinalValues', parentOverridesArray.mapProperty('isFinal'));
-      console.debug("createOverrideProperty(): Added override to main-property:", serviceConfigProperty.get('name'));
     }, this);
   },
 
@@ -1148,8 +1150,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     newSCP.set('supportsFinal', serviceConfigProperty.get('supportsFinal'));
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
+    newSCP.set('overrides', null);
+    newSCP.set('group', Em.get(override, 'group'));
     if (defaultGroupSelected) {
-      newSCP.set('group', override.group);
       newSCP.set('isEditable', false);
     }
     return newSCP;
@@ -2591,20 +2594,23 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method addOverrideProperty
    */
   addOverrideProperty: function (serviceConfigProperty, group, value) {
-    var overrides = serviceConfigProperty.get('overrides');
-    if (!overrides) {
-      overrides = [];
-      serviceConfigProperty.set('overrides', overrides);
+    if (serviceConfigProperty.get('isOriginalSCP')) {
+      var overrides = serviceConfigProperty.get('overrides');
+      if (!overrides) {
+        overrides = [];
+        serviceConfigProperty.set('overrides', overrides);
+      }
+      // create new override with new value
+      var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
+      newSCP.set('value', value || '');
+      newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
+      newSCP.set('parentSCP', serviceConfigProperty);
+      newSCP.set('isEditable', true);
+      newSCP.set('group', group);
+      newSCP.set('overrides', null);
+      console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
+      overrides.pushObject(newSCP);
     }
-    // create new override with new value
-    var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    newSCP.set('value', value || '');
-    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-    newSCP.set('parentSCP', serviceConfigProperty);
-    newSCP.set('isEditable', true);
-    newSCP.set('group', group);
-    console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
-    overrides.pushObject(newSCP);
   },
 
   /**
