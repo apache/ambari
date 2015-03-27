@@ -40,6 +40,15 @@
          <name>RESOURCEMANAGER</name>
          <category>MASTER</category>
          <cardinality>1-2</cardinality>
+         <dependencies>
+           <dependency>
+              <name>TEZ/TEZ_CLIENT</name>
+              <scope>host</scope>
+              <auto-deploy>
+                <enabled>true</enabled>
+              </auto-deploy>
+           </dependency>
+         </dependencies>
           <configuration-dependencies>
             <config-type>capacity-scheduler</config-type>
           </configuration-dependencies>
