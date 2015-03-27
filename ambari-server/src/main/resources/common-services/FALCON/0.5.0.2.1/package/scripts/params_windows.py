@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 import os
+from status_params import *
 
 config = Script.get_config()
 falcon_runtime_properties = config['configurations']['falcon-runtime.properties']

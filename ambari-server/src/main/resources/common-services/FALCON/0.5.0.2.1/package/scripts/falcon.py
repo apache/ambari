@@ -19,7 +19,10 @@ limitations under the License.
 
 from resource_management import *
 import os.path
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def falcon(type, action = None):
   import params
   if action == 'config':
@@ -122,3 +125,30 @@ def falcon(type, action = None):
       File(params.server_pid_file,
            action='delete'
       )
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def falcon(type, action = None):
+  import params
+  if action == 'config':
+    env = Environment.get_instance()
+    # These 2 parameters are used in ../templates/client.properties.j2
+    env.config.params["falcon_host"] = params.falcon_host
+    env.config.params["falcon_port"] = params.falcon_port
+    File(os.path.join(params.falcon_conf_dir, 'falcon-env.sh'),
+         content=InlineTemplate(params.falcon_env_sh_template)
+    )
+    File(os.path.join(params.falcon_conf_dir, 'client.properties'),
+         content=Template('client.properties.j2')
+    )
+    PropertiesFile(os.path.join(params.falcon_conf_dir, 'runtime.properties'),
+                   properties=params.falcon_runtime_properties
+    )
+    PropertiesFile(os.path.join(params.falcon_conf_dir, 'startup.properties'),
+                   properties=params.falcon_startup_properties
+    )
+
+  if type == 'server':
+    if action == 'start':
+      Service(params.falcon_win_service_name, action="start")
+    if action == 'stop':
+      Service(params.falcon_win_service_name, action="stop")

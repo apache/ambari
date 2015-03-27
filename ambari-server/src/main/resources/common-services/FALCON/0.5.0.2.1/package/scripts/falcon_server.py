@@ -25,54 +25,43 @@ from resource_management.libraries.functions.security_commons import build_expec
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_PROPERTIES
 from falcon import falcon
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class FalconServer(Script):
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    falcon('server', action='config')
 
+  def start(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    falcon('server', action='start')
+
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    falcon('server', action='stop')
+    # if performing an upgrade, backup some directories after stopping falcon
+    if rolling_restart:
+      falcon_server_upgrade.post_stop_backup()
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class FalconServerLinux(FalconServer):
   def get_stack_to_component(self):
     return {"HDP": "falcon-server"}
 
   def install(self, env):
     import params
-
     self.install_packages(env)
     env.set_params(params)
 
-
-  def start(self, env, rolling_restart=False):
-    import params
-
-    env.set_params(params)
-    self.configure(env)
-
-    falcon('server', action='start')
-
-
-  def stop(self, env, rolling_restart=False):
-    import params
-
-    env.set_params(params)
-
-    falcon('server', action='stop')
-
-    # if performing an upgrade, backup some directories after stopping falcon
-    if rolling_restart:
-      falcon_server_upgrade.post_stop_backup()
-
-
-  def configure(self, env):
-    import params
-
-    env.set_params(params)
-
-    falcon('server', action='config')
-
-
   def status(self, env):
     import status_params
-
     env.set_params(status_params)
     check_process_status(status_params.server_pid_file)
-
 
   def pre_rolling_restart(self, env):
     import params
@@ -146,6 +135,18 @@ class FalconServer(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class FalconServerWindows(FalconServer):
+
+  def install(self, env):
+    import params
+    if not check_windows_service_exists(params.falcon_win_service_name):
+      self.install_packages(env)
+
+  def status(self, env):
+    import status_params
+    check_windows_service_status(status_params.falcon_win_service_name)
 
 if __name__ == "__main__":
   FalconServer().execute()

@@ -19,25 +19,26 @@ limitations under the License.
 
 from resource_management import *
 from falcon import falcon
-
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class FalconClient(Script):
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    falcon('client', action='config')
 
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class FalconClientLinux(FalconClient):
   def get_stack_to_component(self):
     return {"HDP": "falcon-client"}
 
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
-  
-  def configure(self, env):
-    import params
-
-    env.set_params(params)
-    falcon('client', action='config')
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
 
   def pre_rolling_restart(self, env):
     import params
@@ -59,6 +60,15 @@ class FalconClient(Script):
       self.put_structured_out({"securityState": "SECURED_KERBEROS"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class FalconClientWindows(FalconClient):
+  def install(self, env):
+    import params
+    if params.falcon_home is None:
+      self.install_packages(env)
+    self.configure(env)
 
 if __name__ == "__main__":
   FalconClient().execute()
