@@ -18,24 +18,19 @@ limitations under the License.
 Ambari Agent
 
 """
-
-import os
 from resource_management import *
 
+# server configurations
+config = Script.get_config()
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+pig_home = os.environ['PIG_HOME']
+pig_conf_dir = os.path.join(pig_home,'conf')
+pig_properties = config['configurations']['pig-properties']['content']
 
-class PigClient(Script):
-  def install(self, env):
-    import params
-    if params.pig_home is None:
-      self.install_packages(env)
-    self.configure(env)
+if (('pig-log4j' in config['configurations']) and ('content' in config['configurations']['pig-log4j'])):
+  log4j_props = config['configurations']['pig-log4j']['content']
+else:
+  log4j_props = None
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-
-if __name__ == "__main__":
-  PigClient().execute()
+pig_user = "hadoop"
+hdfs_user = "hadoop"

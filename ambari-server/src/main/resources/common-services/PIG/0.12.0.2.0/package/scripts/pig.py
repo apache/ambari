@@ -19,9 +19,11 @@ Ambari Agent
 
 """
 import os
-
 from resource_management import *
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def pig():
   import params
 
@@ -57,4 +59,20 @@ def pig():
       mode=0644,
       group=params.user_group,
       owner=params.hdfs_user
+    )
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def pig():
+  import params
+  File(os.path.join(params.pig_conf_dir, "pig.properties"),
+       mode="f",
+       owner=params.pig_user,
+       content=params.pig_properties
+  )
+
+  if (params.log4j_props != None):
+    File(os.path.join(params.pig_conf_dir, "log4j.properties"),
+         mode='f',
+         owner=params.pig_user,
+         content=params.log4j_props
     )

@@ -18,61 +18,9 @@ limitations under the License.
 Ambari Agent
 
 """
+from ambari_commons import OSCheck
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management import *
-
-# server configurations
-config = Script.get_config()
-tmp_dir = Script.get_tmp_dir()
-
-stack_name = default("/hostLevelParams/stack_name", None)
-
-stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-
-# New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
-version = default("/commandParams/version", None)
-
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
-  hadoop_home = '/usr/hdp/current/hadoop-client'
-  pig_bin_dir = '/usr/hdp/current/pig-client/bin'
+if OSCheck.is_windows_family():
+  from params_windows import *
 else:
-  hadoop_bin_dir = "/usr/bin"
-  hadoop_home = '/usr'
-  pig_bin_dir = ""
-
-hadoop_conf_dir = "/etc/hadoop/conf"
-pig_conf_dir = "/etc/pig/conf"
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
-hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
-smokeuser = config['configurations']['cluster-env']['smokeuser']
-smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
-user_group = config['configurations']['cluster-env']['user_group']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path()
-pig_env_sh_template = config['configurations']['pig-env']['content']
-
-# not supporting 32 bit jdk.
-java64_home = config['hostLevelParams']['java_home']
-
-pig_properties = config['configurations']['pig-properties']['content']
-
-log4j_props = config['configurations']['pig-log4j']['content']
-
-import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-HdfsDirectory = functools.partial(
-  HdfsDirectory,
-  conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local,
-  bin_dir = hadoop_bin_dir
-)
+  from params_linux import *

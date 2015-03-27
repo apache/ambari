@@ -21,8 +21,15 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
+from resource_management.libraries import functions
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 class PigServiceCheck(Script):
+  pass
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class PigServiceCheckLinux(PigServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)
@@ -103,6 +110,15 @@ class PigServiceCheck(Script):
         conf_dir = params.hadoop_conf_dir,
         bin_dir = params.hadoop_bin_dir
       )
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class PigServiceCheckWindows(PigServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    service = "PIG"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.hdfs_user)
 
 if __name__ == "__main__":
   PigServiceCheck().execute()
