@@ -57,6 +57,13 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
 
     <service>
@@ -82,6 +89,7 @@
         </osSpecific>
       </osSpecifics>
       <configuration-dir>configuration-mapred</configuration-dir>
+      <themes-dir>themes-mapred</themes-dir>
 
     </service>
 

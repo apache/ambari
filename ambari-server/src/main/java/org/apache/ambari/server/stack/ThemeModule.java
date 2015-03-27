@@ -43,14 +43,18 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
   }
 
 
-  private ThemeInfo moduleInfo = new ThemeInfo();
+  private ThemeInfo moduleInfo;
   private boolean valid = true;
   private Set<String> errors = new HashSet<String>();
 
   public ThemeModule(File themeFile) {
+    this(themeFile, new ThemeInfo());
+  }
 
-    if (themeFile == null) {
-    } else {
+  public ThemeModule(File themeFile, ThemeInfo moduleInfo) {
+    this.moduleInfo = moduleInfo;
+    if (!moduleInfo.isDeleted() && themeFile != null) {
+      LOG.debug("Looking for theme in {}", themeFile.getAbsolutePath());
       FileReader reader = null;
       try {
         reader = new FileReader(themeFile);
@@ -58,10 +62,11 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
         LOG.error("Theme file not found");
       }
       try {
-        TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
+        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
+        };
         Map<String, Object> map = mapper.readValue(reader, typeRef);
         moduleInfo.setThemeMap(map);
-        LOG.info("Loaded theme: {}", moduleInfo);
+        LOG.debug("Loaded theme: {}", moduleInfo);
       } catch (IOException e) {
         LOG.error("Unable to parse theme file ", e);
         setValid(false);
@@ -76,7 +81,11 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   @Override
   public void resolve(ThemeModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
-    if (parent.getModuleInfo() != null) {
+    ThemeInfo parentModuleInfo = parent.getModuleInfo();
+
+
+
+    if (parent.getModuleInfo() != null && !moduleInfo.isDeleted()) {
       moduleInfo.setThemeMap(mergedMap(parent.getModuleInfo().getThemeMap(), moduleInfo.getThemeMap()));
     }
   }
@@ -126,7 +135,7 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   @Override
   public String getId() {
-    return "theme";
+    return moduleInfo.getFileName();
   }
 
   @Override

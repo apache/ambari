@@ -17,12 +17,24 @@
  */
 package org.apache.ambari.server.state;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlTransient;
 import java.util.Map;
 
 /**
  * Wrapper for theme description
  */
+@XmlAccessorType(XmlAccessType.FIELD)
 public class ThemeInfo {
+
+  private String fileName;
+  @XmlElement(name = "default")
+  private Boolean isDefault = false;
+  private Boolean deleted = false;
+
+  @XmlTransient
   private Map<String, Object> themeMap = null;
 
   public ThemeInfo() {
@@ -39,7 +51,34 @@ public class ThemeInfo {
   @Override
   public String toString() {
     return "ThemeInfo{" +
-      "themeMap=" + themeMap +
+      "deleted=" + deleted +
+      ", fileName='" + fileName + '\'' +
+      ", isDefault=" + isDefault +
+      ", themeMap=" + themeMap +
       '}';
+  }
+
+  public String getFileName() {
+    return fileName;
+  }
+
+  public void setFileName(String fileName) {
+    this.fileName = fileName;
+  }
+
+  public Boolean getIsDefault() {
+    return isDefault;
+  }
+
+  public void setIsDefault(Boolean isDefault) {
+    this.isDefault = isDefault;
+  }
+
+  public Boolean isDeleted() {
+    return deleted;
+  }
+
+  public void setDeleted(Boolean deleted) {
+    this.deleted = deleted;
   }
 }

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.stack;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ThemeInfo;
 
 /**
  * Service module which provides all functionality related to parsing and fully
@@ -172,6 +174,9 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     if (serviceInfo.getKerberosDescriptorFile() == null) {
       serviceInfo.setKerberosDescriptorFile(parent.getKerberosDescriptorFile());
     }
+    if (serviceInfo.getThemesMap().isEmpty()) {
+      serviceInfo.setThemesMap(parent.getThemesMap());
+    }
 
     mergeCustomCommands(parent.getCustomCommands(), serviceInfo.getCustomCommands());
     mergeConfigDependencies(parent);
@@ -285,11 +290,18 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
 
   private void populateThemeModules() {
 
-    ThemeModule themeModule = new ThemeModule(serviceDirectory.getThemeFile());
+    if (serviceInfo.getThemesDir() == null) {
+      serviceInfo.setThemesDir(AmbariMetaInfo.SERVICE_THEMES_FOLDER_NAME);
+    }
 
-    if (themeModule.isValid()) {
-      serviceInfo.setThemeInfo(themeModule.getModuleInfo());
-      themeModules.put(themeModule.getId(), themeModule);
+    String themesDir = serviceDirectory.getAbsolutePath() + File.separator + serviceInfo.getThemesDir();
+
+    if (serviceInfo.getThemes() != null) {
+      for (ThemeInfo themeInfo : serviceInfo.getThemes()) {
+        File themeFile = new File(themesDir + File.separator + themeInfo.getFileName());
+        ThemeModule module = new ThemeModule(themeFile, themeInfo);
+        themeModules.put(module.getId(), module);
+      }
     }
 
     //lets not fail if theme contain errors
@@ -300,7 +312,18 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
    */
   private void mergeThemes(ServiceModule parent, Map<String, StackModule> allStacks,
                            Map<String, ServiceModule> commonServices) throws AmbariException {
-    mergeChildModules(allStacks, commonServices, themeModules, parent.themeModules);
+    Collection<ThemeModule> mergedModules = mergeChildModules(allStacks, commonServices, themeModules, parent.themeModules);
+
+    for (ThemeModule mergedModule : mergedModules) {
+      themeModules.put(mergedModule.getId(), mergedModule);
+      ThemeInfo moduleInfo = mergedModule.getModuleInfo();
+      if (!moduleInfo.isDeleted()) {
+        serviceInfo.getThemesMap().put(moduleInfo.getFileName(), moduleInfo);
+      } else {
+        serviceInfo.getThemesMap().remove(moduleInfo.getFileName());
+      }
+
+    }
 
   }
 

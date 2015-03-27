@@ -358,6 +358,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.Artifact, "artifact", "artifacts");
         break;
 
+      case Theme:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.Theme, "theme", "themes");
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

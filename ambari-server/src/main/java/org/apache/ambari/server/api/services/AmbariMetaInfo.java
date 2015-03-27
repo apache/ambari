@@ -90,6 +90,7 @@ public class AmbariMetaInfo {
 
 
   public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
+  public static final String SERVICE_THEMES_FOLDER_NAME = "themes";
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
   public static final String RCO_FILE_NAME = "role_command_order.json";
   public static final String SERVICE_METRIC_FILE_NAME = "metrics.json";
@@ -99,11 +100,6 @@ public class AmbariMetaInfo {
    * The filename name for a Kerberos descriptor file at either the stack or service level
    */
   public static final String KERBEROS_DESCRIPTOR_FILE_NAME = "kerberos.json";
-
-  /**
-   * Filename for theme file at service layer
-   */
-  public static final String SERVICE_THEME_FILE_NAME = "theme.json";
 
   /**
    * This string is used in placeholder in places that are common for

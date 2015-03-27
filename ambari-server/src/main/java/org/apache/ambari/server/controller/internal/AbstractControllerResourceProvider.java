@@ -155,6 +155,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return resourceProviderFactory.getRepositoryVersionResourceProvider();
       case StackArtifact:
         return new StackArtifactResourceProvider(managementController);
+      case Theme:
+        return new ThemeArtifactResourceProvider(managementController);
 
       default:
         throw new IllegalArgumentException("Unknown type " + type);
