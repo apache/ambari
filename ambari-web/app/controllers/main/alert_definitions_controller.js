@@ -69,6 +69,9 @@ App.MainAlertDefinitionsController = Em.ArrayController.extend({
   toggleDefinitionState: function (alertDefinition) {
     var newState = !alertDefinition.get('enabled');
     alertDefinition.set('enabled', newState);
+    Em.run.next(function () {
+      App.tooltip($('.enable-disable-button'));
+    });
     return App.ajax.send({
       name: 'alerts.update_alert_definition',
       sender: this,
