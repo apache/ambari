@@ -42,11 +42,12 @@ public class StackServiceResourceDefinitionTest {
     ResourceDefinition def = new StackServiceResourceDefinition();
 
     Set<SubResourceDefinition> subResources = def.getSubResourceDefinitions();
-    assertEquals(3, subResources.size());
+    assertEquals(4, subResources.size());
 
     boolean configReturned = false;
     boolean componentReturned = false;
     boolean artifactReturned = false;
+    boolean themesReturned = false;
 
     for (SubResourceDefinition subResource : subResources) {
       Resource.Type type = subResource.getType();
@@ -56,10 +57,14 @@ public class StackServiceResourceDefinitionTest {
         componentReturned = true;
       } else if (type.equals(Resource.Type.StackArtifact)) {
         artifactReturned = true;
+      } else if (type.equals(Resource.Type.Theme)) {
+        themesReturned = true;
       }
     }
+
     assertTrue(configReturned);
     assertTrue(componentReturned);
     assertTrue(artifactReturned);
+    assertTrue(themesReturned);
   }
 }
