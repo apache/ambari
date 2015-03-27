@@ -451,19 +451,6 @@ class ConfigConst(object):
       return self._config_types_const_definition[item[:-4]]
 
 
-# Copy file and save with file.# (timestamp)
-def backup_file(filePath):
-  if filePath is not None and os.path.exists(filePath):
-    timestamp = datetime.datetime.now()
-    format = '%Y%m%d%H%M%S'
-    try:
-      shutil.copyfile(filePath, filePath + "." + timestamp.strftime(format))
-      os.remove(filePath)
-    except Exception as e:
-      Options.logger.warn('Could not backup file "%s": %s' % (filePath, str(e)))
-  return 0
-
-
 def write_mapping(hostmapping):
   if os.path.isfile(Options.MR_MAPPING_FILE):
     os.remove(Options.MR_MAPPING_FILE)
@@ -764,7 +751,7 @@ def modify_config_item(config_type, catalog):
   #     "dfs.namenode.checkpoint.edits.dir",
   #     "dfs.namenode.checkpoint.dir",
   #     "dfs.namenode.checkpoint.period"]
-  Options.logger.info("Updating '%s' catalog item..." % config_type )
+  Options.logger.info("Updating '%s' catalog item..." % config_type)
   if is_merged_copy:  # Append configs to existed ones
     tag, structured_resp = get_config_resp(config_type, False)
     if structured_resp is not None:
