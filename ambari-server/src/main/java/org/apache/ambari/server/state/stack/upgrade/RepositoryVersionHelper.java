@@ -68,17 +68,17 @@ public class RepositoryVersionHelper {
    *    {
    *       "repositories":[
    *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
    *             "Repositories/repo_name":"HDP-UTILS",
    *             "Repositories/repo_id":"HDP-UTILS-1.1.0.20"
    *          },
    *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
    *             "Repositories/repo_name":"HDP",
    *             "Repositories/repo_id":"HDP-2.2"
    *          }
    *       ],
-   *       "OperatingSystems/os_type":"redhat5"
+   *       "OperatingSystems/os_type":"redhat6"
    *    }
    * ]
    * </pre>
@@ -112,17 +112,17 @@ public class RepositoryVersionHelper {
    *    {
    *       "repositories":[
    *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
    *             "Repositories/repo_name":"HDP-UTILS",
    *             "Repositories/repo_id":"HDP-UTILS-1.1.0.20"
    *          },
    *          {
-   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos5/2.x/updates/2.2.0.0",
+   *             "Repositories/base_url":"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0",
    *             "Repositories/repo_name":"HDP",
    *             "Repositories/repo_id":"HDP-2.2"
    *          }
    *       ],
-   *       "OperatingSystems/os_type":"redhat5"
+   *       "OperatingSystems/os_type":"redhat6"
    *    }
    * ]
    * </pre>

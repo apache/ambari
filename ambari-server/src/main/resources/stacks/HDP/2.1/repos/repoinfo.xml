@@ -29,18 +29,6 @@
       <reponame>HDP-UTILS</reponame>
     </repo>
   </os>
-  <os family="redhat5">
-    <repo>
-      <baseurl>REPLACE_WITH_CENTOS5_URL</baseurl>
-      <repoid>HDP-2.1</repoid>
-      <reponame>HDP</reponame>
-    </repo>
-    <repo>
-      <baseurl>http://public-repo-1.hortonworks.com/HDP-UTILS-1.1.0.19/repos/centos5</baseurl>
-      <repoid>HDP-UTILS-1.1.0.19</repoid>
-      <reponame>HDP-UTILS</reponame>
-    </repo>
-  </os>
   <os family="suse11">
     <repo>
       <baseurl>REPLACE_WITH_SUSE11_URL</baseurl>
