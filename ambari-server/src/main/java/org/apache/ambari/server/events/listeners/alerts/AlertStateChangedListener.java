@@ -31,11 +31,12 @@ import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
+import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.NotificationState;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
@@ -54,7 +55,19 @@ public class AlertStateChangedListener {
   /**
    * Logger.
    */
-  private static Log LOG = LogFactory.getLog(AlertStateChangedListener.class);
+  private static Logger LOG = LoggerFactory.getLogger(AlertStateChangedListener.class);
+
+  /**
+   * A logger that is only for logging alert state changes so that there is an
+   * audit trail in the event that definitions/history are removed.
+   */
+  private static final Logger ALERT_LOG = LoggerFactory.getLogger("alerts");
+
+  /**
+   * [CRITICAL] [HDFS] [namenode_hdfs_blocks_health] (NameNode Blocks Health)
+   * Total Blocks:[100], Missing Blocks:[6]
+   */
+  private static final String ALERT_LOG_MESSAGE = "[{}] [{}] [{}] ({}) {}";
 
   /**
    * Used for looking up groups and targets.
@@ -83,7 +96,20 @@ public class AlertStateChangedListener {
   @Subscribe
   @AllowConcurrentEvents
   public void onAlertEvent(AlertStateChangeEvent event) {
-    LOG.debug(event);
+    Alert alert = event.getAlert();
+    AlertHistoryEntity history = event.getNewHistoricalEntry();
+    AlertDefinitionEntity definition = history.getAlertDefinition();
+
+    // log to the alert audit log so there is physical record even if
+    // definitions and historical enties are removed
+    ALERT_LOG.info(ALERT_LOG_MESSAGE, alert.getState(),
+        definition.getServiceName(), definition.getDefinitionName(),
+        definition.getLabel(), alert.getText());
+
+    // normal logging for Ambari
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("An alert has changed state: {}", event);
+    }
 
     // don't create any outbound alert notices if in MM
     AlertCurrentEntity currentAlert = event.getCurrentAlert();
@@ -91,9 +117,6 @@ public class AlertStateChangedListener {
         && currentAlert.getMaintenanceState() != MaintenanceState.OFF) {
       return;
     }
-
-    AlertHistoryEntity history = event.getNewHistoricalEntry();
-    AlertDefinitionEntity definition = history.getAlertDefinition();
 
     List<AlertGroupEntity> groups = m_alertsDispatchDao.findGroupsByDefinition(definition);
 
