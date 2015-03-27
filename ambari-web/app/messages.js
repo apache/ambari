@@ -255,6 +255,7 @@ Em.I18n.translations = {
   'common.minutes': "Minutes",
   'common.seconds': "Seconds",
   'common.milliseconds': "Milliseconds",
+  'common.configGroup': 'Config Group',
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
@@ -343,6 +344,8 @@ Em.I18n.translations = {
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.currentValue': 'Current value',
   'popup.dependent.configs.table.recommendedValue': 'Recommended value',
+
+  'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
 
   'login.header':'Sign in',
   'login.username':'Username',

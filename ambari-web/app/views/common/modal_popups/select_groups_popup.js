@@ -20,38 +20,58 @@ var App = require('app');
 
 /**
  * Show confirmation popup
- * @param {[Object]} configs
+ * @param {[Object]} servicesWithGroups
+ * @param {Object} groupsToSave
  * @param {function} [callback=null]
  * @param {function} [secondaryCallback=null]
  * we use this parameter to defer saving configs before we make some decisions.
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (configs, callback, secondaryCallback) {
+App.showSelectGroupsPopup = function (servicesWithGroups, groupsToSave, callback, secondaryCallback) {
   return App.ModalPopup.show({
     encodeBody: false,
     primary: Em.I18n.t('common.save'),
     secondary: Em.I18n.t('common.cancel'),
     header: Em.I18n.t('popup.dependent.configs.header'),
-    classNames: ['sixty-percent-width-modal','modal-full-width'],
-    configs: configs,
+    dependentServices: servicesWithGroups,
+    groupsToSave: groupsToSave,
     bodyClass: Em.View.extend({
-      templateName: require('templates/common/modal_popups/dependent_configs_list')
+      templateName: require('templates/common/modal_popups/select_groups_popup')
     }),
-    stepConfigs: function() {
-      return App.get('router.mainServiceInfoConfigsController.stepConfigs').objectAt(0).get('configs');
-    }.property('controller.stepConfigs.@each'),
+
     onPrimary: function () {
-      this.hide();
+      this._super();
       if (callback) {
         callback();
       }
     },
+
     onSecondary: function() {
-      this.hide();
-      configs.setEach('saveRecommended', false);
+      this._super();
       if(secondaryCallback) {
         secondaryCallback();
       }
     }
   });
 };
+
+App.selectConfigGroupForService = Ember.Select.extend({
+
+  /**
+   * set Default group by default
+   */
+  didInsertElement: function() {
+    var defaultVersion = this.get('content').find(function(cg) {
+      return cg.contains('Default');
+    });
+    this.set('value', defaultVersion);
+  },
+
+  /**
+   *
+   */
+  onChangeValue: function() {
+    var groupsToSave = this.get('groupsToSave');
+    groupsToSave[this.get('serviceName')] = this.get('value');
+  }.observes('value')
+});

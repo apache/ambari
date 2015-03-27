@@ -22,22 +22,25 @@ describe('App.EnhancedConfigsMixin', function() {
 
   var mixinObject =  Em.Controller.extend(App.EnhancedConfigsMixin, {});
   var instanceObject = mixinObject.create({});
-  describe('#getFileNamesToSave()', function() {
+  var stackProperty
+  describe('#_getFileNamesToSave()', function() {
 
     beforeEach(function() {
       App.resetDsStoreTypeMap(App.ConfigProperty);
+      App.resetDsStoreTypeMap(App.StackConfigProperty);
+      stackProperty = App.ConfigProperty.createRecord({id: '1', serviceName: 'service1'});
     });
 
     it('returns file names that was changed', function() {
-      App.ConfigProperty.createRecord({id: 'p1_c1', value:'1', defaultValue: '2', fileName: 'file1'});
-      App.ConfigProperty.createRecord({id: 'p2_c1', value:'1', defaultValue: '1', fileName: 'file2'});
-      expect(instanceObject.getFileNamesToSave(['file3'])).to.eql(['file1','file3'])
+      App.ConfigProperty.createRecord({id: 'p1_c1', value:'1', defaultValue: '2', fileName: 'file1', stackConfigProperty: stackProperty});
+      App.ConfigProperty.createRecord({id: 'p2_c1', value:'1', defaultValue: '1', fileName: 'file2', stackConfigProperty: stackProperty});
+      expect(instanceObject._getFileNamesToSave('service1')).to.eql(['file1'])
     });
 
-    it('returns file names that was changed by adding property', function() {
-      App.ConfigProperty.createRecord({id: 'p1_c1', value:'1', defaultValue: '1', fileName: 'file1', isNotSaved: false});
-      App.ConfigProperty.createRecord({id: 'p2_c1', value:'1', defaultValue: '1', fileName: 'file2', isNotSaved: true});
-      expect(instanceObject.getFileNamesToSave(['file3'])).to.eql(['file2','file3'])
+    it('returns file names that was changed for current service', function() {
+      App.ConfigProperty.createRecord({id: 'p1_c1', value:'7', defaultValue: '1', fileName: 'file1', stackConfigProperty: stackProperty});
+      App.ConfigProperty.createRecord({id: 'p2_c1', value:'8', defaultValue: '1', fileName: 'file2'});
+      expect(instanceObject._getFileNamesToSave('service1')).to.eql(['file1'])
     });
   });
 

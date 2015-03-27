@@ -25,8 +25,9 @@
     <tr>
       <th>{{t popup.dependent.configs.table.saveProperty}}</th>
       <th>{{t common.property}}</th>
-      <th>{{t common.fileName}}</th>
       <th>{{t common.service}}</th>
+      <th>{{t common.configGroup}}</th>
+      <th>{{t common.fileName}}</th>
       <th>{{t popup.dependent.configs.table.currentValue}}</th>
       <th>{{t popup.dependent.configs.table.recommendedValue}}</th>
     </tr>
@@ -35,9 +36,10 @@
     {{#each config in view.parentView.configs}}
       <tr>
         <td>{{view Em.Checkbox checkedBinding="config.saveRecommended"}}</td>
-        <td>{{config.name}}</td>
+        <td>{{config.propertyName}}</td>
+        <td>{{config.serviceName}}</td>
+        <td>{{config.configGroup}}</td>
         <td>{{config.fileName}}</td>
-        <td>{{config.stackConfigProperty.serviceName}}</td>
         <td>{{config.value}}</td>
         <td>{{config.recommendedValue}}</td>
       </tr>

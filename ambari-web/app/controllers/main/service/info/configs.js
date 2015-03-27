@@ -38,6 +38,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   requestInProgress: null,
   selectedServiceConfigTypes: [],
   selectedServiceSupportsFinal: [],
+
+  /**
+   * config groups for current service
+   */
   configGroups: [],
   allConfigs: [],
   uiConfigs: [],
@@ -63,19 +67,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   isCurrentSelected: function () {
     return App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + this.get('selectedVersion')).get('isCurrent');
   }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded'),
-
-  /**
-   * array that contains config properties that were changed and
-   * belongs to not current service
-   * @returns {*|Array}
-   */
-  unsavedDependentConfigs: function() {
-    return App.ConfigProperty.find().filter(function(cp) {
-      return cp.get('stackConfigProperty.serviceName') !== this.get('content.serviceName')
-        && this.get('dependentFileNames').contains(cp.get('fileName'))
-        && cp.get('isNotDefaultValue');
-    }, this);
-  },
 
   /**
    * @type {boolean}
@@ -252,8 +243,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   isInit: true,
 
-  restartHosts: Em.A(),
-
   /**
    * On load function
    */
@@ -261,10 +250,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     console.log("TRACE: Loading configure for service");
     var self = this;
     if (App.get('supports.enhancedConfigs')) {
-      App.config.loadConfigTheme(this.get('content.serviceName')).then(function() {
-        self.loadDependentConfigs().done(function () {
-          App.themesMapper.generateAdvancedTabs([self.get('content.serviceName')]);
-        });
+      App.config.loadConfigTheme(this.get('content.serviceName')).always(function() {
+        self.setDependentServices(self.get('content.serviceName'));
+        App.themesMapper.generateAdvancedTabs([self.get('content.serviceName')]);
+        if (self.get('dependentServiceNames.length') > 0) {
+          App.config.loadConfigCurrentVersions(self.get('dependentServiceNames'));
+        }
       });
     }
     this.clearStep();
@@ -330,73 +321,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         self.trackRequest(self.loadServiceConfigVersions());
       }));
     }));
-  },
-
-  /**
-   * this method defines dependent file names for configs
-   * and load them to model
-   * @method loadDependentConfigs
-   */
-  loadDependentConfigs: function() {
-    /**
-     * filter out configs for current service with
-     * <code>propertyDependedBy<code>
-     * @type {Array}
-     */
-    var serviceStackProperties = App.StackConfigProperty.find().filter(function(stackProperty) {
-      return stackProperty.get('serviceName') === this.get('content.serviceName') && stackProperty.get('propertyDependedBy.length') > 0
-    }, this);
-
-    /**
-     * defines what fileNames should UI load
-     */
-    serviceStackProperties.forEach(function(serviceStackProperty) {
-      this.calculateDependentFileNames(serviceStackProperty);
-    }, this);
-
-    var serviceConfigsToLoad = this.getServiceNamesForConfigs();
-
-    /**
-     * load serviceConfigVersion
-     * by serviceName that has dependent properties
-     */
-    if (serviceConfigsToLoad.length > 0) {
-      return App.config.loadConfigCurrentVersions(serviceConfigsToLoad);
-    }
-  },
-
-  /**
-   * get required fileNames that has dependencies
-   * @returns {string[]}
-   */
-  getServiceNamesForConfigs: function() {
-    return App.StackService.find().filter(function(s) {
-      for (var i = 0; i < this.get('dependentFileNames.length'); i++) {
-        if (Object.keys(s.get('configTypes')).contains(App.config.getConfigTagFromFileName(this.get('dependentFileNames')[i])))
-          return true;
-      }
-      return false;
-    }, this).mapProperty('serviceName').concat(this.get('content.serviceName'));
-  },
-
-  /**
-   * dependent file names for configs
-   */
-  dependentFileNames: [],
-
-  /**
-   * defines file names for configs
-   * @param {App.StackConfigProperty} stackProperty
-   */
-  calculateDependentFileNames: function(stackProperty) {
-    if (stackProperty.get('propertyDependedBy.length') > 0) {
-      stackProperty.get('propertyDependedBy').forEach(function(dependent) {
-        if (!this.get('dependentFileNames').contains(dependent.type)) {
-          this.get('dependentFileNames').push(dependent.type);
-        }
-        this.calculateDependentFileNames(App.StackConfigProperty.find(dependent.name + "_" + dependent.type));
-      }, this);
-    }
   },
 
   /**
@@ -526,6 +450,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * load config groups of service
+   * and dependent services
    */
   loadServiceTagsAndGroups: function () {
     this.trackRequest(App.ajax.send({
@@ -533,7 +458,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        urlParams: "&config_groups/ConfigGroup/tag=" + this.get('content.serviceName')
+        urlParams: "&config_groups/ConfigGroup/tag.in(" + [this.get('content.serviceName')].concat(this.get('dependentServiceNames')).join(',')+ ')'
       },
       success: 'loadServiceConfigsSuccess'
     }));
@@ -541,20 +466,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   loadServiceConfigsSuccess: function (data, opt, params) {
     this.setConfigGroups(data, opt, params);
-  },
-
-  setConfigTags: function (data, opt, params) {
-    var serviceConfigsDef = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
-    var siteToTagMap = {};
-    var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
-    configTypesRendered.forEach(function (siteName) {
-      if (data.Clusters.desired_configs[siteName]) {
-        siteToTagMap[siteName] = data.Clusters.desired_configs[siteName].tag;
-      } else {
-        siteToTagMap[siteName] = 'version1';
-      }
-    }, this);
-    this.loadedClusterSiteToTagMap = siteToTagMap;
   },
 
   setConfigGroups: function (data, opt, params) {
@@ -594,9 +505,50 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
             selectedConfigGroup = newConfigGroup;
           }
           configGroups.push(newConfigGroup);
+        } else if (this.get('dependentServiceNames').contains(item.tag)) {
+          /**
+           * Load config groups for services that has dependent properties.
+           * If user change properties that have dependencies in not default config group
+           * user should pick to which config group Ambari should save these properties
+           * @type {App.ConfigGroup}
+           */
+          var newDependentConfigGroup = App.ConfigGroup.create({
+            id: item.id,
+            name: item.group_name,
+            description: item.description,
+            isDefault: false,
+            parentConfigGroup: null,
+            service: App.Service.find().findProperty('serviceName', item.tag),
+            hosts: item.hosts.mapProperty('host_name')
+          });
+          if (!this.get('dependentConfigGroups').findProperty('name', item.group_name)) {
+            this.get('dependentConfigGroups').push(newDependentConfigGroup);
+          }
         }
       }, this);
     }
+    this.get('dependentServiceNames').forEach(function(serviceName) {
+      if (serviceName !== this.get('content.serviceName')) {
+        var service = App.Service.find().findProperty('serviceName', serviceName);
+        /**
+         * default groups for dependent services
+         * @type {App.ConfigGroup}
+         */
+        var defaultConfigGroup = App.ConfigGroup.create({
+          name: service.get('displayName') + " Default",
+          description: "Default cluster level " + serviceName + " configuration",
+          isDefault: true,
+          hosts: [],
+          parentConfigGroup: null,
+          service: service,
+          serviceName: serviceName,
+          configSiteTags: []
+        });
+        if (!this.get('dependentConfigGroups').findProperty('name', defaultConfigGroup.get('name'))) {
+          this.get('dependentConfigGroups').push(defaultConfigGroup);
+        }
+      }
+    }, this);
     this.set('configGroups', configGroups);
     var defaultConfigGroup = App.ConfigGroup.create({
       name: displayName + " Default",
@@ -1202,7 +1154,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     return newSCP;
   },
-
   /**
    * tells controller in saving configs was started
    * for now just changes flag <code>saveInProgress<code> to true
@@ -1237,26 +1188,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   showWarningPopupsBeforeSave: function() {
     var displayName = this.get('content.displayName');
     if (this.isDirChanged()) {
-      App.showConfirmationPopup(this.showDependenciesAndSave.bind(this),
+      App.showConfirmationPopup(this.restartServicePopup.bind(this),
         Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName),
         this.completeSave.bind(this)
       );
-    } else {
-      this.showDependenciesAndSave();
-    }
-  },
-
-  /**
-   * if there are some dependent configs in different services
-   * this popup will be shown with info about this configs
-   * @method showDependenciesAndSave
-   */
-  showDependenciesAndSave: function() {
-    var dependentConfigs = this.unsavedDependentConfigs();
-    if (dependentConfigs.length > 0) {
-      App.showDependentConfigsPopup(dependentConfigs,
-        this.restartServicePopup.bind(this),
-        this.completeSave.bind(this));
     } else {
       this.restartServicePopup();
     }
@@ -1303,51 +1238,39 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         configs = App.config.textareaIntoFileConfigs(configs, 'capacity-scheduler.xml');
       }
 
-      if (App.get('supports.enhancedConfigs')) {
-        if (this.get('content.serviceName') === 'HIVE') {
-          this.setHiveHostName(configs);
-        } else if (this.get('content.serviceName') === 'OOZIE') {
-          this.setOozieHostName(configs);
-        }
+      /**
+       * generates list of properties that was changed
+       * @type {Array}
+       */
+      var modifiedConfigs = configs
+        // get only modified and created configs
+        .filter(function (config) {
+          return config.get('isNotDefaultValue') || config.get('isNotSaved');
+        })
+        // get file names and add file names that was modified, for example after property removing
+        .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
+        // get configs by filename
+        .map(function (fileName) {
+          return configs.filterProperty('filename', fileName);
+        });
 
-        this.loadConfigsToModel(configs, self.get('selectedVersion'));
-
-        this.saveEnhancedConfigs();
-
-      } else {
-        /**
-         * generates list of properties that was changed
-         * @type {Array}
-         */
-        var modifiedConfigs = configs
-          // get only modified and created configs
-          .filter(function (config) {
-            return config.get('isNotDefaultValue') || config.get('isNotSaved');
-          })
-          // get file names and add file names that was modified, for example after property removing
-          .mapProperty('filename').concat(this.get('modifiedFileNames')).uniq()
-          // get configs by filename
-          .map(function (fileName) {
-            return configs.filterProperty('filename', fileName);
-          });
-
-        if (!!modifiedConfigs.length) {
-          // concatenate results
-          modifiedConfigs = modifiedConfigs.reduce(function (current, prev) {
-            return current.concat(prev);
-          });
-        }
-        // save modified original configs that have no group
-        this.saveSiteConfigs(modifiedConfigs.filter(function (config) {
-          return !config.get('group');
-        }));
-
-        /**
-         * First we put cluster configurations, which automatically creates /configurations
-         * resources. Next we update host level overrides.
-         */
-        this.doPUTClusterConfigurations();
+      if (!!modifiedConfigs.length) {
+        // concatenate results
+        modifiedConfigs = modifiedConfigs.reduce(function (current, prev) {
+          return current.concat(prev);
+        });
       }
+      // save modified original configs that have no group
+      this.saveSiteConfigs(modifiedConfigs.filter(function (config) {
+        return !config.get('group');
+      }));
+
+      /**
+       * First we put cluster configurations, which automatically creates /configurations
+       * resources. Next we update host level overrides.
+       */
+      this.doPUTClusterConfigurations();
+
     } else {
       var overridenConfigs = [];
       var groupHosts = [];
@@ -1356,33 +1279,33 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       });
       // find custom original properties that assigned to selected config group
       overridenConfigs = overridenConfigs.concat(configs.filterProperty('group')
-        .filter(function(config) { return config.get('group.name') == self.get('selectedConfigGroup.name'); }));
+        .filter(function (config) {
+          return config.get('group.name') == self.get('selectedConfigGroup.name');
+        }));
 
-      if (App.get('supports.enhancedConfigs')) {
+      this.formatConfigValues(overridenConfigs);
+      selectedConfigGroup.get('hosts').forEach(function (hostName) {
+        groupHosts.push({"host_name": hostName});
+      });
 
-        this.loadConfigsToModel(overridenConfigs, this.get('selectedVersion'));
+      /**
+       * if there are some changes in dependent configs
+       * need to save these config to in separate request
+       */
+      this.saveDependentGroups();
 
-        this.saveEnhancedConfigsAndGroup(this.get('selectedConfigGroup'));
-
-      } else {
-        this.formatConfigValues(overridenConfigs);
-        selectedConfigGroup.get('hosts').forEach(function (hostName) {
-          groupHosts.push({"host_name": hostName});
-        });
-
-        this.putConfigGroupChanges({
-          ConfigGroup: {
-            "id": selectedConfigGroup.get('id'),
-            "cluster_name": App.get('clusterName'),
-            "group_name": selectedConfigGroup.get('name'),
-            "tag": selectedConfigGroup.get('service.id'),
-            "description": selectedConfigGroup.get('description'),
-            "hosts": groupHosts,
-            "service_config_version_note": this.get('serviceConfigVersionNote'),
-            "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
-          }
-        }, true);
-      }
+      this.putConfigGroupChanges({
+        ConfigGroup: {
+          "id": selectedConfigGroup.get('id'),
+          "cluster_name": App.get('clusterName'),
+          "group_name": selectedConfigGroup.get('name'),
+          "tag": selectedConfigGroup.get('service.id'),
+          "description": selectedConfigGroup.get('description'),
+          "hosts": groupHosts,
+          "service_config_version_note": this.get('serviceConfigVersionNote'),
+          "desired_configs": this.buildGroupDesiredConfigs(overridenConfigs)
+        }
+      }, true);
     }
   },
 
@@ -1658,7 +1581,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (showPopup) {
       ajaxOptions.success = "putConfigGroupChangesSuccess";
     }
-    App.ajax.send(ajaxOptions);
+    return App.ajax.send(ajaxOptions);
   },
 
   putConfigGroupChangesSuccess: function () {
@@ -2021,7 +1944,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
      * adding config tags for dependentConfigs
      */
     for (var i = 0; i < this.get('dependentFileNames.length'); i++) {
-      serviceConfigTags.pushObject({siteName: this.get('dependentFileNames')[i]});
+      if (!serviceConfigTags.findProperty('siteName', this.get('dependentFileNames')[i])) {
+        serviceConfigTags.pushObject({siteName: this.get('dependentFileNames')[i]});
+      }
     }
     this.setNewTagNames(serviceConfigTags);
     var siteNameToServerDataMap = {};
@@ -2035,7 +1960,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }, this);
     configsToSave = this.filterChangedConfiguration(configsToSave);
     if (configsToSave.length > 0) {
-      this.doPUTClusterConfigurationSites(configsToSave);
+      var data = [];
+      data.pushObject(JSON.stringify({
+        Clusters: {
+          desired_config: configsToSave
+        }
+      }));
+      if (App.get('supports.enhancedConfigs')) {
+        /**
+         * adding configs that were changed for dependent services
+         * if there are such configs
+         */
+        this.get('dependentServiceNames').forEach(function(serviceName) {
+          var dependentConfigsToSave = this.getDependentConfigObject(serviceName);
+          if (dependentConfigsToSave.length > 0) {
+            data.pushObject(JSON.stringify({
+              Clusters: {
+                desired_config: dependentConfigsToSave
+              }
+            }));
+          }
+        }, this);
+      }
+      this.doPUTClusterConfigurationSites(data);
     } else {
       this.onDoPUTClusterConfigurations();
     }
@@ -2183,15 +2130,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * Saves configuration of set of sites. The provided data
    * contains the site name and tag to be used.
-   * @param {Object} sites
+   * @param {Object[]} services
    * @method doPUTClusterConfigurationSites
    */
-  doPUTClusterConfigurationSites: function (sites) {
+  doPUTClusterConfigurationSites: function (services) {
     App.ajax.send({
-      name: 'common.service.configurations',
+      name: 'common.across.services.configurations',
       sender: this,
       data: {
-        desired_config: sites
+        data: '[' + services.toString() + ']'
       },
       success: 'doPUTClusterConfigurationSiteSuccessCallback',
       error: 'doPUTClusterConfigurationSiteErrorCallback'
@@ -2640,9 +2587,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * add new overridden property to config property object
    * @param {object} serviceConfigProperty - config property object
    * @param {App.ConfigGroup} group - config group for new property
+   * @param {String} value
    * @method addOverrideProperty
    */
-  addOverrideProperty: function (serviceConfigProperty, group) {
+  addOverrideProperty: function (serviceConfigProperty, group, value) {
     var overrides = serviceConfigProperty.get('overrides');
     if (!overrides) {
       overrides = [];
@@ -2650,7 +2598,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     // create new override with new value
     var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-    newSCP.set('value', '');
+    newSCP.set('value', value || '');
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
     newSCP.set('isEditable', true);
