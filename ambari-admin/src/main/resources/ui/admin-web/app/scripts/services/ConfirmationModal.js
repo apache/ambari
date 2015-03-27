@@ -41,9 +41,17 @@ angular.module('ambariAdminConsole')
 					$scope.cancel = function() {
 						$modalInstance.dismiss();
 						deferred.reject();
-					}
+					};
 				}]
 			});
+
+      modalInstance.result.then(function() {
+        // Gets triggered on close
+      }, function() {
+        // Gets triggered on dismiss
+        deferred.reject();
+      });
+
 			return deferred.promise;
 		}
 	};
