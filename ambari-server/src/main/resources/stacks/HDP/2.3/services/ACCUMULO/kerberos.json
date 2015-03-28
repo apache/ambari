@@ -88,55 +88,22 @@
       ],
       "components": [
         {
-          "name": "ACCUMULO_MASTER",
-          "identities": [
-            {
-              "name": "./accumulo_service"
-            }
-          ]
+          "name": "ACCUMULO_MASTER"
         },
         {
-          "name": "ACCUMULO_TSERVER",
-          "identities": [
-            {
-              "name": "./accumulo_service"
-            }
-          ]
+          "name": "ACCUMULO_TSERVER"
         },
         {
-          "name": "ACCUMULO_MONITOR",
-          "identities": [
-            {
-              "name": "./accumulo_service"
-            },
-            {
-              "name": "./accumulo_tracer"
-            }
-          ]
+          "name": "ACCUMULO_MONITOR"
         },
         {
-          "name": "ACCUMULO_GC",
-          "identities": [
-            {
-              "name": "./accumulo_service"
-            }
-          ]
+          "name": "ACCUMULO_GC"
         },
         {
-          "name": "ACCUMULO_TRACER",
-          "identities": [
-            {
-              "name": "./accumulo_tracer"
-            }
-          ]
+          "name": "ACCUMULO_TRACER"
         },
         {
-          "name": "ACCUMULO_CLIENT",
-          "identities": [
-            {
-              "name": "./accumulo"
-            }
-          ]
+          "name": "ACCUMULO_CLIENT"
         }
       ]
     }
