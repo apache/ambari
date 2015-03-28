@@ -66,9 +66,9 @@ CREATE TABLE serviceconfig (
 CREATE TABLE serviceconfighosts (
   service_config_id BIGINT NOT NULL,
   hostname VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   PRIMARY KEY(service_config_id, hostname));
-  --PRIMARY KEY(service_config_id, host_id));
+  -- PRIMARY KEY(service_config_id, host_id));
 
 CREATE TABLE serviceconfigmapping (
   service_config_id BIGINT NOT NULL,
@@ -103,14 +103,14 @@ CREATE TABLE hostcomponentdesiredstate (
   desired_stack_version VARCHAR(255) NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   admin_state VARCHAR(32),
   maintenance_state VARCHAR(32) NOT NULL DEFAULT 'ACTIVE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required TINYINT(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
-  --PRIMARY KEY (cluster_id, component_name, host_id, service_name));
+  -- PRIMARY KEY (cluster_id, component_name, host_id, service_name));
 
 CREATE TABLE hostcomponentstate (
   cluster_id BIGINT NOT NULL,
@@ -119,12 +119,12 @@ CREATE TABLE hostcomponentstate (
   current_stack_version VARCHAR(255) NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   PRIMARY KEY (cluster_id, component_name, host_name, service_name));
-  --PRIMARY KEY (cluster_id, component_name, host_id, service_name));
+  -- PRIMARY KEY (cluster_id, component_name, host_id, service_name));
 
 CREATE TABLE hosts (
   id BIGINT NOT NULL,
@@ -151,17 +151,17 @@ CREATE TABLE hoststate (
   current_state VARCHAR(255) NOT NULL,
   health_status VARCHAR(255),
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   time_in_state BIGINT NOT NULL,
   maintenance_state VARCHAR(512),
   PRIMARY KEY (host_name));
-  --PRIMARY KEY (host_id));
+  -- PRIMARY KEY (host_id));
 
 CREATE TABLE host_version (
   id BIGINT NOT NULL,
   repo_version_id BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   state VARCHAR(32) NOT NULL,
   PRIMARY KEY (id));
 
@@ -218,7 +218,7 @@ CREATE TABLE host_role_command (
   event LONGTEXT NOT NULL,
   exitcode INTEGER NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   last_attempt_time BIGINT NOT NULL,
   request_id BIGINT NOT NULL,
   role VARCHAR(255),
@@ -286,7 +286,7 @@ CREATE TABLE requestoperationlevel (
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
   host_name VARCHAR(255),
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   PRIMARY KEY (operation_level_id));
 
 CREATE TABLE key_value_store (`key` VARCHAR(255),
@@ -305,7 +305,7 @@ CREATE TABLE clusterconfigmapping (
 CREATE TABLE hostconfigmapping (
   create_timestamp BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   cluster_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   selected INTEGER NOT NULL DEFAULT 0,
@@ -313,7 +313,7 @@ CREATE TABLE hostconfigmapping (
   version_tag VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
   PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
-  --PRIMARY KEY (create_timestamp, host_id, cluster_id, type_name));
+  -- PRIMARY KEY (create_timestamp, host_id, cluster_id, type_name));
 
 CREATE TABLE metainfo (
   `metainfo_key` VARCHAR(255),
@@ -352,9 +352,9 @@ CREATE TABLE configgroup (
 CREATE TABLE configgrouphostmapping (
   config_group_id BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   PRIMARY KEY(config_group_id, host_name));
-  --PRIMARY KEY(config_group_id, host_id));
+  -- PRIMARY KEY(config_group_id, host_id));
 
 CREATE TABLE requestschedule (
   schedule_id bigint,
@@ -600,22 +600,22 @@ ALTER TABLE clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (
 ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE hostcomponentstate ADD CONSTRAINT hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE hoststate ADD CONSTRAINT FK_hoststate_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE host_version ADD CONSTRAINT FK_host_version_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE host_version ADD CONSTRAINT FK_host_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);
 ALTER TABLE servicecomponentdesiredstate ADD CONSTRAINT srvccmponentdesiredstatesrvcnm FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id);
 ALTER TABLE servicedesiredstate ADD CONSTRAINT servicedesiredstateservicename FOREIGN KEY (service_name, cluster_id) REFERENCES clusterservices (service_name, cluster_id);
 ALTER TABLE execution_command ADD CONSTRAINT FK_execution_command_task_id FOREIGN KEY (task_id) REFERENCES host_role_command (task_id);
 ALTER TABLE host_role_command ADD CONSTRAINT FK_host_role_command_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id);
 ALTER TABLE host_role_command ADD CONSTRAINT FK_host_role_command_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE host_role_command ADD CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE host_role_command ADD CONSTRAINT FK_host_role_command_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE role_success_criteria ADD CONSTRAINT role_success_criteria_stage_id FOREIGN KEY (stage_id, request_id) REFERENCES stage (stage_id, request_id);
 ALTER TABLE stage ADD CONSTRAINT FK_stage_request_id FOREIGN KEY (request_id) REFERENCES request (request_id);
 ALTER TABLE request ADD CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_schedule_id) REFERENCES requestschedule (schedule_id);
@@ -623,7 +623,7 @@ ALTER TABLE ClusterHostMapping ADD CONSTRAINT FK_clusterhostmapping_cluster_id F
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT FK_clusterhostmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id);
 ALTER TABLE serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
@@ -632,7 +632,7 @@ ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confg FOREIGN KEY (c
 ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
 ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_cgid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
 ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_hname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
+-- ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_host_id FOREIGN KEY (host_id) REFERENCES hosts (id);
 ALTER TABLE requestschedulebatchrequest ADD CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id);
 ALTER TABLE hostgroup ADD CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name);
 ALTER TABLE hostgroup_component ADD CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup(blueprint_name, name);
@@ -671,13 +671,13 @@ CREATE TABLE kerberos_principal (
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  -- host_id BIGINT NOT NULL,
   PRIMARY KEY(principal_name, host_name)
-  --PRIMARY KEY(principal_name, host_id)
+  -- PRIMARY KEY(principal_name, host_id)
 );
 
 ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_hostname FOREIGN KEY (host_name) REFERENCES hosts (host_name) ON DELETE CASCADE;
---ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (id) ON DELETE CASCADE;
+-- ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (id) ON DELETE CASCADE;
 
 ALTER TABLE kerberos_principal_host
 ADD CONSTRAINT FK_krb_pr_host_principalname
