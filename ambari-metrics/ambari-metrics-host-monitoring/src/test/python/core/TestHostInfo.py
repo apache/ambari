@@ -23,6 +23,7 @@ from host_info import HostInfo
 import platform
 from unittest import TestCase
 from mock.mock import patch, MagicMock
+import collections
 
 logger = logging.getLogger()
 
@@ -129,3 +130,24 @@ class TestHostInfo(TestCase):
     self.assertEqual(cdu['disk_used'], "0.00")
     self.assertEqual(cdu['disk_free'], "0.00")
     self.assertEqual(cdu['disk_percent'], "0.00")
+
+  @patch("psutil.disk_io_counters")
+  def testDiskIOCounters(self, io_mock):
+
+    Counters = collections.namedtuple('sdiskio', ['read_count', 'write_count',
+                                                  'read_bytes', 'write_bytes',
+                                                  'read_time', 'write_time'])
+    io_mock.return_value = Counters(0, 1, 2, 3, 4, 5)
+
+    hostinfo = HostInfo(MagicMock())
+
+    disk_counters = hostinfo.get_disk_io_counters()
+
+    self.assertEqual(disk_counters['read_count'], 0)
+    self.assertEqual(disk_counters['write_count'], 1)
+    self.assertEqual(disk_counters['read_bytes'], 2)
+    self.assertEqual(disk_counters['write_bytes'], 3)
+    self.assertEqual(disk_counters['read_time'], 4)
+    self.assertEqual(disk_counters['write_time'], 5)
+
+

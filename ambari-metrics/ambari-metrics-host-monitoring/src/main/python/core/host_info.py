@@ -247,6 +247,25 @@ class HostInfo():
     pass
   pass
 
+  def get_disk_io_counters(self):
+    # read_count: number of reads
+    # write_count: number of writes
+    # read_bytes: number of bytes read
+    # write_bytes: number of bytes written
+    # read_time: time spent reading from disk (in milliseconds)
+    # write_time: time spent writing to disk (in milliseconds)
+
+    io_counters = psutil.disk_io_counters()
+
+    return {
+      'read_count' : io_counters.read_count if hasattr(io_counters, 'read_count') else 0,
+      'write_count' : io_counters.write_count if hasattr(io_counters, 'write_count') else 0,
+      'read_bytes' : io_counters.read_bytes if hasattr(io_counters, 'read_bytes') else 0,
+      'write_bytes' : io_counters.write_bytes if hasattr(io_counters, 'write_bytes') else 0,
+      'read_time' : io_counters.read_time if hasattr(io_counters, 'read_time') else 0,
+      'write_time' : io_counters.write_time if hasattr(io_counters, 'write_time') else 0
+    }
+
   def get_hostname(self):
     global cached_hostname
     if cached_hostname is not None:
