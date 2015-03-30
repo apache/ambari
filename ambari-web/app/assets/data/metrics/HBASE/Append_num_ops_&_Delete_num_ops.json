@@ -6,6 +6,10 @@
     "service_name" : "HBASE"
   },
   "metrics" : {
+    "jvm": {
+      "HeapMemoryUsed": 61,
+      "HeapMemoryMax": 100
+    },
     "hbase" : {
       "ipc" : {
         "IPC" : {
@@ -13,8 +17,8 @@
         }
       },
       "regionserver" : {
+        "percentFilesLocal" : 99,
         "Server" : {
-          "percentFilesLocal" : 99,
           "Append_num_ops" : [
             [
               2.0,

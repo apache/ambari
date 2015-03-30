@@ -346,8 +346,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         stackVersionURL: App.get('stackVersionURL'),
         serviceName: this.get('content.serviceName')
       },
-      success: 'loadStackWidgetsLayoutSuccessCallback',
-      error: 'loadStackWidgetsLayoutErrorCallback'
+      success: 'loadStackWidgetsLayoutSuccessCallback'
     });
   },
 

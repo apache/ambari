@@ -67,14 +67,14 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend(App.WidgetMixin, {
 
   drawWidget: function () {
     if (this.get('isLoaded')) {
-      this._refreshGraph(this.calculateSeries())
+      this._refreshGraph(this.calculateValues())
     }
   }.observes('isLoaded'),
 
   /**
    * calculate series datasets for graph widgets
    */
-  calculateSeries: function () {
+  calculateValues: function () {
     var metrics = this.get('metrics');
     var seriesData = [];
 

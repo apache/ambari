@@ -179,16 +179,15 @@ describe('App.WidgetMixin', function() {
     });
   });
 
-  describe("#getServiceComponentMetricsSuccessCallback()", function() {
+  describe("#getServiceComponentMetricsSuccessCallback()", function () {
     var mixinObject = mixinClass.create();
-
-    it("", function() {
+    it("", function () {
       var data = {
         metrics: {
-          "hbase" : {
-            "ipc" : {
-              "IPC" : {
-                "numOpenConnections" : 11.5
+          "hbase": {
+            "ipc": {
+              "IPC": {
+                "numOpenConnections": 11.5
               }
             }
           }
@@ -196,11 +195,11 @@ describe('App.WidgetMixin', function() {
       };
       mixinObject.set('content.metrics', [
         {
-          name: 'ipc.IPC.numOpenConnections'
+          widget_id: 'metrics/hbase/ipc/IPC/numOpenConnections'
         }
       ]);
-      mixinObject.getServiceComponentMetricsSuccessCallback(data, {}, {serviceName: 'hbase'});
-      expect(mixinObject.get('metrics').findProperty('name', 'ipc.IPC.numOpenConnections').data).to.equal(11.5);
+      mixinObject.getServiceComponentMetricsSuccessCallback(data);
+      expect(mixinObject.get('metrics').findProperty('widget_id', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
     });
   });
 
@@ -231,6 +230,67 @@ describe('App.WidgetMixin', function() {
         },
         success: 'getHostComponentMetricsSuccessCallback'
       })
+    });
+  });
+
+  describe("#calculateValues()", function() {
+    var mixinObject = mixinClass.create();
+
+    beforeEach(function () {
+      sinon.stub(mixinObject, 'extractExpressions');
+      this.mock = sinon.stub(mixinObject, 'computeExpression');
+    });
+    afterEach(function () {
+      mixinObject.extractExpressions.restore();
+      this.mock.restore();
+    });
+    it("value compute correctly", function() {
+      this.mock.returns({'${a}': 1});
+      mixinObject.set('content.values', [{
+        value: '${a}'
+      }]);
+      mixinObject.calculateValues();
+      expect(mixinObject.get('content.values')[0].computedValue).to.equal('1');
+    });
+    it("value not available", function() {
+      this.mock.returns({});
+      mixinObject.set('content.values', [{
+        value: '${a}'
+      }]);
+      mixinObject.calculateValues();
+      expect(mixinObject.get('content.values')[0].computedValue).to.equal(Em.I18n.t('common.na'));
+    });
+  });
+
+  describe("#computeExpression()", function() {
+    var mixinObject = mixinClass.create();
+
+    it("expression missing metrics", function() {
+      var expressions = ['e.m1'];
+      var metrics = [];
+      expect(mixinObject.computeExpression(expressions, metrics)).to.eql({
+        "${e.m1}": ""
+      });
+    });
+    it("Value is not correct mathematical expression", function() {
+      var expressions = ['e.m1'];
+      var metrics = [{
+        name: 'e.m1',
+        data: 'a+1'
+      }];
+      expect(mixinObject.computeExpression(expressions, metrics)).to.eql({
+        "${e.m1}": ""
+      });
+    });
+    it("correct expression", function() {
+      var expressions = ['e.m1+e.m1'];
+      var metrics = [{
+        name: 'e.m1',
+        data: 1
+      }];
+      expect(mixinObject.computeExpression(expressions, metrics)).to.eql({
+        "${e.m1+e.m1}": "2"
+      });
     });
   });
 

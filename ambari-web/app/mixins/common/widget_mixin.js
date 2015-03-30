@@ -24,7 +24,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  EXPRESSION_REGEX: /\$\{([\w\.\+\-\*\/\(\)]*)\}/g,
+  EXPRESSION_REGEX: /\$\{([\w\.\+\-\*\/\(\)\:\=\[\]]*)\}/g,
 
   /**
    * @type {RegExp}
@@ -36,7 +36,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  VALUE_NAME_REGEX: /[\w\.]+/g,
+  VALUE_NAME_REGEX: /[\w\.\:\=\[\]]+/g,
 
   /**
    * common metrics container
@@ -102,6 +102,55 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
+   * calculate series datasets for graph widgets
+   */
+  calculateValues: function () {
+    var metrics = this.get('metrics');
+    var displayUnit = this.get('content.properties.display_unit');
+
+    this.get('content.values').forEach(function (value) {
+      var computeExpression = this.computeExpression(this.extractExpressions(value), metrics);
+      value.computedValue = value.value.replace(this.get('EXPRESSION_REGEX'), function (match) {
+        return (computeExpression[match]) ? computeExpression[match] + (displayUnit || "") : Em.I18n.t('common.na');
+      });
+    }, this);
+  },
+
+  /**
+   * compute expression
+   * @param expressions
+   * @param metrics
+   * @returns {object}
+   */
+  computeExpression: function (expressions, metrics) {
+    var result = {};
+
+    expressions.forEach(function (_expression) {
+      var validExpression = true;
+      var value = "";
+
+      //replace values with metrics data
+      var beforeCompute = _expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
+        if (metrics.someProperty('name', match)) {
+          return metrics.findProperty('name', match).data;
+        } else {
+          validExpression = false;
+          console.warn('Metrics not found to compute expression');
+        }
+      });
+
+      if (validExpression) {
+        //check for correct math expression
+        validExpression = this.get('MATH_EXPRESSION_REGEX').test(beforeCompute);
+        !validExpression && console.warn('Value is not correct mathematical expression');
+      }
+
+      result['${' + _expression + '}'] = (validExpression) ? Number(window.eval(beforeCompute)).toString() : value;
+    }, this);
+    return result;
+  },
+
+  /**
    * get data formatted for request
    * @param {Array} metrics
    */
@@ -143,11 +192,10 @@ App.WidgetMixin = Ember.Mixin.create({
 
   getServiceComponentMetricsSuccessCallback: function (data, opt, params) {
     var metrics = [];
-    var metricsData = data.metrics[params.serviceName.toLowerCase()];
 
     this.get('content.metrics').forEach(function (_metric) {
-      if (Em.get(metricsData, _metric.name)) {
-        _metric.data = Em.get(metricsData, _metric.name);
+      if (Em.get(data, _metric.widget_id.replace(/\//g, '.'))) {
+        _metric.data = Em.get(data, _metric.widget_id.replace(/\//g, '.'));
         this.get('metrics').pushObject(_metric);
       }
     }, this);

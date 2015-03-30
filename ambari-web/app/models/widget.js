@@ -59,6 +59,8 @@ App.Widget = DS.Model.extend({
         return App.GraphWidgetView;
       case 'NUMBER':
         return App.TemplateWidgetView;
+      case 'GAUGE':
+        return App.GaugeWidgetView;
       default:
         return Em.View;
     }

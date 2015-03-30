@@ -72,6 +72,38 @@
             "properties": {
               "display_unit": "%"
             }
+          },
+          {
+            "widget_name": "NAMENODE_HEAP",
+            "display_name": "NameNode Heap",
+            "widget_type": "GAUGE",
+            "description": "",
+            "metrics":[
+              {
+                "name": "java.lang:type=Memory.HeapMemoryUsage[used]",
+                "widget_id": "metrics/jvm/HeapMemoryUsed",
+                "category": "",
+                "service_name": "HBASE",
+                "component_name": "HBASE_REGIONSERVER"
+              },
+              {
+                "name": "java.lang:type=Memory.HeapMemoryUsage[max]",
+                "widget_id": "metrics/jvm/HeapMemoryMax",
+                "category": "",
+                "service_name": "HBASE",
+                "component_name": "HBASE_REGIONSERVER"
+              }
+            ],
+            "values": [
+              {
+                "name": "NameNode heap",
+                "value": "${java.lang:type=Memory.HeapMemoryUsage[used]/java.lang:type=Memory.HeapMemoryUsage[max]}"
+              }
+            ],
+            "properties": {
+              "warning_threshold": 0.9,
+              "error_threshold": 0.7
+            }
           }
         ]
       }
