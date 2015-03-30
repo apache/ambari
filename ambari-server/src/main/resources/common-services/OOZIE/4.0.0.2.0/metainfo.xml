@@ -161,6 +161,8 @@
         <config-type>oozie-env</config-type>
         <config-type>oozie-log4j</config-type>
         <config-type>yarn-site</config-type>
+        <config-type>hive-site</config-type>
+        <config-type>tez-site</config-type>
       </configuration-dependencies>
     </service>
   </services>
