@@ -416,7 +416,7 @@
     "Component": [
       {
         "type": "ganglia",
-        "metrics": {
+        "metrics": {"default":{
           "metrics/boottime": {
             "metric": "boottime",
             "pointInTime": true,
@@ -597,15 +597,13 @@
             "pointInTime": true,
             "temporal": true
           }
-
-
-        }
+        }}
       }
     ],
     "HostComponent": [
       {
         "type": "ganglia",
-        "metrics": {
+        "metrics": {"default":{
           "metrics/boottime": {
             "metric": "boottime",
             "pointInTime": true,
@@ -786,7 +784,7 @@
             "pointInTime": true,
             "temporal": true
           }
-        }
+        }}
       }
     ]
   }
