@@ -296,6 +296,16 @@ public class OrmTestHelper {
    */
   @Transactional
   public Long createCluster() {
+    return createCluster("test_cluster1");
+  }
+
+  /**
+   * Creates an empty cluster with an ID using the specified cluster name.
+   *
+   * @return the cluster ID.
+   */
+  @Transactional
+  public Long createCluster(String clusterName) {
     ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
 
     ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
@@ -309,7 +319,7 @@ public class OrmTestHelper {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
     ClusterEntity clusterEntity = new ClusterEntity();
-    clusterEntity.setClusterName("test_cluster1");
+    clusterEntity.setClusterName(clusterName);
     clusterEntity.setClusterInfo("test_cluster_info1");
     clusterEntity.setResource(resourceEntity);
 

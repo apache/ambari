@@ -185,6 +185,27 @@ public class AlertDefinitionDAOTest {
   }
 
   /**
+  *
+  */
+  @Test
+  public void testFindAllEnabled() {
+    List<AlertDefinitionEntity> definitions = dao.findAll();
+    assertNotNull(definitions);
+    assertEquals(15, definitions.size());
+
+    List<AlertDefinitionEntity> enabledDefinitions = dao.findAllEnabled(clusterId);
+    assertNotNull(enabledDefinitions);
+    assertEquals(definitions.size(), enabledDefinitions.size());
+
+    enabledDefinitions.get(0).setEnabled(false);
+    dao.merge(enabledDefinitions.get(0));
+
+    enabledDefinitions = dao.findAllEnabled(clusterId);
+    assertNotNull(enabledDefinitions);
+    assertEquals(definitions.size() - 1, enabledDefinitions.size());
+  }
+
+  /**
    *
    */
   @Test

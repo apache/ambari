@@ -40,8 +40,11 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
+import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
+import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
@@ -176,6 +179,8 @@ public class AmbariMetaInfo {
    * <ul>
    * <li>{@link AlertDefinitionRegistrationEvent} when new alerts are merged
    * from the stack</li>
+   * <li>{@link AlertDefinitionDisabledEvent} when existing definitions are
+   * disabled after being removed from the current stack</li>
    * </ul>
    */
   @Inject
@@ -965,11 +970,17 @@ public class AmbariMetaInfo {
       StackInfo stackInfo = getStack(stackId.getStackName(),
           stackId.getStackVersion());
 
-      // creating a mapping between service name and service for fast lookups
+      // creating a mapping between names and service/component for fast lookups
       Collection<ServiceInfo> stackServices = stackInfo.getServices();
       Map<String, ServiceInfo> stackServiceMap = new HashMap<String, ServiceInfo>();
+      Map<String, ComponentInfo> stackComponentMap = new HashMap<String, ComponentInfo>();
       for (ServiceInfo stackService : stackServices) {
         stackServiceMap.put(stackService.getName(), stackService);
+
+        List<ComponentInfo> components = stackService.getComponents();
+        for (ComponentInfo component : components) {
+          stackComponentMap.put(component.getName(), component);
+        }
       }
 
       Map<String, Service> clusterServiceMap = cluster.getServices();
@@ -983,6 +994,7 @@ public class AmbariMetaInfo {
         if (null == stackService) {
           continue;
         }
+
 
         // get all alerts defined on the stack for each cluster service
         Set<AlertDefinition> serviceDefinitions = getAlertDefinitions(stackService);
@@ -1055,6 +1067,52 @@ public class AmbariMetaInfo {
 
         eventPublisher.publish(event);
       }
+
+      // for every definition, determine if the service and the component are
+      // still valid; if they are not, disable them - this covers the case
+      // with STORM/REST_API where that component was removed from the
+      // stack but still exists in the database - we disable the alert to
+      // preserve historical references
+      List<AlertDefinitionEntity> definitions = alertDefinitionDao.findAllEnabled(clusterId);
+      List<AlertDefinitionEntity> definitionsToDisable = new ArrayList<AlertDefinitionEntity>();
+
+      for (AlertDefinitionEntity definition : definitions) {
+        String serviceName = definition.getServiceName();
+        String componentName = definition.getComponentName();
+
+        // the AMBARI service is special, skip it here
+        if (Services.AMBARI.name().equals(serviceName)
+            && Components.AMBARI_AGENT.name().equals(componentName)) {
+          continue;
+        }
+
+        if (!stackServiceMap.containsKey(serviceName)) {
+          LOG.info(
+              "The {} service has been marked as deleted for stack {}, disabling alert {}",
+              serviceName, stackId, definition.getDefinitionName());
+
+          definitionsToDisable.add(definition);
+        } else if (null != componentName
+            && !stackComponentMap.containsKey(componentName)) {
+          LOG.info(
+              "The {} component {} has been marked as deleted for stack {}, disabling alert {}",
+              serviceName, componentName, stackId,
+              definition.getDefinitionName());
+
+          definitionsToDisable.add(definition);
+        }
+      }
+
+      // disable definitions and fire the event
+      for (AlertDefinitionEntity definition : definitionsToDisable) {
+        definition.setEnabled(false);
+        alertDefinitionDao.merge(definition);
+
+        AlertDefinitionDisabledEvent event = new AlertDefinitionDisabledEvent(
+            clusterId, definition.getDefinitionId());
+
+        eventPublisher.publish(event);
+      }
     }
   }
 
@@ -1107,10 +1165,10 @@ public class AmbariMetaInfo {
           throw new AmbariException(String.format("Failed to parse kerberos descriptor file %s",
               file.getAbsolutePath()), e);
         }
-      }
-      else
+      } else {
         throw new AmbariException(String.format("Unable to read kerberos descriptor file %s",
             file.getAbsolutePath()));
+      }
     }
 
     if (kerberosDescriptor == null) {

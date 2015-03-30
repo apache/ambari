@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import javax.persistence.EntityManager;
 
@@ -76,6 +77,7 @@ import org.apache.ambari.server.state.alert.MetricSource;
 import org.apache.ambari.server.state.alert.PortSource;
 import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Source;
+import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
@@ -101,7 +103,6 @@ import com.google.inject.util.Modules;
 public class AmbariMetaInfoTest {
 
   private static final String STACK_NAME_HDP = "HDP";
-  private static final String STACK_NAME_XYZ = "XYZ";
   private static final String STACK_VERSION_HDP = "0.1";
   private static final String EXT_STACK_NAME = "2.0.6";
   private static final String STACK_VERSION_HDP_02 = "0.2";
@@ -1705,7 +1706,8 @@ public class AmbariMetaInfoTest {
 
     injector.getInstance(GuiceJpaInitializer.class);
     injector.getInstance(EntityManager.class);
-    injector.getInstance(OrmTestHelper.class).createCluster();
+    long clusterId = injector.getInstance(OrmTestHelper.class).createCluster(
+        "cluster" + System.currentTimeMillis());
 
     metaInfo.alertDefinitionDao = injector.getInstance(AlertDefinitionDAO.class);
     Class<?> c = metaInfo.getClass().getSuperclass();
@@ -1714,7 +1716,7 @@ public class AmbariMetaInfoTest {
     f.set(metaInfo, injector.getInstance(AgentAlertDefinitions.class));
 
     Clusters clusters = injector.getInstance(Clusters.class);
-    Cluster cluster = clusters.getClusterById(1);
+    Cluster cluster = clusters.getClusterById(clusterId);
     cluster.setDesiredStackVersion(
         new StackId(STACK_NAME_HDP, "2.0.6"));
 
@@ -1723,7 +1725,7 @@ public class AmbariMetaInfoTest {
     metaInfo.reconcileAlertDefinitions(clusters);
 
     AlertDefinitionDAO dao = injector.getInstance(AlertDefinitionDAO.class);
-    List<AlertDefinitionEntity> definitions = dao.findAll();
+    List<AlertDefinitionEntity> definitions = dao.findAll(clusterId);
     assertEquals(7, definitions.size());
 
     // figure out how many of these alerts were merged into from the
@@ -1752,6 +1754,44 @@ public class AmbariMetaInfoTest {
     for (AlertDefinitionEntity definition : definitions) {
       assertEquals(28, definition.getScheduleInterval().intValue());
     }
+
+    // find all enabled for the cluster should find 6 (the ones from HDFS;
+    // it will not find the agent alert since it's not bound to the cluster)
+    definitions = dao.findAllEnabled(cluster.getClusterId());
+    assertEquals(6, definitions.size());
+
+    // create new definition
+    AlertDefinitionEntity entity = new AlertDefinitionEntity();
+    entity.setClusterId(clusterId);
+    entity.setDefinitionName("bad_hdfs_alert");
+    entity.setLabel("Bad HDFS Alert");
+    entity.setDescription("A way to fake a component being removed");
+    entity.setEnabled(true);
+    entity.setHash(UUID.randomUUID().toString());
+    entity.setScheduleInterval(1);
+    entity.setServiceName("HDFS");
+    entity.setComponentName("BAD_COMPONENT");
+    entity.setSourceType(SourceType.METRIC);
+    entity.setSource("{\"type\" : \"METRIC\"}");
+    dao.create(entity);
+
+    // verify the new definition is found (6 HDFS + 1 new one)
+    definitions = dao.findAllEnabled(cluster.getClusterId());
+    assertEquals(7, definitions.size());
+
+    // reconcile, which should disable our bad definition
+    metaInfo.reconcileAlertDefinitions(clusters);
+
+    // find all enabled for the cluster should find 6
+    definitions = dao.findAllEnabled(cluster.getClusterId());
+    assertEquals(6, definitions.size());
+
+    // find all should find 6 HDFS + 1 disabled + 1 agent alert
+    definitions = dao.findAll();
+    assertEquals(8, definitions.size());
+
+    entity = dao.findById(entity.getDefinitionId());
+    assertFalse(entity.getEnabled());
   }
 
   @Test

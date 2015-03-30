@@ -159,6 +159,22 @@ public class AlertDefinitionDAO {
   }
 
   /**
+   * Gets all enabled alert definitions stored in the database for the specified
+   * cluster.
+   *
+   * @return all enabled alert definitions or empty list if none exist (never
+   *         {@code null}).
+   */
+  public List<AlertDefinitionEntity> findAllEnabled(long clusterId) {
+    TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "AlertDefinitionEntity.findAllEnabledInCluster",
+        AlertDefinitionEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Gets all of the alert definitions for the list of IDs given.
    *
    * @param definitionIds
