@@ -314,7 +314,7 @@ public class HostComponentResourceProviderTest {
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+    properties.put(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "STARTED");
 
     // create the request
     Request request = PropertyHelper.getUpdateRequest(properties, mapRequestProps);
@@ -322,7 +322,7 @@ public class HostComponentResourceProviderTest {
     // update the cluster named Cluster102
     Predicate predicate = new PredicateBuilder().property(
         HostComponentResourceProvider.HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID).equals("Cluster102").and().
-        property(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID).equals("INSTALLED").and().
+        property(HostComponentResourceProvider.HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID).equals("INSTALLED").and().
         property(HostComponentResourceProvider.HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID).equals("Component100").toPredicate();
     RequestStatus requestStatus = provider.updateResources(request, predicate);
     Resource responseResource = requestStatus.getRequestResource();
