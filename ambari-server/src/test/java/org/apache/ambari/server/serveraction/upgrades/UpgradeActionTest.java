@@ -19,6 +19,7 @@ package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.controller.AmbariCustomCommandExecutionHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -49,6 +51,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -261,10 +267,31 @@ public class UpgradeActionTest {
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
 
 
-    // !!! verify the metainfo url has been updated
+    // !!! verify the metainfo url has not been updated, but an output command has
     AmbariMetaInfo metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
     RepositoryInfo repo = metaInfo.getRepository("HDP", "2.1.1", "redhat6", "HDP-2.1.1");
-    assertEquals("http://foo1", repo.getBaseUrl());
+    assertEquals("http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/BUILDS/2.1.1.0-118", repo.getBaseUrl());
+
+    // !!! verify that a command will return the correct host info
+    AmbariCustomCommandExecutionHelper helper = m_injector.getInstance(
+        AmbariCustomCommandExecutionHelper.class);
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    Host host = clusters.getHost("h1");
+    Cluster cluster = clusters.getCluster("c1");
+
+    String repoInfo = helper.getRepoInfo(cluster, host);
+
+    Gson gson = new Gson();
+
+    JsonElement element = gson.fromJson(repoInfo, JsonElement.class);
+    assertTrue(element.isJsonArray());
+
+    JsonArray list = JsonArray.class.cast(element);
+    assertEquals(1, list.size());
+
+    JsonObject o = list.get(0).getAsJsonObject();
+    assertTrue(o.has("baseUrl"));
+    assertEquals("http://foo1", o.get("baseUrl").getAsString());
   }
 
 

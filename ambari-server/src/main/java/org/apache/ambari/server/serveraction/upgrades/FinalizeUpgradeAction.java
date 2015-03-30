@@ -38,8 +38,6 @@ import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
-import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -205,18 +203,6 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       outSB.append(String.format("Will finalize the version for cluster %s.\n", clusterName));
       cluster.transitionClusterVersion(stackId, version, RepositoryVersionState.CURRENT);
-
-      // !!! update the stack-defined repo url
-      for (OperatingSystemEntity ose : upgradingClusterVersion.getRepositoryVersion().getOperatingSystems()) {
-        for (RepositoryEntity re : ose.getRepositories()) {
-          ambariMetaInfo.updateRepoBaseURL(
-              upgradingClusterVersion.getRepositoryVersion().getStackName(),
-              upgradingClusterVersion.getRepositoryVersion().getStackVersion(),
-              ose.getOsType(),
-              re.getRepositoryId(),
-              re.getBaseUrl());
-        }
-      }
 
       outSB.append("Upgrade was successful!\n");
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
