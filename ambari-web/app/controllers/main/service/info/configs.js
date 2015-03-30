@@ -165,6 +165,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Dropdown menu items in filter combobox
+   * @type {{attributeName: string, attributeValue: string, name: string, selected: boolean}[]}
    */
   filterColumns: function () {
     var filterColumns = [];
@@ -183,7 +184,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('propertyFilters', 'isCompareMode'),
 
   /**
-   * indicate wtether service config version belongs to default config group
+   * indicate whether service config version belongs to default config group
    * @method isVersionDefault
    * @param version
    * @return {Boolean}
@@ -202,26 +203,29 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * clear and set properties to default value
+   * @method clearStep
    */
   clearStep: function () {
     if (this.get('requestInProgress') && this.get('requestInProgress').readyState !== 4) {
       this.get('requestInProgress').abort();
       this.set('requestInProgress', null);
     }
-    this.set("saveInProgress", false);
-    this.set('modifiedFileNames', []);
-    this.set('isInit', true);
-    this.set('hash', null);
-    this.set('forceTransition', false);
-    this.set('dataIsLoaded', false);
-    this.set('versionLoaded', false);
-    this.set('filter', '');
+    this.setProperties({
+      saveInProgress: false,
+      modifiedFileNames: [],
+      isInit: true,
+      hash: null,
+      forceTransition: false,
+      dataIsLoaded: false,
+      versionLoaded: false,
+      filter: '',
+      loadedGroupToOverrideSiteToTagMap: {},
+      serviceConfigVersionNote: ''
+    });
     this.get('filterColumns').setEach('selected', false);
     this.get('stepConfigs').clear();
     this.get('allConfigs').clear();
     this.get('uiConfigs').clear();
-    this.set('loadedGroupToOverrideSiteToTagMap', {});
-    this.set('serviceConfigVersionNote', '');
     if (this.get('serviceConfigTags')) {
       this.set('serviceConfigTags', null);
     }
@@ -237,6 +241,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * {String}
    */
   hash: null,
+
   /**
    * Is this initial config group changing
    * {Boolean}
@@ -245,6 +250,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * On load function
+   * @method loadStep
    */
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
@@ -943,10 +949,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.get('stepConfigs').pushObject(serviceConfig);
     this.set('selectedService', this.get('stepConfigs').objectAt(0));
     this.checkForSecureConfig(this.get('selectedService'));
-    this.set('dataIsLoaded', true);
-    this.set('versionLoaded', true);
-    this.set('hash', this.getHash());
-    this.set('isInit', false);
+    this.setProperties({
+      dataIsLoaded: true,
+      versionLoaded: true,
+      hash: this.getHash(),
+      isInit: false
+    });
   },
 
   /**
@@ -1009,7 +1017,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var defaultGroupSelected = this.get('selectedConfigGroup.isDefault');
     configs.forEach(function (_serviceConfigProperty) {
       var serviceConfigProperty = this.createConfigProperty(_serviceConfigProperty, defaultGroupSelected);
-      componentConfig.configs.pushObject(serviceConfigProperty);
+      componentConfig.get('configs').pushObject(serviceConfigProperty);
       serviceConfigProperty.validate();
     }, this);
     componentConfig.set('initConfigsLength', componentConfig.get('configs.length'));
@@ -1025,10 +1033,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected) {
     if (!_serviceConfigProperty) return null;
 
-    var overrides = _serviceConfigProperty.overrides;
+    var overrides = Em.get(_serviceConfigProperty, 'overrides');
     // we will populate the override properties below
     Em.set(_serviceConfigProperty, 'overrides', null);
-    _serviceConfigProperty.isOverridable = Em.isNone(_serviceConfigProperty.isOverridable) ? true : _serviceConfigProperty.isOverridable;
+    Em.set(_serviceConfigProperty, 'isOverridable', Em.isNone(Em.get(_serviceConfigProperty, 'isOverridable')) ? true : Em.get(_serviceConfigProperty, 'isOverridable'));
 
     var serviceConfigProperty = App.ServiceConfigProperty.create(_serviceConfigProperty);
 
@@ -1144,14 +1152,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @returns {*}
    */
   createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
-    var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty);
-    newSCP.set('value', override.value);
-    newSCP.set('isFinal', override.isFinal);
-    newSCP.set('supportsFinal', serviceConfigProperty.get('supportsFinal'));
-    newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-    newSCP.set('parentSCP', serviceConfigProperty);
-    newSCP.set('overrides', null);
-    newSCP.set('group', Em.get(override, 'group'));
+    var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty, {
+      value: Em.get(override, 'value'),
+      isFinal: Em.get(override, 'isFinal'),
+      group: Em.get(override, 'group'),
+      supportsFinal: serviceConfigProperty.get('supportsFinal'),
+      isOriginalSCP: false,
+      parentSCP: serviceConfigProperty,
+      overrides: null
+    });
     if (defaultGroupSelected) {
       newSCP.set('isEditable', false);
     }
@@ -2562,26 +2571,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   showItemsShouldBeRestarted: function (content, header) {
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       content: content,
       header: header,
-      bodyClass: Em.View.extend({
-        templateName: require('templates/common/selectable_popup'),
-        textareaVisible: false,
-        textTrigger: function () {
-          this.set('textareaVisible', !this.get('textareaVisible'));
-        },
-        putContentToTextarea: function () {
-          var content = this.get('parentView.content');
-          if (this.get('textareaVisible')) {
-            var wrapper = $(".task-detail-log-maintext");
-            $('.task-detail-log-clipboard').html(content).width(wrapper.width()).height(wrapper.height());
-            Em.run.next(function () {
-              $('.task-detail-log-clipboard').select();
-            });
-          }
-        }.observes('textareaVisible')
-      }),
+      bodyClass: App.SelectablePopupBodyView,
       secondary: null
     });
   },
@@ -2601,13 +2594,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         serviceConfigProperty.set('overrides', overrides);
       }
       // create new override with new value
-      var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
-      newSCP.set('value', value || '');
-      newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
-      newSCP.set('parentSCP', serviceConfigProperty);
-      newSCP.set('isEditable', true);
-      newSCP.set('group', group);
-      newSCP.set('overrides', null);
+      var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty, {
+        value: value || '',
+        isOriginalSCP: false,
+        parentSCP: serviceConfigProperty,
+        isEditable: true,
+        group: group,
+        overrides: null
+      });
       console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
       overrides.pushObject(newSCP);
     }

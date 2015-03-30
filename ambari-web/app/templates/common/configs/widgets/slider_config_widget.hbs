@@ -17,8 +17,8 @@
 }}
 
 <div class="widget slider-widget">
-  {{#if view.config.isOriginalSCP}}
-    <p>{{view.configLabel}}</p>
+  {{#if view.isOriginalSCP}}
+    <p>{{formatWordBreak view.configLabel}}</p>
   {{/if}}
   <div>
     <div {{bindAttr class="view.isMirrorValueValid::error :control-group :pull-left"}}>
@@ -29,7 +29,7 @@
         {{/if}}
       </div>
     </div>
-    {{#if view.config.isOriginalSCP}}
+    {{#if view.isOriginalSCP}}
       {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
     {{/if}}
     {{#if view.overrideAllowed}}
@@ -48,7 +48,7 @@
   <div class="ui-slider-wrapper">
     {{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}
   </div>
-  {{#if view.config.overrides.length}}
+  {{#if view.isOriginalSCP}}
     {{view App.SliderConfigWidgetOverrideView
       serviceConfigPropertyBinding="view.config"
       isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"

@@ -30,6 +30,14 @@ App.ConfigWidgetView = Em.View.extend({
   config: null,
 
   /**
+   * Alias to <code>config.isOriginalSCP</code>
+   * Should be used in the templates
+   * Don't use original <code>config.isOriginalSCP</code> in the widget-templates!!!
+   * @type {boolean}
+   */
+  isOriginalSCPBinding: 'config.isOriginalSCP',
+
+  /**
    * Config name to display.
    * @type {String}
    */

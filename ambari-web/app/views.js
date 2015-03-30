@@ -51,6 +51,7 @@ require('views/common/configs/overriddenProperty_view');
 require('views/common/configs/compare_property_view');
 require('views/common/configs/config_history_flow');
 require('views/common/configs/restore_config_view');
+require('views/common/configs/selectable_popup_body_view');
 require('views/common/configs/custom_category_views/notification_configs_view');
 require('views/common/configs/widgets/config_widget_view');
 require('views/common/configs/widgets/checkbox_config_widget_view');

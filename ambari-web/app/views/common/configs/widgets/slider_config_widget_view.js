@@ -165,7 +165,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticksLabels.push(index % 2 === 0 ? tick + ' ' + unit : '');
     });
 
-    var slider = new Slider('#' + this.get('elementId') + ' input.slider-input', {
+    var slider = new Slider(this.$('input.slider-input')[0], {
       value: parseFunction(this.get('config.value')),
       ticks: ticks,
       tooltip: 'hide',
