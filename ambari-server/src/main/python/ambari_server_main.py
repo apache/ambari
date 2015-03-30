@@ -85,7 +85,7 @@ SERVER_START_CMD_DEBUG_WINDOWS = "{0} " \
     "-XX:+UseConcMarkSweepGC " \
     "{1} {2} " \
     "-Xdebug -Xrunjdwp:transport=dt_socket,address=5005,server=y,suspend={4} " \
-    "-cp {3}" \
+    "-cp {3} " \
     "org.apache.ambari.server.controller.AmbariServer"
 
 SERVER_INIT_TIMEOUT = 5
