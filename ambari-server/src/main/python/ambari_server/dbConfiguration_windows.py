@@ -294,8 +294,8 @@ class SQLServerConfig(DBMSConfig):
     pass
 
   @staticmethod
-  def _execute_db_script(databaseHost, databaseScript):
-    dbCmd = 'sqlcmd -S {0} -i {1}'.format(databaseHost, databaseScript)
+  def _execute_db_script(databaseHost, databaseScript, minReportedSeverityLevel=10):
+    dbCmd = 'sqlcmd -S {0} -b -V {1} -i {2}'.format(databaseHost, minReportedSeverityLevel, databaseScript)
     retCode, outData, errData = run_os_command(['cmd', '/C', dbCmd])
     if not retCode == 0:
       err = 'Running database create script failed. Error output: {0} Output: {1} Exiting.'.format(errData, outData)
