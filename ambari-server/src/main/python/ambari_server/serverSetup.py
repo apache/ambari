@@ -38,7 +38,7 @@ from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
-  SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY
+  SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
@@ -934,10 +934,23 @@ def expand_jce_zip_file(jce_zip_path, jdk_security_path):
     shutil.rmtree(dir_to_delete)
 
 
+def check_setup_already_done():
+  properties = get_ambari_properties()
+  if properties == -1:
+    print_error_msg("Error getting ambari properties")
+    return -1
+
+  return properties.get_property(JDK_NAME_PROPERTY) and properties.get_property(JDBC_DATABASE_PROPERTY)
+
 #
 # Setup the Ambari Server.
 #
 def setup(options):
+  if get_silent():
+    if check_setup_already_done():
+      print "Nothing was done. Please, use ambari-server setup command without [-s] key, to change configuration."
+      sys.exit(0)
+
   retcode = verify_setup_allowed()
   if not retcode == 0:
     raise FatalException(1, None)
