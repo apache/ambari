@@ -51,6 +51,11 @@ require('controllers/main/admin/highAvailability/resourceManager/step1_controlle
 require('controllers/main/admin/highAvailability/resourceManager/step2_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step3_controller');
 require('controllers/main/admin/highAvailability/resourceManager/step4_controller');
+require('controllers/main/admin/highAvailability/rangerAdmin/wizard_controller');
+require('controllers/main/admin/highAvailability/rangerAdmin/step1_controller');
+require('controllers/main/admin/highAvailability/rangerAdmin/step2_controller');
+require('controllers/main/admin/highAvailability/rangerAdmin/step3_controller');
+require('controllers/main/admin/highAvailability/rangerAdmin/step4_controller');
 require('controllers/main/admin/stack_and_upgrade_controller');
 require('controllers/main/admin/serviceAccounts_controller');
 require('controllers/main/admin/advanced');

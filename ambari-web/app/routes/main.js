@@ -674,6 +674,8 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
     enableRMHighAvailability: require('routes/rm_high_availability_routes'),
 
+    enableRAHighAvailability: require('routes/ra_high_availability_routes'),
+
     rollbackHighAvailability: require('routes/rollbackHA_routes')
   }),
 

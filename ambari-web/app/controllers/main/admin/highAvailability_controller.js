@@ -78,6 +78,15 @@ App.MainAdminHighAvailabilityController = Em.Controller.extend({
   },
 
   /**
+   * enable Ranger Admin High Availability
+   * @return {Boolean}
+   */
+  enableRAHighAvailability: function () {
+    App.router.transitionTo('main.services.enableRAHighAvailability');
+    return true;
+  },
+
+  /**
    * join or wrap message depending on whether it is array or string
    * @param message
    * @return {*}

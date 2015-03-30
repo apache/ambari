@@ -190,7 +190,7 @@ module.exports = Em.Application.create({
 
   /**
    * If ResourceManager High Availability is enabled
-   * Based on number of ResourceManager components host components installed
+   * Based on number of ResourceManager host components installed
    *
    * @type {bool}
    */
@@ -199,6 +199,21 @@ module.exports = Em.Application.create({
     var rmStackComponent = App.StackServiceComponent.find().findProperty('componentName','RESOURCEMANAGER');
     if (rmStackComponent && rmStackComponent.get('isMultipleAllowed')) {
       result = this.HostComponent.find().filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
+    }
+    return result;
+  }.property('router.clusterController.isLoaded', 'isStackServicesLoaded'),
+
+  /**
+   * If Ranger Admin High Availability is enabled
+   * Based on number of Ranger Admin host components installed
+   *
+   * @type {bool}
+   */
+  isRAHaEnabled: function () {
+    var result = false;
+    var raStackComponent = App.StackServiceComponent.find().findProperty('componentName','RANGER_ADMIN');
+    if (raStackComponent && raStackComponent.get('isMultipleAllowed')) {
+      result = App.HostComponent.find().filterProperty('componentName', 'RANGER_ADMIN').length > 1;
     }
     return result;
   }.property('router.clusterController.isLoaded', 'isStackServicesLoaded'),

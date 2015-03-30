@@ -148,6 +148,9 @@ App.MainServiceItemView = Em.View.extend({
           case 'YARN':
             options.push(actionMap.TOGGLE_RM_HA);
             break;
+          case 'RANGER':
+            options.push(actionMap.TOGGLE_RA_HA);
+            break;
         }
       }
       if (serviceCheckSupported) {

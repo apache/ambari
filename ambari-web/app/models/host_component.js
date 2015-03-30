@@ -283,6 +283,13 @@ App.HostComponentActionMap = {
         isHidden: App.get('isRMHaEnabled'),
         disabled: App.get('isSingleNode')
       },
+      TOGGLE_RA_HA: {
+        action: 'enableRAHighAvailability',
+        label: Em.I18n.t('admin.ra_highAvailability.button.enable'),
+        cssClass: 'icon-arrow-up',
+        isHidden: App.get('isRAHaEnabled'),
+        disabled: App.get('isSingleNode')
+      },
       MOVE_COMPONENT: {
         action: 'reassignMaster',
         context: '',

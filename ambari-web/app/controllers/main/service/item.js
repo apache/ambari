@@ -714,6 +714,11 @@ App.MainServiceItemController = Em.Controller.extend({
     ability_controller.enableRMHighAvailability();
   },
 
+  enableRAHighAvailability: function() {
+    var ability_controller = App.router.get('mainAdminHighAvailabilityController');
+    ability_controller.enableRAHighAvailability();
+  },
+
   downloadClientConfigs: function (event) {
     var component = this.get('content.clientComponents').rejectProperty('totalCount', 0)[0];
     componentsUtils.downloadClientConfigs.call(this, {

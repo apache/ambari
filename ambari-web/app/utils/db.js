@@ -43,6 +43,7 @@ var InitialData =  {
   },
   'HighAvailabilityWizard': {},
   'RMHighAvailabilityWizard': {},
+  'RAHighAvailabilityWizard': {},
   'RollbackHighAvailabilityWizard': {},
   'MainAdminStackAndUpgrade': {},
   'KerberosDisable': {},

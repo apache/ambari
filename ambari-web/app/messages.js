@@ -1022,6 +1022,7 @@ Em.I18n.translations = {
   'admin.highAvailability.button.disable':'Disable NameNode HA',
   'admin.rm_highAvailability.button.enable':'Enable ResourceManager HA',
   'admin.rm_highAvailability.button.disable':'Disable ResourceManager HA',
+  'admin.ra_highAvailability.button.enable':'Enable Ranger Admin HA',
   'admin.highAvailability.disabled':'NameNode HA is disabled',
   'admin.highAvailability.enabled':'NameNode HA is enabled',
   'admin.rm_highAvailability.disabled':'ResourceManager HA is disabled',
@@ -1199,6 +1200,14 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step4.task3.title': 'Start All Services',
   'admin.rm_highAvailability.wizard.step4.notice.inProgress':'Please wait while ResourceManager HA is being deployed.',
   'admin.rm_highAvailability.wizard.step4.notice.completed':'ResourceManager HA has been enabled successfully.',
+
+  'admin.ra_highAvailability.wizard.header': 'Enable Ranger Admin HA Wizard',
+  'admin.ra_highAvailability.wizard.step1.header': 'Get Started',
+  'admin.ra_highAvailability.wizard.step2.header': 'Select Hosts',
+  'admin.ra_highAvailability.wizard.step3.header': 'Review',
+  'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
+  'admin.ra_highAvailability.closePopup':'Enable Ranger Admin HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +
+  'If you choose to quit, you must follow manual instructions to complete or revert enabling Ranger Admin HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
   'admin.security.title':'Kerberos security has not been enabled',
   'admin.security.enabled': 'Kerberos security is enabled',

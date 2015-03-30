@@ -144,7 +144,7 @@ App.StackServiceComponent = DS.Model.extend({
    * @property {Boolean} isMasterAddableInstallerWizard
    **/
   isMasterAddableInstallerWizard: function() {
-    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 2;
+    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') === Infinity;
   }.property('componentName'),
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
