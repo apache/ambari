@@ -660,6 +660,25 @@ public class Configuration {
     return "true".equalsIgnoreCase(properties.getProperty(VIEWS_VALIDATE, VIEWS_VALIDATE_DEFAULT));
   }
 
+
+  /**
+   * @return conventional Java version number, e.g. 7.
+   * Integer is used here to simplify comparisons during usage.
+   * If java version is not supported, returns -1
+   */
+  public int getJavaVersion() {
+    String versionStr = System.getProperty("java.version");
+    if (versionStr.startsWith("1.6")) {
+      return 6;
+    } else if (versionStr.startsWith("1.7")) {
+      return 7;
+    } else if (versionStr.startsWith("1.8")) {
+      return 8;
+    } else { // Some unsupported java version
+      return -1;
+    }
+  }
+
   public File getBootStrapDir() {
     String fileName = properties.getProperty(BOOTSTRAP_DIR, BOOTSTRAP_DIR_DEFAULT);
     return new File(fileName);

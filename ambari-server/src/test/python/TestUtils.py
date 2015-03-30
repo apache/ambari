@@ -20,15 +20,18 @@ import StringIO
 import sys
 from unittest import TestCase
 from mock.mock import patch, MagicMock
-from ambari_commons.os_check import OSCheck
+from ambari_commons.os_check import OSCheck, OSConst
 
 utils = __import__('ambari_server.utils').utils
 
 
 class TestUtils(TestCase):
+
+  @patch.object(OSCheck, "get_os_family")
   @patch('os.listdir')
   @patch('os.path.isdir')
-  def test_get_ubuntu_pg_version(self, path_isdir_mock, os_listdir_mock):
+  def test_get_ubuntu_pg_version(self, path_isdir_mock, os_listdir_mock, get_os_family_mock):
+    get_os_family_mock.return_value = OSConst.UBUNTU_FAMILY
     path_isdir_mock.return_value = True
     os_listdir_mock.return_value = ['8.4', '9.1']
 

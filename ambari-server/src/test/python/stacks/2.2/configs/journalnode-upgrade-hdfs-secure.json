@@ -66,7 +66,8 @@
     "hostLevelParams": {
         "jdk_location": "http://c6406.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
-        "java_home": "/usr/jdk64/jdk1.7.0_67", 
+        "java_home": "/usr/jdk64/jdk1.7.0_67",
+        "java_version": "8",
         "ambari_db_rca_url": "jdbc:postgresql://c6406.ambari.apache.org/ambarirca", 
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
         "custom_command": "RESTART", 

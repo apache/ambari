@@ -16,7 +16,8 @@
         "ambari_db_rca_driver": "org.postgresql.Driver", 
         "jdk_name": "jdk-7u67-linux-x64.tar.gz",
         "ambari_db_rca_username": "mapred", 
-        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45",
+        "java_version": "8",
         "mysql_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//mysql-connector-java.jar",
         "db_name": "ambari"
     }, 

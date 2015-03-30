@@ -5,7 +5,8 @@
     "hostLevelParams": {
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
-        "java_home": "/usr/lib/jvm/java-1.6.0-openjdk.x86_64", 
+        "java_home": "/usr/lib/jvm/java-1.6.0-openjdk.x86_64",
+        "java_version": "8",
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
         "stack_name": "HDP", 
         "custom_command": "REBALANCEHDFS", 

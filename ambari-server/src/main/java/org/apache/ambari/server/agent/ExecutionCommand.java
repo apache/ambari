@@ -286,6 +286,7 @@ public class ExecutionCommand extends AgentCommand {
     String PACKAGE_LIST = "package_list";
     String JDK_LOCATION = "jdk_location";
     String JAVA_HOME = "java_home";
+    String JAVA_VERSION = "java_version";
     String JDK_NAME = "jdk_name";
     String JCE_NAME = "jce_name";
     String MYSQL_JDBC_URL = "mysql_jdbc_url";

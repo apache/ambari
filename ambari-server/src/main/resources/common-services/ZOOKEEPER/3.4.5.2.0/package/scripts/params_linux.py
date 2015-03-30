@@ -77,6 +77,7 @@ zk_principal_name = default("/configurations/zookeeper-env/zookeeper_principal_n
 zk_principal = zk_principal_name.replace('_HOST',hostname.lower())
 
 java64_home = config['hostLevelParams']['java_home']
+java_version = int(config['hostLevelParams']['java_version'])
 
 zookeeper_hosts = config['clusterHostInfo']['zookeeper_hosts']
 zookeeper_hosts.sort()
@@ -92,7 +93,7 @@ smokeuser_principal = config['configurations']['cluster-env']['smokeuser_princip
 kinit_path_local = functions.get_kinit_path()
 
 #log4j.properties
-if (('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j'])):
+if ('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j']):
   log4j_props = config['configurations']['zookeeper-log4j']['content']
 else:
   log4j_props = None

@@ -31,6 +31,7 @@ jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is a
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_name = default("/hostLevelParams/jdk_name", None)
 java_home = config['hostLevelParams']['java_home']
+java_version = int(config['hostLevelParams']['java_version'])
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 

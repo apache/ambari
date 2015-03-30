@@ -94,7 +94,12 @@ export OOZIE_CLIENT_OPTS="${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5 
 # This is needed so that Oozie does not run into OOM or GC Overhead limit
 # exceeded exceptions. If the oozie server is handling large number of
 # workflows/coordinator jobs, the memory settings may need to be revised
+
+{% if java_version &lt; 8 %}
 export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m -XX:MaxPermSize=256m "
+{% else %}
+export CATALINA_OPTS="${CATALINA_OPTS} -Xmx2048m"
+{% endif %}
     </value>
   </property>
 

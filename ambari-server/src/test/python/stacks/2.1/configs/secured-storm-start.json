@@ -33,7 +33,8 @@
     "hostLevelParams": {
         "jdk_location": "http://c6401.ambari.apache.org:8080/resources/", 
         "ambari_db_rca_password": "mapred", 
-        "java_home": "/usr/jdk64/jdk1.7.0_45", 
+        "java_home": "/usr/jdk64/jdk1.7.0_45",
+        "java_version": "8",
         "ambari_db_rca_url": "jdbc:postgresql://c6401.ambari.apache.org/ambarirca", 
         "jce_name": "UnlimitedJCEPolicyJDK7.zip", 
         "oracle_jdbc_url": "http://c6401.ambari.apache.org:8080/resources//ojdbc6.jar", 

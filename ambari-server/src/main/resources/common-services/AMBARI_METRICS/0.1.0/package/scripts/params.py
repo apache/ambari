@@ -81,6 +81,7 @@ metric_prop_file_name = "hadoop-metrics2-hbase.properties"
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
+java_version = int(config['hostLevelParams']['java_version'])
 
 metrics_collector_heapsize = default('/configurations/ams-env/metrics_collector_heapsize', "512m")
 

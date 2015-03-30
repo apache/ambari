@@ -73,6 +73,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.easymock.EasyMock.anyObject;
@@ -1773,6 +1774,7 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getJCEName()).andReturn(JCE_NAME);
     expect(configuration.getOjdbcJarName()).andReturn(OJDBC_JAR_NAME);
     expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
+    expect(configuration.getJavaVersion()).andReturn(8);
 
     replay(manager, clusters, cluster, injector, stackId, configuration);
 
@@ -1803,10 +1805,11 @@ public class AmbariManagementControllerImplTest {
 
     Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster);
 
-    assertEquals(defaultHostParams.size(), 10);
+    assertEquals(defaultHostParams.size(), 11);
     assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);
     assertEquals(defaultHostParams.get(STACK_NAME), SOME_STACK_NAME);
     assertEquals(defaultHostParams.get(STACK_VERSION), SOME_STACK_VERSION);
+    assertEquals(defaultHostParams.get(JAVA_VERSION), "8");
   }
 
   @Test

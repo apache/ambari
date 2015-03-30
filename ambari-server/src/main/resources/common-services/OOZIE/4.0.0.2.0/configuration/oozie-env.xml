@@ -92,8 +92,11 @@ export JRE_HOME=${JAVA_HOME}
 # Settings for the Embedded Tomcat that runs Oozie
 # Java System properties for Oozie should be specified in this variable
 #
+{% if java_version &lt; 8 %}
 export CATALINA_OPTS="$CATALINA_OPTS -Xmx{{oozie_heapsize}} -XX:MaxPermSize={{oozie_permsize}}"
-
+{% else %}
+export CATALINA_OPTS="$CATALINA_OPTS -Xmx{{oozie_heapsize}}"
+{% endif %}
 # Oozie configuration file to load from Oozie configuration directory
 #
 # export OOZIE_CONFIG_FILE=oozie-site.xml

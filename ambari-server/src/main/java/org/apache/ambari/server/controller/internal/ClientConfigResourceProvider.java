@@ -232,6 +232,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       TreeMap<String, String> hostLevelParams = new TreeMap<String, String>();
       hostLevelParams.put(JDK_LOCATION, managementController.getJdkResourceUrl());
       hostLevelParams.put(JAVA_HOME, managementController.getJavaHome());
+      hostLevelParams.put(JAVA_VERSION, String.valueOf(configs.getJavaVersion()));
       hostLevelParams.put(JDK_NAME, managementController.getJDKName());
       hostLevelParams.put(JCE_NAME, managementController.getJCEName());
       hostLevelParams.put(STACK_NAME, stackId.getStackName());

@@ -283,6 +283,7 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 
 #hadoop-env.sh
 java_home = config['hostLevelParams']['java_home']
+java_version = int(config['hostLevelParams']['java_version'])
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and not OSCheck.is_suse_family():
   # deprecated rhel jsvc_path
