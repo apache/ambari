@@ -35,6 +35,14 @@
     <name>hbase_regionserver_heapsize</name>
     <value>1024</value>
     <description>HBase RegionServer Heap Size.</description>
+    <display-name>HBase RegionServer Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1024</minimum>
+      <maximum>6554</maximum>
+      <unit>MB</unit>
+      <step-increment>250</step-increment>
+    </value-attributes>
   </property>
   <property>
     <name>hbase_regionserver_xmn_max</name>
@@ -50,6 +58,14 @@
     <name>hbase_master_heapsize</name>
     <value>1024</value>
     <description>HBase Master Heap Size</description>
+    <display-name>HBase Master Maximum Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1024</minimum>
+      <maximum>16384</maximum>
+      <unit>MB</unit>
+      <step-increment>250</step-increment>
+    </value-attributes>
   </property>
    <property>
     <name>hbase_user</name>

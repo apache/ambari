@@ -115,6 +115,15 @@ limitations under the License.
     <name>hive.security.authorization.enabled</name>
     <value>false</value>
     <description>enable or disable the hive client authorization</description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -128,6 +137,10 @@ limitations under the License.
     <name>hive.security.metastore.authorization.manager</name>
     <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider</value>
     <description>The authorization manager class name to be used in the metastore for authorization. The user-defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.  </description>
+    <display-name>Hive Authorization Manager</display-name>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
   </property>
 
   <property>
@@ -143,6 +156,15 @@ limitations under the License.
       submitted the query. But if the parameter is set to false, the query will run as the user that the hiveserver2
       process runs as.
     </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -155,6 +177,19 @@ limitations under the License.
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
+    <display-name>HiveServer2 Authentication</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>NONE</entries>
+      <entries>LDAP</entries>
+      <entries>KERBEROS</entries>
+      <entries>PAM</entries>
+      <entry_labels>None</entry_labels>
+      <entry_labels>Lightweight Directory Access Protocol</entry_labels>
+      <entry_labels>Kerberos</entry_labels>
+      <entry_labels>Pluggable Authentication Modules</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -173,6 +208,15 @@ limitations under the License.
     <name>hive.enforce.bucketing</name>
     <value>true</value>
     <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
+    <display-name>Enforce bucketing</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -242,11 +286,19 @@ limitations under the License.
 
   <property>
     <name>hive.auto.convert.join.noconditionaltask.size</name>
-    <value>1000000000</value>
+    <value>2147483648</value>
     <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
       is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
       converted to a mapjoin(there is no conditional task). The default is 10MB.
     </description>
+    <display-name>For Map Join, per Map memory threshold</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1073741824</minimum>
+      <maximum>17179869184</maximum>
+      <unit>B</unit>
+      <step-increment></step-increment>
+    </value-attributes>
   </property>
 
   <property>
@@ -279,9 +331,18 @@ limitations under the License.
 
   <property>
     <name>hive.vectorized.execution.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>This flag controls the vectorized mode of query execution as documented in HIVE-4160 (as of Hive 0.13.0)
     </description>
+    <display-name>Enable Vectorization and Map Vectorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -297,6 +358,15 @@ limitations under the License.
     <description>
     Whether to enable automatic use of indexes
     </description>
+    <display-name>Push Filters to Storage</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -335,4 +405,17 @@ limitations under the License.
     </description>
   </property>
 
+  <property>
+    <name>hive.default.fileformat</name>
+    <value>Text</value>
+    <description>Default file format for CREATE TABLE statement.</description>
+    <display-name>Default File Format</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>ORCFile</entries>
+      <entries>Text</entries>
+      <entry_descriptions>The Optimized Row Columnar (ORC) file format provides a highly efficient way to store Hive data. It was designed to overcome limitations of the other Hive file formats. Using ORC files improves performance when Hive is reading, writing, and processing data.</entry_descriptions>
+      <entry_descriptions>Text file format saves Hive data as normal text.</entry_descriptions>
+    </value-attributes>
+  </property>
 </configuration>

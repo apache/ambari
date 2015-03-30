@@ -361,6 +361,14 @@ limitations under the License.
     <name>hive.tez.container.size</name>
     <value>682</value>
     <description>By default, Tez uses the java options from map tasks. Use this property to override that value.</description>
+    <display-name>Tez Container Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>682</minimum>
+      <minimum>6820</minimum>
+      <unit>MB</unit>
+      <step-increment>682</step-increment>
+    </value-attributes>
   </property>
 
   <property>
@@ -383,6 +391,15 @@ limitations under the License.
       stored in metastore. For basic stats collection turn on the config hive.stats.autogather to true.
       For more advanced stats collection need to run analyze table queries.
     </description>
+    <display-name>Compute simple queries using stats only</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -446,12 +463,28 @@ limitations under the License.
     <name>hive.compactor.initiator.on</name>
     <value>false</value>
     <description>Whether to run the compactor's initiator thread in this metastore instance or not. If there is more than one instance of the thrift metastore this should only be set to true for one of them.</description>
+    <display-name>Run Compactor</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <entry_labels>True</entry_labels>
+      <entry_labels>False</entry_labels>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
     <name>hive.compactor.worker.threads</name>
     <value>0</value>
     <description>Number of compactor worker threads to run on this metastore instance. Can be different values on different metastore instances.</description>
+    <display-name>Number of threads used by Compactor</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>20</maximum>
+      <step-increment>1</step-increment>
+    </value-attributes>
   </property>
 
   <property>

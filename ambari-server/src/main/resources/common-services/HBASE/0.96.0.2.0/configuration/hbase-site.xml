@@ -84,22 +84,42 @@
     <description>Maximum size of all memstores in a region server before new
       updates are blocked and flushes are forced. Defaults to 40% of heap
     </description>
+    <display-name>% of RegionServer Allocated to Write Buffers</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>0.8</maximum>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.regionserver.handler.count</name>
-    <value>60</value>
+    <value>30</value>
     <description>Count of RPC Listener instances spun up on RegionServers.
     Same property is used by the Master for count of master handlers.
     Default is 10.
     </description>
+    <display-name>Number of Handlers per RegionServer</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>5</minimum>
+      <maximum>240</maximum>
+      <step-increment>1</step-increment>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction</name>
-    <value>86400000</value>
+    <value>604800000</value>
     <description>The time (in milliseconds) between 'major' compactions of all
     HStoreFiles in a region.  Default: 1 day.
     Set to 0 to disable automated major compactions.
     </description>
+    <display-name>Major Compaction Interval</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2592000000</maximum>
+      <unit>milliseconds</unit>
+    </value-attributes>
   </property>
   
   <property>
@@ -114,7 +134,7 @@
   </property>
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
-    <value>2</value>
+    <value>4</value>
     <description>Block updates if memstore has hbase.hregion.memstore.block.multiplier
     time hbase.hregion.flush.size bytes.  Useful preventing
     runaway memstore during spikes in update traffic.  Without an
@@ -122,6 +142,14 @@
     resultant flush files take a long time to compact or split, or
     worse, we OOME
     </description>
+    <display-name>Per-Column Family Memstore Block Multiplier</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>2</entries>
+      <entries>4</entries>
+      <entries>8</entries>
+      <selection_cardinality>1</selection_cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.memstore.flush.size</name>
@@ -131,6 +159,14 @@
     exceeds this number of bytes.  Value is checked by a thread that runs
     every hbase.server.thread.wakefrequency.
     </description>
+    <display-name>Per-Column Family Memstore Flush Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>32</minimum>
+      <maximum>256</maximum>
+      <step-increment>1</step-increment>
+      <unit>MB</unit>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.memstore.mslab.enabled</name>
@@ -144,12 +180,20 @@
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
-    <value>10737418240</value>
+    <value>1073741824</value>
     <description>
     Maximum HStoreFile size. If any one of a column families' HStoreFiles has
     grown to exceed this value, the hosting HRegion is split in two.
     Default: 1G.
     </description>
+    <display-name>Maximum Region File Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1073741824</minimum>
+      <maximum>10737418240</maximum>
+      <unit>B</unit>
+      <step-increment>268435456</step-increment>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.client.scanner.caching</name>
@@ -161,10 +205,17 @@
     Do not set this value such that the time between invocations is greater
     than the scanner timeout; i.e. hbase.regionserver.lease.period
     </description>
+    <display-name>Number of Fetched Rows when Scanning from Disk</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>100</minimum>
+      <maximum>10000</maximum>
+      <step-increment>100</step-increment>
+    </value-attributes>
   </property>
   <property>
     <name>zookeeper.session.timeout</name>
-    <value>30000</value>
+    <value>90000</value>
     <description>ZooKeeper session timeout.
       HBase passes this to the zk quorum as suggested maximum time for a
       session (This setting becomes zookeeper's 'maxSessionTimeout').  See
@@ -172,10 +223,18 @@
       "The client sends a requested timeout, the server responds with the
       timeout that it can give the client. " In milliseconds.
     </description>
+    <display-name>Zookeeper Session Timeout</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>10000</minimum>
+      <maximum>180000</maximum>
+      <unit>milliseconds</unit>
+      <step-increment>10000</step-increment>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.client.keyvalue.maxsize</name>
-    <value>10485760</value>
+    <value>1048576</value>
     <description>Specifies the combined maximum allowed size of a KeyValue
     instance. This is to set an upper boundary for a single entry saved in a
     storage file. Since they cannot be split it helps avoiding that a region
@@ -183,6 +242,14 @@
     to set this to a fraction of the maximum region size. Setting it to zero
     or less disables the check.
     </description>
+    <display-name>Maximum Record Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1048576</minimum>
+      <maximum>31457280</maximum>
+      <unit>B</unit>
+      <step-increment>262144</step-increment>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hstore.compactionThreshold</name>
@@ -193,6 +260,13 @@
     is run to rewrite all HStoreFiles files as one.  Larger numbers
     put off compaction but when it runs, it takes longer to complete.
     </description>
+    <display-name>Maximum Files in a Store before Compaction</display-name>
+    <value-attributes>
+      <type>int</type>
+      <entries>2</entries>
+      <entries>3</entries>
+      <entries>4</entries>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hstore.flush.retries.number</name>
@@ -220,6 +294,12 @@
         used by HFile/StoreFile. Default of 0.25 means allocate 25%.
         Set to 0 to disable but it's not recommended.
     </description>
+    <display-name>% of RegionServer Allocated to Read Buffers</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>0.8</maximum>
+    </value-attributes>
   </property>
 
   <!-- Additional configuration specific to HBase security -->
@@ -238,6 +318,13 @@
     <description>  Controls whether or not secure authentication is enabled for HBase. Possible values are 'simple'
       (no authentication), and 'kerberos'.
     </description>
+    <display-name>Enable Authentication</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <selection_cardinality>1</selection_cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -245,6 +332,13 @@
     <value>false</value>
     <description>Enables HBase authorization. Set the value of this property to false to disable HBase authorization.
     </description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>true</entries>
+      <entries>false</entries>
+      <selection_cardinality>1</selection_cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -315,11 +409,55 @@
       relative path, so they will all go under this directory unless changed.
     </description>
   </property>
-
+  <property>
+    <name>hbase.client.retries.number</name>
+    <value>35</value>
+    <description>Maximum retries.  Used as maximum for all retryable
+    operations such as the getting of a cell's value, starting a row update,
+    etc.  Retry interval is a rough function based on hbase.client.pause.  At
+    first we retry at this interval but then with backoff, we pretty quickly reach
+    retrying every ten seconds.  See HConstants#RETRY_BACKOFF for how the backup
+    ramps up.  Change this setting and hbase.client.pause to suit your workload.</description>
+    <display-name>Maximum Client Retries</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>5</minimum>
+      <maximum>50</maximum>
+      <step-increment>1</step-increment>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hbase.rpc.timeout</name>
+    <value>60000</value>
+    <description>This is for the RPC layer to define how long HBase client applications
+        take for a remote call to time out. It uses pings to check connections
+        but will eventually throw a TimeoutException.</description>
+    <display-name>HBase RPC Timeout</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>30000</minimum>
+      <maximum>300000</maximum>
+      <unit>milliseconds</unit>
+      <step-increment>10000</step-increment>
+    </value-attributes>
+  </property>
   <property>
     <name>hbase.defaults.for.version.skip</name>
     <value>true</value>
     <description>Disables version verification.</description>
+  </property>
+  <property>
+    <name>phoenix.query.timeoutMs</name>
+    <value>60000</value>
+    <description>Number of milliseconds after which a query will timeout on the client.</description>
+    <display-name>Phoenix Query Timeout</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>30000</minimum>
+      <maximum>300000</maximum>
+      <unit>milliseconds</unit>
+      <step-increment>10000</step-increment>
+    </value-attributes>
   </property>
 
   <property>

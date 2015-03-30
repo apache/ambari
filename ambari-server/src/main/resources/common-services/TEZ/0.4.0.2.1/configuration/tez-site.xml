@@ -168,6 +168,14 @@
     <description>Time (in seconds) for which the Tez AM should wait for a DAG to be submitted
       before shutting down
     </description>
+    <display-name>Max idle tez session length</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>600</minimum>
+      <maximum>86400</maximum>
+      <step-increment>600</step-increment>
+      <unit>seconds</unit>
+    </value-attributes>
   </property>
 
 
