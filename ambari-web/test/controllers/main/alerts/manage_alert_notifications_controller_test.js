@@ -356,7 +356,8 @@ describe('App.ManageAlertNotificationsController', function () {
               global: {},
               allGroups: {},
               SMTPPassword: {},
-              retypeSMTPPassword: {}
+              retypeSMTPPassword: {},
+              method: {}
             }
           }),
           groupSelect: Em.Object.create({
@@ -458,6 +459,33 @@ describe('App.ManageAlertNotificationsController', function () {
           expect(view.get('controller.inputFields.retypeSMTPPassword.errorMsg')).to.equal(null);
           expect(view.get('parentView.hasErrors')).to.be.false;
 
+        });
+
+      });
+
+      describe('#clearValidationErrors', function () {
+
+        var cases = [
+          {
+            method: 'EMAIL',
+            errors: ['portError']
+          },
+          {
+            method: 'SNMP',
+            errors: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError']
+          }
+        ];
+
+        cases.forEach(function (item) {
+          it(item.method, function () {
+            item.errors.forEach(function (errorName) {
+              view.set(errorName, true);
+            });
+            view.set('controller.inputFields.method.value', item.method);
+            item.errors.forEach(function (errorName) {
+              expect(view.get(errorName)).to.be.false;
+            });
+          });
         });
 
       });

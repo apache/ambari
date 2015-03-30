@@ -350,6 +350,21 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
           return this.get('controller.inputFields.method.value') === 'EMAIL';
         }.property('controller.inputFields.method.value'),
 
+        clearValidationErrors: function () {
+          var linkedErrorsMap = {
+              EMAIL: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError'],
+              SNMP: ['portError']
+            },
+            method = this.get('controller.inputFields.method.value');
+          Em.keys(linkedErrorsMap).forEach(function (name) {
+            if (name != method) {
+              linkedErrorsMap[name].forEach(function (key) {
+                this.set(key, false);
+              }, this);
+            }
+          }, this);
+        }.observes('controller.inputFields.method.value'),
+
         nameValidation: function () {
           var newName = this.get('controller.inputFields.name.value').trim();
           var errorMessage = '';
