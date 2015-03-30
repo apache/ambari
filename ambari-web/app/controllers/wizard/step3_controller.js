@@ -534,7 +534,8 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       // Single host : if the only hostname is invalid (data.status == 'ERROR')
       // Multiple hosts : if one or more hostnames are invalid
       // following check will mark the bootStatus as 'FAILED' for the invalid hostname
-      if (data.status == 'ERROR' || data.hostsStatus.length != this.get('bootHosts').length) {
+      var installedHosts = App.Host.find().mapProperty('hostName');
+      if (data.status == 'ERROR' || data.hostsStatus.mapProperty('hostName').removeObjects(installedHosts).length != this.get('bootHosts').length) {
 
         var hosts = this.get('bootHosts');
 
