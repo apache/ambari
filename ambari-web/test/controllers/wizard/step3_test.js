@@ -1083,28 +1083,28 @@ describe('App.WizardStep3Controller', function () {
           Em.Object.create({bootStatus: 'REGISTERED'}),
           Em.Object.create({bootStatus: 'RUNNING'})
         ],
-        e: {isSubmitDisabled: false, isRetryDisabled: true}
+        e: {isSubmitDisabled: false}
       },
       {
         bootHosts: [
           Em.Object.create({bootStatus: 'FAILED'}),
           Em.Object.create({bootStatus: 'RUNNING'})
         ],
-        e: {isSubmitDisabled: true, isRetryDisabled: false}
+        e: {isSubmitDisabled: true}
       },
       {
         bootHosts: [
           Em.Object.create({bootStatus: 'FAILED'}),
           Em.Object.create({bootStatus: 'REGISTERED'})
         ],
-        e: {isSubmitDisabled: false, isRetryDisabled: false}
+        e: {isSubmitDisabled: false}
       },
       {
         bootHosts: [
           Em.Object.create({bootStatus: 'RUNNING'}),
           Em.Object.create({bootStatus: 'RUNNING'})
         ],
-        e: {isSubmitDisabled: true, isRetryDisabled: true}
+        e: {isSubmitDisabled: true}
       }
     ]);
     tests.forEach(function (test) {
@@ -1112,7 +1112,6 @@ describe('App.WizardStep3Controller', function () {
         c.reopen({bootHosts: test.bootHosts});
         c.stopRegistration();
         expect(c.get('isSubmitDisabled')).to.equal(test.e.isSubmitDisabled);
-        expect(c.get('isRetryDisabled')).to.equal(test.e.isRetryDisabled);
       });
     });
 

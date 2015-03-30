@@ -68,7 +68,9 @@ App.WizardStep3Controller = Em.Controller.extend({
    * is Retry button disabled
    * @type {bool}
    */
-  isRetryDisabled: true,
+  isRetryDisabled: function() {
+    return (this.get('isBackDisabled')) ? this.get('isBackDisabled') : !this.get('bootHosts').filterProperty('bootStatus', 'FAILED').length;
+  }.property('bootHosts.@each.bootStatus', 'isBackDisabled'),
 
   /**
    * Is Back button disabled
@@ -216,7 +218,6 @@ App.WizardStep3Controller = Em.Controller.extend({
     this.set('registrationStartedAt', null);
     this.set('isLoaded', false);
     this.set('isSubmitDisabled', true);
-    this.set('isRetryDisabled', true);
     this.set('stopChecking', false);
   },
 
@@ -235,10 +236,10 @@ App.WizardStep3Controller = Em.Controller.extend({
     });
     App.router.get(this.get('content.controllerName')).launchBootstrap(bootStrapData, function (requestId) {
       if (requestId == '0') {
-        var controller = App.router.get(App.clusterStatus.wizardControllerName);
-        controller.registerErrPopup(Em.I18n.t('common.information'), Em.I18n.t('installer.step2.evaluateStep.hostRegInProgress'));
+        self.startBootstrap();
       } else if (requestId) {
         self.set('content.installOptions.bootRequestId', requestId);
+        App.router.get(self.get('content.controllerName')).save('installOptions');
         self.startBootstrap();
       }
     });
@@ -324,7 +325,8 @@ App.WizardStep3Controller = Em.Controller.extend({
    * @method removeHost
    */
   removeHost: function (hostInfo) {
-    this.removeHosts([hostInfo]);
+    if (!this.get('isBackDisabled'))
+      this.removeHosts([hostInfo]);
   },
 
   /**
@@ -411,7 +413,6 @@ App.WizardStep3Controller = Em.Controller.extend({
    */
   retrySelectedHosts: function () {
     if (!this.get('isRetryDisabled')) {
-      this.set('isRetryDisabled', true);
       var selectedHosts = this.get('bootHosts').filterProperty('bootStatus', 'FAILED');
       selectedHosts.forEach(function (_host) {
         _host.set('bootStatus', 'DONE');
@@ -1207,7 +1208,6 @@ App.WizardStep3Controller = Em.Controller.extend({
    */
   stopRegistration: function () {
     this.set('isSubmitDisabled', !this.get('bootHosts').someProperty('bootStatus', 'REGISTERED'));
-    this.set('isRetryDisabled', !this.get('bootHosts').someProperty('bootStatus', 'FAILED'));
   },
 
   /**
