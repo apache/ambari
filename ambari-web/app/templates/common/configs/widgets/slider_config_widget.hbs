@@ -23,7 +23,7 @@
   <div>
     <div {{bindAttr class="view.isMirrorValueValid::error :control-group :pull-left"}}>
       <div {{bindAttr class="view.config.stackConfigProperty.valueAttributes.unit:input-append"}}>
-        {{view Ember.TextField valueBinding="view.mirrorValue" class="input-mini" disabledBinding="view.disabled"}}
+        {{view view.MirrorValueView valueBinding="view.mirrorValue" class="input-mini" disabledBinding="view.disabled"}}
         {{#if view.config.stackConfigProperty.valueAttributes.unit}}
           <span class="add-on">{{view.config.stackConfigProperty.valueAttributes.unit}}</span>
         {{/if}}

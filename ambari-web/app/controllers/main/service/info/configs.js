@@ -1198,14 +1198,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method showWarningPopupsBeforeSave
    */
   showWarningPopupsBeforeSave: function() {
-    var displayName = this.get('content.displayName');
+    var self = this;
     if (this.isDirChanged()) {
-      App.showConfirmationPopup(this.restartServicePopup.bind(this),
-        Em.I18n.t('services.service.config.confirmDirectoryChange').format(displayName),
+      App.showConfirmationPopup(function() {
+        self.showChangedDependentConfigs(null, function() {
+          self.restartServicePopup();
+        });
+      },
+        Em.I18n.t('services.service.config.confirmDirectoryChange').format(self.get('content.displayName')),
         this.completeSave.bind(this)
       );
     } else {
-      this.restartServicePopup();
+      self.showChangedDependentConfigs(null, function() {
+        self.restartServicePopup();
+      });
     }
   },
 

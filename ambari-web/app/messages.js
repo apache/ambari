@@ -347,6 +347,8 @@ Em.I18n.translations = {
 
   'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
 
+  'popup.dependent.configs.dependencies.info': 'There are {0} configs was changed in {1} services.',
+
   'login.header':'Sign in',
   'login.username':'Username',
   'login.loginButton':'Sign in',

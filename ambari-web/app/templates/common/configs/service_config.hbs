@@ -83,6 +83,11 @@
 {{/if}}
 
 {{#if versionLoaded}}
+  {{#if hasChangedDependencies}}
+    <div class="alert alert-warning">
+      <span>{{dependenciesMessage}}</span> <a href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
+    </div>
+  {{/if}}
   {{#if view.supportsConfigLayout}}
     <ul class="nav nav-tabs">
       {{#each tab in view.tabs}}

@@ -22,6 +22,30 @@ var blueprintUtils = require('utils/blueprint');
 App.EnhancedConfigsMixin = Em.Mixin.create({
 
   /**
+   * this value is used for observing
+   * whether recommendations for dependent properties was received from server
+   * @type {number}
+   */
+  recommendationTimeStamp: null,
+
+  /**
+   * flag is true when Ambari changes some of the dependent properties
+   * @type {boolean}
+   */
+  hasChangedDependencies: function() {
+    return App.get('supports.enhancedConfigs') && this.get('_dependentConfigValues.length') > 0;
+  }.property('_dependentConfigValues.length'),
+
+  /**
+   * message fro alert box for dependent configs
+   * @type {string}
+   */
+  dependenciesMessage: function() {
+    var changedServices = this.get('changedProperties').mapProperty('serviceName').uniq();
+    return Em.I18n.t('popup.dependent.configs.dependencies.info').format( this.get('changedProperties.length'), changedServices.length);
+  }.property('changedProperties'),
+
+  /**
    * values for dependent configs
    * @type {Object[]}
    * ex:
@@ -38,6 +62,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   _dependentConfigValues: [],
 
+  /**
+   * dependent properties that was changed by Ambari
+   * @type {Object[]}
+   */
+  changedProperties: function() {
+    return this.get('_dependentConfigValues').filterProperty('saveRecommended', true);
+  }.property('_dependentConfigValues.@each.saveRecommended'),
   /**
    * dependent file names for configs
    * @type {string[]}
@@ -372,11 +403,20 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           dataToSend: dataToSend
         },
         success: 'dependenciesSuccess',
-        error: 'dependenciesError'
+        error: 'dependenciesError',
+        callback: this.onRecommendationsReceived.bind(this)
       });
     } else {
       return null;
     }
+  },
+
+  /**
+   * complete callback on <code>getRecommendationsForDependencies<code>
+   * @method onRecommendationsReceived
+   */
+  onRecommendationsReceived: function() {
+    this.set('recommendationTimeStamp', (new Date).getTime());
   },
 
   /**
@@ -391,18 +431,31 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     if (!this.get('selectedConfigGroup.isDefault')) {
       self.showSelectGroupsPopup(function () {
         self._saveRecommendedValues(data);
-        if (self.get('_dependentConfigValues.length') > 0) {
-          App.showDependentConfigsPopup(self.get('_dependentConfigValues'), function () {
-            self._saveDependentConfigs();
-          });
-        }
+        self._saveDependentConfigs();
       });
     } else {
       self._saveRecommendedValues(data);
-      if (self.get('_dependentConfigValues.length') > 0) {
-        App.showDependentConfigsPopup(self.get('_dependentConfigValues'), function () {
-          self._saveDependentConfigs();
-        });
+      self._saveDependentConfigs();
+    }
+  },
+
+  /**
+   * method to show popup with dependent configs
+   * @method showChangedDependentConfigs
+   */
+  showChangedDependentConfigs: function(event, callback) {
+    var self = this;
+    if (self.get('_dependentConfigValues.length') > 0) {
+      App.showDependentConfigsPopup(this.get('_dependentConfigValues'), function() {
+        self._saveDependentConfigs();
+        self._discardChanges();
+        if (callback) {
+          callback();
+        }
+      }, this._discardChanges.bind(this));
+    } else {
+      if (callback) {
+        callback();
       }
     }
   },
@@ -494,11 +547,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 if (!stepConfig.get('overrides')) {
                   stepConfig.set('overrides', Em.A([]));
                 }
-                var overridenConfig = stepConfig.get('overrides').findProperty('isEditable');
+                var overridenConfig = stepConfig.get('overrides').findProperty('group.name', Em.get(dependentConfig, 'configGroup'));
                 if (overridenConfig) {
                   overridenConfig.set('value', Em.get(dependentConfig, 'recommendedValue'));
                 } else {
-                  self.addOverrideProperty(stepConfig, self.get('selectedConfigGroup'), Em.get(dependentConfig, 'recommendedValue'));
+                  self.addOverrideProperty(stepConfig.set('isNotSaved', true), self.get('selectedConfigGroup'), Em.get(dependentConfig, 'recommendedValue'));
                 }
               }
             }
@@ -532,6 +585,66 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         }
       }
     });
+  },
+
+  /**
+   * opposite to <code>_saveDependentConfigs<code>
+   * restore values that was before applying changes for dependent configs
+   * do this action only for properties that has <code>saveRecommended<code> - false
+   * @private
+   */
+  _discardChanges: function () {
+    var self = this;
+    this.get('_dependentConfigValues').forEach(function(dependentConfig) {
+      if (!Em.get(dependentConfig, 'saveRecommended')) { // if saveRecommended is false leave properties as is
+        if (Em.get(dependentConfig, 'serviceName') === self.get('content.serviceName')) { //for current service save dependent properties to step configs
+          self.get('stepConfigs').objectAt(0).get('configs').forEach(function(stepConfig) {
+            if (stepConfig.get('filename') === App.config.getOriginalFileName(Em.get(dependentConfig, 'fileName'))
+              && stepConfig.get('name') === Em.get(dependentConfig, 'propertyName')) {
+              if (self.get('selectedConfigGroup.isDefault')) {
+                stepConfig.set('value', Em.get(dependentConfig, 'value'))
+              } else {
+                if (!stepConfig.get('overrides')) {
+                  stepConfig.set('overrides', Em.A([]));
+                }
+                var overridenConfig = stepConfig.get('overrides').findProperty('group.name', Em.get(dependentConfig, 'configGroup'));
+                if (overridenConfig) {
+                  if (overridenConfig.get('isNotSaved')) {
+                    stepConfig.get('overrides').removeObject(overridenConfig);
+                  } else {
+                    overridenConfig.set('value', Em.get(dependentConfig, 'value'));
+                  }
+                }
+              }
+            }
+          })
+        } else { //for not current service save dependent properties to model
+
+          App.ConfigProperty.find().forEach(function(cp) {
+            if (cp.get('name') === Em.get(dependentConfig, 'propertyName')
+              && cp.get('fileName') === App.config.getOriginalFileName(Em.get(dependentConfig, 'fileName'))) {
+
+              if (self.get('selectedConfigGroup.isDefault') || Em.get(dependentConfig, 'configGroup').contains('Default')) {
+                if (cp.get('isOriginalSCP')) {
+                  cp.set('value', Em.get(dependentConfig, 'value'))
+                }
+              } else {
+                if (cp.get('configVersion.groupName') === self.get('groupsToSave')[dependentConfig.serviceName]) {
+                  if (cp.get('isNotSaved')) {
+                    cp.deleteRecord();
+                    App.store.commit();
+                  } else {
+                    cp.set('value', Em.get(dependentConfig, 'value'));
+                  }
+                }
+              }
+
+            }
+          });
+        }
+      }
+    });
+    this.set('recommendationTimeStamp', (new Date).getTime());
   },
 
   /**
@@ -624,7 +737,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         if (configGroup.get('isDefault') || Em.isNone(stepConfig.get('overrides'))) {
           return stepConfig.get('value');
         } else {
-          var overridenConfig = stepConfig.get('overrides').findProperty('isEditable');
+          var overridenConfig = stepConfig.get('overrides').findProperty('group.name', configGroup.get('name'));
           if (overridenConfig) {
             return overridenConfig.get('value');
           } else {

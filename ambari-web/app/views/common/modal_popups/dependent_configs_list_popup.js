@@ -30,7 +30,7 @@ App.showDependentConfigsPopup = function (configs, callback, secondaryCallback) 
   return App.ModalPopup.show({
     encodeBody: false,
     primary: Em.I18n.t('common.save'),
-    secondary: Em.I18n.t('common.cancel'),
+    secondary: Em.I18n.t('common.discard'),
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['sixty-percent-width-modal','modal-full-width'],
     configs: configs,
