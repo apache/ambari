@@ -42,7 +42,7 @@ App.ServiceConfigView = Em.View.extend({
    * @returns {Boolean}
    */
   supportsConfigLayout: function() {
-    var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController'];
+    var supportedControllers = ['wizardStep7Controller', 'mainServiceInfoConfigsController', 'mainHostServiceConfigsController'];
     if (!App.get('supports.enhancedConfigs')) {
       return false;
     }
