@@ -60,6 +60,7 @@ require('views/common/configs/widgets/combo_config_widget_view');
 require('views/common/configs/widgets/number_config_widget_view');
 require('views/common/configs/widgets/password_config_widget_view');
 require('views/common/configs/widgets/list_config_widget_view');
+require('views/common/configs/widgets/radio_button_config_widget_view');
 require('views/common/configs/widgets/slider_config_widget_view');
 require('views/common/configs/widgets/string_config_widget_view');
 require('views/common/configs/widgets/time_interval_spinner_view');

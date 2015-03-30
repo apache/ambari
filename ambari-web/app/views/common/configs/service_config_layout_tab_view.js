@@ -37,7 +37,16 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
    * @type {object}
    */
   widgetTypeMap: {
-    slider: App.SliderConfigWidgetView
+    checkbox: App.CheckboxConfigWidgetView,
+    combo: App.ComboConfigWidgetView,
+    directory: App.DirectoryConfigWidgetView,
+    directories: App.DirectoryConfigWidgetView,
+    list: App.ListConfigWidgetView,
+    password: App.PasswordConfigWidgetView,
+    'radio-buttons': App.RadioButtonConfigWidgetView,
+    slider: App.SliderConfigWidgetView,
+    'time-interval-spinner': App.TimeIntervalSpinnerView,
+    toggle: App.ToggleConfigWidgetView
   },
 
   /**
