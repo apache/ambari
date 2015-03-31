@@ -288,7 +288,7 @@ describe('App.MainHostSummaryView', function() {
           ])
         }),
         services: ['HDFS', 'YARN', 'MAPREDUCE2'],
-        e: ['MAPREDUCE2_CLIENT', 'NODEMANAGER', 'YARN_CLIENT', 'CLIENTS'],
+        e: ['MAPREDUCE2_CLIENT', 'NODEMANAGER', 'YARN_CLIENT'],
         m: 'some components are already installed'
       },
       {
@@ -376,5 +376,103 @@ describe('App.MainHostSummaryView', function() {
       expect(mainHostSummaryView.get('clientsWithCustomCommands').length).to.eql(1);
       expect(mainHostSummaryView.get('clientsWithCustomCommands')).to.have.deep.property('[0].commands[0].command', 'CUSTOMCOMMAND');
     });
+  });
+
+  describe('#areClientsNotInstalled', function () {
+
+    var cases = [
+      {
+        clients: [
+          {
+            isInstallFailed: true
+          }
+        ],
+        installableClientComponents: [],
+        areClientsNotInstalled: true,
+        title: 'some clients failed to install, no clients to add'
+      },
+      {
+        clients: [
+          {
+            isInstallFailed: false
+          }
+        ],
+        installableClientComponents: [{}],
+        areClientsNotInstalled: true,
+        title: 'no clients failed to install, some clients to add'
+      },
+      {
+        clients: [
+          {
+            isInstallFailed: true
+          }
+        ],
+        installableClientComponents: [{}],
+        areClientsNotInstalled: true,
+        title: 'some clients failed to install, some clients to add'
+      },
+      {
+        clients: [
+          {
+            isInstallFailed: false
+          }
+        ],
+        installableClientComponents: [],
+        areClientsNotInstalled: false,
+        title: 'no clients failed to install, no clients to add'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        mainHostSummaryView.reopen({
+          clients: item.clients,
+          installableClientComponents: item.installableClientComponents
+        });
+        expect(mainHostSummaryView.get('areClientsNotInstalled')).to.equal(item.areClientsNotInstalled);
+      });
+    });
+
+  });
+
+  describe('#notInstalledClientComponents', function () {
+
+    it('should concat not added clients and the ones that failed to install', function () {
+      mainHostSummaryView.reopen({
+        clients: [
+          Em.Object.create({
+            componentName: 'c0',
+            workStatus: 'INIT'
+          }),
+          Em.Object.create({
+            componentName: 'c1',
+            workStatus: 'INSTALL_FAILED'
+          }),
+          Em.Object.create({
+            componentName: 'c2',
+            workStatus: 'INSTALLED'
+          })
+        ],
+        installableClientComponents: [
+          Em.Object.create({
+            componentName: 'c3'
+          })
+        ]
+      });
+      expect(mainHostSummaryView.get('notInstalledClientComponents')).to.eql([
+        Em.Object.create({
+          componentName: 'c0',
+          workStatus: 'INIT'
+        }),
+        Em.Object.create({
+          componentName: 'c1',
+          workStatus: 'INSTALL_FAILED'
+        }),
+        Em.Object.create({
+          componentName: 'c3'
+        })
+      ]);
+    });
+
   });
 });

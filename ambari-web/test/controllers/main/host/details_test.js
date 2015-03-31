@@ -493,6 +493,10 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#addClientComponent()', function () {
 
+    var component = Em.Object.create({
+      componentName: ' Comp1'
+    });
+
     beforeEach(function () {
       sinon.spy(App.ModalPopup, "show");
       sinon.stub(controller, "primary", Em.K);
@@ -504,11 +508,15 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('any CLIENT component', function () {
-      var component = Em.Object.create({'componentName': 'Comp1'});
       var popup = controller.addClientComponent(component);
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(controller.primary.calledWith(Em.Object.create({'componentName': 'Comp1'}))).to.be.true;
+      expect(controller.primary.calledWith(component)).to.be.true;
+    });
+
+    it('should launch primary method without confirmation', function () {
+      controller.addClientComponent(component, true);
+      expect(controller.primary.calledWith(component)).to.be.true;
     });
   });
 
@@ -532,6 +540,11 @@ describe('App.MainHostDetailsController', function () {
       controller.showBackgroundOperationsPopup.restore();
     });
 
+    it('data is null', function () {
+      var data = {Requests: null};
+      expect(controller.installNewComponentSuccessCallback(null, {}, {})).to.be.false;
+      expect(controller.showBackgroundOperationsPopup.called).to.be.false;
+    });
     it('data.Requests is null', function () {
       var data = {Requests: null};
       expect(controller.installNewComponentSuccessCallback(data, {}, {})).to.be.false;
@@ -2124,42 +2137,51 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
-  describe('#reinstallClients()', function () {
+  describe('#installClients()', function () {
     beforeEach(function () {
-      sinon.stub(controller, 'sendComponentCommand');
+      sinon.stub(controller, 'sendComponentCommand', Em.K);
+      sinon.stub(controller, 'addComponentWithCheck', Em.K);
     });
     afterEach(function () {
       controller.sendComponentCommand.restore();
+      controller.addComponentWithCheck.restore();
     });
-    it('No clients to install', function () {
-      var event = {context: [
-        Em.Object.create({
-          workStatus: 'INSTALLED'
-        })
-      ]};
-      controller.reinstallClients(event);
+    it('No clients to install, some clients to add', function () {
+      var event = {
+        context: [
+          Em.Object.create()
+        ]
+      };
+      controller.installClients(event);
       expect(controller.sendComponentCommand.called).to.be.false;
+      expect(controller.addComponentWithCheck.calledWith({
+        context: Em.Object.create()
+      }, true)).to.be.true;
     });
-    it('No clients to install', function () {
-      var event = {context: [
-        Em.Object.create({
-          workStatus: 'INSTALLED'
-        }),
-        Em.Object.create({
-          workStatus: 'INIT'
-        }),
-        Em.Object.create({
-          workStatus: 'INSTALL_FAILED'
-        })
-      ]};
-      controller.reinstallClients(event);
+    it('Some clients to install, no clients to add', function () {
+      var event = {
+        context: [
+          Em.Object.create({
+            workStatus: 'INSTALLED'
+          }),
+          Em.Object.create({
+            workStatus: 'INIT'
+          }),
+          Em.Object.create({
+            workStatus: 'INSTALL_FAILED'
+          })
+        ]
+      };
+      controller.installClients(event);
       expect(controller.sendComponentCommand.calledWith([
         Em.Object.create({
           workStatus: 'INIT'
         }),
         Em.Object.create({
           workStatus: 'INSTALL_FAILED'
-        })], Em.I18n.t('host.host.details.installClients'), 'INSTALLED')).to.be.true;
+        })
+      ], Em.I18n.t('host.host.details.installClients'), 'INSTALLED')).to.be.true;
+      expect(controller.addComponentWithCheck.called).to.be.false;
     });
   });
 

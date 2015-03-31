@@ -91,7 +91,7 @@
                         </a>
                       </li>
                       <li>
-                        <a href="javascript:void(null)" {{bindAttr class="view.areClientsInstallFailed::disabled" }} data-toggle="modal" {{action reinstallClients view.clients target="controller"}}>
+                        <a href="javascript:void(null)" {{bindAttr class="view.areClientsNotInstalled::disabled" }} data-toggle="modal" {{action installClients view.notInstalledClientComponents target="controller"}}>
                           {{t host.host.details.installClients}}
                         </a>
                       </li>

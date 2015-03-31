@@ -203,9 +203,9 @@ App.MainHostSummaryView = Em.View.extend({
    *
    * @type {bool}
    **/
-  areClientsInstallFailed: function() {
-    return this.get('clients').someProperty('isInstallFailed', true);
-  }.property('clients.@each.workStatus'),
+  areClientsNotInstalled: function() {
+    return this.get('clients').someProperty('isInstallFailed', true) || !!this.get('installableClientComponents.length');
+  }.property('clients.@each.workStatus', 'installableClientComponents.length'),
 
   /**
    * Check if some clients have stale configs
@@ -256,12 +256,18 @@ App.MainHostSummaryView = Em.View.extend({
     var clientComponents = App.StackServiceComponent.find().filterProperty('isClient');
     var installedServices = this.get('installedServices');
     var installedClients = this.get('clients').mapProperty('componentName');
-    var installableClients = clientComponents.filter(function(componentName) {
+    var installableClients = clientComponents.filter(function(component) {
       // service for current client is installed but client isn't installed on current host
-      return installedServices.contains(clientComponents.get('serviceName')) && !installedClients.contains(clientComponents.get('componentName'));
+      return installedServices.contains(component.get('serviceName')) && !installedClients.contains(component.get('componentName'));
     });
-    return installableClients.mapProperty('componentName');
+    return installableClients;
   }.property('content.hostComponents.length', 'installedServices.length'),
+
+  notInstalledClientComponents: function () {
+    return this.get('clients').filter(function(component) {
+      return ['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'));
+    }).concat(this.get('installableClientComponents'));
+  }.property('installableClientComponents.length', 'clients.length'),
 
   /**
    * List of components that may be added to the current host
@@ -270,7 +276,6 @@ App.MainHostSummaryView = Em.View.extend({
   addableComponents: function () {
     var components = [];
     var self = this;
-    var installableClients = this.get('installableClientComponents');
     var installedComponents = this.get('content.hostComponents').mapProperty('componentName');
     var addableToHostComponents = App.StackServiceComponent.find().filterProperty('isAddableToHost');
     var installedServices = this.get('installedServices');
@@ -283,9 +288,6 @@ App.MainHostSummaryView = Em.View.extend({
         components.pushObject(self.addableComponentObject.create({'componentName': addableComponent.get('componentName'), 'serviceName': addableComponent.get('serviceName')}));
       }
     });
-    if (installableClients.length > 0) {
-      components.pushObject(this.addableComponentObject.create({ 'componentName': 'CLIENTS', subComponentNames: installableClients }));
-    }
 
     return components;
   }.property('content.hostComponents.length', 'installableClientComponents', 'App.components.addableToHost.@each'),

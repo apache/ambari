@@ -432,18 +432,20 @@ App.MainHostDetailsController = Em.Controller.extend({
    * add component as <code>addComponent<code> method but perform
    * kdc sessionstate if cluster is secure;
    * @param event
+   * @param skipConfirmation
    */
-  addComponentWithCheck: function(event) {
+  addComponentWithCheck: function (event, skipConfirmation) {
     var componentName = event.context ? event.context.get('componentName') : "";
     event.hiveMetastoreHost = (componentName == "HIVE_METASTORE" && !!this.get('content.hostName')) ? this.get('content.hostName') : null;
-    App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
+    App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event, skipConfirmation));
   },
   /**
    * Send command to server to install selected host component
    * @param {object} event
+   * @param {boolean} skipConfirmation
    * @method addComponent
    */
-  addComponent: function (event) {
+  addComponent: function (event, skipConfirmation) {
     var
       returnFunc,
       self = this,
@@ -475,34 +477,41 @@ App.MainHostDetailsController = Em.Controller.extend({
         }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
         break;
       default:
-        returnFunc = this.addClientComponent(component);
+        returnFunc = this.addClientComponent(component, skipConfirmation);
       }
     return returnFunc;
   },
   /**
    * Send command to server to install client on selected host
    * @param component
+   * @param skipConfirmation
    */
-  addClientComponent: function (component) {
+  addClientComponent: function (component, skipConfirmation) {
     var self = this;
     var message = this.formatClientsMessage(component);
-    return App.ModalPopup.show({
-      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
-      header: Em.I18n.t('popup.confirmation.commonHeader'),
+    var returnFunction;
+    if (skipConfirmation) {
+      returnFunction = this.primary(component);
+    } else {
+      returnFunction = App.ModalPopup.show({
+        primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
+        header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-      addComponentMsg: function () {
-        return Em.I18n.t('hosts.host.addComponent.msg').format(message);
-      }.property(),
+        addComponentMsg: function () {
+          return Em.I18n.t('hosts.host.addComponent.msg').format(message);
+        }.property(),
 
-      bodyClass: Em.View.extend({
-        templateName: require('templates/main/host/details/addComponentPopup')
-      }),
+        bodyClass: Em.View.extend({
+          templateName: require('templates/main/host/details/addComponentPopup')
+        }),
 
-      onPrimary: function () {
-        this.hide();
-        self.primary(component);
-      }
-    });
+        onPrimary: function () {
+          this.hide();
+          self.primary(component);
+        }
+      });
+    }
+    return returnFunction;
   },
 
   /**
@@ -540,7 +549,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method installNewComponentSuccessCallbƒack
    */
   installNewComponentSuccessCallback: function (data, opt, params) {
-    if (!data.Requests || !data.Requests.id) {
+    if (!data || !data.Requests || !data.Requests.id) {
       return false;
     }
     var self = this;
@@ -1913,12 +1922,24 @@ App.MainHostDetailsController = Em.Controller.extend({
     });
   },
 
-  reinstallClients: function(event) {
-    var clientsToInstall = event.context.filter(function(component) {
-      return ['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'));
+  installClients: function(event) {
+    var clientsToInstall = [],
+      clientsToAdd = [];
+    event.context.forEach(function (component) {
+      if (['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'))) {
+        clientsToInstall.push(component);
+      } else if (typeof component.get('workStatus') == 'undefined') {
+        clientsToAdd.push(component);
+      }
     });
-    if (!clientsToInstall.length) return;
-    this.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
+    if (clientsToInstall.length) {
+      this.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
+    }
+    clientsToAdd.forEach(function (component) {
+      this.addComponentWithCheck({
+        context: component
+      }, true);
+    }, this);
   },
 
   /**
