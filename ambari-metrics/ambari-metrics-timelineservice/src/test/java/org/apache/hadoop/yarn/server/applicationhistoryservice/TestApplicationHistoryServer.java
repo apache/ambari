@@ -24,8 +24,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.service.Service.STATE;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
-  .timeline.DefaultPhoenixDataSource;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultPhoenixDataSource;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics
   .timeline.PhoenixHBaseAccessor;
 import org.apache.zookeeper.ClientCnxn;

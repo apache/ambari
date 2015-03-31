@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
 import org.apache.commons.io.FilenameUtils;
@@ -23,6 +23,10 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -31,17 +35,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_METRIC_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_MINUTE_CHECKPOINT_CUTOFF_MULTIPLIER;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_MINUTE_DISABLED;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_MINUTE_SLEEP_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.DEFAULT_CHECKPOINT_LOCATION;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.TIMELINE_METRICS_AGGREGATOR_CHECKPOINT_DIR;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_METRIC_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 /**
  * Aggregates a metric across all hosts in the cluster. Reads metrics from
@@ -55,8 +57,9 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   private final Long sleepIntervalMillis;
   public final int timeSliceIntervalMillis;
   private final Integer checkpointCutOffMultiplier;
-  private TimelineMetricReader timelineMetricReader =
-    new TimelineMetricReader(true);
+  private TimelineMetricReadHelper timelineMetricReadHelper = new TimelineMetricReadHelper(true);
+  // Aggregator to perform app-level aggregates for host metrics
+  private final TimelineMetricAppAggregator appAggregator;
 
   public TimelineMetricClusterAggregator(PhoenixHBaseAccessor hBaseAccessor,
                                          Configuration metricsConf) {
@@ -74,6 +77,8 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       (CLUSTER_AGGREGATOR_TIMESLICE_INTERVAL, 15));
     checkpointCutOffMultiplier =
       metricsConf.getInt(CLUSTER_AGGREGATOR_MINUTE_CHECKPOINT_CUTOFF_MULTIPLIER, 2);
+
+    appAggregator = new TimelineMetricAppAggregator(metricsConf);
   }
 
   @Override
@@ -85,11 +90,14 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   protected void aggregate(ResultSet rs, long startTime, long endTime)
     throws SQLException, IOException {
     List<Long[]> timeSlices = getTimeSlices(startTime, endTime);
+    // Initialize app aggregates for host metrics
+    appAggregator.init();
     Map<TimelineClusterMetric, MetricClusterAggregate>
       aggregateClusterMetrics = aggregateMetricsFromResultSet(rs, timeSlices);
 
     LOG.info("Saving " + aggregateClusterMetrics.size() + " metric aggregates.");
     hBaseAccessor.saveClusterAggregateRecords(aggregateClusterMetrics);
+    appAggregator.cleanup();
   }
 
   @Override
@@ -118,16 +126,14 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
     return timeSlices;
   }
 
-  private Map<TimelineClusterMetric, MetricClusterAggregate>
-  aggregateMetricsFromResultSet(ResultSet rs, List<Long[]> timeSlices)
-    throws SQLException, IOException {
+  private Map<TimelineClusterMetric, MetricClusterAggregate> aggregateMetricsFromResultSet(ResultSet rs, List<Long[]> timeSlices)
+      throws SQLException, IOException {
     Map<TimelineClusterMetric, MetricClusterAggregate> aggregateClusterMetrics =
       new HashMap<TimelineClusterMetric, MetricClusterAggregate>();
     // Create time slices
 
     while (rs.next()) {
-      TimelineMetric metric =
-        timelineMetricReader.getTimelineMetricFromResultSet(rs);
+      TimelineMetric metric = timelineMetricReadHelper.getTimelineMetricFromResultSet(rs);
 
       Map<TimelineClusterMetric, Double> clusterMetrics =
         sliceFromTimelineMetric(metric, timeSlices);
@@ -135,13 +141,14 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
       if (clusterMetrics != null && !clusterMetrics.isEmpty()) {
         for (Map.Entry<TimelineClusterMetric, Double> clusterMetricEntry :
             clusterMetrics.entrySet()) {
+
           TimelineClusterMetric clusterMetric = clusterMetricEntry.getKey();
-          MetricClusterAggregate aggregate = aggregateClusterMetrics.get(clusterMetric);
           Double avgValue = clusterMetricEntry.getValue();
 
+          MetricClusterAggregate aggregate = aggregateClusterMetrics.get(clusterMetric);
+
           if (aggregate == null) {
-            aggregate = new MetricClusterAggregate(avgValue, 1, null,
-              avgValue, avgValue);
+            aggregate = new MetricClusterAggregate(avgValue, 1, null, avgValue, avgValue);
             aggregateClusterMetrics.put(clusterMetric, aggregate);
           } else {
             aggregate.updateSum(avgValue);
@@ -149,9 +156,14 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
             aggregate.updateMax(avgValue);
             aggregate.updateMin(avgValue);
           }
+          // Update app level aggregates
+          appAggregator.processTimelineClusterMetric(clusterMetric,
+            metric.getHostName(), avgValue);
         }
       }
     }
+    // Add app level aggregates to save
+    aggregateClusterMetrics.putAll(appAggregator.getAggregateClusterMetrics());
     return aggregateClusterMetrics;
   }
 
@@ -166,7 +178,7 @@ public class TimelineMetricClusterAggregator extends AbstractTimelineAggregator 
   }
 
   @Override
-  protected boolean isDisabled() {
+  public boolean isDisabled() {
     return metricsConf.getBoolean(CLUSTER_AGGREGATOR_MINUTE_DISABLED, false);
   }
 

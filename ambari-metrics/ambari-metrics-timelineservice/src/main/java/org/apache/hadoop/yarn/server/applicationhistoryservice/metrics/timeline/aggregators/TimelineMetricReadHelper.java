@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
 
 import java.io.IOException;
 import java.sql.ResultSet;
@@ -26,13 +27,13 @@ import java.sql.SQLException;
 import java.util.Map;
 import java.util.TreeMap;
 
-public class TimelineMetricReader {
+public class TimelineMetricReadHelper {
 
   private boolean ignoreInstance = false;
 
-  public TimelineMetricReader() {}
+  public TimelineMetricReadHelper() {}
 
-  public TimelineMetricReader(boolean ignoreInstance) {
+  public TimelineMetricReadHelper(boolean ignoreInstance) {
     this.ignoreInstance = ignoreInstance;
   }
 

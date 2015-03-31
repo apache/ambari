@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -42,11 +42,11 @@ public class MetricHostAggregate extends MetricAggregate {
   }
 
   @JsonProperty("numberOfSamples")
-  long getNumberOfSamples() {
+  public long getNumberOfSamples() {
     return numberOfSamples == 0 ? 1 : numberOfSamples;
   }
 
-  void updateNumberOfSamples(long count) {
+  public void updateNumberOfSamples(long count) {
     this.numberOfSamples += count;
   }
 
@@ -61,7 +61,7 @@ public class MetricHostAggregate extends MetricAggregate {
   /**
    * Find and update min, max and avg for a minute
    */
-  void updateAggregates(MetricHostAggregate hostAggregate) {
+  public void updateAggregates(MetricHostAggregate hostAggregate) {
     updateMax(hostAggregate.getMax());
     updateMin(hostAggregate.getMin());
     updateSum(hostAggregate.getSum());

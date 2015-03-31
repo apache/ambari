@@ -20,6 +20,17 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricClusterAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregatorHourly;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +47,7 @@ import java.util.Map;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_AGGREGATE_MINUTE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createMetricHostAggregate;
@@ -90,7 +101,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
 
     // WHEN
     long endTime = ctime + minute;
-    PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
+    Condition condition = new DefaultCondition(
         Collections.singletonList("disk_free"), "local1", null, null, startTime,
         endTime, Precision.SECONDS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
@@ -125,7 +136,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
+    Condition condition = new DefaultCondition(
         Collections.singletonList("disk_free"), "local1", null, null, startTime,
         endTime, Precision.MINUTES, null, false);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
@@ -176,7 +187,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
+    Condition condition = new DefaultCondition(
         Collections.singletonList("disk_used"), "test_host", "test_app", null,
         startTime, endTime, Precision.HOURS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
@@ -217,7 +228,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
+    Condition condition = new DefaultCondition(
         Collections.singletonList("disk_free"), null, null, null,
         startTime, endTime, Precision.SECONDS, null, true);
     TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
@@ -259,7 +270,7 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertTrue(success);
 
     // WHEN
-    PhoenixTransactSQL.Condition condition = new PhoenixTransactSQL.DefaultCondition(
+    Condition condition = new DefaultCondition(
         Collections.singletonList("disk_used"), null, null, null,
         startTime, ctime + minute, Precision.HOURS, null, true);
     TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,

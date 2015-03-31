@@ -19,6 +19,8 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -53,7 +55,20 @@ public class MetricTestHelper {
                                                         double val) {
     TimelineMetrics m = new TimelineMetrics();
     m.setMetrics(Arrays.asList(
-        createTimelineMetric(startTime, metricName, host, instanceId, val)));
+        createTimelineMetric(startTime, metricName, host, null, instanceId, val)));
+
+    return m;
+  }
+
+  public static TimelineMetrics prepareSingleTimelineMetric(long startTime,
+                                                            String host,
+                                                            String appId,
+                                                            String instanceId,
+                                                            String metricName,
+                                                            double val) {
+    TimelineMetrics m = new TimelineMetrics();
+    m.setMetrics(Arrays.asList(
+      createTimelineMetric(startTime, metricName, host, appId, instanceId, val)));
 
     return m;
   }
@@ -62,11 +77,12 @@ public class MetricTestHelper {
   public static TimelineMetric createTimelineMetric(long startTime,
                                                 String metricName,
                                                 String host,
+                                                String appId,
                                                 String instanceId,
                                                 double val) {
     TimelineMetric m = new TimelineMetric();
-    m.setAppId("host");
     m.setHostName(host);
+    m.setAppId(appId != null ? appId : "host");
     m.setInstanceId(instanceId);
     m.setMetricName(metricName);
     m.setStartTime(startTime);

@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
 import org.codehaus.jackson.annotate.JsonCreator;
@@ -31,18 +31,18 @@ public class MetricClusterAggregate extends MetricAggregate {
   public MetricClusterAggregate() {
   }
 
-  MetricClusterAggregate(Double sum, int numberOfHosts, Double deviation,
+  public MetricClusterAggregate(Double sum, int numberOfHosts, Double deviation,
                          Double max, Double min) {
     super(sum, deviation, max, min);
     this.numberOfHosts = numberOfHosts;
   }
 
   @JsonProperty("numberOfHosts")
-  int getNumberOfHosts() {
+  public int getNumberOfHosts() {
     return numberOfHosts;
   }
 
-  void updateNumberOfHosts(int count) {
+  public void updateNumberOfHosts(int count) {
     this.numberOfHosts += count;
   }
 
@@ -53,7 +53,7 @@ public class MetricClusterAggregate extends MetricAggregate {
   /**
    * Find and update min, max and avg for a minute
    */
-  void updateAggregates(MetricClusterAggregate hostAggregate) {
+  public void updateAggregates(MetricClusterAggregate hostAggregate) {
     updateMax(hostAggregate.getMax());
     updateMin(hostAggregate.getMin());
     updateSum(hostAggregate.getSum());
@@ -62,7 +62,6 @@ public class MetricClusterAggregate extends MetricAggregate {
 
   @Override
   public String toString() {
-//    MetricClusterAggregate
     return "MetricAggregate{" +
       "sum=" + sum +
       ", numberOfHosts=" + numberOfHosts +

@@ -19,27 +19,35 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricClusterAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetricReader;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregatorHourly;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.Condition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.DefaultCondition;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
-import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.createEmptyTimelineClusterMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   private Connection conn;
@@ -126,8 +134,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
 
 
   @Test
-  public void testShouldAggregateClusterIgnoringInstance() throws
-    Exception {
+  public void testShouldAggregateClusterIgnoringInstance() throws Exception {
     // GIVEN
     TimelineMetricClusterAggregator agg =
       new TimelineMetricClusterAggregator(hdb, new Configuration());
@@ -368,6 +375,57 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     }
 
     assertEquals("Two hourly aggregated row expected ", 2, count);
+  }
+
+  @Test
+  public void testAppLevelHostMetricAggregates() throws Exception {
+    Configuration conf = new Configuration();
+    conf.set(CLUSTER_AGGREGATOR_APP_IDS, "app1");
+    TimelineMetricClusterAggregator agg = new TimelineMetricClusterAggregator(hdb, conf);
+
+    long startTime = System.currentTimeMillis();
+    long ctime = startTime;
+    long minute = 60 * 1000;
+    hdb.insertMetricRecords(prepareSingleTimelineMetric((ctime), "local1",
+      "app1", null, "app_metric_random", 1));
+    ctime += 10;
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "cpu_user", 1));
+    ctime += 10;
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "cpu_user", 2));
+
+    // WHEN
+    long endTime = ctime + minute;
+    boolean success = agg.doWork(startTime, endTime);
+
+    //THEN
+    Condition condition = new DefaultCondition(
+      Collections.singletonList("cpu_user"), null, "app1", null,
+      startTime, endTime, null, null, true);
+    condition.setStatement(String.format(GET_CLUSTER_AGGREGATE_SQL,
+      PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
+      METRICS_CLUSTER_AGGREGATE_TABLE_NAME));
+
+    PreparedStatement pstmt = PhoenixTransactSQL.prepareGetMetricsSqlStmt
+      (conn, condition);
+    ResultSet rs = pstmt.executeQuery();
+
+    int recordCount = 0;
+    TimelineClusterMetric currentMetric = null;
+    MetricClusterAggregate currentHostAggregate = null;
+    while (rs.next()) {
+      currentMetric = metricReader.fromResultSet(rs);
+      currentHostAggregate = PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
+      recordCount++;
+    }
+    Assert.assertEquals(4, recordCount);
+    assertNotNull(currentMetric);
+    assertEquals("cpu_user", currentMetric.getMetricName());
+    assertEquals("app1", currentMetric.getAppId());
+    assertNotNull(currentHostAggregate);
+    assertEquals(1, currentHostAggregate.getNumberOfHosts());
+    assertEquals(1.0d, currentHostAggregate.getSum());
   }
 
   private ResultSet executeQuery(String query) throws SQLException {

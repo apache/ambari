@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 public class TimelineClusterMetric {
   private String metricName;
@@ -24,7 +24,7 @@ public class TimelineClusterMetric {
   private long timestamp;
   private String type;
 
-  TimelineClusterMetric(String metricName, String appId, String instanceId,
+  public TimelineClusterMetric(String metricName, String appId, String instanceId,
                         long timestamp, String type) {
     this.metricName = metricName;
     this.appId = appId;
@@ -33,23 +33,23 @@ public class TimelineClusterMetric {
     this.type = type;
   }
 
-  String getMetricName() {
+  public String getMetricName() {
     return metricName;
   }
 
-  String getAppId() {
+  public String getAppId() {
     return appId;
   }
 
-  String getInstanceId() {
+  public String getInstanceId() {
     return instanceId;
   }
 
-  long getTimestamp() {
+  public long getTimestamp() {
     return timestamp;
   }
 
-  String getType() { return type; }
+  public String getType() { return type; }
 
   @Override
   public boolean equals(Object o) {

@@ -15,15 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.util.Clock;
 import org.apache.hadoop.yarn.util.SystemClock;
-
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
@@ -31,7 +33,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
-
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.AGGREGATOR_CHECKPOINT_DELAY;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.RESULTSET_FETCH_SIZE;
@@ -80,7 +81,7 @@ public abstract class AbstractTimelineAggregator implements Runnable {
   /**
    * Access relaxed for tests
    */
-  protected long runOnce(Long SLEEP_INTERVAL) {
+  public long runOnce(Long SLEEP_INTERVAL) {
     long currentTime = clock.getTime();
     long lastCheckPointTime = readLastCheckpointSavingOnFirstRun(currentTime);
     long sleepTime = SLEEP_INTERVAL;
@@ -193,13 +194,12 @@ public abstract class AbstractTimelineAggregator implements Runnable {
    * @param startTime Sample start time
    * @param endTime Sample end time
    */
-  protected boolean doWork(long startTime, long endTime) {
+  public boolean doWork(long startTime, long endTime) {
     LOG.info("Start aggregation cycle @ " + new Date() + ", " +
       "startTime = " + new Date(startTime) + ", endTime = " + new Date(endTime));
 
     boolean success = true;
-    PhoenixTransactSQL.Condition condition =
-      prepareMetricQueryCondition(startTime, endTime);
+    Condition condition = prepareMetricQueryCondition(startTime, endTime);
 
     Connection conn = null;
     PreparedStatement stmt = null;
@@ -251,8 +251,7 @@ public abstract class AbstractTimelineAggregator implements Runnable {
     return success;
   }
 
-  protected abstract PhoenixTransactSQL.Condition
-  prepareMetricQueryCondition(long startTime, long endTime);
+  protected abstract Condition prepareMetricQueryCondition(long startTime, long endTime);
 
   protected abstract void aggregate(ResultSet rs, long startTime, long endTime)
     throws IOException, SQLException;
@@ -265,7 +264,7 @@ public abstract class AbstractTimelineAggregator implements Runnable {
     return getCheckpointCutOffMultiplier() * getSleepIntervalMillis();
   }
 
-  protected abstract boolean isDisabled();
+  public abstract boolean isDisabled();
 
   protected abstract String getCheckpointLocation();
 }

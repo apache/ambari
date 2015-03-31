@@ -18,6 +18,9 @@
 package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AbstractTimelineAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.apache.hadoop.yarn.util.Clock;
 import org.junit.Before;
 import org.junit.Test;
@@ -59,7 +62,7 @@ public class AbstractTimelineAggregatorTest {
     agg = new AbstractTimelineAggregator(
       null, metricsConf, clock) {
       @Override
-      protected boolean doWork(long startTime, long endTime) {
+      public boolean doWork(long startTime, long endTime) {
         startTimeInDoWork.set(startTime);
         endTimeInDoWork.set(endTime);
         actualRuns++;
@@ -68,7 +71,7 @@ public class AbstractTimelineAggregatorTest {
       }
 
       @Override
-      protected PhoenixTransactSQL.Condition
+      protected Condition
       prepareMetricQueryCondition(long startTime, long endTime) {
         return null;
       }
@@ -89,7 +92,7 @@ public class AbstractTimelineAggregatorTest {
       }
 
       @Override
-      protected boolean isDisabled() {
+      public boolean isDisabled() {
         return false;
       }
 

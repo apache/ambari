@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline;
+package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators;
 
 
 import org.apache.hadoop.classification.InterfaceAudience;
@@ -52,39 +52,39 @@ public class MetricAggregate {
     this.min = min;
   }
 
-  void updateSum(Double sum) {
+  public void updateSum(Double sum) {
     this.sum += sum;
   }
 
-  void updateMax(Double max) {
+  public void updateMax(Double max) {
     if (max > this.max) {
       this.max = max;
     }
   }
 
-  void updateMin(Double min) {
+  public void updateMin(Double min) {
     if (min < this.min) {
       this.min = min;
     }
   }
 
   @JsonProperty("sum")
-  Double getSum() {
+  public Double getSum() {
     return sum;
   }
 
   @JsonProperty("deviation")
-  Double getDeviation() {
+  public Double getDeviation() {
     return deviation;
   }
 
   @JsonProperty("max")
-  Double getMax() {
+  public Double getMax() {
     return max;
   }
 
   @JsonProperty("min")
-  Double getMin() {
+  public Double getMin() {
     return min;
   }
 
