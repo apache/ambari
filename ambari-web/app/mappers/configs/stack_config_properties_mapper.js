@@ -22,7 +22,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   config: {
     id: 'id',
     name: 'StackConfigurations.property_name',
-    display_name: 'StackConfigurations.property_name',
+    display_name: 'StackConfigurations.property_display_name',
     file_name: 'StackConfigurations.type',
     description: 'StackConfigurations.property_description',
     default_value: 'StackConfigurations.property_value',

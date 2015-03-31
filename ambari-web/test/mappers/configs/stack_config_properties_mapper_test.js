@@ -45,6 +45,7 @@ describe('App.stackConfigPropertiesMapper', function () {
               "final" : "false",
               "property_description" : "desc1",
               "property_name" : "p1",
+              "property_display_name" : "P1",
               "property_type" : [ ],
               "property_value" : "v1",
               "service_name" : "s1",
@@ -95,6 +96,7 @@ describe('App.stackConfigPropertiesMapper', function () {
               "final" : "false",
               "property_description" : "desc3",
               "property_name" : "p2",
+              "property_display_name" : "P2",
               "property_type" : [ ],
               "property_value" : "v2",
               "service_name" : "s2",
@@ -108,6 +110,7 @@ describe('App.stackConfigPropertiesMapper', function () {
               "final" : "false",
               "property_description" : "desc3",
               "property_name" : "p3",
+              "property_display_name" : "P3",
               "property_type" : [ ],
               "property_value" : "v3",
               "service_name" : "s2",
@@ -139,7 +142,7 @@ describe('App.stackConfigPropertiesMapper', function () {
       expect(App.StackConfigProperty.find().mapProperty('id')).to.eql(['p1_site1','p2_site2','p3_site3']);
 
       expect(App.StackConfigProperty.find('p1_site1').get('name')).to.eql('p1');
-      expect(App.StackConfigProperty.find('p1_site1').get('displayName')).to.eql('p1');
+      expect(App.StackConfigProperty.find('p1_site1').get('displayName')).to.eql('P1');
       expect(App.StackConfigProperty.find('p1_site1').get('description')).to.eql('desc1');
       expect(App.StackConfigProperty.find('p1_site1').get('defaultValue')).to.eql('v1');
       expect(App.StackConfigProperty.find('p1_site1').get('defaultIsFinal')).to.be.false;
