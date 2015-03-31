@@ -23,6 +23,8 @@ App.InstallerController = App.WizardController.extend({
 
   name: 'installerController',
 
+  isCheckInProgress: false,
+
   totalSteps: 11,
 
   content: Em.Object.create({
@@ -513,6 +515,7 @@ App.InstallerController = App.WizardController.extend({
             repo.set('errorTitle', '');
             repo.set('errorContent', '');
             repo.set('validation', App.Repository.validation['INPROGRESS']);
+            this.set('content.isCheckInProgress', true);
             App.ajax.send({
               name: 'wizard.advanced_repositories.valid_url',
               sender: this,
@@ -554,6 +557,7 @@ App.InstallerController = App.WizardController.extend({
     }
     this.set('validationCnt', this.get('validationCnt') - 1);
     if (!this.get('validationCnt')) {
+      this.set('content.isCheckInProgress', false);
       data.dfd.resolve();
     }
   },
@@ -573,6 +577,7 @@ App.InstallerController = App.WizardController.extend({
         repo.set('errorContent', $.parseJSON(request.responseText) ? $.parseJSON(request.responseText).message : "");
       }
     }
+    this.set('content.isCheckInProgress', false);
     params.dfd.reject();
   },
 

@@ -283,60 +283,78 @@ describe('App.WizardStep1View', function () {
         invalidFormatUrlExist: false,
         isNoOsChecked: false,
         invalidUrlExist: false,
+        checkInProgress: false,
         e: false
       },
       {
         invalidFormatUrlExist: true,
         isNoOsChecked: false,
         invalidUrlExist: false,
+        checkInProgress: false,
         e: true
       },
       {
         invalidFormatUrlExist: false,
         isNoOsChecked: true,
         invalidUrlExist: false,
+        checkInProgress: false,
         e: true
       },
       {
         invalidFormatUrlExist: false,
         isNoOsChecked: false,
         invalidUrlExist: true,
+        checkInProgress: false,
         e: true
       },
       {
         invalidFormatUrlExist: true,
         isNoOsChecked: false,
         invalidUrlExist: true,
+        checkInProgress: false,
         e: true
       },
       {
         invalidFormatUrlExist: true,
         isNoOsChecked: true,
         invalidUrlExist: false,
+        checkInProgress: false,
         e: true
       },
       {
         invalidFormatUrlExist: false,
         isNoOsChecked: true,
         invalidUrlExist: true,
+        checkInProgress: false,
         e: true
       },
       {
         invalidFormatUrlExist: true,
         isNoOsChecked: true,
         invalidUrlExist: true,
+        checkInProgress: false,
+        e: true
+      },
+      {
+        invalidFormatUrlExist: true,
+        isNoOsChecked: false,
+        invalidUrlExist: false,
+        checkInProgress: true,
         e: true
       }
     ]);
 
     tests.forEach(function (test) {
-      it(test.invalidFormatUrlExist.toString() + ' ' + test.isNoOsChecked.toString() + ' ' + test.invalidUrlExist.toString(), function () {
+      it(test.invalidFormatUrlExist.toString() + ' ' + test.isNoOsChecked.toString() + ' ' + test.invalidUrlExist.toString()+ ' ' + test.checkInProgress.toString(), function () {
         view = App.WizardStep1View.create();
         view.reopen({
           invalidFormatUrlExist: test.invalidFormatUrlExist,
           isNoOsChecked: test.isNoOsChecked,
           invalidUrlExist: test.invalidUrlExist
         });
+        view.set('controller', {});
+        view.set('controller.content', {});
+        view.set('controller.content.isCheckInProgress', test.checkInProgress);
         expect(view.get('isSubmitDisabled')).to.equal(test.e);
       });
     });

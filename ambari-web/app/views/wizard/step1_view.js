@@ -84,8 +84,8 @@ App.WizardStep1View = Em.View.extend({
    * @type {bool}
    */
   isSubmitDisabled: function () {
-    return this.get('invalidFormatUrlExist') || this.get('isNoOsChecked') || this.get('invalidUrlExist');
-  }.property('invalidFormatUrlExist', 'isNoOsChecked', 'invalidUrlExist'),
+    return this.get('invalidFormatUrlExist') || this.get('isNoOsChecked') || this.get('invalidUrlExist') || this.get('controller.content.isCheckInProgress');
+  }.property('invalidFormatUrlExist', 'isNoOsChecked', 'invalidUrlExist', 'controller.content.isCheckInProgress'),
 
   /**
    * Verify if some invalid repo-urls exist

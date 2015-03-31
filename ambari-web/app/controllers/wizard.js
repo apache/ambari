@@ -345,6 +345,11 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       }
     }
 
+    var clusterStatus = {
+      status: 'PENDING'
+    };
+    this.saveClusterStatus(clusterStatus);
+
     App.ajax.send({
       name: isRetry ? 'common.host_components.update' : 'common.services.update',
       sender: this,

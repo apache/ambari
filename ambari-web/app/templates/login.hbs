@@ -25,9 +25,9 @@
   </div>
   {{/if}}
   <label>{{t login.username}}</label>
-  {{view view.loginTextField valueBinding="loginName" class="span4"}}
+  {{view view.loginTextField valueBinding="loginName" class="span4" disabledBinding="isSubmitDisabled"}}
   <label>{{t common.password}}</label>
-  {{view view.passTextField type="password" valueBinding="password" class="span4"}}
-    <button class="btn btn-success login-btn" {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
+  {{view view.passTextField type="password" valueBinding="password" class="span4" disabledBinding="isSubmitDisabled"}}
+    <button class="btn btn-success login-btn" {{bindAttr disabled="isSubmitDisabled"}} {{action "submit" target="controller"}}>{{t login.loginButton}}</button>
 </div>
 {{/unless}}
