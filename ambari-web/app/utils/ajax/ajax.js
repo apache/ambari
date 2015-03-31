@@ -2413,6 +2413,11 @@ var urls = {
     mock: '/data/widget_layouts/HBASE/empty_user_layout.json'
   },
 
+  'widgets.layouts.get': {
+    real: '/users?widget_layouts/section_name={sectionName}&widget_layouts/scope=CLUSTER',
+    mock: '/data/widget_layouts/HBASE/layouts.json'
+  },
+
   'widgets.serviceComponent.metrics.get': {
     real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={widgetIds}',
     mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'

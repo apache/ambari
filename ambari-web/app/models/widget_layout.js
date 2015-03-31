@@ -20,8 +20,10 @@ var App = require('app');
 
 App.WidgetLayout = DS.Model.extend({
   layoutName: DS.attr('string'),
-  sectionName:DS.attr('string'),
-  widgetLayoutInfo: DS.attr('string')
+  sectionName: DS.attr('string'),
+  widgetLayoutInfo: DS.attr('string'),
+  scope: DS.attr('string'),
+  user: DS.attr('string')
 });
 
 

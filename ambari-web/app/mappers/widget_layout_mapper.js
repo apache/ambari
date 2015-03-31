@@ -16,31 +16,14 @@
  * limitations under the License.
  */
 
-#widget_layout {
-  .widget {
-    .title {
-      padding: 5px 0 0 5px;
-      height: 25px;
-      font-weight: bold;
-      text-align: left;
-    }
-    .content {
-      text-align: center;
-      color: #5ab400;
-      padding-top: 35px;
-      font-weight: bold;
-      font-size: 35px;
-    }
-    .template-widget {
-      height: 150px;
-      width: 90%;
-    }
-    .gauge-widget {
-      height: 150px;
-      width: 90%;
-      .content {
-        padding-top: 5px;
-      }
-    }
+
+App.widgetLayoutMapper = App.QuickDataMapper.create({
+  model: App.WidgetLayout,
+  config: {
+    id: 'widget_layouts.layout_name',
+    layout_name: 'widget_layouts.layout_name',
+    section_name: 'widget_layouts.section_name',
+    scope: 'widget_layouts.scope',
+    user: 'Users.user_name'
   }
-}
+});

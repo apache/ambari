@@ -365,6 +365,58 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       this.set('currentTimeRangeIndex', 0);
     }
   },
+  /**
+   * list of static actions of widget
+   * @type {Array}
+   */
+  staticWidgetActions: [
+    Em.Object.create({
+      label: Em.I18n.t('dashboard.widgets.layout.save'),
+      class: 'icon-download-alt',
+      action: 'saveLayout',
+      isAction: true
+    }),
+    Em.Object.create({
+      label: Em.I18n.t('dashboard.widgets.layout.import'),
+      class: 'icon-file',
+      isAction: true,
+      layouts: App.WidgetLayout.find()
+    }),
+    Em.Object.create({
+      label: Em.I18n.t('dashboard.widgets.create'),
+      class: 'icon-plus',
+      action: 'createWidget',
+      isAction: true
+    })
+  ],
+
+  /**
+   * @type {Array}
+   */
+  widgetActions: function() {
+    var options = [];
+
+    options.pushObjects(this.get('staticWidgetActions'));
+    this.get('controller.widgets').forEach(function (widget) {
+      options.push(Em.Object.create({
+        label: widget.get('displayName'),
+        isVisible: widget.get('isVisible'),
+        selected: true
+      }));
+    }, this);
+
+    return options;
+  }.property('controller.widgets.length'),
+
+  /**
+   * call action function defined in controller
+   * @param event
+   */
+  doWidgetAction: function(event) {
+    if($.isFunction(this.get('controller')[event.context])) {
+      this.get('controller')[event.context].apply(this.get('controller'));
+    }
+  },
 
   /**
    * time range options for service metrics, a dropdown will list all options
@@ -478,6 +530,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       var stackService = App.StackService.find().findProperty('serviceName', serviceName);
       if (stackService.get('isServiceWithWidgets')) {
         this.get('controller').loadWidgets();
+        this.get('controller').loadWidgetLayouts();
       }
     }
 

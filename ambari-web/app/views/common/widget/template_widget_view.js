@@ -43,5 +43,5 @@ App.TemplateWidgetView = Em.View.extend(App.WidgetMixin, {
       this.set('value', this.get('content.values')[0].computedValue);
       this.set('title', this.get('content.values')[0].name);
     }
-  }.observes('isLoaded')
+  }
 });

@@ -43,7 +43,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
       this.set('title', this.get('content.values')[0].name);
       this.set('value', this.get('content.values')[0].computedValue);
     }
-  }.observes('isLoaded'),
+  },
 
   chartView: App.ChartPieView.extend({
     stroke: '#D6DDDF', //light grey
@@ -76,7 +76,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
 
     data: function () {
       var data = parseFloat(this.get('parentView.value')) * this.get('FACTOR');
-      if (isNaN(data)) return [this.get('MAX_VALUE'), 0];
+      if (isNaN(data)) return [0, this.get('MAX_VALUE')];
       return [data, this.get('MAX_VALUE') - data];
     }.property('parentView.value'),
 

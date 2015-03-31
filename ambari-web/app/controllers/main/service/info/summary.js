@@ -41,6 +41,13 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   isPreviousRangerConfigsCallFailed: false,
 
   /**
+   * UI section name
+   */
+  sectionName: function() {
+    return this.get('content.serviceName') + "_SUMMARY";
+  }.property('content.serviceName'),
+
+  /**
    * Ranger plugins data
    * @type {array}
    */
@@ -298,11 +305,44 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   isWidgetsLoaded: false,
 
   /**
-   * @type Em.A
+   * @type {boolean}
+   */
+  isWidgetLayoutsLoaded: false,
+
+  /**
+   * @type {Em.A}
    */
   widgets: function() {
     return App.Widget.find().filterProperty('serviceName', this.get('content.serviceName'));
   }.property('isWidgetsLoaded'),
+
+  /**
+   * @type {Em.A}
+   */
+  widgetLayouts: function() {
+    return App.WidgetLayout.find().filterProperty('serviceName', this.get('content.serviceName'));
+  }.property('isWidgetLayoutsLoaded'),
+
+  /**
+   * load widget layouts across all users in CLUSTER scope
+   * @returns {$.ajax}
+   */
+  loadWidgetLayouts: function() {
+    this.set('isWidgetLayoutsLoaded', false);
+    return App.ajax.send({
+      name: 'widgets.layouts.get',
+      sender: this,
+      data: {
+        sectionName: this.get('sectionName')
+      },
+      success: 'loadWidgetLayoutsSuccessCallback'
+    });
+  },
+
+  loadWidgetLayoutsSuccessCallback: function(data) {
+    App.widgetLayoutMapper.map(data);
+    this.set('isWidgetLayoutsLoaded', true);
+  },
 
   /**
    * load widgets defined by user
@@ -315,7 +355,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
       sender: this,
       data: {
         loginName: App.router.get('loginName'),
-        sectionName: this.get('content.serviceName') + "_SUMMARY"
+        sectionName: this.get('sectionName')
       },
       success: 'loadWidgetsSuccessCallback'
     });
@@ -355,8 +395,38 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @param {object|null} data
    */
   loadStackWidgetsLayoutSuccessCallback: function (data) {
-    App.widgetMapper.map(data.artifact_data.layouts.findProperty('section_name', (this.get('content.serviceName') + "_SUMMARY")), this.get('content.serviceName'));
+    App.widgetMapper.map(data.artifact_data.layouts.findProperty('section_name', this.get('sectionName')), this.get('content.serviceName'));
     this.set('isWidgetsLoaded', true);
+  },
+
+  /**
+   * add widgets
+   */
+  addWidgets: function (event) {
+    var widgets = event.context.filterProperty('selected');
+
+  },
+
+  /**
+   * delete widgets
+   */
+  deleteWidgets: function (event) {
+    var widgets = event.context.filterProperty('selected');
+
+  },
+
+  /**
+   * save layout
+   */
+  saveLayout: function () {
+
+  },
+
+  /**
+   * create widget
+   */
+  createWidget: function () {
+
   }
 
 });

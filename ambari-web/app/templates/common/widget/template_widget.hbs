@@ -17,6 +17,10 @@
 }}
 
 <div class="template-widget thumbnail">
-  <div class="caption title">{{view.title}}</div>
-  <div class="content"> {{view.value}}</div>
+  {{#if view.isLoaded}}
+    <div class="caption title">{{view.title}}</div>
+    <div class="content"> {{view.value}}</div>
+  {{else}}
+    <div class="spinner"></div>
+  {{/if}}
 </div>

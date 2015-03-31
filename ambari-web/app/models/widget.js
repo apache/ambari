@@ -27,7 +27,6 @@ App.Widget = DS.Model.extend({
    *  - HEATMAP
    *  - GRAPH (Line graph and stack graph)
    *  - NUMBER (e.g., “1 ms” for RPC latency)
-   *  - x / y (e.g., “2 / 3” DataNodes live)
    *  - LINKS
    *  - TEMPLATE
    */
@@ -42,6 +41,7 @@ App.Widget = DS.Model.extend({
   expression: DS.attr('array'),
   metrics: DS.attr('array'),
   values: DS.attr('array'),
+  isVisible: DS.attr('boolean'),
 
   /**
    * @type {number}

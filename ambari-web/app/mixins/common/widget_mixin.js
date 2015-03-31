@@ -55,10 +55,26 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   content: null,
 
+  beforeRender: function () {
+    this.loadMetrics();
+  },
+
+  /**
+   * callback on metrics loaded
+   */
+  onMetricsLoaded: function () {
+    var self = this;
+    this.set('isLoaded', true);
+    this.drawWidget();
+    setTimeout(function() {
+      self.loadMetrics();
+    }, App.contentUpdateInterval);
+  },
+
   /**
    * load metrics
    */
-  beforeRender: function () {
+  loadMetrics: function () {
     var requestData = this.getRequestData(this.get('content.metrics')),
         request,
         requestCounter = 0,
@@ -70,12 +86,12 @@ App.WidgetMixin = Ember.Mixin.create({
       if (request.host_component_criteria) {
         this.getHostComponentMetrics(request).complete(function () {
           requestCounter--;
-          if (requestCounter === 0) self.set('isLoaded', true);
+          if (requestCounter === 0) self.onMetricsLoaded();
         });
       } else {
         this.getServiceComponentMetrics(request).complete(function () {
           requestCounter--;
-          if (requestCounter === 0) self.set('isLoaded', true);
+          if (requestCounter === 0) self.onMetricsLoaded();
         });
       }
     }
@@ -111,7 +127,7 @@ App.WidgetMixin = Ember.Mixin.create({
     this.get('content.values').forEach(function (value) {
       var computeExpression = this.computeExpression(this.extractExpressions(value), metrics);
       value.computedValue = value.value.replace(this.get('EXPRESSION_REGEX'), function (match) {
-        return (computeExpression[match]) ? computeExpression[match] + (displayUnit || "") : Em.I18n.t('common.na');
+        return (!Em.isNone(computeExpression[match])) ? computeExpression[match] + (displayUnit || "") : Em.I18n.t('common.na');
       });
     }, this);
   },
@@ -194,7 +210,7 @@ App.WidgetMixin = Ember.Mixin.create({
     var metrics = [];
 
     this.get('content.metrics').forEach(function (_metric) {
-      if (Em.get(data, _metric.widget_id.replace(/\//g, '.'))) {
+      if (!Em.isNone(Em.get(data, _metric.widget_id.replace(/\//g, '.')))) {
         _metric.data = Em.get(data, _metric.widget_id.replace(/\//g, '.'));
         this.get('metrics').pushObject(_metric);
       }

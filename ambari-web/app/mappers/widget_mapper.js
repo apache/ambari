@@ -33,7 +33,8 @@ App.widgetMapper = App.QuickDataMapper.create({
     properties: 'properties',
     metrics: 'metrics',
     values: 'values',
-    description: 'description'
+    description: 'description',
+    is_visible: 'is_visible'
   },
   map: function (json, serviceName) {
     //TODO add service name to user layout API response

@@ -17,6 +17,7 @@
             "display_name": "RegionServer Reads and Writes",
             "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
             "widget_type": "GRAPH",
+            "is_visible": "true",
             "metrics":[
               {
                 "name": "regionserver.Server.Append_num_ops",
@@ -54,6 +55,7 @@
             "display_name": "Files Local",
             "description": "This widget shows percentage of files local.",
             "widget_type": "NUMBER",
+            "is_visible": "true",
             "metrics":[
               {
                 "name": "regionserver.Server.percentFilesLocal",
@@ -77,6 +79,7 @@
             "widget_name": "NAMENODE_HEAP",
             "display_name": "NameNode Heap",
             "widget_type": "GAUGE",
+            "is_visible": "true",
             "description": "",
             "metrics":[
               {

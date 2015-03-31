@@ -2236,6 +2236,9 @@ Em.I18n.translations = {
   'dashboard.button.switchShort': 'Switch',
   'dashboard.button.reset': 'Reset all widgets to default ',
   'dashboard.button.gangliaLink': 'View metrics in Ganglia',
+  'dashboard.widgets.create': 'Create New Widget',
+  'dashboard.widgets.layout.import': 'Import a layout',
+  'dashboard.widgets.layout.save': 'Save a layout',
 
   'dashboard.widgets.NameNodeHeap': 'NameNode Heap',
   'dashboard.widgets.NameNodeCpu': 'NameNode CPU WIO',

@@ -21,7 +21,7 @@ var App = require('app');
 describe('App.WidgetMixin', function() {
   var mixinClass = Em.Object.extend(App.WidgetMixin, {metrics: [], content: {}});
 
-  describe('#beforeRender()', function () {
+  describe('#loadMetrics()', function () {
     var mixinObject = mixinClass.create();
     beforeEach(function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
@@ -31,27 +31,29 @@ describe('App.WidgetMixin', function() {
       sinon.stub(mixinObject, 'getServiceComponentMetrics').returns({complete: function(callback){
         callback();
       }});
+      sinon.stub(mixinObject, 'onMetricsLoaded');
     });
     afterEach(function () {
       this.mock.restore();
       mixinObject.getHostComponentMetrics.restore();
       mixinObject.getServiceComponentMetrics.restore();
+      mixinObject.onMetricsLoaded.restore();
     });
     it('has host_component_criteria', function () {
       this.mock.returns({'key1': {host_component_criteria: 'criteria'}});
       mixinObject.set('isLoaded', false);
-      mixinObject.beforeRender();
+      mixinObject.loadMetrics();
 
       expect(mixinObject.getHostComponentMetrics.calledWith({host_component_criteria: 'criteria'})).to.be.true;
-      expect(mixinObject.get('isLoaded')).to.be.true;
+      expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
     });
     it('host_component_criteria is absent', function () {
       this.mock.returns({'key1': {}});
       mixinObject.set('isLoaded', false);
-      mixinObject.beforeRender();
+      mixinObject.loadMetrics();
 
       expect(mixinObject.getServiceComponentMetrics.calledWith({})).to.be.true;
-      expect(mixinObject.get('isLoaded')).to.be.true;
+      expect(mixinObject.onMetricsLoaded.calledOnce).to.be.true;
     });
   });
 
