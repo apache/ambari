@@ -101,6 +101,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
       },
       configs_Hadoop2: {
         'hdfs-site': {
+          'dfs.namenode.rpc-address': '<replace-value>:8020',
           'dfs.namenode.http-address': '<replace-value>:50070',
           'dfs.namenode.https-address': '<replace-value>:50470'
         },

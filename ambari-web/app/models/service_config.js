@@ -302,6 +302,10 @@ App.ServiceConfigProperty = Em.Object.extend({
       case 'namenode_host':
         this.set('value', masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName'));
         break;
+      case 'dfs.namenode.rpc-address':
+        var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
+        this.setDefaultValue(hostWithPort,nnHost);
+        break;
       case 'dfs.http.address':
         var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
         this.setDefaultValue(hostWithPort,nnHost);

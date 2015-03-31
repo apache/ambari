@@ -187,6 +187,14 @@ for dn_dir in dfs_name_dirs:
  tmp_mark_dir = format("{dn_dir}{hdfs_namenode_formatted_mark_suffix}")
  namenode_formatted_mark_dirs.append(tmp_mark_dir)
 
+# Use the namenode RPC address if configured, otherwise, fallback to the default file system
+namenode_address = None
+if 'dfs.namenode.rpc-address' in config['configurations']['hdfs-site']:
+  namenode_rpcaddress = config['configurations']['hdfs-site']['dfs.namenode.rpc-address']
+  namenode_address = format("hdfs://{namenode_rpcaddress}")
+else:
+  namenode_address = config['configurations']['core-site']['fs.defaultFS']
+
 fs_checkpoint_dirs = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir'].split(',')
 
 dfs_data_dir = config['configurations']['hdfs-site']['dfs.datanode.data.dir']
@@ -219,6 +227,8 @@ if dfs_ha_enabled:
     if hostname in nn_host:
       namenode_id = nn_id
       namenode_rpc = nn_host
+  # With HA enabled namenode_address is recomputed
+  namenode_address = format('hdfs://{dfs_ha_nameservices}')
 
 if dfs_http_policy is not None and dfs_http_policy.upper() == "HTTPS_ONLY":
   https_only = True

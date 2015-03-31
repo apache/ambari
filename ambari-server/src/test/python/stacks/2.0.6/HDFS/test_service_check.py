@@ -51,7 +51,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_service_check(self):
-    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -safemode get | grep OFF',
+    self.assertResourceCalled('ExecuteHadoop', 'dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep OFF',
         logoutput = True,
         tries = 20,
         conf_dir = '/etc/hadoop/conf',

@@ -236,6 +236,12 @@
   </property>
 
   <property>
+    <name>dfs.namenode.rpc-address</name>
+    <value>localhost:8020</value>
+    <description>RPC address that handles all clients requests.</description>
+  </property>
+
+  <property>
     <name>dfs.datanode.du.reserved</name>
     <!-- cluster variant -->
     <value>1073741824</value>

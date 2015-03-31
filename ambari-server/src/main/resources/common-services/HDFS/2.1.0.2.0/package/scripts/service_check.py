@@ -29,7 +29,7 @@ class HdfsServiceCheck(Script):
     dir = '/tmp'
     tmp_file = format("{dir}/{unique}")
 
-    safemode_command = "dfsadmin -safemode get | grep OFF"
+    safemode_command = format("dfsadmin -fs {namenode_address} -safemode get | grep OFF")
 
     create_dir_cmd = format("fs -mkdir {dir}")
     chmod_command = format("fs -chmod 777 {dir}")
