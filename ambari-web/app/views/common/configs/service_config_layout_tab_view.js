@@ -103,6 +103,96 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     });
   },
 
+  /**
+   * Mark isHiddenByFilter flag for configs, sub-sections, and tab
+   */
+  filterEnhancedConfigs: function () {
+    var self = this;
+    this.get('content.sectionRows').forEach(function (row) {
+      row.forEach(function (section) {
+        section.get('subsectionRows').forEach(function (subRow) {
+          subRow.forEach(function (subsection) {
+            subsection.get('configs').forEach(function (config) {
+              $('.popover').remove();
+              var filter = self.get('parentView.filter');
+              var selectedFilters = self.get('parentView.columns').filterProperty('selected');
+
+              if (selectedFilters.length > 0 || filter.length > 0 || self.get('state') === 'inDOM') {
+                // process selected filters
+                var passesFilters = true;
+                selectedFilters.forEach(function (filter) {
+                  if (config.get(filter.attributeName) !== filter.attributeValue) {
+                    passesFilters = false;
+                  }
+                });
+
+                if (!passesFilters) {
+                  config.set('isHiddenByFilter', true);
+                  return false;
+                }
+
+                // process input filter
+                var searchString = config.get('defaultValue') + config.get('description') +
+                config.get('displayName') + config.get('name') + config.get('value');
+                if (config.get('overrides')) {
+                  config.get('overrides').forEach(function (overriddenConf) {
+                    searchString += overriddenConf.get('value') + overriddenConf.get('group.name');
+                  });
+                }
+
+                if (filter != null && typeof searchString === "string") {
+                  config.set('isHiddenByFilter', !(searchString.toLowerCase().indexOf(filter) > -1));
+                } else {
+                  config.set('isHiddenByFilter', false);
+                }
+              }
+            });
+            // check subsection
+            var allConfigs = subsection.get('configs');
+            var allHiddenConfigs = allConfigs.filterProperty('isHiddenByFilter');
+            var configsLength = allConfigs.get('length');
+            if (configsLength > 0 && configsLength == allHiddenConfigs.length) {
+              subsection.set('isHiddenByFilter', true);
+            } else {
+              subsection.set('isHiddenByFilter', false);
+            }
+          });
+        });
+        // check section
+        var allSubSections = section.get('subSections');
+        var allHiddenSubSections = allSubSections.filterProperty('isHiddenByFilter');
+        var subSectionsLength = allSubSections.get('length');
+        if (subSectionsLength > 0 && subSectionsLength == allHiddenSubSections.length) {
+          section.set('isHiddenByFilter', true);
+        } else {
+          section.set('isHiddenByFilter', false);
+        }
+      });
+    });
+    // process show/hide state for tab
+    var tab = this.get('content');
+    if (!tab.get('isAdvanced')) {
+      var allSections = tab.get('sections');
+      var allHiddenSections = allSections.filterProperty('isHiddenByFilter');
+      var sectionsLength = allSections.get('length');
+      // if all sections in tab are hidden by filter, do not show the tab
+      if (sectionsLength > 0 && sectionsLength == allHiddenSections.length) {
+        tab.set('isHiddenByFilter', true);
+        tab.set('isActive', false);
+      } else {
+        tab.set('isHiddenByFilter', false);
+      }
+    }
+    // no more active tab? pick the first non hidden tab and make it active
+    var activeTab = this.get('parentView.tabs').findProperty('isActive', true);
+    if (!activeTab) {
+      var nonHiddenTabs = this.get('parentView.tabs').filter(function (tab) {
+        return !(tab.get('isHiddenByFilter') === true);
+      });
+      nonHiddenTabs.get('firstObject').set('isActive', true);
+    }
+  }.observes('parentView.filter', 'parentView.columns.@each.selected'),
+
   willInsertElement: function () {
     this._super();
     this.prepareConfigProperties();

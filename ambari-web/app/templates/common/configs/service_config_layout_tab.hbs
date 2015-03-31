@@ -15,19 +15,19 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
+{{#unless tab.isHiddenByFilter}}
 <div class="section-layout-container">
   <table class="config-section-table">
     {{#each row in tab.sectionRows}}
       <tr>
         {{#each section in row}}
-          <td class="config-section" {{bindAttr colspan="section.columnSpan" rowspan="section.rowSpan"}}>
+          <td {{bindAttr class="section.isHiddenByFilter:invisible :config-section" colspan="section.columnSpan" rowspan="section.rowSpan"}}>
             <h3>{{section.displayName}}</h3>
             <table class="config-subsection-table">
               {{#each subRow in section.subsectionRows}}
                 <tr>
                   {{#each subsection in subRow}}
-                    <td class="config-subsection">
+                    <td {{bindAttr class="subsection.isHiddenByFilter:invisible :config-subsection"}}>
                       {{#each config in subsection.configs}}
                         {{#if config.view}}
                           {{#unless config.isHiddenByFilter}}
@@ -46,3 +46,4 @@
     {{/each}}
   </table>
 </div>
+{{/unless}}

@@ -90,6 +90,14 @@ App.ServiceConfigView = Em.View.extend({
       'App.router.wizardStep7Controller.selectedConfigGroup.name'
   ),
 
+  setActiveTab: function (event) {
+    this.get('tabs').forEach(function (tab) {
+      tab.set('isActive', false);
+    });
+    var currentTab = event.context;
+    currentTab.set('isActive', true);
+  },
+
   /**
    * Object that used for Twitter Bootstrap tabs markup.
    *
@@ -100,8 +108,8 @@ App.ServiceConfigView = Em.View.extend({
       return Em.A([]);
     }
     var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
-    // make first tab active
     this.processTabs(tabs);
+    // make first tab active
     tabs.get('firstObject').set('isActive', true);
     return tabs;
   }.property('controller.selectedService.serviceName'),

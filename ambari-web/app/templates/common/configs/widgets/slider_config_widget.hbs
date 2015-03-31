@@ -16,7 +16,8 @@
 * limitations under the License.
 }}
 
-<div class="widget slider-widget">
+
+<div {{bindAttr class="view.config.isHiddenByFilter:hide :widget :slider-widget"}}>
   {{#if view.isOriginalSCP}}
     <p>{{formatWordBreak view.configLabel}}</p>
   {{/if}}

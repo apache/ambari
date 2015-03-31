@@ -91,7 +91,9 @@
   {{#if view.supportsConfigLayout}}
     <ul class="nav nav-tabs">
       {{#each tab in view.tabs}}
-        <li {{bindAttr class="tab.isActive:active" }}><a href="#" {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">{{tab.displayName}}</a></li>
+        {{#unless tab.isHiddenByFilter}}
+          <li {{bindAttr class="tab.isActive:active" }}><a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">{{tab.displayName}}</a></li>
+        {{/unless}}
       {{/each}}
     </ul>
     <div class="tab-content">
@@ -108,8 +110,8 @@
               </div>
             {{/each}}
           {{else}}
-            {{! Render Enhanced Config Section }}
-            {{view App.ServiceConfigLayoutTabView contentBinding="tab"}}
+              {{! Render Enhanced Config Section }}
+              {{view App.ServiceConfigLayoutTabView contentBinding="tab"}}
           {{/if}}
         </div>
       {{/each}}
