@@ -38,8 +38,19 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
-    putYarnProperty = self.putProperty(configurations, "yarn-site")
+    putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnProperty('yarn.nodemanager.resource.cpu-vcores', clusterData['cpu'])
+    # Property Attributes
+    putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
+    nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
+    if (nodeManagerHost is not None):
+      putYarnProperty('yarn.nodemanager.resource.cpu-vcores', nodeManagerHost["Hosts"]["cpu_count"] * 2)
+      putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'max', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb
+      putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'max', nodeManagerHost["Hosts"]["cpu_count"] * 4)
+      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
+      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
+      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHdfsProperty = self.putProperty(configurations, "hdfs-site")
@@ -156,14 +167,25 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "tez-site")
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
-    putMapredProperty = self.putProperty(configurations, "mapred-site")
+    self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    putMapredProperty = self.putProperty(configurations, "mapred-site", services)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m" + " -Dhdp.version=${hdp.version}")
-    putMapredProperty('mapreduce.map.memory.mb', clusterData['mapMemory'])
+    putMapredProperty('mapreduce.map.memory.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
     putMapredProperty('mapreduce.reduce.memory.mb', int(clusterData['reduceMemory']))
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['mapMemory']))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
+    # Property Attributes
+    putMapredPropertyAttribute = self.putPropertyAttribute(configurations, "mapred-site")
+    yarnMinAllocationSize = int(clusterData['ramPerContainer'])
+    yarnMaxAllocationSize = max(30 * int(clusterData['ramPerContainer']), configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"])
+    putMapredPropertyAttribute("mapreduce.map.memory.mb", "max", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("mapreduce.map.memory.mb", "min", yarnMinAllocationSize)
+    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "max", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "min", yarnMinAllocationSize)
+    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "max", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "min", yarnMinAllocationSize)
 
   def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},

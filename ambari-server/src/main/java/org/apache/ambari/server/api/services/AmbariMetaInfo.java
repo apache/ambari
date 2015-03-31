@@ -59,8 +59,10 @@ import org.apache.ambari.server.stack.StackManager;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -1220,5 +1222,44 @@ public class AmbariMetaInfo {
     }
 
     return kerberosServiceDescriptors;
+  }
+
+  /**
+   * Get set of all the depended-by properties down to directed acyclic graph(DAG)
+   * of dependencies between configuration properties
+   * @param stackName the stack name
+   * @param stackVersion the stack version
+   * @param changedConfigs the list of changed configurations
+   * @return set of all depended-by properties including all changedConfigs
+   */
+  public Set<PropertyDependencyInfo> getDependedByProperties(String stackName,
+                                                             String stackVersion,
+                                                             List<PropertyDependencyInfo> changedConfigs) {
+    StackInfo stack = getStackManager().getStack(stackName, stackVersion);
+
+    if (changedConfigs == null) {
+      return Collections.emptySet();
+    }
+    int size = 0;
+    Set<PropertyDependencyInfo> configs =
+      new HashSet<PropertyDependencyInfo>();
+
+    configs.addAll(changedConfigs);
+
+    while (size != configs.size()) {
+      size = configs.size();
+      for (ServiceInfo service: stack.getServices()) {
+        for (PropertyInfo pi: service.getProperties()) {
+          String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
+          String name = pi.getName();
+          PropertyDependencyInfo dep =
+            new PropertyDependencyInfo(type, name);
+          if (configs.contains(dep) && !configs.containsAll(pi.getDependedByProperties())) {
+            configs.addAll(pi.getDependedByProperties());
+          }
+        }
+      }
+    }
+    return configs;
   }
 }

@@ -105,7 +105,7 @@ class BaseBIGTOP08StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
     hBaseInstalled = False
     if 'HBASE' in servicesList:

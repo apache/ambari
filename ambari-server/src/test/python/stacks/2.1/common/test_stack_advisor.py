@@ -191,7 +191,7 @@ class TestHDP21StackAdvisor(TestCase):
       }
     }
 
-    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
     self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)

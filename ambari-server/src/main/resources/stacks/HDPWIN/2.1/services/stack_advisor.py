@@ -133,7 +133,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
                    "-server -Xmx" + str(int(0.8 * clusterData["amMemory"]))
                    + "m -Djava.net.preferIPv4Stack=true -XX:+UseNUMA -XX:+UseParallelGC")
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
     hBaseInstalled = False
     if 'HBASE' in servicesList:

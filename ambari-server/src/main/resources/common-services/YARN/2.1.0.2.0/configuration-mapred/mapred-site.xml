@@ -41,7 +41,7 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>mapred-site.xml</type>
+        <type>mapred-site</type>
         <name>mapreduce.map.memory.mb</name>
       </property>
     </depends-on>
@@ -186,7 +186,7 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>yarn-site.xml</type>
+        <type>yarn-site</type>
         <name>yarn.scheduler.maximum-allocation-mb</name>
       </property>
     </depends-on>
@@ -206,7 +206,7 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>yarn-site.xml</type>
+        <type>yarn-site</type>
         <name>yarn.scheduler.maximum-allocation-mb</name>
       </property>
     </depends-on>
@@ -281,7 +281,7 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>yarn-site.xml</type>
+        <type>yarn-site</type>
         <name>yarn.scheduler.maximum-allocation-mb</name>
       </property>
     </depends-on>
@@ -306,7 +306,7 @@
     <display-name>MR AppMaster Java Heap Size</display-name>
     <depends-on>
       <property>
-        <type>mapred-site.xml</type>
+        <type>mapred-site</type>
         <name>yarn.app.mapreduce.am.resource.mb</name>
       </property>
     </depends-on>
@@ -328,7 +328,7 @@
     <display-name>MR AppMaster Java Heap Size</display-name>
     <depends-on>
       <property>
-        <type>mapred-site.xml</type>
+        <type>mapred-site</type>
         <name>yarn.app.mapreduce.am.resource.mb</name>
       </property>
     </depends-on>
@@ -383,7 +383,7 @@
     <display-name>MR Map Java Heap Size</display-name>
     <depends-on>
       <property>
-        <type>mapred-site.xml</type>
+        <type>mapred-site</type>
         <name>mapreduce.map.memory.mb</name>
       </property>
     </depends-on>
@@ -399,7 +399,7 @@
     <display-name>MR Reduce Java Heap Size</display-name>
     <depends-on>
       <property>
-        <type>mapred-site.xml</type>
+        <type>mapred-site</type>
         <name>mapreduce.reduce.memory.mb</name>
       </property>
     </depends-on>

@@ -30,9 +30,10 @@ import java.io.IOException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutRecommnedationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutValidationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetConfigurationValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayoutRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayoutValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationDependenciesRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationValidationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
@@ -129,7 +130,7 @@ public class StackAdvisorHelperTest {
   }
 
   @Test
-  public void testCreateRecommendationCommand_returnsGetComponentLayoutRecommnedationCommand()
+  public void testCreateRecommendationCommand_returnsComponentLayoutRecommendationCommand()
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
@@ -140,11 +141,11 @@ public class StackAdvisorHelperTest {
     StackAdvisorCommand<RecommendationResponse> command = helper
         .createRecommendationCommand(requestType);
 
-    assertEquals(GetComponentLayoutRecommnedationCommand.class, command.getClass());
+    assertEquals(ComponentLayoutRecommendationCommand.class, command.getClass());
   }
 
   @Test
-  public void testCreateValidationCommand_returnsGetComponentLayoutValidationCommand()
+  public void testCreateValidationCommand_returnsComponentLayoutValidationCommand()
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
@@ -154,11 +155,11 @@ public class StackAdvisorHelperTest {
 
     StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
 
-    assertEquals(GetComponentLayoutValidationCommand.class, command.getClass());
+    assertEquals(ComponentLayoutValidationCommand.class, command.getClass());
   }
 
   @Test
-  public void testCreateValidationCommand_returnsGetConfigurationValidationCommand()
+  public void testCreateValidationCommand_returnsConfigurationValidationCommand()
       throws IOException, StackAdvisorException {
     Configuration configuration = mock(Configuration.class);
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
@@ -168,7 +169,21 @@ public class StackAdvisorHelperTest {
 
     StackAdvisorCommand<ValidationResponse> command = helper.createValidationCommand(requestType);
 
-    assertEquals(GetConfigurationValidationCommand.class, command.getClass());
+    assertEquals(ConfigurationValidationCommand.class, command.getClass());
+  }
+
+  @Test
+  public void testCreateRecommendationDependencyCommand_returnsConfigurationDependencyRecommendationCommand()
+    throws IOException, StackAdvisorException {
+    Configuration configuration = mock(Configuration.class);
+    StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
+    AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
+    StackAdvisorHelper helper = new StackAdvisorHelper(configuration, saRunner, metaInfo);
+    StackAdvisorRequestType requestType = StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES;
+
+    StackAdvisorCommand<RecommendationResponse> command = helper.createRecommendationCommand(requestType);
+
+    assertEquals(ConfigurationDependenciesRecommendationCommand.class, command.getClass());
   }
 
 }

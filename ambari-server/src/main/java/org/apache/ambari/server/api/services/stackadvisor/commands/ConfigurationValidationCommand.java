@@ -24,41 +24,39 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
+import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 
 /**
- * {@link StackAdvisorCommand} implementation for component-layout
- * recommendation.
+ * {@link StackAdvisorCommand} implementation for configuration validation.
  */
-public class GetComponentLayoutRecommnedationCommand extends
-    StackAdvisorCommand<RecommendationResponse> {
+public class ConfigurationValidationCommand extends StackAdvisorCommand<ValidationResponse> {
 
-  public GetComponentLayoutRecommnedationCommand(File recommendationsDir,
-      String stackAdvisorScript, int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+  public ConfigurationValidationCommand(File recommendationsDir, String stackAdvisorScript,
+                                        int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override
   protected StackAdvisorCommandType getCommandType() {
-    return StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
+    return StackAdvisorCommandType.VALIDATE_CONFIGURATIONS;
   }
 
   @Override
   protected void validate(StackAdvisorRequest request) throws StackAdvisorException {
     if (request.getHosts() == null || request.getHosts().isEmpty() || request.getServices() == null
         || request.getServices().isEmpty()) {
-      throw new StackAdvisorException("Hosts and services must not be empty");
+      throw new StackAdvisorException("Hosts, services and configurations must not be empty");
     }
   }
 
   @Override
-  protected RecommendationResponse updateResponse(StackAdvisorRequest request, RecommendationResponse response) {
+  protected ValidationResponse updateResponse(StackAdvisorRequest request,
+      ValidationResponse response) {
     return response;
   }
 
   @Override
   protected String getResultFileName() {
-    return "component-layout.json";
+    return "configurations-validation.json";
   }
-
 }

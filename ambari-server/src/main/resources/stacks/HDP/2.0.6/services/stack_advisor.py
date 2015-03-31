@@ -88,23 +88,48 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "AMBARI_METRICS": self.recommendAmsConfigurations
     }
 
-  def putProperty(self, config, configType):
-    if configType not in config or "properties" not in config[configType]:
-      config[configType] = {"properties": {}}
+  def putProperty(self, config, configType, services=None):
+    userConfigs = {}
+    changedConfigs = []
+    # if services parameter, prefer values, set by user
+    if services:
+      if 'configurations' in services.keys():
+        userConfigs = services['configurations']
+      if 'changed-configurations' in services.keys():
+        changedConfigs = services["changed-configurations"]
+
+    if configType not in config:
+      config[configType] = {}
+    if"properties" not in config[configType]:
+      config[configType]["properties"] = {}
     def appendProperty(key, value):
-      config[configType]["properties"][key] = str(value)
+      if {'type': configType, 'name': key} in changedConfigs:
+        config[configType]["properties"][key] = userConfigs[configType]['properties'][key]
+      else:
+        config[configType]["properties"][key] = str(value)
     return appendProperty
 
+  def putPropertyAttribute(self, config, configType):
+    if configType not in config:
+      config[configType] = {}
+    def appendPropertyAttribute(key, attribute, attributeValue):
+      if"property_attributes" not in config[configType]:
+        config[configType]["property_attributes"] = {}
+      if key not in config[configType]["property_attributes"]:
+        config[configType]["property_attributes"][key] = {}
+      config[configType]["property_attributes"][key][attribute] = str(attributeValue)
+    return appendPropertyAttribute
+
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
-    putYarnProperty = self.putProperty(configurations, "yarn-site")
-    putYarnEnvProperty = self.putProperty(configurations, "yarn-env")
+    putYarnProperty = self.putProperty(configurations, "yarn-site", services)
+    putYarnEnvProperty = self.putProperty(configurations, "yarn-env", services)
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
     putYarnEnvProperty('min_user_id', self.get_system_min_uid())
 
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
-    putMapredProperty = self.putProperty(configurations, "mapred-site")
+    putMapredProperty = self.putProperty(configurations, "mapred-site", services)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m")
     putMapredProperty('mapreduce.map.memory.mb', clusterData['mapMemory'])
@@ -184,7 +209,18 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components):
+  def getHostWithComponent(self, serviceName, componentName, services, hosts):
+    if services is not None and hosts is not None:
+      service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
+      components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == "NODEMANAGER"]
+      if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
+        # NodeManager available - determine hosts and memory
+        componentHostname = components[0]["StackServiceComponents"]["hostnames"][0]
+        componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] == componentHostname]
+        if (componentHosts is not None and len(componentHosts) > 0):
+          return componentHosts[0]
+
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
     hBaseInstalled = False
     if 'HBASE' in servicesList:
@@ -199,7 +235,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     }
 
     if len(hosts["items"]) > 0:
-      host = hosts["items"][0]["Hosts"]
+      nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
+      if nodeManagerHost is not None:
+        host = nodeManagerHost["Hosts"]
+      else:
+        host = hosts["items"][0]["Hosts"]
       cluster["cpu"] = host["cpu_count"]
       cluster["disk"] = len(host["disk_info"])
       cluster["ram"] = int(host["total_mem"] / (1024 * 1024))

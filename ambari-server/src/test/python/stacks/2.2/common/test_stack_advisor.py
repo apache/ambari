@@ -644,6 +644,226 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
+  def test_recommendYARNConfigurationAttributes(self):
+    configurations = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.nodemanager.resource.cpu-vcores": "2"
+        },
+      }
+    }
+    clusterData = {
+      "cpu": 4,
+      "containers" : 5,
+      "ramPerContainer": 256
+    }
+    expected = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.resource.memory-mb": "1280",
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.nodemanager.resource.cpu-vcores": "2"
+        },
+        "property_attributes": {
+          'yarn.nodemanager.resource.memory-mb': {'max': '1877'},
+          'yarn.nodemanager.resource.cpu-vcores': {'max': '4'},
+          'yarn.scheduler.minimum-allocation-vcores': {'max': '2'},
+          'yarn.scheduler.maximum-allocation-vcores': {'max': '2'},
+          'yarn.scheduler.minimum-allocation-mb': {'max': '1280'},
+          'yarn.scheduler.maximum-allocation-mb': {'max': '1280'}
+        }
+      }
+    }
+    services = {
+      "services": [
+        {
+          "href": "/api/v1/stacks/HDP/versions/2.2/services/YARN",
+          "StackServices": {
+            "service_name": "YARN",
+            "service_version": "2.6.0.2.2",
+            "stack_name": "HDP",
+            "stack_version": "2.2"
+          },
+          "components": [
+            {
+              "StackServiceComponents": {
+                "advertise_version": "false",
+                "cardinality": "1",
+                "component_category": "MASTER",
+                "component_name": "APP_TIMELINE_SERVER",
+                "display_name": "App Timeline Server",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1+",
+                "component_category": "SLAVE",
+                "component_name": "NODEMANAGER",
+                "display_name": "NodeManager",
+                "is_client": "false",
+                "is_master": "false",
+                "hostnames": [
+                  "c6403.ambari.apache.org"
+                ]
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1-2",
+                "component_category": "MASTER",
+                "component_name": "RESOURCEMANAGER",
+                "display_name": "ResourceManager",
+                "is_client": "false",
+                "is_master": "true",
+                "hostnames": []
+              },
+              "dependencies": []
+            },
+            {
+              "StackServiceComponents": {
+                "advertise_version": "true",
+                "cardinality": "1+",
+                "component_category": "CLIENT",
+                "component_name": "YARN_CLIENT",
+                "display_name": "YARN Client",
+                "is_client": "true",
+                "is_master": "false",
+                "hostnames": []
+              },
+              "dependencies": []
+            }
+          ]
+        },
+      ],
+      "configurations": configurations,
+      "changed-configurations": [
+        {
+          "type": "yarn-site",
+          "name": "yarn.nodemanager.resource.memory-mb"
+        },
+        {
+          "type": "yarn-site",
+          "name": "yarn.scheduler.minimum-allocation-mb"
+        },
+        {
+          "type": "yarn-site",
+          "name": "yarn.scheduler.maximum-allocation-mb"
+        },
+        {
+          "type": "yarn-site",
+          "name": "yarn.nodemanager.resource.cpu-vcores"
+        },
+        {
+          "type": "yarn-env",
+          "name": "min_user_id"
+        },
+      ],
+      "depended-configurations": [
+        {
+          "type" : "mapred-site",
+          "name" : "yarn.app.mapreduce.am.admin-command-opts"
+        }, {
+          "type" : "yarn-site",
+          "name" : "yarn.scheduler.maximum-allocation-mb"
+        }, {
+          "type" : "yarn-site",
+          "name" : "yarn.scheduler.minimum-allocation-mb"
+        }, {
+          "type" : "mapred-site",
+          "name" : "mapreduce.reduce.java.opts"
+        }, {
+          "type" : "mapred-site",
+          "name" : "mapreduce.map.java.opts"
+        }, {
+          "type" : "mapred-site",
+          "name" : "yarn.app.mapreduce.am.command-opts"
+        }, {
+          "type" : "mapred-site",
+          "name" : "yarn.app.mapreduce.am.resource.mb"
+        }, {
+          "type" : "yarn-site",
+          "name" : "yarn.nodemanager.resource.memory-mb"
+        }, {
+          "type" : "mapred-site",
+          "name" : "mapreduce.task.io.sort.mb"
+        }, {
+          "type" : "mapred-site",
+          "name" : "mapreduce.reduce.memory.mb"
+        }, {
+          "type" : "mapred-site",
+          "name" : "mapreduce.map.memory.mb"
+        }
+      ]
+
+      }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/c6401.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6401.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6401.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        },
+        {
+          "href" : "/api/v1/hosts/c6402.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6402.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6402.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        },
+        {
+          "href" : "/api/v1/hosts/c6403.ambari.apache.org",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "c6403.ambari.apache.org",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "c6403.ambari.apache.org",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1922680
+          }
+        }
+      ]
+    }
+
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
   def test_recommendAmsConfigurations(self):
     configurations = {}
     clusterData = {}
@@ -730,7 +950,7 @@ class TestHDP22StackAdvisor(TestCase):
       }
     }
 
-    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
     self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)

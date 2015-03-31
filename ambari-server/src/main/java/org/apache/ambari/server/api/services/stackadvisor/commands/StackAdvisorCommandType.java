@@ -29,6 +29,8 @@ public enum StackAdvisorCommandType {
 
   RECOMMEND_CONFIGURATIONS("recommend-configurations"),
 
+  RECOMMEND_CONFIGURATION_DEPENDENCIES("recommend-configuration-dependencies"),
+
   VALIDATE_CONFIGURATIONS("validate-configurations");
 
   private final String name;

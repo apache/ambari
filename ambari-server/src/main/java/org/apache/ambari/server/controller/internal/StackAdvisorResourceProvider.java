@@ -18,8 +18,10 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,6 +40,7 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 
 /**
  * Abstract superclass for recommendations and validations.
@@ -51,6 +54,8 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
 
   private static final String HOST_PROPERTY = "hosts";
   private static final String SERVICES_PROPERTY = "services";
+
+  private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed_configurations";
 
   private static final String BLUEPRINT_HOST_GROUPS_PROPERTY = "recommendations/blueprint/host_groups";
   private static final String BINDING_HOST_GROUPS_PROPERTY = "recommendations/blueprint_cluster_binding/host_groups";
@@ -99,12 +104,17 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
           hgHostsMap);
       Map<String, Map<String, Map<String, String>>> configurations = calculateConfigurations(request);
 
-      StackAdvisorRequest saRequest = StackAdvisorRequestBuilder.forStack(stackName, stackVersion)
-          .ofType(requestType).forHosts(hosts).forServices(services)
-          .forHostComponents(hgComponentsMap).forHostsGroupBindings(hgHostsMap)
-          .withComponentHostsMap(componentHostsMap).withConfigurations(configurations).build();
+      List<PropertyDependencyInfo> changedConfigurations =
+        requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES ?
+          calculateChangedConfigurations(request) : Collections.<PropertyDependencyInfo>emptyList();
 
-      return saRequest;
+      return StackAdvisorRequestBuilder.
+        forStack(stackName, stackVersion).ofType(requestType).forHosts(hosts).
+        forServices(services).forHostComponents(hgComponentsMap).
+        forHostsGroupBindings(hgHostsMap).
+        withComponentHostsMap(componentHostsMap).
+        withConfigurations(configurations).
+        withChangedConfigurations(changedConfigurations).build();
     } catch (Exception e) {
       LOG.warn("Error occured during preparation of stack advisor request", e);
       Response response = Response.status(Status.BAD_REQUEST)
@@ -174,6 +184,18 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     }
 
     return map;
+  }
+
+  protected List<PropertyDependencyInfo> calculateChangedConfigurations(Request request) {
+    List<PropertyDependencyInfo> configs =
+      new LinkedList<PropertyDependencyInfo>();
+    HashSet<HashMap<String, String>> changedConfigs =
+      (HashSet<HashMap<String, String>>) getRequestProperty(request, CHANGED_CONFIGURATIONS_PROPERTY);
+    for (HashMap<String, String> props: changedConfigs) {
+      configs.add(new PropertyDependencyInfo(props.get("type"), props.get("name")));
+    }
+
+    return configs;
   }
 
   protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";

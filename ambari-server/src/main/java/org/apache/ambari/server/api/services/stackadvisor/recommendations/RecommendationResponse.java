@@ -23,6 +23,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.codehaus.jackson.annotate.JsonProperty;
+import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 /**
  * Recommendation response POJO.
@@ -88,16 +89,16 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
   public static class Blueprint {
     @JsonProperty
-    private Map<String, Map<String, Map<String, String>>> configurations;
+    private Map<String, BlueprintConfigurations> configurations;
 
     @JsonProperty("host_groups")
     private Set<HostGroup> hostGroups;
 
-    public Map<String, Map<String, Map<String, String>>> getConfigurations() {
+    public Map<String, BlueprintConfigurations> getConfigurations() {
       return configurations;
     }
 
-    public void setConfigurations(Map<String, Map<String, Map<String, String>>> configurations) {
+    public void setConfigurations(Map<String, BlueprintConfigurations> configurations) {
       this.configurations = configurations;
     }
 
@@ -107,6 +108,35 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setHostGroups(Set<HostGroup> hostGroups) {
       this.hostGroups = hostGroups;
+    }
+  }
+
+  public static class BlueprintConfigurations {
+    @JsonProperty
+    private Map<String, String> properties;
+
+    @JsonProperty("property_attributes")
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+    private Map<String, Map<String, String>> propertyAttributes;
+
+    public BlueprintConfigurations() {
+      System.out.println(this);
+    }
+
+    public Map<String, String> getProperties() {
+      return properties;
+    }
+
+    public void setProperties(Map<String, String> properties) {
+      this.properties = properties;
+    }
+
+    public Map<String, Map<String, String>> getPropertyAttributes() {
+      return propertyAttributes;
+    }
+
+    public void setPropertyAttributes(Map<String, Map<String, String>> propertyAttributes) {
+      this.propertyAttributes = propertyAttributes;
     }
   }
 

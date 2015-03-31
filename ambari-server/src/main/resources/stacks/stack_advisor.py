@@ -465,7 +465,7 @@ class DefaultStackAdvisor(StackAdvisor):
   def getComponentLayoutValidations(self, services, hosts):
     return []
 
-  def getConfigurationClusterSummary(self, servicesList, hosts, components):
+  def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
     pass
 
   def getConfigurationsValidationItems(self, services, hosts):
@@ -480,7 +480,7 @@ class DefaultStackAdvisor(StackAdvisor):
                   for service in services["services"]
                   for component in service["components"]]
 
-    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components)
+    clusterSummary = self.getConfigurationClusterSummary(servicesList, hosts, components, services)
 
     recommendations = {
       "Versions": {"stack_name": stackName, "stack_version": stackVersion},

@@ -44,6 +44,7 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -75,12 +76,14 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + ",services/StackServices/service_name,services/StackServices/service_version"
       + ",services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy"
       + "&services/StackServices/service_name.in(%s)";
-  private static final String SERVICES_PROPETRY = "services";
-  private static final String SERVICES_COMPONENTS_PROPETRY = "components";
-  private static final String COMPONENT_INFO_PROPETRY = "StackServiceComponents";
+  private static final String SERVICES_PROPERTY = "services";
+  private static final String SERVICES_COMPONENTS_PROPERTY = "components";
+  private static final String COMPONENT_INFO_PROPERTY = "StackServiceComponents";
   private static final String COMPONENT_NAME_PROPERTY = "component_name";
-  private static final String COMPONENT_HOSTNAMES_PROPETRY = "hostnames";
-  private static final String CONFIGURATIONS_PROPETRY = "configurations";
+  private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
+  private static final String CONFIGURATIONS_PROPERTY = "configurations";
+  private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
+  private static final String DEPENDED_CONFIGURATIONS_PROPERTY = "depended-configurations";
 
   private File recommendationsDir;
   private String stackAdvisorScript;
@@ -140,8 +143,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
       populateStackHierarchy(root);
       populateComponentHostsMap(root, request.getComponentHostsMap());
-      populateConfigurations(root, request.getConfigurations());
-
+      populateConfigurations(root, request);
       data.servicesJSON = mapper.writeValueAsString(root);
     } catch (Exception e) {
       // should not happen
@@ -154,8 +156,10 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   }
 
   private void populateConfigurations(ObjectNode root,
-      Map<String, Map<String, Map<String, String>>> configurations) {
-    ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPETRY);
+                                      StackAdvisorRequest request) {
+    Map<String, Map<String, Map<String, String>>> configurations =
+      request.getConfigurations();
+    ObjectNode configurationsNode = root.putObject(CONFIGURATIONS_PROPERTY);
     for (String siteName : configurations.keySet()) {
       ObjectNode siteNode = configurationsNode.putObject(siteName);
 
@@ -170,6 +174,15 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         }
       }
     }
+    // Populating changed configs info and depended by configs info
+    Set<PropertyDependencyInfo> dependedProperties =
+      metaInfo.getDependedByProperties(request.getStackName(),
+      request.getStackVersion(), request.getChangedConfigurations());
+
+    JsonNode changedConfigs = mapper.valueToTree(request.getChangedConfigurations());
+    JsonNode dependendConfigs = mapper.valueToTree(dependedProperties);
+    root.put(CHANGED_CONFIGURATIONS_PROPERTY, changedConfigs);
+    root.put(DEPENDED_CONFIGURATIONS_PROPERTY, dependendConfigs);
   }
 
   protected void populateStackHierarchy(ObjectNode root) {
@@ -185,21 +198,21 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   }
 
   private void populateComponentHostsMap(ObjectNode root, Map<String, Set<String>> componentHostsMap) {
-    ArrayNode services = (ArrayNode) root.get(SERVICES_PROPETRY);
+    ArrayNode services = (ArrayNode) root.get(SERVICES_PROPERTY);
     Iterator<JsonNode> servicesIter = services.getElements();
 
     while (servicesIter.hasNext()) {
       JsonNode service = servicesIter.next();
-      ArrayNode components = (ArrayNode) service.get(SERVICES_COMPONENTS_PROPETRY);
+      ArrayNode components = (ArrayNode) service.get(SERVICES_COMPONENTS_PROPERTY);
       Iterator<JsonNode> componentsIter = components.getElements();
 
       while (componentsIter.hasNext()) {
         JsonNode component = componentsIter.next();
-        ObjectNode componentInfo = (ObjectNode) component.get(COMPONENT_INFO_PROPETRY);
+        ObjectNode componentInfo = (ObjectNode) component.get(COMPONENT_INFO_PROPERTY);
         String componentName = componentInfo.get(COMPONENT_NAME_PROPERTY).getTextValue();
 
         Set<String> componentHosts = componentHostsMap.get(componentName);
-        ArrayNode hostnames = componentInfo.putArray(COMPONENT_HOSTNAMES_PROPETRY);
+        ArrayNode hostnames = componentInfo.putArray(COMPONENT_HOSTNAMES_PROPERTY);
         if (null != componentHosts) {
           for (String hostName : componentHosts) {
             hostnames.add(hostName);

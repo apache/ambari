@@ -36,14 +36,14 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.junit.Test;
 
-public class GetConfigurationRecommnedationCommandTest {
+public class ConfigurationRecommendationCommandTest {
 
   @Test
   public void testProcessHostGroups() throws Exception {
     StackAdvisorRunner saRunner = mock(StackAdvisorRunner.class);
     File file = mock(File.class);
     AmbariMetaInfo metaInfo = mock(AmbariMetaInfo.class);
-    GetConfigurationRecommnedationCommand command = new GetConfigurationRecommnedationCommand(file, "script", 1, saRunner, metaInfo);
+    ConfigurationRecommendationCommand command = new ConfigurationRecommendationCommand(file, "script", 1, saRunner, metaInfo);
 
     StackAdvisorRequest request = mock(StackAdvisorRequest.class);
     Map<String, Set<String>> componentHostGroupMap = new HashMap<String, Set<String>>();

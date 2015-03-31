@@ -302,7 +302,7 @@ class TestHDP206StackAdvisor(TestCase):
       "amMemory": 512
     }
 
-    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
 
     self.assertEquals(result, expected)
 
@@ -344,7 +344,7 @@ class TestHDP206StackAdvisor(TestCase):
       "amMemory": 3072
     }
 
-    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
 
     self.assertEquals(result, expected)
 
@@ -402,7 +402,7 @@ class TestHDP206StackAdvisor(TestCase):
     hosts = {
       "items" : []
     }
-    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    result = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
 
     expected = {
       "hBaseInstalled": False,
@@ -530,7 +530,7 @@ class TestHDP206StackAdvisor(TestCase):
       }
     }
 
-    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components)
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
     self.assertEquals(clusterData['hbaseRam'], 8)
 
     self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)

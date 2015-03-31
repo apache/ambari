@@ -35,6 +35,7 @@ import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -62,6 +63,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.CustomCommandDefinition;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
@@ -750,7 +752,7 @@ public class AmbariMetaInfoTest {
     PropertyInfo originalProperty = null;
 
     PropertyDependencyInfo propertyDependencyInfo =
-      new PropertyDependencyInfo("yarn-site.xml", "new-enhanced-yarn-property");
+      new PropertyDependencyInfo("yarn-site", "new-enhanced-yarn-property");
 
     for (PropertyInfo propertyInfo : redefinedService.getProperties()) {
       if (propertyInfo.getName().equals("yarn.resourcemanager.resource-tracker.address")) {
@@ -799,8 +801,8 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("some enhanced description.", newEnhancedProperty.getDescription());
     Assert.assertEquals("yarn-site.xml", newEnhancedProperty.getFilename());
     Assert.assertEquals(2, newEnhancedProperty.getDependsOnProperties().size());
-    Assert.assertTrue(newEnhancedProperty.getDependsOnProperties().contains(new PropertyDependencyInfo("yarn-site.xml", "new-yarn-property")));
-    Assert.assertTrue(newEnhancedProperty.getDependsOnProperties().contains(new PropertyDependencyInfo("global.xml", "yarn_heapsize")));
+    Assert.assertTrue(newEnhancedProperty.getDependsOnProperties().contains(new PropertyDependencyInfo("yarn-site", "new-yarn-property")));
+    Assert.assertTrue(newEnhancedProperty.getDependsOnProperties().contains(new PropertyDependencyInfo("global", "yarn_heapsize")));
     Assert.assertEquals("MB", newEnhancedProperty.getPropertyValueAttributes().getUnit());
     Assert.assertEquals("int", newEnhancedProperty.getPropertyValueAttributes().getType());
     Assert.assertEquals("512", newEnhancedProperty.getPropertyValueAttributes().getMinimum());
@@ -816,6 +818,18 @@ public class AmbariMetaInfoTest {
       originalProperty.getDescription());
     Assert.assertEquals(6, redefinedService.getConfigDependencies().size());
     Assert.assertEquals(7, redefinedService.getConfigDependenciesWithComponents().size());
+
+    // Test directed-acyclic-graph (DAG) of dependencies between configurations
+    List<PropertyDependencyInfo> changedConfigs = new LinkedList<PropertyDependencyInfo>();
+    String type = ConfigHelper.fileNameToConfigType(newProperty.getFilename());
+    String name = newProperty.getName();
+    changedConfigs.add(new PropertyDependencyInfo(type, name));
+    Set<PropertyDependencyInfo> dependedByProperties = metaInfo.getDependedByProperties(stackInfo.getName(), stackInfo.getVersion(), changedConfigs);
+    Assert.assertEquals(3, dependedByProperties.size());
+    Assert.assertTrue(dependedByProperties.contains(new PropertyDependencyInfo("yarn-site", "new-enhanced-yarn-property2")));
+    Assert.assertTrue(dependedByProperties.contains(new PropertyDependencyInfo("yarn-site", "new-enhanced-yarn-property")));
+    Assert.assertTrue(dependedByProperties.contains(new PropertyDependencyInfo("yarn-site", "new-yarn-property")));
+
   }
 
   @Test

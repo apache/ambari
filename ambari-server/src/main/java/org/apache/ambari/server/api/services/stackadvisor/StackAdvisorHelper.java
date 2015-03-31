@@ -23,10 +23,11 @@ import java.io.IOException;
 
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutRecommnedationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetComponentLayoutValidationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetConfigurationRecommnedationCommand;
-import org.apache.ambari.server.api.services.stackadvisor.commands.GetConfigurationValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayoutRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ComponentLayoutValidationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationDependenciesRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationRecommendationCommand;
+import org.apache.ambari.server.api.services.stackadvisor.commands.ConfigurationValidationCommand;
 import org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand;
 import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
@@ -77,10 +78,10 @@ public class StackAdvisorHelper {
       StackAdvisorRequestType requestType) throws StackAdvisorException {
     StackAdvisorCommand<ValidationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
-      command = new GetComponentLayoutValidationCommand(recommendationsDir, stackAdvisorScript,
+      command = new ComponentLayoutValidationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
-      command = new GetConfigurationValidationCommand(recommendationsDir, stackAdvisorScript,
+      command = new ConfigurationValidationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",
@@ -112,10 +113,13 @@ public class StackAdvisorHelper {
       StackAdvisorRequestType requestType) throws StackAdvisorException {
     StackAdvisorCommand<RecommendationResponse> command;
     if (requestType == StackAdvisorRequestType.HOST_GROUPS) {
-      command = new GetComponentLayoutRecommnedationCommand(recommendationsDir, stackAdvisorScript,
+      command = new ComponentLayoutRecommendationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else if (requestType == StackAdvisorRequestType.CONFIGURATIONS) {
-      command = new GetConfigurationRecommnedationCommand(recommendationsDir, stackAdvisorScript,
+      command = new ConfigurationRecommendationCommand(recommendationsDir, stackAdvisorScript,
+          requestId, saRunner, metaInfo);
+    } else if (requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES) {
+      command = new ConfigurationDependenciesRecommendationCommand(recommendationsDir, stackAdvisorScript,
           requestId, saRunner, metaInfo);
     } else {
       throw new StackAdvisorRequestException(String.format("Unsupported request type, type=%s",

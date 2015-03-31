@@ -376,6 +376,7 @@
         "recommend",
         "hosts",
         "services",
+        "changed_configurations",
         "recommendations",
         "recommendations/blueprint",
         "recommendations/blueprint/configurations",

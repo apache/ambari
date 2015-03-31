@@ -80,7 +80,7 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>yarn-site.xml</type>
+        <type>yarn-site</type>
         <name>yarn.nodemanager.resource.memory-mb</name>
       </property>
     </depends-on>
@@ -104,7 +104,7 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>yarn-site.xml</type>
+        <type>yarn-site</type>
         <name>yarn.nodemanager.resource.memory-mb</name>
       </property>
     </depends-on>

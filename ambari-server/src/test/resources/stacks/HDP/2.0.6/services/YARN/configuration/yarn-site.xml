@@ -69,12 +69,25 @@
     </value-attributes>
     <depends-on>
       <property>
-        <type>yarn-site.xml</type>
+        <type>yarn-site</type>
         <name>new-yarn-property</name>
       </property>
       <property>
-        <type>global.xml</type>
+        <type>global</type>
         <name>yarn_heapsize</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>new-enhanced-yarn-property2</name>
+    <value>1024</value>
+    <description>some enhanced description.</description>
+
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>new-enhanced-yarn-property</name>
       </property>
     </depends-on>
   </property>

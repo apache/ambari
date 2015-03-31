@@ -24,40 +24,44 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
-import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
+import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 
 /**
- * {@link StackAdvisorCommand} implementation for component-layout validation.
+ * {@link StackAdvisorCommand} implementation for component-layout
+ * recommendation.
  */
-public class GetComponentLayoutValidationCommand extends StackAdvisorCommand<ValidationResponse> {
+public class ComponentLayoutRecommendationCommand extends
+    StackAdvisorCommand<RecommendationResponse> {
 
-  public GetComponentLayoutValidationCommand(File recommendationsDir, String stackAdvisorScript,
-      int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+  public ComponentLayoutRecommendationCommand(File recommendationsDir,
+                                              String stackAdvisorScript,
+                                              int requestId,
+                                              StackAdvisorRunner saRunner,
+                                              AmbariMetaInfo metaInfo) {
     super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override
   protected StackAdvisorCommandType getCommandType() {
-    return StackAdvisorCommandType.VALIDATE_COMPONENT_LAYOUT;
+    return StackAdvisorCommandType.RECOMMEND_COMPONENT_LAYOUT;
   }
 
   @Override
   protected void validate(StackAdvisorRequest request) throws StackAdvisorException {
-    if (request.getHosts() == null || request.getHosts().isEmpty() || request.getServices() == null
-        || request.getServices().isEmpty() || request.getComponentHostsMap() == null
-        || request.getComponentHostsMap().isEmpty()) {
-      throw new StackAdvisorException("Hosts, services and recommendations must not be empty");
+    if (request.getHosts() == null || request.getHosts().isEmpty()
+      || request.getServices() == null || request.getServices().isEmpty()) {
+      throw new StackAdvisorException("Hosts and services must not be empty");
     }
   }
 
   @Override
-  protected ValidationResponse updateResponse(StackAdvisorRequest request, ValidationResponse response) {
+  protected RecommendationResponse updateResponse(StackAdvisorRequest request, RecommendationResponse response) {
     return response;
   }
 
   @Override
   protected String getResultFileName() {
-    return "component-layout-validation.json";
+    return "component-layout.json";
   }
 
 }

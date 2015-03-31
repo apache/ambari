@@ -27,36 +27,37 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.api.services.stackadvisor.validations.ValidationResponse;
 
 /**
- * {@link StackAdvisorCommand} implementation for configuration validation.
+ * {@link StackAdvisorCommand} implementation for component-layout validation.
  */
-public class GetConfigurationValidationCommand extends StackAdvisorCommand<ValidationResponse> {
+public class ComponentLayoutValidationCommand extends StackAdvisorCommand<ValidationResponse> {
 
-  public GetConfigurationValidationCommand(File recommendationsDir, String stackAdvisorScript,
-      int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+  public ComponentLayoutValidationCommand(File recommendationsDir, String stackAdvisorScript,
+                                          int requestId, StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 
   @Override
   protected StackAdvisorCommandType getCommandType() {
-    return StackAdvisorCommandType.VALIDATE_CONFIGURATIONS;
+    return StackAdvisorCommandType.VALIDATE_COMPONENT_LAYOUT;
   }
 
   @Override
   protected void validate(StackAdvisorRequest request) throws StackAdvisorException {
     if (request.getHosts() == null || request.getHosts().isEmpty() || request.getServices() == null
-        || request.getServices().isEmpty()) {
-      throw new StackAdvisorException("Hosts, services and configurations must not be empty");
+        || request.getServices().isEmpty() || request.getComponentHostsMap() == null
+        || request.getComponentHostsMap().isEmpty()) {
+      throw new StackAdvisorException("Hosts, services and recommendations must not be empty");
     }
   }
 
   @Override
-  protected ValidationResponse updateResponse(StackAdvisorRequest request,
-      ValidationResponse response) {
+  protected ValidationResponse updateResponse(StackAdvisorRequest request, ValidationResponse response) {
     return response;
   }
 
   @Override
   protected String getResultFileName() {
-    return "configurations-validation.json";
+    return "component-layout-validation.json";
   }
+
 }

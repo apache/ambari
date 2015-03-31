@@ -35,11 +35,11 @@ import java.util.Set;
  * {@link org.apache.ambari.server.api.services.stackadvisor.commands.StackAdvisorCommand} implementation for
  * configuration recommendation.
  */
-public class GetConfigurationRecommnedationCommand extends
+public class ConfigurationRecommendationCommand extends
     StackAdvisorCommand<RecommendationResponse> {
 
-  public GetConfigurationRecommnedationCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
-                                               StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
+  public ConfigurationRecommendationCommand(File recommendationsDir, String stackAdvisorScript, int requestId,
+                                            StackAdvisorRunner saRunner, AmbariMetaInfo metaInfo) {
     super(recommendationsDir, stackAdvisorScript, requestId, saRunner, metaInfo);
   }
 

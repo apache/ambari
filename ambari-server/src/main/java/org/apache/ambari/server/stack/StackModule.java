@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -597,11 +598,15 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     for (ServiceModule serviceModule : serviceModules.values()) {
       for (PropertyInfo pi : serviceModule.getModuleInfo().getProperties()) {
         for (PropertyDependencyInfo pdi : pi.getDependsOnProperties()) {
-          PropertyDependencyInfo propertyDependency = new PropertyDependencyInfo(pi.getFilename(), pi.getName());
+          String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
+          String name = pi.getName();
+          PropertyDependencyInfo propertyDependency =
+            new PropertyDependencyInfo(type, name);
           if (dependedByMap.keySet().contains(pdi)) {
             dependedByMap.get(pdi).add(propertyDependency);
           } else {
-            Set<PropertyDependencyInfo> newDependenciesSet = new HashSet<PropertyDependencyInfo>();
+            Set<PropertyDependencyInfo> newDependenciesSet =
+              new HashSet<PropertyDependencyInfo>();
             newDependenciesSet.add(propertyDependency);
             dependedByMap.put(pdi, newDependenciesSet);
           }
@@ -612,7 +617,10 @@ public class StackModule extends BaseModule<StackModule, StackInfo> implements V
     // Go through all service-configs again and set their 'depended-by' if necessary.
     for (ServiceModule serviceModule : serviceModules.values()) {
       for (PropertyInfo pi : serviceModule.getModuleInfo().getProperties()) {
-        Set<PropertyDependencyInfo> set = dependedByMap.remove(new PropertyDependencyInfo(pi.getFilename(), pi.getName()));
+        String type = ConfigHelper.fileNameToConfigType(pi.getFilename());
+        String name = pi.getName();
+        Set<PropertyDependencyInfo> set =
+          dependedByMap.remove(new PropertyDependencyInfo(type, name));
         if (set != null) {
           pi.getDependedByProperties().addAll(set);
         }
