@@ -29,9 +29,48 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
 from resource_management.core.resources.packaging import Package
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
+from ambari_commons.inet_utils import download_file
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def oozie(is_server=False):
+  import params
+
+  XmlConfig("oozie-site.xml",
+            conf_dir=params.oozie_conf_dir,
+            configurations=params.config['configurations']['oozie-site'],
+            owner=params.oozie_user,
+            mode='f',
+            configuration_attributes=params.config['configuration_attributes']['oozie-site']
+  )
+
+  File(os.path.join(params.oozie_conf_dir, "oozie-env.cmd"),
+       owner=params.oozie_user,
+       content=InlineTemplate(params.oozie_env_cmd_template)
+  )
+
+  Directory(params.oozie_tmp_dir,
+            owner=params.oozie_user,
+             recursive = True,
+  )
+  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+                      os.path.join(params.oozie_root, "extra_libs", "sqljdbc4.jar")
+  )
+  webapps_sqljdbc_path = os.path.join(params.oozie_home, "oozie-server", "webapps", "oozie", "WEB-INF", "lib", "sqljdbc4.jar")
+  if os.path.isfile(webapps_sqljdbc_path):
+    download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+                        webapps_sqljdbc_path
+    )
+  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+                      os.path.join(params.oozie_home, "share", "lib", "oozie", "sqljdbc4.jar")
+  )
+  download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
+                      os.path.join(params.oozie_home, "temp", "WEB-INF", "lib", "sqljdbc4.jar")
+  )
 
 # TODO: see if see can remove this
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def oozie(is_server=False):
   import params
 

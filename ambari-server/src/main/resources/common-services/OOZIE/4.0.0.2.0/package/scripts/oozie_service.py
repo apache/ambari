@@ -19,7 +19,21 @@ limitations under the License.
 """
 import os
 from resource_management import *
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def oozie_service(action='start', rolling_restart=False):
+  import params
+
+  if action == 'start':
+    cmd = format("cmd /C \"cd /d {oozie_tmp_dir} && {oozie_home}\\bin\\ooziedb.cmd create -sqlfile oozie.sql -run\"")
+    Execute(cmd, user=params.oozie_user, ignore_failures=True)
+    Service(params.oozie_server_win_service_name, action="start")
+  elif action == 'stop':
+    Service(params.oozie_server_win_service_name, action="stop")
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def oozie_service(action = 'start', rolling_restart=False):
   """
   Starts or stops the Oozie service

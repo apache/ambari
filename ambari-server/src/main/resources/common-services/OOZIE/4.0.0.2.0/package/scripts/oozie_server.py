@@ -24,7 +24,6 @@ from resource_management.core import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations
@@ -32,26 +31,24 @@ from resource_management.libraries.functions.security_commons import cached_kini
 from resource_management.libraries.functions.security_commons import get_params_from_filesystem
 from resource_management.libraries.functions.security_commons import validate_security_config_properties
 from resource_management.libraries.functions.security_commons import FILE_TYPE_XML
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 from oozie import oozie
 from oozie_service import oozie_service
 
+from check_oozie_server_status import check_oozie_server_status
          
 class OozieServer(Script):
 
-  def get_stack_to_component(self):
-    return {"HDP": "oozie-server"}
-
   def install(self, env):
     self.install_packages(env)
-
 
   def configure(self, env):
     import params
     env.set_params(params)
 
     oozie(is_server=True)
-
 
   def start(self, env, rolling_restart=False):
     import params
@@ -61,7 +58,6 @@ class OozieServer(Script):
 
     oozie_service(action='start', rolling_restart=rolling_restart)
 
-    
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
@@ -71,11 +67,16 @@ class OozieServer(Script):
   def status(self, env):
     import status_params
     env.set_params(status_params)
-    check_process_status(status_params.pid_file)
+    check_oozie_server_status()
 
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class OozieServerDefault(OozieServer):
+
+  def get_stack_to_component(self):
+    return {"HDP": "oozie-server"}
 
   def security_status(self, env):
-
     import status_params
     env.set_params(status_params)
 
@@ -138,7 +139,6 @@ class OozieServer(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
-
   def pre_rolling_restart(self, env):
     """
     Performs the tasks surrounding the Oozie startup when a rolling upgrade
@@ -165,6 +165,9 @@ class OozieServer(Script):
     oozie_server_upgrade.prepare_libext_directory()
     oozie_server_upgrade.upgrade_oozie()
 
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class OozieServerWindows(OozieServer):
+  pass
 
 if __name__ == "__main__":
   OozieServer().execute()

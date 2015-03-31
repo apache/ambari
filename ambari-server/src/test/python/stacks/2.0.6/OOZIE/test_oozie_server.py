@@ -23,7 +23,7 @@ from stacks.utils.RMFTestCase import *
 from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 
-
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestOozieServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"

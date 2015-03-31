@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,23 +17,22 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from oozie import oozie
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
-class OozieClient(Script):
-  def install(self, env):
-    # client checks env var to determine if it is installed
-    if not os.environ.has_key("OOZIE_HOME"):
-      self.install_packages(env)
-    self.configure(env)
 
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    oozie()
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def check_oozie_server_status():
+  import status_params
+  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
+  check_windows_service_status(status_params.oozie_server_win_service_name)
 
-if __name__ == "__main__":
-  OozieClient().execute()
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def check_oozie_server_status():
+  import status_params
+  from resource_management.libraries.functions.check_process_status import check_process_status
+
+  check_process_status(status_params.pid_file)
+

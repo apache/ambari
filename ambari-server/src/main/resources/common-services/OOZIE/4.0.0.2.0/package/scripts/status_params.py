@@ -19,15 +19,20 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons import OSCheck
 
 config = Script.get_config()
 
-oozie_pid_dir = config['configurations']['oozie-env']['oozie_pid_dir']
-pid_file = format("{oozie_pid_dir}/oozie.pid")
+if OSCheck.is_windows_family():
+  # windows service mapping
+  oozie_server_win_service_name = "oozieservice"
+else:
+  oozie_pid_dir = config['configurations']['oozie-env']['oozie_pid_dir']
+  pid_file = format("{oozie_pid_dir}/oozie.pid")
 
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path()
-conf_dir = "/etc/oozie/conf"
-tmp_dir = Script.get_tmp_dir()
-oozie_user = config['configurations']['oozie-env']['oozie_user']
-hostname = config["hostname"]
+  security_enabled = config['configurations']['cluster-env']['security_enabled']
+  kinit_path_local = functions.get_kinit_path()
+  conf_dir = "/etc/oozie/conf"
+  tmp_dir = Script.get_tmp_dir()
+  oozie_user = config['configurations']['oozie-env']['oozie_user']
+  hostname = config["hostname"]

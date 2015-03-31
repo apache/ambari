@@ -21,6 +21,7 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 import json
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestOozieClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
   STACK_VERSION = "2.0.6"
