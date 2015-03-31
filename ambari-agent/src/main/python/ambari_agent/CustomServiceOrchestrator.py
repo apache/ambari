@@ -54,6 +54,7 @@ class CustomServiceOrchestrator():
   IPV4_ADDRESSES_KEY = "all_ipv4_ips"
 
   AMBARI_SERVER_HOST = "ambari_server_host"
+  DONT_DEBUG_FAILURES_FOR_COMMANDS = [COMMAND_NAME_SECURITY_STATUS, COMMAND_NAME_STATUS]
 
   def __init__(self, config, controller):
     self.config = config
@@ -172,11 +173,12 @@ class CustomServiceOrchestrator():
         raise AgentException("Background commands are supported without hooks only")
 
       for py_file, current_base_dir in filtered_py_file_list:
+        log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir]
         ret = self.python_executor.run_file(py_file, script_params,
                                self.exec_tmp_dir, tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, logger_level, self.map_task_to_process,
-                               task_id, override_output_files, handle = handle)
+                               task_id, override_output_files, handle = handle, log_info_on_failure=log_info_on_failure)
         # Next run_file() invocations should always append to current output
         override_output_files = False
         if ret['exitcode'] != 0:

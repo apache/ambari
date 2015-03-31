@@ -31,6 +31,7 @@ from ambari_commons.os_check import OSConst, OSCheck
 from Grep import Grep
 import sys
 from ambari_commons import shell
+from ambari_commons.shell import shellRunner
 
 
 logger = logging.getLogger()
@@ -63,7 +64,7 @@ class PythonExecutor:
 
   def run_file(self, script, script_params, tmp_dir, tmpoutfile, tmperrfile,
                timeout, tmpstructedoutfile, logger_level, callback, task_id,
-               override_output_files = True, handle = None):
+               override_output_files = True, handle = None, log_info_on_failure=True):
     """
     Executes the specified python file in a separate subprocess.
     Method returns only when the subprocess is finished.
@@ -93,14 +94,32 @@ class PythonExecutor:
       process.communicate()
       self.event.set()
       thread.join()
-      return self.prepare_process_result(process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
+      result = self.prepare_process_result(process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
+      
+      if log_info_on_failure and result['exitcode']:
+        self.on_failure(pythonCommand, result)
+      
+      return result
     else:
       holder = Holder(pythonCommand, tmpoutfile, tmperrfile, tmpstructedoutfile, handle)
 
       background = BackgroundThread(holder, self)
       background.start()
       return {"exitcode": 777}
-
+    
+  def on_failure(self, pythonCommand, result):
+    """
+    Log some useful information after task failure.
+    """
+    logger.info("Command " + pprint.pformat(pythonCommand) + " failed with exitcode=" + str(result['exitcode']))
+    cmd_list = ["ps faux", "netstat -tulpn"]
+    
+    shell_runner = shellRunner()
+    
+    for cmd in cmd_list:
+      ret = shell_runner.run(cmd)
+      logger.info("Command '{0}' returned {1}. {2}{3}".format(cmd, ret["exitCode"], ret["error"], ret["output"]))
+    
   def prepare_process_result(self, process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
     # Building results
