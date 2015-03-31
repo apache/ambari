@@ -1320,4 +1320,192 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
+  describe('#setHiveHostName', function () {
+
+    Em.A([
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'New MySQL Database'}),
+            Em.Object.create({name: 'hive_database_type', value: 'mysql'}),
+            Em.Object.create({name: 'hive_ambari_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          m: 'hive_database: New MySQL Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'New PostgreSQL Database'}),
+            Em.Object.create({name: 'hive_database_type', value: 'mysql'}),
+            Em.Object.create({name: 'hive_ambari_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          m: 'hive_database: New PostgreSQL Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'Existing MySQL Database'}),
+            Em.Object.create({name: 'hive_database_type', value: 'mysql'}),
+            Em.Object.create({name: 'hive_existing_mysql_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_ambari_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          m: 'hive_database: Existing MySQL Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'Existing PostgreSQL Database'}),
+            Em.Object.create({name: 'hive_database_type', value: 'postgresql'}),
+            Em.Object.create({name: 'hive_existing_postgresql_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          m: 'hive_database: Existing PostgreSQL Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'Existing Oracle Database'}),
+            Em.Object.create({name: 'hive_database_type', value: 'oracle'}),
+            Em.Object.create({name: 'hive_existing_oracle_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          m: 'hive_database: Existing Oracle Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'Existing MSSQL Server database with SQL authentication'}),
+            Em.Object.create({name: 'hive_database_type', value: 'mssql'}),
+            Em.Object.create({name: 'hive_existing_mssql_server_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          m: 'hive_database: Existing MSSQL Server database with SQL authentication',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'hive_database', value: 'Existing MSSQL Server database with integrated authentication'}),
+            Em.Object.create({name: 'hive_database_type', value: 'mssql'}),
+            Em.Object.create({name: 'hive_existing_mssql_server_2_host', value: 'h1'}),
+            Em.Object.create({name: 'hive_hostname', value: 'h2'})
+          ],
+          removed: ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'],
+          m: 'hive_database: Existing MSSQL Server database with integrated authentication',
+          host: 'h2'
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          var configs = test.globals.slice();
+          test.removed.forEach(function (c) {
+            configs.pushObject(Em.Object.create({name: c}))
+          });
+          configs = mainServiceInfoConfigsController.setHiveHostName(configs);
+          test.removed.forEach(function (name) {
+            if (!Em.isNone(configs.findProperty('name', name))) console.log('!!!!', name);
+            expect(Em.isNone(configs.findProperty('name', name))).to.equal(true);
+          });
+          expect(configs.findProperty('name', 'hive_hostname').value).to.equal(test.host);
+        });
+      });
+
+  });
+
+  describe('#setOozieHostName', function () {
+
+    Em.A([
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'New Derby Database'}),
+            Em.Object.create({name: 'oozie_ambari_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_ambari_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          m: 'oozie_database: New Derby Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'New MySQL Database'}),
+            Em.Object.create({name: 'oozie_ambari_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          m: 'oozie_database: New MySQL Database',
+          host: 'h1'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'Existing MySQL Database'}),
+            Em.Object.create({name: 'oozie_existing_mysql_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_ambari_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          m: 'oozie_database: Existing MySQL Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'Existing PostgreSQL Database'}),
+            Em.Object.create({name: 'oozie_existing_postgresql_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_ambari_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          m: 'oozie_database: Existing PostgreSQL Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'Existing Oracle Database'}),
+            Em.Object.create({name: 'oozie_existing_oracle_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_ambari_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          m: 'oozie_database: Existing Oracle Database',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'Existing MSSQL Server database with SQL authentication'}),
+            Em.Object.create({name: 'oozie_existing_oracle_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_ambari_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          m: 'oozie_database: Existing MSSQL Server database with SQL authentication',
+          host: 'h2'
+        },
+        {
+          globals: [
+            Em.Object.create({name: 'oozie_database', value: 'Existing MSSQL Server database with integrated authentication'}),
+            Em.Object.create({name: 'oozie_existing_oracle_host', value: 'h1'}),
+            Em.Object.create({name: 'oozie_hostname', value: 'h2'})
+          ],
+          removed: ['oozie_ambari_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'],
+          m: 'oozie_database: Existing MSSQL Server database with integrated authentication',
+          host: 'h2'
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          var configs = test.globals.slice();
+          test.removed.forEach(function (c) {
+            if (!configs.findProperty('name', c)) {
+              configs.pushObject(Em.Object.create({name: c}))
+            }
+          });
+          configs = mainServiceInfoConfigsController.setOozieHostName(configs);
+          test.removed.forEach(function (name) {
+            expect(Em.isNone(configs.findProperty('name', name))).to.equal(true);
+          });
+          expect(configs.findProperty('name', 'oozie_hostname').value).to.equal(test.host);
+        });
+      });
+
+  });
+
 });

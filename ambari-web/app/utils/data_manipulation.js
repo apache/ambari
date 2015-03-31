@@ -36,7 +36,7 @@ module.exports = {
   rejectPropertyValues: function(collection, key, valuesToReject) {
     return collection.filter(function (item) {
       var propertyValue = Em.get(item, key);
-      return valuesToReject.contains(propertyValue);
+      return !valuesToReject.contains(propertyValue);
     });
   },
 

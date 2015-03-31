@@ -71,7 +71,7 @@ describe('data_manipulation', function () {
         ],
         key = 'n';
       var result = data_manipulation.groupPropertyValues(collection, key);
-      expect(result).to.eql({
+      expect(JSON.stringify(result)).to.equal(JSON.stringify({
         v1: [
           {n: 'v1'}
         ],
@@ -81,7 +81,7 @@ describe('data_manipulation', function () {
         ],
         v4: [
           {n: 'v4'}
-        ]});
+        ]}));
     });
 
   });

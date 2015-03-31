@@ -19,6 +19,7 @@
 var App = require('app');
 require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
+var dataManipulationUtils = require('utils/data_manipulation');
 var lazyLoading = require('utils/lazy_loading');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, App.PreloadRequestsChainMixin, {
@@ -1470,101 +1471,45 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method setHiveHostName
    */
   setHiveHostName: function (configs) {
-    var dbHostPropertyName = null;
+    var dbHostPropertyName = null, configsToRemove = [];
     if (configs.someProperty('name', 'hive_database')) {
       var hiveDb = configs.findProperty('name', 'hive_database');
-      if (hiveDb.value === 'New MySQL Database' || hiveDb.value === 'New PostgreSQL Database') {
-        var ambariHost = configs.findProperty('name', 'hive_ambari_host');
-        if (ambariHost) {
-          dbHostPropertyName = 'hive_ambari_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === 'Existing MySQL Database') {
-        var existingMySqlHost = configs.findProperty('name', 'hive_existing_mysql_host');
-        if (existingMySqlHost) {
-          dbHostPropertyName = 'hive_existing_mysql_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-        var existingPostgreSqlHost = configs.findProperty('name', 'hive_existing_postgresql_host');
-        if (existingPostgreSqlHost) {
-          dbHostPropertyName = 'hive_existing_postgresql_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === 'Existing Oracle Database') {
-        var existingOracleHost = configs.findProperty('name', 'hive_existing_oracle_host');
-        if (existingOracleHost) {
-          dbHostPropertyName = 'hive_existing_oracle_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === 'Existing MSSQL Server database with SQL authentication') {
-        var existingMSSQLServerHost = configs.findProperty('name', 'hive_existing_mssql_server_host');
-        if (existingMSSQLServerHost) {
-          dbHostPropertyName = 'hive_existing_mssql_server_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_2_host'));
-      } else if (hiveDb.value === 'Existing MSSQL Server database with integrated authentication') {
-        var existingMSSQL2ServerHost = configs.findProperty('name', 'hive_existing_mssql_server_2_host');
-        if (existingMSSQL2ServerHost) {
-          dbHostPropertyName = 'hive_existing_mssql_server_2_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'hive_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'hive_existing_mssql_server_host'));
+
+      switch(hiveDb.value) {
+        case 'New MySQL Database':
+        case 'New PostgreSQL Database':
+          dbHostPropertyName = configs.someProperty('name', 'hive_ambari_host') ? 'hive_ambari_host' : dbHostPropertyName;
+          configsToRemove = ['hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'];
+          break;
+        case 'Existing MySQL Database':
+          dbHostPropertyName = configs.someProperty('name', 'hive_existing_mysql_host') ? 'hive_existing_mysql_host' : dbHostPropertyName;
+          configsToRemove = ['hive_ambari_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'];
+          break;
+        case 'Existing PostgreSQL Database':
+          dbHostPropertyName = configs.someProperty('name', 'hive_existing_postgresql_host') ? 'hive_existing_postgresql_host' : dbHostPropertyName;
+          configsToRemove = ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'];
+          break;
+        case 'Existing Oracle Database':
+          dbHostPropertyName = configs.someProperty('name', 'hive_existing_oracle_host') ? 'hive_existing_oracle_host' : dbHostPropertyName;
+          configsToRemove = ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'];
+          break;
+        case 'Existing MSSQL Server database with SQL authentication':
+          dbHostPropertyName = configs.someProperty('name', 'hive_existing_mssql_server_host') ? 'hive_existing_mssql_server_host' : dbHostPropertyName;
+          configsToRemove = ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'];
+          break;
+        case 'Existing MSSQL Server database with integrated authentication':
+          dbHostPropertyName = configs.someProperty('name', 'hive_existing_mssql_server_2_host') ? 'hive_existing_mssql_server_2_host' : dbHostPropertyName;
+          configsToRemove = ['hive_ambari_database', 'hive_existing_mysql_host', 'hive_existing_mysql_database', 'hive_existing_postgresql_host', 'hive_existing_postgresql_database', 'hive_existing_oracle_host', 'hive_existing_oracle_database', 'hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'];
+          break;
       }
+      configs = dataManipulationUtils.rejectPropertyValues(configs, 'name', configsToRemove);
     }
     if (dbHostPropertyName) {
       var hiveHostNameProperty = App.ServiceConfigProperty.create(App.config.get('preDefinedSiteProperties').findProperty('name', 'hive_hostname'));
       hiveHostNameProperty.set('value', configs.findProperty('name', dbHostPropertyName).get('value'));
       configs.pushObject(hiveHostNameProperty);
     }
+    return configs;
   },
 
   /**
@@ -1574,114 +1519,42 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method setOozieHostName
    */
   setOozieHostName: function (configs) {
-    var dbHostPropertyName = null;
+    var dbHostPropertyName = null, configsToRemove = [];
     if (configs.someProperty('name', 'oozie_database')) {
       var oozieDb = configs.findProperty('name', 'oozie_database');
-      if (oozieDb.value === 'New Derby Database') {
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-      } else if (oozieDb.value === 'New MySQL Database') {
-        var ambariHost = configs.findProperty('name', 'oozie_ambari_host');
-        if (ambariHost) {
-          ambariHost.name = 'oozie_hostname';
-        }
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-
-      } else if (oozieDb.value === 'Existing MySQL Database') {
-        var existingMySqlHost = configs.findProperty('name', 'oozie_existing_mysql_host');
-        if (existingMySqlHost) {
-          dbHostPropertyName = 'oozie_existing_mysql_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-      } else if (oozieDb.value === Em.I18n.t('services.service.config.hive.oozie.postgresql')) {
-        var existingPostgreSqlHost = configs.findProperty('name', 'oozie_existing_postgresql_host');
-
-
-        if (existingPostgreSqlHost) {
-          dbHostPropertyName = 'oozie_existing_postgresql_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
+      switch (oozieDb.value) {
+        case 'New Derby Database':
+          configsToRemove = ['oozie_ambari_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'];
+          break;
+        case 'New MySQL Database':
+          var ambariHost = configs.findProperty('name', 'oozie_ambari_host');
+          if (ambariHost) {
+            ambariHost.name = 'oozie_hostname';
+          }
+          configsToRemove = ['oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'];
+          break;
+        case 'Existing MySQL Database':
+          dbHostPropertyName = configs.someProperty('name', 'oozie_existing_mysql_host') ? 'oozie_existing_mysql_host' : dbHostPropertyName;
+          configsToRemove = ['oozie_ambari_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'];
+          break;
+        case 'Existing PostgreSQL Database':
+          dbHostPropertyName = configs.someProperty('name', 'oozie_existing_postgresql_host') ? 'oozie_existing_postgresql_host' : dbHostPropertyName;
+          configsToRemove = ['oozie_ambari_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'];
+          break;
+        case 'Existing Oracle Database':
+          dbHostPropertyName = configs.someProperty('name', 'oozie_existing_oracle_host') ? 'oozie_existing_oracle_host' : dbHostPropertyName;
+          configsToRemove = ['oozie_ambari_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_derby_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'];
+          break;
+        case 'Existing MSSQL Server database with SQL authentication':
+          dbHostPropertyName = configs.someProperty('name', 'oozie_existing_mssql_server_host') ? 'oozie_existing_mssql_server_host' : dbHostPropertyName;
+          configsToRemove = ['oozie_ambari_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'];
+          break;
+        case 'Existing MSSQL Server database with integrated authentication':
+          dbHostPropertyName = configs.someProperty('name', 'oozie_existing_mssql_server_2_host') ? 'oozie_existing_mssql_server_2_host' : dbHostPropertyName;
+          configsToRemove = ['oozie_ambari_database', 'oozie_existing_oracle_host', 'oozie_existing_oracle_database', 'oozie_derby_database', 'oozie_existing_postgresql_host', 'oozie_existing_postgresql_database', 'oozie_existing_mysql_host', 'oozie_existing_mysql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'];
+          break;
       }
-      else if (oozieDb.value === 'Existing Oracle Database') {
-        var existingOracleHost = configs.findProperty('name', 'oozie_existing_oracle_host');
-        if (existingOracleHost) {
-          dbHostPropertyName = 'oozie_existing_oracle_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-      } else if (oozieDb.value === 'Existing MSSQL Server database with SQL authentication') {
-        var existingMySqlServerHost = configs.findProperty('name', 'oozie_existing_mssql_server_host');
-        if (existingMySqlServerHost) {
-          dbHostPropertyName = 'oozie_existing_mssql_server_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_2_host'));
-      } else if (oozieDb.value === 'Existing MSSQL Server database with integrated authentication') {
-        var existingMySql2ServerHost = configs.findProperty('name', 'oozie_existing_mssql_server_2_host');
-        if (existingMySql2ServerHost) {
-          dbHostPropertyName = 'oozie_existing_mssql_server_2_host';
-        }
-        configs = configs.without(configs.findProperty('name', 'oozie_ambari_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_oracle_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_derby_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_postgresql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_host'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mysql_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_database'));
-        configs = configs.without(configs.findProperty('name', 'oozie_existing_mssql_server_host'));
-      }
+      configs = dataManipulationUtils.rejectPropertyValues(configs, 'name', configsToRemove);
     }
 
     if (dbHostPropertyName) {
@@ -1689,6 +1562,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       oozieHostNameProperty.set('value', configs.findProperty('name', dbHostPropertyName).get('value'));
       configs.pushObject(oozieHostNameProperty);
     }
+    return configs;
   },
 
   /**
@@ -1699,8 +1573,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   saveSiteConfigs: function (configs) {
     //storedConfigs contains custom configs as well
-    this.setHiveHostName(configs);
-    this.setOozieHostName(configs);
+    configs = this.setHiveHostName(configs);
+    configs = this.setOozieHostName(configs);
     this.formatConfigValues(configs);
     var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping').all(), App.Service.find().mapProperty('serviceName'));
     var allUiConfigs = this.loadUiSideConfigs(mappedConfigs);

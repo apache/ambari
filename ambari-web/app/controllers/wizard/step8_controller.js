@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+var dataManipulationUtils = require('utils/data_manipulation');
 
 App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wizardDeployProgressControllerMixin, App.ConfigOverridable, {
 
@@ -286,9 +287,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
 
       hive_properties.push('hive_master_hosts');
-      hive_properties.forEach(function (property) {
-        configs = configs.without(configs.findProperty('name', property));
-      });
+      configs = dataManipulationUtils.rejectPropertyValues(configs, 'name', hive_properties);
     }
     return configs;
   },
@@ -336,9 +335,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
             'oozie_existing_postgresql_database', 'oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database']);
           break;
       }
-      oozie_properties.forEach(function (property) {
-        configs = configs.without(configs.findProperty('name', property));
-      });
+
+      configs = dataManipulationUtils.rejectPropertyValues(configs, 'name', oozie_properties);
     }
     return configs;
   },
