@@ -18,22 +18,20 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import static org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFile.*;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 
 /**
- * KerberosConfigDataFileBuilder is an implementation of a KerberosConfigDataFile that is used to
- * create a new KerberosConfigDataFile.
+ * KerberosConfigDataFileWriter is an implementation of a KerberosConfigDataFile that is used to
+ * create a new KerberosConfigDataFileWriter.
  * <p/>
  * This class encapsulates a {@link org.apache.commons.csv.CSVPrinter} to create a CSV-formatted file.
  */
-public class KerberosConfigDataFileBuilder extends AbstractKerberosDataFileBuilder {
+public class KerberosConfigDataFileWriter extends AbstractKerberosDataFileWriter implements KerberosConfigDataFile {
 
   /**
-   * Creates a new KerberosConfigDataFileBuilder
+   * Creates a new KerberosConfigDataFileWriter
    * <p/>
    * The file is opened upon creation, so there is no need to manually open it unless manually
    * closed before using.
@@ -41,7 +39,7 @@ public class KerberosConfigDataFileBuilder extends AbstractKerberosDataFileBuild
    * @param file a File declaring where to write the data
    * @throws java.io.IOException
    */
-  public KerberosConfigDataFileBuilder(File file) throws IOException {
+  KerberosConfigDataFileWriter(File file) throws IOException {
     super(file);
   }
 

@@ -80,7 +80,7 @@ public class KerberosServerActionTest {
             if (requestSharedDataContext.get("FAIL") != null) {
               return createCommandReport(1, HostRoleStatus.FAILED, "{}", "ERROR", "ERROR");
             } else {
-              requestSharedDataContext.put(identityRecord.get(KerberosActionDataFile.PRINCIPAL), evaluatedPrincipal);
+              requestSharedDataContext.put(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL), evaluatedPrincipal);
               return null;
             }
           }
@@ -103,16 +103,16 @@ public class KerberosServerActionTest {
     Assert.assertTrue(temporaryDirectory.mkdirs());
 
     // Create a data file
-    KerberosActionDataFileBuilder builder =
-        new KerberosActionDataFileBuilder(new File(temporaryDirectory, KerberosActionDataFile.DATA_FILE_NAME));
+    KerberosIdentityDataFileWriter writer =
+        new KerberosIdentityDataFileWriter(new File(temporaryDirectory, KerberosIdentityDataFileWriter.DATA_FILE_NAME));
     for (int i = 0; i < 10; i++) {
-      builder.addRecord("hostName", "serviceName" + i, "serviceComponentName" + i,
-          "principal|_HOST|_REALM" + i, "principal_type", "principalConfiguration" + i, "keytabFilePath" + i,
+      writer.writeRecord("hostName", "serviceName" + i, "serviceComponentName" + i,
+          "principal|_HOST|_REALM" + i, "principal_type", "keytabFilePath" + i,
           "keytabFileOwnerName" + i, "keytabFileOwnerAccess" + i,
           "keytabFileGroupName" + i, "keytabFileGroupAccess" + i,
-          "keytabFileConfiguration" + i, "false");
+          "false");
     }
-    builder.close();
+    writer.close();
 
     commandParams.put(KerberosServerAction.DATA_DIRECTORY, temporaryDirectory.getAbsolutePath());
     commandParams.put(KerberosServerAction.DEFAULT_REALM, "REALM.COM");
@@ -133,7 +133,7 @@ public class KerberosServerActionTest {
   @After
   public void tearDown() throws Exception {
     if (temporaryDirectory != null) {
-      new File(temporaryDirectory, KerberosActionDataFile.DATA_FILE_NAME).delete();
+      new File(temporaryDirectory, KerberosIdentityDataFileWriter.DATA_FILE_NAME).delete();
       temporaryDirectory.delete();
     }
   }

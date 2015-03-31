@@ -117,7 +117,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         password = operationHandler.createSecurePassword();
 
         try {
-          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosActionDataFile.PRINCIPAL_TYPE));
+          boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
 
           if (operationHandler.principalExists(evaluatedPrincipal)) {
             // Create a new password since we need to know what it is.

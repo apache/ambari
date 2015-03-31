@@ -18,27 +18,31 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import java.io.File;
 import java.io.IOException;
 
 /**
- * KerberosActionDataFileReader is an implementation of a KerberosActionDataFile that is used to
- * read existing KerberosActionDataFiles.
- * <p/>
- * This class encapsulates a {@link org.apache.commons.csv.CSVParser} to read a CSV-formatted file.
+ * KerberosDataFile is an interfaced expected to be implemented by all Kerberos data file
+ * implementations
  */
-public class KerberosActionDataFileReader extends AbstractKerberosDataFileReader {
+public interface KerberosDataFile {
 
   /**
-   * Creates a new KerberosActionDataFileReader
+   * Opens the data file.
    * <p/>
-   * The file is opened upon creation, so there is no need to manually open it unless manually
-   * closed before using.
+   * This may be called multiple times and the appropriate action should occur depending on if the
+   * file has been previously opened or closed.
    *
-   * @param file a File declaring where to write the data
-   * @throws IOException
+   * @throws java.io.IOException if an error occurs while opening the file
    */
-  public KerberosActionDataFileReader(File file) throws IOException {
-    super(file);
-  }
+  void open() throws IOException;
+
+  /**
+   * Closes the data file.
+   * <p/>
+   * This may be called multiple times and the appropriate action should occur depending on if the
+   * file has been previously opened or closed.
+   *
+   * @throws java.io.IOException if an error occurs while closing the file
+   */
+  void close() throws IOException;
 }

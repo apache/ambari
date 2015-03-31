@@ -26,18 +26,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 /**
- * AbstractKerberosDataFileBuilder provides a generic facility to write a data file using some
+ * AbstractKerberosDataFileWriter provides a generic facility to write a data file using some
  * underlying record-based file writer.
  * <p/>
  * This class encapsulates a {@link org.apache.commons.csv.CSVPrinter} to create a CSV-formatted file.
  */
-public abstract class AbstractKerberosDataFileBuilder {
+public abstract class AbstractKerberosDataFileWriter {
 
   private File file;
   private CSVPrinter csvPrinter;
 
   /**
-   * Creates a new KerberosConfigDataFileBuilder
+   * Creates a new KerberosConfigDataFileWriter
    * <p/>
    * The file is opened upon creation, so there is no need to manually open it unless manually
    * closed before using.
@@ -45,7 +45,7 @@ public abstract class AbstractKerberosDataFileBuilder {
    * @param file a File declaring where to write the data
    * @throws java.io.IOException
    */
-  public AbstractKerberosDataFileBuilder(File file) throws IOException {
+  public AbstractKerberosDataFileWriter(File file) throws IOException {
     this.file = file;
     open();
   }
@@ -77,7 +77,7 @@ public abstract class AbstractKerberosDataFileBuilder {
   }
 
   /**
-   * Tests this KerberosConfigDataFileBuilder to see if the data file is closed.
+   * Tests this KerberosConfigDataFileWriter to see if the data file is closed.
    *
    * @return true if closed; otherwise false
    */

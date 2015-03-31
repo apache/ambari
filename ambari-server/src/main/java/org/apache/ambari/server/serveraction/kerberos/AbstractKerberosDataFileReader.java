@@ -58,7 +58,7 @@ public abstract class AbstractKerberosDataFileReader implements Iterable<Map<Str
    * This may be called multiple times and the appropriate action will occur depending on if the
    * file has been previously opened or closed.
    *
-   * @throws java.io.IOException
+   * @throws java.io.IOException if an error occurs while accessing the file
    */
   public void open() throws IOException {
     if (isClosed()) {

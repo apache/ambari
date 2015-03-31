@@ -18,27 +18,28 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
+import com.google.inject.Singleton;
+
 import java.io.File;
 import java.io.IOException;
 
 /**
- * KerberosConfigDataFileReader is an implementation of a KerberosConfigDataFile that is used to
- * read existing KerberosConfigDataFiles.
- * <p/>
- * This class encapsulates a {@link org.apache.commons.csv.CSVParser} to read a CSV-formatted file.
+ * KerberosIdentityDataFileReaderFactory creates KerberosIdentityDataFileReader instances.
  */
-public class KerberosConfigDataFileReader extends AbstractKerberosDataFileReader implements KerberosConfigDataFile{
+@Singleton
+public class KerberosIdentityDataFileReaderFactory {
 
   /**
-   * Creates a new KerberosConfigDataFileReader
+   * Creates a new KerberosIdentityDataFileReader
    * <p/>
    * The file is opened upon creation, so there is no need to manually open it unless manually
    * closed before using.
    *
    * @param file a File declaring where to write the data
+   * @return the created KerberosIdentityDataFileReader
    * @throws java.io.IOException if an error occurs while accessing the file
    */
-  KerberosConfigDataFileReader(File file) throws IOException {
-    super(file);
+  public KerberosIdentityDataFileReader createKerberosIdentityDataFileReader(File file) throws IOException {
+    return new KerberosIdentityDataFileReader(file);
   }
 }

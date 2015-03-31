@@ -22,15 +22,15 @@ import java.io.File;
 import java.io.IOException;
 
 /**
- * KerberosConfigDataFileReader is an implementation of a KerberosConfigDataFile that is used to
- * read existing KerberosConfigDataFiles.
+ * KerberosIdentityDataFileReader is an implementation of an AbstractKerberosDataFileReader that is
+ * used to read existing Kerberos identity data files.
  * <p/>
  * This class encapsulates a {@link org.apache.commons.csv.CSVParser} to read a CSV-formatted file.
  */
-public class KerberosConfigDataFileReader extends AbstractKerberosDataFileReader implements KerberosConfigDataFile{
+public class KerberosIdentityDataFileReader extends AbstractKerberosDataFileReader implements KerberosIdentityDataFile {
 
   /**
-   * Creates a new KerberosConfigDataFileReader
+   * Creates a new KerberosIdentityDataFileReader
    * <p/>
    * The file is opened upon creation, so there is no need to manually open it unless manually
    * closed before using.
@@ -38,7 +38,7 @@ public class KerberosConfigDataFileReader extends AbstractKerberosDataFileReader
    * @param file a File declaring where to write the data
    * @throws java.io.IOException if an error occurs while accessing the file
    */
-  KerberosConfigDataFileReader(File file) throws IOException {
+  KerberosIdentityDataFileReader(File file) throws IOException {
     super(file);
   }
 }

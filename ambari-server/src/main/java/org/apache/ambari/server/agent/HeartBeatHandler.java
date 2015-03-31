@@ -53,8 +53,8 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileReader;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReaderFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Alert;
@@ -161,6 +161,12 @@ public class HeartBeatHandler {
    */
   @Inject
   private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+
+  /**
+   * KerberosIdentityDataFileReaderFactory used to create KerberosIdentityDataFileReader instances
+   */
+  @Inject
+  private KerberosIdentityDataFileReaderFactory kerberosIdentityDataFileReaderFactory;
 
   private Map<String, Long> hostResponseIds = new ConcurrentHashMap<String, Long>();
 
@@ -1050,18 +1056,18 @@ public class HeartBeatHandler {
   void injectKeytab(ExecutionCommand ec, String command, String targetHost) throws AmbariException {
     List<Map<String, String>> kcp = ec.getKerberosCommandParams();
     String dataDir = ec.getCommandParams().get(KerberosServerAction.DATA_DIRECTORY);
-    KerberosActionDataFileReader reader = null;
+    KerberosIdentityDataFileReader reader = null;
 
     try {
-      reader = new KerberosActionDataFileReader(new File(dataDir, KerberosActionDataFile.DATA_FILE_NAME));
+      reader = kerberosIdentityDataFileReaderFactory.createKerberosIdentityDataFileReader(new File(dataDir, KerberosIdentityDataFileReader.DATA_FILE_NAME));
 
       for (Map<String, String> record : reader) {
-        String hostName = record.get(KerberosActionDataFile.HOSTNAME);
+        String hostName = record.get(KerberosIdentityDataFileReader.HOSTNAME);
 
         if (targetHost.equalsIgnoreCase(hostName)) {
 
           if ("SET_KEYTAB".equalsIgnoreCase(command)) {
-            String keytabFilePath = record.get(KerberosActionDataFile.KEYTAB_FILE_PATH);
+            String keytabFilePath = record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
 
             if (keytabFilePath != null) {
 
@@ -1070,20 +1076,18 @@ public class HeartBeatHandler {
 
               if (keytabFile.canRead()) {
                 Map<String, String> keytabMap = new HashMap<String, String>();
-                String principal = record.get(KerberosActionDataFile.PRINCIPAL);
-                String isService = record.get(KerberosActionDataFile.SERVICE);
+                String principal = record.get(KerberosIdentityDataFileReader.PRINCIPAL);
+                String isService = record.get(KerberosIdentityDataFileReader.SERVICE);
 
-                keytabMap.put(KerberosActionDataFile.HOSTNAME, hostName);
-                keytabMap.put(KerberosActionDataFile.SERVICE, isService);
-                keytabMap.put(KerberosActionDataFile.COMPONENT, record.get(KerberosActionDataFile.COMPONENT));
-                keytabMap.put(KerberosActionDataFile.PRINCIPAL, principal);
-                keytabMap.put(KerberosActionDataFile.PRINCIPAL_CONFIGURATION, record.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-                keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_PATH, keytabFilePath);
-                keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-                keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-                keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-                keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-                keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION, record.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+                keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
+                keytabMap.put(KerberosIdentityDataFileReader.SERVICE, isService);
+                keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
+                keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, principal);
+                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, keytabFilePath);
+                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_NAME));
+                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_OWNER_ACCESS));
+                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_NAME));
+                keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_GROUP_ACCESS));
 
                 BufferedInputStream bufferedIn = new BufferedInputStream(new FileInputStream(keytabFile));
                 byte[] keytabContent = IOUtils.toByteArray(bufferedIn);
@@ -1096,11 +1100,11 @@ public class HeartBeatHandler {
           } else if ("REMOVE_KEYTAB".equalsIgnoreCase(command)) {
             Map<String, String> keytabMap = new HashMap<String, String>();
 
-            keytabMap.put(KerberosActionDataFile.HOSTNAME, hostName);
-            keytabMap.put(KerberosActionDataFile.SERVICE, record.get(KerberosActionDataFile.SERVICE));
-            keytabMap.put(KerberosActionDataFile.COMPONENT, record.get(KerberosActionDataFile.COMPONENT));
-            keytabMap.put(KerberosActionDataFile.PRINCIPAL, record.get(KerberosActionDataFile.PRINCIPAL));
-            keytabMap.put(KerberosActionDataFile.KEYTAB_FILE_PATH, record.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
+            keytabMap.put(KerberosIdentityDataFileReader.HOSTNAME, hostName);
+            keytabMap.put(KerberosIdentityDataFileReader.SERVICE, record.get(KerberosIdentityDataFileReader.SERVICE));
+            keytabMap.put(KerberosIdentityDataFileReader.COMPONENT, record.get(KerberosIdentityDataFileReader.COMPONENT));
+            keytabMap.put(KerberosIdentityDataFileReader.PRINCIPAL, record.get(KerberosIdentityDataFileReader.PRINCIPAL));
+            keytabMap.put(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH, record.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH));
 
             kcp.add(keytabMap);
           }

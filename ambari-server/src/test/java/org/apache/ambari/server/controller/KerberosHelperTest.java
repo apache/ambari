@@ -41,6 +41,8 @@ import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriter;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
@@ -80,6 +82,7 @@ import org.junit.Test;
 
 import javax.persistence.EntityManager;
 
+import java.io.File;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -100,6 +103,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   private static Injector injector;
   private final ClusterController clusterController = createStrictMock(ClusterController.class);
   private final KerberosDescriptorFactory kerberosDescriptorFactory = createStrictMock(KerberosDescriptorFactory.class);
+  private final KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory = createStrictMock(KerberosConfigDataFileWriterFactory.class);
   private final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
 
   @Before
@@ -166,6 +170,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
         bind(ClusterController.class).toInstance(clusterController);
         bind(KerberosDescriptorFactory.class).toInstance(kerberosDescriptorFactory);
+        bind(KerberosConfigDataFileWriterFactory.class).toInstance(kerberosConfigDataFileWriterFactory);
       }
     });
 
@@ -378,6 +383,25 @@ public class KerberosHelperTest extends EasyMockSupport {
                                   boolean getStackDescriptor) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
+    KerberosConfigDataFileWriter kerberosConfigDataFileWriter = createMock(KerberosConfigDataFileWriter.class);
+    kerberosConfigDataFileWriter.addRecord("cluster-env", "security_enabled", "true", "SET");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.kerberos.principal", "component1/_HOST@${realm}", "SET");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.keytab.file", "${keytab_dir}/service1.keytab", "SET");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.kerberos.principal", "component2/host1@${realm}", "SET");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.keytab.file", "${keytab_dir}/service2.keytab", "SET");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.close();
+    expectLastCall().times(1);
+
+    KerberosConfigDataFileWriterFactory factory = injector.getInstance(KerberosConfigDataFileWriterFactory.class);
+    expect(factory.createKerberosConfigDataFileWriter(anyObject(File.class)))
+        .andReturn(kerberosConfigDataFileWriter)
+        .times(1);
 
     final StackId stackVersion = createNiceMock(StackId.class);
 
@@ -657,6 +681,25 @@ public class KerberosHelperTest extends EasyMockSupport {
                                    boolean getStackDescriptor) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
+    KerberosConfigDataFileWriter kerberosConfigDataFileWriter = createMock(KerberosConfigDataFileWriter.class);
+    kerberosConfigDataFileWriter.addRecord("cluster-env", "security_enabled", "false", "SET");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.kerberos.principal", null, "REMOVE");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service1-site", "component1.keytab.file", null, "REMOVE");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.kerberos.principal", null, "REMOVE");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.addRecord("service2-site", "component2.keytab.file", null, "REMOVE");
+    expectLastCall().times(1);
+    kerberosConfigDataFileWriter.close();
+    expectLastCall().times(1);
+
+    KerberosConfigDataFileWriterFactory factory = injector.getInstance(KerberosConfigDataFileWriterFactory.class);
+    expect(factory.createKerberosConfigDataFileWriter(anyObject(File.class)))
+        .andReturn(kerberosConfigDataFileWriter)
+        .times(1);
 
     final StackId stackVersion = createNiceMock(StackId.class);
 

@@ -51,12 +51,12 @@ import org.apache.ambari.server.serveraction.kerberos.CreatePrincipalsServerActi
 import org.apache.ambari.server.serveraction.kerberos.DestroyPrincipalsServerAction;
 import org.apache.ambari.server.serveraction.kerberos.FinalizeKerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.KDCType;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileBuilder;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriter;
+import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
-import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFile;
-import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileBuilder;
 import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosKDCConnectionException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosLDAPContainerException;
@@ -163,6 +163,12 @@ public class KerberosHelper {
 
   @Inject
   private KerberosDescriptorFactory kerberosDescriptorFactory;
+
+  @Inject
+  private KerberosIdentityDataFileWriterFactory kerberosIdentityDataFileWriterFactory;
+
+  @Inject
+  private KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory;
 
   /**
    * Used to get kerberos descriptors associated with the cluster or stack.
@@ -686,7 +692,7 @@ public class KerberosHelper {
       if ((hosts != null) && !hosts.isEmpty()) {
         List<ServiceComponentHost> serviceComponentHostsToProcess = new ArrayList<ServiceComponentHost>();
         KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
-        KerberosActionDataFileBuilder kerberosActionDataFileBuilder = null;
+        KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter = null;
         Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
         Map<String, Map<String, String>> kerberosConfigurations = new HashMap<String, Map<String, String>>();
 
@@ -708,7 +714,7 @@ public class KerberosHelper {
         File dataDirectory = createTemporaryDirectory();
 
         // Create the file used to store details about principals and keytabs to create
-        File indexFile = new File(dataDirectory, KerberosActionDataFile.DATA_FILE_NAME);
+        File identityDataFile = new File(dataDirectory, KerberosIdentityDataFileWriter.DATA_FILE_NAME);
 
         try {
           // Iterate over the hosts in the cluster to find the components installed in each.  For each
@@ -750,14 +756,14 @@ public class KerberosHelper {
                     int identitiesAdded = 0;
                     List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true);
 
-                    // Lazily create the KerberosActionDataFileBuilder instance...
-                    if (kerberosActionDataFileBuilder == null) {
-                      kerberosActionDataFileBuilder = new KerberosActionDataFileBuilder(indexFile);
+                    // Lazily create the KerberosIdentityDataFileWriter instance...
+                    if (kerberosIdentityDataFileWriter == null) {
+                      kerberosIdentityDataFileWriter = kerberosIdentityDataFileWriterFactory.createKerberosIdentityDataFileWriter(identityDataFile);
                     }
 
                     // Add service-level principals (and keytabs)
-                    identitiesAdded += addIdentities(kerberosActionDataFileBuilder, serviceIdentities,
-                        identityFilter, hostname, serviceName, componentName, configurations);
+                    identitiesAdded += addIdentities(kerberosIdentityDataFileWriter, serviceIdentities,
+                        identityFilter, hostname, serviceName, componentName, kerberosConfigurations, configurations);
 
                     // If there is no filter or the filter contains the current component name,
                     // test to see if this component should be process by querying the handler...
@@ -773,8 +779,8 @@ public class KerberosHelper {
                             componentDescriptor.getConfigurations(true), configurations);
 
                         // Add component-level principals (and keytabs)
-                        identitiesAdded += addIdentities(kerberosActionDataFileBuilder, componentIdentities,
-                            identityFilter, hostname, serviceName, componentName, configurations);
+                        identitiesAdded += addIdentities(kerberosIdentityDataFileWriter, componentIdentities,
+                            identityFilter, hostname, serviceName, componentName, kerberosConfigurations, configurations);
                       }
                     }
 
@@ -787,14 +793,14 @@ public class KerberosHelper {
             }
           }
         } catch (IOException e) {
-          String message = String.format("Failed to write index file - %s", indexFile.getAbsolutePath());
+          String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
           LOG.error(message);
           throw new AmbariException(message, e);
         } finally {
-          if (kerberosActionDataFileBuilder != null) {
+          if (kerberosIdentityDataFileWriter != null) {
             // Make sure the data file is closed
             try {
-              kerberosActionDataFileBuilder.close();
+              kerberosIdentityDataFileWriter.close();
             } catch (IOException e) {
               LOG.warn("Failed to close the index file writer", e);
             }
@@ -930,7 +936,7 @@ public class KerberosHelper {
       if ((hosts != null) && !hosts.isEmpty()) {
         List<ServiceComponentHost> serviceComponentHostsToProcess = new ArrayList<ServiceComponentHost>();
         KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
-        KerberosActionDataFileBuilder kerberosActionDataFileBuilder = null;
+        KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter = null;
         Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
 
         // While iterating over all the ServiceComponentHosts find hosts that have KERBEROS_CLIENT
@@ -945,7 +951,7 @@ public class KerberosHelper {
         File dataDirectory = createTemporaryDirectory();
 
         // Create the file used to store details about principals and keytabs to create
-        File indexFile = new File(dataDirectory, KerberosActionDataFile.DATA_FILE_NAME);
+        File identityDataFile = new File(dataDirectory, KerberosIdentityDataFileWriter.DATA_FILE_NAME);
 
         // Create a special identity for the test user
         KerberosIdentityDescriptor identity = new KerberosIdentityDescriptor(new HashMap<String, Object>() {
@@ -1016,14 +1022,14 @@ public class KerberosHelper {
 
                   int identitiesAdded = 0;
 
-                  // Lazily create the KerberosActionDataFileBuilder instance...
-                  if (kerberosActionDataFileBuilder == null) {
-                    kerberosActionDataFileBuilder = new KerberosActionDataFileBuilder(indexFile);
+                  // Lazily create the KerberosIdentityDataFileWriter instance...
+                  if (kerberosIdentityDataFileWriter == null) {
+                    kerberosIdentityDataFileWriter = kerberosIdentityDataFileWriterFactory.createKerberosIdentityDataFileWriter(identityDataFile);
                   }
 
                   // Add service-level principals (and keytabs)
-                  identitiesAdded += addIdentities(kerberosActionDataFileBuilder, Collections.singleton(identity),
-                      null, hostname, serviceName, componentName, configurations);
+                  identitiesAdded += addIdentities(kerberosIdentityDataFileWriter, Collections.singleton(identity),
+                      null, hostname, serviceName, componentName, null, configurations);
 
                   if (identitiesAdded > 0) {
                     // Add the relevant principal name and keytab file data to the command params state
@@ -1041,14 +1047,14 @@ public class KerberosHelper {
             }
           }
         } catch (IOException e) {
-          String message = String.format("Failed to write index file - %s", indexFile.getAbsolutePath());
+          String message = String.format("Failed to write index file - %s", identityDataFile.getAbsolutePath());
           LOG.error(message);
           throw new AmbariException(message, e);
         } finally {
-          if (kerberosActionDataFileBuilder != null) {
+          if (kerberosIdentityDataFileWriter != null) {
             // Make sure the data file is closed
             try {
-              kerberosActionDataFileBuilder.close();
+              kerberosIdentityDataFileWriter.close();
             } catch (IOException e) {
               LOG.warn("Failed to close the index file writer", e);
             }
@@ -1369,6 +1375,48 @@ public class KerberosHelper {
     return configurations;
   }
 
+  /**
+   * Merges the specified configuration property in a map of configuration types.
+   * The supplied property is processed to replace variables using the replacement Map.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
+   * for information on variable replacement.
+   *
+   * @param configurations             the Map of configuration types to update
+   * @param configurationSpecification the config-type/property_name value specifying the property to set
+   * @param value                      the value of the property to set
+   * @param replacements               a Map of (grouped) replacement values
+   * @throws AmbariException
+   */
+  private void mergeConfiguration(Map<String, Map<String, String>> configurations,
+                                  String configurationSpecification,
+                                  String value,
+                                  Map<String, Map<String, String>> replacements) throws AmbariException {
+
+    if (configurationSpecification != null) {
+      String[] parts = configurationSpecification.split("/");
+      if (parts.length == 2) {
+        String type = parts[0];
+        String property = parts[1];
+
+        mergeConfigurations(configurations, type, Collections.singletonMap(property, value), replacements);
+      }
+    }
+  }
+
+  /**
+   * Merges configuration from a Map of configuration updates into a main configurations Map.  Each
+   * property in the updates Map is processed to replace variables using the replacement Map.
+   * <p/>
+   * See {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
+   * for information on variable replacement.
+   *
+   * @param configurations a Map of configurations
+   * @param type           the configuration type
+   * @param updates        a Map of property updates
+   * @param replacements   a Map of (grouped) replacement values
+   * @throws AmbariException
+   */
   private void mergeConfigurations(Map<String, Map<String, String>> configurations, String type,
                                    Map<String, String> updates,
                                    Map<String, Map<String, String>> replacements) throws AmbariException {
@@ -1389,27 +1437,30 @@ public class KerberosHelper {
   }
 
   /**
-   * Adds identities to the KerberosActionDataFileBuilder.
+   * Adds identities to the KerberosIdentityDataFileWriter.
    *
-   * @param kerberosActionDataFileBuilder a KerberosActionDataFileBuilder to use for storing identity
-   *                                      records
-   * @param identities                    a List of KerberosIdentityDescriptors to add to the data
-   *                                      file
-   * @param identityFilter                a Collection of identity names indicating the relevant identities -
-   *                                      if null, no filter is relevant; if empty, the filter indicates no
-   *                                      relevant identities
-   * @param hostname                      the relevant hostname
-   * @param serviceName                   the relevant service name
-   * @param componentName                 the relevant component name
-   * @param configurations                a Map of configurations to use a replacements for variables
-   *                                      in identity fields
+   * @param kerberosIdentityDataFileWriter a KerberosIdentityDataFileWriter to use for storing identity
+   *                                        records
+   * @param identities                      a List of KerberosIdentityDescriptors to add to the data
+   *                                        file
+   * @param identityFilter                  a Collection of identity names indicating the relevant identities -
+   *                                        if null, no filter is relevant; if empty, the filter indicates no
+   *                                        relevant identities
+   * @param hostname                        the relevant hostname
+   * @param serviceName                     the relevant service name
+   * @param componentName                   the relevant component name
+   * @param kerberosConfigurations          a map of the configurations to update with identity-specific
+   *                                        values
+   * @param configurations                  a Map of configurations to use a replacements for variables
+   *                                        in identity fields
    * @return an integer indicating the number of identities added to the data file
    * @throws java.io.IOException if an error occurs while writing a record to the data file
    */
-  private int addIdentities(KerberosActionDataFileBuilder kerberosActionDataFileBuilder,
+  private int addIdentities(KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter,
                             Collection<KerberosIdentityDescriptor> identities,
                             Collection<String> identityFilter, String hostname, String serviceName,
-                            String componentName, Map<String, Map<String, String>> configurations)
+                            String componentName, Map<String, Map<String, String>> kerberosConfigurations,
+                            Map<String, Map<String, String>> configurations)
       throws IOException {
     int identitiesAdded = 0;
 
@@ -1436,6 +1487,7 @@ public class KerberosHelper {
             String keytabFileGroupName = null;
             String keytabFileGroupAccess = null;
             String keytabFileConfiguration = null;
+            boolean keytabIsCachable = false;
 
             if (keytabDescriptor != null) {
               keytabFilePath = KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations);
@@ -1444,23 +1496,28 @@ public class KerberosHelper {
               keytabFileGroupName = KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations);
               keytabFileGroupAccess = KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupAccess(), configurations);
               keytabFileConfiguration = KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
+              keytabIsCachable = keytabDescriptor.isCachable();
             }
 
             // Append an entry to the action data file builder...
-            kerberosActionDataFileBuilder.addRecord(
+            kerberosIdentityDataFileWriter.writeRecord(
                 hostname,
                 serviceName,
                 componentName,
                 principal,
                 principalType,
-                principalConfiguration,
                 keytabFilePath,
                 keytabFileOwnerName,
                 keytabFileOwnerAccess,
                 keytabFileGroupName,
                 keytabFileGroupAccess,
-                keytabFileConfiguration,
-                (keytabDescriptor.isCachable()) ? "true" : "false");
+                (keytabIsCachable) ? "true" : "false");
+
+            // Add the principal-related configuration to the map of configurations
+            mergeConfiguration(kerberosConfigurations, principalConfiguration, principal, null);
+
+            // Add the keytab-related configuration to the map of configurations
+            mergeConfiguration(kerberosConfigurations, keytabFileConfiguration, keytabFilePath, null);
 
             identitiesAdded++;
           }
@@ -2240,10 +2297,10 @@ public class KerberosHelper {
       // If there are configurations to set, create a (temporary) data file to store the configuration
       // updates and fill it will the relevant configurations.
       if (!kerberosConfigurations.isEmpty()) {
-        File configFile = new File(dataDirectory, KerberosConfigDataFile.DATA_FILE_NAME);
-        KerberosConfigDataFileBuilder kerberosConfDataFileBuilder = null;
+        File configFile = new File(dataDirectory, KerberosConfigDataFileWriter.DATA_FILE_NAME);
+        KerberosConfigDataFileWriter kerberosConfDataFileWriter = null;
         try {
-          kerberosConfDataFileBuilder = new KerberosConfigDataFileBuilder(configFile);
+          kerberosConfDataFileWriter = kerberosConfigDataFileWriterFactory.createKerberosConfigDataFileWriter(configFile);
 
           for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
             String type = entry.getKey();
@@ -2251,10 +2308,10 @@ public class KerberosHelper {
 
             if (properties != null) {
               for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
-                kerberosConfDataFileBuilder.addRecord(type,
+                kerberosConfDataFileWriter.addRecord(type,
                     configTypeEntry.getKey(),
                     configTypeEntry.getValue(),
-                    KerberosConfigDataFile.OPERATION_TYPE_SET);
+                    KerberosConfigDataFileWriter.OPERATION_TYPE_SET);
               }
             }
           }
@@ -2263,9 +2320,9 @@ public class KerberosHelper {
           LOG.error(message);
           throw new AmbariException(message, e);
         } finally {
-          if (kerberosConfDataFileBuilder != null) {
+          if (kerberosConfDataFileWriter != null) {
             try {
-              kerberosConfDataFileBuilder.close();
+              kerberosConfDataFileWriter.close();
             } catch (IOException e) {
               LOG.warn("Failed to close the kerberos configurations file writer", e);
             }
@@ -2375,8 +2432,8 @@ public class KerberosHelper {
       // updates and fill it will the relevant configurations.
       if (!kerberosConfigurations.isEmpty()) {
         Map<String, Collection<String>> configurationsToRemove = new HashMap<String, Collection<String>>();
-        File configFile = new File(dataDirectory, KerberosConfigDataFile.DATA_FILE_NAME);
-        KerberosConfigDataFileBuilder kerberosConfDataFileBuilder = null;
+        File configFile = new File(dataDirectory, KerberosConfigDataFileWriter.DATA_FILE_NAME);
+        KerberosConfigDataFileWriter kerberosConfDataFileWriter = null;
 
         // Fill the configurationsToRemove map with all Kerberos-related configurations.  Values
         // needed to be kept will have new values from the stack definition and thus pruned from
@@ -2430,21 +2487,26 @@ public class KerberosHelper {
         }
 
         try {
-          kerberosConfDataFileBuilder = new KerberosConfigDataFileBuilder(configFile);
+          kerberosConfDataFileWriter = kerberosConfigDataFileWriterFactory.createKerberosConfigDataFileWriter(configFile);
 
           for (Map.Entry<String, Map<String, String>> entry : kerberosConfigurations.entrySet()) {
             String type = entry.getKey();
             Map<String, String> properties = entry.getValue();
+            Collection<String> propertiesToRemove = configurationsToRemove.get(type);
 
             if (properties != null) {
               for (Map.Entry<String, String> configTypeEntry : properties.entrySet()) {
-                String value = configTypeEntry.getValue();
+                String propertyName = configTypeEntry.getKey();
 
-                kerberosConfDataFileBuilder.addRecord(type,
-                    configTypeEntry.getKey(),
-                    value,
-                    (value == null) ? KerberosConfigDataFile.OPERATION_TYPE_REMOVE : KerberosConfigDataFile.OPERATION_TYPE_SET
-                );
+                // Ignore properties that should be removed
+                if ((propertiesToRemove == null) || !propertiesToRemove.contains(propertyName)) {
+                  String value = configTypeEntry.getValue();
+                  String operation = (value == null)
+                      ? KerberosConfigDataFileWriter.OPERATION_TYPE_REMOVE
+                      : KerberosConfigDataFileWriter.OPERATION_TYPE_SET;
+
+                  kerberosConfDataFileWriter.addRecord(type, propertyName, value, operation);
+                }
               }
             }
           }
@@ -2456,7 +2518,7 @@ public class KerberosHelper {
 
             if (properties != null) {
               for (String propertyName : properties) {
-                kerberosConfDataFileBuilder.addRecord(type, propertyName, null, KerberosConfigDataFile.OPERATION_TYPE_REMOVE);
+                kerberosConfDataFileWriter.addRecord(type, propertyName, null, KerberosConfigDataFileWriter.OPERATION_TYPE_REMOVE);
               }
             }
           }
@@ -2465,9 +2527,9 @@ public class KerberosHelper {
           LOG.error(message);
           throw new AmbariException(message, e);
         } finally {
-          if (kerberosConfDataFileBuilder != null) {
+          if (kerberosConfDataFileWriter != null) {
             try {
-              kerberosConfDataFileBuilder.close();
+              kerberosConfDataFileWriter.close();
             } catch (IOException e) {
               LOG.warn("Failed to close the kerberos configurations file writer", e);
             }

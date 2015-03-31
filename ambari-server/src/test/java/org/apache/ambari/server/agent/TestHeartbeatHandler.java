@@ -84,8 +84,8 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFile;
-import org.apache.ambari.server.serveraction.kerberos.KerberosActionDataFileBuilder;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
+import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.state.Alert;
 import org.apache.ambari.server.state.AlertState;
@@ -2494,17 +2494,15 @@ public class TestHeartbeatHandler {
 
     properties = kcp.get(0);
     Assert.assertNotNull(properties);
-    Assert.assertEquals("c6403.ambari.apache.org", properties.get(KerberosActionDataFile.HOSTNAME));
-    Assert.assertEquals("HDFS", properties.get(KerberosActionDataFile.SERVICE));
-    Assert.assertEquals("DATANODE", properties.get(KerberosActionDataFile.COMPONENT));
-    Assert.assertEquals("dn/_HOST@_REALM", properties.get(KerberosActionDataFile.PRINCIPAL));
-    Assert.assertEquals("hdfs-site/dfs.namenode.kerberos.principal", properties.get(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", properties.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-    Assert.assertEquals("hdfs", properties.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-    Assert.assertEquals("r", properties.get(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-    Assert.assertEquals("hadoop", properties.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-    Assert.assertEquals("", properties.get(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-    Assert.assertEquals("hdfs-site/dfs.namenode.keytab.file", properties.get(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+    Assert.assertEquals("c6403.ambari.apache.org", properties.get(KerberosIdentityDataFileWriter.HOSTNAME));
+    Assert.assertEquals("HDFS", properties.get(KerberosIdentityDataFileWriter.SERVICE));
+    Assert.assertEquals("DATANODE", properties.get(KerberosIdentityDataFileWriter.COMPONENT));
+    Assert.assertEquals("dn/_HOST@_REALM", properties.get(KerberosIdentityDataFileWriter.PRINCIPAL));
+    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", properties.get(KerberosIdentityDataFileWriter.KEYTAB_FILE_PATH));
+    Assert.assertEquals("hdfs", properties.get(KerberosIdentityDataFileWriter.KEYTAB_FILE_OWNER_NAME));
+    Assert.assertEquals("r", properties.get(KerberosIdentityDataFileWriter.KEYTAB_FILE_OWNER_ACCESS));
+    Assert.assertEquals("hadoop", properties.get(KerberosIdentityDataFileWriter.KEYTAB_FILE_GROUP_NAME));
+    Assert.assertEquals("", properties.get(KerberosIdentityDataFileWriter.KEYTAB_FILE_GROUP_ACCESS));
 
     Assert.assertEquals(Base64.encodeBase64String("hello".getBytes()), kcp.get(0).get(KerberosServerAction.KEYTAB_CONTENT_BASE64));
 
@@ -2516,17 +2514,15 @@ public class TestHeartbeatHandler {
 
     properties = kcp.get(0);
     Assert.assertNotNull(properties);
-    Assert.assertEquals("c6403.ambari.apache.org", properties.get(KerberosActionDataFile.HOSTNAME));
-    Assert.assertEquals("HDFS", properties.get(KerberosActionDataFile.SERVICE));
-    Assert.assertEquals("DATANODE", properties.get(KerberosActionDataFile.COMPONENT));
-    Assert.assertEquals("dn/_HOST@_REALM", properties.get(KerberosActionDataFile.PRINCIPAL));
-    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.PRINCIPAL_CONFIGURATION));
-    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", properties.get(KerberosActionDataFile.KEYTAB_FILE_PATH));
-    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_OWNER_NAME));
-    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_OWNER_ACCESS));
-    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_GROUP_NAME));
-    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_GROUP_ACCESS));
-    Assert.assertFalse(properties.containsKey(KerberosActionDataFile.KEYTAB_FILE_CONFIGURATION));
+    Assert.assertEquals("c6403.ambari.apache.org", properties.get(KerberosIdentityDataFileWriter.HOSTNAME));
+    Assert.assertEquals("HDFS", properties.get(KerberosIdentityDataFileWriter.SERVICE));
+    Assert.assertEquals("DATANODE", properties.get(KerberosIdentityDataFileWriter.COMPONENT));
+    Assert.assertEquals("dn/_HOST@_REALM", properties.get(KerberosIdentityDataFileWriter.PRINCIPAL));
+    Assert.assertEquals("/etc/security/keytabs/dn.service.keytab", properties.get(KerberosIdentityDataFileWriter.KEYTAB_FILE_PATH));
+    Assert.assertFalse(properties.containsKey(KerberosIdentityDataFileWriter.KEYTAB_FILE_OWNER_NAME));
+    Assert.assertFalse(properties.containsKey(KerberosIdentityDataFileWriter.KEYTAB_FILE_OWNER_ACCESS));
+    Assert.assertFalse(properties.containsKey(KerberosIdentityDataFileWriter.KEYTAB_FILE_GROUP_NAME));
+    Assert.assertFalse(properties.containsKey(KerberosIdentityDataFileWriter.KEYTAB_FILE_GROUP_ACCESS));
     Assert.assertFalse(properties.containsKey(KerberosServerAction.KEYTAB_CONTENT_BASE64));
   }
 
@@ -2606,8 +2602,8 @@ public class TestHeartbeatHandler {
 
   private File createTestKeytabData() throws Exception {
     File dataDirectory = temporaryFolder.newFolder();
-    File indexFile = new File(dataDirectory, KerberosActionDataFile.DATA_FILE_NAME);
-    KerberosActionDataFileBuilder kerberosActionDataFileBuilder = new KerberosActionDataFileBuilder(indexFile);
+    File identityDataFile = new File(dataDirectory, KerberosIdentityDataFileWriter.DATA_FILE_NAME);
+    KerberosIdentityDataFileWriter kerberosIdentityDataFileWriter = injector.getInstance(KerberosIdentityDataFileWriterFactory.class).createKerberosIdentityDataFileWriter(identityDataFile);
     File hostDirectory = new File(dataDirectory, "c6403.ambari.apache.org");
 
     File keytabFile;
@@ -2616,12 +2612,12 @@ public class TestHeartbeatHandler {
     else
       throw new Exception("Failed to create " + hostDirectory.getAbsolutePath());
 
-    kerberosActionDataFileBuilder.addRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
-        "dn/_HOST@_REALM", "service", "hdfs-site/dfs.namenode.kerberos.principal",
+    kerberosIdentityDataFileWriter.writeRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
+        "dn/_HOST@_REALM", "service",
         "/etc/security/keytabs/dn.service.keytab",
-        "hdfs", "r", "hadoop", "", "hdfs-site/dfs.namenode.keytab.file", "false");
+        "hdfs", "r", "hadoop", "", "false");
 
-    kerberosActionDataFileBuilder.close();
+    kerberosIdentityDataFileWriter.close();
 
     // Ensure the host directory exists...
     FileWriter fw = new FileWriter(keytabFile);

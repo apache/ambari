@@ -22,7 +22,7 @@ package org.apache.ambari.server.serveraction.kerberos;
  * KerberosConfigDataFile declares the default data file name and the common record column names
  * for the Kerberos configuration data files.
  */
-public class KerberosConfigDataFile {
+public interface KerberosConfigDataFile extends KerberosDataFile {
   public static final String DATA_FILE_NAME = "configs.dat";
 
   public static final String CONFIGURATION_TYPE = "config";
