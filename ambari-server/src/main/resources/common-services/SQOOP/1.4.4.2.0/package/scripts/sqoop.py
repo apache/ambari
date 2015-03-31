@@ -17,9 +17,22 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.source import InlineTemplate
+from resource_management.libraries.functions import format
+from resource_management.core.resources.system import File, Link, Directory
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 import os
 
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def sqoop(type=None):
+  import params
+  File(os.path.join(params.sqoop_conf_dir, "sqoop-env.cmd"),
+       content=InlineTemplate(params.sqoop_env_cmd_template)
+  )
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def sqoop(type=None):
   import params
   Link(params.sqoop_lib + "/mysql-connector-java.jar",
