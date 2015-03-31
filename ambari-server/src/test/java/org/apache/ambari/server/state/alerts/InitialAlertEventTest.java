@@ -105,7 +105,6 @@ public class InitialAlertEventTest {
     m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
 
     m_metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
-    m_metaInfo.init();
 
     m_clusterName = "c1";
     m_clusters.addCluster(m_clusterName);

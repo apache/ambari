@@ -44,7 +44,6 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
@@ -54,6 +53,7 @@ import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -358,7 +358,6 @@ public class HostTest {
   @Test
   public void testHostDesiredConfig() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
-    metaInfo.init();
 
     clusters.addCluster("c1");
     Cluster c1 = clusters.getCluster("c1");
@@ -420,7 +419,6 @@ public class HostTest {
   @Test
   public void testHostMaintenance() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
-    metaInfo.init();
 
     clusters.addCluster("c1");
     Cluster c1 = clusters.getCluster("c1");

@@ -18,18 +18,26 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.metadata.ActionMetadata;
-import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.junit.Test;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.util.Collection;
 
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.EasyMock;
+import org.junit.Test;
 
 /**
  * StackManager Misc unit tests.
@@ -38,23 +46,36 @@ public class StackManagerMiscTest  {
 
   @Test
   public void testCycleDetection() throws Exception {
-    MetainfoDAO dao = createNiceMock(MetainfoDAO.class);
+    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
+    StackDAO stackDao = createNiceMock(StackDAO.class);
     ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
     OsFamily osFamily = createNiceMock(OsFamily.class);
-    replay(actionMetadata);
+    StackEntity stackEntity = createNiceMock(StackEntity.class);
+
+    expect(
+        stackDao.find(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
+
+    replay(actionMetadata, stackDao, metaInfoDao, osFamily);
+
     try {
       String stacksCycle1 = ClassLoader.getSystemClassLoader().getResource("stacks_with_cycle").getPath();
-      StackManager stackManager = new StackManager(new File(stacksCycle1), null,
-          new StackContext(dao, actionMetadata, osFamily));
+
+      StackManager stackManager = new StackManager(new File(stacksCycle1),
+          null, osFamily, metaInfoDao, actionMetadata, stackDao);
+
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
       // expected
       assertEquals("Cycle detected while parsing stack definition", e.getMessage());
     }
     try {
-      String stacksCycle2 = ClassLoader.getSystemClassLoader().getResource("stacks_with_cycle2").getPath();
-      StackManager stackManager = new StackManager(new File(stacksCycle2), null,
-          new StackContext(dao, actionMetadata, osFamily));
+      String stacksCycle2 = ClassLoader.getSystemClassLoader().getResource(
+          "stacks_with_cycle2").getPath();
+
+      StackManager stackManager = new StackManager(new File(stacksCycle2),
+          null, osFamily, metaInfoDao, actionMetadata, stackDao);
+
       fail("Expected exception due to cyclic stack");
     } catch (AmbariException e) {
       // expected
@@ -68,24 +89,32 @@ public class StackManagerMiscTest  {
    */
   @Test
   public void testGetServiceInfoFromSingleStack() throws Exception {
-    MetainfoDAO dao = createNiceMock(MetainfoDAO.class);
+    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
+    StackDAO stackDao = createNiceMock(StackDAO.class);
     ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
     OsFamily  osFamily = createNiceMock(OsFamily.class);
+    StackEntity stackEntity = createNiceMock(StackEntity.class);
 
     // ensure that service check is added for HDFS
     actionMetadata.addServiceCheckAction("HDFS");
-    replay(dao, actionMetadata, osFamily);
+
+    expect(
+        stackDao.find(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
+
+    replay(metaInfoDao, stackDao, actionMetadata, osFamily);
+
     String singleStack = ClassLoader.getSystemClassLoader().getResource("single_stack").getPath();
 
-    StackManager stackManager = new StackManager(
-        new File(singleStack.replace(StackManager.PATH_DELIMITER, File.separator)),
-        null,
-        new StackContext(dao, actionMetadata, osFamily));
+    StackManager stackManager = new StackManager(new File(singleStack.replace(
+        StackManager.PATH_DELIMITER, File.separator)),
+        null, osFamily, metaInfoDao, actionMetadata, stackDao);
+
 
     Collection<StackInfo> stacks = stackManager.getStacks();
     assertEquals(1, stacks.size());
     assertNotNull(stacks.iterator().next().getService("HDFS"));
 
-    verify(dao, actionMetadata, osFamily);
+    verify(metaInfoDao, stackDao, actionMetadata, osFamily);
   }
 }

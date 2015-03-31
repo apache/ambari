@@ -112,7 +112,6 @@ public class AlertEventPublisherTest {
     aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
 
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
-    metaInfo.init();
 
     clusterName = "foo";
     clusters.addCluster(clusterName);

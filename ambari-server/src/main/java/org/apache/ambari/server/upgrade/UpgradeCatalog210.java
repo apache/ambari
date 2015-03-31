@@ -18,9 +18,11 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.persist.Transactional;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
@@ -29,10 +31,9 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.persist.Transactional;
 
 
 /**
@@ -59,6 +60,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String WIDGET_LAYOUT_USER_WIDGET_TABLE = "widget_layout_user_widget";
   private static final String VIEW_INSTANCE_TABLE = "viewinstance";
   private static final String VIEW_PARAMETER_TABLE = "viewparameter";
+  private static final String STACK_TABLE_DEFINITION = "stack";
 
   /**
    * {@inheritDoc}
@@ -103,6 +105,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   protected void executeDDLUpdates() throws AmbariException, SQLException {
     executeHostsDDLUpdates();
     executeWidgetDDLUpdates();
+    executeStackDDLUpdates();
   }
 
   /**
@@ -270,6 +273,27 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.createTable(WIDGET_LAYOUT_USER_WIDGET_TABLE, columns, "widget_layout_id", "user_widget_id");
     dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_layout_id", "widget_layout_id", "widget_layout", "id", true, false);
     dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_user_widget_id", "user_widget_id", "user_widget", "id", true, false);
+  }
+
+  /**
+   * Adds the stack table and constraints.
+   */
+  private void executeStackDDLUpdates() throws AmbariException, SQLException {
+    // alert_definition
+    ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+    columns.add(new DBColumnInfo("stack_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("stack_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("stack_version", String.class, 255, null,
+        false));
+
+    dbAccessor.createTable(STACK_TABLE_DEFINITION, columns, "stack_id");
+
+    dbAccessor.executeQuery("ALTER TABLE " + STACK_TABLE_DEFINITION
+        + " ADD CONSTRAINT unq_stack UNIQUE (stack_name,stack_version)", false);
+
+    dbAccessor.executeQuery(
+        "INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('stack_id_seq', 0)",
+        false);
   }
 
   // ----- UpgradeCatalog ----------------------------------------------------

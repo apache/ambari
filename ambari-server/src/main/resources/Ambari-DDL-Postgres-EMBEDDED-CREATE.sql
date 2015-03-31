@@ -908,6 +908,14 @@ CREATE TABLE ambari.upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES ambari.upgrade_group(upgrade_group_id)
 );
 
+CREATE TABLE ambari.stack(
+  stack_id BIGINT NOT NULL,
+  stack_name VARCHAR(255) NOT NULL,
+  stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY (stack_id),
+  CONSTRAINT uni_stack UNIQUE(stack_name,stack_version)
+);
+
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_group TO :username;
 GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_item TO :username;
@@ -978,7 +986,9 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'upgrade_group_id_seq', 0 
   union all
-  select 'upgrade_item_id_seq', 0;
+  select 'upgrade_item_id_seq', 0,
+  union all
+  select 'stack_id_seq', 0;
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

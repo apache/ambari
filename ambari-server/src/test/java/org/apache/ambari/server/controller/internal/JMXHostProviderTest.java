@@ -17,6 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -44,11 +48,11 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -57,10 +61,6 @@ import org.junit.Test;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
-
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.expect;
 
 public class JMXHostProviderTest {
   private Injector injector;
@@ -81,7 +81,6 @@ public class JMXHostProviderTest {
     clusters = injector.getInstance(Clusters.class);
     controller = injector.getInstance(AmbariManagementController.class);
     AmbariMetaInfo ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    ambariMetaInfo.init();
   }
 
   @After
@@ -459,14 +458,16 @@ public class JMXHostProviderTest {
 
     @Override
     protected ResourceProvider createResourceProvider(Resource.Type type) {
-      if (type == Resource.Type.Cluster)
+      if (type == Resource.Type.Cluster) {
         return clusterResourceProvider;
-      if (type == Resource.Type.Service)
+      }
+      if (type == Resource.Type.Service) {
         return serviceResourceProvider;
-      else if (type == Resource.Type.HostComponent)
+      } else if (type == Resource.Type.HostComponent) {
         return hostCompResourceProvider;
-      else if (type == Resource.Type.Configuration)
+      } else if (type == Resource.Type.Configuration) {
         return configResourceProvider;
+      }
       return null;
     }
     

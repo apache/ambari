@@ -60,7 +60,6 @@ public class UpgradePackTest {
     injector.getInstance(GuiceJpaInitializer.class);
 
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    ambariMetaInfo.init();
   }
 
   @After
@@ -214,8 +213,9 @@ public class UpgradePackTest {
 
     int i = 0;
     for (Entry<String, ?> entry : map.entrySet()) {
-      if (entry.getKey().equals(keyToFind))
+      if (entry.getKey().equals(keyToFind)) {
         return i;
+      }
       i++;
     }
 

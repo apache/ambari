@@ -50,9 +50,11 @@ import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.serveraction.MockServerAction;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -557,6 +559,8 @@ public class TestActionDBAccessorImpl {
     @Override
     protected void configure() {
       bind(DBAccessor.class).to(TestDBAccessorImpl.class);
+      bind(StackManagerFactory.class).toInstance(
+          EasyMock.createNiceMock(StackManagerFactory.class));
     }
   }
 

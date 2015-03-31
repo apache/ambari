@@ -40,7 +40,6 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
-import org.apache.ambari.server.state.RepositoryVersionState;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,7 +74,6 @@ public class ServiceComponentTest {
         ServiceComponentHostFactory.class);
     helper = injector.getInstance(OrmTestHelper.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
-    metaInfo.init();
 
     clusterName = "foo";
     serviceName = "HDFS";

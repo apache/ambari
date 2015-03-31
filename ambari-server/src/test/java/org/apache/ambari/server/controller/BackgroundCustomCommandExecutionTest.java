@@ -98,7 +98,6 @@ public class BackgroundCustomCommandExecutionTest {
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
     
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    ambariMetaInfo.init();
   }
   @After
   public void teardown() {
@@ -167,8 +166,9 @@ public class BackgroundCustomCommandExecutionTest {
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
     clusters.getHost(hostname).persist();
-    if (null != clusterName)
+    if (null != clusterName) {
       clusters.mapHostToCluster(hostname, clusterName);
+    }
   }
   private void setOsFamily(Host host, String osFamily, String osVersion) {
     Map<String, String> hostAttributes = new HashMap<String, String>();

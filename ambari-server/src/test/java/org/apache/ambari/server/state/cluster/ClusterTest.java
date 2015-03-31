@@ -98,6 +98,7 @@ import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
 
 import com.google.gson.Gson;
 import com.google.inject.AbstractModule;
@@ -107,7 +108,6 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.PersistService;
 import com.google.inject.persist.Transactional;
 import com.google.inject.util.Modules;
-import org.mockito.ArgumentCaptor;
 
 public class ClusterTest {
 
@@ -179,7 +179,6 @@ public class ClusterTest {
     hostVersionDAO = injector.getInstance(HostVersionDAO.class);
     hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
-    metaInfo.init();
   }
 
   @After

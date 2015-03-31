@@ -68,7 +68,6 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     clusters = injector.getInstance(Clusters.class);
     configHelper = injector.getInstance(ConfigHelper.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    ambariMetaInfo.init();
   }
   @After
   public void teardown() {
@@ -170,8 +169,9 @@ public class RefreshYarnCapacitySchedulerReleaseConfigTest {
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
     clusters.getHost(hostname).persist();
-    if (null != clusterName)
+    if (null != clusterName) {
       clusters.mapHostToCluster(hostname, clusterName);
+    }
   }
 
   private void setOsFamily(Host host, String osFamily, String osVersion) {

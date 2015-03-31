@@ -832,6 +832,14 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
+CREATE TABLE stack(
+  stack_id BIGINT NOT NULL,
+  stack_name VARCHAR(255) NOT NULL,
+  stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY (stack_id),
+  CONSTRAINT uni_stack UNIQUE(stack_name,stack_version)
+);
+
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('cluster_id_seq', 1);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('host_id_seq', 0);
@@ -865,6 +873,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_versio
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'

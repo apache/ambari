@@ -367,6 +367,14 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
+CREATE TABLE stack(
+  stack_id BIGINT NOT NULL,
+  stack_name VARCHAR(255) NOT NULL,
+  stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY (stack_id),
+  CONSTRAINT uni_stack UNIQUE(stack_name,stack_version)
+);
+
 ---------inserting some data-----------
 BEGIN TRANSACTION
   INSERT INTO ambari_sequences (sequence_name, [sequence_value])
@@ -432,7 +440,9 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'host_version_id_seq', 0
   UNION ALL
-  SELECT 'repo_version_id_seq', 0;
+  SELECT 'repo_version_id_seq', 0,
+  UNION ALL
+  SELECT 'stack_id_seq', 0;
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
     select 1, 'AMBARI'

@@ -38,6 +38,7 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 import java.util.UUID;
 
@@ -59,6 +60,7 @@ import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.stack.StackManager;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -276,7 +278,9 @@ public class AmbariMetaInfoTest {
 
     List<RepositoryInfo> redhat6Repo = ambariMetaInfo.getRepositories(
         STACK_NAME_HDP, "2.1.1", "redhat6");
+
     assertNotNull(redhat6Repo);
+
     for (RepositoryInfo ri : redhat6Repo) {
       if (HDP_REPO_NAME.equals(ri.getRepoName())) {
         assertEquals(newBaseUrl, ri.getBaseUrl());
@@ -563,7 +567,9 @@ public class AmbariMetaInfoTest {
     if (!f3.exists()) {
       f3.createNewFile();
     }
+
     ambariMetaInfo.init();
+
     // Tests the stack is loaded as expected
     getServices();
     getComponentsByService();
@@ -1711,9 +1717,13 @@ public class AmbariMetaInfoTest {
     long clusterId = injector.getInstance(OrmTestHelper.class).createCluster(
         "cluster" + System.currentTimeMillis());
 
-    metaInfo.alertDefinitionDao = injector.getInstance(AlertDefinitionDAO.class);
     Class<?> c = metaInfo.getClass().getSuperclass();
-    Field f = c.getDeclaredField("agentAlertDefinitions");
+
+    Field f = c.getDeclaredField("alertDefinitionDao");
+    f.setAccessible(true);
+    f.set(metaInfo, injector.getInstance(AlertDefinitionDAO.class));
+
+    f = c.getDeclaredField("agentAlertDefinitions");
     f.setAccessible(true);
     f.set(metaInfo, injector.getInstance(AgentAlertDefinitions.class));
 
@@ -1865,7 +1875,12 @@ public class AmbariMetaInfoTest {
   }
 
   private TestAmbariMetaInfo createAmbariMetaInfo(File stackRoot, File versionFile, boolean replayMocks) throws Exception {
-    TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(stackRoot, versionFile);
+    Properties properties = new Properties();
+    properties.setProperty(Configuration.METADETA_DIR_PATH, stackRoot.getPath());
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, versionFile.getPath());
+    Configuration configuration = new Configuration(properties);
+
+    TestAmbariMetaInfo metaInfo = new TestAmbariMetaInfo(configuration);
     if (replayMocks) {
       metaInfo.replayAllMocks();
 
@@ -1902,20 +1917,28 @@ public class AmbariMetaInfoTest {
     AlertDefinitionFactory alertDefinitionFactory;
     OsFamily osFamily;
 
-    public TestAmbariMetaInfo(File stackRoot, File serverVersionFile) throws Exception {
-      super(stackRoot, null, serverVersionFile);
-      // MetainfoDAO
-      metaInfoDAO = createNiceMock(MetainfoDAO.class);
+    public TestAmbariMetaInfo(Configuration configuration) throws Exception {
+      super(configuration);
+
+      Injector injector = Guice.createInjector(Modules.override(
+          new InMemoryDefaultTestModule()).with(new MockModule()));
+
+      injector.getInstance(GuiceJpaInitializer.class);
+      injector.getInstance(EntityManager.class);
+
       Class<?> c = getClass().getSuperclass();
+
+      // MetainfoDAO
+      metaInfoDAO = injector.getInstance(MetainfoDAO.class);
       Field f = c.getDeclaredField("metaInfoDAO");
       f.setAccessible(true);
       f.set(this, metaInfoDAO);
 
-      // ActionMetadata
-      ActionMetadata actionMetadata = new ActionMetadata();
-      f = c.getDeclaredField("actionMetadata");
+      // StackManagerFactory
+      StackManagerFactory stackManagerFactory = injector.getInstance(StackManagerFactory.class);
+      f = c.getDeclaredField("stackManagerFactory");
       f.setAccessible(true);
-      f.set(this, actionMetadata);
+      f.set(this, stackManagerFactory);
 
       //AlertDefinitionDAO
       alertDefinitionDAO = createNiceMock(AlertDefinitionDAO.class);
@@ -1956,15 +1979,29 @@ public class AmbariMetaInfoTest {
       else {
         expect(config.getSharedResourcesDirPath()).andReturn("./src/test/resources").anyTimes();
       }
+
       replay(config);
+
       osFamily = new OsFamily(config);
-      f = c.getDeclaredField("os_family");
+
+      f = c.getDeclaredField("osFamily");
       f.setAccessible(true);
       f.set(this, osFamily);
     }
 
     public void replayAllMocks() {
       replay(metaInfoDAO, alertDefinitionDAO);
+    }
+
+    public class MockModule extends AbstractModule {
+      @Override
+      protected void configure() {
+        bind(ActionMetadata.class);
+
+        // create a mock metainfo DAO for the entire system so that injectables
+        // can use the mock as well
+        bind(MetainfoDAO.class).toInstance(createNiceMock(MetainfoDAO.class));
+      }
     }
   }
 }

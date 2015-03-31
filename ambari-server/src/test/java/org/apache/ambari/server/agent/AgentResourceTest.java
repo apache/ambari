@@ -18,32 +18,25 @@
 
 package org.apache.ambari.server.agent;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.FactoryModuleBuilder;
-import com.google.inject.persist.jpa.AmbariJpaPersistModule;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.UniformInterfaceException;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.json.JSONConfiguration;
-import com.sun.jersey.spi.container.servlet.ServletContainer;
-import com.sun.jersey.test.framework.JerseyTest;
-import com.sun.jersey.test.framework.WebAppDescriptor;
+import static org.mockito.Matchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import javax.ws.rs.core.MediaType;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -75,13 +68,26 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
+import org.easymock.EasyMock;
 import org.eclipse.jetty.server.SessionManager;
 import org.junit.Test;
-import javax.ws.rs.core.MediaType;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.persist.jpa.AmbariJpaPersistModule;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.UniformInterfaceException;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import com.sun.jersey.spi.container.servlet.ServletContainer;
+import com.sun.jersey.test.framework.JerseyTest;
+import com.sun.jersey.test.framework.WebAppDescriptor;
 
 public class AgentResourceTest extends JerseyTest {
   static String PACKAGE_NAME = "org.apache.ambari.server.agent.rest";
@@ -105,7 +111,7 @@ public class AgentResourceTest extends JerseyTest {
     GsonBuilder gsonBuilder = new GsonBuilder();
     gsonBuilder.serializeNulls();
     Gson gson = gsonBuilder.create();
-    return (T) gson.fromJson(json, type);
+    return gson.fromJson(json, type);
   }
 
   @Override
@@ -194,7 +200,7 @@ public class AgentResourceTest extends JerseyTest {
             "{user:'hdfs', pid:'325', hadoop:'False', command:'cmd = 2'}]";
     String AlternativeJSON = "[{name:'/etc/alternatives/hdfs-conf', target:'/etc/hadoop/conf.dist'}, " +
             "{name:'abc', target:'def'}]";
-    String AgentEnvJSON = "{\"alternatives\": " + AlternativeJSON + 
+    String AgentEnvJSON = "{\"alternatives\": " + AlternativeJSON +
             ", \"existingUsers\": "+ ExistingUserJSON +
             ", \"umask\": \"18\", \"installedPackages\": "+
             PackageDetailJSON +", \"stackFoldersAndFiles\": "+ DirectoryJSON +
@@ -229,7 +235,7 @@ public class AgentResourceTest extends JerseyTest {
     Assert.assertEquals("/etc/hadoop/conf.dist", alternatives[0].getTarget());
     Assert.assertEquals("abc", alternatives[1].getName());
     Assert.assertEquals("def", alternatives[1].getTarget());
-    
+
     AgentEnv agentEnv = getJsonFormString(
             AgentEnvJSON, AgentEnv.class);
     Assert.assertTrue(18 == agentEnv.getUmask());
@@ -247,7 +253,7 @@ public class AgentResourceTest extends JerseyTest {
     Assert.assertEquals("/var/lib/hadoop", agentEnv.getExistingUsers()[0].getUserHomeDir());
     Assert.assertEquals("None", agentEnv.getExistingUsers()[1].getUserStatus());
     Assert.assertEquals("/var/lib", agentEnv.getStackFoldersAndFiles()[0].getName());
-    Assert.assertEquals("directory", agentEnv.getStackFoldersAndFiles()[1].getType());    
+    Assert.assertEquals("directory", agentEnv.getStackFoldersAndFiles()[1].getType());
   }
 
   @Test
@@ -325,6 +331,9 @@ public class AgentResourceTest extends JerseyTest {
       install(new FactoryModuleBuilder().build(StageFactory.class));
       install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
       bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
+      bind(AmbariEventPublisher.class).toInstance(EasyMock.createMock(AmbariEventPublisher.class));
+      bind(StackManagerFactory.class).toInstance(
+          EasyMock.createMock(StackManagerFactory.class));
     }
   }
 }

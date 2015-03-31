@@ -203,10 +203,6 @@ public class AmbariServer {
 
   @SuppressWarnings("deprecation")
   public void run() throws Exception {
-    // Initialize meta info before heartbeat monitor
-    ambariMetaInfo.init();
-    LOG.info("********* Meta Info initialized **********");
-
     performStaticInjection();
     initDB();
     server = new Server();

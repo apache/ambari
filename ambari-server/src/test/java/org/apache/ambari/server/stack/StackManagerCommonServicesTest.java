@@ -18,21 +18,36 @@
 
 package org.apache.ambari.server.stack;
 
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import java.io.File;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
-import org.apache.ambari.server.state.*;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.CommandScriptDefinition;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.ServiceOsSpecific;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang.StringUtils;
+import org.easymock.EasyMock;
 import org.junit.BeforeClass;
 import org.junit.Test;
-
-import java.io.File;
-import java.util.*;
-
-import static org.easymock.EasyMock.*;
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
 
 /**
  * StackManager unit tests.
@@ -40,61 +55,72 @@ import static org.junit.Assert.assertEquals;
 public class StackManagerCommonServicesTest {
 
   private static StackManager stackManager;
-  private static MetainfoDAO dao;
+  private static MetainfoDAO metaInfoDao;
+  private static StackDAO stackDao;
   private static ActionMetadata actionMetadata;
   private static OsFamily osFamily;
 
   @BeforeClass
-  public static void initStack() throws Exception{
+  public static void initStack() throws Exception {
     stackManager = createTestStackManager();
   }
 
   public static StackManager createTestStackManager() throws Exception {
-    String stack = ClassLoader.getSystemClassLoader().getResource("stacks_with_common_services").getPath();
-    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath();
+    String stack = ClassLoader.getSystemClassLoader().getResource(
+        "stacks_with_common_services").getPath();
+
+    String commonServices = ClassLoader.getSystemClassLoader().getResource(
+        "common-services").getPath();
     return createTestStackManager(stack, commonServices);
   }
 
-  public static StackManager createTestStackManager(String stackRoot, String commonServicesRoot) throws Exception {
-    try {
-      //todo: dao , actionMetaData expectations
-      dao = createNiceMock(MetainfoDAO.class);
-      actionMetadata = createNiceMock(ActionMetadata.class);
-      Configuration config = createNiceMock(Configuration.class);
-      expect(config.getSharedResourcesDirPath()).andReturn(
-          ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-      replay(config);
-      osFamily = new OsFamily(config);
+  public static StackManager createTestStackManager(String stackRoot,
+      String commonServicesRoot) throws Exception {
+    // todo: dao , actionMetaData expectations
+    metaInfoDao = createNiceMock(MetainfoDAO.class);
+    stackDao = createNiceMock(StackDAO.class);
+    actionMetadata = createNiceMock(ActionMetadata.class);
+    Configuration config = createNiceMock(Configuration.class);
+    StackEntity stackEntity = createNiceMock(StackEntity.class);
 
-      replay(dao, actionMetadata);
-      StackManager stackManager = new StackManager(
-          new File(stackRoot), new File(commonServicesRoot), new StackContext(dao, actionMetadata, osFamily));
-      return stackManager;
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw e;
-    }
+    expect(config.getSharedResourcesDirPath()).andReturn(
+        ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+
+    expect(
+        stackDao.find(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(stackEntity).atLeastOnce();
+
+    replay(config, stackDao);
+    osFamily = new OsFamily(config);
+
+    replay(metaInfoDao, actionMetadata);
+
+    StackManager stackManager = new StackManager(new File(stackRoot), new File(
+        commonServicesRoot), osFamily, metaInfoDao, actionMetadata, stackDao);
+
+    EasyMock.verify( config, stackDao );
+
+    return stackManager;
   }
 
   @Test
-  public void testGetStacks_count() throws Exception {
+  public void testGetStacksCount() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
     assertEquals(2, stacks.size());
   }
 
   @Test
-  public void testGetStack_name__count() {
+  public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
     assertEquals(2, stacks.size());
   }
 
   @Test
-  public void testGetStack_basic() {
+  public void testGetStack() {
     StackInfo stack = stackManager.getStack("HDP", "0.1");
     assertNotNull(stack);
     assertEquals("HDP", stack.getName());
     assertEquals("0.1", stack.getVersion());
-
 
     Collection<ServiceInfo> services = stack.getServices();
     assertEquals(3, services.size());
@@ -139,12 +165,14 @@ public class StackManagerCommonServicesTest {
     assertEquals(1, components.size());
     CommandScriptDefinition commandScript = pigService.getCommandScript();
     assertEquals("scripts/service_check.py", commandScript.getScript());
-    assertEquals(CommandScriptDefinition.Type.PYTHON, commandScript.getScriptType());
+    assertEquals(CommandScriptDefinition.Type.PYTHON,
+        commandScript.getScriptType());
     assertEquals(300, commandScript.getTimeout());
     List<String> configDependencies = pigService.getConfigDependencies();
     assertEquals(1, configDependencies.size());
     assertEquals("global", configDependencies.get(0));
-    assertEquals("global", pigService.getConfigDependenciesWithComponents().get(0));
+    assertEquals("global",
+        pigService.getConfigDependenciesWithComponents().get(0));
     ComponentInfo client = pigService.getClientComponent();
     assertNotNull(client);
     assertEquals("PIG", client.getName());
@@ -182,10 +210,11 @@ public class StackManagerCommonServicesTest {
     ServiceInfo hdfsService2 = stack.getService("HDFS");
     assertNotNull(hdfsService2);
 
-    String packageDir1 = StringUtils.join(
-        new String[]{"common-services", "HDFS", "1.0", "package"}, File.separator);
-    String packageDir2 = StringUtils.join(
-        new String[]{"stacks_with_common_services", "HDP", "0.2", "services", "HDFS", "package"}, File.separator);
+    String packageDir1 = StringUtils.join(new String[] { "common-services",
+        "HDFS", "1.0", "package" }, File.separator);
+    String packageDir2 = StringUtils.join(new String[] {
+        "stacks_with_common_services", "HDP", "0.2", "services", "HDFS",
+        "package" }, File.separator);
 
     assertEquals(packageDir1, hdfsService1.getServicePackageFolder());
     assertEquals(packageDir2, hdfsService2.getServicePackageFolder());

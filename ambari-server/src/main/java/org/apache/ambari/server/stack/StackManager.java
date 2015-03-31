@@ -18,21 +18,30 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
+
+import javax.annotation.Nullable;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.state.stack.ServiceMetainfoXml;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Inject;
+import com.google.inject.assistedinject.Assisted;
 
 
 /**
@@ -70,27 +79,59 @@ public class StackManager {
   private Map<String, StackInfo> stackMap = new HashMap<String, StackInfo>();
 
   /**
-   * Constructor.
-   * Initialize stack manager.
+   * Constructor. Initialize stack manager.
    *
-   * @param stackRoot           stack root directory
-   * @param commonServicesRoot  common services root directory
-   * @param stackContext        context which provides external functionality
+   * @param stackRoot
+   *          stack root directory
+   * @param commonServicesRoot
+   *          common services root directory
+   * @param osFamily
+   *          the OS family read from resources
+   * @param metaInfoDAO
+   *          metainfo DAO automatically injected
+   * @param actionMetadata
+   *          action meta data automatically injected
+   * @param stackDao
+   *          stack DAO automatically injected
    *
-   * @throws AmbariException if an exception occurs while processing the stacks
+   * @throws AmbariException
+   *           if an exception occurs while processing the stacks
    */
-  public StackManager(File stackRoot, File commonServicesRoot, StackContext stackContext) throws AmbariException {
+  @Inject
+  public StackManager(@Assisted("stackRoot") File stackRoot,
+      @Assisted("commonServicesRoot") @Nullable File commonServicesRoot,
+      @Assisted OsFamily osFamily, MetainfoDAO metaInfoDAO,
+      ActionMetadata actionMetadata, StackDAO stackDao)
+      throws AmbariException {
+
     validateStackDirectory(stackRoot);
     validateCommonServicesDirectory(commonServicesRoot);
 
-    this.stackMap = new HashMap<String, StackInfo>();
-    this.stackContext = stackContext;
+    stackMap = new HashMap<String, StackInfo>();
+    stackContext = new StackContext(metaInfoDAO, actionMetadata, osFamily);
 
     Map<String, ServiceModule> commonServiceModules = parseCommonServicesDirectory(commonServicesRoot);
     Map<String, StackModule> stackModules = parseStackDirectory(stackRoot);
 
     fullyResolveCommonServices(stackModules, commonServiceModules);
     fullyResolveStacks(stackModules, commonServiceModules);
+
+    // for every stack read in, ensure that we have a database entry for it;
+    // don't put try/catch logic around this since a failure here will
+    // cause other things to break down the road
+    Collection<StackInfo> stacks = getStacks();
+    for( StackInfo stack : stacks ){
+      String stackName = stack.getName();
+      String stackVersion = stack.getVersion();
+
+      if (stackDao.find(stackName, stackVersion) == null) {
+        StackEntity stackEntity = new StackEntity();
+        stackEntity.setStackName(stackName);
+        stackEntity.setStackVersion(stackVersion);
+
+        stackDao.create(stackEntity);
+      }
+    }
   }
 
   /**
@@ -201,10 +242,11 @@ public class StackManager {
             + ", commonServicesRoot = " + commonServicesRootAbsolutePath);
       }
 
-      if (!commonServicesRoot.isDirectory() && !commonServicesRoot.exists())
+      if (!commonServicesRoot.isDirectory() && !commonServicesRoot.exists()) {
         throw new AmbariException("" + Configuration.COMMON_SERVICES_DIR_PATH
             + " should be a directory with common services"
             + ", commonServicesRoot = " + commonServicesRootAbsolutePath);
+      }
     }
   }
 
@@ -221,10 +263,11 @@ public class StackManager {
           + ", stackRoot = " + stackRootAbsPath);
     }
 
-    if (!stackRoot.isDirectory() && !stackRoot.exists())
+    if (!stackRoot.isDirectory() && !stackRoot.exists()) {
       throw new AmbariException("" + Configuration.METADETA_DIR_PATH
           + " should be a directory with stack"
           + ", stackRoot = " + stackRootAbsPath);
+    }
   }
 
   /**

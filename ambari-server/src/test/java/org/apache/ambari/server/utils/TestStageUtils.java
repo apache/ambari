@@ -97,8 +97,6 @@ public class TestStageUtils {
     injector.getInstance(GuiceJpaInitializer.class);
     serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
-    ambariMetaInfo.init();
-
   }
 
 

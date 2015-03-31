@@ -51,7 +51,7 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class Configuration {
-  
+
   @Inject
   private OsFamily osFamily;
 
@@ -573,6 +573,16 @@ public class Configuration {
    */
   public String getProperty(String key) {
     return properties.getProperty(key);
+  }
+
+  /**
+   * Gets a copy of all of the configuration properties that back this
+   * {@link Configuration} instance.
+   *
+   * @return a copy of all of the properties.
+   */
+  public Properties getProperties() {
+    return new Properties(properties);
   }
 
   /**

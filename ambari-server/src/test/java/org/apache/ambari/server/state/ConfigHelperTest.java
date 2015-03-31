@@ -23,12 +23,19 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import javax.persistence.EntityManager;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -41,6 +48,7 @@ import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.security.SecurityHelper;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.cluster.ClusterFactory;
 import org.apache.ambari.server.state.cluster.ClustersImpl;
 import org.apache.ambari.server.state.configgroup.ConfigGroup;
@@ -53,15 +61,11 @@ import org.junit.Test;
 import org.junit.experimental.runners.Enclosed;
 import org.junit.runner.RunWith;
 
-import javax.persistence.EntityManager;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
 
 
 
@@ -89,7 +93,6 @@ public class ConfigHelperTest {
       configHelper = injector.getInstance(ConfigHelper.class);
       managementController = injector.getInstance(AmbariManagementController.class);
 
-      metaInfo.init();
       clusterName = "c1";
       clusters.addCluster(clusterName);
       cluster = clusters.getCluster(clusterName);
@@ -609,6 +612,7 @@ public class ConfigHelperTest {
           bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
           bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
           bind(ClusterController.class).toInstance(clusterController);
+          bind(StackManagerFactory.class).toInstance(createNiceMock(StackManagerFactory.class));
         }
       });
 

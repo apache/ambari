@@ -73,6 +73,7 @@ import org.apache.ambari.server.scheduler.ExecutionSchedulerImpl;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -364,7 +365,6 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(
         Service.class, ServiceImpl.class).build(ServiceFactory.class));
 
-
     install(new FactoryModuleBuilder()
         .implement(ResourceProvider.class, Names.named("host"), HostResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("hostComponent"), HostComponentResourceProvider.class)
@@ -373,7 +373,6 @@ public class ControllerModule extends AbstractModule {
         .implement(ResourceProvider.class, Names.named("member"), MemberResourceProvider.class)
         .implement(ResourceProvider.class, Names.named("repositoryVersion"), RepositoryVersionResourceProvider.class)
         .build(ResourceProviderFactory.class));
-
 
     install(new FactoryModuleBuilder().implement(
         ServiceComponent.class, ServiceComponentImpl.class).build(
@@ -387,8 +386,10 @@ public class ControllerModule extends AbstractModule {
         ConfigGroup.class, ConfigGroupImpl.class).build(ConfigGroupFactory.class));
     install(new FactoryModuleBuilder().implement(RequestExecution.class,
         RequestExecutionImpl.class).build(RequestExecutionFactory.class));
+
     install(new FactoryModuleBuilder().build(StageFactory.class));
     install(new FactoryModuleBuilder().build(RequestFactory.class));
+    install(new FactoryModuleBuilder().build(StackManagerFactory.class));
 
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());

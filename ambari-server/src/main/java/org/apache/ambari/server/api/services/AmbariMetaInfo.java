@@ -47,15 +47,14 @@ import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.AgentAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
-import org.apache.ambari.server.stack.StackContext;
 import org.apache.ambari.server.stack.StackDirectory;
 import org.apache.ambari.server.stack.StackManager;
+import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -92,8 +91,6 @@ import com.google.inject.Singleton;
  */
 @Singleton
 public class AmbariMetaInfo {
-
-
   public static final String SERVICE_CONFIG_FOLDER_NAME = "configuration";
   public static final String SERVICE_THEMES_FOLDER_NAME = "themes";
   public static final String SERVICE_CONFIG_FILE_NAME_POSTFIX = ".xml";
@@ -137,7 +134,7 @@ public class AmbariMetaInfo {
 
   // all the supported OS'es
   @Inject
-  private OsFamily os_family;
+  private OsFamily osFamily;
 
   /**
    * ALL_SUPPORTED_OS is dynamically generated list from loaded families from os_family.json
@@ -147,7 +144,6 @@ public class AmbariMetaInfo {
 
   private final ActionDefinitionManager adManager = new ActionDefinitionManager();
   private String serverVersion = "undefined";
-  private StackManager stackManager;
 
   private File stackRoot;
   private File commonServicesRoot;
@@ -161,7 +157,7 @@ public class AmbariMetaInfo {
    * Alert Definition DAO used to merge stack definitions into the database.
    */
   @Inject
-  AlertDefinitionDAO alertDefinitionDao;
+  private AlertDefinitionDAO alertDefinitionDao;
 
   /**
    * A factory that assists in the creation of {@link AlertDefinition} and
@@ -200,10 +196,16 @@ public class AmbariMetaInfo {
   @Inject
   private KerberosServiceDescriptorFactory kerberosServiceDescriptorFactory;
 
-  //todo: only used by StackManager
+  /**
+   * Factory for injecting {@link StackManager} instances.
+   */
   @Inject
-  ActionMetadata actionMetadata;
+  private StackManagerFactory stackManagerFactory;
 
+  /**
+   * Singleton instance of the stack manager.
+   */
+  private StackManager stackManager;
 
   /**
    * Ambari Meta Info Object
@@ -214,22 +216,17 @@ public class AmbariMetaInfo {
   @Inject
   public AmbariMetaInfo(Configuration conf) throws Exception {
     String stackPath = conf.getMetadataPath();
-    String commonServicesPath = conf.getCommonServicesPath();
-    String serverVersionFilePath = conf.getServerVersionFilePath();
     stackRoot = new File(stackPath);
+
+    String commonServicesPath = conf.getCommonServicesPath();
     if(commonServicesPath != null && !commonServicesPath.isEmpty()) {
       commonServicesRoot = new File(commonServicesPath);
     }
-    serverVersionFile = new File(serverVersionFilePath);
-    customActionRoot = new File(conf.getCustomActionDefinitionPath());
-    os_family = new OsFamily(conf);
-    ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
-  }
 
-  public AmbariMetaInfo(File stackRoot, File commonServicesRoot, File serverVersionFile) throws Exception {
-    this.stackRoot = stackRoot;
-    this.commonServicesRoot = commonServicesRoot;
-    this.serverVersionFile = serverVersionFile;
+    String serverVersionFilePath = conf.getServerVersionFilePath();
+    serverVersionFile = new File(serverVersionFilePath);
+
+    customActionRoot = new File(conf.getCustomActionDefinitionPath());
   }
 
   /**
@@ -240,10 +237,13 @@ public class AmbariMetaInfo {
   @Inject
   public void init() throws Exception {
     // Need to be initialized before all actions
-    ALL_SUPPORTED_OS = new ArrayList<String>(os_family.os_list());
+    ALL_SUPPORTED_OS = new ArrayList<String>(osFamily.os_list());
+
     readServerVersion();
-    stackManager = new StackManager(stackRoot, commonServicesRoot,
-        new StackContext(metaInfoDAO, actionMetadata, os_family));
+
+    stackManager = stackManagerFactory.create(stackRoot, commonServicesRoot,
+        osFamily);
+
     getCustomActionDefinitions(customActionRoot);
   }
 

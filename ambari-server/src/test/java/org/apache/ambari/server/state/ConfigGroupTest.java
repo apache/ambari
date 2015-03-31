@@ -17,10 +17,9 @@
  */
 package org.apache.ambari.server.state;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import com.google.inject.persist.Transactional;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -40,9 +39,10 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
+import com.google.inject.persist.Transactional;
 
 public class ConfigGroupTest {
 
@@ -70,7 +70,6 @@ public class ConfigGroupTest {
     configGroupHostMappingDAO = injector.getInstance
       (ConfigGroupHostMappingDAO.class);
 
-    metaInfo.init();
     clusterName = "foo";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);
@@ -188,7 +187,7 @@ public class ConfigGroupTest {
     Assert.assertEquals("NewTag", configGroupEntity.getTag());
     Assert.assertEquals("NewDesc", configGroupEntity.getDescription());
     Assert.assertNotNull(cluster.getConfig("test-site", "version100"));
-    
+
     ConfigGroupConfigMappingEntity configMappingEntity = null;
     Object[] array = configGroupEntity.getConfigGroupConfigMappingEntities().toArray();
     for(Object o: array) {
@@ -213,7 +212,6 @@ public class ConfigGroupTest {
     configGroup.delete();
 
     Assert.assertNull(configGroupDAO.findById(id));
-    Assert.assertNull(cluster.getConfigGroups().get(id));
   }
 
   @Test

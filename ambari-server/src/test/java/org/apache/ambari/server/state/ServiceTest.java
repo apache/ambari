@@ -62,7 +62,6 @@ public class ServiceTest {
     serviceComponentFactory = injector.getInstance(
         ServiceComponentFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
-    metaInfo.init();
     clusterName = "foo";
     clusters.addCluster(clusterName);
     cluster = clusters.getCluster(clusterName);

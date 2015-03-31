@@ -822,6 +822,13 @@ CREATE TABLE upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
+CREATE TABLE stack(
+  stack_id NUMBER(19) NOT NULL,
+  stack_name VARCHAR2(255) NOT NULL,
+  stack_version VARCHAR2(255) NOT NULL,
+  PRIMARY KEY (stack_id),
+  CONSTRAINT uni_stack UNIQUE(stack_name,stack_version)
+);
 
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
@@ -857,6 +864,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('repo_versio
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 

@@ -153,7 +153,6 @@ public class TestHeartbeatHandler {
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     injector.injectMembers(this);
-    metaInfo.init();
     log.debug("Using server os type=" + config.getServerOsType());
     unitOfWork = injector.getInstance(UnitOfWork.class);
   }
@@ -2607,10 +2606,11 @@ public class TestHeartbeatHandler {
     File hostDirectory = new File(dataDirectory, "c6403.ambari.apache.org");
 
     File keytabFile;
-    if(hostDirectory.mkdirs())
+    if(hostDirectory.mkdirs()) {
       keytabFile = new File(hostDirectory, DigestUtils.sha1Hex("/etc/security/keytabs/dn.service.keytab"));
-    else
+    } else {
       throw new Exception("Failed to create " + hostDirectory.getAbsolutePath());
+    }
 
     kerberosIdentityDataFileWriter.writeRecord("c6403.ambari.apache.org", "HDFS", "DATANODE",
         "dn/_HOST@_REALM", "service",

@@ -27,16 +27,19 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.state.ClientConfigFileDefinition;
 import org.apache.ambari.server.state.CommandScriptDefinition;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -45,6 +48,7 @@ import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -54,9 +58,10 @@ import org.junit.Test;
 public class StackManagerTest {
 
   private static StackManager stackManager;
-  private static MetainfoDAO dao;
+  private static MetainfoDAO metaInfoDao;
   private static ActionMetadata actionMetadata;
   private static OsFamily osFamily;
+  private static StackDAO stackDao;
 
   @BeforeClass
   public static void initStack() throws Exception{
@@ -69,34 +74,35 @@ public class StackManagerTest {
   }
 
   public static StackManager createTestStackManager(String stackRoot) throws Exception {
-    try {
-      //todo: dao , actionMetaData expectations
-      dao = createNiceMock(MetainfoDAO.class);
-      actionMetadata = createNiceMock(ActionMetadata.class);
-      Configuration config = createNiceMock(Configuration.class);
-      expect(config.getSharedResourcesDirPath()).andReturn(
-          ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
-      replay(config);
-      osFamily = new OsFamily(config);
+    // todo: dao , actionMetaData expectations
+    metaInfoDao = createNiceMock(MetainfoDAO.class);
+    stackDao = createNiceMock(StackDAO.class);
+    actionMetadata = createNiceMock(ActionMetadata.class);
+    Configuration config = createNiceMock(Configuration.class);
 
-      replay(dao, actionMetadata);
-      StackManager stackManager = new StackManager(
-          new File(stackRoot), null, new StackContext(dao, actionMetadata, osFamily));
-      return stackManager;
-    } catch (Exception e) {
-      e.printStackTrace();
-      throw e;
-    }
+    expect(config.getSharedResourcesDirPath()).andReturn(
+        ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+
+    replay(config, metaInfoDao, stackDao, actionMetadata);
+
+    osFamily = new OsFamily(config);
+
+    StackManager stackManager = new StackManager(new File(stackRoot), null,
+        osFamily, metaInfoDao, actionMetadata, stackDao);
+
+    verify(config, metaInfoDao, stackDao, actionMetadata);
+
+    return stackManager;
   }
 
   @Test
-  public void testGetStacks_count() throws Exception {
+  public void testGetsStacks() throws Exception {
     Collection<StackInfo> stacks = stackManager.getStacks();
     assertEquals(18, stacks.size());
   }
 
   @Test
-  public void testGetStack_name__count() {
+  public void testGetStacksByName() {
     Collection<StackInfo> stacks = stackManager.getStacks("HDP");
     assertEquals(14, stacks.size());
 
@@ -105,7 +111,7 @@ public class StackManagerTest {
   }
 
   @Test
-  public void testGetStack_basic() {
+  public void testGetStack() {
     StackInfo stack = stackManager.getStack("HDP", "0.1");
     assertNotNull(stack);
     assertEquals("HDP", stack.getName());
@@ -183,7 +189,7 @@ public class StackManagerTest {
   }
 
   @Test
-  public void testStackVersionInheritance_includeAllServices() {
+  public void testStackVersionInheritance() {
     StackInfo stack = stackManager.getStack("HDP", "2.1.1");
     assertNotNull(stack);
     assertEquals("HDP", stack.getName());
@@ -236,7 +242,7 @@ public class StackManagerTest {
   }
 
   @Test
-  public void testGetStack_explicitServiceExtension() {
+  public void testStackServiceExtension() {
     StackInfo stack = stackManager.getStack("OTHER", "1.0");
     assertNotNull(stack);
     assertEquals("OTHER", stack.getName());
@@ -327,7 +333,7 @@ public class StackManagerTest {
   }
 
   @Test
-  public void testGetStack_versionInheritance__explicitServiceExtension() {
+  public void testGetStackServiceInheritance() {
     StackInfo baseStack = stackManager.getStack("OTHER", "1.0");
     StackInfo stack = stackManager.getStack("OTHER", "2.0");
 

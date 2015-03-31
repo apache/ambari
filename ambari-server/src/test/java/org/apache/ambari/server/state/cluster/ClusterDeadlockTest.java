@@ -114,8 +114,6 @@ public class ClusterDeadlockTest {
     cluster.createClusterVersion(stackId.getStackName(),
         stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
 
-    metaInfo.init();
-
     // 100 hosts
     for (int i = 0; i < NUMBER_OF_HOSTS; i++) {
       String hostName = "c64-" + i;
