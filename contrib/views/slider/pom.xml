@@ -141,62 +141,105 @@
   <build>
     <plugins>
       <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>1.2.1</version>
+        <executions>
+          <execution>
+            <id>clean-rmdir</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.rmdir}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.rm.clean} public node_modules</commandlineArgs>
+              <successCodes>
+                <successCode>0</successCode>
+                <successCode>1</successCode>
+                <successCode>2</successCode>
+              </successCodes>
+            </configuration>
+          </execution>
+          <execution>
+            <id>clean-mkdir</id>
+            <phase>clean</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.mkdir}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.mkdir} public</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>slider-ui-compile-npm</id>
+            <phase>generate-resources</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.npm}</executable>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <commandlineArgs>${args.npm} install</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>slider-ui-compile-brunch</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.brunch}</executable>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <commandlineArgs>${args.brunch} build</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>slider-ui-test</id>
+            <phase>test</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <skip>${skipTests}</skip>
+              <executable>${executable.npm}</executable>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <commandlineArgs>${args.npm} test</commandlineArgs>
+              <environmentVariables>
+                <PYTHON>${executable.python}</PYTHON>
+              </environmentVariables>
+            </configuration>
+          </execution>
+          <execution>
+            <id>gzip ambari-web content</id>
+            <phase>prepare-package</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.gzip}</executable>
+              <workingDirectory>${ui.directory}</workingDirectory>
+              <arguments>
+                <argument>-f</argument>
+                <argument>public/javascripts/app.js</argument>
+                <argument>public/javascripts/vendor.js</argument>
+                <argument>public/stylesheets/app.css</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+<!--
+      <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-antrun-plugin</artifactId>
         <version>1.7</version>
         <executions>
-          <execution>
-            <id>clean</id>
-            <phase>clean</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target name="slider-ui-clean">
-                <exec dir="${ui.directory}" executable="${executable.rmdir}">
-                  <arg value="${args.rm.clean}"/>
-                  <arg value="public"/>
-                  <arg value="node_modules"/>
-                </exec>
-                <exec dir="${ui.directory}" executable="${executable.mkdir}">
-                  <arg value="${args.mkdir.clean}"/>
-                </exec>
-              </target>
-            </configuration>
-          </execution>
-          <execution>
-            <id>compile</id>
-            <phase>generate-resources</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target name="slider-ui-compile">
-                <exec dir="${ui.directory}" executable="${executable.npm}" failonerror="true">
-                  <arg value="${args.npm.install}"/>
-                </exec>
-                <exec dir="${ui.directory}" executable="${executable.brunch}" failonerror="true">
-                  <arg value="${args.brunch.build}"/>
-                </exec>
-              </target>
-            </configuration>
-          </execution>
-          <execution>
-            <id>test</id>
-            <phase>test</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target name="slider-ui-test" unless="${skipTests}">
-                <exec dir="${ui.directory}" executable="${executable.npm}" failonerror="true">
-                  <env key="PYTHON" value="${basedir}/../ambari-common/src/main/unix/ambari-python-wrap"/>
-                  <arg value="${args.npm.test}"/>
-                </exec>
-              </target>
-            </configuration>
-          </execution>
-          <execution>
+           <execution>
             <id>prepare-package</id>
             <phase>prepare-package</phase>
             <goals>
@@ -204,20 +247,14 @@
             </goals>
             <configuration>
               <target name="slider-ui-prepare-package">
-                <exec dir="${ui.directory}" executable="${executable.gzip}" failonerror="false">
-                  <arg value="-f"/>
-                  <arg value="public/javascripts/app.js"/>
-                  <arg value="public/javascripts/vendor.js"/>
-                  <arg value="public/stylesheets/app.css"/>
-                </exec>
-
-                <!-- <copy toDir="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}/web/">
-                    <fileset dir="${ui.directory}/../ambari-web/public"/> </copy> -->
+                <copy toDir="${project.build.directory}/ambari-server-${project.version}-dist/ambari-server-${project.version}/web/">
+                    <fileset dir="${ui.directory}/../ambari-web/public"/> </copy>
               </target>
             </configuration>
           </execution>
         </executions>
       </plugin>
+-->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-compiler-plugin</artifactId>
@@ -348,14 +385,14 @@
       <properties>
         <envClassifier>win</envClassifier>
         <dirsep>\</dirsep>
+        <executable.python>python</executable.python>
         <executable.brunch>cmd</executable.brunch>
-        <args.brunch.build>/C brunch build</args.brunch.build>
+        <args.brunch>/C brunch</args.brunch>
         <executable.gzip>gzip</executable.gzip>
         <executable.mkdir>cmd</executable.mkdir>
-        <args.mkdir.clean>/C mkdir public</args.mkdir.clean>
+        <args.mkdir>/C mkdir</args.mkdir>
         <executable.npm>cmd</executable.npm>
-        <args.npm.install>/C npm install</args.npm.install>
-        <args.npm.test>/C npm test</args.npm.test>
+        <args.npm>/C npm</args.npm>
         <executable.rmdir>cmd</executable.rmdir>
         <args.rm.clean>/C rmdir /S /Q</args.rm.clean>
         <executable.shell>cmd</executable.shell>
@@ -372,14 +409,14 @@
       <properties>
         <envClassifier>linux</envClassifier>
         <dirsep>/</dirsep>
+        <executable.python>${project.basedir}/../ambari-common/src/main/unix/ambari-python-wrap</executable.python>
         <executable.brunch>brunch</executable.brunch>
-        <args.brunch.build>build</args.brunch.build>
+        <args.brunch></args.brunch>
         <executable.gzip>gzip</executable.gzip>
         <executable.mkdir>mkdir</executable.mkdir>
-        <args.mkdir.clean>public</args.mkdir.clean>
+        <args.mkdir></args.mkdir>
         <executable.npm>npm</executable.npm>
-        <args.npm.install>install</args.npm.install>
-        <args.npm.test>test</args.npm.test>
+        <args.npm></args.npm>
         <executable.rmdir>rm</executable.rmdir>
         <args.rm.clean>-rf</args.rm.clean>
         <executable.shell>sh</executable.shell>
