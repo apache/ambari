@@ -38,6 +38,14 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, {
   isOriginalSCPBinding: 'config.isOriginalSCP',
 
   /**
+   * Alias to <code>config.isComparison</code>
+   * Should be used in the templates
+   * Don't use original <code>config.isComparison</code> in the widget-templates!!!
+   * @type {boolean}
+   */
+  isComparisonBinding: 'config.isComparison',
+
+  /**
    * Config name to display.
    * @type {String}
    */
@@ -63,11 +71,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, {
   }.property('config.value'),
 
   /**
-   * @type {boolean}
-   */
-  isComparison: false,
-
-  /**
    * Reset config-value to its default
    * @method restoreValue
    */
@@ -82,8 +85,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, {
   overrideAllowed: function () {
     var config = this.get('config');
     if (!config) return false;
-    return config.get('isOriginalSCP') && config.get('isPropertyOverridable') && !this.get('isComparison');
-  }.property('config.isOriginalSCP', 'config.isPropertyOverridable', 'isComparison'),
+    return config.get('isOriginalSCP') && config.get('isPropertyOverridable') && !this.get('config.isComparison');
+  }.property('config.isOriginalSCP', 'config.isPropertyOverridable', 'config.isComparison'),
 
   /**
    * Determines if undo is allowed for <code>config</code>

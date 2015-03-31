@@ -28,6 +28,7 @@ require('mixins/common/table_server_view_mixin');
 require('mixins/common/table_server_mixin');
 require('mixins/main/host/details/host_components/decommissionable');
 require('mixins/main/service/configs/config_overridable');
+require('mixins/main/service/configs/preload_requests_chain');
 require('mixins/routers/redirections');
 require('mixins/wizard/wizardProgressPageController');
 require('mixins/wizard/wizardDeployProgressController');

@@ -78,71 +78,70 @@ describe('App.ConfigWidgetView', function () {
         {
           cfg: {
             isOriginalSCP: false,
-            isPropertyOverridable: false
+            isPropertyOverridable: false,
+            isComparison: false
           },
-          isComparison: false,
           e: false
         },
         {
           cfg: {
             isOriginalSCP: true,
-            isPropertyOverridable: false
+            isPropertyOverridable: false,
+            isComparison: false
           },
-          isComparison: false,
           e: false
         },
         {
           cfg: {
             isOriginalSCP: false,
-            isPropertyOverridable: true
+            isPropertyOverridable: true,
+            isComparison: false
           },
-          isComparison: false,
           e: false
         },
         {
           cfg: {
             isOriginalSCP: true,
-            isPropertyOverridable: true
+            isPropertyOverridable: true,
+            isComparison: false
           },
-          isComparison: false,
           e: true
         },
         {
           cfg: {
             isOriginalSCP: false,
-            isPropertyOverridable: false
+            isPropertyOverridable: false,
+            isComparison: true
           },
-          isComparison: true,
           e: false
         },
         {
           cfg: {
             isOriginalSCP: true,
-            isPropertyOverridable: false
+            isPropertyOverridable: false,
+            isComparison: true
           },
-          isComparison: true,
           e: false
         },
         {
           cfg: {
             isOriginalSCP: false,
-            isPropertyOverridable: true
+            isPropertyOverridable: true,
+            isComparison: true
           },
-          isComparison: true,
           e: false
         },
         {
           cfg: {
             isOriginalSCP: true,
-            isPropertyOverridable: true
+            isPropertyOverridable: true,
+            isComparison: true
           },
-          isComparison: true,
           e: false
         }
       ]).forEach(function (test, index) {
         it('test #' + index, function () {
           view.get('config').setProperties(test.cfg);
-          view.set('isComparison', test.isComparison);
           expect(view.get('overrideAllowed')).to.equal(test.e);
         });
       });

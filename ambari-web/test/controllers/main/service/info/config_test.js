@@ -600,9 +600,9 @@ describe("App.MainServiceInfoConfigsController", function () {
       App.ajax.send.restore();
       App.router.getClusterName.restore();
     });
-    it("ajax request to put clsuter cfg", function () {
+    it("ajax request to put cluster cfg", function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
-      expect(mainServiceInfoConfigsController.doPUTClusterConfigurationSites([])).to.equal(mainServiceInfoConfigsController.get("doPUTClusterConfigurationSiteResult"));
+      expect(mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]));
       expect(App.ajax.send.calledOnce).to.be.true;
     });
     it('values should be parsed', function () {

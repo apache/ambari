@@ -21,49 +21,94 @@ require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
 var lazyLoading = require('utils/lazy_loading');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, App.PreloadRequestsChainMixin, {
+
   name: 'mainServiceInfoConfigsController',
+
   isHostsConfigsPage: false,
+
   forceTransition: false,
+
   isRecommendedLoaded: true,
+
   dataIsLoaded: false,
+
   stepConfigs: [], //contains all field properties that are viewed in this service
+
   selectedService: null,
+
   serviceConfigTags: null,
+
   selectedConfigGroup: null,
+
   configTypesInfo: {
     items: [],
     supportsFinal: []
   },
+
   requestInProgress: null,
+
   selectedServiceConfigTypes: [],
+
   selectedServiceSupportsFinal: [],
 
   /**
    * config groups for current service
    */
   configGroups: [],
+
   allConfigs: [],
+
   uiConfigs: [],
+
   saveInProgress: false,
+
   saveConfigsFlag: true,
+
   isCompareMode: false,
+
   compareServiceVersion: null,
+
   preSelectedConfigVersion: null,
-  // contain Service Config Property, when user proceed from Select Config Group dialog
+
+  /**
+   * contain Service Config Property, when user proceed from Select Config Group dialog
+   */
   overrideToAdd: null,
-  //version of default config group, configs of which currently applied
+
+  /**
+   * version of default config group, configs of which currently applied
+   */
   currentDefaultVersion: null,
-  //version selected to view
+
+  /**
+   * version selected to view
+   */
   selectedVersion: null,
-  // file names of changed configs
+
+  /**
+   * file names of changed configs
+   * @type {string[]}
+   */
   modifiedFileNames: [],
-  // note passed on configs save
+
+  /**
+   * note passed on configs save
+   * @type {string}
+   */
   serviceConfigVersionNote: '',
+
   versionLoaded: false,
-  // current cluster-env version
+
+  /**
+   * current cluster-env version
+   * @type {string}
+   */
   clusterEnvTagVersion: '',
 
+  /**
+   * @type {boolean}
+   */
   isCurrentSelected: function () {
     return App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + this.get('selectedVersion')).get('isCurrent');
   }.property('selectedVersion', 'content.serviceName', 'dataIsLoaded'),
@@ -82,6 +127,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   configMapping: function () {
     return App.config.get('configMapping');
   }.property('App.config.configMapping'),
+
   configs: function () {
     return  App.config.get('preDefinedSiteProperties');
   }.property('App.config.preDefinedSiteProperties'),
@@ -89,11 +135,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   secureConfigs: require('data/HDP2/secure_mapping'),
 
   showConfigHistoryFeature: true,
+
   /**
    * Map, which contains relation between group and site
    * to upload overridden properties
+   * @type {object}
    */
   loadedGroupToOverrideSiteToTagMap: {},
+
   /**
    * During page load time the cluster level site to tag
    * mapping is stored here.
@@ -106,10 +155,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   loadedClusterSiteToTagMap: {},
 
+  /**
+   * Determines if Save-button should be disabled
+   * Disabled if some configs have invalid values or save-process currently in progress
+   * @type {boolean}
+   */
   isSubmitDisabled: function () {
     return (!(this.get('stepConfigs').everyProperty('errorCount', 0)) || this.get('saveInProgress'));
   }.property('stepConfigs.@each.errorCount', 'saveInProgress'),
 
+  /**
+   * Determines if some config value is changed
+   * @type {boolean}
+   */
   isPropertiesChanged: function(){
     return this.get('stepConfigs').someProperty('isPropertiesChanged', true);
   }.property('stepConfigs.@each.isPropertiesChanged'),
@@ -118,11 +176,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Filter text will be located here
+   * @type {string}
    */
   filter: '',
 
   /**
    * List of filters for config properties to populate filter combobox
+   * @type {{attributeName: string, attributeValue: boolean, caption: string}[]}
    */
   propertyFilters: [
     {
@@ -155,11 +215,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * List of heapsize properties not to be parsed
+   * @type {string[]}
    */
   heapsizeException: ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize'],
 
   /**
    * Regular expression for heapsize properties detection
+   * @type {regexp}
    */
   heapsizeRegExp: /_heapsize|_newsize|_maxnewsize|_permsize|_maxpermsize$/,
 
@@ -185,9 +247,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * indicate whether service config version belongs to default config group
-   * @method isVersionDefault
-   * @param version
+   * @param {object} version
    * @return {Boolean}
+   * @private
+   * @method isVersionDefault
    */
   isVersionDefault: function(version) {
     return (App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + version).get('groupId') == -1);
@@ -195,7 +258,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * register request to view to track his progress
-   * @param request
+   * @param {$.ajax} request
+   * @method trackRequest
    */
   trackRequest: function (request) {
     this.set('requestInProgress', request);
@@ -231,6 +295,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
   },
 
+  /**
+   * @type {object[]}
+   */
   serviceConfigProperties: function () {
     return App.db.getServiceConfigProperties();
   }.property('content'),
@@ -238,13 +305,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * "Finger-print" of the <code>stepConfigs</code>. Filled after first configGroup selecting
    * Used to determine if some changes were made (when user navigates away from this page)
-   * {String}
+   * @type {String|null}
    */
   hash: null,
 
   /**
    * Is this initial config group changing
-   * {Boolean}
+   * @type {Boolean}
    */
   isInit: true,
 
@@ -255,6 +322,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadStep: function () {
     console.log("TRACE: Loading configure for service");
     var self = this;
+    this.clearStep();
     if (App.get('supports.enhancedConfigs')) {
       App.config.loadConfigTheme(this.get('content.serviceName')).always(function() {
         self.setDependentServices(self.get('content.serviceName'));
@@ -264,30 +332,15 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         }
       });
     }
-    this.clearStep();
     this.loadClusterEnvSite();
   },
 
   /**
-   * load all tag versions of cluster-env site
-   * @returns {$.ajax}
+   * Generate "finger-print" for current <code>stepConfigs[0]</code>
+   * Used to determine, if user has some unsaved changes (comparing with <code>hash</code>)
+   * @returns {string|null}
+   * @method getHash
    */
-  loadClusterEnvSite: function () {
-    var self = this;
-    return App.ajax.send({
-      name: 'config.cluster_env_site',
-      sender: self,
-      success: 'loadClusterEnvSiteSuccess'
-    });
-  },
-
-  loadClusterEnvSiteSuccess: function (data) {
-    // find the latest tag version
-    var maxVersion = Math.max.apply(this, data.items.mapProperty('version'));
-    this.set('clusterEnvTagVersion', data.items.findProperty('version', maxVersion).tag);
-    this.loadServiceConfigs();
-  },
-
   getHash: function () {
     if (!this.get('stepConfigs')[0]) {
       return null;
@@ -306,278 +359,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * Loads service configurations
+   * Update configs on the page after <code>selectedConfigGroup</code> is changed
+   * @method onConfigGroupChange
    */
-  loadServiceConfigs: function () {
-    var advancedConfigs = [];
-    var self = this;
-    var serviceName = this.get('content.serviceName');
-
-    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-    if (stackService) {
-      self.set('configTypesInfo', App.config.getConfigTypesInfoFromService(stackService));
-    }
-
-    this.trackRequest(App.config.loadAdvancedConfig(serviceName, function (properties, xhr) {
-      if (xhr.statusText === 'abort') return;
-      advancedConfigs.pushObjects(properties);
-      self.set('advancedConfigs', advancedConfigs);
-      self.trackRequest(App.config.loadClusterConfig(function(clusterProperties) {
-        self.get('advancedConfigs').pushObjects(clusterProperties);
-        self.trackRequest(self.loadServiceConfigVersions());
-      }));
-    }));
-  },
-
-  /**
-   * get service config versions of current service
-   */
-  loadServiceConfigVersions: function () {
-    return App.ajax.send({
-      name: 'service.serviceConfigVersions.get',
-      data: {
-        serviceName: this.get('content.serviceName')
-      },
-      sender: this,
-      success: 'loadServiceConfigVersionsSuccess',
-      error: 'loadServiceConfigVersionsError'
-    })
-  },
-
-  /**
-   * load service config versions to model
-   * set currentDefaultVersion
-   * @param data
-   * @param opt
-   * @param params
-   */
-  loadServiceConfigVersionsSuccess: function (data, opt, params) {
-    App.serviceConfigVersionsMapper.map(data);
-    this.set('currentDefaultVersion', data.items.filterProperty('group_id', -1).findProperty('is_current').service_config_version);
-    if (this.get('preSelectedConfigVersion')) {
-      this.loadSelectedVersion(this.get('preSelectedConfigVersion.version'));
-    } else {
-      this.loadSelectedVersion();
-    }
-  },
-
-  /**
-   * error callback of loadServiceConfigVersions()
-   * override defaultCallback
-   * @param request
-   * @param ajaxOptions
-   * @param error
-   * @param opt
-   * @param params
-   */
-  loadServiceConfigVersionsError: Em.K,
-
-  /**
-   * get selected service config version
-   * In case selected version is undefined then take currentDefaultVersion
-   * @param version
-   * @param switchToGroup
-   */
-  loadSelectedVersion: function (version, switchToGroup) {
-    var self = this;
-    this.set('versionLoaded', false);
-    version = version || this.get('currentDefaultVersion');
-    //version of non-default group require properties from current version of default group to correctly display page
-    var versions = (this.isVersionDefault(version)) ? [version] : [this.get('currentDefaultVersion'), version];
-    switchToGroup = (this.isVersionDefault(version) && !switchToGroup) ? this.get('configGroups').findProperty('isDefault') : switchToGroup;
-
-    if (self.get('dataIsLoaded') && switchToGroup) {
-      this.set('selectedConfigGroup', switchToGroup);
-    }
-
-    this.trackRequest(App.ajax.send({
-      name: 'service.serviceConfigVersions.get.multiple',
-      sender: this,
-      data: {
-        serviceName: this.get('content.serviceName'),
-        serviceConfigVersions: versions
-      },
-      success: 'loadSelectedVersionSuccess'
-    }).complete(function (xhr) {
-        if (xhr.statusText === 'abort') return;
-        if (self.get('dataIsLoaded')) {
-          self.onConfigGroupChange();
-        } else {
-          self.loadServiceTagsAndGroups();
-        }
-      }));
-  },
-
-  /**
-   * set cluster to site tag map
-   * @param data
-   * @param opt
-   * @param params
-   */
-  loadSelectedVersionSuccess: function (data, opt, params) {
-    var serviceConfigsDef = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
-    var siteToTagMap = {};
-    var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
-    var selectedVersion = params.serviceConfigVersions.length > 1 ? params.serviceConfigVersions[1] : params.serviceConfigVersions[0];
-    var configurations = [];
-
-
-    configTypesRendered.forEach(function (siteName) {
-      data.items.forEach(function (item) {
-        if (item.group_id == -1) {
-          configurations = item.configurations;
-          if (item.configurations.someProperty('type', siteName)) {
-            siteToTagMap[siteName] = item.configurations.findProperty('type', siteName).tag;
-          } else {
-            siteToTagMap[siteName] = 'version1';
-          }
-        } else {
-          //set config tags of non-default config group to load overrides from selected version
-          this.loadedGroupToOverrideSiteToTagMap[item.group_name] = {};
-          item.configurations.forEach(function (config) {
-            this.loadedGroupToOverrideSiteToTagMap[item.group_name][config.type] = config.tag;
-          }, this)
-        }
-      }, this)
-    }, this);
-
-    App.router.get('configurationController').saveToDB(configurations);
-
-    // add cluster-env tag
-    siteToTagMap['cluster-env'] = this.get('clusterEnvTagVersion');
-
-    this.loadedClusterSiteToTagMap = siteToTagMap;
-    this.set('selectedVersion', selectedVersion);
-    //reset map if selected current version of default group
-    if (this.get('isCurrentSelected') && selectedVersion === this.get('currentDefaultVersion')) {
-      this.loadedGroupToOverrideSiteToTagMap = {};
-    }
-  },
-
-  /**
-   * load config groups of service
-   * and dependent services
-   */
-  loadServiceTagsAndGroups: function () {
-    this.trackRequest(App.ajax.send({
-      name: 'config.tags_and_groups',
-      sender: this,
-      data: {
-        serviceName: this.get('content.serviceName'),
-        urlParams: "&config_groups/ConfigGroup/tag.in(" + [this.get('content.serviceName')].concat(this.get('dependentServiceNames')).join(',')+ ')'
-      },
-      success: 'loadServiceConfigsSuccess'
-    }));
-  },
-
-  loadServiceConfigsSuccess: function (data, opt, params) {
-    this.setConfigGroups(data, opt, params);
-  },
-
-  setConfigGroups: function (data, opt, params) {
-    var serviceName = this.get('content.serviceName');
-    var displayName = this.get('content.displayName');
-    var selectedConfigGroup;
-    var defaultHosts = App.get('allHostNames');
-
-    //parse loaded config groups
-    var configGroups = [];
-    if (data && data.config_groups && data.config_groups.length) {
-      data.config_groups.forEach(function (item) {
-        item = item.ConfigGroup;
-        if (item.tag === this.get('content.serviceName')) {
-          var groupHosts = item.hosts.mapProperty('host_name');
-          var newConfigGroup = App.ConfigGroup.create({
-            id: item.id,
-            name: item.group_name,
-            description: item.description,
-            isDefault: false,
-            parentConfigGroup: null,
-            service: App.Service.find().findProperty('serviceName', item.tag),
-            hosts: groupHosts,
-            configSiteTags: []
-          });
-          for (var i = 0; i < groupHosts.length; i++) {
-            defaultHosts = defaultHosts.without(groupHosts[i]);
-          }
-          item.desired_configs.forEach(function (config) {
-            newConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
-              site: config.type,
-              tag: config.tag
-            }));
-          }, this);
-          // select default selected group for hosts page
-          if (!selectedConfigGroup && this.get('isHostsConfigsPage') && newConfigGroup.get('hosts').contains(this.get('host.hostName')) && this.get('content.serviceName') === item.tag) {
-            selectedConfigGroup = newConfigGroup;
-          }
-          configGroups.push(newConfigGroup);
-        } else if (this.get('dependentServiceNames').contains(item.tag)) {
-          /**
-           * Load config groups for services that has dependent properties.
-           * If user change properties that have dependencies in not default config group
-           * user should pick to which config group Ambari should save these properties
-           * @type {App.ConfigGroup}
-           */
-          var newDependentConfigGroup = App.ConfigGroup.create({
-            id: item.id,
-            name: item.group_name,
-            description: item.description,
-            isDefault: false,
-            parentConfigGroup: null,
-            service: App.Service.find().findProperty('serviceName', item.tag),
-            hosts: item.hosts.mapProperty('host_name')
-          });
-          if (!this.get('dependentConfigGroups').findProperty('name', item.group_name)) {
-            this.get('dependentConfigGroups').push(newDependentConfigGroup);
-          }
-        }
-      }, this);
-    }
-    this.get('dependentServiceNames').forEach(function(serviceName) {
-      if (serviceName !== this.get('content.serviceName')) {
-        var service = App.Service.find().findProperty('serviceName', serviceName);
-        /**
-         * default groups for dependent services
-         * @type {App.ConfigGroup}
-         */
-        var defaultConfigGroup = App.ConfigGroup.create({
-          name: service.get('displayName') + " Default",
-          description: "Default cluster level " + serviceName + " configuration",
-          isDefault: true,
-          hosts: [],
-          parentConfigGroup: null,
-          service: service,
-          serviceName: serviceName,
-          configSiteTags: []
-        });
-        if (!this.get('dependentConfigGroups').findProperty('name', defaultConfigGroup.get('name'))) {
-          this.get('dependentConfigGroups').push(defaultConfigGroup);
-        }
-      }
-    }, this);
-    this.set('configGroups', configGroups);
-    var defaultConfigGroup = App.ConfigGroup.create({
-      name: displayName + " Default",
-      description: "Default cluster level " + serviceName + " configuration",
-      isDefault: true,
-      hosts: defaultHosts,
-      parentConfigGroup: null,
-      service: this.get('content'),
-      serviceName: serviceName,
-      configSiteTags: []
-    });
-    if (!selectedConfigGroup) {
-      selectedConfigGroup = configGroups.findProperty('name', this.get('preSelectedConfigVersion.groupName')) || defaultConfigGroup;
-    }
-
-    this.get('configGroups').sort(function (configGroupA, configGroupB) {
-      return (configGroupA.name > configGroupB.name);
-    });
-    this.get('configGroups').unshift(defaultConfigGroup);
-    this.set('selectedConfigGroup', selectedConfigGroup);
-    this.set('preSelectedConfigVersion', null);
-  },
-
   onConfigGroupChange: function () {
     var self = this;
     this.get('stepConfigs').clear();
@@ -629,6 +413,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * load version configs for comparison
    * @param allConfigs
    * @return {object}
+   * @private
+   * @method loadCompareVersionConfigs
    */
   loadCompareVersionConfigs: function (allConfigs) {
     var dfd = $.Deferred();
@@ -663,6 +449,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * attach analogical config to each property for comparison
    * @param allConfigs
    * @param json
+   * @private
+   * @method initCompareConfig
    */
   initCompareConfig: function(allConfigs, json) {
     var serviceVersionMap = {};
@@ -732,13 +520,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
   },
 
-
   /**
    * set compare properties to service config of non-default group
    * @param serviceConfig
    * @param serviceVersionMap
    * @param compareVersion
    * @param selectedVersion
+   * @private
+   * @method setCompareConfigs
    */
   setCompareConfigs: function (serviceConfig, serviceVersionMap, compareVersion, selectedVersion) {
     var compareConfig = serviceVersionMap[compareVersion][serviceConfig.name + '-' + App.config.getConfigTagFromFileName(serviceConfig.filename)];
@@ -767,9 +556,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param serviceConfig
    * @param compareServiceVersion
    * @return {object}
+   * @private
+   * @method getMockComparisonConfig
    */
   getMockComparisonConfig: function (serviceConfig, compareServiceVersion) {
-    var compareObject = $.extend(true, {isComparison: true},  serviceConfig);
+    var compareObject = $.extend(true, {isComparison: false},  serviceConfig);
     compareObject.isEditable = false;
 
     compareObject.serviceVersion = App.ServiceConfigVersion.find(this.get('content.serviceName') + "_" + compareServiceVersion);
@@ -785,9 +576,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param serviceConfig
    * @param compareConfig
    * @return {object}
+   * @private
+   * @method getComparisonConfig
    */
   getComparisonConfig: function (serviceConfig, compareConfig) {
-    var compareObject = $.extend(true, {isComparison: true},  serviceConfig);
+    var compareObject = $.extend(true, {isComparison: false, isOriginalSCP: false},  serviceConfig);
     compareObject.isEditable = false;
 
     if (compareConfig) {
@@ -799,6 +592,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       compareObject = App.ServiceConfigProperty.create(compareObject);
       compareObject.set('isFinal', compareConfig.isFinal);
       compareObject.set('value', App.config.formatOverrideValue(serviceConfig, compareConfig.value));
+      compareObject.set('compareConfigs', null);
       this.setSupportsFinal(compareObject);
     }
     return compareObject;
@@ -808,6 +602,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * set compare properties to service config of default group
    * @param serviceConfig
    * @param compareConfig
+   * @private
+   * @method setCompareDefaultGroupConfig
    */
   setCompareDefaultGroupConfig: function (serviceConfig, compareConfig) {
     var compareObject = {};
@@ -832,6 +628,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param originalConfig
    * @param compareConfig
    * @return {Boolean}
+   * @private
+   * @method hasCompareDiffs
    */
   hasCompareDiffs: function (originalConfig, compareConfig) {
     return (originalConfig.value !== compareConfig.value) || (!!originalConfig.isFinal !== (compareConfig.isFinal == true));
@@ -843,6 +641,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param serviceName
    * @param filename
    * @return {Object}
+   * @private
+   * @method getMockConfig
    */
   getMockConfig: function (name, serviceName, filename) {
     var undefinedConfig = {
@@ -872,6 +672,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * get configs of chosen version from server to compare
    * @param compareServiceVersions
    * @return {$.ajax}
+   * @private
+   * @method getCompareVersionConfigs
    */
   getCompareVersionConfigs: function (compareServiceVersions) {
     this.set('versionLoaded', false);
@@ -886,11 +688,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     });
   },
 
+  /**
+   * @param serviceConfig
+   * @private
+   * @method checkDatabaseProperties
+   */
   checkDatabaseProperties: function (serviceConfig) {
     this.hideHiveDatabaseProperties(serviceConfig.configs);
     this.hideOozieDatabaseProperties(serviceConfig.configs);
   },
 
+  /**
+   * @param configs
+   * @private
+   * @method hideHiveDatabaseProperties
+   */
   hideHiveDatabaseProperties: function (configs) {
     if (!['HIVE'].contains(this.get('content.serviceName'))) return;
     var property = configs.findProperty('name', 'hive_hostname');
@@ -911,6 +723,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
   },
 
+  /**
+   * @param configs
+   * @private
+   * @method hideOozieDatabaseProperties
+   */
   hideOozieDatabaseProperties: function (configs) {
     if (!['OOZIE'].contains(this.get('content.serviceName'))) return;
     var property = configs.findProperty('name', 'oozie_hostname');
@@ -931,6 +748,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
   },
 
+  /**
+   * @param allConfigs
+   * @private
+   * @method onLoadOverrides
+   */
   onLoadOverrides: function (allConfigs) {
     var serviceName = this.get('content.serviceName');
     var advancedConfigs = this.get('advancedConfigs');
@@ -978,6 +800,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * ]
    *
    * set tagnames for configuration of the *-site.xml
+   * @private
+   * @method setServiceConfigTags
    */
   setServiceConfigTags: function (desiredConfigsSiteTags) {
     console.debug("setServiceConfigTags(): Trying to set ", desiredConfigsSiteTags);
@@ -996,6 +820,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * check whether the config property is a security related knob
    * @param serviceConfig
+   * @private
+   * @method checkForSecureConfig
    */
   checkForSecureConfig: function (serviceConfig) {
     serviceConfig.get('configs').forEach(function (_config) {
@@ -1028,6 +854,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param {Object} _serviceConfigProperty - config object
    * @param {Boolean} defaultGroupSelected - true if selected cfg group is default
    * @returns {Ember.Object|null}
+   * @private
    * @method createConfigProperty
    */
   createConfigProperty: function (_serviceConfigProperty, defaultGroupSelected) {
@@ -1051,6 +878,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * hide properties from Advanced ranger category that match pattern
    * if property with dependentConfigPattern is false otherwise don't hide
    * @param serviceConfig
+   * @private
    * @method setVisibilityForRangerProperties
    */
   setVisibilityForRangerProperties: function(serviceConfig) {
@@ -1067,11 +895,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }
     }
   },
-  /**
 
   /**
    * trigger addOverrideProperty
    * @param {Object} componentConfig
+   * @private
    * @method checkOverrideProperty
    */
   checkOverrideProperty: function (componentConfig) {
@@ -1092,6 +920,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * if default cfg group and not on the host config page
    * @param {Ember.Object} serviceConfigProperty
    * @param {Boolean} defaultGroupSelected
+   * @private
    * @method setEditability
    */
   setEditability: function (serviceConfigProperty, defaultGroupSelected) {
@@ -1107,6 +936,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * set supportsFinal property of config for admin
    * @param {Ember.Object} serviceConfigProperty
+   * @private
    * @method setSupportsFinal
    */
   setSupportsFinal: function (serviceConfigProperty) {
@@ -1124,6 +954,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param _serviceConfigProperty
    * @param serviceConfigProperty
    * @param defaultGroupSelected
+   * @private
+   * @method setValuesForOverrides
    */
   setValuesForOverrides: function (overrides, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     if (Em.isNone(overrides)) return;
@@ -1150,6 +982,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param serviceConfigProperty
    * @param defaultGroupSelected
    * @returns {*}
+   * @private
+   * @method createNewSCP
    */
   createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty, {
@@ -1166,9 +1000,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     return newSCP;
   },
+
   /**
    * tells controller in saving configs was started
    * for now just changes flag <code>saveInProgress<code> to true
+   * @private
+   * @method startSave
    */
   startSave: function() {
     this.set("saveInProgress", true);
@@ -1177,6 +1014,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * tells controller that save has been finished
    * for now just changes flag <code>saveInProgress<code> to true
+   * @private
+   * @method completeSave
    */
   completeSave: function() {
     this.set("saveInProgress", false);
@@ -1196,15 +1035,17 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * show some warning popups before user save configs
    * @method showWarningPopupsBeforeSave
+   * @private
+   * @method showWarningPopupsBeforeSave
    */
   showWarningPopupsBeforeSave: function() {
     var self = this;
     if (this.isDirChanged()) {
       App.showConfirmationPopup(function() {
-        self.showChangedDependentConfigs(null, function() {
-          self.restartServicePopup();
-        });
-      },
+          self.showChangedDependentConfigs(null, function() {
+            self.restartServicePopup();
+          });
+        },
         Em.I18n.t('services.service.config.confirmDirectoryChange').format(self.get('content.displayName')),
         this.completeSave.bind(this)
       );
@@ -1217,6 +1058,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Runs config validation before save
+   * @private
+   * @method restartServicePopup
    */
   restartServicePopup: function () {
     this.serverSideValidation()
@@ -1227,6 +1070,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * Define if user has changed some dir properties
    * @return {Boolean}
+   * @private
+   * @method isDirChanged
    */
   isDirChanged: function () {
     var dirChanged = false;
@@ -1235,9 +1080,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (serviceName === 'HDFS') {
       var hdfsConfigs = this.get('stepConfigs').findProperty('serviceName', 'HDFS').get('configs');
       if ((hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir') && hdfsConfigs.findProperty('name', 'dfs.namenode.name.dir').get('isNotDefaultValue')) ||
-          (hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir') && hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue')) ||
-          (hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir') && hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue'))) {
-          dirChanged = true;
+        (hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir') && hdfsConfigs.findProperty('name', 'dfs.namenode.checkpoint.dir').get('isNotDefaultValue')) ||
+        (hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir') && hdfsConfigs.findProperty('name', 'dfs.datanode.data.dir').get('isNotDefaultValue'))) {
+        dirChanged = true;
       }
     }
     return dirChanged;
@@ -1245,6 +1090,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Save changed configs and config groups
+   * @method saveConfigs
    */
   saveConfigs: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
@@ -1328,17 +1174,19 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * On save configs handler. Open save configs popup with appropriate message.
+   * On save configs handler. Open save configs popup with appropriate message
+   * @private
+   * @method onDoPUTClusterConfigurations
    */
   onDoPUTClusterConfigurations: function () {
     var header, message, messageClass, value, status = 'unknown', urlParams = '',
-    result = {
-      flag: this.get('saveConfigsFlag'),
-      message: null,
-      value: null
-    },
-    extendedModel = App.Service.extendedModel[this.get('content.serviceName')],
-    currentService = extendedModel ? App[extendedModel].find(this.get('content.serviceName')) : App.Service.find(this.get('content.serviceName'));
+      result = {
+        flag: this.get('saveConfigsFlag'),
+        message: null,
+        value: null
+      },
+      extendedModel = App.Service.extendedModel[this.get('content.serviceName')],
+      currentService = extendedModel ? App[extendedModel].find(this.get('content.serviceName')) : App.Service.find(this.get('content.serviceName'));
 
     if (!result.flag) {
       result.message = Em.I18n.t('services.service.config.failSaveConfig');
@@ -1372,8 +1220,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * Show save configs popup
-   * @method showSaveConfigsPopup
    * @return {App.ModalPopup}
+   * @private
+   * @method showSaveConfigsPopup
    */
   showSaveConfigsPopup: function (header, flag, message, messageClass, value, status, urlParams) {
     var self = this;
@@ -1437,7 +1286,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
              * </code>
              * @return {object}
              */
-            setComponents = function (item, components) {
+              setComponents = function (item, components) {
               item.host_components.forEach(function (c) {
                 var name = c.HostRoles.host_name;
                 if (!components[name]) {
@@ -1451,7 +1300,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
              * Map result of <code>setComponents</code> to array
              * @return {{name: string, components: string}[]}
              */
-            setHosts = function (components) {
+              setHosts = function (components) {
               var hosts = [];
               Em.keys(components).forEach(function (key) {
                 hosts.push({
@@ -1558,6 +1407,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param configs
    * @param timeTag
    * @return {Array}
+   * @private
+   * @method buildGroupDesiredConfigs
    */
   buildGroupDesiredConfigs: function (configs, timeTag) {
     var sites = [];
@@ -1586,6 +1437,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * show result popup if <code>showPopup</code> is true
    * @param data {Object}
    * @param showPopup {Boolean}
+   * @method putConfigGroupChanges
    */
   putConfigGroupChanges: function (data, showPopup) {
     var ajaxOptions = {
@@ -1602,6 +1454,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     return App.ajax.send(ajaxOptions);
   },
 
+  /**
+   * @private
+   * @method putConfigGroupChangesSuccess
+   */
   putConfigGroupChangesSuccess: function () {
     this.set('saveConfigsFlag', true);
     this.onDoPUTClusterConfigurations();
@@ -1610,6 +1466,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * set hive hostnames in configs
    * @param configs
+   * @private
+   * @method setHiveHostName
    */
   setHiveHostName: function (configs) {
     var dbHostPropertyName = null;
@@ -1712,6 +1570,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * set oozie hostnames in configs
    * @param configs
+   * @private
+   * @method setOozieHostName
    */
   setOozieHostName: function (configs) {
     var dbHostPropertyName = null;
@@ -1834,6 +1694,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * save site configs
    * @param configs
+   * @private
+   * @method saveSiteConfigs
    */
   saveSiteConfigs: function (configs) {
     //storedConfigs contains custom configs as well
@@ -1845,6 +1707,12 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.set('uiConfigs', configs.concat(allUiConfigs));
   },
 
+  /**
+   * Reprecent boolean value as string (true => 'true', false => 'false') and trim other values
+   * @param serviceConfigProperties
+   * @private
+   * @method formatConfigValues
+   */
   formatConfigValues: function (serviceConfigProperties) {
     serviceConfigProperties.forEach(function (_config) {
       if (typeof _config.get('value') === "boolean") _config.set('value', _config.value.toString());
@@ -1856,6 +1724,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * return configs from the UI side
    * @param configMapping array with configs
    * @return {Array}
+   * @private
+   * @method loadUiSideConfigs
    */
   loadUiSideConfigs: function (configMapping) {
     var uiConfig = [];
@@ -1876,7 +1746,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     return uiConfig;
   },
 
-
+  /**
+   * @param configs
+   * @private
+   * @method addDynamicProperties
+   */
   addDynamicProperties: function (configs) {
     var allConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
     var templetonHiveProperty = allConfigs.someProperty('name', 'templeton.hive.properties');
@@ -1904,6 +1778,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    *    'value2': [h3]
    *   }
    * }</code>
+   * @private
+   * @method getGlobConfigValueWithOverrides
    */
   getGlobConfigValueWithOverrides: function (templateName, expression, name) {
     var express = expression.match(/<(.*?)>/g);
@@ -1932,6 +1808,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     return this.getValueWithOverrides(value, overrideHostToValue)
   },
 
+  /**
+   * @param value
+   * @param overrideHostToValue
+   * @returns {{value: *, overrides: {}}}
+   * @private
+   * @method getValueWithOverrides
+   */
   getValueWithOverrides: function (value, overrideHostToValue) {
     var valueWithOverrides = {
       value: value,
@@ -1950,9 +1833,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * Saves cluster level configurations for all necessary sites.
-   * PUT calls are made to /api/v1/clusters/clusterName for each site.
-   * @return {Boolean}
+   * Saves cluster level configurations for all necessary sites
+   * PUT calls are made to /api/v1/clusters/clusterName for each site
+   * @private
    * @method doPUTClusterConfigurations
    */
   doPUTClusterConfigurations: function () {
@@ -2011,6 +1894,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param {String} siteName
    * @param {String} tagName
    * @returns {Object|null}
+   * @private
    * @method createConfigObject
    */
   createConfigObject: function (siteName, tagName) {
@@ -2030,7 +1914,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           return null;
         }
         configObject = this.createSiteObj(siteName, tagName, this.get('uiConfigs').filterProperty('filename', filename));
-       break;
+        break;
     }
     configObject.service_config_version_note = this.get('serviceConfigVersionNote');
     return configObject;
@@ -2039,6 +1923,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * filter out unchanged configurations
    * @param {Array} configsToSave
+   * @private
    * @method filterChangedConfiguration
    */
   filterChangedConfiguration: function (configsToSave) {
@@ -2073,6 +1958,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    *      configName2: "configValue2"
    *   }
    * @returns {boolean}
+   * @private
    * @method isConfigChanged
    */
   isConfigChanged: function (loadedConfig, savingConfig) {
@@ -2123,6 +2009,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    *   }
    * }
    * @returns {boolean}
+   * @private
    * @method isAttributesChanged
    */
   isAttributesChanged: function (oldAttributes, newAttributes) {
@@ -2149,10 +2036,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * Saves configuration of set of sites. The provided data
    * contains the site name and tag to be used.
    * @param {Object[]} services
+   * @return {$.ajax}
    * @method doPUTClusterConfigurationSites
    */
   doPUTClusterConfigurationSites: function (services) {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'common.across.services.configurations',
       sender: this,
       data: {
@@ -2163,10 +2051,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     });
   },
 
+  /**
+   * @private
+   * @method doPUTClusterConfigurationSiteSuccessCallback
+   */
   doPUTClusterConfigurationSiteSuccessCallback: function () {
     this.onDoPUTClusterConfigurations();
   },
 
+  /**
+   * @private
+   * @method doPUTClusterConfigurationSiteErrorCallback
+   */
   doPUTClusterConfigurationSiteErrorCallback: function () {
     this.set('saveConfigsFlag', false);
     this.doPUTClusterConfigurationSiteSuccessCallback();
@@ -2175,6 +2071,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * add newTagName property to each config in serviceConfigs
    * @param serviceConfigs
+   * @private
+   * @method setNewTagNames
    */
   setNewTagNames: function (serviceConfigs) {
     var time = (new Date).getTime();
@@ -2187,7 +2085,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * Save "final" attribute for properties
    * @param {Array} properties - array of properties
    * @returns {Object|null}
-   * */
+   * @method getConfigAttributes
+   */
   getConfigAttributes: function(properties) {
     var attributes = {
       final: {}
@@ -2209,7 +2108,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * create core site object
    * @param tagName
-   * @return {{"type": String, "tag": String, "properties": Object}}
+   * @return {{type: string, tag: string, properties: object}}
    * @method createCoreSiteObj
    */
   createCoreSiteObj: function (tagName) {
@@ -2229,10 +2128,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * create site object
-   * @param siteName
-   * @param tagName
-   * @param siteObj
+   * @param {string} siteName
+   * @param {string} tagName
+   * @param {object[]} siteObj
    * @return {Object}
+   * @method createSiteObj
    */
   createSiteObj: function (siteName, tagName, siteObj) {
     var heapsizeException = this.get('heapsizeException');
@@ -2263,6 +2163,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     return result;
   },
+
   /**
    * This method will be moved to config's decorators class.
    *
@@ -2270,9 +2171,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * be specified in special format required for server.
    *
    * @param configName {String} - name of config property
-   * @param value {Mixed} - value of config property
+   * @param value {*} - value of config property
    *
-   * @return {String} - formated value
+   * @return {String} - formatted value
+   * @method setServerConfigValue
    */
   setServerConfigValue: function (configName, value) {
     switch (configName) {
@@ -2405,7 +2307,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   ],
 
   /**
-   * Adds host name of master component to config;
+   * Adds host name of master component to config
+   * @private
    * @method addHostNamesToGlobalConfig
    */
   addHostNamesToConfig: function () {
@@ -2438,12 +2341,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }
     }
   },
+
   /**
    * set host name(s) property for component
    * @param {String} serviceName - service name of component
    * @param {String} componentName - component name which host we want to know
    * @param {String} hostProperty - name of host property for current component
    * @param {Boolean} multiple - true if can be more than one component
+   * @private
    * @method setHostForService
    */
   setHostForService: function (serviceName, componentName, hostProperty, multiple) {
@@ -2461,6 +2366,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param {String} componentName
    * @param {Boolean} multiple - true if can be more than one component installed on cluster
    * @return {String|Array|Boolean} hostName|hostNames|false if missing component
+   * @private
    * @method getMasterComponentHostValue
    */
   getMasterComponentHostValue: function (componentName, multiple) {
@@ -2470,21 +2376,21 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     return false;
   },
+
   /**
    * Provides service component name and display-name information for
    * the current selected service.
-   * @return {Em.Array} validComponents - array of valid components
-   * @method getCurrentServiceComponents
+   * @type {Em.Array} validComponents - array of valid components
    */
   getCurrentServiceComponents: function () {
     var components = this.get('content.hostComponents');
-    var validComponents = Ember.A([]);
+    var validComponents = Em.A([]);
     var seenComponents = {};
     components.forEach(function (component) {
       var cn = component.get('componentName');
       var cdn = component.get('displayName');
       if (!seenComponents[cn]) {
-        validComponents.push(Ember.Object.create({
+        validComponents.push(Em.Object.create({
           componentName: cn,
           displayName: cdn,
           selected: false
@@ -2496,7 +2402,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   }.property('content'),
 
   /**
-   * trigger loadStep
+   * Trigger loadStep
    * @method loadStep
    */
   doCancel: function () {
@@ -2532,8 +2438,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * trigger showItemsShouldBeRestarted popup with hosts that requires resetart
-   * @param event
+   * trigger showItemsShouldBeRestarted popup with hosts that requires restart
+   * @param {{context: object}} event
    * @method showHostsShouldBeRestarted
    */
   showHostsShouldBeRestarted: function (event) {
@@ -2548,8 +2454,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * trigger showItemsShouldBeRestarted popup with components that requires resetart
-   * @param event
+   * trigger showItemsShouldBeRestarted popup with components that requires restart
+   * @param {{context: object}} event
    * @method showComponentsShouldBeRestarted
    */
   showComponentsShouldBeRestarted: function (event) {
@@ -2576,6 +2482,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.showItemsShouldBeRestarted(hostsComponets, Em.I18n.t('service.service.config.restartService.shouldBeRestarted').format(componentsText));
   },
 
+  /**
+   * Show popup with selectable (@see App.SelectablePopupBodyView) list of items
+   * @param {string} content string with comma-separated list of hostNames or componentNames
+   * @param {string} header popup header
+   * @returns {App.ModalPopup}
+   * @method showItemsShouldBeRestarted
+   */
   showItemsShouldBeRestarted: function (content, header) {
     return App.ModalPopup.show({
       content: content,
@@ -2621,6 +2534,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.manageConfigurationGroups();
   },
 
+  /**
+   * Show popup with config groups
+   * User may edit/create/delete them
+   * @param controller
+   * @returns {App.ModalPopup}
+   * @method manageConfigurationGroups
+   */
   manageConfigurationGroups: function (controller) {
     var configsController = this;
     var serviceData = (controller && controller.get('selectedService')) || this.get('content');
@@ -2712,12 +2632,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         };
         runNextQuery();
       },
-      onSecondary: function () {
-        this.hide();
-      },
-      onClose: function () {
-        this.hide();
-      },
       subViewController: function () {
         return App.router.get('manageConfigGroupsController');
       }.property('App.router.manageConfigGroupsController'),
@@ -2747,7 +2661,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         var modified = this.get('subViewController.isHostsModified');
         this.set('disablePrimary', !modified);
       }.observes('subViewController.isHostsModified'),
-      secondary: Em.I18n.t('common.cancel'),
       didInsertElement: Em.K
     });
   },
@@ -2772,6 +2685,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     }
     callback();
   },
+
   /**
    * switch view to selected group
    * @param event
@@ -2792,6 +2706,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * Are some unsaved changes available
    * @returns {boolean}
+   * @method hasUnsavedChanges
    */
   hasUnsavedChanges: function () {
     return this.get('hash') != this.getHash();
@@ -2801,6 +2716,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * If some configs are changed and user navigates away or select another config-group, show this popup with propose to save changes
    * @param {String} path
    * @param {object} callback - callback with action to change configs view(change group or version)
+   * @return {App.ModalPopup}
    * @method showSavePopup
    */
   showSavePopup: function (path, callback) {
@@ -2845,4 +2761,5 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       }
     });
   }
+
 });

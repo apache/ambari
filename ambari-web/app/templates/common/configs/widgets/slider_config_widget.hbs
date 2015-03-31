@@ -48,11 +48,30 @@
   <div class="ui-slider-wrapper">
     {{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}
   </div>
+
+  {{#if view.isComparison}}
+    {{#if controller.selectedConfigGroup.isDefault}}
+      <span
+          class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+      {{#if controller.isCurrentSelected}}
+        <span class="label label-success">{{t common.current}}</span>
+      {{/if}}
+    {{else}}
+      <span class="label label-info">{{t common.default}}
+        &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
+    {{/if}}
+  {{/if}}
+
   {{#if view.isOriginalSCP}}
     {{view App.SliderConfigWidgetOverrideView
       serviceConfigPropertyBinding="view.config"
       isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
     }}
   {{/if}}
+
+  {{#if view.isComparison}}
+    {{view App.SliderConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
+  {{/if}}
+
   <div class="clearfix"></div>
 </div>
