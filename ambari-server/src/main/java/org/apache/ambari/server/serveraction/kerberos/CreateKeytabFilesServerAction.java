@@ -353,13 +353,14 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
     try {
       keytab.write(cachedKeytabFile);
-      ensureAmbariOnlyAccess(cachedKeytabFile);
     } catch (IOException e) {
       String message = String.format("Failed to write the keytab for %s to the cache location (%s)",
           principal, cachedKeytabFile.getAbsolutePath());
       LOG.error(message, e);
       throw new AmbariException(message, e);
     }
+
+    ensureAmbariOnlyAccess(cachedKeytabFile);
 
     return cachedKeytabFile;
   }
@@ -370,23 +371,31 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
    *
    * @param file the file or directory for which to modify access
    */
-  private void ensureAmbariOnlyAccess(File file) {
+  protected void ensureAmbariOnlyAccess(File file) throws AmbariException {
     if (file.exists()) {
       if (!file.setReadable(false, false) || !file.setReadable(true, true)) {
-        LOG.warn(String.format("Failed to set %s readable only by Ambari", file.getAbsolutePath()));
+        String message = String.format("Failed to set %s readable only by Ambari", file.getAbsolutePath());
+        LOG.warn(message);
+        throw new AmbariException(message);
       }
 
       if (!file.setWritable(false, false) || !file.setWritable(true, true)) {
-        LOG.warn(String.format("Failed to set %s writable only by Ambari", file.getAbsolutePath()));
+        String message = String.format("Failed to set %s writable only by Ambari", file.getAbsolutePath());
+        LOG.warn(message);
+        throw new AmbariException(message);
       }
 
       if (file.isDirectory()) {
-        if (!file.setExecutable(false, false) && !file.setExecutable(true, true)) {
-          LOG.warn(String.format("Failed to set %s executable by Ambari", file.getAbsolutePath()));
+        if (!file.setExecutable(false, false) || !file.setExecutable(true, true)) {
+          String message = String.format("Failed to set %s executable by Ambari", file.getAbsolutePath());
+          LOG.warn(message);
+          throw new AmbariException(message);
         }
       } else {
         if (!file.setExecutable(false, false)) {
-          LOG.warn(String.format("Failed to set %s not executable", file.getAbsolutePath()));
+          String message = String.format("Failed to set %s not executable", file.getAbsolutePath());
+          LOG.warn(message);
+          throw new AmbariException(message);
         }
       }
     }
