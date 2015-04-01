@@ -1107,7 +1107,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
           self._setHostDataFromLoadedHostInfo(_host, host);
           var host_name = Em.get(host, 'Hosts.host_name');
 
-          var context = self.checkHostOSType(host.Hosts.os_type, host_name);
+          var context = self.checkHostOSType(host.Hosts.os_family, host_name);
           if (context) {
             hostsContext.push(context);
             hostsRepoNames.push(host_name);
@@ -1195,6 +1195,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       return h.mountpoint != "/boot"
     }));
     host.set('os_type', Em.get(hostInfo, 'Hosts.os_type'));
+    host.set('os_family', Em.get(hostInfo, 'Hosts.os_family'));
     host.set('os_arch', Em.get(hostInfo, 'Hosts.os_arch'));
     host.set('ip', Em.get(hostInfo, 'Hosts.ip'));
     return host;
@@ -1241,16 +1242,15 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    * @return {string} error-message or empty string
    * @method checkHostOSType
    */
-  checkHostOSType: function (osType, hostName) {
+  checkHostOSType: function (osFamily, hostName) {
     if (this.get('content.stacks')) {
       var selectedStack = this.get('content.stacks').findProperty('isSelected', true);
       var selectedOS = [];
-      var self = this;
       var isValid = false;
       if (selectedStack && selectedStack.get('operatingSystems')) {
         selectedStack.get('operatingSystems').filterProperty('isSelected', true).forEach(function (os) {
           selectedOS.pushObject(os.get('osType'));
-          if (self.repoToAgentOsType(os.get('osType')).indexOf(osType) >= 0) {
+          if (os.get('osType') === osFamily) {
             isValid = true;
           }
         });
@@ -1259,33 +1259,11 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         return '';
       } else {
         console.log('WARNING: Getting host os type does NOT match the user selected os group in step1. ' +
-          'Host Name: ' + hostName + '. Host os type:' + osType + '. Selected group:' + selectedOS.uniq());
-        return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osType, selectedOS.uniq());
+          'Host Name: ' + hostName + '. Host os type:' + osFamily + '. Selected group:' + selectedOS.uniq());
+        return Em.I18n.t('installer.step3.hostWarningsPopup.repositories.context').format(hostName, osFamily, selectedOS.uniq());
       }
     } else {
       return '';
-    }
-  },
-
-  /**
-   * return the supported agent os types for a repo os type
-   * @param {String} repoType
-   * @return {Array} supported agent os type array
-   * @method repoToAgentOsType
-   */
-  repoToAgentOsType : function (repoType) {
-    /* istanbul ignore next */
-    switch (repoType) {
-      case "redhat6":
-        return ["redhat6", "centos6", "oraclelinux6", "rhel6"];
-      case "redhat5":
-        return ["redhat5", "centos5", "oraclelinux5", "rhel5"];
-      case "suse11":
-        return ["suse11", "sles11", "opensuse11"];
-      case "ubuntu12":
-        return ["debian12", "ubuntu12"];
-      default:
-        return [];
     }
   },
 

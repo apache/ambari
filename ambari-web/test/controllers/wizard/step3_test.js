@@ -2176,6 +2176,7 @@ describe('App.WizardStep3Controller', function () {
             total_mem: 12345,
             os_type: 't1',
             os_arch: 'os1',
+            os_family: 'osf1',
             ip: '0.0.0.0',
             disk_info: [
               {mountpoint: '/boot'},
@@ -2189,6 +2190,7 @@ describe('App.WizardStep3Controller', function () {
       expect(host.get('cpu')).to.equal(2);
       expect(host.get('os_type')).to.equal('t1');
       expect(host.get('os_arch')).to.equal('os1');
+      expect(host.get('os_family')).to.equal('osf1')
       expect(host.get('ip')).to.equal('0.0.0.0');
       expect(host.get('memory')).to.equal('12345.00');
       expect(host.get('disk_info.length')).to.equal(2);

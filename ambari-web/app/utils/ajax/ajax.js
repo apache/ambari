@@ -1784,7 +1784,7 @@ var urls = {
     'mock': '/data/requests/host_check/jdk_check_results.json'
   },
   'wizard.step3.host_info': {
-    'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/ip',
+    'real': '/hosts?fields=Hosts/total_mem,Hosts/cpu_count,Hosts/disk_info,Hosts/last_agent_env,Hosts/host_name,Hosts/os_type,Hosts/os_arch,Hosts/os_family,Hosts/ip',
     'mock': '/data/wizard/bootstrap/two_hosts_information.json',
     'format': function () {
       return {
