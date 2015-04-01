@@ -169,7 +169,7 @@
         "enabled": true,
         "source": {
           "type": "PORT",
-          "uri": "56431",
+          "uri": "{{storm-env/jmxremote_port}}",
           "default_port": 56431,
           "reporting": {
             "ok": {

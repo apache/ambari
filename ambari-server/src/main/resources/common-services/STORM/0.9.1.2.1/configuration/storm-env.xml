@@ -37,6 +37,11 @@
     <value>/var/run/storm</value>
     <description></description>
   </property>
+  <property>
+    <name>jmxremote_port</name>
+    <value>56431</value>
+    <description></description>
+  </property>
   
   <!-- storm-env.sh -->
   <property>

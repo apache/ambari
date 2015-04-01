@@ -81,6 +81,7 @@ rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")
 storm_env_sh_template = config['configurations']['storm-env']['content']
+jmxremote_port = config['configurations']['storm-env']['jmxremote_port']
 
 if 'ganglia_server_host' in config['clusterHostInfo'] and \
     len(config['clusterHostInfo']['ganglia_server_host'])>0:
