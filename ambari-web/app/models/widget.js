@@ -67,5 +67,78 @@ App.Widget = DS.Model.extend({
   }.property('widgetType')
 });
 
+App.WidgetType = DS.Model.extend({
+  name: DS.attr('string'),
+  displayName: DS.attr('string'),
+  description: DS.attr('string'),
+  properties: DS.attr('array')
+});
+
 
 App.Widget.FIXTURES = [];
+
+App.WidgetType.FIXTURES = [
+  {
+    id: 1,
+    name: 'GAUGE',
+    display_name: 'Gauge',
+    description: Em.I18n.t('widget.type.gauge.description'),
+    properties: [
+      {
+        property_name : 'warning_threshold',
+        isRequired: true   // This field is used to distinguish required properties from optional. This can be used for imposing client side validation
+      },
+      {
+        property_name : 'error_threshold',
+        isRequired: true
+      }
+    ]
+  },
+  {
+    id: 2,
+    name: 'NUMBER',
+    display_name: 'Number',
+    description: Em.I18n.t('widget.type.number.description'),
+    properties: [
+      {
+        property_name : 'warning_threshold',
+        display_name: 'warning',
+        isRequired: false
+      },
+      {
+        property_name : 'error_threshold',
+        display_name: 'critical',
+        isRequired: false
+      },
+      {
+        property_name : 'display_unit',
+        display_name: 'unit',
+        isRequired: false
+      }
+    ]
+  },
+  {
+    id: 3,
+    name: 'GRAPH',
+    display_name: 'Graph',
+    description: Em.I18n.t('widget.type.graph.description'),
+    properties: [
+      {
+        property_name : 'graph_type',
+        isRequired: true
+      },
+      {
+        property_name : 'time_range',
+        isRequired: true
+      }
+    ]
+  },
+  {
+    id: 4,
+    name: 'TEMPLATE',
+    display_name: 'Template',
+    description: Em.I18n.t('widget.type.template.description'),
+    properties: [
+    ]
+  }
+];

@@ -31,7 +31,9 @@
             <span class="caret"></span>
           </button>
           <ul class="dropdown-menu">
-            <li><a href="#" {{action restartAllStaleConfigComponents target="view"}}>{{t restart.service.all.affected}}</a></li>
+            <li>
+              <a href="#" {{action restartAllStaleConfigComponents target="view"}}>{{t restart.service.all.affected}}</a>
+            </li>
             {{#if view.rollingRestartSlaveComponentName}}
               <li>
                 <a href="#" {{action rollingRestartStaleConfigSlaveComponents view.rollingRestartSlaveComponentName target="view"}}>{{view.rollingRestartActionName}}</a>
@@ -55,7 +57,7 @@
             {{view.alertsCount}} {{pluralize view.alertsCount singular="alert" plural="alerts"}}</span>
         {{else}}
           <span {{action "showServiceAlertsPopup" controller.content target="controller"}}
-            class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
+                  class="label pull-right no-alerts-label">{{t services.service.summary.alerts.noAlerts}}</span>
         {{/if}}
       {{/if}}
     </div>
@@ -78,13 +80,14 @@
         <div class="box">
           <div class="box-header">
             <h4>{{t services.service.metrics}}</h4>
+
             <div class="btn-group pull-right">
               <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                 {{view.currentTimeRange.name}} &nbsp;<span class="caret"></span>
               </button>
               <ul class="dropdown-menu">
                 {{#each option in view.timeRangeOptions}}
-                    <li><a href="#" {{action setTimeRange option target="view"}}>{{option.name}}</a></li>
+                  <li><a href="#" {{action setTimeRange option target="view"}}>{{option.name}}</a></li>
                 {{/each}}
               </ul>
             </div>
@@ -97,7 +100,8 @@
                   {{#each option in view.widgetActions}}
                     <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
                       {{#if option.isAction}}
-                        <a href="javascript:void(0);" class="action" {{action doWidgetAction option.action target="view"}}>
+                        <a href="javascript:void(0);"
+                           class="action" {{action doWidgetAction option.action target="view"}}>
                           <i {{bindAttr class="option.class"}}></i>
                           {{option.label}}
                         </a>
@@ -139,23 +143,25 @@
           <div class="">
             <table class="graphs">
               {{#if App.supports.customizedWidgets}}
-                <tr id="widget_layout">
-                  {{#each widget in controller.widgets}}
-                    <td>
-                      <div class="widget">
-                        {{view widget.viewClass contentBinding="widget"}}
-                      </div>
-                    </td>
-                  {{/each}}
-                </tr>
+                {{#if controller.isWidgetsLoaded}}
+                  <tr id="widget_layout">
+                    {{#each widget in controller.widgets}}
+                      <td>
+                        <div class="widget">
+                          {{view widget.viewClass contentBinding="widget"}}
+                        </div>
+                      </td>
+                    {{/each}}
+                  </tr>
+                {{/if}}
               {{/if}}
               {{#each graphs in view.serviceMetricGraphs}}
                 <tr>
                   {{#each graph in graphs}}
                     <td>
-                        <div class="">
-                          {{view graph}}
-                        </div>
+                      <div class="">
+                        {{view graph}}
+                      </div>
                     </td>
                   {{/each}}
                 </tr>

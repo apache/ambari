@@ -313,7 +313,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @type {Em.A}
    */
   widgets: function() {
-    return App.Widget.find().filterProperty('serviceName', this.get('content.serviceName'));
+    return App.Widget.find().filterProperty('sectionName', this.get('content.serviceName') + '_SUMMARY');
   }.property('isWidgetsLoaded'),
 
   /**
@@ -426,7 +426,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * create widget
    */
   createWidget: function () {
-
+    App.router.send('addServiceWidget', this.get('content'));
   }
 
 });

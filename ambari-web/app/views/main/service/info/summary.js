@@ -308,7 +308,15 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
     var self = this;
 
-    if (!graphNames) {
+    if (App.get('supports.customizedWidgets')) {
+      var serviceName = this.get('controller.content.serviceName');
+      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+      if (!graphNames && !stackService.get('isServiceWithWidgets')) {
+        self.set('serviceMetricGraphs', []);
+        self.set('isServiceMetricLoaded', true);
+        return;
+      }
+    } else if (!graphNames) {
       self.set('serviceMetricGraphs', []);
       self.set('isServiceMetricLoaded', true);
       return;
@@ -325,7 +333,10 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       if (App.get('supports.customizedWidgets')) {
         graphObjects.push(Ember.View.extend({
           classNames: ['last-child'],
-          template: Ember.Handlebars.compile('<div id="add-widget-action-box"><i class="icon-plus"></i></div>')
+          template: Ember.Handlebars.compile('<button id="add-widget-action-box" class="btn btn-default" {{action "goToAddWidgetWizard" controller.content target="view"}}><i class="icon-plus"></i></button>'),
+          goToAddWidgetWizard: function(evt) {
+            App.router.send('addServiceWidget',evt.context);
+          }
         }));
       }
 
@@ -448,7 +459,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       var svcName = self.get('service.serviceName');
       if (svcName) {
         var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
-        App.service_graph_config[svcName.toLowerCase()].forEach(function(graphName) {
+        var allServices = require('data/service_graph_config').getServiceGraphConfig();
+        allServices[svcName.toLowerCase()].forEach(function(graphName) {
           graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
             currentTimeIndex : event.context.index
           }));
@@ -535,7 +547,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     }
 
     if (svcName && isMetricsSupported) {
-      this.constructGraphObjects(App.service_graph_config[svcName.toLowerCase()]);
+      var allServices =  require('data/service_graph_config').getServiceGraphConfig();
+      this.constructGraphObjects(allServices[svcName.toLowerCase()]);
     }
     // adjust the summary table height
     var summaryTable = document.getElementById('summary-info');

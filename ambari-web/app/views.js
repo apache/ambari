@@ -312,6 +312,11 @@ require('views/main/charts/heatmap/heatmap_rack');
 require('views/main/charts/heatmap/heatmap_host');
 require('views/main/charts/heatmap/heatmap_host_detail');
 
+require('views/main/service/widgets/create/wizard_view');
+require('views/main/service/widgets/create/step1_view');
+require('views/main/service/widgets/create/step2_view');
+require('views/main/service/widgets/create/step3_view');
+
 require('views/main/views_view');
 
 require('views/installer');

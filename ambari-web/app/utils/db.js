@@ -34,6 +34,7 @@ var InitialData =  {
   'Installer' : {},
   'AddHost' : {},
   'AddService' : {},
+  'WidgetWizard' : {},
   'KerberosWizard': {},
   'StackUpgrade' : {},
   'ReassignMaster' : {},

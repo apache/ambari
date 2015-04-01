@@ -2461,6 +2461,18 @@ Em.I18n.translations = {
   'rolling.nothingToDo.header': 'Nothing to do',
   'rolling.nothingToDo.body': '{0} on selected hosts are already in selected state or in Maintenance Mode.',
 
+  'widget.type.gauge.description': 'A view to display metrics that can be expressed in percentage.',
+  'widget.type.number.description': 'A view to display metrics that can be expressed as a single number with optional unit field.',
+  'widget.type.graph.description': 'A view to display metrics that can be expressed in line graph or area graph over a time range.',
+  'widget.type.template.description': 'A view to display metric value along with a templated text.',
+  'widget.create.wizard.header': 'Create Widget',
+  'widget.create.wizard.step1.header': 'Choose Type',
+  'widget.create.wizard.step1.body.text': 'What type of widget do you want to create?',
+  'widget.create.wizard.step2.header': 'Metrics and Expression',
+  'widget.create.wizard.step2.body.text':'Define the expression with any metrics and valid operators. </br>Use parentheses when necessary.',
+  'widget.create.wizard.step2.body.warning':'Note: Valid operators are +, -, *, /',
+  'widget.create.wizard.step3.header': 'Name and Description',
+
   'restart.service.all': 'Restart All',
   'restart.service.all.affected': 'Restart All Affected',
   'restart.service.rest.context': 'Restart {0}s',

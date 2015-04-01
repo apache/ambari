@@ -19,79 +19,95 @@
 var App = require('app');
 
 /**
-This determines the graphs to display on the service page under each service.
+ This determines the graphs to display on the service page under each service.
 
-This is based on the name of the object associated with it.
+ This is based on the name of the object associated with it.
 
-The name of the object is of the format: 'App.ChartServiceMetrics<name>' where <name>
-is one of the items below.
-**/
-App.service_graph_config = {
-	'hdfs': [
-		'HDFS_SpaceUtilization',
-		'HDFS_FileOperations',
-		'HDFS_BlockStatus',
-		'HDFS_IO',
-		'HDFS_RPC',
-		'HDFS_GC',
-		'HDFS_JVMHeap',
-		'HDFS_JVMThreads'
-	],
+ The name of the object is of the format: 'App.ChartServiceMetrics<name>' where <name>
+ is one of the items below.
+ **/
 
-	'yarn': [
-		'YARN_AllocatedMemory',
-		'YARN_QMR',
-		'YARN_AllocatedContainer',
-		'YARN_NMS',
-		'YARN_ApplicationCurrentStates',
-		'YARN_ApplicationFinishedStates',
-		'YARN_RPC',
-		'YARN_GC',
-		'YARN_JVMThreads',
-		'YARN_JVMHeap'
-	],
+module.exports = {
+  allServices: {
+    'hdfs': [
+      'HDFS_SpaceUtilization',
+      'HDFS_FileOperations',
+      'HDFS_BlockStatus',
+      'HDFS_IO',
+      'HDFS_RPC',
+      'HDFS_GC',
+      'HDFS_JVMHeap',
+      'HDFS_JVMThreads'
+    ],
 
-	'hbase': [
-		'HBASE_ClusterRequests',
-		'HBASE_RegionServerReadWriteRequests',
-		'HBASE_RegionServerRegions',
-		'HBASE_RegionServerQueueSize',
-		'HBASE_HlogSplitTime',
-		'HBASE_HlogSplitSize'
-	],
+    'yarn': [
+      'YARN_AllocatedMemory',
+      'YARN_QMR',
+      'YARN_AllocatedContainer',
+      'YARN_NMS',
+      'YARN_ApplicationCurrentStates',
+      'YARN_ApplicationFinishedStates',
+      'YARN_RPC',
+      'YARN_GC',
+      'YARN_JVMThreads',
+      'YARN_JVMHeap'
+    ],
 
-  'ambari_metrics': [
-    'AMS_MasterAverageLoad',
-    'AMS_RegionServerStoreFiles',
-    'AMS_RegionServerRegions',
-    'AMS_RegionServerRequests',
-    'AMS_RegionServerBlockCacheHitPercent',
-    'AMS_RegionServerCompactionQueueSize'
-  ],
+    'hbase': [
+      'HBASE_ClusterRequests',
+      'HBASE_RegionServerReadWriteRequests',
+      'HBASE_RegionServerRegions',
+      'HBASE_RegionServerQueueSize',
+      'HBASE_HlogSplitTime',
+      'HBASE_HlogSplitSize'
+    ],
 
-	'flume': [
-		'Flume_ChannelSizeMMA',
-		'Flume_ChannelSizeSum',
-		'Flume_IncommingMMA',
-		'Flume_IncommingSum',
-		'Flume_OutgoingMMA',
-		'Flume_OutgoingSum'
-	],
+    'ambari_metrics': [
+      'AMS_MasterAverageLoad',
+      'AMS_RegionServerStoreFiles',
+      'AMS_RegionServerRegions',
+      'AMS_RegionServerRequests',
+      'AMS_RegionServerBlockCacheHitPercent',
+      'AMS_RegionServerCompactionQueueSize'
+    ],
 
-	'storm': [
-		'STORM_SlotsNumber',
-		'STORM_Executors',
-		'STORM_Topologies',
-		'STORM_Tasks'
-	],
+    'flume': [
+      'Flume_ChannelSizeMMA',
+      'Flume_ChannelSizeSum',
+      'Flume_IncommingMMA',
+      'Flume_IncommingSum',
+      'Flume_OutgoingMMA',
+      'Flume_OutgoingSum'
+    ],
 
-  'kafka': [
-    'Kafka_BrokerTopicMetrics',
-    'Kafka_Controller',
-    'Kafka_ControllerStatus',
-    'Kafka_ReplicaManager',
-    'Kafka_LogFlush',
-    'Kafka_ReplicaFetcher'
-  ]
+    'storm': [
+      'STORM_SlotsNumber',
+      'STORM_Executors',
+      'STORM_Topologies',
+      'STORM_Tasks'
+    ],
+
+    'kafka': [
+      'Kafka_BrokerTopicMetrics',
+      'Kafka_Controller',
+      'Kafka_ControllerStatus',
+      'Kafka_ReplicaManager',
+      'Kafka_LogFlush',
+      'Kafka_ReplicaFetcher'
+    ]
+  },
+
+  getServiceGraphConfig: function () {
+    if (App.get('supports.customizedWidgets')) {
+      var servicesWithEnhancedDashboard = ['hdfs', 'yarn', 'hbase'];
+      var newServiceObject = jQuery.extend(true, {}, this.allServices);
+      servicesWithEnhancedDashboard.forEach(function (_serviceName) {
+        newServiceObject[_serviceName] = [];
+      });
+      return newServiceObject;
+    } else {
+      return this.allServices;
+    }
+  }
 
 };
