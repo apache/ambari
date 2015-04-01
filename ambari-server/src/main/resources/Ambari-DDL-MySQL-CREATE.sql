@@ -837,7 +837,7 @@ CREATE TABLE stack(
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
   PRIMARY KEY (stack_id),
-  CONSTRAINT uni_stack UNIQUE(stack_name,stack_version)
+  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
 );
 
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.

@@ -372,7 +372,7 @@ CREATE TABLE stack(
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
   PRIMARY KEY (stack_id),
-  CONSTRAINT uni_stack UNIQUE(stack_name,stack_version)
+  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
 );
 
 ---------inserting some data-----------
