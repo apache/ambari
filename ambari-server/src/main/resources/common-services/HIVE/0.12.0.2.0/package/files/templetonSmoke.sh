@@ -22,11 +22,12 @@
 
 export ttonhost=$1
 export smoke_test_user=$2
-export smoke_user_keytab=$3
-export security_enabled=$4
-export kinit_path_local=$5
-export smokeuser_principal=$6
-export ttonurl="http://${ttonhost}:50111/templeton/v1"
+export templeton_port=$3
+export smoke_user_keytab=$4
+export security_enabled=$5
+export kinit_path_local=$6
+export smokeuser_principal=$7
+export ttonurl="http://${ttonhost}:${templeton_port}/templeton/v1"
 
 if [[ $security_enabled == "true" ]]; then
   kinitcmd="${kinit_path_local}  -kt ${smoke_user_keytab} ${smokeuser_principal}; "

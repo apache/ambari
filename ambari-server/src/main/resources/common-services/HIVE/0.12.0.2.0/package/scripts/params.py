@@ -137,6 +137,8 @@ check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar
 hive_jdbc_drivers_list = ["com.microsoft.sqlserver.jdbc.SQLServerDriver","com.mysql.jdbc.Driver","org.postgresql.Driver","oracle.jdbc.driver.OracleDriver"]
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 prepackaged_ojdbc_symlink = format("{hive_lib}/ojdbc6.jar")
+templeton_port = config['configurations']['webhcat-site']['templeton.port']
+
 
 #common
 hive_metastore_hosts = config['clusterHostInfo']['hive_metastore_host']

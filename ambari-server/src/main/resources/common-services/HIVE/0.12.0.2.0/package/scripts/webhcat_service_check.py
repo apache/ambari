@@ -34,7 +34,7 @@ def webhcat_service_check():
     smokeuser_keytab= "no_keytab"
     smoke_user_principal="no_principal"
 
-  cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {smokeuser_keytab}"
+  cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {templeton_port} {smokeuser_keytab}"
                " {security_param} {kinit_path_local} {smoke_user_principal}")
 
   Execute(cmd,

@@ -77,7 +77,7 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa no_keytab false /usr/bin/kinit no_principal',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 no_keytab false /usr/bin/kinit no_principal',
                               logoutput = True,
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,
@@ -141,7 +141,7 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
                               logoutput = True,
                               path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries = 3,
