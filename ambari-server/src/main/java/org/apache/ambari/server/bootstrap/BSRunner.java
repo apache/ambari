@@ -26,6 +26,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import static org.apache.ambari.server.bootstrap.BSHostStatusCollector.doneFileFilter;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
@@ -238,18 +239,42 @@ class BSRunner extends Thread {
       LOG.info("Kicking off the scheduler for polling on logs in " +
           this.requestIdDir);
       try {
-
-        LOG.info("Bootstrap output, log="
-              + bootStrapErrorFilePath + " " + bootStrapOutputFilePath);
+        String logInfoMessage = "Bootstrap output, log="
+              + bootStrapErrorFilePath + " " + bootStrapOutputFilePath + " at " + this.ambariHostname;
+        LOG.info(logInfoMessage);
         int exitCode = process.waitFor();
         String outMesg = "";
-        String errMesg = "";
+        String errMesg = "";       
         try {
           outMesg = FileUtils.readFileToString(new File(bootStrapOutputFilePath));
           errMesg = FileUtils.readFileToString(new File(bootStrapErrorFilePath));
         } catch(IOException io) {
           LOG.info("Error in reading files ", io);
         }
+        PrintWriter setupAgentDoneWriter = null;
+        PrintWriter setupAgentLogWriter  = null; 
+        try {
+          if (exitCode != 0) {      
+            for (String host : hostString.split(",")) {
+              setupAgentDoneWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.doneFileFilter));
+              setupAgentLogWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.logFileFilter));
+              setupAgentLogWriter.print(logInfoMessage + "\n Error while bootstrapping:\n" + errMesg);
+              setupAgentDoneWriter.print(exitCode);
+              setupAgentDoneWriter.close();
+              setupAgentLogWriter.close();
+            }
+                     
+          }
+        } finally {
+          if (setupAgentDoneWriter != null) {
+            setupAgentDoneWriter.close();
+          }
+
+          if (setupAgentLogWriter != null) {
+            setupAgentLogWriter.close();
+          }
+        }
+
         scriptlog = outMesg + "\n\n" + errMesg;
         LOG.info("Script log Mesg " + scriptlog);
         if (exitCode != 0) {
