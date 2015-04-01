@@ -27,13 +27,13 @@ from mahout import mahout
 class MahoutClient(Script):
 
   def get_stack_to_component(self):
-    return {"HDP": "mahout"}
+    return {"HDP": "mahout-client"}
 
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
 
-    Execute(('hdp-select', 'set', 'mahout', params.version),
+    Execute(('hdp-select', 'set', 'mahout-client', params.version),
             sudo = True)
 
   def install(self, env):
