@@ -37,11 +37,6 @@
        have permission to read/write from this location.</description>
   </property>
   <property>
-    <name>storm.log.dir</name>
-    <value>{{log_dir}}</value>
-    <description>Log directory for Storm.</description>
-  </property>
-  <property>
     <name>storm.zookeeper.servers</name>
     <value>['localhost']</value>
     <description>A list of hosts of ZooKeeper servers used to manage the cluster.</description>

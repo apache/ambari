@@ -94,4 +94,10 @@
     <value>null</value>
     <description>min.user.id is set to the first real user id on the system. If value is 'null' than default value will be taken from key UID_MIN of /etc/login.defs otherwise the specified value will be used for all hosts.</description>
   </property>
+
+  <property>
+    <name>storm.log.dir</name>
+    <value>{{log_dir}}</value>
+    <description>Log directory for Storm.</description>
+  </property>
 </configuration>
