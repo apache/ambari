@@ -77,6 +77,10 @@
     <description>
       Enable RM work preserving recovery. This configuration is private to YARN for experimenting the feature.
     </description>
+    <dispaly-name>Enable Work Preserving Restart</dispaly-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>yarn.resourcemanager.store.class</name>
@@ -371,5 +375,16 @@
         <name>yarn.nodemanager.resource.cpu-vcores</name>
       </property>
     </depends-on>
+  </property>
+  <property>
+    <name>yarn.node-labels.enabled</name>
+    <value>false</value>
+    <description>
+      Enabled node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
+    </description>
+    <dispaly-name>Enable Node Labels</dispaly-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 </configuration>

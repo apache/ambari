@@ -259,6 +259,10 @@
     <name>yarn.log-aggregation-enable</name>
     <value>true</value>
     <description>Whether to enable log aggregation. </description>
+    <display-name>Enable Log Aggregation</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 
   <property>

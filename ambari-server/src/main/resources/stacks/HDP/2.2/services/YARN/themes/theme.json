@@ -124,6 +124,18 @@
         {
           "config": "yarn-site/yarn.scheduler.maximum-allocation-vcores",
           "subsection-name": "subsection-container-sizing-col2"
+        },
+        {
+          "config": "yarn-site/yarn.node-labels.enabled",
+          "subsection-name": "subsection-yarn-platform-features-col1"
+        },
+        {
+          "config": "yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
+          "subsection-name": "subsection-yarn-platform-features-col1"
+        },
+        {
+          "config": "yarn-site/yarn.log-aggregation-enable",
+          "subsection-name": "subsection-yarn-platform-features-col1"
         }
       ]
     },
@@ -214,6 +226,24 @@
               "unit-name":"int"
             }
           ]
+        }
+      },
+      {
+        "config":"yarn-site/yarn.node-labels.enabled",
+        "widget":{
+          "type":"checkbox"
+        }
+      },
+      {
+        "config":"yarn-site/yarn.log-aggregation-enable",
+        "widget":{
+          "type":"checkbox"
+        }
+      },
+      {
+        "config":"yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
+        "widget":{
+          "type":"checkbox"
         }
       }
     ]
