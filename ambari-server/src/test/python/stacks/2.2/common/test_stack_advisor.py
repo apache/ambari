@@ -778,45 +778,9 @@ class TestHDP22StackAdvisor(TestCase):
           "type": "yarn-env",
           "name": "min_user_id"
         },
-      ],
-      "depended-configurations": [
-        {
-          "type" : "mapred-site",
-          "name" : "yarn.app.mapreduce.am.admin-command-opts"
-        }, {
-          "type" : "yarn-site",
-          "name" : "yarn.scheduler.maximum-allocation-mb"
-        }, {
-          "type" : "yarn-site",
-          "name" : "yarn.scheduler.minimum-allocation-mb"
-        }, {
-          "type" : "mapred-site",
-          "name" : "mapreduce.reduce.java.opts"
-        }, {
-          "type" : "mapred-site",
-          "name" : "mapreduce.map.java.opts"
-        }, {
-          "type" : "mapred-site",
-          "name" : "yarn.app.mapreduce.am.command-opts"
-        }, {
-          "type" : "mapred-site",
-          "name" : "yarn.app.mapreduce.am.resource.mb"
-        }, {
-          "type" : "yarn-site",
-          "name" : "yarn.nodemanager.resource.memory-mb"
-        }, {
-          "type" : "mapred-site",
-          "name" : "mapreduce.task.io.sort.mb"
-        }, {
-          "type" : "mapred-site",
-          "name" : "mapreduce.reduce.memory.mb"
-        }, {
-          "type" : "mapred-site",
-          "name" : "mapreduce.map.memory.mb"
-        }
       ]
 
-      }
+    }
     hosts = {
       "items" : [
         {

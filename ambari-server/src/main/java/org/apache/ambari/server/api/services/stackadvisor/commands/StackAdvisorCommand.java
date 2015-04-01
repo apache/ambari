@@ -71,10 +71,13 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
   private static final String GET_HOSTS_INFO_URI = "/api/v1/hosts"
       + "?fields=Hosts&Hosts/host_name.in(%s)";
-  private static final String GET_SERVICES_INFO_URI = "/api/v1/stacks/%s/versions/%s"
+  private static final String GET_SERVICES_INFO_URI = "/api/v1/stacks/%s/versions/%s/"
       + "?fields=Versions/stack_name,Versions/stack_version,Versions/parent_stack_version"
       + ",services/StackServices/service_name,services/StackServices/service_version"
       + ",services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy"
+      + ",services/configurations/StackConfigurations/property_depends_on"
+      + ",services/configurations/StackConfigurations/property_depended_by"
+      + ",services/configurations/StackConfigurations/type"
       + "&services/StackServices/service_name.in(%s)";
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";
@@ -83,7 +86,6 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
   private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
   private static final String CONFIGURATIONS_PROPERTY = "configurations";
   private static final String CHANGED_CONFIGURATIONS_PROPERTY = "changed-configurations";
-  private static final String DEPENDED_CONFIGURATIONS_PROPERTY = "depended-configurations";
 
   private File recommendationsDir;
   private String stackAdvisorScript;
@@ -174,15 +176,9 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
         }
       }
     }
-    // Populating changed configs info and depended by configs info
-    Set<PropertyDependencyInfo> dependedProperties =
-      metaInfo.getDependedByProperties(request.getStackName(),
-      request.getStackVersion(), request.getChangedConfigurations());
 
     JsonNode changedConfigs = mapper.valueToTree(request.getChangedConfigurations());
-    JsonNode dependendConfigs = mapper.valueToTree(dependedProperties);
     root.put(CHANGED_CONFIGURATIONS_PROPERTY, changedConfigs);
-    root.put(DEPENDED_CONFIGURATIONS_PROPERTY, dependendConfigs);
   }
 
   protected void populateStackHierarchy(ObjectNode root) {

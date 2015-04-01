@@ -818,18 +818,6 @@ public class AmbariMetaInfoTest {
       originalProperty.getDescription());
     Assert.assertEquals(6, redefinedService.getConfigDependencies().size());
     Assert.assertEquals(7, redefinedService.getConfigDependenciesWithComponents().size());
-
-    // Test directed-acyclic-graph (DAG) of dependencies between configurations
-    List<PropertyDependencyInfo> changedConfigs = new LinkedList<PropertyDependencyInfo>();
-    String type = ConfigHelper.fileNameToConfigType(newProperty.getFilename());
-    String name = newProperty.getName();
-    changedConfigs.add(new PropertyDependencyInfo(type, name));
-    Set<PropertyDependencyInfo> dependedByProperties = metaInfo.getDependedByProperties(stackInfo.getName(), stackInfo.getVersion(), changedConfigs);
-    Assert.assertEquals(3, dependedByProperties.size());
-    Assert.assertTrue(dependedByProperties.contains(new PropertyDependencyInfo("yarn-site", "new-enhanced-yarn-property2")));
-    Assert.assertTrue(dependedByProperties.contains(new PropertyDependencyInfo("yarn-site", "new-enhanced-yarn-property")));
-    Assert.assertTrue(dependedByProperties.contains(new PropertyDependencyInfo("yarn-site", "new-yarn-property")));
-
   }
 
   @Test

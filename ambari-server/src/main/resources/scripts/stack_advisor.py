@@ -51,7 +51,7 @@ def loadJson(path):
     with open(path, 'r') as f:
       return json.load(f)
   except Exception, err:
-    raise StackAdvisorException("File not found at: {0}".format(hostsFile))
+    raise StackAdvisorException("File not found at: {0}".format(path))
 
 
 def dumpJson(json_object, dump_file):
@@ -107,9 +107,8 @@ def main(argv=None):
     result = stackAdvisor.recommendConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
   elif action == RECOMMEND_CONFIGURATION_DEPENDENCIES:
-    result = stackAdvisor.recommendConfigurations(services, hosts)
+    result = stackAdvisor.recommendConfigurationDependencies(services, hosts)
     result_file = os.path.join(actionDir, "configurations.json")
-    result = filterResult(result, services)
   else: # action == VALIDATE_CONFIGURATIONS
     result = stackAdvisor.validateConfigurations(services, hosts)
     result_file = os.path.join(actionDir, "configurations-validation.json")
@@ -117,45 +116,6 @@ def main(argv=None):
   dumpJson(result, result_file)
   pass
 
-# returns recommendations only for changed and depended properties
-def filterResult(result, services):
-  allRequestedProperties = getAllRequestedProperties(services)
-
-  configs = result['recommendations']['blueprint']['configurations']
-  filteredConfigs = {}
-  for type, names in configs.items():
-    for name in names['properties']:
-      if type in allRequestedProperties.keys() and \
-              name in allRequestedProperties[type]:
-        if type not in filteredConfigs.keys():
-          filteredConfigs[type] = {'properties': {}}
-        filteredConfigs[type]['properties'][name] = \
-          configs[type]['properties'][name]
-    if 'property_attributes' in names.keys():
-      for name in names['property_attributes']:
-        if type in allRequestedProperties.keys() and \
-                name in allRequestedProperties[type]:
-          if type not in filteredConfigs.keys():
-            filteredConfigs[type] = {'property_Attributes': {}}
-          elif 'property_attributes' not in filteredConfigs[type].keys():
-            filteredConfigs[type]['property_attributes'] = {}
-          filteredConfigs[type]['property_attributes'][name] = \
-            configs[type]['property_attributes'][name]
-
-  result['recommendations']['blueprint']['configurations'] = filteredConfigs
-  return result
-
-def getAllRequestedProperties(services):
-  changedConfigs = []
-  changedConfigs.extend(services['changed-configurations'])
-  changedConfigs.extend(services['depended-configurations'])
-  allRequestedProperties = {}
-  for config in changedConfigs:
-    if config['type'] in allRequestedProperties:
-      allRequestedProperties[config['type']].append(config['name'])
-    else:
-      allRequestedProperties[config['type']] = [config['name']]
-  return allRequestedProperties
 
 def instantiateStackAdvisor(stackName, stackVersion, parentVersions):
   """Instantiates StackAdvisor implementation for the specified Stack"""

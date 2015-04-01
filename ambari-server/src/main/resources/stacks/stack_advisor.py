@@ -18,6 +18,8 @@ limitations under the License.
 """
 
 import socket
+import re
+
 
 class StackAdvisor(object):
   """
@@ -614,3 +616,70 @@ class DefaultStackAdvisor(StackAdvisor):
           if component["StackServiceComponents"]["component_name"] == componentName:
             return component["StackServiceComponents"]["hostnames"]
   pass
+
+  def recommendConfigurationDependencies(self, services, hosts):
+    result = self.recommendConfigurations(services, hosts)
+    return self.filterResult(result, services)
+
+  # returns recommendations only for changed and depended properties
+  def filterResult(self, result, services):
+    allRequestedProperties = self.getAllRequestedProperties(services)
+
+    configs = result['recommendations']['blueprint']['configurations']
+    filteredConfigs = {}
+    for type, names in configs.items():
+      for name in names['properties']:
+        if type in allRequestedProperties.keys() and \
+                name in allRequestedProperties[type]:
+          if type not in filteredConfigs.keys():
+            filteredConfigs[type] = {'properties': {}}
+          filteredConfigs[type]['properties'][name] = \
+            configs[type]['properties'][name]
+      if 'property_attributes' in names.keys():
+        for name in names['property_attributes']:
+          if type in allRequestedProperties.keys() and \
+                  name in allRequestedProperties[type]:
+            if type not in filteredConfigs.keys():
+              filteredConfigs[type] = {'property_Attributes': {}}
+            elif 'property_attributes' not in filteredConfigs[type].keys():
+              filteredConfigs[type]['property_attributes'] = {}
+            filteredConfigs[type]['property_attributes'][name] = \
+              configs[type]['property_attributes'][name]
+
+    result['recommendations']['blueprint']['configurations'] = filteredConfigs
+    return result
+
+  def getAllRequestedProperties(self, services):
+    affectedConfigs = self.getAffectedConfigs(services)
+    allRequestedProperties = {}
+    for config in affectedConfigs:
+      if config['type'] in allRequestedProperties:
+        allRequestedProperties[config['type']].append(config['name'])
+      else:
+        allRequestedProperties[config['type']] = [config['name']]
+    return allRequestedProperties
+
+  def getAffectedConfigs(self, services):
+    """returns properties dict including changed-configurations and depended-by configs"""
+    changedConfigs = services['changed-configurations']
+    allDependencies = []
+
+    for item in services['services']:
+      allDependencies.extend(item['configurations'])
+
+    dependencies = []
+    dependencies.extend(changedConfigs)
+
+    size = 0
+    while size != len(dependencies):
+      size = len(dependencies)
+      for config in allDependencies:
+        type = re.sub('\.xml$', '', config['StackConfigurations']['type'])
+        name = config['StackConfigurations']['property_name']
+
+        if {"type": type, "name": name} in dependencies:
+          for dependedConfig in config['StackConfigurations']['property_depended_by']:
+            if dependedConfig not in dependencies:
+              dependencies.append(dependedConfig)
+
+    return  dependencies
