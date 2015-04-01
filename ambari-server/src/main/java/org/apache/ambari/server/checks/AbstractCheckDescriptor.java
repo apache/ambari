@@ -126,13 +126,14 @@ public abstract class AbstractCheckDescriptor {
       PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
     String fail = m_description.getFail(key);
 
-    if (-1 != fail.indexOf("{{version}}") && null != request.getRepositoryVersion()) {
+    if (fail.contains("{{version}}") && null != request.getRepositoryVersion()) {
       fail = fail.replace("{{version}}", request.getRepositoryVersion());
     }
 
-    if (-1 != fail.indexOf("{{fails}}")) {
+    if (fail.contains("{{fails}}")) {
       List<String> names = prerequisiteCheck.getFailedOn();
 
+      // If Type=PrereqCheckType.HOST, names list is already populated
       if (getDescription().getType() == PrereqCheckType.SERVICE) {
         Clusters clusters = clustersProvider.get();
         AmbariMetaInfo metaInfo = ambariMetaInfo.get();
@@ -155,12 +156,9 @@ public abstract class AbstractCheckDescriptor {
         } catch (Exception e) {
           LOG.warn("Could not load service info map");
         }
-
-        fail = fail.replace("{{fails}}", formatEntityList(names));
-
       }
 
-
+      fail = fail.replace("{{fails}}", formatEntityList(names));
     }
 
     return fail;
