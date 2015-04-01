@@ -89,28 +89,16 @@
       <plugin>
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
-        <version>0.0.14</version>
-        <configuration>
-          <nodeVersion>v0.10.26</nodeVersion>
-          <npmVersion>1.4.3</npmVersion>
-          <workingDirectory>${basedir}</workingDirectory>
-        </configuration>
+        <version>0.0.19</version>
         <executions>
           <execution>
             <id>install node and npm</id>
-            <phase>generate-sources</phase>
             <goals>
               <goal>install-node-and-npm</goal>
             </goals>
-          </execution>
-          <execution>
-            <id>npm install</id>
-            <phase>generate-sources</phase>
-            <goals>
-              <goal>npm</goal>
-            </goals>
             <configuration>
-              <arguments>install --unsafe-perm</arguments>
+              <nodeVersion>v0.10.33</nodeVersion>
+              <npmVersion>1.4.4</npmVersion>
             </configuration>
           </execution>
         </executions>
@@ -129,7 +117,7 @@
             <configuration>
               <executable>${executable.rmdir}</executable>
               <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.rm.clean} public node_modules</commandlineArgs>
+              <commandlineArgs>${args.rm.clean} public node_modules node</commandlineArgs>
               <successCodes>
                 <successCode>0</successCode>
                 <successCode>1</successCode>
@@ -146,7 +134,43 @@
             <configuration>
               <executable>${executable.mkdir}</executable>
               <workingDirectory>${basedir}</workingDirectory>
-              <commandlineArgs>${args.mkdir} public</commandlineArgs>
+              <commandlineArgs>${args.mkdir} public node</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm-cache-clean</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.node}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.npm.full.path} cache clean</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm-cache-info</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.node}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.npm.full.path} cache ls</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>install-npm</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.node}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.npm.full.path} install</commandlineArgs>
             </configuration>
           </execution>
           <execution>
