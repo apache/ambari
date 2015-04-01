@@ -90,10 +90,6 @@
         <groupId>com.github.eirslett</groupId>
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.19</version>
-        <configuration>
-          <nodeVersion>v0.10.31</nodeVersion>
-          <npmVersion>1.4.28</npmVersion>
-        </configuration>
         <executions>
           <execution>
             <id>install node and npm</id>
@@ -101,8 +97,8 @@
               <goal>install-node-and-npm</goal>
             </goals>
             <configuration>
-              <nodeVersion>v0.10.31</nodeVersion>
-              <npmVersion>1.4.28</npmVersion>
+              <nodeVersion>v0.10.33</nodeVersion>
+              <npmVersion>1.4.4</npmVersion>
             </configuration>
           </execution>
         </executions>
@@ -151,6 +147,18 @@
               <executable>${executable.node}</executable>
               <workingDirectory>${basedir}</workingDirectory>
               <commandlineArgs>${args.npm.full.path} cache clean</commandlineArgs>
+            </configuration>
+          </execution>
+          <execution>
+            <id>npm-cache-info</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${executable.node}</executable>
+              <workingDirectory>${basedir}</workingDirectory>
+              <commandlineArgs>${args.npm.full.path} cache ls</commandlineArgs>
             </configuration>
           </execution>
           <execution>
