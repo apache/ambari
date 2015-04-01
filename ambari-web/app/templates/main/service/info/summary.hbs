@@ -98,7 +98,7 @@
                 </button>
                 <ul class="dropdown-menu">
                   {{#each option in view.widgetActions}}
-                    <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
+                    <li {{bindAttr class="option.layouts:dropdown-submenu option.isAction::keep-open"}}>
                       {{#if option.isAction}}
                         <a href="javascript:void(0);"
                            class="action" {{action doWidgetAction option.action target="view"}}>
@@ -124,7 +124,7 @@
                       {{/if}}
                     </li>
                   {{/each}}
-                  <li>
+                  <li class="keep-open">
                     <a href="javascript:void(0);">
                       {{t hostPopup.serviceInfo.showMore}}
                     </a>

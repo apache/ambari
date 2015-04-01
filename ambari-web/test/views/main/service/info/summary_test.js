@@ -181,7 +181,7 @@ describe('App.MainServiceInfoSummaryView', function() {
 
   });
 
-  describe('#setTimeRange', function () {
+  describe.skip('#setTimeRange', function () {
 
     var cases = [
       {

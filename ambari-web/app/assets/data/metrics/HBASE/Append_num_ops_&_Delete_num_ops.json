@@ -17,7 +17,7 @@
         }
       },
       "regionserver" : {
-        "percentFilesLocal" : 99,
+        "percentFilesLocal" : 66,
         "Server" : {
           "Append_num_ops" : [
             [

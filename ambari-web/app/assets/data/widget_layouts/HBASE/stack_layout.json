@@ -72,7 +72,9 @@
               }
             ],
             "properties": {
-              "display_unit": "%"
+              "display_unit": "%",
+              "warning_threshold": 70,
+              "error_threshold": 90
             }
           },
           {

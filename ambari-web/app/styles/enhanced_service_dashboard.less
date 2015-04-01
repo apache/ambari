@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+@import 'common.less';
+
 .service-metrics-block {
 
   #add-widget-action-box {
@@ -45,6 +47,10 @@
 }
 
 #widget_layout {
+  .frame {
+    height: 150px;
+    width: 90%;
+  }
   .widget {
     .spinner {
       margin: 55px auto;
@@ -57,21 +63,31 @@
     }
     .content {
       text-align: center;
-      color: #5ab400;
+      color: @health-status-green;
       padding-top: 35px;
       font-weight: bold;
       font-size: 35px;
     }
     .template-widget {
-      height: 150px;
-      width: 90%;
+      .frame;
+    }
+    .number-widget {
+      .frame;
     }
     .gauge-widget {
-      height: 150px;
-      width: 90%;
+      .frame;
       .content {
         padding-top: 5px;
       }
+    }
+    .red {
+      color: @health-status-red;
+    }
+    .orange {
+      color: @health-status-orange;
+    }
+    .green {
+      color: @health-status-green;
     }
   }
 }

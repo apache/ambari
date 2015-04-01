@@ -412,7 +412,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       options.push(Em.Object.create({
         label: widget.get('displayName'),
         isVisible: widget.get('isVisible'),
-        selected: true
+        selected: true,
+        isAction: false
       }));
     }, this);
 
@@ -545,6 +546,11 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
         this.get('controller').loadWidgetLayouts();
       }
     }
+
+    //prevent dropdown closing on checkbox click
+    $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
+      $(this).hasClass('keep-open') && e.stopPropagation();
+    });
 
     if (svcName && isMetricsSupported) {
       var allServices =  require('data/service_graph_config').getServiceGraphConfig();
