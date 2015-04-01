@@ -283,15 +283,13 @@
             <exclude>.hgignore</exclude>
             <exclude>.hgtags</exclude>
 
-            <!-- Nodejs and npm -->
-            <exclude>ambari-web/node_modules/**</exclude>
-            <exclude>ambari-web/node/**</exclude>
-
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
             <!--Jinja2 library (BSD license)-->
             <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
+
+            <exclude>ambari-web/node_modules/**</exclude>
 
             <!--Contributions-->
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
