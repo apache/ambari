@@ -22,7 +22,7 @@
       <tr>
         {{#each section in row}}
           <td {{bindAttr class="section.isHiddenByFilter:invisible :config-section" colspan="section.columnSpan" rowspan="section.rowSpan"}}>
-            <h3>{{section.displayName}}</h3>
+            <h4>{{section.displayName}}</h4>
             <table class="config-subsection-table">
               {{#each subRow in section.subsectionRows}}
                 <tr>

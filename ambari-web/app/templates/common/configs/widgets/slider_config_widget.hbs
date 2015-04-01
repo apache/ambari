@@ -19,35 +19,27 @@
 
 <div {{bindAttr class="view.config.isHiddenByFilter:hide :widget :slider-widget"}}>
   {{#if view.isOriginalSCP}}
-    <p>{{formatWordBreak view.configLabel}}</p>
+    <p class="widget-config-label">{{formatWordBreak view.configLabel}}</p>
   {{/if}}
-  <div>
-    <div {{bindAttr class="view.isMirrorValueValid::error :control-group :pull-left"}}>
-      <div {{bindAttr class="view.config.stackConfigProperty.valueAttributes.unit:input-append"}}>
-        {{view view.MirrorValueView valueBinding="view.mirrorValue" class="input-mini" disabledBinding="view.disabled"}}
-        {{#if view.config.stackConfigProperty.valueAttributes.unit}}
-          <span class="add-on">{{view.config.stackConfigProperty.valueAttributes.unit}}</span>
-        {{/if}}
-      </div>
-    </div>
-    {{#if view.isOriginalSCP}}
-      {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
-    {{/if}}
-    {{#if view.overrideAllowed}}
-      {{#isAccessible ADMIN}}
-        <div class="pull-left action-button">
-          <a class="btn btn-small" href="#" data-toggle="tooltip"
-            {{action "createOverrideProperty" view.config target="view.parentView"}}
-            {{translateAttr data-original-title="common.override"}}>
-            <i class="icon-plus-sign"></i>
-          </a>
-        </div>
-      {{/isAccessible}}
-    {{/if}}
-    <div class="clearfix"></div>
+  <div {{bindAttr class="view.isOriginalSCP:original-widget :ui-slider-wrapper"}}>
+    <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
+    <div class="pull-right ui-slider-label">{{view.mirrorValue}} {{view.config.stackConfigProperty.valueAttributes.unit}}</div>
   </div>
-  <div class="ui-slider-wrapper">
-    {{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}
+  <div class="clearfix">
+      {{#if view.isOriginalSCP}}
+        {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
+      {{/if}}
+      {{#if view.overrideAllowed}}
+        {{#isAccessible ADMIN}}
+          <div class="pull-left action-button">
+            <a class="btn btn-small" href="#" data-toggle="tooltip"
+              {{action "createOverrideProperty" view.config target="view.parentView"}}
+              {{translateAttr data-original-title="common.override"}}>
+              <i class="icon-plus-sign"></i>
+            </a>
+          </div>
+        {{/isAccessible}}
+      {{/if}}
   </div>
 
   {{#if view.isComparison}}
@@ -73,6 +65,4 @@
   {{#if view.isComparison}}
     {{view App.SliderConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
   {{/if}}
-
-  <div class="clearfix"></div>
 </div>

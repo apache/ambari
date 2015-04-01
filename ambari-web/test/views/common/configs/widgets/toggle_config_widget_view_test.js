@@ -24,6 +24,7 @@ describe('App.ToggleConfigWidgetView', function () {
 
     this.view = App.ToggleConfigWidgetView.create({
       initSwitcher: Em.K,
+      initPopover: Em.K,
       config: Em.Object.create({
         name: 'a.b.c',
         value: 'true',

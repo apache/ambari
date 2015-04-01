@@ -21,7 +21,9 @@ var App = require('app');
 describe('App.ComboConfigWidgetView', function() {
 
   beforeEach(function() {
-    this.view = App.ComboConfigWidgetView.create({});
+    this.view = App.ComboConfigWidgetView.create({
+      initPopover: Em.K
+    });
   });
 
   afterEach(function() {

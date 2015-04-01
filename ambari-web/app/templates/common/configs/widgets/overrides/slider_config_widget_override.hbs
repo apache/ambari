@@ -18,7 +18,7 @@
 {{#each overriddenSCP in view.serviceConfigProperty.overrides}}
 {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
   <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
-    {{view App.SliderConfigWidgetView configBinding="overriddenSCP"}}
+    {{view App.SliderConfigWidgetView configBinding="overriddenSCP" isPopoverEnabled="false"}}
     {{#if overriddenSCP.supportsFinal}}
       <a href="#" data-toggle="tooltip"
         {{bindAttr class=":btn :btn-small :btn-final overriddenSCP.isFinal:active overriddenSCP.hideFinalIcon:hidden" disabled="overriddenSCP.isNotEditable"}}

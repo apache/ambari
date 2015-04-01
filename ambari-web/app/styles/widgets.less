@@ -17,12 +17,22 @@
  */
 @import 'common.less';
 
-@undo-btn-margin: 20px;
+@undo-btn-margin: 10px;
 @combo-widget-width: 100px;
 
 .widget {
+
+  margin-bottom: 30px;
+
+  .widget {
+    margin-bottom: 0;
+  }
+
+  .widget-config-label {
+    font-size: 90%;
+  }
   .action-button {
-    margin-left: @undo-btn-margin;
+    margin-right: @undo-btn-margin;
   }
 }
 
@@ -75,6 +85,18 @@
     border-radius: 11px;
     box-shadow: none;
   }
+
+  .ui-slider-wrapper {
+    height: 40px;
+    .ui-slider-wrapper-inner {
+      width: 70%;
+      margin-right: 10px;
+    }
+    .ui-slider-label {
+      line-height: 35px;
+    }
+  }
+
 }
 .slider-disabled {
   .slider-selection {

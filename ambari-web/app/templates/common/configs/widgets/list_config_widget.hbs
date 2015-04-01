@@ -17,7 +17,7 @@
 }}
 
 <div {{bindAttr class="view.config.isHiddenByFilter:hide :widget :list-widget"}}>
-  {{view.configLabel}}
+  <p class="widget-config-label">{{view.configLabel}}</p>
   <div class="btn-group">
     <a class="btn dropdown-toggle" data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
     {{#if view.valueIsChanged}}

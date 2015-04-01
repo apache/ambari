@@ -23,6 +23,7 @@ describe('App.ConfigWidgetView', function () {
 
   beforeEach(function () {
     view = App.ConfigWidgetView.create({
+      initPopover: Em.K,
       config: Em.Object.create({
         isOriginalSCP: false,
         isPropertyOverridable: false,

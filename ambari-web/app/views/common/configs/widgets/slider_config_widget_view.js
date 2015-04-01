@@ -93,6 +93,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this.prepareValueAttributes();
     this.initSlider();
     this.toggleWidgetState();
+    this.initPopover();
   },
 
   /**

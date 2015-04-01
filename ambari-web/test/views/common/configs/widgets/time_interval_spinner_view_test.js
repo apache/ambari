@@ -22,7 +22,9 @@ describe('App.TimeIntervalSpinnerView', function() {
 
   describe('#convertToWidgetUnits', function(){
     beforeEach(function() {
-      this.view = App.TimeIntervalSpinnerView.create({});
+      this.view = App.TimeIntervalSpinnerView.create({
+        initPopover: Em.K
+      });
     });
     var tests = [
       {

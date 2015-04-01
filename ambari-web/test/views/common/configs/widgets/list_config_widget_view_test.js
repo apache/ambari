@@ -24,6 +24,7 @@ describe('App.ListConfigWidgetView', function () {
   beforeEach(function () {
 
     view = App.ListConfigWidgetView.create({
+      initPopover: Em.K,
       config: Em.Object.create({
         name: 'a.b.c',
         defaultValue: '2,1',
