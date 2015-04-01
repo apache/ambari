@@ -57,6 +57,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String USER_WIDGET_TABLE = "user_widget";
   private static final String WIDGET_LAYOUT_TABLE = "widget_layout";
   private static final String WIDGET_LAYOUT_USER_WIDGET_TABLE = "widget_layout_user_widget";
+  private static final String VIEW_INSTANCE_TABLE = "viewinstance";
+  private static final String VIEW_PARAMETER_TABLE = "viewparameter";
 
   /**
    * {@inheritDoc}
@@ -230,6 +232,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         "host_id", HOSTS_TABLE, "id", false);
 
     dbAccessor.dropColumn(CLUSTER_HOST_MAPPING_TABLE, "host_name");
+
+    // view columns for cluster association
+    dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("cluster_handle", String.class, 255, null, true));
+    dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
   }
 
   private void executeWidgetDDLUpdates() throws AmbariException, SQLException {

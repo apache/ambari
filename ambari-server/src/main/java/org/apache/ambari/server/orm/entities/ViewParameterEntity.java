@@ -69,6 +69,12 @@ public class ViewParameterEntity {
   private String defaultValue;
 
   /**
+   * The cluster configuration id used to populate the property through cluster association.
+   */
+  @Column(name = "cluster_config")
+  private String clusterConfig;
+
+  /**
    * Indicates whether or not the parameter is required.
    */
   @Column
@@ -248,5 +254,25 @@ public class ViewParameterEntity {
    */
   public void setDefaultValue(String defaultValue) {
     this.defaultValue = defaultValue;
+  }
+
+  /**
+   * Get the cluster configuration id used to populate the property for this parameter through
+   * cluster association.
+   *
+   * @return the cluster configuration id
+   */
+  public String getClusterConfig() {
+    return clusterConfig;
+  }
+
+  /**
+   * Set the cluster configuration id used to populate the property for this parameter through
+   * cluster association.
+   *
+   * @param clusterConfig  the cluster configuration id
+   */
+  public void setClusterConfig(String clusterConfig) {
+    this.clusterConfig = clusterConfig;
   }
 }

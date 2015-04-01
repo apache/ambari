@@ -56,6 +56,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
   public static final String MASKER_CLASS_PROPERTY_ID       = "ViewVersionInfo/masker_class";
   public static final String VIEW_STATUS_PROPERTY_ID        = "ViewVersionInfo/status";
   public static final String VIEW_STATUS_DETAIL_PROPERTY_ID = "ViewVersionInfo/status_detail";
+  public static final String CLUSTER_CONFIG_PROPERTY_ID     = "ViewVersionInfo/cluster_configurable";
   public static final String SYSTEM_PROPERTY_ID             = "ViewVersionInfo/system";
 
   /**
@@ -84,6 +85,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
     propertyIds.add(MASKER_CLASS_PROPERTY_ID);
     propertyIds.add(VIEW_STATUS_PROPERTY_ID);
     propertyIds.add(VIEW_STATUS_DETAIL_PROPERTY_ID);
+    propertyIds.add(CLUSTER_CONFIG_PROPERTY_ID);
     propertyIds.add(SYSTEM_PROPERTY_ID);
   }
 
@@ -145,6 +147,7 @@ public class ViewVersionResourceProvider extends AbstractResourceProvider {
             setResourceProperty(resource, MASKER_CLASS_PROPERTY_ID, viewDefinition.getMask(), requestedIds);
             setResourceProperty(resource, VIEW_STATUS_PROPERTY_ID, viewDefinition.getStatus().toString(), requestedIds);
             setResourceProperty(resource, VIEW_STATUS_DETAIL_PROPERTY_ID, viewDefinition.getStatusDetail(), requestedIds);
+            setResourceProperty(resource, CLUSTER_CONFIG_PROPERTY_ID, viewDefinition.isClusterConfigurable(), requestedIds);
             setResourceProperty(resource, SYSTEM_PROPERTY_ID, viewDefinition.isSystem(), requestedIds);
 
             resources.add(resource);

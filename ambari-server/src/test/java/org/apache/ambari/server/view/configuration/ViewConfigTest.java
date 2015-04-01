@@ -66,6 +66,7 @@ public class ViewConfigTest {
       "        <name>p2</name>\n" +
       "        <description>Parameter 2.</description>\n" +
       "        <default-value>Default value 1.</default-value>\n" +
+      "        <cluster-config>hdfs-site/dfs.namenode.http-address</cluster-config>\n" +
       "        <required>false</required>\n" +
       "        <masked>true</masked>" +
       "    </parameter>\n" +

@@ -62,6 +62,7 @@ public class ViewInstanceResourceProviderTest {
     ViewInstanceResourceProvider provider = new ViewInstanceResourceProvider();
     Set<String> propertyIds = new HashSet<String>();
     propertyIds.add(ViewInstanceResourceProvider.PROPERTIES_PROPERTY_ID);
+    propertyIds.add(ViewInstanceResourceProvider.CLUSTER_HANDLE_PROPERTY_ID);
     ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
     expect(viewInstanceEntity.getViewEntity()).andReturn(viewEntity).anyTimes();
@@ -78,13 +79,20 @@ public class ViewInstanceResourceProviderTest {
     expect(singleton.checkAdmin()).andReturn(true);
     expect(singleton.checkAdmin()).andReturn(false);
 
+    expect(viewInstanceEntity.getClusterHandle()).andReturn("c1");
+
     replay(singleton, viewEntity, viewInstanceEntity);
 
     // as admin
     Resource resource = provider.toResource(viewInstanceEntity, propertyIds);
     Map<String, Map<String, Object>> properties = resource.getPropertiesMap();
-    assertEquals(1, properties.size());
-    Map<String, Object> props = properties.get("ViewInstanceInfo/properties");
+    assertEquals(2, properties.size());
+    Map<String, Object> props = properties.get("ViewInstanceInfo");
+    assertNotNull(props);
+    assertEquals(1, props.size());
+    assertEquals("c1", props.get("cluster_handle"));
+
+    props = properties.get("ViewInstanceInfo/properties");
     assertNotNull(props);
     assertEquals(2, props.size());
     assertEquals("val1", props.get("par1"));

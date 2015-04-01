@@ -55,18 +55,19 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
   /**
    * View instance property id constants.
    */
-  public static final String VIEW_NAME_PROPERTY_ID     = "ViewInstanceInfo/view_name";
-  public static final String VIEW_VERSION_PROPERTY_ID  = "ViewInstanceInfo/version";
-  public static final String INSTANCE_NAME_PROPERTY_ID = "ViewInstanceInfo/instance_name";
-  public static final String LABEL_PROPERTY_ID         = "ViewInstanceInfo/label";
-  public static final String DESCRIPTION_PROPERTY_ID   = "ViewInstanceInfo/description";
-  public static final String VISIBLE_PROPERTY_ID       = "ViewInstanceInfo/visible";
-  public static final String ICON_PATH_ID              = "ViewInstanceInfo/icon_path";
-  public static final String ICON64_PATH_ID            = "ViewInstanceInfo/icon64_path";
-  public static final String PROPERTIES_PROPERTY_ID    = "ViewInstanceInfo/properties";
-  public static final String DATA_PROPERTY_ID          = "ViewInstanceInfo/instance_data";
-  public static final String CONTEXT_PATH_PROPERTY_ID  = "ViewInstanceInfo/context_path";
-  public static final String STATIC_PROPERTY_ID        = "ViewInstanceInfo/static";
+  public static final String VIEW_NAME_PROPERTY_ID      = "ViewInstanceInfo/view_name";
+  public static final String VIEW_VERSION_PROPERTY_ID   = "ViewInstanceInfo/version";
+  public static final String INSTANCE_NAME_PROPERTY_ID  = "ViewInstanceInfo/instance_name";
+  public static final String LABEL_PROPERTY_ID          = "ViewInstanceInfo/label";
+  public static final String DESCRIPTION_PROPERTY_ID    = "ViewInstanceInfo/description";
+  public static final String VISIBLE_PROPERTY_ID        = "ViewInstanceInfo/visible";
+  public static final String ICON_PATH_ID               = "ViewInstanceInfo/icon_path";
+  public static final String ICON64_PATH_ID             = "ViewInstanceInfo/icon64_path";
+  public static final String PROPERTIES_PROPERTY_ID     = "ViewInstanceInfo/properties";
+  public static final String DATA_PROPERTY_ID           = "ViewInstanceInfo/instance_data";
+  public static final String CONTEXT_PATH_PROPERTY_ID   = "ViewInstanceInfo/context_path";
+  public static final String STATIC_PROPERTY_ID         = "ViewInstanceInfo/static";
+  public static final String CLUSTER_HANDLE_PROPERTY_ID = "ViewInstanceInfo/cluster_handle";
 
   // validation properties
   public static final String VALIDATION_RESULT_PROPERTY_ID           = "ViewInstanceInfo/validation_result";
@@ -105,6 +106,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     propertyIds.add(DATA_PROPERTY_ID);
     propertyIds.add(CONTEXT_PATH_PROPERTY_ID);
     propertyIds.add(STATIC_PROPERTY_ID);
+    propertyIds.add(CLUSTER_HANDLE_PROPERTY_ID);
     propertyIds.add(VALIDATION_RESULT_PROPERTY_ID);
     propertyIds.add(PROPERTY_VALIDATION_RESULTS_PROPERTY_ID);
   }
@@ -229,6 +231,7 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
     setResourceProperty(resource, DESCRIPTION_PROPERTY_ID, viewInstanceEntity.getDescription(), requestedIds);
     setResourceProperty(resource, VISIBLE_PROPERTY_ID, viewInstanceEntity.isVisible(), requestedIds);
     setResourceProperty(resource, STATIC_PROPERTY_ID, viewInstanceEntity.isXmlDriven(), requestedIds);
+    setResourceProperty(resource, CLUSTER_HANDLE_PROPERTY_ID, viewInstanceEntity.getClusterHandle(), requestedIds);
 
     // only allow an admin to access the view properties
     if (ViewRegistry.getInstance().checkAdmin()) {
@@ -324,6 +327,10 @@ public class ViewInstanceResourceProvider extends AbstractResourceProvider {
 
     if (properties.containsKey(ICON64_PATH_ID)) {
       viewInstanceEntity.setIcon64((String) properties.get(ICON64_PATH_ID));
+    }
+
+    if (properties.containsKey(CLUSTER_HANDLE_PROPERTY_ID)) {
+      viewInstanceEntity.setClusterHandle((String) properties.get(CLUSTER_HANDLE_PROPERTY_ID));
     }
 
     Map<String, String> instanceProperties = new HashMap<String, String>();

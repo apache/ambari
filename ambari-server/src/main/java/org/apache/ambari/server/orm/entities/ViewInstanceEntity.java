@@ -112,6 +112,12 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   private String description;
 
   /**
+   * The associated cluster handle.
+   */
+  @Column(name = "cluster_handle", nullable = true)
+  private String clusterHandle;
+
+  /**
    * Visible flag.
    */
   @Column
@@ -217,6 +223,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.view = view;
     this.viewName = view.getName();
     this.description = instanceConfig.getDescription();
+    this.clusterHandle = null;
     this.visible = instanceConfig.isVisible() ? 'Y' : 'N';
 
     String label = instanceConfig.getLabel();
@@ -252,6 +259,7 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
     this.view = view;
     this.viewName = view.getName();
     this.description = null;
+    this.clusterHandle = null;
     this.visible = 'Y';
     this.label = label;
   }
@@ -312,6 +320,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
   @Override
   public String getDescription() {
     return description;
+  }
+
+  @Override
+  public String getClusterHandle() {
+    return clusterHandle;
   }
 
   @Override
@@ -383,6 +396,17 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
    */
   public void setDescription(String description) {
     this.description = description;
+  }
+
+  /**
+   * Set a cluster association for this view instance with the Ambari cluster
+   * identified by the given cluster handle.  For a local cluster reference,
+   * the cluster handle is simply the unique cluster name.
+   *
+   * @param clusterHandle  the cluster identifier
+   */
+  public void setClusterHandle(String clusterHandle) {
+    this.clusterHandle = clusterHandle;
   }
 
   /**

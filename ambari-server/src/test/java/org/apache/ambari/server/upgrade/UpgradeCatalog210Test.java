@@ -98,9 +98,14 @@ public class UpgradeCatalog210Test {
 
     // Column Capture section
     Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
     // Add columns and alter table section
     dbAccessor.addColumn(eq("hosts"), capture(hostsColumnCapture));
+
+    dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceColumnCapture));
+    dbAccessor.addColumn(eq("viewparameter"), capture(viewParamColumnCapture));
 
     Capture<List<DBColumnInfo>> userWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
     Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = new Capture<List<DBColumnInfo>>();
@@ -133,6 +138,8 @@ public class UpgradeCatalog210Test {
 
     // Verification section
     verifyHosts(hostsColumnCapture);
+    verifyViewInstance(viewInstanceColumnCapture);
+    verifyViewParameter(viewParamColumnCapture);
 
 
     // Verify widget tables
@@ -145,6 +152,19 @@ public class UpgradeCatalog210Test {
     DBColumnInfo hostsIdColumn = hostsColumnCapture.getValue();
     Assert.assertEquals(Long.class, hostsIdColumn.getType());
     Assert.assertEquals("id", hostsIdColumn.getName());
+  }
+
+  private void verifyViewInstance(Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture) {
+    DBColumnInfo clusterIdColumn = viewInstanceColumnCapture.getValue();
+    Assert.assertEquals(String.class, clusterIdColumn.getType());
+    Assert.assertEquals("cluster_handle", clusterIdColumn.getName());
+  }
+
+
+  private void verifyViewParameter(Capture<DBAccessor.DBColumnInfo> viewParamColumnCapture) {
+    DBColumnInfo clusterConfigColumn = viewParamColumnCapture.getValue();
+    Assert.assertEquals(String.class, clusterConfigColumn.getType());
+    Assert.assertEquals("cluster_config", clusterConfigColumn.getName());
   }
 
   /**

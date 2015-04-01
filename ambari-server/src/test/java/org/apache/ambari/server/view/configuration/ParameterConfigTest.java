@@ -74,6 +74,15 @@ public class ParameterConfigTest {
   }
 
   @Test
+  public void testGetClusterConfig() throws Exception {
+    List<ParameterConfig> parameters = getParameterConfigs();
+
+    Assert.assertEquals(2, parameters.size());
+    Assert.assertNull(parameters.get(0).getClusterConfig());
+    Assert.assertEquals("hdfs-site/dfs.namenode.http-address", parameters.get(1).getClusterConfig());
+  }
+
+  @Test
   public void testIsRequired() throws Exception {
     List<ParameterConfig> parameters = getParameterConfigs();
 

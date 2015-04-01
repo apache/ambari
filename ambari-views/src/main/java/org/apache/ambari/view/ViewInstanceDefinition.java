@@ -54,6 +54,14 @@ public interface ViewInstanceDefinition {
   public String getDescription();
 
   /**
+   * Get the cluster handle associated with this view instance.  For a local cluster reference,
+   * the cluster handle is simply the unique cluster name.
+   *
+   * @return the associated cluster handle; <code>null</code> if no cluster is associated
+   */
+  public String getClusterHandle();
+
+  /**
    * Indicates whether or not the view instance should be visible.
    *
    * @return true if the view instance should be visible; false otherwise

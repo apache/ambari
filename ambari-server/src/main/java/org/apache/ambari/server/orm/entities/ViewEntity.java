@@ -22,6 +22,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.view.ViewSubResourceDefinition;
+import org.apache.ambari.server.view.configuration.ParameterConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.view.validation.Validator;
@@ -229,6 +230,12 @@ public class ViewEntity implements ViewDefinition {
   @Transient
   private String statusDetail;
 
+  /**
+   * Indicates whether or not this view is configurable through cluster association.
+   */
+  @Transient
+  private boolean clusterConfigurable;
+
 
   // ----- Constructors ------------------------------------------------------
 
@@ -241,6 +248,7 @@ public class ViewEntity implements ViewDefinition {
     this.archive              = null;
     this.externalResourceType = null;
     this.system               = 0;
+    this.clusterConfigurable  = false;
   }
 
   /**
@@ -252,7 +260,8 @@ public class ViewEntity implements ViewDefinition {
    */
   public ViewEntity(ViewConfig configuration, Configuration ambariConfiguration,
                     String archivePath) {
-    this.configuration       = configuration;
+    setConfiguration(configuration);
+
     this.ambariConfiguration = ambariConfiguration;
     this.archive             = archivePath;
 
@@ -690,7 +699,17 @@ public class ViewEntity implements ViewDefinition {
    * @param configuration  the view configuration
    */
   public void setConfiguration(ViewConfig configuration) {
-    this.configuration = configuration;
+    this.configuration       = configuration;
+    this.clusterConfigurable = false;
+
+    // if any of the parameters contain a cluster config element then the view is cluster configurable
+    for (ParameterConfig parameterConfig : configuration.getParameters()) {
+      String clusterConfig = parameterConfig.getClusterConfig();
+      if (clusterConfig != null && !clusterConfig.isEmpty()) {
+        this.clusterConfigurable = true;
+        return;
+      }
+    }
   }
 
   /**
@@ -817,6 +836,15 @@ public class ViewEntity implements ViewDefinition {
    */
   public void setStatusDetail(String statusDetail) {
     this.statusDetail = statusDetail;
+  }
+
+  /**
+   * Determine whether or not this view is configurable through a cluster association.
+   *
+   * @return true if this view is cluster configurable
+   */
+  public boolean isClusterConfigurable() {
+    return clusterConfigurable;
   }
 
   /**

@@ -140,6 +140,21 @@ public class ViewEntityTest {
   }
 
   @Test
+  public void testIsClusterConfigurable() throws Exception {
+    ViewConfig viewConfig = ViewConfigTest.getConfig();
+    ViewEntity viewDefinition = getViewEntity(viewConfig);
+    Assert.assertEquals(viewConfig, viewDefinition.getConfiguration());
+
+    ViewConfig newViewConfig = ViewConfigTest.getConfig();
+    viewDefinition.setConfiguration(newViewConfig);
+    Assert.assertTrue(viewDefinition.isClusterConfigurable());
+
+    newViewConfig = ViewConfigTest.getConfig(with_ambari_versions);
+    viewDefinition.setConfiguration(newViewConfig);
+    Assert.assertFalse(viewDefinition.isClusterConfigurable());
+  }
+
+  @Test
   public void testGetAmbariProperty() throws Exception {
     ViewConfig viewConfig = ViewConfigTest.getConfig();
     ViewEntity viewDefinition = getViewEntity(viewConfig);

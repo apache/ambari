@@ -456,6 +456,7 @@ CREATE TABLE viewinstance (
   icon VARCHAR(255),
   icon64 VARCHAR(255),
   xml_driven CHAR(1),
+  cluster_handle VARCHAR(255),
   PRIMARY KEY(view_instance_id));
 
 CREATE TABLE viewinstanceproperty (
@@ -472,6 +473,7 @@ CREATE TABLE viewparameter (
   label VARCHAR(255),
   placeholder VARCHAR(255),
   default_value VARCHAR(2000),
+  cluster_config VARCHAR(255),
   required CHAR(1),
   masked CHAR(1),
   PRIMARY KEY(view_name, name));

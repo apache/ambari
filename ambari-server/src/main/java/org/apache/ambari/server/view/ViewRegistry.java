@@ -24,6 +24,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.resources.SubResourceDefinition;
 import org.apache.ambari.server.api.resources.ViewExternalSubResourceDefinition;
@@ -60,6 +61,7 @@ import org.apache.ambari.server.orm.entities.ViewParameterEntity;
 import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.configuration.EntityConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
@@ -70,6 +72,8 @@ import org.apache.ambari.server.view.configuration.PropertyConfig;
 import org.apache.ambari.server.view.configuration.ResourceConfig;
 import org.apache.ambari.server.view.configuration.ViewConfig;
 import org.apache.ambari.server.view.validation.ValidationException;
+import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.cluster.Cluster;
 import org.apache.ambari.view.validation.Validator;
 import org.apache.ambari.view.Masker;
 import org.apache.ambari.view.SystemException;
@@ -211,10 +215,16 @@ public class ViewRegistry {
   ResourceTypeDAO resourceTypeDAO;
 
   /**
+   * The Ambari managed clusters.
+   */
+  @Inject
+  Provider<Clusters> clustersProvider;
+
+  /**
    * Ambari meta info.
    */
   @Inject
-  Provider<AmbariMetaInfo> ambariMetaInfo;
+  Provider<AmbariMetaInfo> ambariMetaInfoProvider;
 
   /**
    * Ambari configuration.
@@ -811,6 +821,27 @@ public class ViewRegistry {
     }
   }
 
+  /**
+   * Get the cluster associated with the given view instance.
+   *
+   * @param viewInstance  the view instance
+   *
+   * @return the cluster
+   */
+  public Cluster getCluster(ViewInstanceDefinition viewInstance) {
+    if (viewInstance != null) {
+      String clusterId = viewInstance.getClusterHandle();
+
+      if (clusterId != null) {
+        try {
+          return new ClusterImpl(clustersProvider.get().getCluster(clusterId));
+        } catch (AmbariException e) {
+          LOG.warn("Could not find the cluster identified by " + clusterId + ".");
+        }
+      }
+    }
+    return null;
+  }
 
   // ----- helper methods ----------------------------------------------------
 
@@ -861,6 +892,7 @@ public class ViewRegistry {
       viewParameterEntity.setLabel(parameterConfiguration.getLabel());
       viewParameterEntity.setPlaceholder(parameterConfiguration.getPlaceholder());
       viewParameterEntity.setDefaultValue(parameterConfiguration.getDefaultValue());
+      viewParameterEntity.setClusterConfig(parameterConfiguration.getClusterConfig());
       viewParameterEntity.setRequired(parameterConfiguration.isRequired());
       viewParameterEntity.setMasked(parameterConfiguration.isMasked());
       viewParameterEntity.setViewEntity(viewDefinition);
@@ -1016,8 +1048,8 @@ public class ViewRegistry {
 
   // Set the entities defined in the view persistence element for the given view instance
   private static void setPersistenceEntities(ViewInstanceEntity viewInstanceDefinition) {
-    ViewEntity        viewDefinition    = viewInstanceDefinition.getViewEntity();
-    ViewConfig        viewConfig        = viewDefinition.getConfiguration();
+    ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
+    ViewConfig viewConfig     = viewDefinition.getConfiguration();
 
     Collection<ViewEntityEntity> entities = new HashSet<ViewEntityEntity>();
 
@@ -1205,6 +1237,7 @@ public class ViewRegistry {
     instance1.setVisible(instance2.isVisible());
     instance1.setResource(instance2.getResource());
     instance1.setViewInstanceId(instance2.getViewInstanceId());
+    instance1.setClusterHandle(instance2.getClusterHandle());
     instance1.setData(instance2.getData());
     instance1.setEntities(instance2.getEntities());
     instance1.setProperties(instance2.getProperties());
@@ -1292,7 +1325,7 @@ public class ViewRegistry {
 
           Set<Runnable> extractionRunnables = new HashSet<Runnable>();
 
-          final String serverVersion = ambariMetaInfo.get().getServerVersion();
+          final String serverVersion = ambariMetaInfoProvider.get().getServerVersion();
 
           for (final File archiveFile : files) {
             if (!archiveFile.isDirectory()) {

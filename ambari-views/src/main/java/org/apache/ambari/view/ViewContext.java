@@ -18,6 +18,8 @@
 
 package org.apache.ambari.view;
 
+import org.apache.ambari.view.cluster.Cluster;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -187,13 +189,26 @@ public interface ViewContext {
    * Get the HTTP Impersonator.
    *
    * @return the HTTP Impersonator, which internally uses the App Cookie Manager
+   *
+   * @deprecated  As of release 2.0
    */
+  @Deprecated
   public HttpImpersonator getHttpImpersonator();
 
   /**
    * Get the default settings for the Impersonator.
    *
    * @return the Impersonator settings.
+   *
+   * @deprecated  As of release 2.0
    */
+  @Deprecated
   public ImpersonatorSetting getImpersonatorSetting();
+
+  /**
+   * Get the cluster associated with this view instance.
+   *
+   * @return the associated cluster; <code>null</code> if no cluster is associated
+   */
+  public Cluster getCluster();
 }

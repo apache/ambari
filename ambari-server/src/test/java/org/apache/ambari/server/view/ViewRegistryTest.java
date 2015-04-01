@@ -1617,7 +1617,7 @@ public class ViewRegistryTest {
     instance.extractor.archiveUtility = instance.archiveUtility;
 
     final AmbariMetaInfo finalMetaInfo = ambariMetaInfo;
-    instance.ambariMetaInfo = new Provider<AmbariMetaInfo>() {
+    instance.ambariMetaInfoProvider = new Provider<AmbariMetaInfo>() {
       @Override
       public AmbariMetaInfo get() {
         return finalMetaInfo;

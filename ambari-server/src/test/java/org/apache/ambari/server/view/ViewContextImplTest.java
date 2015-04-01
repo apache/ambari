@@ -27,6 +27,7 @@ import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.ViewConfigTest;
 import org.apache.ambari.view.ResourceProvider;
+import org.apache.ambari.view.cluster.Cluster;
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -73,6 +74,9 @@ public class ViewContextImplTest {
     ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
     ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+
+    expect(viewRegistry.getCluster(viewInstanceDefinition)).andReturn(null).anyTimes();
+
     viewInstanceDefinition.putProperty("p1", "v1");
     viewInstanceDefinition.putProperty("p2", new DefaultMasker().mask("v2"));
     viewInstanceDefinition.putProperty("p3", "v3");
@@ -90,8 +94,10 @@ public class ViewContextImplTest {
   @Test
   public void testGetPropertiesWithParameters() throws Exception {
     InstanceConfig instanceConfig = createNiceMock(InstanceConfig.class);
+    expect(instanceConfig.getName()).andReturn("Instance").anyTimes();
     replay(instanceConfig);
     ViewEntity viewDefinition = createNiceMock(ViewEntity.class);
+    expect(viewDefinition.getName()).andReturn("View").anyTimes();
     expect(viewDefinition.getCommonName()).andReturn("View").times(2);
     expect(viewDefinition.getClassLoader()).andReturn(ViewContextImplTest.class.getClassLoader()).anyTimes();
     expect(viewDefinition.getConfiguration()).andReturn(ViewConfigTest.getConfig()).anyTimes();
@@ -110,10 +116,12 @@ public class ViewContextImplTest {
         .withConstructor(viewDefinition, instanceConfig).createMock();
     expect(viewInstanceDefinition.getUsername()).andReturn("User").times(1);
     expect(viewInstanceDefinition.getUsername()).andReturn("User2").times(1);
-    expect(viewInstanceDefinition.getName()).andReturn("Instance").times(3);
-    expect(viewInstanceDefinition.getViewEntity()).andReturn(viewDefinition).times(1);
+    expect(viewInstanceDefinition.getName()).andReturn("Instance").anyTimes();
+    expect(viewInstanceDefinition.getViewEntity()).andReturn(viewDefinition).anyTimes();
     replay(viewInstanceDefinition);
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+    expect(viewRegistry.getCluster(viewInstanceDefinition)).andReturn(null).anyTimes();
+    replay(viewRegistry);
     viewInstanceDefinition.putProperty("p1", "/tmp/some/path/${username}");
     viewInstanceDefinition.putProperty("p2", new DefaultMasker().mask("/tmp/path/$viewName"));
     viewInstanceDefinition.putProperty("p3", "/path/$instanceName");
@@ -209,6 +217,26 @@ public class ViewContextImplTest {
     ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
 
     Assert.assertEquals(ambariStreamProvider, viewContext.getAmbariStreamProvider());
+
+    verify(viewRegistry);
+  }
+
+  @Test
+  public void testGetCluster() throws Exception {
+    InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity();
+    ViewInstanceEntity viewInstanceDefinition = new ViewInstanceEntity(viewDefinition, instanceConfig);
+    ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
+
+    Cluster cluster = createNiceMock(Cluster.class);
+
+    expect(viewRegistry.getCluster(viewInstanceDefinition)).andReturn(cluster);
+
+    replay(viewRegistry);
+
+    ViewContextImpl viewContext = new ViewContextImpl(viewInstanceDefinition, viewRegistry);
+
+    Assert.assertEquals(cluster, viewContext.getCluster());
 
     verify(viewRegistry);
   }

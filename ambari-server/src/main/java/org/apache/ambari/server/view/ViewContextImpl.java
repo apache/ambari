@@ -42,9 +42,9 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewController;
 import org.apache.ambari.view.ViewDefinition;
 import org.apache.ambari.view.ViewInstanceDefinition;
+import org.apache.ambari.view.cluster.Cluster;
 import org.apache.ambari.view.events.Event;
 import org.apache.ambari.view.events.Listener;
-import org.apache.commons.lang.StringUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.apache.velocity.VelocityContext;
@@ -55,6 +55,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -104,7 +105,11 @@ public class ViewContextImpl implements ViewContext, ViewController {
    */
   private Masker masker;
 
+  /**
+   * The velocity context used to evaluate property templates.
+   */
   private final VelocityContext velocityContext;
+
 
   // ---- Constructors -------------------------------------------------------
 
@@ -163,40 +168,7 @@ public class ViewContextImpl implements ViewContext, ViewController {
     if (viewInstanceEntity == null) {
       return null;
     } else {
-      Map<String, String> properties = viewInstanceEntity.getPropertyMap();
-
-      // unmasking
-      for (Entry<String, String> entry: properties.entrySet()) {
-        ParameterConfig parameterConfig = null;
-        for (ParameterConfig paramConfig : viewEntity.getConfiguration().getParameters()) {
-          if (StringUtils.equals(paramConfig.getName(), entry.getKey())) {
-            parameterConfig = paramConfig;
-            break;
-          }
-        }
-        if (parameterConfig == null || !parameterConfig.isMasked()) {
-          properties.put(entry.getKey(), entry.getValue());
-        } else {
-          try {
-            properties.put(entry.getKey(), masker.unmask(entry.getValue()));
-          } catch (MaskException e) {
-            LOG.error("Failed to unmask view property", e);
-          }
-        }
-      }
-
-      // parametrizing
-
-      String rawValue;
-      for (String key : properties.keySet()) {
-        rawValue = properties.get(key);
-        try {
-          properties.put(key, parameterize(rawValue));
-        } catch (ParseErrorException ex) {
-          LOG.warn(String.format("Error during parsing '%s' parameter. Leaving original value.", key));
-        }
-      }
-      return Collections.unmodifiableMap(properties);
+      return Collections.unmodifiableMap(getPropertyValues());
     }
   }
 
@@ -339,6 +311,11 @@ public class ViewContextImpl implements ViewContext, ViewController {
     return new ImpersonatorSettingImpl(this);
   }
 
+  @Override
+  public Cluster getCluster() {
+    return viewRegistry.getCluster(viewInstanceEntity);
+  }
+
 
   // ----- ViewController ----------------------------------------------------
 
@@ -396,21 +373,83 @@ public class ViewContextImpl implements ViewContext, ViewController {
   }
 
   /**
-   * Parameterize string using VelocityContext instance
+   * Get the property values for the associated view instance.
    *
-   * @param raw original string with parameters in formal or shorthand notation
-   *
-   * @return parameterized string
-   *
-   * @throws ParseErrorException if original string cannot be parsed by Velocity
+   * @return the property values for the instance
    */
-  private String parameterize(String raw) throws ParseErrorException {
-    if (raw != null) {
-      Writer templateWriter = new StringWriter();
-      Velocity.evaluate(velocityContext, templateWriter, raw, raw);
-      return templateWriter.toString();
+  private Map<String, String> getPropertyValues() {
+    Map<String, String> properties = viewInstanceEntity.getPropertyMap();
+
+    Map<String, ParameterConfig> parameters = new HashMap<String, ParameterConfig>();
+
+    for (ParameterConfig paramConfig : viewEntity.getConfiguration().getParameters()) {
+      parameters.put(paramConfig.getName(), paramConfig);
+    }
+
+    Cluster cluster = getCluster();
+
+    for (Entry<String, String> entry: properties.entrySet()) {
+      String propertyName  = entry.getKey();
+      String propertyValue = entry.getValue();
+
+      ParameterConfig parameterConfig = parameters.get(propertyName);
+
+      if (parameterConfig != null) {
+
+        String clusterConfig = parameterConfig.getClusterConfig();
+        if (clusterConfig != null && cluster != null) {
+          propertyValue = getClusterConfigurationValue(cluster, clusterConfig);
+        } else {
+          if (parameterConfig.isMasked()) {
+            try {
+              propertyValue = masker.unmask(propertyValue);
+            } catch (MaskException e) {
+              LOG.error("Failed to unmask view property", e);
+            }
+          }
+        }
+      }
+      properties.put(propertyName, evaluatePropertyTemplates(propertyValue));
+    }
+    return properties;
+  }
+
+  /**
+   * Get a specified configuration value from the given cluster.
+   *
+   * @param cluster        the cluster
+   * @param clusterConfig  the cluster configuration identifier
+   *
+   * @return the configuration value or <code>null</code> if the desired configuration can not be found
+   */
+  private static String getClusterConfigurationValue(Cluster cluster, String clusterConfig) {
+    if (clusterConfig != null) {
+      String[] parts = clusterConfig.split("/");
+      if (parts.length == 2) {
+        return cluster.getConfigurationValue(parts[0], parts[1]);
+      }
     }
     return null;
+  }
+
+  /**
+   * Evaluate any templates in the given property value.
+   *
+   * @param rawValue original string with parameters in formal or shorthand notation
+   *
+   * @return the evaluated property value
+   */
+  private String evaluatePropertyTemplates(String rawValue) {
+    if (rawValue != null) {
+      try {
+        Writer templateWriter = new StringWriter();
+        Velocity.evaluate(velocityContext, templateWriter, rawValue, rawValue);
+        return templateWriter.toString();
+      } catch (ParseErrorException e) {
+        LOG.warn(String.format("Error during parsing '%s' parameter. Leaving original value.", rawValue));
+      }
+    }
+    return rawValue;
   }
 
   /**
