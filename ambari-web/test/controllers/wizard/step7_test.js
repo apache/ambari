@@ -1548,4 +1548,37 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#addKerberosDescriptorConfigs', function() {
+    var configs = [
+      { name: 'prop1', displayName: 'Prop1' },
+      { name: 'prop2', displayName: 'Prop2' },
+      { name: 'prop3', displayName: 'Prop3' }
+    ];
+    var descriptor = [
+      Em.Object.create({ name: 'prop4', filename: 'file-1'}),
+      Em.Object.create({ name: 'prop1', filename: 'file-1'})
+    ];
+    var propertiesAttrTests = [
+      {
+        attr: 'isUserProperty', val: false,
+        m: 'descriptor properties should not be marked as custom'
+      },
+      {
+        attr: 'category', val: 'Advanced file-1',
+        m: 'descriptor properties should be added to Advanced category'
+      },
+      {
+        attr: 'isOverridable', val: false,
+        m: 'descriptor properties should not be overriden'
+      }
+    ];
+
+    propertiesAttrTests.forEach(function(test) {
+      it(test.m, function() {
+        installerStep7Controller.addKerberosDescriptorConfigs(configs, descriptor);
+        expect(configs.findProperty('name', 'prop1')[test.attr]).to.be.eql(test.val);
+      });
+    });
+  });
+
 });

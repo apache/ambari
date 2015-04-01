@@ -23,17 +23,18 @@ var mainServiceInfoConfigsController = null;
 describe("App.MainServiceInfoConfigsController", function () {
 
   beforeEach(function () {
-    sinon.stub(App.config, 'loadConfigTheme').returns($.Deferred().resolve().promise());
     sinon.stub(App.themesMapper, 'generateAdvancedTabs').returns(Em.K);
     mainServiceInfoConfigsController = App.MainServiceInfoConfigsController.create({
       loadDependentConfigs: function () {
         return {done: Em.K}
+      },
+      loadConfigTheme: function () {
+        return $.Deferred().resolve().promise();
       }
     });
   });
 
   afterEach(function() {
-    App.config.loadConfigTheme.restore();
     App.themesMapper.generateAdvancedTabs.restore();
   });
 

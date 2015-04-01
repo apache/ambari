@@ -20,7 +20,7 @@
 var App = require('app');
 require('models/host');
 
-App.WizardController = Em.Controller.extend(App.LocalStorage, {
+App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingMixin, {
 
   isStepDisabled: null,
 
@@ -1170,7 +1170,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, {
       }).mapProperty('serviceName');
       // Load stack configs before loading themes
       App.config.loadConfigsFromStack(serviceNames).done(function() {
-        App.config.loadConfigThemeForServices(serviceNames).always(function() {
+        self.loadConfigThemeForServices(serviceNames).always(function() {
           self.set('stackConfigsLoaded', true);
           App.themesMapper.generateAdvancedTabs(serviceNames);
           dfd.resolve();

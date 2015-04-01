@@ -19,18 +19,18 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-var configGroupsByTag = [];
-
 App.config = Em.Object.create({
 
   CONFIG_GROUP_NAME_MAX_LENGTH: 18,
 
   /**
    * filename exceptions used to support substandard sitenames which don't have "xml" extension
+   * @type {string[]}
    */
   filenameExceptions: [],
 
   preDefinedServiceConfigs: [],
+
   /**
    *
    * Returns file name version that stored on server.
@@ -231,6 +231,7 @@ App.config = Em.Object.create({
     }
     return category;
   },
+
   /**
    * additional handling for special properties such as
    * checkbox and digital which values with 'm' at the end
@@ -242,6 +243,7 @@ App.config = Em.Object.create({
       config.defaultValue = config.value;
     }
   },
+
   /**
    * calculate config properties:
    * category, filename, isUserProperty, description
@@ -281,6 +283,7 @@ App.config = Em.Object.create({
       return (yarnRegex.test(_config.name));
     }
   }.property(),
+
   /**
    * return:
    *   configs,
@@ -570,7 +573,6 @@ App.config = Em.Object.create({
     configData.supportsFinal = !!(advanced && advanced.supportsFinal);
   },
 
-
   /**
    * look over advanced configs and add missing configs to serviceConfigs
    * filter fetched configs by service if passed
@@ -648,6 +650,7 @@ App.config = Em.Object.create({
    * @param allSelectedServiceNames
    * @param installedServiceNames
    * @param localDB
+   * @param recommended
    * @return {Array}
    */
   renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB, recommended) {
@@ -718,6 +721,7 @@ App.config = Em.Object.create({
     }, this);
     return renderedServiceConfigs;
   },
+
   /**
    Takes care of the "dynamic defaults" for the GLUSTERFS configs.  Sets
    some of the config defaults to previously user-entered data.
@@ -738,24 +742,6 @@ App.config = Em.Object.create({
     }
   },
 
-  /**
-   * Mark descriptor properties in configuration object.
-   *
-   * @param {Object[]} configs - config properties to change
-   * @param {App.ServiceConfigProperty[]} descriptor - parsed kerberos descriptor
-   */
-  addKerberosDescriptorConfigs: function (configs, descriptor) {
-    descriptor.forEach(function (item) {
-      var property = configs.findProperty('name', item.get('name'));
-      if (property) {
-        Em.set(property, 'isSecureConfig', true);
-        Em.set(property, 'displayName', Em.get(item, 'name'));
-        Em.set(property, 'isUserProperty', false);
-        Em.set(property, 'isOverridable', false);
-        Em.set(property, 'category', 'Advanced ' + Em.get(item, 'filename'));
-      }
-    });
-  },
   /**
    * create new child configs from overrides, attach them to parent config
    * override - value of config, related to particular host(s)
@@ -781,25 +767,28 @@ App.config = Em.Object.create({
       configProperty.set('overrides', overrides);
     }
   },
+
   /**
    * create new ServiceConfig object by service name
-   * @param serviceName
+   * @param {string} serviceName
+   * @return {App.ServiceConfig}
+   * @method createServiceConfig
    */
   createServiceConfig: function (serviceName) {
     var preDefinedServiceConfig = App.config.get('preDefinedServiceConfigs').findProperty('serviceName', serviceName);
-    var serviceConfig = App.ServiceConfig.create({
+    return App.ServiceConfig.create({
       serviceName: preDefinedServiceConfig.get('serviceName'),
       displayName: preDefinedServiceConfig.get('displayName'),
       configCategories: preDefinedServiceConfig.get('configCategories'),
       configs: [],
       configGroups: []
     });
-    return serviceConfig;
   },
+
   /**
    * GETs all cluster level sites in one call.
    *
-   * @return {object}
+   * @return {$.ajax}
    */
   loadConfigsByTags: function (tags) {
     var urlParams = [];
@@ -820,7 +809,7 @@ App.config = Em.Object.create({
    * Fetch cluster configs from server
    *
    * @param callback
-   * @return {object|null}
+   * @return {$.ajax}
    */
   loadClusterConfig: function (callback) {
     return App.ajax.send({
@@ -888,7 +877,7 @@ App.config = Em.Object.create({
    * @param {String[]} serviceNames
    * @param {Object} opt
    * @param {Function} callback
-   * @returns {jqXHR}
+   * @returns {$.ajax}
    */
   loadAdvancedConfigPartial: function (serviceNames, opt, callback) {
     var data = {
@@ -1082,6 +1071,7 @@ App.config = Em.Object.create({
       callback.call(sender, serviceConfigs);
     }
   },
+
   loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
     data.items.forEach(function (config) {
       App.config.loadedConfigurationsCache[config.type + "_" + config.tag] = config.properties;
@@ -1104,6 +1094,7 @@ App.config = Em.Object.create({
     }, this);
     params.callback.call(params.sender, params.serviceConfigs);
   },
+
   /**
    * Create config with non default config group. Some custom config properties
    * can be created and assigned to non-default config group.
@@ -1135,6 +1126,7 @@ App.config = Em.Object.create({
     group.set('switchGroupTextFull', Em.I18n.t('services.service.config_groups.switchGroupTextFull').format(group.get('name')));
     return App.ServiceConfigProperty.create(propertyObject);
   },
+
   /**
    * format value of override of config
    * @param serviceConfig
@@ -1151,6 +1143,27 @@ App.config = Em.Object.create({
 
   /**
    * Set all site property that are derived from other site-properties
+   * Replace <foreignKey[0]>, <foreignKey[1]>, ... (in the name and value) to values from configs with names in foreignKey-array
+   * Replace <templateName[0]>, <templateName[1]>, ... (in the value) to values from configs with names in templateName-array
+   * Example:
+   * <code>
+   *  config: {
+   *    name: "name.<foreignKey[0]>.name",
+   *    foreignKey: ["name1"],
+   *    templateName: ["name2"],
+   *    value: "<foreignKey[0]><templateName[0]>"
+   *  }
+   * </code>
+   * "<foreignKey[0]>" in the name will be replaced with value from config with name "name1" (this config will be found
+   * in the mappedConfigs or allConfigs). New name will be set to the '_name'-property. If config with name "name1" won't
+   * be found, updated config will be marked as skipped (<code>noMatchSoSkipThisConfig</code>-property is set to true)
+   * "<templateName[0]>" in the value will be replace with value from config with name "name2" (it also will be found
+   * in the mappedConfigs or allConfigs).
+   *
+   * @param {object[]} mappedConfigs
+   * @param {object[]} allConfigs
+   * @param {object} config
+   * @method setConfigValue
    */
   setConfigValue: function (mappedConfigs, allConfigs, config) {
     var globalValue;
@@ -1160,54 +1173,66 @@ App.config = Em.Object.create({
     var fkValue = config.value.match(/<(foreignKey.*?)>/g);
     var fkName = config.name.match(/<(foreignKey.*?)>/g);
     var templateValue = config.value.match(/<(templateName.*?)>/g);
+
     if (fkValue) {
       fkValue.forEach(function (_fkValue) {
+
         var index = parseInt(_fkValue.match(/\[([\d]*)(?=\])/)[1]);
-        if (mappedConfigs.someProperty('name', config.foreignKey[index])) {
-          globalValue = mappedConfigs.findProperty('name', config.foreignKey[index]).value;
-          config.value = config.value.replace(_fkValue, globalValue);
-        } else if (allConfigs.someProperty('name', config.foreignKey[index])) {
-          if (allConfigs.findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).value;
+        var cfk = config.foreignKey[index];
+        var cFromMapped = mappedConfigs.findProperty('name', cfk);
+        if (Em.isNone(cFromMapped)) {
+          var cFromAll = allConfigs.findProperty('name', cfk);
+          if (!Em.isNone(cFromAll)) {
+            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'defaultValue') : Em.get(cFromAll, 'value');
+            config.value = config.value.replace(_fkValue, globalValue);
           }
+        }
+        else {
+          globalValue = Em.get(cFromMapped, 'value');
           config.value = config.value.replace(_fkValue, globalValue);
         }
-      }, this);
+      });
     }
 
     // config._name - formatted name from original config name
     if (fkName) {
       fkName.forEach(function (_fkName) {
+
         var index = parseInt(_fkName.match(/\[([\d]*)(?=\])/)[1]);
-        if (mappedConfigs.someProperty('name', config.foreignKey[index])) {
-          globalValue = mappedConfigs.findProperty('name', config.foreignKey[index]).value;
-          config._name = config.name.replace(_fkName, globalValue);
-        } else if (allConfigs.someProperty('name', config.foreignKey[index])) {
-          if (allConfigs.findProperty('name', config.foreignKey[index]).value === '') {
-            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).defaultValue;
-          } else {
-            globalValue = allConfigs.findProperty('name', config.foreignKey[index]).value;
+        var cfk = config.foreignKey[index];
+        var cFromMapped = mappedConfigs.findProperty('name', cfk);
+
+        if (Em.isNone(cFromMapped)) {
+          var cFromAll = allConfigs.findProperty('name', cfk);
+          if (Em.isNone(cFromAll)) {
+            config.noMatchSoSkipThisConfig = true;
           }
-          config._name = config.name.replace(_fkName, globalValue);
-        } else {
-          config.noMatchSoSkipThisConfig = true;
+          else {
+            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'defaultValue') : Em.get(cFromAll, 'value');
+            config._name = config.name.replace(_fkName, globalValue);
+          }
         }
-      }, this);
+        else {
+          globalValue = Em.get(cFromMapped, 'value');
+          config._name = config.name.replace(_fkName, globalValue);
+        }
+      });
     }
 
     //For properties in the configMapping file having foreignKey and templateName properties.
     if (templateValue) {
       templateValue.forEach(function (_value) {
         var index = parseInt(_value.match(/\[([\d]*)(?=\])/)[1]);
-        if (allConfigs.someProperty('name', config.templateName[index])) {
-          var globalValue = allConfigs.findProperty('name', config.templateName[index]).value;
-          config.value = config.value.replace(_value, globalValue);
-        } else {
+        var cfk = config.templateName[index];
+        var cFromAll = allConfigs.findProperty('name', cfk);
+        if (Em.isNone(cFromAll)) {
           config.value = null;
         }
-      }, this);
+        else {
+          var globalValue = Em.get(cFromAll, 'value');
+          config.value = config.value.replace(_value, globalValue);
+        }
+      });
     }
   },
 
@@ -1412,33 +1437,15 @@ App.config = Em.Object.create({
    * exclude configs that depends on services which are uninstalled
    * if config doesn't have serviceName or dependent service is installed then
    * config not excluded
+   * @param {object[]} configs
+   * @param {string[]} installedServices
+   * @return {object[]}
+   * @method excludeUnsupportedConfigs
    */
   excludeUnsupportedConfigs: function (configs, installedServices) {
     return configs.filter(function (config) {
       return !(config.serviceName && !installedServices.contains(config.serviceName));
     });
-  },
-
-
-
-  /**
-   * Gets all the configuration-groups for the given service.
-   *
-   * @param serviceId
-   *          (string) ID of the service. Ex: HDFS
-   */
-  getConfigGroupsForService: function (serviceId) {
-
-  },
-
-  /**
-   * Gets all the configuration-groups for a host.
-   *
-   * @param hostName
-   *          (string) host name used to register
-   */
-  getConfigGroupsForHost: function (hostName) {
-
   },
 
   /**
@@ -1460,9 +1467,10 @@ App.config = Em.Object.create({
    *    .......
    *   ]
    * </code>
-   * @param {Array} names
+   * @param {string[]} names
    * @param {Object} properties - additional properties which will merge with base object definition
-   * @returns {*}
+   * @returns {object[]}
+   * @method generateConfigPropertiesByName
    */
   generateConfigPropertiesByName: function (names, properties) {
     return names.map(function (item) {
@@ -1515,174 +1523,12 @@ App.config = Em.Object.create({
   },
 
   /**
-   * runs <code>stackConfigPropertiesMapper<code>
-   * @param data
+   * Runs <code>stackConfigPropertiesMapper<code>
+   * @param {object} data
+   * @method saveConfigsToModel
    */
   saveConfigsToModel: function (data) {
     App.stackConfigPropertiesMapper.map(data);
-  },
-
-  /**
-   * load config groups
-   * @param {String[]} serviceNames
-   * @returns {$.Deferred()}
-   * @method loadConfigGroups
-   */
-  loadConfigGroups: function (serviceNames) {
-    var dfd = $.Deferred();
-    if (!serviceNames || serviceNames.length === 0) {
-      dfd.resolve();
-    } else {
-      App.ajax.send({
-        name: 'configs.config_groups.load.services',
-        sender: this,
-        data: {
-          serviceList: serviceNames.join(','),
-          dfd: dfd
-        },
-        success: 'saveConfigGroupsToModel'
-      });
-    }
-    return dfd.promise();
-  },
-
-  /**
-   * runs <code>configGroupsMapper<code>
-   * @param data
-   * @param opt
-   * @param params
-   */
-  saveConfigGroupsToModel: function (data, opt, params) {
-    App.configGroupsMapper.map(data, params.serviceList.split(','));
-    params.dfd.resolve();
-  },
-
-  /**
-   * load config groups
-   * @param {string} [serviceName=null]
-   * @param {number} [configGroupId=null]
-   * @param {number} [configVersion=null]
-   * @param {boolean} [isForCompare=false]
-   * @returns {$.ajax}
-   * @method loadConfigGroups
-   */
-  loadConfigVersions: function (serviceName, configGroupId, configVersion, isForCompare) {
-    var info = this.generateAjaxDataForVersions(serviceName, configGroupId, configVersion, isForCompare);
-    return App.ajax.send($.extend({sender: this, success: 'saveConfigVersionsToModel'}, info));
-  },
-
-  /**
-   *
-   * @param serviceNames
-   * @returns {$.ajax}
-   */
-  loadConfigCurrentVersions: function (serviceNames) {
-    Em.assert('serviceNames should be not empty array', Em.isArray(serviceNames) && serviceNames.length > 0);
-    return App.ajax.send({
-      name: 'configs.config_versions.load.current_versions',
-      sender: this,
-      data: {
-        serviceNames: serviceNames.join(",")
-      },
-      success: 'saveConfigVersionsToModel'
-    });
-  },
-  /**
-   * generate ajax info
-   * @param {string} [serviceName=null]
-   * @param {number} [configGroupId=null]
-   * @param {number} [configVersion=null]
-   * @param {boolean} [isForCompare=false]
-   * @returns {{name: string, data: {}}}
-   */
-  generateAjaxDataForVersions: function (serviceName, configGroupId, configVersion, isForCompare) {
-    var result = {
-      name: 'configs.config_versions.load.all.min',
-      data: {}
-    };
-    if (serviceName) {
-      result.data.serviceName = serviceName;
-      if (configVersion) {
-        result.name = 'configs.config_versions.load';
-        result.data.configVersion = configVersion;
-        result.data.isForCompare = isForCompare;
-      } else if (configGroupId) {
-        result.name = 'configs.config_versions.load.group';
-        result.data.configGroupId = configGroupId;
-      } else {
-        result.name = 'configs.config_versions.load.service.min';
-      }
-    }
-    return result;
-  },
-
-  /**
-   * runs <code>configGroupsMapper<code>
-   * @param data
-   * @param opt
-   * @param params
-   */
-  saveConfigVersionsToModel: function (data, opt, params) {
-    App.configVersionsMapper.map(data, params.isForCompare);
-  },
-
-  /**
-   * load config themes
-   * @param {string} serviceName
-   * @returns {$.ajax}
-   */
-  loadConfigTheme: function(serviceName) {
-    return App.ajax.send({
-      name: 'configs.theme',
-      sender: this,
-      data: {
-        serviceName: serviceName,
-        stackVersionUrl: App.get('stackVersionURL')
-      },
-      success: 'saveThemeToModel'
-    });
-  },
-
-  /**
-   * runs <code>themeMapper<code>
-   * @param data
-   */
-  saveThemeToModel: function(data) {
-    App.themesMapper.map(data);
-  },
-
-  /**
-   * Load themes for specified services by one API call.
-   *
-   * @method loadConfigThemeForServices
-   * @param {String|String[]} serviceNames
-   * @returns {$.Deferred}
-   */
-  loadConfigThemeForServices: function (serviceNames) {
-    var data = {
-      serviceNames: Em.isArray(serviceNames) ? serviceNames.join(',') : serviceNames,
-      stackVersionUrl: App.get('stackVersionURL')
-    };
-    return App.ajax.send({
-      name: 'configs.theme.services',
-      sender: this,
-      data: data,
-      success: 'loadConfigThemeForServicesSuccess',
-      error: 'loadConfigThemeForServicesError'
-    });
-  },
-
-  loadConfigThemeForServicesSuccess: function(data) {
-    if (!data.items.length) return;
-    App.themesMapper.map({
-      items: data.items.mapProperty('themes').reduce(function(p,c) {
-        return p.concat(c);
-      })
-    });
-  },
-
-  loadConfigThemeForServicesError: function(request, ajaxOptions, error, opt, params) {
-    console.log('ERROR: failed to load theme configs for', params.serviceNames);
   }
 
 });

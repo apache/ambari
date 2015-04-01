@@ -34,7 +34,7 @@ describe('App.config', function () {
 
   var loadAllServicesConfigs = function(context, serviceNames) {
     context.configGroups = modelSetup.setupConfigGroupsObject();
-  }
+  };
 
   var loadServiceModelsData = function(serviceNames) {
     serviceNames.forEach(function(serviceName) {
@@ -467,72 +467,6 @@ describe('App.config', function () {
 
   });
 
-  describe('#generateConfigPropertiesByName', function() {
-    var tests = [
-      {
-        names: ['property_1', 'property_2'],
-        properties: undefined,
-        e: {
-          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable']
-        },
-        m: 'Should generate base property object without additional fields'
-      },
-      {
-        names: ['property_1', 'property_2'],
-        properties: { category: 'SomeCat', serviceName: 'SERVICE_NAME' },
-        e: {
-          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable', 'category', 'serviceName']
-        },
-        m: 'Should generate base property object without additional fields'
-      }
-    ];
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).length).to.eql(test.names.length);
-        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).map(function(property) {
-          return Em.keys(property);
-        }).reduce(function(p, c) {
-          return p.concat(c);
-        }).uniq()).to.eql(test.e.keys);
-      });
-    });
-
-  });
-
-  describe('#generateConfigPropertiesByName', function() {
-    var tests = [
-      {
-        names: ['property_1', 'property_2'],
-        properties: undefined,
-        e: {
-          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable']
-        },
-        m: 'Should generate base property object without additional fields'
-      },
-      {
-        names: ['property_1', 'property_2'],
-        properties: { category: 'SomeCat', serviceName: 'SERVICE_NAME' },
-        e: {
-          keys: ['name', 'displayName', 'isVisible', 'isReconfigurable', 'category', 'serviceName']
-        },
-        m: 'Should generate base property object without additional fields'
-      }
-    ];
-
-    tests.forEach(function(test) {
-      it(test.m, function() {
-        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).length).to.eql(test.names.length);
-        expect(App.config.generateConfigPropertiesByName(test.names, test.properties).map(function(property) {
-          return Em.keys(property);
-        }).reduce(function(p, c) {
-          return p.concat(c);
-        }).uniq()).to.eql(test.e.keys);
-      });
-    });
-
-  });
-
   describe('#setPreDefinedServiceConfigs', function() {
     beforeEach(function() {
       sinon.stub(App.StackService, 'find', function() {
@@ -798,39 +732,6 @@ describe('App.config', function () {
       });
     });
 
-  });
-
-  describe('#addKerberosDescriptorConfigs', function() {
-    var configs = [
-      { name: 'prop1', displayName: 'Prop1' },
-      { name: 'prop2', displayName: 'Prop2' },
-      { name: 'prop3', displayName: 'Prop3' },
-    ];
-    var descriptor = [
-      Em.Object.create({ name: 'prop4', filename: 'file-1'}),
-      Em.Object.create({ name: 'prop1', filename: 'file-1'}),
-    ];
-    App.config.addKerberosDescriptorConfigs(configs, descriptor);
-    var propertiesAttrTests = [
-      {
-        attr: 'isUserProperty', val: false,
-        m: 'descriptor properties should not be marked as custom'
-      },
-      {
-        attr: 'category', val: 'Advanced file-1',
-        m: 'descriptor properties should be added to Advanced category'
-      },
-      {
-        attr: 'isOverridable', val: false,
-        m: 'descriptor properties should not be overriden'
-      },
-    ];
-
-    propertiesAttrTests.forEach(function(test) {
-      it(test.m, function() {
-        expect(configs.findProperty('name', 'prop1')[test.attr]).to.be.eql(test.val);
-      });
-    });
   });
 
   describe('#advancedConfigIdentityData', function () {
@@ -1182,6 +1083,148 @@ describe('App.config', function () {
       it(item.title, function () {
         expect(App.config.getOriginalConfigAttribute(stored, 'displayName', item.advancedConfigs)).to.equal(item.expected);
       });
+    });
+
+  });
+
+  describe('#setConfigValue', function () {
+
+    Em.A([
+        {
+          mappedConfigs: [
+            {
+              name: 'falcon_user',
+              value: 'fu'
+            }
+          ],
+          allConfigs: [],
+          m: 'in mapped, value used',
+          e: {
+            _name: 'hadoop.proxyuser.fu.groups',
+            value: 'fu',
+            noMatchSoSkipThisConfig: false
+          }
+        },
+        {
+          mappedConfigs: [],
+          allConfigs: [
+            {
+              name: 'falcon_user',
+              value: 'fu'
+            }
+          ],
+          m: 'in all, value used',
+          e: {
+            _name: 'hadoop.proxyuser.fu.groups',
+            value: 'fu',
+            noMatchSoSkipThisConfig: false
+          }
+        },
+        {
+          mappedConfigs: [],
+          allConfigs: [
+            {
+              name: 'falcon_user',
+              value: '',
+              defaultValue: 'fu'
+            }
+          ],
+          m: 'in all, default value used',
+          e: {
+            _name: 'hadoop.proxyuser.fu.groups',
+            value: 'fu',
+            noMatchSoSkipThisConfig: false
+          }
+        },
+        {
+          mappedConfigs: [],
+          allConfigs: [],
+          m: 'not found',
+          e: {
+            _name: 'hadoop.proxyuser.<foreignKey[0]>.groups',
+            value: '<foreignKey[0]>',
+            noMatchSoSkipThisConfig: true
+          }
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          var config = {
+            name: "hadoop.proxyuser.<foreignKey[0]>.groups",
+            templateName: ["proxyuser_group"],
+            foreignKey: ["falcon_user"],
+            noMatchSoSkipThisConfig: false,
+            value: "<foreignKey[0]>"
+          };
+          App.config.setConfigValue(test.mappedConfigs, test.allConfigs, config);
+          expect(config.value).to.equal(test.e.value);
+          if(test.e.noMatchSoSkipThisConfig) {
+            expect(Em.isNone(config._name)).to.be.true;
+          }
+          else {
+            expect(config._name).to.equal(test.e._name);
+          }
+          expect(config.noMatchSoSkipThisConfig).to.equal(test.e.noMatchSoSkipThisConfig);
+        });
+
+        Em.A([
+          {
+            mappedConfigs: [],
+            allConfigs: [
+              {
+                name: 'falcon_user',
+                value: 'fu'
+              },
+              {
+                name: 'proxyuser_group',
+                value: 'pg'
+              }
+            ],
+            m: 'in all, template in all',
+            e: {
+              _name: 'hadoop.proxyuser.fu.groups',
+              value: 'fupg'
+            }
+          },
+            {
+              mappedConfigs: [
+                {
+                  name: 'falcon_user',
+                  value: 'fu'
+                },
+                {
+                  name: 'proxyuser_group',
+                  value: 'pg'
+                }
+              ],
+              allConfigs: [],
+              m: 'in mapped, template in mapped',
+              e: {
+                _name: 'hadoop.proxyuser.fu.groups',
+                value: 'fupg'
+              }
+            },
+            {
+              mappedConfigs: [],
+              allConfigs: [],
+              m: 'not found (template not found too)',
+              e: {
+                _name: 'hadoop.proxyuser.<foreignKey[0]>.groups',
+                value: null
+              }
+            }
+        ]).forEach(function (test) {
+            it(test.m, function () {
+              var config = {
+                name: "hadoop.proxyuser.<foreignKey[0]>.groups",
+                templateName: ["proxyuser_group"],
+                foreignKey: ["falcon_user"],
+                noMatchSoSkipThisConfig: false,
+                value: "<foreignKey[0]><templateName[0]>"
+              };
+              App.config.setConfigValue(test.mappedConfigs, test.allConfigs, config);
+            });
+          });
+
     });
 
   });

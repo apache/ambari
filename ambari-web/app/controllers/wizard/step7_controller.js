@@ -633,7 +633,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       self.set('isRecommendedLoaded', true);
       // format descriptor configs
       if (self.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
-        App.config.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
+        self.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
       }
       self.setStepConfigs(configs, storedConfigs);
       self.checkHostOverrideInstaller();
@@ -644,6 +644,29 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
       }
     });
   },
+
+  /**
+   * Mark descriptor properties in configuration object.
+   *
+   * @param {Object[]} configs - config properties to change
+   * @param {App.ServiceConfigProperty[]} descriptor - parsed kerberos descriptor
+   * @method addKerberosDescriptorConfigs
+   */
+  addKerberosDescriptorConfigs: function (configs, descriptor) {
+    descriptor.forEach(function (item) {
+      var property = configs.findProperty('name', item.get('name'));
+      if (property) {
+        Em.setProperties(property, {
+          isSecureConfig: true,
+          displayName: Em.get(item, 'name'),
+          isUserProperty: false,
+          isOverridable: false,
+          category: 'Advanced ' + Em.get(item, 'filename')
+        });
+      }
+    });
+  },
+
   /**
    * Load config groups
    * and (if some services are already installed) load config groups for installed services

@@ -22,7 +22,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 var dataManipulationUtils = require('utils/data_manipulation');
 var lazyLoading = require('utils/lazy_loading');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, App.PreloadRequestsChainMixin, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, App.PreloadRequestsChainMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -325,11 +325,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var self = this;
     this.clearStep();
     if (App.get('supports.enhancedConfigs')) {
-      App.config.loadConfigTheme(this.get('content.serviceName')).always(function() {
+      this.loadConfigTheme(this.get('content.serviceName')).always(function() {
         self.setDependentServices(self.get('content.serviceName'));
         App.themesMapper.generateAdvancedTabs([self.get('content.serviceName')]);
         if (self.get('dependentServiceNames.length') > 0) {
-          App.config.loadConfigCurrentVersions(self.get('dependentServiceNames'));
+          self.loadConfigCurrentVersions(self.get('dependentServiceNames'));
         }
       });
     }
