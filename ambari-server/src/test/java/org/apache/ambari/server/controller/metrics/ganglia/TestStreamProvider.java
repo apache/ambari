@@ -24,8 +24,8 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class TestStreamProvider implements StreamProvider {
-
-  private final String fileName;
+  // Allow for filename to be set at runtime
+  protected String fileName;
   private String lastSpec;
   private boolean isLastSpecUpdated;
 

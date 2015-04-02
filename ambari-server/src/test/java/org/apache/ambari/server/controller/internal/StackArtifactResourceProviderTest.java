@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.WidgetLayout;
 import org.junit.After;
@@ -119,7 +120,12 @@ public class StackArtifactResourceProviderTest {
     Assert.assertEquals(1, ((ArrayList) descriptor.get("Component")).size());
     MetricDefinition md = (MetricDefinition) ((ArrayList) descriptor.get
       ("Component")).iterator().next();
+
+    Metric m1 = md.getMetrics().get("metrics/dfs/datanode/heartBeats_avg_time");
+    Metric m2 = md.getMetrics().get("metrics/rpc/closeRegion_num_ops");
     Assert.assertEquals(326, md.getMetrics().size());
+    Assert.assertTrue(m1.isAmsHostMetric());
+    Assert.assertFalse(m2.isAmsHostMetric());
 
     verify(managementController);
   }

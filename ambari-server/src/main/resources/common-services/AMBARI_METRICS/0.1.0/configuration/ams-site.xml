@@ -250,7 +250,7 @@
   </property>
   <property>
     <name>timeline.metrics.service.cluster.aggregator.appIds</name>
-    <value>datanode,nodemanager,hbase,nimbus</value>
+    <value>datanode,nodemanager,hbase</value>
     <description>
       List of application ids to use for aggregating host level metrics for
       an application. Example: bytes_read across Yarn Nodemanagers.

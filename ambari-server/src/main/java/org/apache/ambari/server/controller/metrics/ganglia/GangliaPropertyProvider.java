@@ -202,7 +202,7 @@ public abstract class GangliaPropertyProvider extends MetricsPropertyProvider {
             updateComponentMetricMap(componentMetricMap, id);
           }
 
-          getPropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
+          updatePropertyInfoMap(getComponentName(resource), id, propertyInfoMap);
 
           for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
             String propertyId = entry.getKey();

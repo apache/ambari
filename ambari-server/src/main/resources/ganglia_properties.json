@@ -112,6 +112,16 @@
         "pointInTime":true,
         "temporal":true
       },
+      "metrics/cpu/cpu_num":{
+        "metric":"cpu_num",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/cpu/cpu_speed":{
+        "metric":"cpu_speed",
+        "pointInTime":true,
+        "temporal":true
+      },
       "metrics/cpu/cpu_aidle":{
         "metric":"cpu_aidle",
         "pointInTime":true,
@@ -124,16 +134,6 @@
       },
       "metrics/cpu/cpu_nice":{
         "metric":"cpu_nice",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/cpu/cpu_num":{
-        "metric":"cpu_num",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/cpu/cpu_speed":{
-        "metric":"cpu_speed",
         "pointInTime":true,
         "temporal":true
       },
@@ -159,91 +159,6 @@
       },
       "metrics/disk/disk_total":{
         "metric":"disk_total",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/gcCount":{
-        "metric":"jvm.metrics.gcCount",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/gcTimeMillis":{
-        "metric":"jvm.metrics.gcTimeMillis",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/logError":{
-        "metric":"jvm.metrics.logError",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/logFatal":{
-        "metric":"jvm.metrics.logFatal",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/logInfo":{
-        "metric":"jvm.metrics.logInfo",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/logWarn":{
-        "metric":"jvm.metrics.logWarn",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/maxMemoryM":{
-        "metric":"jvm.metrics.maxMemoryM",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/memHeapCommittedM":{
-        "metric":"jvm.metrics.memHeapCommittedM",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/memHeapUsedM":{
-        "metric":"jvm.metrics.memHeapUsedM",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/memNonHeapCommittedM":{
-        "metric":"jvm.metrics.memNonHeapCommittedM",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/memNonHeapUsedM":{
-        "metric":"jvm.metrics.memNonHeapUsedM",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/threadsBlocked":{
-        "metric":"jvm.metrics.threadsBlocked",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/threadsNew":{
-        "metric":"jvm.metrics.threadsNew",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/threadsRunnable":{
-        "metric":"jvm.metrics.threadsRunnable",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/threadsTerminated":{
-        "metric":"jvm.metrics.threadsTerminated",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/threadsTimedWaiting":{
-        "metric":"jvm.metrics.threadsTimedWaiting",
-        "pointInTime":true,
-        "temporal":true
-      },
-      "metrics/jvm/threadsWaiting":{
-        "metric":"jvm.metrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -329,6 +244,121 @@
       },
       "metrics/process/proc_total":{
         "metric":"proc_total",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/read_count":{
+        "metric":"read_count",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/write_count":{
+        "metric":"write_count",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/read_bytes":{
+        "metric":"read_bytes",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/write_bytes":{
+        "metric":"write_bytes",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/read_time":{
+        "metric":"read_time",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/disk/write_time":{
+        "metric":"write_time",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/gcCount":{
+        "metric":"jvm.metrics.gcCount",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/gcTimeMillis":{
+        "metric":"jvm.metrics.gcTimeMillis",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/logError":{
+        "metric":"jvm.metrics.logError",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/logFatal":{
+        "metric":"jvm.metrics.logFatal",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/logInfo":{
+        "metric":"jvm.metrics.logInfo",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/logWarn":{
+        "metric":"jvm.metrics.logWarn",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/maxMemoryM":{
+        "metric":"jvm.metrics.maxMemoryM",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/memHeapCommittedM":{
+        "metric":"jvm.metrics.memHeapCommittedM",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/memHeapUsedM":{
+        "metric":"jvm.metrics.memHeapUsedM",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/memNonHeapCommittedM":{
+        "metric":"jvm.metrics.memNonHeapCommittedM",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/memNonHeapUsedM":{
+        "metric":"jvm.metrics.memNonHeapUsedM",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/threadsBlocked":{
+        "metric":"jvm.metrics.threadsBlocked",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/threadsNew":{
+        "metric":"jvm.metrics.threadsNew",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/threadsRunnable":{
+        "metric":"jvm.metrics.threadsRunnable",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/threadsTerminated":{
+        "metric":"jvm.metrics.threadsTerminated",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/threadsTimedWaiting":{
+        "metric":"jvm.metrics.threadsTimedWaiting",
+        "pointInTime":true,
+        "temporal":true
+      },
+      "metrics/jvm/threadsWaiting":{
+        "metric":"jvm.metrics.threadsWaiting",
         "pointInTime":true,
         "temporal":true
       },
@@ -2426,7 +2456,7 @@
         "temporal":true
       },
       "metrics/dfs/datanode/blocks_replicated":{
-        "metric":"dfs.datanode.blocks_replicated",
+        "metric":"dfs.datanode.BlocksReplicated",
         "pointInTime":true,
         "temporal":true
       },
@@ -11830,47 +11860,56 @@
       "metrics/boottime":{
         "metric":"boottime",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_aidle":{
         "metric":"cpu_aidle",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_idle":{
         "metric":"cpu_idle",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_nice":{
         "metric":"cpu_nice",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_num":{
         "metric":"cpu_num",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_speed":{
         "metric":"cpu_speed",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_system":{
         "metric":"cpu_system",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_user":{
         "metric":"cpu_user",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/cpu/cpu_wio":{
         "metric":"cpu_wio",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/dfs/datanode/blockChecksumOp_avg_time":{
         "metric":"dfs.datanode.blockChecksumOp_avg_time",
@@ -11913,7 +11952,7 @@
         "temporal":true
       },
       "metrics/dfs/datanode/blocks_replicated":{
-        "metric":"dfs.datanode.blocks_replicated",
+        "metric":"dfs.datanode.BlocksReplicated",
         "pointInTime":true,
         "temporal":true
       },
@@ -12010,17 +12049,20 @@
       "metrics/disk/disk_free":{
         "metric":"disk_free",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/disk/disk_total":{
         "metric":"disk_total",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/disk/part_max_used":{
         "metric":"part_max_used",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/jvm/gcCount":{
         "metric":"jvm.metrics.gcCount",
@@ -12110,17 +12152,20 @@
       "metrics/load/load_fifteen":{
         "metric":"load_fifteen",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/load/load_five":{
         "metric":"load_five",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/load/load_one":{
         "metric":"load_one",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/memory/mem_buffers":{
         "metric":"mem_buffers",
@@ -12130,17 +12175,20 @@
       "metrics/memory/mem_cached":{
         "metric":"mem_cached",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/memory/mem_free":{
         "metric":"mem_free",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/memory/mem_shared":{
         "metric":"mem_shared",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/memory/mem_total":{
         "metric":"mem_total",
@@ -12150,42 +12198,50 @@
       "metrics/memory/swap_free":{
         "metric":"swap_free",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/memory/swap_total":{
         "metric":"swap_total",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/network/bytes_in":{
         "metric":"bytes_in",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/network/bytes_out":{
         "metric":"bytes_out",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/network/pkts_in":{
         "metric":"pkts_in",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/network/pkts_out":{
         "metric":"pkts_out",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/process/proc_run":{
         "metric":"proc_run",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/process/proc_total":{
         "metric":"proc_total",
         "pointInTime":true,
-        "temporal":true
+        "temporal":true,
+        "amsHostMetric":true
       },
       "metrics/rpc/NumOpenConnections":{
         "metric":"rpc.rpc.NumOpenConnections",

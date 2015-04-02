@@ -248,8 +248,10 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
 
     for (Entry<String, Metric> entry : def.getMetrics().entrySet()) {
       Metric metric = entry.getValue();
-      defs.put(entry.getKey(), new PropertyInfo(
-          metric.getName(), metric.isTemporal(), metric.isPointInTime()));
+      PropertyInfo propertyInfo = new PropertyInfo(metric.getName(),
+        metric.isTemporal(), metric.isPointInTime());
+      propertyInfo.setAmsHostMetric(metric.isAmsHostMetric());
+      defs.put(entry.getKey(), propertyInfo);
     }
 
     return defs;

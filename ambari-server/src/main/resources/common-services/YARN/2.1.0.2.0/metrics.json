@@ -5,6 +5,153 @@
         "type": "ganglia",
         "metrics": {
           "default": {
+            "metrics/cpu/cpu_idle":{
+              "metric":"cpu_idle",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/cpu/cpu_nice":{
+              "metric":"cpu_nice",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/cpu/cpu_system":{
+              "metric":"cpu_system",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/cpu/cpu_user":{
+              "metric":"cpu_user",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/cpu/cpu_wio":{
+              "metric":"cpu_wio",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/disk_free":{
+              "metric":"disk_free",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/disk_total":{
+              "metric":"disk_total",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/load/load_fifteen":{
+              "metric":"load_fifteen",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/load/load_five":{
+              "metric":"load_five",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/load/load_one":{
+              "metric":"load_one",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/memory/mem_buffers":{
+              "metric":"mem_buffers",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/memory/mem_cached":{
+              "metric":"mem_cached",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/memory/mem_free":{
+              "metric":"mem_free",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/memory/mem_shared":{
+              "metric":"mem_shared",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/memory/mem_total":{
+              "metric":"mem_total",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/memory/swap_free":{
+              "metric":"swap_free",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/memory/swap_total":{
+              "metric":"swap_total",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/network/bytes_in":{
+              "metric":"bytes_in",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/network/bytes_out":{
+              "metric":"bytes_out",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/network/pkts_in":{
+              "metric":"pkts_in",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/network/pkts_out":{
+              "metric":"pkts_out",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/process/proc_run":{
+              "metric":"proc_run",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/process/proc_total":{
+              "metric":"proc_total",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/read_count":{
+              "metric":"read_count",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/write_count":{
+              "metric":"write_count",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/read_bytes":{
+              "metric":"read_bytes",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/write_bytes":{
+              "metric":"write_bytes",
+              "pointInTime":true,
+              "temporal":true,
+              "amsHostMetric":true
+            },
+            "metrics/disk/read_time":{
+              "metric":"read_time",
+              "pointInTime":true,
+              "temporal":true
+            },
+            "metrics/disk/write_time":{
+              "metric":"write_time",
+              "pointInTime":true,
+              "temporal":true
+            },
             "metrics/jvm/memHeapCommittedM": {
               "metric": "jvm.JvmMetrics.MemHeapCommittedM",
               "pointInTime": false,
@@ -75,16 +222,6 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/process/proc_run": {
-              "metric": "proc_run",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/memory/swap_total": {
-              "metric": "swap_total",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/rpc/ReceivedBytes": {
               "metric": "rpc.rpc.ReceivedBytes",
               "pointInTime": false,
@@ -98,11 +235,6 @@
             "metrics/rpc/RpcQueueTime_num_ops": {
               "metric": "rpc.rpc.RpcQueueTimeNumOps",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/process/proc_total": {
-              "metric": "proc_total",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/yarn/AllocatedGB": {
@@ -140,11 +272,6 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/memory/mem_buffers": {
-              "metric": "mem_buffers",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/ugi/loginSuccess_num_ops": {
               "metric": "ugi.ugi.LoginSuccessNumOps",
               "pointInTime": false,
@@ -165,28 +292,13 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/network/bytes_out": {
-              "metric": "bytes_out",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/cpu/cpu_aidle": {
               "metric": "cpu_aidle",
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/network/bytes_in": {
-              "metric": "bytes_in",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/boottime": {
               "metric": "boottime",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/network/pkts_out": {
-              "metric": "pkts_out",
               "pointInTime": true,
               "temporal": true
             },
@@ -279,11 +391,6 @@
               "metric": "rpc.metrics.RpcAuthenticationFailures",
               "pointInTime": false,
               "temporal": true
-            },
-            "metrics/network/pkts_in": {
-              "metric": "pkts_in",
-              "pointInTime": true,
-              "temporal": true
             }
           }
         }
@@ -293,6 +400,180 @@
       {
         "type": "ganglia",
         "metrics": {
+          "metrics/cpu/cpu_idle":{
+            "metric":"cpu_idle",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/cpu/cpu_nice":{
+            "metric":"cpu_nice",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/cpu/cpu_system":{
+            "metric":"cpu_system",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/cpu/cpu_user":{
+            "metric":"cpu_user",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/cpu/cpu_wio":{
+            "metric":"cpu_wio",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/disk_free":{
+            "metric":"disk_free",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/disk_total":{
+            "metric":"disk_total",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/load/load_fifteen":{
+            "metric":"load_fifteen",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/load/load_five":{
+            "metric":"load_five",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/load/load_one":{
+            "metric":"load_one",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/mem_buffers":{
+            "metric":"mem_buffers",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/mem_cached":{
+            "metric":"mem_cached",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/mem_free":{
+            "metric":"mem_free",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/mem_shared":{
+            "metric":"mem_shared",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/mem_total":{
+            "metric":"mem_total",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/swap_free":{
+            "metric":"swap_free",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/memory/swap_total":{
+            "metric":"swap_total",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/network/bytes_in":{
+            "metric":"bytes_in",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/network/bytes_out":{
+            "metric":"bytes_out",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/network/pkts_in":{
+            "metric":"pkts_in",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/network/pkts_out":{
+            "metric":"pkts_out",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/process/proc_run":{
+            "metric":"proc_run",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/process/proc_total":{
+            "metric":"proc_total",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/read_count":{
+            "metric":"read_count",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/write_count":{
+            "metric":"write_count",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/read_bytes":{
+            "metric":"read_bytes",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/write_bytes":{
+            "metric":"write_bytes",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/read_time":{
+            "metric":"read_time",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
+          "metrics/disk/write_time":{
+            "metric":"write_time",
+            "pointInTime":true,
+            "temporal":true,
+            "amsHostMetric":true
+          },
           "default": {
             "metrics/jvm/memHeapCommittedM": {
               "metric": "jvm.JvmMetrics.MemHeapCommittedM",

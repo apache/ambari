@@ -433,6 +433,7 @@ public class PropertyHelper {
             PropertyInfo propertyInfo = new PropertyInfo(metric.getMetric(),
               metric.isTemporal(), metric.isPointInTime());
             propertyInfo.setAmsId(metric.getAmsId());
+            propertyInfo.setAmsHostMetric(metric.isAmsHostMetric());
             metrics.put(property, propertyInfo);
           }
           componentMetrics.put(componentEntry.getKey(), metrics);
@@ -487,6 +488,7 @@ public class PropertyHelper {
     private boolean pointInTime;
     private boolean temporal;
     private String amsId;
+    private boolean amsHostMetric;
 
     private Metric() {
     }
@@ -527,6 +529,14 @@ public class PropertyHelper {
 
     public void setAmsId(String amsId) {
       this.amsId = amsId;
+    }
+
+    public boolean isAmsHostMetric() {
+      return amsHostMetric;
+    }
+
+    public void setAmsHostMetric(boolean amsHostMetric) {
+      this.amsHostMetric = amsHostMetric;
     }
   }
 }

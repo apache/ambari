@@ -2777,7 +2777,8 @@
             "metrics/dfs/datanode/heartBeats_avg_time": {
               "metric": "dfs.datanode.HeartbeatsAvgTime",
               "pointInTime": true,
-              "temporal": true
+              "temporal": true,
+              "amsHostMetric":true
             },
             "metrics/rpc/closeRegion_num_ops": {
               "metric": "rpc.rpc.closeRegion_num_ops",

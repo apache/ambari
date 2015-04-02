@@ -31,8 +31,7 @@ public class Function {
   private ReadFunction readFunction = ReadFunction.VALUE;
   private PostProcessingFunction postProcessingFunction = null;
 
-  public Function(){
-
+  public Function() {
   }
 
   public Function(ReadFunction readFunction,

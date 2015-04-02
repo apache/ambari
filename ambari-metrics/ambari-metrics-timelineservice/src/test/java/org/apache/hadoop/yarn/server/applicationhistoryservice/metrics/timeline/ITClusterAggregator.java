@@ -419,7 +419,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       currentHostAggregate = PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
       recordCount++;
     }
-    Assert.assertEquals(4, recordCount);
+    assertEquals(4, recordCount);
     assertNotNull(currentMetric);
     assertEquals("cpu_user", currentMetric.getMetricName());
     assertEquals("app1", currentMetric.getAppId());

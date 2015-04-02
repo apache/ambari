@@ -21,9 +21,7 @@ package org.apache.ambari.server.controller.internal;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -110,12 +108,12 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
   protected Map<String, PropertyInfo> getPropertyInfoMap(String componentName, String propertyId) {
     Map<String, PropertyInfo> propertyInfoMap = new HashMap<String, PropertyInfo>();
 
-    getPropertyInfoMap(componentName, propertyId, propertyInfoMap);
+    updatePropertyInfoMap(componentName, propertyId, propertyInfoMap);
 
     return propertyInfoMap;
   }
 
-  protected void getPropertyInfoMap(String componentName, String propertyId, Map<String, PropertyInfo> propertyInfoMap) {
+  protected void updatePropertyInfoMap(String componentName, String propertyId, Map<String, PropertyInfo> propertyInfoMap) {
     Map<String, PropertyInfo> componentMetricMap = getComponentMetrics().get(componentName);
 
     propertyInfoMap.clear();
@@ -303,8 +301,11 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
           regexGroup = regexGroup.replace("/", ".");
           key = key.replaceFirst(FIND_REGEX_IN_METRIC_REGEX, regexGroup);
         }
-        componentMetricMap.put(propertyId, new PropertyInfo(key,
-          propertyInfo.isTemporal(), propertyInfo.isPointInTime()));
+        PropertyInfo compPropertyInfo = new PropertyInfo(key,
+          propertyInfo.isTemporal(), propertyInfo.isPointInTime());
+        compPropertyInfo.setAmsHostMetric(propertyInfo.isAmsHostMetric());
+        compPropertyInfo.setAmsId(propertyInfo.getAmsId());
+        componentMetricMap.put(propertyId, compPropertyInfo);
       }
 
     }
