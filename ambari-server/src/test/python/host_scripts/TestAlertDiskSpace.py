@@ -32,6 +32,7 @@ else:
   os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
 class TestAlertDiskSpace(RMFTestCase):
+
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch('alert_disk_space._get_disk_usage')
   @patch("os.path.isdir")
@@ -39,78 +40,60 @@ class TestAlertDiskSpace(RMFTestCase):
   def test_linux_flow(self, isdir_mock, disk_usage_mock):
     isdir_mock.return_value = False
 
-    # / OK, /usr/hdp OK
+    # / OK
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
       total = 21673930752L, used = 5695861760L,
-      free = 15978068992L)
+      free = 15978068992L, path="/")
 
     res = alert_disk_space.execute()
     self.assertEqual(res,
-      ('OK', ['Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB]']))
+      ('OK', ['Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB], path=/']))
 
-    # / WARNING, /usr/hdp OK
+    # / WARNING
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
       total = 21673930752L, used = 14521533603L,
-      free = 7152397149L)
+      free = 7152397149L, path="/")
 
     res = alert_disk_space.execute()
     self.assertEqual(res, (
       'WARNING',
-      ['Capacity Used: [67.00%, 14.5 GB], Capacity Total: [21.7 GB]']))
+      ['Capacity Used: [67.00%, 14.5 GB], Capacity Total: [21.7 GB], path=/']))
 
-    # / CRITICAL, /usr/hdp OK
+    # / CRITICAL
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
       total = 21673930752L, used = 20590234214L,
-      free = 1083696538)
+      free = 1083696538, path="/")
 
     res = alert_disk_space.execute()
     self.assertEqual(res, ('CRITICAL',
-    ['Capacity Used: [95.00%, 20.6 GB], Capacity Total: [21.7 GB]']))
+    ['Capacity Used: [95.00%, 20.6 GB], Capacity Total: [21.7 GB], path=/']))
 
-    # / < 5GB, /usr/hdp OK
+    # / OK but < 5GB
     disk_usage_mock.return_value = alert_disk_space.DiskInfo(
       total = 5418482688L, used = 1625544806L,
-      free = 3792937882L)
+      free = 3792937882L, path="/")
 
     res = alert_disk_space.execute()
     self.assertEqual(res, ('WARNING', [
-      'Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB]. Total free space is less than 5.0 GB']))
-
-    # / OK, /usr/hdp WARNING
-    disk_usage_mock.side_effect = [
-      alert_disk_space.DiskInfo(total = 21673930752L, used = 5695861760L,
-        free = 15978068992L),
-      alert_disk_space.DiskInfo(total = 21673930752L, used = 14521533603L,
-        free = 7152397149L)]
+      'Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB], path=/. Total free space is less than 5.0 GB']))
 
     # trigger isdir(/usr/hdp) to True
     isdir_mock.return_value = True
 
-    res = alert_disk_space.execute()
-    self.assertEqual(res, (
-      'WARNING', ["Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB]. "
-                  "Insufficient space at /usr/hdp: Capacity Used: [67.00%, 14.5 GB], Capacity Total: [21.7 GB]"]))
-
-    # / OK, /usr/hdp CRITICAL
-    disk_usage_mock.side_effect = [
-      alert_disk_space.DiskInfo(total = 21673930752L, used = 5695861760L,
-        free = 15978068992L),
-      alert_disk_space.DiskInfo(total = 21673930752L, used = 20590234214L,
-        free = 1083696538L)]
+    # / OK
+    disk_usage_mock.return_value = alert_disk_space.DiskInfo(
+      total = 21673930752L, used = 5695861760L,
+      free = 15978068992L, path="/usr/hdp")
 
     res = alert_disk_space.execute()
-    self.assertEqual(res, (
-      'WARNING', ["Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB]. "
-                  "Insufficient space at /usr/hdp: Capacity Used: [95.00%, 20.6 GB], Capacity Total: [21.7 GB]"]))
+    self.assertEqual(res,
+      ('OK', ['Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB], path=/usr/hdp']))
 
-    # / OK, /usr/hdp < 5GB
-    disk_usage_mock.side_effect = [
-      alert_disk_space.DiskInfo(total = 21673930752L, used = 5695861760L,
-        free = 15978068992L),
-      alert_disk_space.DiskInfo(total = 5418482688L, used = 1625544806L,
-        free = 3792937882L)]
+    # /usr/hdp < 5GB
+    disk_usage_mock.return_value = alert_disk_space.DiskInfo(
+      total = 5418482688L, used = 1625544806L,
+      free = 3792937882L, path="/usr/hdp")
 
     res = alert_disk_space.execute()
     self.assertEqual(res, (
-      'WARNING', ["Capacity Used: [26.28%, 5.7 GB], Capacity Total: [21.7 GB]. "
-                  "Insufficient space at /usr/hdp: Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB]. Total free space is less than 5.0 GB"]))
+      'WARNING', ["Capacity Used: [30.00%, 1.6 GB], Capacity Total: [5.4 GB], path=/usr/hdp. Total free space is less than 5.0 GB"]))

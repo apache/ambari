@@ -46,7 +46,8 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_METASTORE_URIS_KEY)
+  return (SECURITY_ENABLED_KEY,SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,
+    HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY)
 
 
 def execute(parameters=None, host_name=None):
@@ -116,7 +117,7 @@ def execute(parameters=None, host_name=None):
       label = OK_MESSAGE.format(total_time)
     except Exception, exception:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, exception.message)
+      label = CRITICAL_MESSAGE.format(host_name, str(exception))
 
   except Exception, e:
     label = str(e)

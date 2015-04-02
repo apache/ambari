@@ -24,8 +24,8 @@ from resource_management.libraries.functions import hive_check
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 
-OK_MESSAGE = "TCP OK - %.4f response on port %s"
-CRITICAL_MESSAGE = "Connection failed on host {0}:{1}"
+OK_MESSAGE = "TCP OK - {0:.3f}s response on port {1}"
+CRITICAL_MESSAGE = "Connection failed on host {0}:{1} ({2})"
 
 HIVE_SERVER_THRIFT_PORT_KEY = '{{hive-site/hive.server2.thrift.port}}'
 HIVE_SERVER_THRIFT_HTTP_PORT_KEY = '{{hive-site/hive.server2.thrift.http.port}}'
@@ -53,8 +53,10 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY,HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
-          SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,HIVE_SERVER_TRANSPORT_MODE_KEY)
+  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY, SMOKEUSER_KEY,
+    HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
+    SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
+    HIVE_SERVER_TRANSPORT_MODE_KEY)
 
 
 def execute(parameters=None, host_name=None):
@@ -67,7 +69,7 @@ def execute(parameters=None, host_name=None):
   """
 
   if parameters is None:
-    return (('UNKNOWN', ['There were no parameters supplied to the script.']))
+    return ('UNKNOWN', ['There were no parameters supplied to the script.'])
 
   transport_mode = HIVE_SERVER_TRANSPORT_MODE_DEFAULT
   if HIVE_SERVER_TRANSPORT_MODE_KEY in parameters:
@@ -101,7 +103,9 @@ def execute(parameters=None, host_name=None):
     hive_server_principal = HIVE_SERVER_PRINCIPAL_DEFAULT
     if HIVE_SERVER_PRINCIPAL_KEY in parameters:
       hive_server_principal = parameters[HIVE_SERVER_PRINCIPAL_KEY]
+
     smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
+
     if SMOKEUSER_KEYTAB_KEY in parameters:
       smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
     kinit_path_local = get_kinit_path()
@@ -115,25 +119,21 @@ def execute(parameters=None, host_name=None):
       host_name = socket.getfqdn()
 
     start_time = time.time()
+
     try:
       hive_check.check_thrift_port_sasl(host_name, port,
         hive_server2_authentication, hive_server_principal, kinitcmd, smokeuser,
         transport_mode = transport_mode)
 
-      is_thrift_port_ok = True
-    except:
-      is_thrift_port_ok = False
-
-    if is_thrift_port_ok == True:
       result_code = 'OK'
       total_time = time.time() - start_time
-      label = OK_MESSAGE % (total_time, port)
-    else:
+      label = OK_MESSAGE.format(total_time, port)
+    except Exception, exception:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name,port)
+      label = CRITICAL_MESSAGE.format(host_name, port, str(exception))
 
   except Exception, e:
     label = str(e)
     result_code = 'UNKNOWN'
 
-  return ((result_code, [label]))
+  return (result_code, [label])
