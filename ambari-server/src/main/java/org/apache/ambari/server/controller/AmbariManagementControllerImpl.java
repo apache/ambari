@@ -18,14 +18,44 @@
 
 package org.apache.ambari.server.controller;
 
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.gson.Gson;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.TimeUnit;
+
 import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -114,42 +144,13 @@ import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.net.InetAddress;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.TimeUnit;
-
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_USERNAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.GROUP_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.PACKAGE_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_REPO_INFO;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class AmbariManagementControllerImpl implements AmbariManagementController {
@@ -963,8 +964,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     boolean checkDesiredState = false;
     State desiredStateToCheck = null;
-    boolean checkState = false;
-    State stateToCheck = null;
     boolean filterBasedConfigStaleness = false;
     boolean staleConfig = true;
     if (request.getStaleConfig() != null) {
@@ -979,15 +978,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             + " state, desiredState=" + desiredStateToCheck);
       }
       checkDesiredState = true;
-    }
-
-    if (!StringUtils.isEmpty(request.getState())) {
-      stateToCheck = State.valueOf(request.getState());
-      // maybe check should be more wider
-      if (stateToCheck == null) {
-        throw new IllegalArgumentException("Invalid arguments, invalid state, State=" + request.getState());
-      }
-      checkState = true;
     }
 
     Map<String, Host> hosts = clusters.getHostsForCluster(cluster.getClusterName());
@@ -1026,11 +1016,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
             if (checkDesiredState && (desiredStateToCheck != sch.getDesiredState())) {
               continue;
             }
-
-            if (checkState && stateToCheck != sch.getState()) {
-              continue;
-            }
-
             if (request.getAdminState() != null) {
               String stringToMatch =
                   sch.getComponentAdminState() == null ? "" : sch.getComponentAdminState().name();
@@ -1070,10 +1055,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         } else {
           for (ServiceComponentHost sch : serviceComponentHostMap.values()) {
             if (checkDesiredState && (desiredStateToCheck != sch.getDesiredState())) {
-              continue;
-            }
-
-            if (checkState && stateToCheck != sch.getState()) {
               continue;
             }
 

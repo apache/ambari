@@ -17,10 +17,20 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -43,6 +53,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -54,18 +67,6 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.commons.lang.StringUtils;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 /**
  * Resource provider for host component resources.
@@ -315,7 +316,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     final RequestStageContainer requestStages;
     Map<String, Object> installProperties = new HashMap<String, Object>();
 
-    installProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
+    installProperties.put(HOST_COMPONENT_STATE_PROPERTY_ID, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<String, String>();
     requestInfo.put("context", "Install and start components on added hosts");
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
@@ -337,7 +338,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
 
       Map<String, Object> startProperties = new HashMap<String, Object>();
-      startProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "STARTED");
+      startProperties.put(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
       Request startRequest = PropertyHelper.getUpdateRequest(startProperties, requestInfo);
       // Important to query against desired_state as this has been updated when install stage was created
       // If I query against state, then the getRequest compares predicate prop against desired_state and then when the predicate
@@ -572,9 +573,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
-        (String) properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
-    serviceComponentHostRequest.setState((String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
-    serviceComponentHostRequest.setDesiredStackId((String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
+        (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
+    serviceComponentHostRequest.setDesiredStackId(
+        (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
     if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setStaleConfig(
           properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());

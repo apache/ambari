@@ -26,7 +26,6 @@ public class ServiceComponentHostRequest {
   private String serviceName;
   private String componentName;
   private String hostname;
-  private String state;
   private String desiredState; // CREATE/UPDATE
   private String desiredStackId; // UPDATE
   private String staleConfig; // GET - predicate
@@ -103,20 +102,6 @@ public class ServiceComponentHostRequest {
   }
 
   /**
-   * @return the state
-   */
-  public String getState() {
-    return state;
-  }
-
-  /**
-   * @param state the State to set
-   */
-  public void setState(String state) {
-    this.state = state;
-  }
-
-  /**
    * @return the desiredStackId
    */
   public String getDesiredStackId() {
@@ -179,7 +164,6 @@ public class ServiceComponentHostRequest {
       .append(", componentName=").append(componentName)
       .append(", hostname=").append(hostname)
       .append(", desiredState=").append(desiredState)
-      .append(", state=").append(state)
       .append(", desiredStackId=").append(desiredStackId)
       .append(", staleConfig=").append(staleConfig)
       .append(", adminState=").append(adminState).append("}");
