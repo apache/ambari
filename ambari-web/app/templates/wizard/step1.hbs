@@ -34,11 +34,10 @@
         <i {{bindAttr class=":pull-left :accordion-toggle view.isRLCollapsed:icon-caret-right:icon-caret-down"}}></i>
         <a class="accordion-toggle">
           {{t installer.step1.advancedRepo.title}}
-          {{#if view.isSubmitDisabled}}
+          {{#if view.showErrorsWarningCount}}
             <span class="badge badge-important">{{view.totalErrorCnt}}</span>
           {{/if}}
         </a>
-
       </div>
       <div class="accordion-body collapse in">
         <div class="accordion-inner">

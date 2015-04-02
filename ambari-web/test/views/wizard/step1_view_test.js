@@ -360,6 +360,36 @@ describe('App.WizardStep1View', function () {
     });
   });
 
+  describe('#showErrorsWarningCount', function() {
+    var tests = [
+      {
+        isSubmitDisabled: true,
+        totalErrorCnt: 0,
+        e: false
+      },
+      {
+        isSubmitDisabled: true,
+        totalErrorCnt: 1,
+        e: true
+      },
+      {
+        isSubmitDisabled: false,
+        totalErrorCnt: 0,
+        e: false
+      }
+    ];
+    tests.forEach(function(test) {
+      it(test.isSubmitDisabled.toString() + ' ' + test.totalErrorCnt.toString(), function () {
+        var view = App.WizardStep1View.create();
+        view.reopen({
+          isSubmitDisabled: test.isSubmitDisabled,
+          totalErrorCnt: test.totalErrorCnt
+        });
+        expect(view.get('showErrorsWarningCount')).to.equal(test.e);
+      })
+    });
+  });
+
   describe('#invalidUrlExist', function () {
     var tests = Em.A([
       {

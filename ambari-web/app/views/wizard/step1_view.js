@@ -88,6 +88,14 @@ App.WizardStep1View = Em.View.extend({
   }.property('invalidFormatUrlExist', 'isNoOsChecked', 'invalidUrlExist', 'controller.content.isCheckInProgress'),
 
   /**
+   * Enable error count badge
+   * @type {bool}
+   */
+  showErrorsWarningCount: function () {
+    return this.get('isSubmitDisabled') && !!this.get('totalErrorCnt');
+  }.property('isSubmitDisabled', 'totalErrorCnt'),
+
+  /**
    * Verify if some invalid repo-urls exist
    * @type {bool}
    */
