@@ -125,7 +125,7 @@ def execute(parameters=None, host_name=None):
       label = OK_MESSAGE.format(total_time)
     except Exception, exception:
       result_code = 'CRITICAL'
-      label = CRITICAL_MESSAGE.format(host_name, exception.message)
+      label = CRITICAL_MESSAGE.format(host_name, str(exception))
 
   except Exception, e:
     label = str(e)
