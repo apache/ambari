@@ -31,7 +31,7 @@ limitations under the License.
   <packaging>jar</packaging>
 
   <properties>
-    <storm.version>0.9.3.2.2.1.0-2341</storm.version>
+    <storm.version>0.9.3.2.2.1.0-2340</storm.version>
   </properties>
 
   <build>
