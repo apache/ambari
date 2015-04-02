@@ -35,7 +35,8 @@
       "ubuntu"
     ],
     "versions": [
-      12
+      12,
+      14
     ]
   },
   "suse": {
