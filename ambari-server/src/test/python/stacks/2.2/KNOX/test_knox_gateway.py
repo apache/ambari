@@ -34,6 +34,21 @@ class TestKnoxGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    self.assertResourceCalled('Directory', '/var/lib/knox/data',
+                              owner = 'knox',
+                              group = 'knox',
+                              recursive = True
+    )
+    self.assertResourceCalled('Directory', '/var/log/knox',
+                              owner = 'knox',
+                              group = 'knox',
+                              recursive = True
+    )
+    self.assertResourceCalled('Directory', '/var/run/knox',
+                              owner = 'knox',
+                              group = 'knox',
+                              recursive = True
+    )
     self.assertResourceCalled('Directory', '/etc/knox/conf',
                               owner = 'knox',
                               group = 'knox',
@@ -63,7 +78,6 @@ class TestKnoxGateway(RMFTestCase):
      '-R',
      'knox:knox',
      '/var/lib/knox/data',
-     '/var/log/knox',
      '/var/log/knox',
      '/var/run/knox',
      '/etc/knox/conf'),
