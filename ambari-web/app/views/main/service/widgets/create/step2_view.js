@@ -22,8 +22,26 @@ App.WidgetWizardStep2View = Em.View.extend({
 
   didInsertElement: function () {
     var controller = this.get('controller');
+    controller.renderProperties();
   }
-
 });
+
+
+App.WidgetPropertyTextFieldView = Em.TextField.extend({
+  valueBinding: 'property.value',
+  classNameBindings: ['property.classNames', 'parentView.basicClass']
+});
+
+App.WidgetPropertyThresholdView = Em.View.extend({
+  templateName: require('templates/main/service/widgets/create/widget_property_threshold'),
+  classNameBindings: ['property.classNames', 'parentView.basicClass']
+});
+
+App.WidgetPropertySelectView = Em.Select.extend({
+  selectionBinding: 'property.value',
+  contentBinding: 'property.options',
+  classNameBindings: ['property.classNames', 'parentView.basicClass']
+});
+
 
 

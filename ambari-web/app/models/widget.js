@@ -132,6 +132,11 @@ App.WidgetType.FIXTURES = [
       {
         property_name : 'time_range',
         isRequired: true
+      },
+      {
+        property_name : 'display_unit',
+        display_name: 'unit',
+        isRequired: false
       }
     ]
   },
@@ -141,6 +146,11 @@ App.WidgetType.FIXTURES = [
     display_name: 'Template',
     description: Em.I18n.t('widget.type.template.description'),
     properties: [
+      {
+        property_name : 'display_unit',
+        display_name: 'unit',
+        isRequired: false
+      }
     ]
   }
 ];

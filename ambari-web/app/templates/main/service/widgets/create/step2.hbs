@@ -25,6 +25,22 @@
     </div>
   </div>
 
+  <div>
+    <form class="form-horizontal">
+      {{#each property in controller.widgetProperties}}
+        <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
+          <label class="control-label">{{property.label}}
+            {{#if property.isRequired }}
+              <i class="icon-asterisk"></i>
+            {{/if}}
+          </label>
+          <div class="controls">
+            {{view property.viewClass propertyBinding="property"}}
+          </div>
+        </div>
+      {{/each}}
+    </form>
+  </div>
 
 
   <div class="btn-area">

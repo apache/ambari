@@ -108,3 +108,29 @@
     }
   }
 }
+
+#add-widget-step2 {
+  .badge-container {
+    height: 26px;
+    .OK, .WARNING, .CRITICAL {
+      line-height: 26px;
+      height: 26px;
+      display: inline-block;
+      width: 70px;
+      text-align: center;
+    }
+    .OK {
+      background-color: @health-status-green;
+    }
+    .WARNING {
+      background-color: @health-status-orange;
+    }
+    .CRITICAL {
+      background-color: @health-status-red;
+    }
+  }
+  .icon-asterisk {
+    color: red;
+    font-size: 8px;
+  }
+}
