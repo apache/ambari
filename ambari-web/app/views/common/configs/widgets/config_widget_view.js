@@ -30,6 +30,12 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   config: null,
 
   /**
+   * Determines if user hover on widget-view
+   * @type {boolean}
+   */
+  isHover: false,
+
+  /**
    * Alias to <code>config.isOriginalSCP</code>
    * Should be used in the templates
    * Don't use original <code>config.isOriginalSCP</code> in the widget-templates!!!
@@ -101,10 +107,23 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   /**
    * sync widget value with config value when dependent properties
    * have been loaded or changed
+   * @method syncValueWithConfig
    */
   syncValueWithConfig: function() {
     this.setValue(this.get('config.value'));
   }.observes('controller.recommendationTimeStamp'),
+
+  didInsertElement: function () {
+    var self = this;
+    var element = this.$();
+    if (element) {
+      element.hover(function() {
+        self.set('isHover', true);
+      }, function() {
+        self.set('isHover', false);
+      });
+    }
+  },
 
   /**
    * set widget value same as config value

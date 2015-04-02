@@ -51,3 +51,6 @@ Copyright (C) 2015 by Kyle Kemp, Rohit Kalkur, and contributors
 
 This product includes bootstrap-slider 3.3.2 (https://github.com/nostalgiaz/bootstrap-switch - Apache License, Version 2.0)
 Copyright (C) 2015 by Mattia Larentis (mattia [at] larentis [*dot*] eu)
+
+This product includes bootstrap-checkbox v.1.0.1 (https://github.com/montrezorro/bootstrap-checkbox - Apache License, Version 2.0)
+Copyright (C) 2014 Roberto Montresor (info [at] robertomontresor [*dot*] it)

@@ -27,9 +27,33 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/checkbox_config_widget'),
   classNames: ['widget-config', 'checkbox-widget'],
 
+  didInsertElement: function () {
+    var self = this;
+    this._super(arguments);
+    Em.run.next(function () {
+      if (self.$())
+      self.$('input[type="checkbox"]:eq(0)').checkbox({
+        defaultState: self.get('config.value'),
+        buttonStyle: 'btn-link btn-large',
+        checkedClass: 'icon-check',
+        uncheckedClass: 'icon-check-empty'
+      });
+    });
+  },
+
   configView: App.ServiceConfigCheckbox.extend({
     serviceConfigBinding: 'parentView.config',
     // @TODO maybe find use case of this method for widget
     focusIn: function() {}
-  })
+  }),
+
+  /**
+   * Manually reset bootstrap-checkbox
+   * @method restoreValue
+   */
+  restoreValue: function () {
+    this.$('input[type="checkbox"]:eq(0)').checkbox('click');
+    this._super();
+  }
+
 });

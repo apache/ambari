@@ -17,7 +17,7 @@
 }}
 
 
-<div {{bindAttr class="view.config.isHiddenByFilter:hide :widget :slider-widget"}}>
+<div {{bindAttr class="view.config.isHiddenByFilter:hide :widget-config :slider-widget"}}>
   {{#if view.isOriginalSCP}}
     <p class="widget-config-label">{{formatWordBreak view.configLabel}}</p>
   {{/if}}
@@ -25,7 +25,7 @@
     <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
     <div class="pull-right ui-slider-label">{{view.mirrorValue}} {{view.config.stackConfigProperty.valueAttributes.unit}}</div>
   </div>
-  <div class="clearfix">
+  <div {{bindAttr class="view.isHover:show:not-show :clearfix"}}>
       {{#if view.isOriginalSCP}}
         {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
       {{/if}}

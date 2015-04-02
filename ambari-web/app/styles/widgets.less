@@ -20,11 +20,9 @@
 @undo-btn-margin: 10px;
 @combo-widget-width: 100px;
 
-.widget {
+.widget-config {
 
-  margin-bottom: 30px;
-
-  .widget {
+  .widget-config {
     margin-bottom: 0;
   }
 
@@ -77,6 +75,7 @@
     border: 1px solid @slider-widget-border-color;
   }
   .slider-tick-label {
+    color: #aaa;
     font-size: 10px;
   }
   .slider-selection {
@@ -93,12 +92,18 @@
       margin-right: 10px;
     }
     .ui-slider-label {
+      color: #aaa;
       line-height: 35px;
     }
   }
 
 }
 .slider-disabled {
+  .slider-track-high {
+    background-color: #ccc;
+    border-bottom-right-radius: 12px;
+    border-top-right-radius: 12px;
+  }
   .slider-selection {
     background-color: @gray-blue;
   }
@@ -183,4 +188,17 @@
   .widget-config-label {
     margin-left: 10px;
   }
+
+  .bootstrap-checkbox {
+    &>button.btn {
+      padding: 0;
+      margin-top: -7px;
+      &:focus {
+        border-color: none;
+        box-shadow: 0;
+        outline: 0 none;
+      }
+    }
+  }
+
 }

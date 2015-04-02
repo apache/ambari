@@ -483,7 +483,10 @@ h1 {
 .hide {
   visibility: hidden;
 }
-
+// some where in the vendor.css "display: none;" is added to ".hide"
+.not-show {
+  visibility: hidden;
+}
 .show {
   visibility: visible;
 }
@@ -5576,6 +5579,13 @@ input[type="checkbox"].align-checkbox {
       .config-section {
         padding: 10px;
         border: 1px solid #aaa;
+        vertical-align: top;
+
+        h4 {
+          font-size: 22px;
+          font-weight: 400;
+        }
+
         td:not(:first-of-type) {
           border-left: 2px solid #ccc; // horizontal splitter
           padding-left: 20px;
