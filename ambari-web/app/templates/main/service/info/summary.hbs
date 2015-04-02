@@ -75,7 +75,6 @@
   </div>
 
   {{#if view.isServiceMetricLoaded}}
-    {{#if view.serviceMetricGraphs.length}}
       <div class="service-metrics-block">
         <div class="box">
           <div class="box-header">
@@ -140,21 +139,22 @@
               </div>
             {{/if}}
           </div>
-          <div class="">
+          <div>
+            {{#if App.supports.customizedWidgets}}
+              <div id="widget_layout" class="row-fluid">
+                {{#each widget in controller.widgets}}
+                  <div class="widget span2p4" {{bindAttr id="widget.id"}}>
+                    {{view widget.viewClass contentBinding="widget"}}
+                  </div>
+                {{/each}}
+                <div class="span2p4">
+                  <button id="add-widget-action-box"
+                          class="btn btn-default" {{action "goToAddWidgetWizard" controller.content target="view"}}><i
+                          class="icon-plus"></i></button>
+                </div>
+              </div>
+            {{/if}}
             <table class="graphs">
-              {{#if App.supports.customizedWidgets}}
-                {{#if controller.isWidgetsLoaded}}
-                  <tr id="widget_layout">
-                    {{#each widget in controller.widgets}}
-                      <td>
-                        <div class="widget">
-                          {{view widget.viewClass contentBinding="widget"}}
-                        </div>
-                      </td>
-                    {{/each}}
-                  </tr>
-                {{/if}}
-              {{/if}}
               {{#each graphs in view.serviceMetricGraphs}}
                 <tr>
                   {{#each graph in graphs}}
@@ -170,7 +170,6 @@
           </div>
         </div>
       </div>
-    {{/if}}
   {{/if}}
 </div>
 

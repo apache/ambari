@@ -320,7 +320,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @type {Em.A}
    */
   widgetLayouts: function() {
-    return App.WidgetLayout.find().filterProperty('serviceName', this.get('content.serviceName'));
+    return App.WidgetLayout.find();
   }.property('isWidgetLayoutsLoaded'),
 
   /**
@@ -417,9 +417,25 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
 
   /**
    * save layout
+   * return {$.ajax}
    */
-  saveLayout: function () {
-
+  saveLayout: function (widgets, layout) {
+    var data = {
+      "layout_name": layout.get('layoutName'),
+      "section_name": layout.get('sectionName'),
+      "scope": layout.get('scope'),
+      "widgetLayoutInfo": widgets.map(function (widget) {
+        return {
+          "widget_name": widget.get('widgetName'),
+          "id": widget.get('widgetId')
+        }
+      })
+    };
+    return App.ajax.send({
+      name: 'widgets.layout.save',
+      sender: this,
+      data: data
+    });
   },
 
   /**

@@ -137,6 +137,13 @@ App.ChartLinearTimeView = Ember.View.extend({
    */
   hasData: true,
 
+  /**
+   * chart height
+   * @type {number}
+   * @default 150
+   */
+  height: 150,
+
   didInsertElement: function () {
     this.loadData();
     this.registerGraph();
@@ -508,7 +515,7 @@ App.ChartLinearTimeView = Ember.View.extend({
     var yaxisElement = document.querySelector(yaxisElementId);
     var legendElement = document.querySelector(legendElementId);
 
-    var height = 150;
+    var height = this.get('height');
     var width = 400;
     var diff = 32;
 

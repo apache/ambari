@@ -24,11 +24,6 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
   /**
    * @type {string}
    */
-  title: '',
-
-  /**
-   * @type {string}
-   */
   value: '',
 
   /**
@@ -59,7 +54,6 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
     if (this.get('isLoaded')) {
       this.calculateValues();
       this.set('value', this.get('content.values')[0].computedValue);
-      this.set('title', this.get('content.values')[0].name);
     }
   }
 });

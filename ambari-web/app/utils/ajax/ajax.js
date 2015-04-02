@@ -2419,6 +2419,17 @@ var urls = {
     mock: '/data/widget_layouts/HBASE/layouts.json'
   },
 
+  'widgets.layout.save': {
+    real: '/clusters/{clusterName}/widget_layouts/{layout_name}',
+    mock: '',
+    format: function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+
   'widgets.serviceComponent.metrics.get': {
     real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={widgetIds}',
     mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'

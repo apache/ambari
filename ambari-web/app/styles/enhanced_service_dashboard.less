@@ -21,8 +21,8 @@
 .service-metrics-block {
 
   #add-widget-action-box {
-    margin: 20px 10px 10px 10px;
-    padding: 40px 55px;
+    width: 96%;
+    padding: 43px;
     border: 1px solid #ddd;
     .icon-plus {
       font-size: 70px;
@@ -51,6 +51,12 @@
     height: 150px;
     width: 90%;
   }
+  .span2p4 {
+    width: 19.3%;
+    background-color: white;
+    margin: 5px 0 5px 5px;
+    cursor: move;
+  }
   .widget {
     .spinner {
       margin: 55px auto;
@@ -68,11 +74,22 @@
       font-weight: bold;
       font-size: 35px;
     }
-    .template-widget {
-      .frame;
-    }
+    .template-widget,
     .number-widget {
       .frame;
+    }
+    .graph-widget {
+      .frame;
+      .content {
+        padding-top: 0;
+      }
+      .chart-legend {
+        min-width: 100%;
+        padding: 5px;
+        text-align: left;
+        top: 95px;
+        left: -15px;
+      }
     }
     .gauge-widget {
       .frame;

@@ -18,7 +18,7 @@
 
 <div class="gauge-widget thumbnail">
   {{#if view.isLoaded}}
-    <div class="caption title">{{view.title}}</div>
+    <div class="caption title">{{view.content.displayName}}</div>
     <div class="content"> {{view view.chartView}}</div>
   {{else}}
     <div class="spinner"></div>

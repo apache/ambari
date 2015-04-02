@@ -17,6 +17,7 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+var misc = require('utils/misc');
 require('views/main/service/service');
 require('data/service_graph_config');
 
@@ -330,16 +331,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
         }));
       });
 
-      if (App.get('supports.customizedWidgets')) {
-        graphObjects.push(Ember.View.extend({
-          classNames: ['last-child'],
-          template: Ember.Handlebars.compile('<button id="add-widget-action-box" class="btn btn-default" {{action "goToAddWidgetWizard" controller.content target="view"}}><i class="icon-plus"></i></button>'),
-          goToAddWidgetWizard: function(evt) {
-            App.router.send('addServiceWidget',evt.context);
-          }
-        }));
-      }
-
       while(graphObjects.length) {
         result.push(graphObjects.splice(0, chunkSize));
       }
@@ -376,6 +367,15 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       this.set('currentTimeRangeIndex', 0);
     }
   },
+
+  /**
+   * launch Add Widget wizard
+   * @param event
+   */
+  goToAddWidgetWizard: function (event) {
+    App.router.send('addServiceWidget', event.context);
+  },
+
   /**
    * list of static actions of widget
    * @type {Array}
@@ -569,5 +569,31 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
         }
       }
     }
+    this.makeSortable();
+  },
+
+  /**
+   * Make widgets' list sortable on New Dashboard style
+   */
+  makeSortable: function () {
+    var self = this;
+    $('html').on('DOMNodeInserted', '#widget_layout', function () {
+      $(this).sortable({
+        items: "> div",
+        cursor: "move",
+        tolerance: "pointer",
+        scroll: false,
+        update: function () {
+          var widgets = misc.sortByOrder($("#widget_layout .widget").map(function () {
+            return this.id;
+          }), self.get('controller.widgets'));
+          //TODO bind to actual layout instance
+          var layout = self.get('controller.widgetLayouts').objectAt(0);
+
+          self.get('controller').saveLayout(widgets, layout);
+        }
+      }).disableSelection();
+      $('html').off('DOMNodeInserted', '#widget_layout');
+    });
   }
 });

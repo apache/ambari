@@ -78,7 +78,94 @@
             }
           },
           {
+            "widget_name": "FILES_LOCAL2",
+            "display_name": "Files Local",
+            "description": "This widget shows percentage of files local.",
+            "widget_type": "NUMBER",
+            "is_visible": "true",
+            "metrics":[
+              {
+                "name": "regionserver.Server.percentFilesLocal",
+                "widget_id": "metrics/hbase/regionserver/percentFilesLocal",
+                "category": "",
+                "service_name": "HBASE",
+                "component_name": "HBASE_REGIONSERVER"
+              }
+            ],
+            "values": [
+              {
+                "name": "Files Local",
+                "value": "${regionserver.Server.percentFilesLocal}"
+              }
+            ],
+            "properties": {
+              "display_unit": "%",
+              "warning_threshold": 70,
+              "error_threshold": 90
+            }
+          },
+          {
+            "widget_name": "FILES_LOCAL3",
+            "display_name": "Files Local",
+            "description": "This widget shows percentage of files local.",
+            "widget_type": "NUMBER",
+            "is_visible": "true",
+            "metrics":[
+              {
+                "name": "regionserver.Server.percentFilesLocal",
+                "widget_id": "metrics/hbase/regionserver/percentFilesLocal",
+                "category": "",
+                "service_name": "HBASE",
+                "component_name": "HBASE_REGIONSERVER"
+              }
+            ],
+            "values": [
+              {
+                "name": "Files Local",
+                "value": "${regionserver.Server.percentFilesLocal}"
+              }
+            ],
+            "properties": {
+              "display_unit": "%",
+              "warning_threshold": 70,
+              "error_threshold": 90
+            }
+          },
+          {
             "widget_name": "NAMENODE_HEAP",
+            "display_name": "NameNode Heap",
+            "widget_type": "GAUGE",
+            "is_visible": "true",
+            "description": "",
+            "metrics":[
+              {
+                "name": "java.lang:type=Memory.HeapMemoryUsage[used]",
+                "widget_id": "metrics/jvm/HeapMemoryUsed",
+                "category": "",
+                "service_name": "HBASE",
+                "component_name": "HBASE_REGIONSERVER"
+              },
+              {
+                "name": "java.lang:type=Memory.HeapMemoryUsage[max]",
+                "widget_id": "metrics/jvm/HeapMemoryMax",
+                "category": "",
+                "service_name": "HBASE",
+                "component_name": "HBASE_REGIONSERVER"
+              }
+            ],
+            "values": [
+              {
+                "name": "NameNode heap",
+                "value": "${java.lang:type=Memory.HeapMemoryUsage[used]/java.lang:type=Memory.HeapMemoryUsage[max]}"
+              }
+            ],
+            "properties": {
+              "warning_threshold": 0.9,
+              "error_threshold": 0.7
+            }
+          },
+          {
+            "widget_name": "NAMENODE_HEAP2",
             "display_name": "NameNode Heap",
             "widget_type": "GAUGE",
             "is_visible": "true",

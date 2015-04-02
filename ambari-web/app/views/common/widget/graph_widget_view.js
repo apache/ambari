@@ -18,28 +18,8 @@
 
 var App = require('app');
 
-App.GraphWidgetView = App.ChartLinearTimeView.extend(App.WidgetMixin, {
-
-  /**
-   * @type {string}
-   */
-  id: function () {
-    return this.get('content.id');
-  }.property('content.id'),
-
-  /**
-   * @type {string}
-   */
-  title: function () {
-    return this.get('content.displayName');
-  }.property('content.displayName'),
-
-  /**
-   * @type {string}
-   */
-  renderer: function () {
-    return this.get('properties.graph_type') === 'STACK' ? 'area' : 'line';
-  }.property('properties.graph_type'),
+App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
+  templateName: require('templates/common/widget/graph_widget'),
 
   /**
    * common metrics container
@@ -59,15 +39,14 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend(App.WidgetMixin, {
    */
   timeStep: 15,
 
-  didInsertElement: Em.K,
-
-  transformToSeries: function (seriesData) {
-    return seriesData;
-  },
+  /**
+   * @type {Array}
+   */
+  data: [],
 
   drawWidget: function () {
     if (this.get('isLoaded')) {
-      this._refreshGraph(this.calculateValues())
+      this.set('data', this.calculateValues());
     }
   },
 
@@ -80,9 +59,11 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend(App.WidgetMixin, {
 
     this.get('content.values').forEach(function (value) {
       var computedExpressions = this.computeExpression(this.extractExpressions(value)[0], metrics);
-      seriesData.push(this.transformData(computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]], value.name));
+      seriesData.push({
+        name: value.name,
+        data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
+      });
     }, this);
-
     return seriesData;
   },
 
@@ -179,5 +160,45 @@ App.GraphWidgetView = App.ChartLinearTimeView.extend(App.WidgetMixin, {
     }, this);
 
     return result;
-  }
+  },
+
+  /**
+   * @type {Em.View}
+   * @class
+   */
+  graphView: App.ChartLinearTimeView.extend({
+
+    /**
+     * graph height
+     * @type {number}
+     */
+    height: 95,
+
+    /**
+     * @type {string}
+     */
+    id: function () {
+      return this.get('parentView.content.id') + '_graph';
+    }.property('parentView.content.id'),
+
+    /**
+     * @type {string}
+     */
+    renderer: function () {
+      return this.get('parentView.content.properties.graph_type') === 'STACK' ? 'area' : 'line';
+    }.property('parentView.content.properties.graph_type'),
+
+    transformToSeries: function (seriesData) {
+      var seriesArray = [];
+
+      seriesData.forEach(function(_series){
+        seriesArray.push(this.transformData(_series.data, _series.name));
+      }, this);
+      return seriesArray;
+    },
+
+    didInsertElement: function () {
+      this._refreshGraph(this.get('parentView.data'));
+    }.observes('parentView.data')
+  })
 });

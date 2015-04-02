@@ -24,11 +24,6 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   /**
    * @type {string}
    */
-  title: '',
-
-  /**
-   * @type {string}
-   */
   value: '',
 
   /**
@@ -40,7 +35,6 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   drawWidget: function () {
     if (this.get('isLoaded')) {
       this.calculateValues();
-      this.set('title', this.get('content.values')[0].name);
       this.set('value', this.get('content.values')[0].computedValue);
     }
   },
