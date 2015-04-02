@@ -24,6 +24,15 @@
 
       <osSpecifics>
         <osSpecific>
+          <osFamily>any</osFamily>
+          <packages>
+            <package>
+              <name>rpcbind</name>
+            </package>
+          </packages>
+        </osSpecific>
+
+        <osSpecific>
           <osFamily>redhat6,suse11</osFamily>
           <packages>
             <package>
