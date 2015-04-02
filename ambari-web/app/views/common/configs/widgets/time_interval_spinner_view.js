@@ -65,20 +65,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   minValue: null,
 
   /**
-   * Map with units lookup used for convertation.
-   *
-   * @property timeConvertMap
-   * @type {Object}
-   */
-  timeConvertMap: {
-    milliseconds: [],
-    seconds: [1000],
-    minutes: [60, 1000],
-    hours: [60, 60, 1000],
-    days: [24, 60, 60, 1000]
-  },
-
-  /**
+   * @TODO move it to unit conversion view mixin?
    * Map with maximum value per unit.
    *
    * @property timeMaxValueOverflow
@@ -93,7 +80,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   },
 
   didInsertElement: function () {
-    this.prepareContent();
+    Em.run.once(this, 'prepareContent');
     this._super();
   },
 
@@ -111,112 +98,27 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
     var property = this.get('config');
     var propertyUnit = property.get('stackConfigProperty.valueAttributes').unit;
 
-    Em.run.once(function() {
-      self.set('propertyUnit', propertyUnit);
-      self.set('minValue', self.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')));
-      self.set('maxValue', self.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')));
-      self.set('content', self.generateWidgetValue(property.get('value')));
-    });
+    this.set('propertyUnit', propertyUnit);
+    this.set('minValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')));
+    this.set('maxValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')));
+    this.set('content', this.generateWidgetValue(property.get('value')));
   },
 
   /**
+   * @TODO move it to unit conversion view mixin?
    * Generate formatted value for widget.
    *
    * @param {String|Number} value
    * @returns {Object[]}
    */
   generateWidgetValue: function(value) {
-    var property = this.get('config');
-    var widgetUnits = property.get('stackConfigProperty.widget.units.firstObject.unit');
-    var propertyUnit = property.get('stackConfigProperty.valueAttributes').unit;
-    return this.convertToWidgetUnits(value, propertyUnit, widgetUnits);
-  },
-
-  /**
-   * Convert property value to widget format units.
-   *
-   * @param {String|Number} input - time to convert
-   * @param {String} inputUnitType - type of input value e.g. "milliseconds"
-   * @param {String|String[]} desiredUnits - units to convert input value e.g. ['days', 'hours', 'minutes']
-   *   or 'days,hours,minutes'
-   * @return {Object[]} - converted values according to desiredUnits order. Returns object
-   *   contains unit, value, label, minValue, maxValue, invertOnOverflow attributes according to desiredUnits array
-   *   For example:
-   *   <code>
-   *     [
-   *       {unit: 'days', label: 'Days', value: 2, minValue: 0, maxValue: 23},
-   *       {unit: 'hours', label: 'Hours', value: 3, minValue: 0, maxValue: 59}
-   *     ]
-   *   </code>
-   */
-  convertToWidgetUnits: function(input, inputUnitType, desiredUnits) {
-    var self = this;
-    var time = parseInt(input);
-    var msUnitMap = this.generateUnitsTable(desiredUnits, inputUnitType);
-    if (typeof desiredUnits == 'string') {
-      desiredUnits = desiredUnits.split(',');
-    }
-
-    return desiredUnits.map(function(item) {
-      var unitMs = msUnitMap[item];
-      var unitValue = Math.floor(time/unitMs);
-      time = time - unitValue*unitMs;
-
-      return {
-        label: Em.I18n.t('common.' + item),
-        unit: item,
-        value: unitValue,
-        minValue: 0,
-        maxValue: Em.get(self, 'timeMaxValueOverflow.' + item),
-        invertOnOverflow: true
-      };
-    });
-  },
-
-  /**
-   * Convert widget value to config property format.
-   *
-   * @param {Object[]} widgetValue - formatted value for widget
-   * @param {String} propertyUnit - config property unit to convert
-   * @return {Number}
-   */
-  convertToPropertyUnit: function(widgetValue, propertyUnit) {
-    var widgetUnitNames = widgetValue.mapProperty('unit');
-    var msUnitMap = this.generateUnitsTable(widgetUnitNames, propertyUnit);
-    return widgetUnitNames.map(function(item) {
-      return parseInt(Em.get(widgetValue.findProperty('unit', item), 'value')) * msUnitMap[item];
-    }).reduce(Em.sum);
-  },
-
-  /**
-   * Generate convertion map with specified unit.
-   *
-   * @param {String|String[]} units - units to convert
-   * @param {String} convertationUnit - unit factor name e.g 'milliseconds', 'minutes', 'seconds', etc.
-   */
-  generateUnitsTable: function(units, convertationUnit) {
-    var msUnitMap = $.extend({}, this.get('timeConvertMap'));
-    if (typeof units == 'string') {
-      units = units.split(',');
-    }
-    units.forEach(function(unit) {
-      var keys = Em.keys(msUnitMap);
-      // check the convertion level
-      var distance = keys.indexOf(unit) - keys.indexOf(convertationUnit);
-      var convertPath = msUnitMap[unit].slice(0, distance);
-      // set unit value of the property it always 1
-      if (distance === 0) {
-        msUnitMap[unit] = 1;
-      }
-      if (convertPath.length) {
-        // reduce convert path values to value
-        msUnitMap[unit] = convertPath.reduce(function(p,c) {
-          return p * c;
-        });
-      }
-    });
-
-    return msUnitMap;
+    return this.widgetValueByConfigAttributes(value, true).map(function(item) {
+      item.label = Em.I18n.t('common.' + item.type);
+      item.minValue = 0;
+      item.maxValue = Em.get(this, 'timeMaxValueOverflow.' + item.type);
+      item.invertOnOverflow = true;
+      return item;
+    }, this);
   },
 
   /**
@@ -225,25 +127,27 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   valueObserver: function() {
     if (!this.get('content')) return;
     var self = this;
-    Em.run.once(function() {
-      self.checkModified();
-      self.checkErrors();
-      self.setConfigValue();
-    });
+    Em.run.once(this, 'valueObserverCallback');
   }.observes('content.@each.value'),
+
+  valueObserverCallback: function() {
+    this.checkModified();
+    this.checkErrors();
+    this.setConfigValue();
+  },
 
   /**
    * Check for property modification.
    */
   checkModified: function() {
-    this.set('valueIsChanged', this.convertToPropertyUnit(this.get('content'), this.get('propertyUnit')) != parseInt(this.get('config.defaultValue')));
+    this.set('valueIsChanged', this.configValueByWidget(this.get('content')) != parseInt(this.get('config.defaultValue')));
   },
 
   /**
    * Check for validation errors like minimum or maximum required value.
    */
   checkErrors: function() {
-    var convertedValue = this.convertToPropertyUnit(this.get('content'), this.get('propertyUnit'));
+    var convertedValue = this.configValueByWidget(this.get('content'));
     var errorMessage = false;
     if (convertedValue < parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'))) {
       errorMessage = Em.I18n.t('number.validate.lessThanMinumum').format(this.dateToText(this.get('minValue')));
@@ -262,7 +166,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * set appropriate attribute for configProperty model
    */
   setConfigValue: function() {
-    this.set('config.value', this.convertToPropertyUnit(this.get('content'), this.get('propertyUnit')));
+    this.set('config.value', this.configValueByWidget(this.get('content')));
   },
 
   /**

@@ -44,3 +44,5 @@ require('mixins/wizard/addSecurityConfigs');
 require('mixins/wizard/wizard_menu_view');
 require('mixins/common/configs/enhanced_configs');
 require('mixins/common/widget_mixin');
+require('mixins/unit_convert/base_unit_convert_mixin');
+require('mixins/unit_convert/convert_unit_widget_view_mixin');

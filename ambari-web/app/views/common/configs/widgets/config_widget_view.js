@@ -22,7 +22,7 @@ require('views/common/controls_view');
  * Common view for config widgets
  * @type {Em.View}
  */
-App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPopoverSupport, {
+App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPopoverSupport, App.ConvertUnitWidgetViewMixin, {
 
   /**
    * @type {App.ConfigProperty}
