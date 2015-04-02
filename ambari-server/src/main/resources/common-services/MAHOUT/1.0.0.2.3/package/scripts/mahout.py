@@ -31,4 +31,16 @@ def mahout():
              group = params.user_group
   )
 
-  # TODO add configs creation
+  if not is_empty(params.log4j_props):
+    File(format("{params.mahout_conf_dir}/log4j.properties"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.mahout_user,
+         content=params.log4j_props
+    )
+  elif (os.path.exists(format("{params.mahout_conf_dir}/log4j.properties"))):
+    File(format("{params.mahout_conf_dir}/log4j.properties"),
+         mode=0644,
+         group=params.user_group,
+         owner=params.mahout_user
+    )

@@ -37,6 +37,13 @@
                         <scriptType>PYTHON</scriptType>
                         <timeout>1200</timeout>
                     </commandScript>
+                    <configFiles>
+                        <configFile>
+                            <type>env</type>
+                            <fileName>log4j.properties</fileName>
+                            <dictionaryName>mahout-log4j</dictionaryName>
+                        </configFile>
+                    </configFiles>
                 </component>
             </components>
             <osSpecifics>
@@ -61,6 +68,7 @@
             </requiredServices>
 
             <configuration-dependencies>
+                <config-type>mahout-log4j</config-type>
             </configuration-dependencies>
 
         </service>

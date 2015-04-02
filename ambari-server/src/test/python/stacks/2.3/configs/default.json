@@ -36,6 +36,9 @@
         "mahout-env": {
              "mahout_user": "mahout"
         },
+        "mahout-log4j": {
+            "content": "\n            #\n            #\n            # Licensed to the Apache Software Foundation (ASF) under one\n            # or more contributor license agreements.  See the NOTICE file\n            # distributed with this work for additional information\n            # regarding copyright ownership.  The ASF licenses this file\n            # to you under the Apache License, Version 2.0 (the\n            # \"License\"); you may not use this file except in compliance\n            # with the License.  You may obtain a copy of the License at\n            #\n            #   http://www.apache.org/licenses/LICENSE-2.0\n            #\n            # Unless required by applicable law or agreed to in writing,\n            # software distributed under the License is distributed on an\n            # \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n            # KIND, either express or implied.  See the License for the\n            # specific language governing permissions and limitations\n            # under the License.\n            #\n            #\n            #\n\n            # Set everything to be logged to the console\n            log4j.rootCategory=WARN, console\n            log4j.appender.console=org.apache.log4j.ConsoleAppender\n            log4j.appender.console.target=System.err\n            log4j.appender.console.layout=org.apache.log4j.PatternLayout\n            log4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{1}: %m%n\n\n            # Settings to quiet third party logs that are too verbose\n            log4j.logger.org.eclipse.jetty=WARN\n            log4j.logger.org.apache.spark.repl.SparkIMain$exprTyper=WARN\n            log4j.logger.org.apache.spark.repl.SparkILoop$SparkILoopInterpreter=WARN"
+        },
         "hadoop-env": {
              "hdfs_user": "hdfs"
         },

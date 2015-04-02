@@ -57,6 +57,8 @@ kinit_path_local = functions.get_kinit_path()
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']
 
+log4j_props = config['configurations']['mahout-log4j']['content']
+
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code
