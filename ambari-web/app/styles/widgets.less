@@ -64,6 +64,24 @@
     &:nth-of-type(1):before {
       content: '$$$' !important;
     }
+    &.slider-tick-default {
+      &:after {
+        content: "default";
+        width: 0;
+        height: 0;
+        display: block;
+        position: absolute;
+        left: -2px;
+        top: 14px;
+        border-style: solid;
+        border-width: 0 3px 6px 3px;
+        border-color: transparent transparent #5bb75b transparent;
+        color: #d1d1d1;
+        font-size: 10px;
+        text-indent: -14px;
+        line-height: 25px;
+      }
+    }
   }
   .slider-handle {
     margin-top: -2px !important;
@@ -74,9 +92,16 @@
     background-image: radial-gradient(#aaa 5px, #eee 5px) !important;
     border: 1px solid @slider-widget-border-color;
   }
+  .slider-tick-label-container {
+    margin-top: 5px;
+  }
   .slider-tick-label {
     color: #aaa;
     font-size: 10px;
+    .slider-tick-reset-label {
+      color: #d7d7d7;
+      margin-left: 6px;
+    }
   }
   .slider-selection {
     background-image: none;

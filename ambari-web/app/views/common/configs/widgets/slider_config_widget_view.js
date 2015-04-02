@@ -171,18 +171,42 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       unit = Em.getWithDefault(valueAttributes, 'unit', ''),
       parseFunction = this.get('parseFunction'),
       ticks = [valueAttributes.minimum],
-      ticksLabels = [];
+      ticksLabels = [],
+      defaultValue = this.valueForTick(+config.get('defaultValue')),
+      defaultValueMirroredId,
+      defaultValueId;
 
     // ticks and labels
     for (var i = 1; i <= 3; i++) {
       var val = (valueAttributes.minimum + valueAttributes.maximum) / 4 * i;
       // if value's type is float, ticks may be float too
-      ticks.push(valueAttributes.type === 'int' ? Math.round(val) : parseFloat(val.toFixed(1)));
+      ticks.push(this.valueForTick(val));
     }
     ticks.push(valueAttributes.maximum);
     ticks.forEach(function (tick, index) {
       ticksLabels.push(index % 2 === 0 ? tick + ' ' + unit : '');
     });
+    // process additional tick for default value if it not defined in previous computation
+    if (!ticks.contains(defaultValue)) {
+      // push default value
+      ticks.push(defaultValue);
+      // and resort array
+      ticks = ticks.sort(function(a,b) { return a-b; });
+      defaultValueId = ticks.indexOf(defaultValue);
+      // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
+      defaultValueMirroredId = ticks.length - defaultValueId;
+      // push empty label for default value tick
+      ticksLabels.insertAt(defaultValueId, '');
+      // push empty to mirrored position
+      ticksLabels.insertAt(defaultValueMirroredId, '');
+      // for saving correct sliding need to add value to mirrored position which is average between previous
+      // and next value
+      ticks.insertAt(defaultValueMirroredId, (ticks[defaultValueMirroredId] + ticks[defaultValueMirroredId - 1])/2);
+      // get new index for default value
+      defaultValueId = ticks.indexOf(defaultValue);
+    } else {
+      defaultValueId = ticks.indexOf(defaultValue);
+    }
 
     var slider = new Slider(this.$('input.slider-input')[0], {
       value: parseFunction(this.get('config.value')),
@@ -206,9 +230,27 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       self.sendRequestRorDependentConfigs(self.get('config'));
     });
 
+    this.$('.slider-track .slider-tick.round:eq({0})'.format(defaultValueId)).addClass('slider-tick-default').on('click', function() {
+      self.restoreValue();
+    });
+    // if mirrored value was added need to hide the tick for it
+    if (defaultValueMirroredId) {
+      this.$('.slider-tick:eq({0})'.format(defaultValueMirroredId)).hide();
+    }
     this.set('slider', slider);
     // hide some ticks. can't do this via css
     this.$('.slider-tick:first, .slider-tick:last').hide();
+  },
+
+  /**
+   * Convert value according to property attribute unit.
+   *
+   * @method valueForTick
+   * @param {Number}
+   * @returns {Number}
+   */
+  valueForTick: function(val) {
+    return this.get('config.stackConfigProperty.valueAttributes').type === 'int' ? Math.round(val) : parseFloat(val.toFixed(1));
   },
 
   /**
