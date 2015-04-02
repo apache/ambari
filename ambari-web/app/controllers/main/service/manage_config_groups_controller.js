@@ -250,7 +250,6 @@ App.ManageConfigGroupsController = Em.Controller.extend({
   onLoadPropertiesSuccess: function (data, opt, params) {
     data.items.forEach(function (configs) {
       var typeTagConfigs = [];
-      App.config.loadedConfigurationsCache[configs.type + "_" + configs.tag] = configs.properties;
       var group = params.typeTagToGroupMap[configs.type + "///" + configs.tag];
       for (var config in configs.properties) {
         typeTagConfigs.push(Em.Object.create({

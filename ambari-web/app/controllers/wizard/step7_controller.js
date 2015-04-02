@@ -27,7 +27,7 @@ var App = require('app');
  *
  */
 
-App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, {
+App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, {
 
   name: 'wizardStep7Controller',
 

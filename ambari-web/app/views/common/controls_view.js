@@ -67,7 +67,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * and in case there was changes shows popup with info about changed configs
    */
   sendRequestRorDependentConfigs: function(config) {
-    if (App.get('supports.enhancedConfigs') && this.get('controller.name') === 'mainServiceInfoConfigsController') {
+    if (App.get('supports.enhancedConfigs') && App.router.get('clusterInstallCompleted') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.StackConfigProperty.find(name + '_' + type);

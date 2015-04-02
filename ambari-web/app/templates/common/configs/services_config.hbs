@@ -31,6 +31,11 @@
 {{else}}
     <div class="spinner"></div>
 {{/if}}
+{{#if hasChangedDependencies}}
+  <div class="alert alert-warning">
+    <span>{{dependenciesMessage}}</span> <a href="#" {{action "showChangedDependentConfigs" target="controller"}}>{{t common.showDetails}}</a>
+  </div>
+{{/if}}
 {{view App.ServiceConfigContainerView}}
 {{#if controller.isRecommendedLoaded}}
     <p class="loading align-center"></p>

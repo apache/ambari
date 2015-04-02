@@ -190,44 +190,32 @@ App.config = Em.Object.create({
   },
 
   /**
-   * Cache of loaded configurations. This is useful in not loading
-   * same configuration multiple times. It is populated in multiple
-   * places.
-   *
-   * Example:
-   * {
-   *  'hdfs-site_version3': {...},
-   * }
-   */
-  loadedConfigurationsCache: {},
-
-  /**
    * identify category by filename of config
    * @param config
    * @return {object|null}
    */
   identifyCategory: function (config) {
     var category = null,
-      serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', config.serviceName),
+      serviceConfigMetaData = this.get('preDefinedServiceConfigs').findProperty('serviceName', Em.get(config, 'serviceName')),
       configCategories = (serviceConfigMetaData && serviceConfigMetaData.get('configCategories')) || [];
 
-    if (config.filename.contains("env")) {
-      if (config.category) {
-        category = configCategories.findProperty("name", config.category);
+    if (Em.get(config, 'filename') && Em.get(config, 'filename').contains("env")) {
+      if (Em.get(config, 'category')) {
+        category = configCategories.findProperty("name", Em.get(config, 'category'));
       } else {
         configCategories.forEach(function (_category) {
-          if (_category.name.contains(this.getConfigTagFromFileName(config.filename))) {
+          if (_category.name.contains(this.getConfigTagFromFileName(Em.get(config, 'filename')))) {
             category = _category;
           }
         }, this);
       }
     } else {
       configCategories.forEach(function (_category) {
-        if (_category.siteFileNames && Array.isArray(_category.siteFileNames) && _category.siteFileNames.contains(config.filename)) {
+        if (_category.siteFileNames && Array.isArray(_category.siteFileNames) && _category.siteFileNames.contains(Em.get(config, 'filename'))) {
           category = _category;
         }
       });
-      category = Em.isNone(category) ? configCategories.findProperty('siteFileName', this.getOriginalFileName(config.filename)) : category;
+      category = Em.isNone(category) ? configCategories.findProperty('siteFileName', this.getOriginalFileName(Em.get(config, 'filename'))) : category;
     }
     return category;
   },
@@ -238,51 +226,44 @@ App.config = Em.Object.create({
    * @param config
    */
   handleSpecialProperties: function (config) {
-    if (config.displayType === 'int' && /\d+m$/.test(config.value)) {
-      config.value = config.value.slice(0, config.value.length - 1);
-      config.defaultValue = config.value;
+    if (Em.get(config, 'displayType') === 'int' && /\d+m$/.test(Em.get(config, 'value') )) {
+      Em.set(config, 'value', Em.get(config, 'value').slice(0, Em.get(config, 'value.length') - 1));
+      Em.set(config, 'defaultValue', Em.get(config, 'value'));
     }
   },
 
   /**
    * calculate config properties:
-   * category, filename, isUserProperty, description
+   * category, filename, description
    * @param config
    * @param isAdvanced
-   * @param advancedConfigs
+   * @param advancedProperty
    */
-  calculateConfigProperties: function (config, isAdvanced, advancedConfigs) {
-    if (!isAdvanced || this.get('customFileNames').contains(config.filename)) {
+  calculateConfigProperties: function (config, isAdvanced, advancedProperty) {
+    if (!isAdvanced || this.get('customFileNames').contains(Em.get(config, 'filename'))) {
       var categoryMetaData = this.identifyCategory(config);
       if (categoryMetaData != null) {
-        config.category = categoryMetaData.get('name');
-        if (!isAdvanced) config.isUserProperty = true;
-      }
-      if (isAdvanced) {
-        var advancedProperty = advancedConfigs.filterProperty('filename', config.filename).findProperty('name', config.name);
-        if (advancedProperty) {
-          config.description = advancedProperty.description;
-        }
+        Em.set(config, 'category', categoryMetaData.get('name'));
       }
     } else {
-      var advancedProperty = null;
-      var configType = this.getConfigTagFromFileName(config.filename);
-      if (isAdvanced) {
-        advancedProperty = advancedConfigs.filterProperty('filename', config.filename).findProperty('name', config.name);
-      }
-      config.category = config.category ? config.category : 'Advanced ' + configType;
-      if (advancedProperty) {
-        config.description = advancedProperty.description;
-      }
+      var configType = this.getConfigTagFromFileName(Em.get(config, 'filename'));
+      Em.set(config, 'category', Em.get(config, 'category') ? Em.get(config, 'category') : 'Advanced ' + configType);
+    }
+    if (advancedProperty) {
+      Em.set(config, 'description', Em.get(advancedProperty, 'description'));
     }
   },
 
-  capacitySchedulerFilter: function () {
-    var yarnRegex = /^yarn\.scheduler\.capacity\.root\.([a-z]([\_\-a-z0-9]{0,50}))\.(acl_administer_jobs|acl_submit_jobs|state|user-limit-factor|maximum-capacity|capacity)$/i;
-    return function (_config) {
-      return (yarnRegex.test(_config.name));
-    }
-  }.property(),
+  /**
+   * get service for current config type
+   * @param {String} configType - config fileName without xml
+   * @return App.StackService
+   */
+  getServiceByConfigType: function(configType) {
+    return App.StackService.find().find(function(s) {
+      return Object.keys(s.get('configTypes')).contains(configType);
+    });
+  },
 
   /**
    * return:
@@ -301,10 +282,13 @@ App.config = Em.Object.create({
     var preDefinedConfigs = this.get('preDefinedSiteProperties').concat(contentProperties);
     var mappingConfigs = [];
     var filenameExceptions = this.get('filenameExceptions');
-    var selectedServiceNames = App.Service.find().mapProperty('serviceName');
     tags.forEach(function (_tag) {
-      var isAdvanced = null;
-      var filename = (filenameExceptions.contains(_tag.siteName)) ? _tag.siteName : _tag.siteName + ".xml";
+      var service = this.getServiceByConfigType(_tag.siteName);
+      if (service) {
+        serviceName = service.get('serviceName');
+      }
+
+      var filename = App.config.getOriginalFileName(_tag.siteName);
       var siteConfig = configCategories.filter(function (serviceConfigProperties) {
         return _tag.tagName === serviceConfigProperties.tag && _tag.siteName === serviceConfigProperties.type;
       });
@@ -315,13 +299,10 @@ App.config = Em.Object.create({
       var properties = siteConfig.properties || {};
       for (var index in properties) {
         var configsPropertyDef = preDefinedConfigs.filterProperty('name', index).findProperty('filename', filename);
+        var advancedConfig = advancedConfigs.filterProperty('name', index).findProperty('filename', filename);
+        var isAdvanced = Boolean(advancedConfig);
         if (!configsPropertyDef) {
-          advancedConfigs.filterProperty('name', index).forEach(function (_advancedConfig) {
-            var isServiceInstalled = selectedServiceNames.contains(_advancedConfig.serviceName);
-            if (isServiceInstalled || _advancedConfig.serviceName == 'MISC') {
-              configsPropertyDef = _advancedConfig;
-            }
-          }, this);
+          configsPropertyDef = advancedConfig;
         }
 
         var serviceConfigObj = App.ServiceConfig.create({
@@ -329,15 +310,17 @@ App.config = Em.Object.create({
           value: properties[index],
           defaultValue: properties[index],
           filename: filename,
-          isUserProperty: false,
+          isUserProperty: !advancedConfig,
           isOverridable: true,
           isReconfigurable: true,
-          isRequired: advancedConfigs.someProperty('name', index),
+          isRequired: isAdvanced,
           isFinal: finalAttributes[index] === "true",
           defaultIsFinal: finalAttributes[index] === "true",
           showLabel: true,
           serviceName: serviceName,
-          belongsToService: []
+          belongsToService: [],
+          supportsFinal: advancedConfig ? Em.get(advancedConfig, 'supportsFinal') : false
+
         });
 
         if (configsPropertyDef) {
@@ -354,22 +337,22 @@ App.config = Em.Object.create({
         this.tweakConfigVisibility(serviceConfigObj, properties);
         if (!this.getBySiteName(serviceConfigObj.get('filename')).someProperty('name', index)) {
           if (configsPropertyDef) {
-            if (configsPropertyDef.isRequiredByAgent === false) {
+            if (Em.get(configsPropertyDef, 'isRequiredByAgent') === false) {
               continue;
             }
             this.handleSpecialProperties(serviceConfigObj);
           } else {
-            serviceConfigObj.displayType = stringUtils.isSingleLine(serviceConfigObj.value) ? 'advanced' : 'multiLine';
+            serviceConfigObj.set('displayType', stringUtils.isSingleLine(serviceConfigObj.get('value')) ? 'advanced' : 'multiLine');
           }
-
-          isAdvanced = advancedConfigs.filterProperty('name', index).someProperty('filename', filename);
-          serviceConfigObj.id = 'site property';
-          serviceConfigObj.displayName = configsPropertyDef && configsPropertyDef.displayName ? configsPropertyDef.displayName : index;
-          serviceConfigObj.options = configsPropertyDef ? configsPropertyDef.options : null;
-          serviceConfigObj.radioName = configsPropertyDef ? configsPropertyDef.radioName : null;
-          serviceConfigObj.serviceName = configsPropertyDef && configsPropertyDef.serviceName ? configsPropertyDef.serviceName : serviceName;
-          serviceConfigObj.belongsToService = configsPropertyDef && configsPropertyDef.belongsToService ? configsPropertyDef.belongsToService : [];
-          this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfigs);
+          serviceConfigObj.setProperties({
+            'id': 'site property',
+            'displayName': configsPropertyDef && Em.get(configsPropertyDef, 'displayName') ? Em.get(configsPropertyDef, 'displayName') : index,
+            'options': configsPropertyDef ? Em.get(configsPropertyDef, 'options') : null,
+            'radioName': configsPropertyDef ? Em.get(configsPropertyDef, 'radioName') : null,
+            'serviceName': configsPropertyDef && Em.get(configsPropertyDef, 'serviceName') ? Em.get(configsPropertyDef, 'serviceName') : serviceName,
+            'belongsToService': configsPropertyDef && Em.get(configsPropertyDef, 'belongsToService') ? Em.get(configsPropertyDef, 'belongsToService') : []
+          });
+          this.calculateConfigProperties(serviceConfigObj, isAdvanced, advancedConfig);
           this.setValueByDisplayType(serviceConfigObj);
           configs.push(serviceConfigObj);
         } else {
@@ -385,8 +368,8 @@ App.config = Em.Object.create({
 
   tweakConfigVisibility: function (config, allSiteConfigs) {
     var kdcType = allSiteConfigs['kdc_type'];
-    if (kdcType === 'active-directory' && (config.name === 'container_dn' || config.name === 'ldap_url')) {
-      config.isVisible = true;
+    if (kdcType === 'active-directory' && ['container_dn', 'ldap_url'].contains(Em.get(config, 'name'))) {
+      Em.set(config, 'isVisible', true);
     }
   },
 
@@ -416,21 +399,23 @@ App.config = Em.Object.create({
    * @param configsPropertyDef : Object
    */
   setServiceConfigUiAttributes: function (serviceConfigObj, configsPropertyDef) {
-    serviceConfigObj.displayType = configsPropertyDef.displayType;
-    serviceConfigObj.isRequired = (configsPropertyDef.isRequired !== undefined) ? configsPropertyDef.isRequired : true;
-    serviceConfigObj.isRequiredByAgent = (configsPropertyDef.isRequiredByAgent !== undefined) ? configsPropertyDef.isRequiredByAgent : true;
-    serviceConfigObj.isReconfigurable = (configsPropertyDef.isReconfigurable !== undefined) ? configsPropertyDef.isReconfigurable : true;
-    serviceConfigObj.isVisible = (configsPropertyDef.isVisible !== undefined) ? configsPropertyDef.isVisible : true;
-    serviceConfigObj.unit = (configsPropertyDef.unit !== undefined) ? configsPropertyDef.unit : undefined;
-    serviceConfigObj.description = (configsPropertyDef.description !== undefined) ? configsPropertyDef.description : undefined;
-    serviceConfigObj.isOverridable = configsPropertyDef.isOverridable === undefined ? true : configsPropertyDef.isOverridable;
-    serviceConfigObj.serviceName = configsPropertyDef ? configsPropertyDef.serviceName : null;
-    serviceConfigObj.index = configsPropertyDef.index;
-    serviceConfigObj.isSecureConfig = configsPropertyDef.isSecureConfig === undefined ? false : configsPropertyDef.isSecureConfig;
-    serviceConfigObj.belongsToService = configsPropertyDef.belongsToService;
-    serviceConfigObj.category = configsPropertyDef.category;
-    serviceConfigObj.showLabel = configsPropertyDef.showLabel !== false;
-    serviceConfigObj.dependentConfigPattern = configsPropertyDef.dependentConfigPattern
+    serviceConfigObj.setProperties({
+      'displayType': Em.get(configsPropertyDef, 'displayType'),
+      'isRequired': (Em.get(configsPropertyDef, 'isRequired') !== undefined) ? Em.get(configsPropertyDef, 'isRequired') : true,
+      'isRequiredByAgent': (Em.get(configsPropertyDef, 'isRequiredByAgent') !== undefined) ? Em.get(configsPropertyDef, 'isRequiredByAgent') : true,
+      'isReconfigurable': (Em.get(configsPropertyDef, 'isReconfigurable') !== undefined) ? Em.get(configsPropertyDef, 'isReconfigurable') : true,
+      'isVisible': (Em.get(configsPropertyDef, 'isVisible') !== undefined) ? Em.get(configsPropertyDef, 'isVisible') : true,
+      'unit': Em.get(configsPropertyDef, 'unit'),
+      'description': Em.get(configsPropertyDef, 'description'),
+      'isOverridable': Em.get(configsPropertyDef, 'isOverridable') === undefined ? true : Em.get(configsPropertyDef, 'isOverridable'),
+      'serviceName': configsPropertyDef ? Em.get(configsPropertyDef, 'serviceName') : serviceConfigObj.get('serviceName'),
+      'index': Em.get(configsPropertyDef, 'index'),
+      'isSecureConfig': Em.get(configsPropertyDef, 'isSecureConfig') === undefined ? false : Em.get(configsPropertyDef, 'isSecureConfig'),
+      'belongsToService': Em.get(configsPropertyDef, 'belongsToService'),
+      'category': Em.get(configsPropertyDef, 'category'),
+      'showLabel': Em.get(configsPropertyDef, 'showLabel') !== false,
+      'dependentConfigPattern': Em.get(configsPropertyDef, 'dependentConfigPattern')
+    });
   },
 
   /**
@@ -1074,7 +1059,6 @@ App.config = Em.Object.create({
 
   loadServiceConfigGroupOverridesSuccess: function (data, opt, params) {
     data.items.forEach(function (config) {
-      App.config.loadedConfigurationsCache[config.type + "_" + config.tag] = config.properties;
       var group = params.typeTagToGroupMap[config.type + "///" + config.tag];
       var properties = config.properties;
       for (var prop in properties) {
@@ -1289,8 +1273,8 @@ App.config = Em.Object.create({
     if (stored.category == 'Users and Groups') {
       configData.index = this.getOriginalConfigAttribute(stored, 'index', advancedConfigs);
     }
-
-    App.get('config').calculateConfigProperties(configData, isAdvanced, advancedConfigs);
+    var advancedConfig = advancedConfigs.filterProperty('name', stored.name).findProperty('filename', stored.filename);
+    App.get('config').calculateConfigProperties(configData, isAdvanced, advancedConfig);
     return configData;
   },
 

@@ -25,14 +25,11 @@ var App = require('app');
  * Chain:
  *    - loadClusterEnvSite
  *      |- (on success callback)
- *          loadServiceConfigs
- *            |- App.config.loadAdvancedConfig
- *                | - (on complete callback)
- *                    loadServiceConfigVersions
- *                      |- (on success callback)
- *                          loadSelectedVersion
- *                            |- (on complete callback)
- *                                loadServiceTagsAndGroups
+ *         loadServiceConfigVersions
+ *           |- (on success callback)
+ *              loadSelectedVersion
+ *                 |- (on complete callback)
+ *                    loadServiceTagsAndGroups
  * @type {Ember.Mixin}
  */
 App.PreloadRequestsChainMixin = Em.Mixin.create({
@@ -70,33 +67,7 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
     // find the latest tag version
     var maxVersion = Math.max.apply(this, data.items.mapProperty('version'));
     this.set('clusterEnvTagVersion', data.items.findProperty('version', maxVersion).tag);
-    this.loadServiceConfigs();
-  },
-
-  /**
-   * Loads service configurations
-   * @private
-   * @method loadServiceConfigs
-   */
-  loadServiceConfigs: function () {
-    var advancedConfigs = [];
-    var self = this;
-    var serviceName = this.get('content.serviceName');
-
-    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-    if (stackService) {
-      self.set('configTypesInfo', App.config.getConfigTypesInfoFromService(stackService));
-    }
-
-    this.trackRequest(App.config.loadAdvancedConfig(serviceName, function (properties, xhr) {
-      if (xhr.statusText === 'abort') return;
-      advancedConfigs.pushObjects(properties);
-      self.set('advancedConfigs', advancedConfigs);
-      self.trackRequest(App.config.loadClusterConfig(function(clusterProperties) {
-        self.get('advancedConfigs').pushObjects(clusterProperties);
-        self.trackRequest(self.loadServiceConfigVersions());
-      }));
-    }));
+    this.trackRequest(this.loadServiceConfigVersions());
   },
 
   /**
@@ -163,14 +134,17 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
     if (self.get('dataIsLoaded') && switchToGroup) {
       this.set('selectedConfigGroup', switchToGroup);
     }
-
+    var data = {
+      serviceName: this.get('content.serviceName'),
+      serviceConfigVersions: versions
+    };
+    if (App.get('supports.enhancedConfigs') && this.get('dependentServiceNames.length')) {
+      data.additionalParams = '|service_name.in(' +  this.get('dependentServiceNames') + ')&is_current=true';
+    }
     this.trackRequest(App.ajax.send({
       name: 'service.serviceConfigVersions.get.multiple',
       sender: this,
-      data: {
-        serviceName: this.get('content.serviceName'),
-        serviceConfigVersions: versions
-      },
+      data: data,
       success: 'loadSelectedVersionSuccess'
     }).complete(function (xhr) {
         if (xhr.statusText === 'abort') return;
@@ -194,7 +168,7 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
       sender: this,
       data: {
         serviceName: this.get('content.serviceName'),
-        urlParams: "&config_groups/ConfigGroup/tag.in(" + [this.get('content.serviceName')].concat(this.get('dependentServiceNames')).join(',')+ ')'
+        urlParams: "&config_groups/ConfigGroup/tag.in(" + this.get('servicesToLoad').join(',') + ')'
       },
       success: 'loadServiceConfigsSuccess'
     }));
@@ -209,9 +183,14 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
    * @method loadSelectedVersionSuccess
    */
   loadSelectedVersionSuccess: function (data, opt, params) {
-    var serviceConfigsDef = this.get('serviceConfigs').findProperty('serviceName', this.get('content.serviceName'));
+    var serviceConfigsDef = this.get('serviceConfigs').filter(function(serviceConfig) {
+      return this.get('servicesToLoad').contains(serviceConfig.get('serviceName'));
+    }, this);
     var siteToTagMap = {};
-    var configTypesRendered = Object.keys(serviceConfigsDef.get('configTypesRendered'));
+    var configTypesRendered = [];
+    serviceConfigsDef.forEach(function(s) {
+      configTypesRendered = configTypesRendered.concat(Object.keys(s.get('configTypesRendered')));
+    });
     var selectedVersion = params.serviceConfigVersions.length > 1 ? params.serviceConfigVersions[1] : params.serviceConfigVersions[0];
     var configurations = [];
 
@@ -222,7 +201,7 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
           configurations = item.configurations;
           if (item.configurations.someProperty('type', siteName)) {
             siteToTagMap[siteName] = item.configurations.findProperty('type', siteName).tag;
-          } else {
+          } else if (!siteToTagMap[siteName]) {
             siteToTagMap[siteName] = 'version1';
           }
         } else {
@@ -320,6 +299,12 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
             service: App.Service.find().findProperty('serviceName', item.tag),
             hosts: item.hosts.mapProperty('host_name')
           });
+          item.desired_configs.forEach(function (config) {
+            newDependentConfigGroup.configSiteTags.push(App.ConfigSiteTag.create({
+              site: config.type,
+              tag: config.tag
+            }));
+          }, this);
           if (!this.get('dependentConfigGroups').findProperty('name', item.group_name)) {
             this.get('dependentConfigGroups').push(newDependentConfigGroup);
           }

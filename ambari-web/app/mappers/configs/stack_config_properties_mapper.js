@@ -25,6 +25,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     display_name: 'StackConfigurations.property_display_name',
     file_name: 'StackConfigurations.type',
     description: 'StackConfigurations.property_description',
+    value: 'StackConfigurations.property_value',
     default_value: 'StackConfigurations.property_value',
     type: 'StackConfigurations.property_type',
     service_name: 'StackConfigurations.service_name',
@@ -32,11 +33,13 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     stack_version: 'StackConfigurations.stack_version',
     property_depended_by: 'StackConfigurations.property_depended_by',
     value_attributes: 'StackConfigurations.property_value_attributes',
+    is_final: 'default_is_final',
     default_is_final: 'default_is_final',
     supports_final: 'supports_final',
-    widget: 'widget'
-    //display_type: 'display_type', //not used for now
-    //category_name: 'category_name' //not used for now
+    widget: 'widget',
+    /**** ui properties ***/
+    display_type: 'display_type',
+    category: 'category'
   },
 
   map: function (json) {
@@ -56,20 +59,21 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
            * for now is not used; uncomment in will be needed
            * this.mergeWithUI(config);
            */
+          this.mergeWithUI(config);
           configs.push(this.parseIt(config, this.get('config')));
         }, this);
       }, this);
       App.store.loadMany(this.get('model'), configs);
     }
     console.timeEnd('stackConfigMapper execution time');
-  }
+  },
 
   /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI (NOT USED FOR NOW)*********************************/
 
   /**
    * configs that are stored on UI
    * @type {Object[]};
-   *
+   */
   preDefinedSiteProperties: function () {
     var file = App.get('isHadoop22Stack') ? require('data/HDP2.2/site_properties') : require('data/HDP2/site_properties');
     return file.configProperties;
@@ -80,10 +84,11 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * if there is such property - adds some info to config object
    * @param {Object} config
    * @method mergeWithUI
-   *
+   */
   mergeWithUI: function(config) {
     var uiConfigProperty = this.getUIConfig(config.StackConfigurations.property_name, config.StackConfigurations.type);
-    config.category_name = uiConfigProperty ? uiConfigProperty.category : 'General';
+    config.display_name = uiConfigProperty ? uiConfigProperty.displayName : config.StackConfigurations.display_name;
+    config.category = uiConfigProperty ? uiConfigProperty.category : 'Advanced ' + App.config.getConfigTagFromFileName(config.StackConfigurations.type);
     config.display_type = uiConfigProperty ? uiConfigProperty.displayType : 'string';
   },
 
@@ -94,8 +99,8 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @param siteName
    * @returns {Object|null}
    * @method getUIConfig
-   *
+   */
   getUIConfig: function(propertyName, siteName) {
     return this.get('preDefinedSiteProperties').filterProperty('filename', siteName).findProperty('name', propertyName);
-  }*/
+  }
 });

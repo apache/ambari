@@ -44,6 +44,14 @@ App.StackConfigProperty = DS.Model.extend({
   fileName: DS.attr('string'),
 
   /**
+   * same as fileName
+   * @property {string}
+   */
+  filename: function() {
+    return this.get('fileName');
+  }.property('fileName'),
+
+  /**
    * description of config property meaning
    * @property {string}
    */
@@ -73,20 +81,6 @@ App.StackConfigProperty = DS.Model.extend({
    * @property {string[]}
    */
   type: DS.attr('array', {defaultValue: []}),
-
-  /**
-   * defines what kind of value this property contains
-   * ex: string, digits, number, directories, custom
-   * @property {string}
-   */
-  displayType: DS.attr('string', {defaultValue: 'string'}),
-
-  /**
-   * defines category name of property
-   * used for advanced tab
-   * @property {string}
-   */
-  categoryName: DS.attr('string'),
 
   /**
    * service name
@@ -153,8 +147,35 @@ App.StackConfigProperty = DS.Model.extend({
    * sub section to which belongs this property
    * @property {App.SubSection}
    */
-  subSection: DS.belongsTo('App.SubSection')
+  subSection: DS.belongsTo('App.SubSection'),
 
+  /******************************* UI properties ****************************************/
+
+  /**
+   * defines what kind of value this property contains
+   * ex: string, digits, number, directories, custom
+   * @property {string}
+   */
+  displayType: DS.attr('string', {defaultValue: 'string'}),
+
+  /**
+   * defines category name of property
+   * used for advanced tab
+   * @property {string}
+   */
+  category: DS.attr('string'),
+
+  /**
+   * config property value same as default
+   * @property {string}
+   */
+  value: DS.attr('string'),
+
+  /**
+   * config property isFinal value same as defaultIsFinal
+   * @property {boolean}
+   */
+  isFinal: DS.attr('boolean', {defaultValue: false})
 });
 
 

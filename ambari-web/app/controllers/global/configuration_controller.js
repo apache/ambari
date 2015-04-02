@@ -107,7 +107,6 @@ App.ConfigurationController = Em.Controller.extend({
     App.config.loadConfigsByTags(tags).done(function (data) {
       if (data.items) {
         data.items.forEach(function (item) {
-          App.config.loadedConfigurationsCache[item.type + "_" + item.tag] = item.properties;
           loadedConfigs.push(item);
         });
       }

@@ -74,45 +74,6 @@ describe('App.config', function () {
     });
   });
 
-  describe('#capacitySchedulerFilter', function() {
-    var testMessage = 'filter should {0} detect `{1}` property';
-    describe('Stack version >= 2.0', function() {
-      before(function() {
-        setups.setupStackVersion(this, 'HDP-2.1');
-      });
-      var tests = [
-        {
-          config: {
-            name: 'yarn.scheduler.capacity.maximum-am-resource-percent'
-          },
-          e: false
-        },
-        {
-          config: {
-            name: 'yarn.scheduler.capacity.root.capacity'
-          },
-          e: false
-        },
-        {
-          config: {
-            name: 'yarn.scheduler.capacity.root.default.capacity'
-          },
-          e: true
-        }
-      ];
-
-      tests.forEach(function(test){
-        it(testMessage.format( !!test.e ? '' : 'not', test.config.name), function() {
-          expect(App.config.get('capacitySchedulerFilter')(test.config)).to.eql(test.e);
-        });
-      });
-      after(function() {
-        setups.restoreStackVersion(this);
-      })
-    });
-
-  });
-
   describe('#fileConfigsIntoTextarea', function () {
     var filename = 'capacity-scheduler.xml';
     var configs = [
