@@ -47,17 +47,26 @@
     <div class="ambari-agents">
       <h5>{{t installer.step2.sshKey}}</h5>
 
-      {{#if isSSHRegistrationEnabled}}
-        <label class="radio">
-          {{view view.providingSSHKeyRadioButton}}
+      <label class="radio">
+        {{view view.providingSSHKeyRadioButton}}
+        {{#if useSSH}}
           {{t installer.step2.useSsh.provide}}
           <a href="javascript:void(null)"
              rel="popover"
             {{translateAttr title="installer.step2.useSsh.tooltip.title" data-content="installer.step2.useSsh.tooltip.content"}}>
             {{t installer.step2.useSsh.tooltip.title}}</a>
           {{t installer.step2.useSsh.provide_id_rsa}}
-        </label>
+        {{else}}
+          {{t installer.step2.install.perform}}
+          <a href="javascript:void(null)"
+             rel="popover"
+            {{translateAttr title="installer.step2.automaticInstall.tooltip.title" data-content="installer.step2.automaticInstall.tooltip.content"}}>
+            {{t installer.step2.automaticInstall.tooltip.title}}</a>
+          {{t installer.step2.install.perform_on_hosts}}
+        {{/if}}
+      </label>
 
+      {{#if useSSH}}
         <div class="ssh-key-input">
           {{#if view.isFileApi}}
             {{view App.SshKeyFileUploader disabledBinding="view.sshKeyState"}}
@@ -101,12 +110,22 @@
 
       <label class="radio">
         {{view view.manualRegistrationRadioButton}}
-        {{t installer.step2.manualInstall.perform}}
-        <a href="javascript:void(null)"
-           rel="popover"
-          {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
-          {{t installer.step2.manualInstall.tooltip.title}}</a>
-        {{t installer.step2.manualInstall.perform_on_hosts}}
+        {{t installer.step2.install.perform}}
+        {{#if useSSH}}
+          <a href="javascript:void(null)"
+             rel="popover"
+            {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content"}}>
+            {{t installer.step2.manualInstall.tooltip.title}}</a>
+        {{else}}
+          <a href="javascript:void(null)"
+             rel="popover"
+            {{translateAttr title="installer.step2.manualInstall.tooltip.title" data-content="installer.step2.manualInstall.tooltip.content_no_ssh"}}>
+            {{t installer.step2.manualInstall.tooltip.title}}</a>
+        {{/if}}
+        {{t installer.step2.install.perform_on_hosts}}
+        {{#if useSSH}}
+          {{t installer.step2.install.without_ssh}}
+        {{/if}}
       </label>
 
     </div>

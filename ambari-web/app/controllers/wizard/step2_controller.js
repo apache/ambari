@@ -121,7 +121,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    */
   hostsError: null,
 
-  isSSHRegistrationEnabled: function () {
+  useSSH: function () {
     return !App.get('isHadoopWindowsStack');
   }.property('App.isHadoopWindowsStack'),
 
@@ -130,22 +130,22 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @type {string|null}
    */
   sshKeyError: function () {
-    if (this.get('hasSubmitted') && this.get('manualInstall') === false && Em.isEmpty(this.get('sshKey').trim())) {
+    if (this.get('hasSubmitted') && this.get('manualInstall') === false && this.get('useSSH') && Em.isEmpty(this.get('sshKey').trim())) {
       return Em.I18n.t('installer.step2.sshKey.error.required');
     }
     return null;
-  }.property('sshKey', 'manualInstall', 'hasSubmitted'),
+  }.property('sshKey', 'useSSH', 'manualInstall', 'hasSubmitted'),
 
   /**
    * Error-message if <code>sshUser</code> is empty, null otherwise
    * @type {string|null}
    */
   sshUserError: function () {
-    if (this.get('manualInstall') === false && Em.isEmpty(this.get('sshUser').trim())) {
+    if (this.get('manualInstall') === false && this.get('useSSH') && Em.isEmpty(this.get('sshUser').trim())) {
       return Em.I18n.t('installer.step2.sshUser.required');
     }
     return null;
-  }.property('sshUser', 'hasSubmitted', 'manualInstall'),
+  }.property('sshUser', 'useSSH', 'hasSubmitted', 'manualInstall'),
 
   /**
    * Error-message if <code>agentUser</code> is empty, null otherwise
@@ -469,7 +469,7 @@ App.WizardStep2Controller = Em.Controller.extend({
    * @method manualInstallWarningPopup
    */
   manualInstallWarningPopup: function () {
-    if (this.get('isSSHRegistrationEnabled') && !this.get('content.installOptions.useSsh')) {
+    if (!this.get('content.installOptions.useSsh')) {
       App.ModalPopup.show({
         header: Em.I18n.t('common.warning'),
         body: Em.I18n.t('installer.step2.manualInstall.info'),

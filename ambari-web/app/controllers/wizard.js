@@ -534,8 +534,8 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
 
   installWindowsOptionsTemplate: {
     hostNames: "", //string
-    manualInstall: true, //true, false
-    useSsh: false, //bool
+    manualInstall: false, //true, false
+    useSsh: true, //bool
     javaHome: App.defaultJavaHome, //string
     localRepo: false, //true, false
     sshKey: "", //string
