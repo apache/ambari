@@ -206,7 +206,7 @@ App.Decommissionable = Em.Mixin.create({
   getDecommissionStatusSuccessCallback: function (response) {
     var statusObject = response.ServiceComponentInfo;
     if ( statusObject != null) {
-      statusObject.component_state = response.host_components[0].HostRoles.desired_state;
+      statusObject.component_state = response.host_components[0].HostRoles.state;
       this.setDecommissionStatus(statusObject);
       return statusObject;
     }

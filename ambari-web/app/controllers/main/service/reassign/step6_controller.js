@@ -179,7 +179,7 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     data.context = "Stop required services";
     data.hostName = this.get('content.reassignHosts.source');
     data.serviceName = 'HIVE';
-    data.HostRoles = { "desired_state": "INSTALLED" };
+    data.HostRoles = { "state": "INSTALLED" };
     data.componentName = "MYSQL_SERVER";
 
     App.ajax.send({

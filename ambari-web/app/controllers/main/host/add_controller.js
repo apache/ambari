@@ -402,7 +402,7 @@ App.AddHostController = App.WizardController.extend({
       data: {
         "context": Em.I18n.t('requestInfo.installComponents'),
         "query": "HostRoles/host_name.in(" + hostNames.join(',') + ")",
-        "HostRoles": {"desired_state": "INSTALLED"},
+        "HostRoles": {"state": "INSTALLED"},
         "level": "HOST_COMPONENT"
       },
       success: 'installServicesSuccessCallback',

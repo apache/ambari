@@ -44,7 +44,7 @@ describe('App.AddServiceController', function() {
       },
       Body: {
         HostRoles: {
-          desired_state: 'INSTALLED'
+          state: 'INSTALLED'
         }
       }
     };

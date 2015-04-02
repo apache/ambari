@@ -96,7 +96,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       {
         callParams: ['ZOOKEEPER_SERVER', 'host1', 'ZOOKEEPER', 'Install', 1],
         e: [
-          { key: 'data.HostRoles.desired_state', value: 'INSTALLED'},
+          { key: 'data.HostRoles.state', value: 'INSTALLED'},
           { key: 'data.hostName[0]', value: 'host1'},
           { key: 'data.query', value: 'HostRoles/component_name=ZOOKEEPER_SERVER&HostRoles/host_name.in(host1)&HostRoles/maintenance_state=OFF'}
         ]
@@ -104,7 +104,7 @@ describe('App.wizardProgressPageControllerMixin', function() {
       {
         callParams: ['ZOOKEEPER_SERVER', ['host1', 'host2'], 'ZOOKEEPER', 'start', 1],
         e: [
-          { key: 'data.HostRoles.desired_state', value: 'STARTED'},
+          { key: 'data.HostRoles.state', value: 'STARTED'},
           { key: 'data.hostName[0]', value: 'host1'},
           { key: 'data.hostName[1]', value: 'host2'},
           { key: 'data.query', value: 'HostRoles/component_name=ZOOKEEPER_SERVER&HostRoles/host_name.in(host1,host2)&HostRoles/maintenance_state=OFF'}

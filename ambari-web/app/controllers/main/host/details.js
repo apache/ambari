@@ -126,7 +126,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       context: context,
       component: component,
       HostRoles: {
-        desired_state: state
+        state: state
       }
     };
     if (Array.isArray(component)) {
@@ -152,11 +152,11 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method stopComponentSuccessCallback
    */
   sendComponentCommandSuccessCallback: function (data, opt, params) {
-    var running = (params.HostRoles.desired_state === App.HostComponentStatus.stopped) ? App.HostComponentStatus.stopping : App.HostComponentStatus.starting;
+    var running = (params.HostRoles.state === App.HostComponentStatus.stopped) ? App.HostComponentStatus.stopping : App.HostComponentStatus.starting;
     console.log('Send request for ' + running + ' successfully');
     params.component.set('workStatus', running);
     if (App.get('testMode')) {
-      this.mimicWorkStatusChange(params.component, running, params.HostRoles.desired_state);
+      this.mimicWorkStatusChange(params.component, running, params.HostRoles.state);
     }
     this.showBackgroundOperationsPopup();
   },
@@ -380,7 +380,7 @@ App.MainHostDetailsController = Em.Controller.extend({
             Body: {
               HostRoles: {
                 stack_id: 'HDP-1.2.2',
-                desired_state: 'INSTALLED'
+                state: 'INSTALLED'
               }
             }
           })
@@ -1060,7 +1060,7 @@ App.MainHostDetailsController = Em.Controller.extend({
             component: component,
             context: Em.I18n.t('requestInfo.installHostComponent') + " " + displayName,
             HostRoles: {
-              desired_state: 'INSTALLED'
+              state: 'INSTALLED'
             }
           },
           success: 'installComponentSuccessCallback',
@@ -1311,7 +1311,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           },
           "Body": {
             HostRoles: {
-              desired_state: "INSTALLED"
+              state: "INSTALLED"
             }
           }
         }
@@ -1447,7 +1447,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           },
           "Body": {
             HostRoles: {
-              desired_state: "STARTED"
+              state: "STARTED"
             }
           }
         }

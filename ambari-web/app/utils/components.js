@@ -68,7 +68,7 @@ module.exports = {
         component: params.component,
         "context": Em.I18n.t('requestInfo.installNewHostComponent') + " " + params.component.get('displayName'),
         HostRoles: {
-          desired_state: 'INSTALLED'
+          state: 'INSTALLED'
         },
         urlParams: "HostRoles/state=INIT"
       },

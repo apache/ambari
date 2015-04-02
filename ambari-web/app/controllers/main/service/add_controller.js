@@ -578,7 +578,7 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
               query: queryStr,
               context: 'Install ' + App.format.role(c.componentName),
               HostRoles: {
-                desired_state: 'INSTALLED'
+                state: 'INSTALLED'
               },
               counter: k,
               deferred: dfd
