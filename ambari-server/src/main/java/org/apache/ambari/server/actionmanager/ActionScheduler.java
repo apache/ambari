@@ -579,6 +579,9 @@ class ActionScheduler implements Runnable {
           // Abort the command itself
           // We don't need to send CANCEL_COMMANDs in this case
           db.abortHostRole(host, s.getRequestId(), s.getStageId(), c.getRole(), message);
+          if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
+            processActionDeath(cluster.getClusterName(), c.getHostname(), roleStr);
+          }
           status = HostRoleStatus.ABORTED;
         } else if (timeOutActionNeeded(status, s, hostObj, roleStr, now, commandTimeout)) {
           // Process command timeouts
@@ -591,6 +594,9 @@ class ActionScheduler implements Runnable {
 
             if (null != cluster) {
               transitionToFailedState(cluster.getClusterName(), c.getServiceName(), roleStr, host, now, false);
+              if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
+                processActionDeath(cluster.getClusterName(), c.getHostname(), roleStr);
+              }
             }
 
             // Dequeue command
@@ -628,7 +634,13 @@ class ActionScheduler implements Runnable {
       for(ExecutionCommandWrapper wrapper : commandWrappers) {
         ExecutionCommand c = wrapper.getExecutionCommand();
         transitionToFailedState(stage.getClusterName(), c.getServiceName(),
-          c.getRole(), hostName, now, true);
+                c.getRole(), hostName, now, true);
+        if (c.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
+          String clusterName = c.getClusterName();
+          processActionDeath(clusterName,
+                  c.getHostname(),
+                  c.getRole());
+        }
       }
     }
     db.abortOperation(stage.getRequestId());
@@ -889,20 +901,33 @@ class ActionScheduler implements Runnable {
       // If host role is an Action, we have to send an event
       if (hostRoleCommand.getRoleCommand().equals(RoleCommand.ACTIONEXECUTE)) {
         String clusterName = hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getClusterName();
-        try {
-          // Usually clusterId is defined (except the awkward case when
-          // "Distribute repositories/install packages" action has been issued
-          // against a concrete host without binding to a cluster)
-          Long clusterId = clusterName != null ?
-                  fsmObject.getCluster(clusterName).getClusterId() : null;
-          ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
-                  clusterId, hostRoleCommand.getHostName(), null,
-                  hostRoleCommand.getRole().name());
-          ambariEventPublisher.publish(event);
-        } catch (AmbariException e) {
-          LOG.error(String.format("Can not get cluster %s", clusterName), e);
-        }
+        processActionDeath(clusterName,
+                hostRoleCommand.getHostName(),
+                hostRoleCommand.getRole().name());
       }
+    }
+  }
+
+
+  /**
+   * Attempts to process kill/timeout/abort of action and send
+   * appropriate event to all listeners
+   */
+  private void processActionDeath(String clusterName,
+                                  String hostname,
+                                  String role) {
+    try {
+      // Usually clusterId is defined (except the awkward case when
+      // "Distribute repositories/install packages" action has been issued
+      // against a concrete host without binding to a cluster)
+      Long clusterId = clusterName != null ?
+              fsmObject.getCluster(clusterName).getClusterId() : null;
+      ActionFinalReportReceivedEvent event = new ActionFinalReportReceivedEvent(
+              clusterId, hostname, null,
+              role);
+      ambariEventPublisher.publish(event);
+    } catch (AmbariException e) {
+      LOG.error(String.format("Can not get cluster %s", clusterName), e);
     }
   }
 
