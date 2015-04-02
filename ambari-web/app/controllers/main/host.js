@@ -643,7 +643,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
         data: {
           query: query,
           HostRoles: {
-            state: operationData.action
+            desired_state: operationData.action
           },
           context: operationData.message,
           hostName: hostNames
@@ -751,7 +751,7 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           sender: self,
           data: {
             HostRoles: {
-              state: operationData.action
+              desired_state: operationData.action
             },
             query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + hostsWithComponentInProperState.join(',') + ')&HostRoles/maintenance_state=OFF',
             context: operationData.message + ' ' + operationData.componentNameFormatted,

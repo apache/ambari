@@ -491,7 +491,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
       sender: this,
       data: {
         HostRoles: {
-          state: state
+          desired_state: state
         },
         query: 'HostRoles/component_name=' + componentName + '&HostRoles/host_name.in(' + hostName.join(',') + ')&HostRoles/maintenance_state=OFF',
         context: context + " " + App.format.role(componentName),

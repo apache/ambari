@@ -110,7 +110,7 @@ describe('App.MainHostDetailsController', function () {
           componentName: 'COMP1'
         }),
         "HostRoles": {
-          "state": "state"
+          "desired_state": "state"
         },
         "componentName": "COMP1",
         "serviceName": "S1"
@@ -145,7 +145,7 @@ describe('App.MainHostDetailsController', function () {
           })
         ],
         "HostRoles": {
-          "state": "state"
+          "desired_state": "state"
         },
         "query": "HostRoles/component_name.in(COMP1,COMP2)"
       });
@@ -165,7 +165,7 @@ describe('App.MainHostDetailsController', function () {
       var params = {
         component: Em.Object.create({}),
         HostRoles: {
-          state: App.HostComponentStatus.started
+          desired_state: App.HostComponentStatus.started
         }
       };
 
@@ -180,7 +180,7 @@ describe('App.MainHostDetailsController', function () {
       var params = {
         component: Em.Object.create({}),
         HostRoles: {
-          state: App.HostComponentStatus.stopped
+          desired_state: App.HostComponentStatus.stopped
         }
       };
 
@@ -195,7 +195,7 @@ describe('App.MainHostDetailsController', function () {
       var params = {
         component: Em.Object.create({}),
         HostRoles: {
-          state: App.HostComponentStatus.stopped
+          desired_state: App.HostComponentStatus.stopped
         }
       };
 

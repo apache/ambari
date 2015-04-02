@@ -920,7 +920,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         serviceName: "HIVE",
         componentName: "MYSQL_SERVER",
         HostRoles: {
-          state: "STARTED"
+          desired_state: "STARTED"
         }
       },
       success: 'startPolling',
@@ -938,7 +938,7 @@ App.ReassignMasterWizardStep4Controller = App.HighAvailabilityProgressPageContro
         serviceName: "HIVE",
         componentName: "MYSQL_SERVER",
         HostRoles: {
-          state: "STARTED"
+          desired_state: "STARTED"
         }
       },
       success: 'startPolling',

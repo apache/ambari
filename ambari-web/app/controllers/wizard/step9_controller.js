@@ -477,7 +477,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         data = {
           "context": Em.I18n.t("requestInfo.startHostComponents"),
           "query": "HostRoles/component_name.in(" + App.get('components.slaves').join(',') + ")&HostRoles/state=INSTALLED&HostRoles/host_name.in(" + hostnames.join(',') + ")",
-          "HostRoles": { "state": "STARTED"}
+          "HostRoles": { "desired_state": "STARTED"}
         };
         break;
       case 'addServiceController':
