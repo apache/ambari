@@ -60,7 +60,7 @@ public class StackConfigurationResponse {
    * @param dependedByProperties depended by properties set
    */
   public StackConfigurationResponse(String propertyName, String propertyValue,
-                                    String propertyDescription, String type,
+                                    String propertyDescription, String propertyDisplayName, String type,
                                     Boolean isRequired,
                                     Set<PropertyType> propertyTypes,
                                     Map<String, String> propertyAttributes,
@@ -70,6 +70,7 @@ public class StackConfigurationResponse {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
+    setPropertyDisplayName(propertyDisplayName);
     setType(type);
     setRequired(isRequired);
     setPropertyType(propertyTypes);
@@ -85,6 +86,7 @@ public class StackConfigurationResponse {
   private String propertyName;
   private String propertyValue;
   private String propertyDescription;
+  private String propertyDisplayName;
   private String type;
   private Map<String, String> propertyAttributes;
   private ValueAttributesInfo propertyValueAttributes;
@@ -139,6 +141,14 @@ public class StackConfigurationResponse {
 
   public void setPropertyDescription(String propertyDescription) {
     this.propertyDescription = propertyDescription;
+  }
+
+  public String getPropertyDisplayName() {
+    return propertyDisplayName;
+  }
+
+  public void setPropertyDisplayName(String propertyDisplayName) {
+    this.propertyDisplayName = propertyDisplayName;
   }
 
   /**

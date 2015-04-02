@@ -115,15 +115,6 @@ limitations under the License.
     <name>hive.security.authorization.enabled</name>
     <value>false</value>
     <description>enable or disable the hive client authorization</description>
-    <display-name>Enable Authorization</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>
@@ -156,15 +147,6 @@ limitations under the License.
       submitted the query. But if the parameter is set to false, the query will run as the user that the hiveserver2
       process runs as.
     </description>
-    <display-name>Run as end user instead of Hive user</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>
@@ -177,19 +159,6 @@ limitations under the License.
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
-    <display-name>HiveServer2 Authentication</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>NONE</entries>
-      <entries>LDAP</entries>
-      <entries>KERBEROS</entries>
-      <entries>PAM</entries>
-      <entry_labels>None</entry_labels>
-      <entry_labels>Lightweight Directory Access Protocol</entry_labels>
-      <entry_labels>Kerberos</entry_labels>
-      <entry_labels>Pluggable Authentication Modules</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>
@@ -208,15 +177,6 @@ limitations under the License.
     <name>hive.enforce.bucketing</name>
     <value>true</value>
     <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
-    <display-name>Enforce bucketing</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>
@@ -334,15 +294,6 @@ limitations under the License.
     <value>true</value>
     <description>This flag controls the vectorized mode of query execution as documented in HIVE-4160 (as of Hive 0.13.0)
     </description>
-    <display-name>Enable Vectorization and Map Vectorization</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>
@@ -358,15 +309,6 @@ limitations under the License.
     <description>
     Whether to enable automatic use of indexes
     </description>
-    <display-name>Push Filters to Storage</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>

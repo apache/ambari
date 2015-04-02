@@ -18,12 +18,17 @@
 
 package org.apache.ambari.server.state;
 
+import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElementWrapper;
+import javax.xml.bind.annotation.XmlElements;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 
 @XmlAccessorType(XmlAccessType.FIELD)
 @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
@@ -32,18 +37,16 @@ public class ValueAttributesInfo {
   private String maximum;
   private String minimum;
   private String unit;
-  private String[] entries;
 
-  @XmlElement(name = "entry_labels")
-  private String[] entryLabels;
-
-  @XmlElement(name = "entry_descriptions")
-  private String[] entryDescriptions;
+  @XmlElementWrapper(name = "entries")
+  @XmlElements(@XmlElement(name = "entry"))
+  private Collection<ValueEntryInfo> entries = new ArrayList<ValueEntryInfo>();
 
   @XmlElement(name = "entries_editable")
   private Boolean entriesEditable;
 
-  @XmlElement(name = "selection_cardinality")
+  @XmlElement(name = "selection-cardinality")
+  @JsonProperty("selection_cardinality")
   private String selectionCardinality;
 
   public ValueAttributesInfo() {
@@ -82,28 +85,12 @@ public class ValueAttributesInfo {
     this.unit = unit;
   }
 
-  public String[] getEntries() {
+  public Collection<ValueEntryInfo> getEntries() {
     return entries;
   }
 
-  public void setEntries(String[] entries) {
+  public void setEntries(Collection<ValueEntryInfo> entries) {
     this.entries = entries;
-  }
-
-  public String[] getEntryLabels() {
-    return entryLabels;
-  }
-
-  public void setEntryLabels(String[] entryLabels) {
-    this.entryLabels = entryLabels;
-  }
-
-  public String[] getEntryDescriptions() {
-    return entryDescriptions;
-  }
-
-  public void setEntryDescriptions(String[] entryDescriptions) {
-    this.entryDescriptions = entryDescriptions;
   }
 
   public Boolean getEntriesEditable() {
@@ -129,22 +116,15 @@ public class ValueAttributesInfo {
 
     ValueAttributesInfo that = (ValueAttributesInfo) o;
 
-    if (!Arrays.equals(entries, that.entries)) return false;
+    if (entries != null ? !entries.equals(that.entries) : that.entries != null) return false;
     if (entriesEditable != null ? !entriesEditable.equals(that.entriesEditable) : that.entriesEditable != null)
       return false;
-    if (!Arrays.equals(entryDescriptions, that.entryDescriptions))
-      return false;
-    if (!Arrays.equals(entryLabels, that.entryLabels)) return false;
-    if (maximum != null ? !maximum.equals(that.maximum) : that.maximum != null)
-      return false;
-    if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null)
-      return false;
+    if (maximum != null ? !maximum.equals(that.maximum) : that.maximum != null) return false;
+    if (minimum != null ? !minimum.equals(that.minimum) : that.minimum != null) return false;
     if (selectionCardinality != null ? !selectionCardinality.equals(that.selectionCardinality) : that.selectionCardinality != null)
       return false;
-    if (type != null ? !type.equals(that.type) : that.type != null)
-      return false;
-    if (unit != null ? !unit.equals(that.unit) : that.unit != null)
-      return false;
+    if (type != null ? !type.equals(that.type) : that.type != null) return false;
+    if (unit != null ? !unit.equals(that.unit) : that.unit != null) return false;
 
     return true;
   }
@@ -155,9 +135,7 @@ public class ValueAttributesInfo {
     result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
     result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
     result = 31 * result + (unit != null ? unit.hashCode() : 0);
-    result = 31 * result + (entries != null ? Arrays.hashCode(entries) : 0);
-    result = 31 * result + (entryLabels != null ? Arrays.hashCode(entryLabels) : 0);
-    result = 31 * result + (entryDescriptions != null ? Arrays.hashCode(entryDescriptions) : 0);
+    result = 31 * result + (entries != null ? entries.hashCode() : 0);
     result = 31 * result + (entriesEditable != null ? entriesEditable.hashCode() : 0);
     result = 31 * result + (selectionCardinality != null ? selectionCardinality.hashCode() : 0);
     return result;
@@ -166,16 +144,14 @@ public class ValueAttributesInfo {
   @Override
   public String toString() {
     return "ValueAttributesInfo{" +
-        "type='" + type + '\'' +
-        ", maximum=" + maximum +
-        ", minimum=" + minimum +
-        ", unit='" + unit + '\'' +
-        ", entries=" + Arrays.toString(entries) +
-        ", entryLabels=" + Arrays.toString(entryLabels) +
-        ", entryDescriptions=" + Arrays.toString(entryDescriptions) +
-        ", entriesEditable=" + entriesEditable +
-        ", selectionCardinality='" + selectionCardinality + '\'' +
-        '}';
+      "entries=" + entries +
+      ", type='" + type + '\'' +
+      ", maximum='" + maximum + '\'' +
+      ", minimum='" + minimum + '\'' +
+      ", unit='" + unit + '\'' +
+      ", entriesEditable=" + entriesEditable +
+      ", selectionCardinality='" + selectionCardinality + '\'' +
+      '}';
   }
 }
 

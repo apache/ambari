@@ -236,6 +236,7 @@
         "StackConfigurations/property_depends_on",
         "StackConfigurations/property_depended_by",
         "StackConfigurations/property_description",
+        "StackConfigurations/property_display_name",
         "StackConfigurations/type",
         "StackConfigurations/final",
         "StackConfigurations/adding_forbidden",

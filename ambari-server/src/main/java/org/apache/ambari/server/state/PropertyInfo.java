@@ -22,6 +22,8 @@ package org.apache.ambari.server.state;
 import org.apache.ambari.server.controller.StackConfigurationResponse;
 import org.w3c.dom.Element;
 
+import javax.xml.bind.annotation.XmlAccessType;
+import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
@@ -35,14 +37,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@XmlAccessorType(XmlAccessType.FIELD)
 public class PropertyInfo {
   private String name;
   private String value;
   private String description;
+
+  @XmlElement(name = "display-name")
+  private String displayName;
+
   private String filename;
   private boolean deleted;
+
+  @XmlAttribute(name = "require-input")
   private boolean requireInput;
-  
+
+  @XmlElement(name = "property-type")
+  @XmlList
   private Set<PropertyType> propertyTypes = new HashSet<PropertyType>();
 
   @XmlAnyElement
@@ -89,6 +100,14 @@ public class PropertyInfo {
     this.description = description;
   }
 
+  public String getDisplayName() {
+    return displayName;
+  }
+
+  public void setDisplayName(String displayName) {
+    this.displayName = displayName;
+  }
+
   public String getFilename() {
     return filename;
   }
@@ -97,8 +116,6 @@ public class PropertyInfo {
     this.filename = filename;
   }
   
-  @XmlElement(name = "property-type")
-  @XmlList
   public Set<PropertyType> getPropertyTypes() {
     return propertyTypes;
   }
@@ -109,7 +126,7 @@ public class PropertyInfo {
   
   public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(),
-      getDescription() , getFilename(), isRequireInput(), getPropertyTypes(),
+      getDescription(), getDisplayName() , getFilename(), isRequireInput(), getPropertyTypes(),
       getAttributesMap(), getPropertyValueAttributes(),
       getDependsOnProperties(), getDependedByProperties());
   }
@@ -142,7 +159,6 @@ public class PropertyInfo {
     return dependedByProperties;
   }
 
-  @XmlAttribute(name = "require-input")
   public boolean isRequireInput() {
     return requireInput;
   }

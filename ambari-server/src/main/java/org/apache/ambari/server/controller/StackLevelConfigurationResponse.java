@@ -29,13 +29,13 @@ import org.apache.ambari.server.state.ValueAttributesInfo;
 
 public class StackLevelConfigurationResponse extends StackConfigurationResponse {
   public StackLevelConfigurationResponse(String propertyName,
-      String propertyValue, String propertyDescription, String type,
+      String propertyValue, String propertyDescription, String propertyDisplayName, String type,
       Boolean isRequired, Set<PropertyType> propertyTypes,
       Map<String, String> propertyAttributes,
       ValueAttributesInfo propertyValueAttributes,
       Set<PropertyDependencyInfo> dependsOnProperties,
       Set<PropertyDependencyInfo> dependedByProperties) {
-    super(propertyName, propertyValue, propertyDescription, type, isRequired,
+    super(propertyName, propertyValue, propertyDescription, propertyDisplayName, type, isRequired,
         propertyTypes, propertyAttributes, propertyValueAttributes,
         dependsOnProperties, dependedByProperties);
   }

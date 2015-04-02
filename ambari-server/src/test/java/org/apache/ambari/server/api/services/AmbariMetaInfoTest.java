@@ -813,10 +813,10 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("int", newEnhancedProperty.getPropertyValueAttributes().getType());
     Assert.assertEquals("512", newEnhancedProperty.getPropertyValueAttributes().getMinimum());
     Assert.assertEquals("15360", newEnhancedProperty.getPropertyValueAttributes().getMaximum());
-    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntries());
+    Assert.assertTrue(newEnhancedProperty.getPropertyValueAttributes().getEntries().isEmpty());
     Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntriesEditable());
-    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryDescriptions());
-    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryLabels());
+//    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryDescriptions());
+//    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryLabels());
     // Original property
     Assert.assertNotNull(originalProperty);
     Assert.assertEquals("mapreduce.shuffle", originalProperty.getValue());

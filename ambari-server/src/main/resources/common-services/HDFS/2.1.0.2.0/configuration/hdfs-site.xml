@@ -171,10 +171,16 @@
     <display-name>Minimum replicated blocks %ge</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>0.99</entries>
-      <entries>1.0</entries>
-      <entry_labels>NN HA</entry_labels>
-      <entry_labels>No NN HA</entry_labels>
+      <entries>
+        <entry>
+          <value>0.99</value>
+          <label>NN HA</label>
+        </entry>
+        <entry>
+          <value>1.0</value>
+          <label>No NN HA</label>
+        </entry>
+      </entries>
       <selection_cardinality>1</selection_cardinality>
     </value-attributes>
   </property>

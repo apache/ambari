@@ -26,10 +26,16 @@ limitations under the License.
     <display-name>Enable Cost Based Optimizer</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>On</entry_labels>
-      <entry_labels>Off</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -245,10 +251,16 @@ limitations under the License.
     <display-name>Allow all partitions to be Dynamic</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -481,10 +493,16 @@ limitations under the License.
     <display-name>ORC Compression Algorithm</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>ZLIB</entries>
-      <entries>SNAPPY</entries>
-      <entry_labels>zlib Compression Library</entry_labels>
-      <entry_labels>Snappy Compression Library</entry_labels>
+      <entries>
+        <entry>
+          <value>ZLIB</value>
+          <label>zlib Compression Library</label>
+        </entry>
+        <entry>
+          <value>SNAPPY</value>
+          <label>Snappy Compression Library</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -553,6 +571,21 @@ limitations under the License.
     <name>hive.enforce.bucketing</name>
     <value>true</value>
     <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
+    <display-name>Enforce bucketing</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.enforce.sorting</name>
@@ -639,10 +672,16 @@ limitations under the License.
     <display-name>Sort Partitions Dynamically</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -674,10 +713,16 @@ limitations under the License.
     <display-name>Fetch partition stats at compiler</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>On</entry_labels>
-      <entry_labels>Off</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -693,10 +738,16 @@ limitations under the License.
     <display-name>Fetch column stats at compiler</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>On</entry_labels>
-      <entry_labels>Off</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -720,10 +771,16 @@ limitations under the License.
     <display-name>Transaction Manager</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</entries>
-      <entries>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager</entries>
-      <entry_labels>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager (off)</entry_labels>
-      <entry_labels>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager (on)</entry_labels>
+      <entries>
+        <entry>
+          <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
+          <label>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager (off)</label>
+        </entry>
+        <entry>
+          <value>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager</value>
+          <label>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager (on)</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -748,10 +805,16 @@ limitations under the License.
     <display-name>Use Locking</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -824,6 +887,21 @@ limitations under the License.
     <name>hive.security.authorization.enabled</name>
     <value>false</value>
     <description>enable or disable the Hive client authorization</description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -937,6 +1015,29 @@ limitations under the License.
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
+    <display-name>HiveServer2 Authentication</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>NONE</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>LDAP</value>
+          <label>Lightweight Directory Access Protocol</label>
+        </entry>
+        <entry>
+          <value>KERBEROS</value>
+          <label>Kerberos</label>
+        </entry>
+        <entry>
+          <value>PAM</value>
+          <label>Pluggable Authentication Modules</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -958,6 +1059,21 @@ limitations under the License.
       Setting this property to true will have HiveServer2 execute
       Hive operations as the user making the calls to it.
     </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.server2.table.type.mapping</name>
@@ -978,10 +1094,16 @@ limitations under the License.
     <display-name>Use SSL</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1018,10 +1140,16 @@ limitations under the License.
     <display-name>Hold Containers to Reduce Latency</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1068,10 +1196,16 @@ limitations under the License.
     <display-name>Allow dynamic numbers of reducers</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1095,10 +1229,16 @@ limitations under the License.
     <display-name>Allow dynamic partition pruning</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1166,6 +1306,21 @@ limitations under the License.
       This flag should be set to true to enable vectorized mode of query execution.
       The default value is false.
     </description>
+    <display-name>Enable Vectorization and Map Vectorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -1181,6 +1336,21 @@ limitations under the License.
     <name>hive.optimize.index.filter</name>
     <value>true</value>
     <description>Whether to enable automatic use of indexes</description>
+    <display-name>Push Filters to Storage</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -1193,10 +1363,16 @@ limitations under the License.
     <display-name>Exection Engine</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>mr</entries>
-      <entries>tez</entries>
-      <entry_labels>MapReduce</entry_labels>
-      <entry_labels>TEZ</entry_labels>
+      <entries>
+        <entry>
+          <value>mr</value>
+          <label>MapReduce</label>
+        </entry>
+        <entry>
+          <value>tez</value>
+          <label>TEZ</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1224,10 +1400,16 @@ limitations under the License.
     <display-name>Compute simple queries using stats only</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>On</entry_labels>
-      <entry_labels>Off</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1266,10 +1448,16 @@ limitations under the License.
     <display-name>Start Tez session at Initialization</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1286,10 +1474,16 @@ limitations under the License.
     <display-name>ORC Encoding Strategy</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>SPEED</entries>
-      <entries>COMPRESSION</entries>
-      <entry_labels>Speed</entry_labels>
-      <entry_labels>Compression</entry_labels>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1304,10 +1498,16 @@ limitations under the License.
     <display-name>ORC Compression Strategy</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>SPEED</entries>
-      <entries>COMPRESSION</entries>
-      <entry_labels>Speed</entry_labels>
-      <entry_labels>Compression</entry_labels>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
@@ -1322,10 +1522,16 @@ limitations under the License.
     <display-name>Enable Reduce Vectorization</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>

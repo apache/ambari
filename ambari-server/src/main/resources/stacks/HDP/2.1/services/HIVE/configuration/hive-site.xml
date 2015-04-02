@@ -391,15 +391,6 @@ limitations under the License.
       stored in metastore. For basic stats collection turn on the config hive.stats.autogather to true.
       For more advanced stats collection need to run analyze table queries.
     </description>
-    <display-name>Compute simple queries using stats only</display-name>
-    <value-attributes>
-      <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
-      <selection-cardinality>1</selection-cardinality>
-    </value-attributes>
   </property>
 
   <property>
@@ -466,10 +457,16 @@ limitations under the License.
     <display-name>Run Compactor</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
-      <entry_labels>True</entry_labels>
-      <entry_labels>False</entry_labels>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
