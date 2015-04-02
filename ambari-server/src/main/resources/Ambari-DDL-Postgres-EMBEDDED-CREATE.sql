@@ -908,6 +908,10 @@ CREATE TABLE ambari.upgrade_item (
   FOREIGN KEY (upgrade_group_id) REFERENCES ambari.upgrade_group(upgrade_group_id)
 );
 
+GRANT ALL PRIVILEGES ON TABLE ambari.upgrade TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_group TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_item TO :username;
+
 CREATE TABLE ambari.stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
@@ -916,9 +920,7 @@ CREATE TABLE ambari.stack(
   CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
 );
 
-GRANT ALL PRIVILEGES ON TABLE ambari.upgrade TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_group TO :username;
-GRANT ALL PRIVILEGES ON TABLE ambari.upgrade_item TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.stack TO :username;
 
 ---------inserting some data-----------
 -- In order for the first ID to be 1, must initialize the ambari_sequences table with a sequence_value of 0.
@@ -986,7 +988,7 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'upgrade_group_id_seq', 0 
   union all
-  select 'upgrade_item_id_seq', 0,
+  select 'upgrade_item_id_seq', 0
   union all
   select 'stack_id_seq', 0;
 

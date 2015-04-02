@@ -440,7 +440,7 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'host_version_id_seq', 0
   UNION ALL
-  SELECT 'repo_version_id_seq', 0,
+  SELECT 'repo_version_id_seq', 0
   UNION ALL
   SELECT 'stack_id_seq', 0;
 

@@ -898,7 +898,7 @@ INSERT INTO ambari_sequences (sequence_name, sequence_value)
   union all
   select 'upgrade_group_id_seq', 0
   union all
-  select 'upgrade_item_id_seq', 0,
+  select 'upgrade_item_id_seq', 0
   union all
   select 'stack_id_seq', 0;  
 
