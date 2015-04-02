@@ -50,7 +50,7 @@
     <repository>
       <id>apache-hadoop</id>
       <name>hdp</name>
-      <url>http://54.235.92.15/nexus/content/groups/public/</url>
+      <url>http://repo.hortonworks.com/content/groups/public/</url>
     </repository>
   </repositories>
   <dependencyManagement>
