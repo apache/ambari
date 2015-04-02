@@ -21,7 +21,8 @@ import os
 from stacks.utils.RMFTestCase import *
 from mock.mock import MagicMock, patch
 
-
+# NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
+# on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
 class TestNFSGateway(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HDFS/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -38,7 +39,9 @@ class TestNFSGateway(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  def test_start_default(self):
+  @patch("hdfs_nfsgateway.prepare_rpcbind")
+  def test_start_default(self, prepare_rpcbind_mock):
+    prepare_rpcbind_mock.returnvalue = 0
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nfsgateway.py",
                        classname = "NFSGateway",
                        command = "start",
@@ -48,25 +51,25 @@ class TestNFSGateway(RMFTestCase):
     )
     self.assert_configure_default()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
-                              owner = 'hdfs',
-                              group = 'hadoop',
+                              owner = 'root',
+                              group = 'root',
                               mode = 0755
                               )
-    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/run/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/log/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid',
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
                               action = ['delete'],
-                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid` >/dev/null 2>&1',
+                              not_if='ls /var/run/hadoop/root/hadoop_privileged_nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/root/hadoop_privileged_nfs3.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start nfs3'",
-        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
-        not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start nfs3",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec', 'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
+        not_if = 'ls /var/run/hadoop/root/hadoop_privileged_nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/root/hadoop_privileged_nfs3.pid` >/dev/null 2>&1',
     )
     self.assertNoMoreResources()
 
@@ -79,27 +82,27 @@ class TestNFSGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
-                              owner = 'hdfs',
-                              group = 'hadoop',
+                              owner = 'root',
+                              group = 'root',
                               mode = 0755
                               )
-    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/run/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/log/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid',
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
                               action = ['delete'],
-                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid` >/dev/null 2>&1',
+                              not_if='ls /var/run/hadoop/root/hadoop_privileged_nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/root/hadoop_privileged_nfs3.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3'",
-        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec', 'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
         not_if = None,
     )
-    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid',
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
                               action = ['delete'],
                               )
     self.assertNoMoreResources()
@@ -115,7 +118,9 @@ class TestNFSGateway(RMFTestCase):
     self.assert_configure_secured()
     self.assertNoMoreResources()
 
-  def test_start_secured(self):
+  @patch("hdfs_nfsgateway.prepare_rpcbind")
+  def test_start_secured(self, prepare_rpcbind_mock):
+    prepare_rpcbind_mock.returnvalue = 0
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nfsgateway.py",
                        classname = "NFSGateway",
                        command = "start",
@@ -125,25 +130,25 @@ class TestNFSGateway(RMFTestCase):
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Directory', '/var/run/hadoop',
-                              owner = 'hdfs',
-                              group = 'hadoop',
+                              owner = 'root',
+                              group = 'root',
                               mode = 0755
                               )
-    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/run/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/log/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid',
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
                               action = ['delete'],
-                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid` >/dev/null 2>&1',
+                              not_if='ls /var/run/hadoop/root/hadoop_privileged_nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/root/hadoop_privileged_nfs3.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start nfs3'",
-        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
-        not_if = 'ls /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid` >/dev/null 2>&1',
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf start nfs3",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec', 'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
+        not_if = 'ls /var/run/hadoop/root/hadoop_privileged_nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/root/hadoop_privileged_nfs3.pid` >/dev/null 2>&1',
     )
     self.assertNoMoreResources()
 
@@ -156,27 +161,27 @@ class TestNFSGateway(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Directory', '/var/run/hadoop',
-                              owner = 'hdfs',
-                              group = 'hadoop',
+                              owner = 'root',
+                              group = 'root',
                               mode = 0755
                               )
-    self.assertResourceCalled('Directory', '/var/run/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/run/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('Directory', '/var/log/hadoop/hdfs',
-                              owner = 'hdfs',
+    self.assertResourceCalled('Directory', '/var/log/hadoop/root',
+                              owner = 'root',
                               recursive = True,
                               )
-    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid',
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
                               action = ['delete'],
-                              not_if='ls /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid` >/dev/null 2>&1',
+                              not_if='ls /var/run/hadoop/root/hadoop_privileged_nfs3.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop/root/hadoop_privileged_nfs3.pid` >/dev/null 2>&1',
                               )
-    self.assertResourceCalled('Execute', "ambari-sudo.sh su hdfs -l -s /bin/bash -c '[RMF_EXPORT_PLACEHOLDER]ulimit -c unlimited ;  /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3'",
-        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec'},
+    self.assertResourceCalled('Execute', "ambari-sudo.sh [RMF_ENV_PLACEHOLDER] -H -E /usr/lib/hadoop/sbin/hadoop-daemon.sh --config /etc/hadoop/conf stop nfs3",
+        environment = {'HADOOP_LIBEXEC_DIR': '/usr/lib/hadoop/libexec', 'HADOOP_PRIVILEGED_NFS_USER': 'hdfs'},
         not_if = None,
     )
-    self.assertResourceCalled('File', '/var/run/hadoop/hdfs/hadoop-hdfs-nfs3.pid',
+    self.assertResourceCalled('File', '/var/run/hadoop/root/hadoop_privileged_nfs3.pid',
                               action = ['delete'],
                               )
     self.assertNoMoreResources()

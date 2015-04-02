@@ -147,6 +147,21 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
   options = options if options else ""
   pid_dir = format("{hadoop_pid_dir_prefix}/{user}")
   pid_file = format("{pid_dir}/hadoop-{user}-{name}.pid")
+  hadoop_env_exports = {
+    'HADOOP_LIBEXEC_DIR': params.hadoop_libexec_dir
+  }
+  # NFS GATEWAY is always started by root using jsvc due to rpcbind bugs
+  # on Linux such as CentOS6.2. https://bugzilla.redhat.com/show_bug.cgi?id=731542
+  if name == "nfs3" :
+    pid_file = format(
+      "{hadoop_pid_dir_prefix}/root/hadoop_privileged_nfs3.pid")
+
+    print pid_file
+    custom_export = {
+      'HADOOP_PRIVILEGED_NFS_USER': params.hdfs_user
+    }
+    hadoop_env_exports.update(custom_export)
+
   log_dir = format("{hdfs_log_dir_prefix}/{user}")
   check_process = format(
     "ls {pid_file} >/dev/null 2>&1 &&"
@@ -160,10 +175,6 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     Directory(log_dir,
               owner=user,
               recursive=True)
-
-  hadoop_env_exports = {
-    'HADOOP_LIBEXEC_DIR': params.hadoop_libexec_dir
-  }
 
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.

@@ -41,6 +41,7 @@ version = default("/commandParams/version", None)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 hdfs_user = status_params.hdfs_user
+root_user = "root"
 hadoop_pid_dir_prefix = status_params.hadoop_pid_dir_prefix
 
 # Some datanode settings
@@ -157,6 +158,7 @@ mapred_user = config['configurations']['mapred-env']['mapred_user']
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', None)
 
 user_group = config['configurations']['cluster-env']['user_group']
+root_group = "root"
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
 
 #hadoop params
