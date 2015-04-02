@@ -198,8 +198,8 @@
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.0</version>
         <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
+            <source>1.6</source>
+            <target>1.6</target>
         </configuration>
       </plugin>
       <plugin>
@@ -271,7 +271,7 @@
             <exclude>**/.gitkeep</exclude>
             <exclude>**/.jshintrc</exclude>
             <exclude>**/.editorconfig</exclude>
-            <!--gitignore content-->
+              <!--gitignore content-->
             <exclude>.DS_Store</exclude>
             <exclude>**/*.iml</exclude>
             <exclude>.classpath</exclude>
@@ -283,15 +283,13 @@
             <exclude>.hgignore</exclude>
             <exclude>.hgtags</exclude>
 
-            <!-- Nodejs and npm -->
-            <exclude>ambari-web/node_modules/**</exclude>
-            <exclude>ambari-web/node/**</exclude>
-
             <!--Python Mock library (BSD license)-->
             <exclude>ambari-common/src/test/python/mock/**</exclude>
             <!--Jinja2 library (BSD license)-->
             <exclude>ambari-common/src/main/python/ambari_jinja2/**</exclude>
             <exclude>ambari-common/src/main/python/jinja2/**</exclude>
+
+            <exclude>ambari-web/node_modules/**</exclude>
 
             <!--Contributions-->
             <exclude>contrib/ambari-scom/management-pack/Hadoop_MP/**</exclude>
@@ -393,10 +391,10 @@
             <fileset>
               <directory>${basedir}</directory>
               <followSymlinks>false</followSymlinks>
-              <includes>
+               <includes>
                 <include>**/*.pyc</include>
               </includes>
-            </fileset>
+             </fileset>
           </filesets>
         </configuration>
       </plugin>
