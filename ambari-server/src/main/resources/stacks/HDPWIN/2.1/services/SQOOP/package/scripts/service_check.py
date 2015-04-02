@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,14 +18,17 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.script import Script
-import os
 
-config = Script.get_config()
+from resource_management import *
 
-sqoop_user = "sqoop"
 
-hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
-sqoop_env_cmd_template = config['configurations']['sqoop-env']['content']
-sqoop_home_dir = os.environ["SQOOP_HOME"]
-sqoop_conf_dir = os.path.join(sqoop_home_dir, "conf")
+class SqoopServiceCheck(Script):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    service = "SQOOP"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
+
+if __name__ == "__main__":
+  SqoopServiceCheck().execute()

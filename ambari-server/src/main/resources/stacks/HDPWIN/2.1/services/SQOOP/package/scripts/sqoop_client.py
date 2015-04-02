@@ -18,27 +18,24 @@ limitations under the License.
 
 """
 
-
+import sys
 from resource_management import *
+from sqoop import sqoop
 
+class SqoopClient(Script):
+  def install(self, env):
+    import params
+    if params.sqoop_home_dir is None:
+      self.install_packages(env)
+    self.configure(env)
 
-class SqoopServiceCheck(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "sqoop-server"}
-
-  def service_check(self, env):
+  def configure(self, env):
     import params
     env.set_params(params)
-    if params.security_enabled:
-      Execute(format("{kinit_path_local}  -kt {smoke_user_keytab} {smokeuser_principal}"),
-              user = params.smokeuser,
-      )
-    Execute("sqoop version",
-            user = params.smokeuser,
-            path = params.sqoop_bin_dir,
-            logoutput = True
-    )
+    sqoop()
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
 
 if __name__ == "__main__":
-  SqoopServiceCheck().execute()
+  SqoopClient().execute()

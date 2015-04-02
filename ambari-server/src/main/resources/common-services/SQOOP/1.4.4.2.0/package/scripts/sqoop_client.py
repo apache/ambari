@@ -18,15 +18,25 @@ limitations under the License.
 
 """
 
-from resource_management.core.exceptions import ClientComponentHasNoStatus
-from resource_management.core.resources.system import Execute
-from resource_management.libraries.script.script import Script
+import sys
+from resource_management import *
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+
 from sqoop import sqoop
-from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons import OSConst
+
 
 class SqoopClient(Script):
+
+  def get_stack_to_component(self):
+    return {"HDP": "sqoop-client"}
+
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set sqoop-client {version}"))
+
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
@@ -38,22 +48,6 @@ class SqoopClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
-
-@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
-class SqoopClientDefault(SqoopClient):
-  def get_stack_to_component(self):
-    return {"HDP": "sqoop-client"}
-
-  def pre_rolling_restart(self, env):
-    import params
-    env.set_params(params)
-
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      Execute(format("hdp-select set sqoop-client {version}"))
-
-@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
-class SqoopClientWindows(SqoopClient):
-  pass
 
 if __name__ == "__main__":
   SqoopClient().execute()

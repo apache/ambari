@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -18,27 +17,16 @@ limitations under the License.
 
 """
 
-
 from resource_management import *
+import os
 
+config = Script.get_config()
+sqoop_user = "sqoop"
+sqoop_home_dir = None
+sqoop_conf_dir = "conf"
 
-class SqoopServiceCheck(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "sqoop-server"}
-
-  def service_check(self, env):
-    import params
-    env.set_params(params)
-    if params.security_enabled:
-      Execute(format("{kinit_path_local}  -kt {smoke_user_keytab} {smokeuser_principal}"),
-              user = params.smokeuser,
-      )
-    Execute("sqoop version",
-            user = params.smokeuser,
-            path = params.sqoop_bin_dir,
-            logoutput = True
-    )
-
-if __name__ == "__main__":
-  SqoopServiceCheck().execute()
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+sqoop_env_cmd_template = config['configurations']['sqoop-env']['content']
+if os.environ.has_key("SQOOP_HOME"):
+  sqoop_home_dir = os.environ["SQOOP_HOME"]
+  sqoop_conf_dir = os.path.join(sqoop_home_dir, "conf")
