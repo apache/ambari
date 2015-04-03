@@ -36,6 +36,31 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   slider: null,
 
   /**
+   * recreate widget in case max or min values were changed
+   * @method changeBoundaries
+   */
+  changeBoundaries: function() {
+    if ($.mocho) {
+      //temp fix as it can broke test that doesn't have any connection with this method
+      return;
+    }
+    var self = this;
+    var valueAttributes = this.get('config.stackConfigProperty.valueAttributes');
+    Em.run.once(this, function() {
+      self.prepareValueAttributes();
+      if (self.get('slider')) {
+        self.get('slider').destroy();
+        self.initSlider();
+        if (self.get('config.value') > valueAttributes.get('maximum')) {
+          self.set('mirrorValue', valueAttributes.get('maximum'))
+        }
+        if (self.get('config.value') < valueAttributes.get('minimum')) {
+          self.set('mirrorValue', valueAttributes.get('minimum'))
+        }
+      }
+    })
+  },
+  /**
    * Determines if widget controls should be disabled
    * @type {boolean}
    */
@@ -94,6 +119,15 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this.initSlider();
     this.toggleWidgetState();
     this.initPopover();
+    this.addObserver('config.stackConfigProperty.valueAttributes.minimum', this, this.changeBoundaries);
+    this.addObserver('config.stackConfigProperty.valueAttributes.maximum', this, this.changeBoundaries);
+    this.addObserver('config.stackConfigProperty.valueAttributes.step', this, this.changeBoundaries);
+  },
+
+  willDestroyElement: function() {
+    this.removeObserver('config.stackConfigProperty.valueAttributes.step', this, this.changeBoundaries);
+    this.removeObserver('config.stackConfigProperty.valueAttributes.maximum', this, this.changeBoundaries);
+    this.removeObserver('config.stackConfigProperty.valueAttributes.minimum', this, this.changeBoundaries);
   },
 
   /**

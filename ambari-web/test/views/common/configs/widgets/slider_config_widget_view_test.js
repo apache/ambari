@@ -73,6 +73,13 @@ describe('App.SliderConfigWidgetView', function () {
     });
     viewFloat.willInsertElement();
     viewFloat.didInsertElement();
+    sinon.stub(viewInt, 'changeBoundaries', Em.K);
+    sinon.stub(viewFloat, 'changeBoundaries', Em.K);
+  });
+
+  afterEach(function() {
+    viewInt.changeBoundaries.restore();
+    viewFloat.changeBoundaries.restore();
   });
 
   describe('#mirrorValue', function () {

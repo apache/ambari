@@ -282,12 +282,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         services: this.get('serviceNames'),
         recommendations: recommendations
       };
-      /** TODO uncomment when be will be ready
-       if (App.get('supports.enhancedConfigs')) {
+      if (App.get('supports.enhancedConfigs')) {
         dataToSend.recommend = 'configuration-dependencies';
         dataToSend.changed_configurations = changedConfigs;
       }
-       **/
       return App.ajax.send({
         name: 'config.recommendations',
         sender: this,
@@ -345,7 +343,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         if (callback) {
           callback();
         }
-      }, this._discardChanges.bind(this));
+      });
     } else {
       if (callback) {
         callback();
@@ -519,6 +517,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             if (value != configs[key].properties[propertyName]) {
               this.get('_dependentConfigValues').pushObject({
                 saveRecommended: true,
+                saveRecommendedDefault: true,
                 fileName: key,
                 propertyName: propertyName,
                 configGroup: configGroup,
@@ -526,6 +525,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 serviceName: service.get('serviceName'),
                 recommendedValue: configs[key].properties[propertyName]
               });
+            }
+          }
+          /**
+           * saving new attribute values
+           */
+          if (configs[key].property_attributes && configs[key].property_attributes[propertyName]) {
+
+            var stackProperty = App.StackConfigProperty.find(propertyName + '_' + key);
+            if (stackProperty && stackProperty.get('valueAttributes')) {
+              if (configs[key].property_attributes[propertyName].min) {
+                stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].min);
+              }
+              if (configs[key].property_attributes[propertyName].max) {
+                stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].max);
+              }
             }
           }
         }

@@ -22,15 +22,12 @@ var App = require('app');
  * Show confirmation popup
  * @param {[Object]} configs
  * @param {function} [callback=null]
- * @param {function} [secondaryCallback=null]
  * we use this parameter to defer saving configs before we make some decisions.
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (configs, callback, secondaryCallback) {
+App.showDependentConfigsPopup = function (configs, callback) {
   return App.ModalPopup.show({
     encodeBody: false,
-    primary: Em.I18n.t('common.save'),
-    secondary: Em.I18n.t('common.discard'),
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['sixty-percent-width-modal','modal-full-width'],
     configs: configs,
@@ -41,17 +38,19 @@ App.showDependentConfigsPopup = function (configs, callback, secondaryCallback) 
       return App.get('router.mainServiceInfoConfigsController.stepConfigs').objectAt(0).get('configs');
     }.property('controller.stepConfigs.@each'),
     onPrimary: function () {
-      this.hide();
+      this._super();
+      configs.forEach(function(c) {
+        Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
+      });
       if (callback) {
         callback();
       }
     },
     onSecondary: function() {
-      this.hide();
-      configs.setEach('saveRecommended', false);
-      if(secondaryCallback) {
-        secondaryCallback();
-      }
+      this._super();
+      configs.forEach(function(c) {
+        Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
+      });
     }
   });
 };
