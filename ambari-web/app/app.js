@@ -34,6 +34,7 @@ module.exports = Em.Application.create({
   }),
   isAdmin: false,
   isOperator: false,
+  isPermissionDataLoaded: false,
 
   /**
    * state of stack upgrade process

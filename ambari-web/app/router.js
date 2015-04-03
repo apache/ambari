@@ -299,14 +299,17 @@ App.Router = Em.Router.extend({
           var clusterName = clustersData.items[0].Clusters.cluster_name;
           var clusterPermissions = privileges.filterProperty('PrivilegeInfo.cluster_name', clusterName).mapProperty('PrivilegeInfo.permission_name');
           if (clusterPermissions.contains('CLUSTER.OPERATE')) {
-            App.set('isAdmin', true);
-            App.set('isOperator', true);
+            App.setProperties({
+              isAdmin: true,
+              isOperator: true
+            });
             transitionToApp = true;
           } else if (clusterPermissions.contains('CLUSTER.READ')) {
             transitionToApp = true;
           }
         }
       }
+      App.set('isPermissionDataLoaded', true);
       if (transitionToApp) {
         if (!Em.isNone(router.get('preferedPath'))) {
           window.location = router.get('preferedPath');
@@ -384,8 +387,11 @@ App.Router = Em.Router.extend({
     // otherwise, this.set('installerController.currentStep, 0) would have no effect
     // since it's a computed property but we are not setting it as a dependent of App.db.
     App.db.cleanUp();
-    App.set('isAdmin', false);
-    App.set('isOperator', false);
+    App.setProperties({
+      isAdmin: false,
+      isOperator: false,
+      isPermissionDataLoaded: false
+    });
     this.set('loggedIn', false);
     this.clearAllSteps();
     console.log("Log off: " + App.router.getClusterName());
@@ -435,6 +441,7 @@ App.Router = Em.Router.extend({
         if (user.operator) {
           App.set('isOperator', true);
         }
+        App.set('isPermissionDataLoaded', true);
       }
     }
   },

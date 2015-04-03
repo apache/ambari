@@ -47,4 +47,65 @@ describe('App.Router', function () {
     })
   });
 
+  describe('#initAdmin()', function () {
+
+    var cases = [
+      {
+        user: {
+          admin: true
+        },
+        isAdmin: true,
+        isOperator: false,
+        isPermissionDataLoaded: true,
+        title: 'admin'
+      },
+      {
+        user: {
+          operator: true
+        },
+        isAdmin: false,
+        isOperator: true,
+        isPermissionDataLoaded: true,
+        title: 'operator'
+      },
+      {
+        user: {},
+        isAdmin: false,
+        isOperator: false,
+        isPermissionDataLoaded: true,
+        title: 'read only access'
+      },
+      {
+        user: null,
+        isAdmin: false,
+        isOperator: false,
+        isPermissionDataLoaded: false,
+        title: 'no user'
+      }
+    ];
+
+    beforeEach(function () {
+      App.setProperties({
+        isAdmin: false,
+        isOperator: false,
+        isPermissionDataLoaded: false
+      });
+    });
+
+    afterEach(function () {
+      App.db.getUser.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App.db, 'getUser').returns(item.user);
+        router.initAdmin();
+        expect(App.get('isAdmin')).to.equal(item.isAdmin);
+        expect(App.get('isOperator')).to.equal(item.isOperator);
+        expect(App.get('isPermissionDataLoaded')).to.equal(item.isPermissionDataLoaded);
+      });
+    });
+
+  });
+
 });

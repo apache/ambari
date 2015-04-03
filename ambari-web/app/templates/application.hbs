@@ -68,11 +68,13 @@
                     {{/isAccessible}}
                   {{/if}}
                 {{else}}
-                  {{#isAccessible upgrade_ONLY_ADMIN}}
-                    <li><a href=""
-                           id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
-                    </li>
-                  {{/isAccessible}}
+                  {{#if App.isPermissionDataLoaded}}
+                    {{#isAccessible upgrade_ONLY_ADMIN}}
+                      <li><a href=""
+                             id="manage-ambari" {{action goToAdminView target="controller"}}>{{t app.manageAmbari}}</a>
+                      </li>
+                    {{/isAccessible}}
+                  {{/if}}
                 {{/if}}
                 {{#if isClusterDataLoaded}}
                   {{#isAccessible upgrade_ADMIN}}
