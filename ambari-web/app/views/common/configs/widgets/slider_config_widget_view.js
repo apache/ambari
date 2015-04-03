@@ -273,7 +273,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     }
     this.set('slider', slider);
     // hide some ticks. can't do this via css
-    this.$('.slider-tick:first, .slider-tick:last').hide();
+    if (defaultValueId == 0) {
+      this.$('.slider-tick:last').hide();
+    } else if (defaultValueId == ticks.length - 1) {
+      this.$('.slider-tick:first').hide();
+    } else {
+      this.$('.slider-tick:first, .slider-tick:last').hide();
+    }
   },
 
   /**
