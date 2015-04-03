@@ -240,8 +240,8 @@ def configureAgent(server_hostname, cwd, ret=None):
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
 def configureAgent(server_hostname, user_run_as):
   """ Configure the agent so that it has all the configs knobs properly installed """
-  osCommand = ["sed", "-i.bak", "s/hostname=localhost/hostname=" + server_hostname +
-                                "/g", "/etc/ambari-agent/conf/ambari-agent.ini"]
+  osCommand = ["sed", "-i.bak", "s/^hostname=localhost$/hostname=" + server_hostname +
+                                "/", "/etc/ambari-agent/conf/ambari-agent.ini"]
   ret = execOsCommand(osCommand)
   if ret['exitstatus'] != 0:
     return ret
