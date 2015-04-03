@@ -464,7 +464,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @private
    */
   _getConfigsByGroup: function(stepConfigs) {
-    if (this.get('selectedConfigGroup.isDefault')) {
+    if (this.get('selectedConfigGroup.isDefault') || this.get('controller.name') === 'wizardStep7Controller') {
       return stepConfigs;
     } else {
       var configsToSend = [];
@@ -505,7 +505,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     for (var key in configs) {
 
       /**  defines main info for file name (service name, config group, config that belongs to filename) **/
-      var serviceName = App.config.getServiceByConfigType(key).get('serviceName');
+      var service = App.config.getServiceByConfigType(key);
+      var serviceName = service.get('serviceName');
       var stepConfig = stepConfigsByGroup.findProperty('serviceName', serviceName);
       var configProperties = stepConfig ? stepConfig.get('configs').filterProperty('filename', App.config.getOriginalFileName(key)) : [];
 
@@ -531,7 +532,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                   saveRecommendedDefault: true,
                   fileName: key,
                   propertyName: propertyName,
-                  configGroup: group.get('name'),
+                  configGroup: group ? group.get('name') : service.get('displayName') + " Default",
                   value: value,
                   serviceName: serviceName,
                   recommendedValue: configs[key].properties[propertyName]
@@ -539,22 +540,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               }
             }
           }
-          /**
-           * saving new attribute values
-           */
-          if (configs[key].property_attributes && configs[key].property_attributes[propertyName]) {
+        }
 
-            var stackProperty = App.StackConfigProperty.find(propertyName + '_' + key);
-            if (stackProperty && stackProperty.get('valueAttributes')) {
-              if (configs[key].property_attributes[propertyName].min) {
-                stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].min);
-              }
-              if (configs[key].property_attributes[propertyName].max) {
-                stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].max);
-              }
-              if (configs[key].property_attributes[propertyName].step) {
-                stackProperty.set('valueAttributes.step', configs[key].property_attributes[propertyName].step);
-              }
+        /**
+         * saving new attribute values
+         */
+        if (configs[key].property_attributes && configs[key].property_attributes[propertyName]) {
+
+          var stackProperty = App.StackConfigProperty.find(propertyName + '_' + key);
+          if (stackProperty && stackProperty.get('valueAttributes')) {
+            if (configs[key].property_attributes[propertyName].min) {
+              stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].min);
+            }
+            if (configs[key].property_attributes[propertyName].max) {
+              stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].max);
+            }
+            if (configs[key].property_attributes[propertyName].step) {
+              stackProperty.set('valueAttributes.step', configs[key].property_attributes[propertyName].step);
             }
           }
         }
