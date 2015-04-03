@@ -44,11 +44,13 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
+import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -339,6 +341,20 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       throw new AmbariException("Stack " + stackFullName + " doesn't have upgrade packages");
     }
 
+    // List of all repo urls that are already added at stack
+    Set<String> existingRepoUrls = new HashSet<String>();
+    List<RepositoryVersionEntity> existingRepoVersions = repositoryVersionDAO.findByStack(requiredStack.getStackId());
+    for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
+      for (OperatingSystemEntity operatingSystemEntity : existingRepoVersion.getOperatingSystems()) {
+        for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
+          if (! repositoryEntity.getRepositoryId().startsWith("HDP-UTILS") &&  // HDP-UTILS is shared between repo versions
+                  ! existingRepoVersion.getId().equals(repositoryVersion.getId())) { // Allow modifying already defined repo version
+            existingRepoUrls.add(repositoryEntity.getBaseUrl());
+          }
+        }
+      }
+    }
+
     // check that repositories contain only supported operating systems
     final Set<String> osSupported = new HashSet<String>();
     for (OperatingSystemInfo osInfo: ambariMetaInfo.getOperatingSystems(stackName, stackMajorVersion)) {
@@ -347,6 +363,14 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     final Set<String> osRepositoryVersion = new HashSet<String>();
     for (OperatingSystemEntity os: repositoryVersion.getOperatingSystems()) {
       osRepositoryVersion.add(os.getOsType());
+
+      for (RepositoryEntity repositoryEntity : os.getRepositories()) {
+        String baseUrl = repositoryEntity.getBaseUrl();
+        if (existingRepoUrls.contains(baseUrl)) {
+          throw new AmbariException("Base url " + baseUrl + " is already defined for another repository version. " +
+                  "Setting up base urls that contain the same versions of components will cause rolling upgrade to fail.");
+        }
+      }
     }
     if (osRepositoryVersion.isEmpty()) {
       throw new AmbariException("At least one set of repositories for OS should be provided");

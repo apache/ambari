@@ -232,7 +232,7 @@ public class RepositoryVersionResourceProviderTest {
     entity.setStack("HDP-1.1");
     entity.setUpgradePackage("pack1");
     entity.setVersion("1.1");
-    entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"1\"}]}]");
+    entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
 
     // test valid usecases
     provider.validateRepositoryVersion(entity);
@@ -273,6 +273,29 @@ public class RepositoryVersionResourceProviderTest {
       Assert.fail("Should throw exception");
     } catch (Exception ex) {
     }
+
+    final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    entity.setDisplayName("name");
+    entity.setStack("HDP-1.1");
+    entity.setUpgradePackage("pack1");
+    entity.setVersion("1.1");
+    entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
+    repositoryVersionDAO.create(entity);
+
+    final RepositoryVersionEntity entity2 = new RepositoryVersionEntity();
+    entity2.setId(2l);
+    entity2.setDisplayName("name2");
+    entity2.setStack("HDP-1.1");
+    entity2.setUpgradePackage("pack1");
+    entity2.setVersion("1.2");
+    entity2.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
+
+    try {
+      provider.validateRepositoryVersion(entity2);
+      Assert.fail("Should throw exception: Base url http://example.com/repo1 is already defined for another repository version");
+    } catch (Exception ex) {
+    }
+
   }
 
   @Test
@@ -312,7 +335,7 @@ public class RepositoryVersionResourceProviderTest {
     final Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
     final Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID, "name");
-    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"1\"}]}]", Object.class));
+    properties.put(RepositoryVersionResourceProvider.SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID, new Gson().fromJson("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]", Object.class));
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID, "HDP");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID, "pack1");
     properties.put(RepositoryVersionResourceProvider.REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID, "1.1");
