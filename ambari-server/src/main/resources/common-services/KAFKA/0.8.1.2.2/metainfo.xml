@@ -56,7 +56,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>kafka-2-2-.*</name>

@@ -49,7 +49,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>debian7,ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>hive-2-3-.*</name>
@@ -63,7 +63,7 @@
           </packages>
         </osSpecific>
         <osSpecific>
-          <osFamily>redhat6,ubuntu12</osFamily>
+          <osFamily>redhat6,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>mysql-server</name>

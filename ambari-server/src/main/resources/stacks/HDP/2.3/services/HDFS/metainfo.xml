@@ -60,7 +60,7 @@
         </osSpecific>
 
         <osSpecific>
-          <osFamily>debian7,ubuntu12</osFamily>
+          <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
               <name>hadoop-2-3-.*-client</name>
