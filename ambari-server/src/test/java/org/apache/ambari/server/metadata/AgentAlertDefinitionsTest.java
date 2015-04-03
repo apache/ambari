@@ -31,7 +31,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 
 /**
- * Tets {@link AgentAlertDefinitions}.
+ * Tets {@link AmbariServiceAlertDefinitions}.
  */
 public class AgentAlertDefinitionsTest {
 
@@ -46,13 +46,30 @@ public class AgentAlertDefinitionsTest {
    * Tests loading the agent alerts.
    */
   @Test
-  public void testLoadingAlerts() {
-    AgentAlertDefinitions agentAlerts = m_injector.getInstance(AgentAlertDefinitions.class);
-    List<AlertDefinition> definitions = agentAlerts.getDefinitions();
+  public void testLoadingAgentHostAlerts() {
+    AmbariServiceAlertDefinitions ambariServiceAlertDefinitions = m_injector.getInstance(AmbariServiceAlertDefinitions.class);
+    List<AlertDefinition> definitions = ambariServiceAlertDefinitions.getAgentDefinitions();
     Assert.assertEquals(1, definitions.size());
 
     for( AlertDefinition definition : definitions){
       Assert.assertEquals(Components.AMBARI_AGENT.name(),
+          definition.getComponentName());
+
+      Assert.assertEquals("AMBARI", definition.getServiceName());
+    }
+  }
+
+  /**
+   * Tests loading the agent alerts.
+   */
+  @Test
+  public void testLoadingServertAlerts() {
+    AmbariServiceAlertDefinitions ambariServiceAlertDefinitions = m_injector.getInstance(AmbariServiceAlertDefinitions.class);
+    List<AlertDefinition> definitions = ambariServiceAlertDefinitions.getServerDefinitions();
+    Assert.assertEquals(2, definitions.size());
+
+    for (AlertDefinition definition : definitions) {
+      Assert.assertEquals(Components.AMBARI_SERVER.name(),
           definition.getComponentName());
 
       Assert.assertEquals("AMBARI", definition.getServiceName());

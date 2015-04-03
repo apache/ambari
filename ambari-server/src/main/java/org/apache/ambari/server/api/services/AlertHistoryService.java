@@ -60,20 +60,19 @@ public class AlertHistoryService extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getHistories(String body,
-      @Context HttpHeaders headers,
+  public Response getHistories(@Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(clusterName, null));
   }
 
   @GET
   @Path("{alertHistoryId}")
   @Produces("text/plain")
-  public Response getHistory(String body,
+  public Response getHistory(
       @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("alertHistoryId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(clusterName, id));
   }
 

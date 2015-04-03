@@ -41,20 +41,19 @@ import org.apache.ambari.server.controller.spi.Resource;
 public class AlertDefinitionService extends BaseService {
 
   private String clusterName = null;
-  
+
   AlertDefinitionService(String clusterName) {
     this.clusterName = clusterName;
   }
-  
+
   @GET
   @Produces("text/plain")
-  public Response getDefinitions(String body,
-      @Context HttpHeaders headers,
+  public Response getDefinitions(@Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createResourceInstance(clusterName, null));
   }
-  
+
   @POST
   @Produces("text/plain")
   public Response createDefinition(String body,
@@ -63,7 +62,7 @@ public class AlertDefinitionService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.POST,
       createResourceInstance(clusterName, null));
   }
-  
+
   @PUT
   @Path("{alertDefinitionId}")
   @Produces("text/plain")
@@ -74,7 +73,7 @@ public class AlertDefinitionService extends BaseService {
     return handleRequest(headers, body, ui, Request.Type.PUT,
       createResourceInstance(clusterName, id));
   }
-  
+
   @DELETE
   @Path("{alertDefinitionId}")
   @Produces("text/plain")
@@ -86,19 +85,18 @@ public class AlertDefinitionService extends BaseService {
       createResourceInstance(clusterName, id));
   }
 
-  
+
   @GET
   @Path("{alertDefinitionId}")
   @Produces("text/plain")
-  public Response getDefinitions(String body,
-      @Context HttpHeaders headers,
+  public Response getDefinitions(@Context HttpHeaders headers,
       @Context UriInfo ui,
       @PathParam("alertDefinitionId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createResourceInstance(clusterName, id));
   }
-  
-  
+
+
   /**
    * Create a request schedule resource instance
    * @param clusterName
@@ -113,5 +111,5 @@ public class AlertDefinitionService extends BaseService {
 
     return createResource(Resource.Type.AlertDefinition, mapIds);
   }
-  
+
 }

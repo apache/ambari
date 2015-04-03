@@ -51,20 +51,20 @@ public class AlertNoticeService extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getNotices(String body,
+  public Response getNotices(
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(clusterName, null));
   }
 
   @GET
   @Path("{alertNoticeId}")
   @Produces("text/plain")
-  public Response getNotice(String body,
+  public Response getNotice(
       @Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("alertNoticeId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createResourceInstance(clusterName, id));
   }
 

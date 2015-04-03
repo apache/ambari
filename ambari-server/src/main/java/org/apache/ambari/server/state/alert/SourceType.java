@@ -25,14 +25,17 @@ public enum SourceType {
    * Source is from metric data.
    */
   METRIC,
+
   /**
    * Source is generated using of a script
    */
   SCRIPT,
+
   /**
    * Source is a simple port check
    */
   PORT,
+
   /**
    * Source is an aggregate of a collection of other alert states
    */
@@ -46,5 +49,10 @@ public enum SourceType {
   /**
    * Source is an http(s)-style request.
    */
-  WEB;
+  WEB,
+
+  /**
+   * A server-side alert.
+   */
+  SERVER;
 }

@@ -57,6 +57,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
   scriptConfig: {
     location: 'AlertDefinition.source.path'
   },
+  
+  serverConfig: {
+  },
 
   uriConfig: {
     id: 'AlertDefinition.source.uri.id',
@@ -166,6 +169,9 @@ App.alertDefinitionsMapper = App.QuickDataMapper.create({
             break;
           case 'SCRIPT':
             alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('scriptConfig'))));
+            break;
+          case 'SERVER':
+            alertDefinitions.push($.extend(alertDefinition, this.parseIt(item, this.get('serverConfig'))));
             break;
           default:
             console.error('Incorrect Alert Definition type:', item.AlertDefinition);

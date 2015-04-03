@@ -380,6 +380,11 @@ public class AlertDefinitionHash {
       return affectedHosts;
     }
 
+    // ignore other AMBARI components as they are server-side only
+    if (ambariServiceName.equalsIgnoreCase(definitionServiceName)) {
+      return Collections.emptySet();
+    }
+
     // find all hosts that have the matching service and component
     for (String hostName : hosts.keySet()) {
       List<ServiceComponentHost> hostComponents = cluster.getServiceComponentHosts(hostName);

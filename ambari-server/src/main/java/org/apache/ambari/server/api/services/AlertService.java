@@ -40,7 +40,7 @@ public class AlertService extends BaseService {
   private String clusterName = null;
   private String serviceName = null;
   private String hostName = null;
-  
+
   AlertService(String clusterName, String serviceName, String hostName) {
     this.clusterName = clusterName;
     this.serviceName = serviceName;
@@ -52,13 +52,13 @@ public class AlertService extends BaseService {
    */
   @GET
   @Produces("text/plain")
-  public Response getAlerts(String body,
+  public Response getAlerts(
       @Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createResourceInstance(null));
   }
-  
+
 
   /**
    * Gets a specific alert's instance
@@ -66,15 +66,15 @@ public class AlertService extends BaseService {
   @GET
   @Path("{alertId}")
   @Produces("text/plain")
-  public Response getAlert(String body,
+  public Response getAlert(
       @Context HttpHeaders headers,
       @Context UriInfo ui,
       @PathParam("alertId") Long id) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
       createResourceInstance(id));
   }
-  
-  
+
+
   /**
    * Create an alert resource instance
    * @param alertId the alert id, if requesting a specific one
@@ -89,5 +89,5 @@ public class AlertService extends BaseService {
 
     return createResource(Resource.Type.Alert, mapIds);
   }
-  
+
 }

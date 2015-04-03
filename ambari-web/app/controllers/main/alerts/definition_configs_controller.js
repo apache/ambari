@@ -152,6 +152,9 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       case 'AGGREGATE':
         configs = this.renderAggregateConfigs();
         break;
+      case 'SERVER':
+      	configs = this.renderServerConfigs();
+      	break;
       default:
         console.error('Incorrect Alert Definition Type: ', alertDefinitionType);
     }
@@ -348,6 +351,32 @@ App.MainAlertDefinitionConfigsController = Em.Controller.extend({
       })
     ];
   },
+  
+  /**
+   * Render config properties for server-type alert definition
+   * @method renderScriptConfigs
+   * @returns {App.AlertConfigProperty[]}
+   */
+  renderServerConfigs: function () {
+    var result = [];
+    var alertDefinition = this.get('content');
+    var isWizard = this.get('isWizard');
+
+    if (this.get('isWizard')) {
+      result = result.concat(this.renderCommonWizardConfigs());
+    }
+
+    result = result.concat([
+      App.AlertConfigProperties.Description.create({
+        value: isWizard ? '' : alertDefinition.get('description')
+      }),
+      App.AlertConfigProperties.Interval.create({
+        value: isWizard ? '' : alertDefinition.get('interval')
+      })
+    ]);
+
+    return result;
+  },  
 
   /**
    * Render common list of configs used in almost all alert types in wizard

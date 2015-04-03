@@ -57,18 +57,18 @@ public class AlertGroupService extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getGroups(String body, @Context HttpHeaders headers,
+  public Response getGroups(@Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createAlertGroupResource(m_clusterName, null));
   }
 
   @GET
   @Produces("text/plain")
   @Path("{groupId}")
-  public Response getGroup(String body, @Context HttpHeaders headers,
+  public Response getGroup(@Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("groupId") Long groupId) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createAlertGroupResource(m_clusterName, groupId));
   }
 

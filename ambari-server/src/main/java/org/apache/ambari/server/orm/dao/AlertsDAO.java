@@ -285,7 +285,13 @@ public class AlertsDAO {
     // pagination
     TypedQuery<AlertCurrentEntity> typedQuery = entityManager.createQuery(query);
     if( null != request.Pagination ){
-      typedQuery.setFirstResult(request.Pagination.getOffset());
+      // prevent JPA errors when -1 is passed in by accident
+      int offset = request.Pagination.getOffset();
+      if (offset < 0) {
+        offset = 0;
+      }
+
+      typedQuery.setFirstResult(offset);
       typedQuery.setMaxResults(request.Pagination.getPageSize());
     }
 

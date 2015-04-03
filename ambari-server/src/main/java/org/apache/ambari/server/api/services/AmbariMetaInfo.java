@@ -40,14 +40,13 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.customactions.ActionDefinitionManager;
 import org.apache.ambari.server.events.AlertDefinitionDisabledEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.metadata.AgentAlertDefinitions;
+import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -58,10 +57,8 @@ import org.apache.ambari.server.stack.StackManagerFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.RepositoryInfo;
 import org.apache.ambari.server.state.Service;
@@ -170,7 +167,7 @@ public class AmbariMetaInfo {
    * All of the {@link AlertDefinition}s that are scoped for the agents.
    */
   @Inject
-  private AgentAlertDefinitions agentAlertDefinitions;
+  private AmbariServiceAlertDefinitions ambariServiceAlertDefinitions;
 
   /**
    * Publishes the following events:
@@ -1039,14 +1036,26 @@ public class AmbariMetaInfo {
         }
       }
 
-      // host-only alert definitions
-      List<AlertDefinition> agentDefinitions = agentAlertDefinitions.getDefinitions();
+      // ambari agent host-only alert definitions
+      List<AlertDefinition> agentDefinitions = ambariServiceAlertDefinitions.getAgentDefinitions();
       for (AlertDefinition agentDefinition : agentDefinitions) {
         AlertDefinitionEntity entity = mappedEntities.get(agentDefinition.getName());
 
         // no entity means this is new; create a new entity
         if (null == entity) {
           entity = alertDefinitionFactory.coerce(clusterId, agentDefinition);
+          persist.add(entity);
+        }
+      }
+
+      // ambari server host-only alert definitions
+      List<AlertDefinition> serverDefinitions = ambariServiceAlertDefinitions.getServerDefinitions();
+      for (AlertDefinition serverDefinition : serverDefinitions) {
+        AlertDefinitionEntity entity = mappedEntities.get(serverDefinition.getName());
+
+        // no entity means this is new; create a new entity
+        if (null == entity) {
+          entity = alertDefinitionFactory.coerce(clusterId, serverDefinition);
           persist.add(entity);
         }
       }
@@ -1083,8 +1092,7 @@ public class AmbariMetaInfo {
         String componentName = definition.getComponentName();
 
         // the AMBARI service is special, skip it here
-        if (Services.AMBARI.name().equals(serviceName)
-            && Components.AMBARI_AGENT.name().equals(componentName)) {
+        if (Services.AMBARI.name().equals(serviceName)) {
           continue;
         }
 

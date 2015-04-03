@@ -18,6 +18,7 @@
 package org.apache.ambari.server.events;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,13 +38,13 @@ public class MockEventListener {
    * When an event is received, its class is captured and the event object is
    * added to the list.
    */
-  private final Map<Class<?>, List<Object>> m_receivedAmbariEvents = new HashMap<Class<?>, List<Object>>();
+  private final Map<Class<?>, List<AmbariEvent>> m_receivedAmbariEvents = new HashMap<Class<?>, List<AmbariEvent>>();
 
   /**
    * When an event is received, its class is captured and the event object is
    * added to the list.
    */
-  private final Map<Class<?>, List<Object>> m_receivedAlertEvents = new HashMap<Class<?>, List<Object>>();
+  private final Map<Class<?>, List<AlertEvent>> m_receivedAlertEvents = new HashMap<Class<?>, List<AlertEvent>>();
 
   /**
    * Resets the captured events.
@@ -109,14 +110,43 @@ public class MockEventListener {
     return m_receivedAlertEvents.get(clazz).size();
   }
 
+
+  /**
+   * Get the instances
+   *
+   * @param clazz
+   * @return
+   */
+  public List<AmbariEvent> getAmbariEventInstances(Class<? extends AmbariEvent> clazz){
+    if (!m_receivedAmbariEvents.containsKey(clazz)) {
+      return Collections.emptyList();
+    }
+
+    return m_receivedAmbariEvents.get(clazz);
+  }
+
+  /**
+   * Get the instances
+   *
+   * @param clazz
+   * @return
+   */
+  public List<AlertEvent> getAlertEventInstances(Class<? extends AlertEvent> clazz){
+    if (!m_receivedAlertEvents.containsKey(clazz)) {
+      return Collections.emptyList();
+    }
+
+    return m_receivedAlertEvents.get(clazz);
+  }
+
   /**
    * @param event
    */
   @Subscribe
   public void onAmbariEvent(AmbariEvent event) {
-    List<Object> events = m_receivedAmbariEvents.get(event.getClass());
+    List<AmbariEvent> events = m_receivedAmbariEvents.get(event.getClass());
     if (null == events) {
-      events = new ArrayList<Object>();
+      events = new ArrayList<AmbariEvent>();
       m_receivedAmbariEvents.put(event.getClass(), events);
     }
 
@@ -128,9 +158,9 @@ public class MockEventListener {
    */
   @Subscribe
   public void onAlertEvent(AlertEvent event) {
-    List<Object> events = m_receivedAlertEvents.get(event.getClass());
+    List<AlertEvent> events = m_receivedAlertEvents.get(event.getClass());
     if (null == events) {
-      events = new ArrayList<Object>();
+      events = new ArrayList<AlertEvent>();
       m_receivedAlertEvents.put(event.getClass(), events);
     }
 

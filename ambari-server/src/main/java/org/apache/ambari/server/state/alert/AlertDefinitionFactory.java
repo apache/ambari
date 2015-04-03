@@ -328,6 +328,10 @@ public class AlertDefinitionFactory {
           clazz = WebSource.class;
           break;
         }
+        case SERVER:{
+          clazz = ServerSource.class;
+          break;
+        }
         default:
           break;
       }

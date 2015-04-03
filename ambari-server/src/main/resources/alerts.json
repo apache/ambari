@@ -2,6 +2,32 @@
   "AMBARI": {
     "service": [
     ],
+    "AMBARI_SERVER" : [
+      {
+        "name": "ambari_server_agent_heartbeat",
+        "label": "Ambari Agent Heartbeat",
+        "description": "This alert is triggered if the server has lost contact with an agent.",
+        "interval": 2,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "SERVER",
+          "class": "org.apache.ambari.server.alerts.AgentHeartbeatAlertRunnable"
+        }
+      },
+      {
+        "name": "ambari_server_stale_alerts",
+        "label": "Ambari Server Alerts",
+        "description": "This alert is triggered if the server detects that there are alerts which have not run in a timely manner.",
+        "interval": 5,
+        "scope": "SERVICE",
+        "enabled": true,
+        "source": {
+          "type": "SERVER",
+          "class": "org.apache.ambari.server.alerts.StaleAlertRunnable"
+        }
+      }      
+    ],
     "AMBARI_AGENT" : [
       {
         "name": "ambari_agent_disk_usage",

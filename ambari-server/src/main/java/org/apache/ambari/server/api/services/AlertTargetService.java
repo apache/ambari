@@ -45,18 +45,18 @@ public class AlertTargetService extends BaseService {
 
   @GET
   @Produces("text/plain")
-  public Response getTargets(String body, @Context HttpHeaders headers,
+  public Response getTargets(@Context HttpHeaders headers,
       @Context UriInfo ui) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createAlertTargetResource(null));
   }
 
   @GET
   @Produces("text/plain")
   @Path("{targetId}")
-  public Response getTargets(String body, @Context HttpHeaders headers,
+  public Response getTargets(@Context HttpHeaders headers,
       @Context UriInfo ui, @PathParam("targetId") Long targetId) {
-    return handleRequest(headers, body, ui, Request.Type.GET,
+    return handleRequest(headers, null, ui, Request.Type.GET,
         createAlertTargetResource(targetId));
   }
 

@@ -22,7 +22,6 @@ import java.util.List;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Components;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -112,8 +111,7 @@ public class AlertMaintenanceModeListener {
       try {
         // although AMBARI is a service, it's not really a service and would
         // fail in this loop; so handle it specifically
-        if (Services.AMBARI.name().equals(serviceName)
-            && Components.AMBARI_AGENT.name().equals(componentName)) {
+        if (Services.AMBARI.name().equals(serviceName)) {
 
           // if this alert is an AMBARI_AGENT alert, then the only maintenance
           // state that affects it is a host maintenance state

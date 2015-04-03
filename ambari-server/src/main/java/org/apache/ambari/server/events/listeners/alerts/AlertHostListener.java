@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.events.listeners.alerts;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -28,7 +29,7 @@ import org.apache.ambari.server.events.AlertHashInvalidationEvent;
 import org.apache.ambari.server.events.HostAddedEvent;
 import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
-import org.apache.ambari.server.metadata.AgentAlertDefinitions;
+import org.apache.ambari.server.metadata.AmbariServiceAlertDefinitions;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
 import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
@@ -78,7 +79,7 @@ public class AlertHostListener {
    * All of the {@link AlertDefinition}s that are scoped for the agents.
    */
   @Inject
-  private AgentAlertDefinitions m_agentAlertDefinitions;
+  private AmbariServiceAlertDefinitions m_ambariServiceAlertDefinitions;
 
   /**
    * Used when a host is added to a cluster to coerce an {@link AlertDefinition}
@@ -121,14 +122,19 @@ public class AlertHostListener {
     long clusterId = event.getClusterId();
 
     // load the host-only alert definitions
-    List<AlertDefinition> agentDefinitions = m_agentAlertDefinitions.getDefinitions();
+    List<AlertDefinition> agentDefinitions = m_ambariServiceAlertDefinitions.getAgentDefinitions();
+    List<AlertDefinition> serverDefinitions = m_ambariServiceAlertDefinitions.getServerDefinitions();
+
+    List<AlertDefinition> ambariServiceDefinitions = new ArrayList<AlertDefinition>();
+    ambariServiceDefinitions.addAll(agentDefinitions);
+    ambariServiceDefinitions.addAll(serverDefinitions);
 
     // lock to prevent multiple threads from trying to create alert
     // definitions at the same time
     m_hostAlertLock.lock();
 
     try {
-      for (AlertDefinition agentDefinition : agentDefinitions) {
+      for (AlertDefinition agentDefinition : ambariServiceDefinitions) {
         AlertDefinitionEntity definition = m_alertDefinitionDao.findByName(
             clusterId, agentDefinition.getName());
 
@@ -141,7 +147,7 @@ public class AlertHostListener {
             m_alertDefinitionDao.create(definition);
           } catch (AmbariException ambariException) {
             LOG.error(
-                "Unable to create a host alert definition name {} in cluster {}",
+                "Unable to create an alert definition named {} in cluster {}",
                 definition.getDefinitionName(), definition.getClusterId(),
                 ambariException);
           }
