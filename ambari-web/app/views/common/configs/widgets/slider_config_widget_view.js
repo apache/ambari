@@ -51,11 +51,11 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (self.get('slider')) {
         self.get('slider').destroy();
         self.initSlider();
-        if (self.get('config.value') > valueAttributes.get('maximum')) {
-          self.set('mirrorValue', valueAttributes.get('maximum'))
+        if (self.get('config.value') > Em.get(valueAttributes, 'maximum')) {
+          self.set('mirrorValue', Em.get(valueAttributes, 'maximum'))
         }
-        if (self.get('config.value') < valueAttributes.get('minimum')) {
-          self.set('mirrorValue', valueAttributes.get('minimum'))
+        if (self.get('config.value') < Em.get(valueAttributes, 'minimum')) {
+          self.set('mirrorValue', Em.get(valueAttributes, 'minimum'))
         }
       }
     })

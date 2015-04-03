@@ -770,6 +770,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method onLoadOverrides
    */
   onLoadOverrides: function (allConfigs) {
+    var self = this;
     var serviceNames = this.get('servicesToLoad');
     serviceNames.forEach(function(serviceName) {
       var serviceConfig = App.config.createServiceConfig(serviceName);
@@ -789,11 +790,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     this.checkOverrideProperty(selectedService);
     this.checkDatabaseProperties(selectedService);
     this.checkForSecureConfig(this.get('selectedService'));
-    this.setProperties({
-      dataIsLoaded: true,
-      versionLoaded: true,
-      hash: this.getHash(),
-      isInit: false
+    this.getRecommendationsForDependencies(null, true, function() {
+      self.setProperties({
+        dataIsLoaded: true,
+        versionLoaded: true,
+        hash: self.getHash(),
+        isInit: false
+      });
     });
   },
 
@@ -2450,9 +2453,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @param {object} serviceConfigProperty - config property object
    * @param {App.ConfigGroup} group - config group for new property
    * @param {String} value
+   * @param {boolean} isNotSaved TODO
    * @method addOverrideProperty
    */
-  addOverrideProperty: function (serviceConfigProperty, group, value) {
+  addOverrideProperty: function (serviceConfigProperty, group, value, isNotSaved) {
     if (serviceConfigProperty.get('isOriginalSCP')) {
       var overrides = serviceConfigProperty.get('overrides');
       if (!overrides) {
@@ -2466,7 +2470,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         parentSCP: serviceConfigProperty,
         isEditable: true,
         group: group,
-        overrides: null
+        overrides: null,
+        isNotSaved: isNotSaved
       });
       console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
       overrides.pushObject(newSCP);

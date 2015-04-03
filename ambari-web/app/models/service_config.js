@@ -271,8 +271,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     var supportsFinal = this.get('supportsFinal');
     var isFinal = this.get('isFinal');
     var defaultIsFinal = this.get('defaultIsFinal');
-    var isEditable = this.get('isEditable');
-    return isEditable && ((defaultValue != null && value !== defaultValue) || (supportsFinal && isFinal !== defaultIsFinal));
+    return (defaultValue != null && value !== defaultValue) || (supportsFinal && isFinal !== defaultIsFinal);
   }.property('value', 'defaultValue', 'isEditable', 'isFinal', 'defaultIsFinal'),
 
   /**

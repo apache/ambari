@@ -87,7 +87,9 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    */
   mergeWithUI: function(config) {
     var uiConfigProperty = this.getUIConfig(config.StackConfigurations.property_name, config.StackConfigurations.type);
-    config.display_name = uiConfigProperty ? uiConfigProperty.displayName : config.StackConfigurations.display_name;
+    if (!config.StackConfigurations.property_display_name) {
+      config.StackConfigurations.property_display_name = uiConfigProperty && uiConfigProperty.displayName ? uiConfigProperty.displayName : config.StackConfigurations.property_name;
+    }
     config.category = uiConfigProperty ? uiConfigProperty.category : 'Advanced ' + App.config.getConfigTagFromFileName(config.StackConfigurations.type);
     config.display_type = uiConfigProperty ? uiConfigProperty.displayType : 'string';
   },

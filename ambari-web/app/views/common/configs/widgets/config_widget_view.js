@@ -56,7 +56,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @type {String}
    */
   configLabel: function() {
-    return this.get('config.displayName') || this.get('config.name');
+    return this.get('config.stackConfigProperty.displayName') || this.get('config.displayName') || this.get('config.name');
   }.property('config.name', 'config.displayName'),
 
 
