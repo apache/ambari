@@ -227,6 +227,7 @@
             <exclude>app/assets/**</exclude>
             <exclude>vendor/**</exclude>
             <exclude>node_modules/**</exclude>
+            <exclude>node/**</exclude>
             <exclude>npm-debug.log</exclude>
           </excludes>
         </configuration>
