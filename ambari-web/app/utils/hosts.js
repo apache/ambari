@@ -217,9 +217,6 @@ module.exports = {
           });
         }
         this.hide();
-      },
-      onSecondary: function() {
-        this.hide();
       }
     });
   },

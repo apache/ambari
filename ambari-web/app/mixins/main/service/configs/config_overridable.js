@@ -213,19 +213,6 @@ App.ConfigOverridable = Em.Mixin.create({
   },
 
   /**
-   * Persist config groups created in step7 wizard controller
-   * @method persistConfigGroups
-   */
-  persistConfigGroups: function () {
-    var installerController = App.router.get('installerController');
-    var step7Controller = App.router.get('wizardStep7Controller');
-    installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
-    App.clusterStatus.setClusterStatus({
-      localdb: App.db.data
-    });
-  },
-
-  /**
    * Create a new config-group for a service.
    *
    * @param {App.ConfigGroup} newConfigGroupData config group to post to server
@@ -385,12 +372,12 @@ App.ConfigOverridable = Em.Mixin.create({
   /**
    * Do request to delete config group
    * @param {App.ConfigGroup} configGroup
-   * @param {Function} successCallback
-   * @param {Function} errorCallback
+   * @param {Function} [successCallback]
+   * @param {Function} [errorCallback]
    * @return {$.ajax}
-   * @method deleteConfigGroup
+   * @method deleteConfigurationGroup
    */
-  deleteConfigGroup: function (configGroup, successCallback, errorCallback) {
+  deleteConfigurationGroup: function (configGroup, successCallback, errorCallback) {
     var sendData = {
       name: 'common.delete.config_group',
       sender: this,
@@ -429,6 +416,7 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method saveGroupConfirmationPopup
    */
   saveGroupConfirmationPopup: function (groupName) {
+    var self = this;
     return App.ModalPopup.show({
       header: Em.I18n.t('config.group.save.confirmation.header'),
       secondary: Em.I18n.t('config.group.save.confirmation.manage.button'),
@@ -437,7 +425,7 @@ App.ConfigOverridable = Em.Mixin.create({
         templateName: require('templates/common/configs/saveConfigGroup')
       }),
       onSecondary: function () {
-        App.router.get('mainServiceInfoConfigsController').manageConfigurationGroups();
+        App.router.get('manageConfigGroupsController').manageConfigurationGroups(null, self.get('content'));
         this.hide();
       }
     });

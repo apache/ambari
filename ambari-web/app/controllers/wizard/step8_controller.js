@@ -1679,7 +1679,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   removeInstalledServicesConfigurationGroups: function (groupsToDelete) {
     var self = this;
     groupsToDelete.forEach(function (item) {
-      self.deleteConfigGroup(Em.Object.create(item));
+      self.deleteConfigurationGroup(Em.Object.create(item));
     });
   },
 

@@ -105,6 +105,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
 
   /**
    * Mark isHiddenByFilter flag for configs, sub-sections, and tab
+   * @method filterEnhancedConfigs
    */
   filterEnhancedConfigs: function () {
     var self = this;

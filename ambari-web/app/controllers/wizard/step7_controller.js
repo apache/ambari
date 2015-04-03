@@ -1094,7 +1094,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method manageConfigurationGroup
    */
   manageConfigurationGroup: function () {
-    App.router.get('mainServiceInfoConfigsController').manageConfigurationGroups(this);
+    App.router.get('manageConfigGroupsController').manageConfigurationGroups(this);
   },
 
   /**

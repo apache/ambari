@@ -22,7 +22,7 @@ var batchUtils = require('utils/batch_scheduled_requests');
 var dataManipulationUtils = require('utils/data_manipulation');
 var lazyLoading = require('utils/lazy_loading');
 
-App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.ConfigOverridable, App.PreloadRequestsChainMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, {
+App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.PreloadRequestsChainMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, {
 
   name: 'mainServiceInfoConfigsController',
 
@@ -50,6 +50,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   /**
    * config groups for current service
+   * @type {App.ConfigGroup[]}
    */
   configGroups: [],
 
@@ -57,6 +58,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
   uiConfigs: [],
 
+  /**
+   * Determines if save configs is in progress
+   * @type {boolean}
+   */
   saveInProgress: false,
 
   saveConfigsFlag: true,
@@ -2483,138 +2488,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method manageConfigurationGroup
    */
   manageConfigurationGroup: function () {
-    this.manageConfigurationGroups();
-  },
-
-  /**
-   * Show popup with config groups
-   * User may edit/create/delete them
-   * @param controller
-   * @returns {App.ModalPopup}
-   * @method manageConfigurationGroups
-   */
-  manageConfigurationGroups: function (controller) {
-    var configsController = this;
-    var serviceData = (controller && controller.get('selectedService')) || this.get('content');
-    var serviceName = serviceData.get('serviceName');
-    var displayName = serviceData.get('displayName');
-    App.router.get('manageConfigGroupsController').set('isInstaller', !!controller);
-    App.router.get('manageConfigGroupsController').set('serviceName', serviceName);
-    if (controller) {
-      App.router.get('manageConfigGroupsController').set('isAddService', controller.get('content.controllerName') == 'addServiceController');
-    }
-    return App.ModalPopup.show({
-      header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
-      bodyClass: App.MainServiceManageConfigGroupView.extend({
-        serviceName: serviceName,
-        displayName: displayName,
-        controllerBinding: 'App.router.manageConfigGroupsController'
-      }),
-      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
-      primary: Em.I18n.t('common.save'),
-      onPrimary: function () {
-        var modifiedConfigGroups = this.get('subViewController.hostsModifiedConfigGroups');
-        // Save modified config-groups
-        if (!!controller) {
-          controller.set('selectedService.configGroups', App.router.get('manageConfigGroupsController.configGroups'));
-          controller.selectedServiceObserver();
-          if (controller.get('name') == "wizardStep7Controller") {
-            if (controller.get('selectedService.selected') === false && modifiedConfigGroups.toDelete.length > 0) {
-              controller.setGroupsToDelete(modifiedConfigGroups.toDelete);
-            }
-            configsController.persistConfigGroups();
-            this.updateConfigGroupOnServicePage();
-          }
-          this.hide();
-          return;
-        }
-        console.log("manageConfigurationGroups(): Saving modified config-groups: ", modifiedConfigGroups);
-        var self = this;
-        var errors = [];
-        var deleteQueriesCounter = modifiedConfigGroups.toClearHosts.length + modifiedConfigGroups.toDelete.length;
-        var createQueriesCounter = modifiedConfigGroups.toSetHosts.length + modifiedConfigGroups.toCreate.length;
-        var deleteQueriesRun = false;
-        var createQueriesRun = false;
-        var runNextQuery = function () {
-          if (!deleteQueriesRun && deleteQueriesCounter > 0) {
-            deleteQueriesRun = true;
-            modifiedConfigGroups.toClearHosts.forEach(function (cg) {
-              configsController.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
-            }, this);
-            modifiedConfigGroups.toDelete.forEach(function (cg) {
-              configsController.deleteConfigGroup(cg, finishFunction, finishFunction);
-            }, this);
-          } else if (!createQueriesRun && deleteQueriesCounter < 1) {
-            createQueriesRun = true;
-            modifiedConfigGroups.toSetHosts.forEach(function (cg) {
-              configsController.updateConfigurationGroup(cg, finishFunction, finishFunction);
-            }, this);
-            modifiedConfigGroups.toCreate.forEach(function (cg) {
-              configsController.postNewConfigurationGroup(cg, finishFunction);
-            }, this);
-          }
-        };
-        var finishFunction = function (xhr, text, errorThrown) {
-          if (xhr && errorThrown) {
-            var error = xhr.status + "(" + errorThrown + ") ";
-            try {
-              var json = $.parseJSON(xhr.responseText);
-              error += json.message;
-            } catch (err) {
-            }
-            console.error('Error updating Config Group:', error);
-            errors.push(error);
-          }
-          if (createQueriesRun) {
-            createQueriesCounter--;
-          } else {
-            deleteQueriesCounter--;
-          }
-          if (deleteQueriesCounter + createQueriesCounter < 1) {
-            if (errors.length > 0) {
-              console.log(errors);
-              self.get('subViewController').set('errorMessage', errors.join(". "));
-            } else {
-              self.updateConfigGroupOnServicePage();
-              self.hide();
-            }
-          } else {
-            runNextQuery();
-          }
-        };
-        runNextQuery();
-      },
-      subViewController: function () {
-        return App.router.get('manageConfigGroupsController');
-      }.property('App.router.manageConfigGroupsController'),
-
-      updateConfigGroupOnServicePage: function () {
-        var subViewController = this.get('subViewController');
-        var selectedConfigGroup = subViewController.get('selectedConfigGroup');
-        var managedConfigGroups = subViewController.get('configGroups');
-        if (!controller) {
-          controller = App.router.get('mainServiceInfoConfigsController');
-          controller.set('configGroups', managedConfigGroups);
-        } else {
-          controller.set('selectedService.configGroups', managedConfigGroups);
-        }
-
-        var selectEventObject = {};
-        //check whether selectedConfigGroup exists
-        if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {
-          selectEventObject.context = selectedConfigGroup;
-        } else {
-          selectEventObject.context = managedConfigGroups.findProperty('isDefault', true);
-        }
-        controller.selectConfigGroup(selectEventObject);
-      },
-
-      updateButtons: function () {
-        var modified = this.get('subViewController.isHostsModified');
-        this.set('disablePrimary', !modified);
-      }.observes('subViewController.isHostsModified'),
-      didInsertElement: Em.K
-    });
+    App.router.get('manageConfigGroupsController').manageConfigurationGroups(null, this.get('content'));
   },
 
   /**

@@ -168,19 +168,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#manageConfigurationGroup", function () {
-    beforeEach(function () {
-      sinon.stub(mainServiceInfoConfigsController, "manageConfigurationGroups", Em.K);
-    });
-    afterEach(function () {
-      mainServiceInfoConfigsController.manageConfigurationGroups.restore();
-    });
-    it("run manageConfigurationGroups", function () {
-      mainServiceInfoConfigsController.manageConfigurationGroup();
-      expect(mainServiceInfoConfigsController.manageConfigurationGroups.calledOnce).to.equal(true);
-    });
-  });
-
   describe("#addOverrideProperty", function () {
     var serviceConfigProperty = Em.Object.create({
       overrides: [],

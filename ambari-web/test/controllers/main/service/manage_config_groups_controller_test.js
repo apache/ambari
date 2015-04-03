@@ -97,4 +97,64 @@ describe('App.ManageConfigGroupsController', function() {
 
   });
 
+  describe('#isHostsModified', function () {
+
+    Em.A([
+        {
+          o: {
+            toClearHosts: [],
+            toDelete: [],
+            toSetHosts: [],
+            toCreate: []
+          },
+          e: false
+        },
+        {
+          o: {
+            toClearHosts: [{}],
+            toDelete: [],
+            toSetHosts: [],
+            toCreate: []
+          },
+          e: true
+        },
+        {
+          o: {
+            toClearHosts: [],
+            toDelete: [{}],
+            toSetHosts: [],
+            toCreate: []
+          },
+          e: true
+        },
+        {
+          o: {
+            toClearHosts: [],
+            toDelete: [],
+            toSetHosts: [{}],
+            toCreate: []
+          },
+          e: true
+        },
+        {
+          o: {
+            toClearHosts: [],
+            toDelete: [],
+            toSetHosts: [],
+            toCreate: [{}]
+          },
+          e: true
+        }
+    ]).forEach(function (test, index) {
+        it('test #' + index, function () {
+          c.reopen({
+            isLoaded: true,
+            hostsModifiedConfigGroups: test.o
+          });
+          expect(c.get('isHostsModified')).to.equal(test.e);
+        });
+      });
+
+  });
+
 });

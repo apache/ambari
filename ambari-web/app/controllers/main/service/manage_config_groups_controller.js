@@ -22,32 +22,179 @@ var validator = require('utils/validator');
 var hostsManagement = require('utils/hosts');
 var numberUtils = require('utils/number_utils');
 
-App.ManageConfigGroupsController = Em.Controller.extend({
+App.ManageConfigGroupsController = Em.Controller.extend(App.ConfigOverridable, {
+
   name: 'manageConfigGroupsController',
 
+  /**
+   * Determines if needed data is already loaded
+   * Loading chain starts at <code>loadHosts</code> and is complete on the <code>loadConfigGroups</code> (if user on
+   * the Installer) or on the <code>_onLoadConfigGroupsSuccess</code> (otherwise)
+   * @type {boolean}
+   */
   isLoaded: false,
 
+  /**
+   * Determines if user currently is on the Cluster Installer
+   * @type {boolean}
+   */
   isInstaller: false,
 
+  /**
+   * Determines if user currently is on the Add Service Wizard
+   * @type {boolean}
+   */
   isAddService: false,
 
+  /**
+   * Current service name
+   * @type {string}
+   */
   serviceName: null,
 
+  /**
+   * @type {App.ConfigGroup[]}
+   */
   configGroups: [],
 
+  /**
+   * @type {App.ConfigGroup[]}
+   */
   originalConfigGroups: [],
 
+  /**
+   * @type {App.ConfigGroup}
+   */
   selectedConfigGroup: null,
 
+  /**
+   * @type {string[]}
+   */
   selectedHosts: [],
 
+  /**
+   * List of all hosts in the cluster
+   * @type {{
+   *  id: string,
+   *  ip: string,
+   *  osType: string,
+   *  osArch: string,
+   *  hostName: string,
+   *  publicHostName: string,
+   *  cpu: number,
+   *  memory: number,
+   *  diskTotal: string,
+   *  diskFree: string,
+   *  disksMounted: number,
+   *  hostComponents: {
+   *    componentName: string,
+   *    displayName: string
+   *  }[]
+   * }[]}
+   */
   clusterHosts: [],
 
-  resortConfigGroup: function() {
-    var configGroups = Ember.copy(this.get('configGroups'));
-    if(configGroups.length < 2){
-      return;
+  /**
+   * List of available service components for <code>serviceName</code>
+   * @type {{componentName: string, displayName: string, selected: boolean}[]}
+   */
+  componentsForFilter: function () {
+    return App.StackServiceComponent.find().filterProperty('serviceName', this.get('serviceName')).map(function (component) {
+      return Em.Object.create({
+        componentName: component.get('componentName'),
+        displayName: App.format.role(component.get('componentName')),
+        selected: false
+      });
+    });
+  }.property('serviceName'),
+
+  /**
+   * Determines when host may be deleted from config group
+   * @type {boolean}
+   */
+  isDeleteHostsDisabled: function () {
+    var selectedConfigGroup = this.get('selectedConfigGroup');
+    if (selectedConfigGroup) {
+      return selectedConfigGroup.isDefault || this.get('selectedHosts').length === 0;
     }
+    return true;
+  }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.length', 'selectedHosts.length'),
+
+  /**
+   * Map with modified/deleted/created config groups
+   * @type {{
+   *  toClearHosts: App.ConfigGroup[],
+   *  toDelete: App.ConfigGroup[],
+   *  toSetHosts: App.ConfigGroup[],
+   *  toCreate: App.ConfigGroup[]
+   * }}
+   */
+  hostsModifiedConfigGroups: function () {
+    if (!this.get('isLoaded')) {
+      return false;
+    }
+    var groupsToClearHosts = [];
+    var groupsToDelete = [];
+    var groupsToSetHosts = [];
+    var groupsToCreate = [];
+    var groups = this.get('configGroups');
+    var originalGroups = this.get('originalConfigGroups');
+    // remove default group
+    var originalGroupsCopy = originalGroups.without(originalGroups.findProperty('isDefault'));
+    var originalGroupsIds = originalGroupsCopy.mapProperty('id');
+    groups.forEach(function (group) {
+      if (!group.get('isDefault')) {
+        var originalGroup = originalGroupsCopy.findProperty('id', group.get('id'));
+        if (originalGroup) {
+          if (!(JSON.stringify(group.get('hosts').slice().sort()) === JSON.stringify(originalGroup.get('hosts').sort()))) {
+            groupsToClearHosts.push(group.set('id', originalGroup.get('id')));
+            if (group.get('hosts').length) {
+              groupsToSetHosts.push(group.set('id', originalGroup.get('id')));
+            }
+            // should update name or description
+          } else if (group.get('description') !== originalGroup.get('description') || group.get('name') !== originalGroup.get('name') ) {
+            groupsToSetHosts.push(group.set('id', originalGroup.get('id')));
+          }
+          originalGroupsIds = originalGroupsIds.without(group.get('id'));
+        } else {
+          groupsToCreate.push(group);
+        }
+      }
+    });
+    originalGroupsIds.forEach(function (id) {
+      groupsToDelete.push(originalGroupsCopy.findProperty('id', id));
+    }, this);
+    return {
+      toClearHosts: groupsToClearHosts,
+      toDelete: groupsToDelete,
+      toSetHosts: groupsToSetHosts,
+      toCreate: groupsToCreate
+    };
+  }.property('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.hosts.length', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
+
+  /**
+   * Determines if some changes were done with config groups
+   * @use hostsModifiedConfigGroups
+   * @type {boolean}
+   */
+  isHostsModified: function () {
+    if (!this.get('isLoaded')) {
+      return false;
+    }
+    var modifiedGroups = this.get('hostsModifiedConfigGroups');
+    return Em.keys(modifiedGroups).map(function (key) {
+      return Em.get(modifiedGroups[key], 'length');
+    }).reduce(Em.sum) > 0;
+  }.property('hostsModifiedConfigGroups'),
+
+  /**
+   * Resort config groups according to order:
+   * default group first, other - last
+   * @method resortConfigGroup
+   */
+  resortConfigGroup: function() {
+    var configGroups = Em.copy(this.get('configGroups'));
+    if(configGroups.length < 2) return;
     var defaultConfigGroup = configGroups.findProperty('isDefault');
     configGroups.removeObject(defaultConfigGroup);
     var sorted = [defaultConfigGroup].concat(configGroups.sortProperty('name'));
@@ -57,35 +204,47 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.addObserver('configGroups.@each.name', this, 'resortConfigGroup');
   }.observes('configGroups.@each.name'),
 
+  /**
+   * Load hosts from server or
+   *  get them from installerController if user on the install wizard
+   *  get them from isAddServiceController if user on the add service wizard
+   * @method loadHosts
+   */
   loadHosts: function() {
     this.set('isLoaded', false);
     if (this.get('isInstaller')) {
       var allHosts = this.get('isAddService') ? App.router.get('addServiceController').get('allHosts') : App.router.get('installerController').get('allHosts');
       this.set('clusterHosts', allHosts);
       this.loadConfigGroups(this.get('serviceName'));
-    } else {
+    }
+    else {
       this.loadHostsFromServer();
     }
   },
 
   /**
-   * request all hosts directly from server
+   * Request all hosts directly from server
+   * @method loadHostsFromServer
+   * @return {$.ajax}
    */
   loadHostsFromServer: function() {
-    App.ajax.send({
+    return App.ajax.send({
       name: 'hosts.config_groups',
       sender: this,
       data: {},
-      success: 'loadHostsFromServerSuccessCallback',
-      error: 'loadHostsFromServerErrorCallback'
+      success: '_loadHostsFromServerSuccessCallback',
+      error: '_loadHostsFromServerErrorCallback'
     });
   },
 
   /**
-   * parse hosts response and wrap them into Ember.Object
-   * @param data
+   * Success-callback for <code>loadHostsFromServer</code>
+   * Parse hosts response and wrap them into Ember.Object
+   * @param {object} data
+   * @method _loadHostsFromServerSuccessCallback
+   * @private
    */
-  loadHostsFromServerSuccessCallback: function (data) {
+  _loadHostsFromServerSuccessCallback: function (data) {
     var wrappedHosts = [];
 
     data.items.forEach(function (host) {
@@ -128,21 +287,35 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.loadConfigGroups(this.get('serviceName'));
   },
 
-  loadHostsFromServerErrorCallback: function () {
+  /**
+   * Error-callback for <code>loadHostsFromServer</code>
+   * @method _loadHostsFromServerErrorCallback
+   * @private
+   */
+  _loadHostsFromServerErrorCallback: function () {
     console.warn('ERROR: request to fetch all hosts failed');
     this.set('clusterHosts', []);
     this.loadConfigGroups(this.get('serviceName'));
   },
 
+  /**
+   * Load config groups from server if user is on the already installed cluster
+   * If not - use loaded data form wizardStep7Controller
+   * @param {string} serviceName
+   * @method loadConfigGroups
+   */
   loadConfigGroups: function (serviceName) {
     if (this.get('isInstaller')) {
       this.set('serviceName', serviceName);
       var configGroups = this.copyConfigGroups(App.router.get('wizardStep7Controller.selectedService.configGroups'));
       var originalConfigGroups = this.copyConfigGroups(configGroups);
-      this.set('configGroups', configGroups);
-      this.set('originalConfigGroups', originalConfigGroups);
-      this.set('isLoaded', true);
-    } else {
+      this.setProperties({
+        configGroups: configGroups,
+        originalConfigGroups: originalConfigGroups,
+        isLoaded: true
+      });
+    }
+    else {
       this.set('serviceName', serviceName);
       App.ajax.send({
         name: 'service.load_config_groups',
@@ -150,13 +323,18 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           serviceName: serviceName
         },
         sender: this,
-        success: 'onLoadConfigGroupsSuccess',
-        error: 'onLoadConfigGroupsError'
+        success: '_onLoadConfigGroupsSuccess'
       });
     }
   },
 
-  onLoadConfigGroupsSuccess: function (data) {
+  /**
+   * Success-callback for <code>loadConfigGroups</code>
+   * @param {object} data
+   * @private
+   * @method _onLoadConfigGroupsSuccess
+   */
+  _onLoadConfigGroupsSuccess: function (data) {
     var usedHosts = [];
     var unusedHosts = [];
     var serviceName = this.get('serviceName');
@@ -218,10 +396,11 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     }
   },
 
-  onLoadConfigGroupsError: function () {
-    console.error('Unable to load config groups for service.');
-  },
-
+  /**
+   *
+   * @param {object} groupToTypeToTagMap
+   * @method loadProperties
+   */
   loadProperties: function (groupToTypeToTagMap) {
     var typeTagToGroupMap = {};
     var urlParams = [];
@@ -242,12 +421,20 @@ App.ManageConfigGroupsController = Em.Controller.extend({
           params: params,
           typeTagToGroupMap: typeTagToGroupMap
         },
-        success: 'onLoadPropertiesSuccess'
+        success: '_onLoadPropertiesSuccess'
       });
     }
   },
 
-  onLoadPropertiesSuccess: function (data, opt, params) {
+  /**
+   * Success-callback for <code>loadProperties</code>
+   * @param {object} data
+   * @param {object} opt
+   * @param {object} params
+   * @private
+   * @method _onLoadPropertiesSuccess
+   */
+  _onLoadPropertiesSuccess: function (data, opt, params) {
     data.items.forEach(function (configs) {
       var typeTagConfigs = [];
       var group = params.typeTagToGroupMap[configs.type + "///" + configs.tag];
@@ -261,14 +448,24 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     }, this);
   },
 
+  /**
+   * Show popup with properties overridden in the selected config group
+   * @method showProperties
+   */
   showProperties: function () {
     var properies = this.get('selectedConfigGroup.propertiesList').htmlSafe();
     if (properies) {
       App.showAlertPopup(Em.I18n.t('services.service.config_groups_popup.properties'), properies);
     }
   },
+
+  /**
+   * Show popup with hosts to add to the selected config group
+   * @returns {boolean}
+   * @method addHosts
+   */
   addHosts: function () {
-    if (this.get('selectedConfigGroup.isAddHostsDisabled')){
+    if (this.get('selectedConfigGroup.isAddHostsDisabled')) {
       return false;
     }
     var availableHosts = this.get('selectedConfigGroup.availableHosts');
@@ -285,12 +482,12 @@ App.ManageConfigGroupsController = Em.Controller.extend({
    * @method addHostsCallback
    */
   addHostsCallback: function (selectedHosts) {
-    var group = this.get('selectedConfigGroup');
     if (selectedHosts) {
+      var group = this.get('selectedConfigGroup');
       selectedHosts.forEach(function (hostName) {
         group.get('hosts').pushObject(hostName);
         group.get('parentConfigGroup.hosts').removeObject(hostName);
-      }, this);
+      });
     }
   },
 
@@ -309,39 +506,21 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.set('selectedHosts', []);
   },
 
-  isDeleteHostsDisabled: function () {
-    var selectedConfigGroup = this.get('selectedConfigGroup');
-    if (selectedConfigGroup) {
-      return selectedConfigGroup.isDefault || this.get('selectedHosts').length === 0;
-    }
-    return true;
-  }.property('selectedConfigGroup', 'selectedConfigGroup.hosts.length', 'selectedHosts.length'),
-
   /**
-   * confirm delete config group
+   * show popup for confirmation delete config group
+   * @method confirmDelete
    */
-  confirmDelete : function () {
+  confirmDelete: function () {
     var self = this;
     App.showConfirmationPopup(function() {
       self.deleteConfigGroup();
     });
   },
-  /**
-   * add hosts to group
-   * @return {Array}
-   */
-  componentsForFilter: function () {
-    return App.StackServiceComponent.find().filterProperty('serviceName', this.get('serviceName')).map(function (component) {
-      return Em.Object.create({
-        componentName: component.get('componentName'),
-        displayName: App.format.role(component.get('componentName')),
-        selected: false
-      });
-    });
-  }.property('serviceName'),
 
   /**
-   * delete selected config group
+   * delete selected config group (stored in the <code>selectedConfigGroup</code>)
+   * then select default config group
+   * @method deleteConfigGroup
    */
   deleteConfigGroup: function () {
     var selectedConfigGroup = this.get('selectedConfigGroup');
@@ -354,25 +533,31 @@ App.ManageConfigGroupsController = Em.Controller.extend({
     this.get('configGroups').removeObject(selectedConfigGroup);
     this.set('selectedConfigGroup', this.get('configGroups').findProperty('isDefault'));
   },
+
   /**
-   * rename new config group
+   * rename new config group (not allowed for default group)
+   * @method renameConfigGroup
    */
   renameConfigGroup: function () {
     if(this.get('selectedConfigGroup.isDefault')) {
       return;
     }
     var self = this;
-    this.renameGroupPopup = App.ModalPopup.show({
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
+    var renameGroupPopup = App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups.rename_config_group_popup.header'),
-      bodyClass: Ember.View.extend({
+
+      bodyClass: Em.View.extend({
         templateName: require('templates/main/service/new_config_group')
       }),
+
       configGroupName: self.get('selectedConfigGroup.name'),
+
       configGroupDesc: self.get('selectedConfigGroup.description'),
+
       warningMessage: null,
+
       isDescriptionDirty: false,
+
       validate: function () {
         var warningMessage = '';
         var originalGroup = self.get('selectedConfigGroup');
@@ -396,9 +581,11 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName', 'configGroupDesc'),
+
       disablePrimary: function () {
         return !(this.get('configGroupName').trim().length > 0 && (this.get('warningMessage') !== null && !this.get('warningMessage')));
       }.property('warningMessage', 'configGroupName', 'configGroupDesc'),
+
       onPrimary: function () {
         self.set('selectedConfigGroup.name', this.get('configGroupName'));
         self.set('selectedConfigGroup.description', this.get('configGroupDesc'));
@@ -408,28 +595,37 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         this.hide();
       }
     });
+    this.set('renameGroupPopup', renameGroupPopup);
   },
 
   /**
-   * add new config group
+   * add new config group (or copy existing)
+   * @param {boolean} duplicated true - copy <code>selectedConfigGroup</code>, false - create a new one
+   * @method addConfigGroup
    */
   addConfigGroup: function (duplicated) {
     duplicated = (duplicated === true);
+
     var self = this;
-    this.addGroupPopup = App.ModalPopup.show({
-      primary: Em.I18n.t('ok'),
-      secondary: Em.I18n.t('common.cancel'),
+
+    var addGroupPopup = App.ModalPopup.show({
       header: Em.I18n.t('services.service.config_groups.add_config_group_popup.header'),
-      bodyClass: Ember.View.extend({
+
+      bodyClass: Em.View.extend({
         templateName: require('templates/main/service/new_config_group')
       }),
+
       configGroupName: duplicated ? self.get('selectedConfigGroup.name') + ' Copy' : "",
+
       configGroupDesc: duplicated ? self.get('selectedConfigGroup.description') + ' (Copy)' : "",
+
       warningMessage: '',
+
       didInsertElement: function(){
         this.validate();
         this.$('input').focus();
       },
+
       validate: function () {
         var warningMessage = '';
         var groupName = this.get('configGroupName').trim();
@@ -441,9 +637,11 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         }
         this.set('warningMessage', warningMessage);
       }.observes('configGroupName'),
+
       disablePrimary: function () {
         return !(this.get('configGroupName').trim().length > 0 && !this.get('warningMessage'));
       }.property('warningMessage', 'configGroupName'),
+
       onPrimary: function () {
         var defaultConfigGroup = self.get('configGroups').findProperty('isDefault');
         var properties = [];
@@ -473,67 +671,22 @@ App.ManageConfigGroupsController = Em.Controller.extend({
         this.hide();
       }
     });
+    this.set('addGroupPopup', addGroupPopup);
   },
 
+  /**
+   * Duplicate existing config group
+   * @method duplicateConfigGroup
+   */
   duplicateConfigGroup: function() {
     this.addConfigGroup(true);
   },
-
-  hostsModifiedConfigGroups: function () {
-    if (!this.get('isLoaded')) {
-      return false;
-    }
-    var groupsToClearHosts = [];
-    var groupsToDelete = [];
-    var groupsToSetHosts = [];
-    var groupsToCreate = [];
-    var groups = this.get('configGroups');
-    var originalGroups = this.get('originalConfigGroups');
-    // remove default group
-    originalGroups = originalGroups.without(originalGroups.findProperty('isDefault'));
-    var originalGroupsIds = originalGroups.mapProperty('id');
-    groups.forEach(function (group) {
-      if (!group.get('isDefault')) {
-        var originalGroup = originalGroups.findProperty('id', group.get('id'));
-        if (originalGroup) {
-          if (!(JSON.stringify(group.get('hosts').slice().sort()) === JSON.stringify(originalGroup.get('hosts').sort()))) {
-            groupsToClearHosts.push(group.set('id', originalGroup.get('id')));
-            if (group.get('hosts').length) {
-              groupsToSetHosts.push(group.set('id', originalGroup.get('id')));
-            }
-          // should update name or description
-          } else if (group.get('description') !== originalGroup.get('description') || group.get('name') !== originalGroup.get('name') ) {
-            groupsToSetHosts.push(group.set('id', originalGroup.get('id')));
-          }
-          originalGroupsIds = originalGroupsIds.without(group.get('id'));
-        } else {
-          groupsToCreate.push(group);
-        }
-      }
-    });
-    originalGroupsIds.forEach(function (id) {
-      groupsToDelete.push(originalGroups.findProperty('id', id));
-    }, this);
-    return {
-      toClearHosts: groupsToClearHosts,
-      toDelete: groupsToDelete,
-      toSetHosts: groupsToSetHosts,
-      toCreate: groupsToCreate
-    };
-  }.property('selectedConfigGroup.hosts.@each', 'selectedConfigGroup.hosts.length', 'selectedConfigGroup.description', 'configGroups', 'isLoaded'),
-
-  isHostsModified: function () {
-    var modifiedGroups = this.get('hostsModifiedConfigGroups');
-    if (!this.get('isLoaded')) {
-      return false;
-    }
-    return !!(modifiedGroups.toClearHosts.length || modifiedGroups.toSetHosts.length || modifiedGroups.toCreate.length || modifiedGroups.toDelete.length);
-  }.property('hostsModifiedConfigGroups'),
 
   /**
    * copy config groups to manage popup to give user choice whether or not save changes
    * @param originGroups
    * @return {Array}
+   * @method copyConfigGroups
    */
   copyConfigGroups: function (originGroups) {
     var configGroups = [];
@@ -561,5 +714,151 @@ App.ManageConfigGroupsController = Em.Controller.extend({
       result.push(App.ConfigGroup.create(groupCopy));
     }, this);
     return result;
+  },
+
+  /**
+   * Show popup with config groups
+   * User may edit/create/delete them
+   * @param {Em.Controller} controller
+   * @param {App.Service} service
+   * @returns {App.ModalPopup}
+   * @method manageConfigurationGroups
+   */
+  manageConfigurationGroups: function (controller, service) {
+    var configsController = this;
+    var serviceData = (controller && controller.get('selectedService')) || service;
+    var serviceName = serviceData.get('serviceName');
+    var displayName = serviceData.get('displayName');
+    this.setProperties({
+      isInstaller: !!controller,
+      serviceName: serviceName
+    });
+    if (controller) {
+      configsController.set('isAddService', controller.get('content.controllerName') == 'addServiceController');
+    }
+    return App.ModalPopup.show({
+
+      header: Em.I18n.t('services.service.config_groups_popup.header').format(displayName),
+
+      bodyClass: App.MainServiceManageConfigGroupView.extend({
+        serviceName: serviceName,
+        displayName: displayName,
+        controller: configsController
+      }),
+
+      classNames: ['sixty-percent-width-modal', 'manage-configuration-group-popup'],
+
+      primary: Em.I18n.t('common.save'),
+
+      subViewController: function () {
+        return configsController;
+      }.property(),
+
+      onPrimary: function () {
+        var modifiedConfigGroups = configsController.get('hostsModifiedConfigGroups');
+        // Save modified config-groups
+        if (!!controller) {
+          controller.set('selectedService.configGroups', configsController.get('configGroups'));
+          controller.selectedServiceObserver();
+          if (controller.get('name') == "wizardStep7Controller") {
+            if (controller.get('selectedService.selected') === false && modifiedConfigGroups.toDelete.length > 0) {
+              controller.setGroupsToDelete(modifiedConfigGroups.toDelete);
+            }
+            configsController.persistConfigGroups();
+            this.updateConfigGroupOnServicePage();
+          }
+          this.hide();
+          return;
+        }
+        var self = this;
+        var errors = [];
+        var deleteQueriesCounter = modifiedConfigGroups.toClearHosts.length + modifiedConfigGroups.toDelete.length;
+        var createQueriesCounter = modifiedConfigGroups.toSetHosts.length + modifiedConfigGroups.toCreate.length;
+        var deleteQueriesRun = false;
+        var createQueriesRun = false;
+        var runNextQuery = function () {
+          if (!deleteQueriesRun && deleteQueriesCounter > 0) {
+            deleteQueriesRun = true;
+            modifiedConfigGroups.toClearHosts.forEach(function (cg) {
+              configsController.clearConfigurationGroupHosts(cg, finishFunction, finishFunction);
+            }, this);
+            modifiedConfigGroups.toDelete.forEach(function (cg) {
+              configsController.deleteConfigurationGroup(cg, finishFunction, finishFunction);
+            }, this);
+          } else if (!createQueriesRun && deleteQueriesCounter < 1) {
+            createQueriesRun = true;
+            modifiedConfigGroups.toSetHosts.forEach(function (cg) {
+              configsController.updateConfigurationGroup(cg, finishFunction, finishFunction);
+            }, this);
+            modifiedConfigGroups.toCreate.forEach(function (cg) {
+              configsController.postNewConfigurationGroup(cg, finishFunction);
+            }, this);
+          }
+        };
+        var finishFunction = function (xhr, text, errorThrown) {
+          if (xhr && errorThrown) {
+            var error = xhr.status + "(" + errorThrown + ") ";
+            try {
+              var json = $.parseJSON(xhr.responseText);
+              error += json.message;
+            } catch (err) {}
+            errors.push(error);
+          }
+          createQueriesRun ? createQueriesCounter-- : deleteQueriesCounter--;
+          if (deleteQueriesCounter + createQueriesCounter < 1) {
+            if (errors.length > 0) {
+              self.get('subViewController').set('errorMessage', errors.join(". "));
+            } else {
+              self.updateConfigGroupOnServicePage();
+              self.hide();
+            }
+          } else {
+            runNextQuery();
+          }
+        };
+        runNextQuery();
+      },
+
+      updateConfigGroupOnServicePage: function () {
+        var selectedConfigGroup = configsController.get('selectedConfigGroup');
+        var managedConfigGroups = configsController.get('configGroups');
+        if (!controller) {
+          controller = App.router.get('mainServiceInfoConfigsController');
+          controller.set('configGroups', managedConfigGroups);
+        } else {
+          controller.set('selectedService.configGroups', managedConfigGroups);
+        }
+
+        var selectEventObject = {};
+        //check whether selectedConfigGroup exists
+        if (selectedConfigGroup && controller.get('configGroups').someProperty('name', selectedConfigGroup.get('name'))) {
+          selectEventObject.context = selectedConfigGroup;
+        } else {
+          selectEventObject.context = managedConfigGroups.findProperty('isDefault', true);
+        }
+        controller.selectConfigGroup(selectEventObject);
+      },
+
+      updateButtons: function () {
+        var modified = this.get('subViewController.isHostsModified');
+        this.set('disablePrimary', !modified);
+      }.observes('subViewController.isHostsModified'),
+
+      didInsertElement: Em.K
+    });
+  },
+
+  /**
+   * Persist config groups created in step7 wizard controller
+   * @method persistConfigGroups
+   */
+  persistConfigGroups: function () {
+    var installerController = App.router.get('installerController');
+    var step7Controller = App.router.get('wizardStep7Controller');
+    installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
+    App.clusterStatus.setClusterStatus({
+      localdb: App.db.data
+    });
   }
+
 });
