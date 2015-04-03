@@ -23,7 +23,7 @@
       <version>1.7.0.2.3</version>
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6,suse11</osFamily>
+          <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
               <name>accumulo_2_3_*</name>

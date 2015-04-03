@@ -73,7 +73,7 @@
 
       <osSpecifics>
         <osSpecific>
-          <osFamily>redhat6</osFamily>
+          <osFamily>redhat7,redhat6</osFamily>
           <packages>
             <package>
               <name>krb5-server</name>
