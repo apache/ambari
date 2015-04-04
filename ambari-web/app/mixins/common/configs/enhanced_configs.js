@@ -498,7 +498,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @private
    */
   _saveRecommendedValues: function(data, updateOnlyBoundaries) {
-    Em.assert('invalid data', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
+    Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var configs = data.resources[0].recommendations.blueprint.configurations;
     /** get all configs by config group **/
     var stepConfigsByGroup = this._getConfigsByGroup(this.get('stepConfigs'));

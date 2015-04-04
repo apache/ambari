@@ -18,8 +18,8 @@
 
 var App = require('app');
 
-App.SliderConfigWidgetOverrideView = App.ServiceConfigView.SCPOverriddenRowsView.extend({
+App.ConfigWidgetOverrideView = App.ServiceConfigView.SCPOverriddenRowsView.extend({
 
-  templateName: require('templates/common/configs/widgets/overrides/slider_config_widget_override')
+  templateName: require('templates/common/configs/widgets/overrides/config_widget_override')
 
 });

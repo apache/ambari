@@ -77,23 +77,17 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
               var configWidgetType = config.get('widget.type');
               var widget = widgetTypeMap[configWidgetType];
               Em.assert('Unknown config widget view for config ' + configProperty.get('id') + ' with type ' + configWidgetType, widget);
-              configProperty.set('widget', widget);
-              configProperty.set('stackConfigProperty', config);
+              configProperty.setProperties({
+                widget: widget,
+                stackConfigProperty: config
+              });
               if (configProperty.get('overrides')) {
-                configProperty.get('overrides').forEach(function (override) {
-                  override.setProperties({
-                    widget: widget,
-                    stackConfigProperty: config
-                  });
-                });
+                configProperty.get('overrides').setEach('stackConfigProperty', config);
               }
               if (configProperty.get('compareConfigs')) {
-                configProperty.get('compareConfigs').forEach(function (compareConfig) {
-                  compareConfig.setProperties({
-                    widget: widget,
-                    isComparison: false,
-                    stackConfigProperty: config
-                  });
+                configProperty.get('compareConfigs').invoke('setProperties', {
+                  isComparison: false,
+                  stackConfigProperty: config
                 });
               }
             });

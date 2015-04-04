@@ -25,3 +25,13 @@
 {{#if view.configErrorMessage}}
   <p class="text-error">{{view.configErrorMessage}}</p>
 {{/if}}
+{{#if view.isOriginalSCP}}
+  {{view App.ConfigWidgetOverrideView
+  serviceConfigPropertyBinding="view.config"
+  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
+  }}
+{{/if}}
+
+{{#if view.isComparison}}
+  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
+{{/if}}

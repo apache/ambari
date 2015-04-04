@@ -17,8 +17,8 @@
 
 var App = require('app');
 
-App.SliderConfigWidgetComparisonView = App.ServiceConfigView.SCPComparisonRowsView.extend({
+App.ConfigWidgetComparisonView = App.ServiceConfigView.SCPComparisonRowsView.extend({
 
-  templateName: require('templates/common/configs/widgets/comparison/slider_config_widget_comparison')
+  templateName: require('templates/common/configs/widgets/comparison/config_widget_comparison')
 
 });

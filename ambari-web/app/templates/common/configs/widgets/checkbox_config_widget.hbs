@@ -55,12 +55,12 @@
 {{/if}}
 
 {{#if view.isOriginalSCP}}
-  {{view App.CheckboxConfigWidgetOverrideView
+  {{view App.ConfigWidgetOverrideView
   serviceConfigPropertyBinding="view.config"
   isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
   }}
 {{/if}}
 
 {{#if view.isComparison}}
-  {{view App.CheckboxConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
+  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
 {{/if}}
