@@ -1666,11 +1666,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                                 )
                                 throws AmbariException {
 
+    String serviceName = scHost.getServiceName();
+
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
       .getServiceComponentName()), roleCommand,
       event, scHost.getClusterName(),
-      scHost.getServiceName(), false);
-    String serviceName = scHost.getServiceName();
+        serviceName, false);
     String componentName = event.getServiceComponentName();
     String hostname = scHost.getHostName();
     String osFamily = clusters.getHost(hostname).getOsFamily();
@@ -1743,13 +1744,18 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       serviceInfo.getServicePackageFolder());
     commandParams.put(HOOKS_FOLDER, stackInfo.getStackHooksFolder());
 
+    String clusterName = cluster.getClusterName();
+    if (customCommandExecutionHelper.isTopologyRefreshRequired(roleCommand.name(), clusterName, serviceName)) {
+      commandParams.put(ExecutionCommand.KeyNames.REFRESH_TOPOLOGY, "True");
+    }
+
     execCmd.setCommandParams(commandParams);
 
     String repoInfo = customCommandExecutionHelper.getRepoInfo(cluster, host);
     if (LOG.isDebugEnabled()) {
       LOG.debug("Sending repo information to agent"
         + ", hostname=" + scHost.getHostName()
-        + ", clusterName=" + cluster.getClusterName()
+        + ", clusterName=" + clusterName
         + ", stackInfo=" + stackId.getStackId()
         + ", repoInfo=" + repoInfo);
     }

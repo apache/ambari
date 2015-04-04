@@ -148,6 +148,7 @@ public class AmbariCustomCommandExecutionHelper {
   private OsFamily os_family;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
+  protected static final String START_COMMAND_NAME = "START";
   protected static final String RESTART_COMMAND_NAME = "RESTART";
   protected static final String INSTALL_COMMAND_NAME = "INSTALL";
   public static final String DECOMMISSION_COMMAND_NAME = "DECOMMISSION";
@@ -1089,10 +1090,18 @@ public class AmbariCustomCommandExecutionHelper {
     return hostLevelParams;
   }
 
-  // determine whether or not the action should trigger a topology refresh
-  private boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceName)
+  /**
+   * Determine whether or not the action should trigger a topology refresh.
+   *
+   * @param actionName   the action name (i.e. START, RESTART)
+   * @param clusterName  the cluster name
+   * @param serviceName  the service name
+   *
+   * @return true if a topology refresh is required for the action
+   */
+  public boolean isTopologyRefreshRequired(String actionName, String clusterName, String serviceName)
       throws AmbariException {
-    if (actionName.contains(RESTART_COMMAND_NAME)) {
+    if (actionName.equals(START_COMMAND_NAME) || actionName.equals(RESTART_COMMAND_NAME)) {
       Cluster cluster = clusters.getCluster(clusterName);
       StackId stackId = cluster.getDesiredStackVersion();
 
