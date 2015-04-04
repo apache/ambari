@@ -36,31 +36,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   slider: null,
 
   /**
-   * recreate widget in case max or min values were changed
-   * @method changeBoundaries
-   */
-  changeBoundaries: function() {
-    if ($.mocho) {
-      //temp fix as it can broke test that doesn't have any connection with this method
-      return;
-    }
-    var self = this;
-    var valueAttributes = this.get('config.stackConfigProperty.valueAttributes');
-    Em.run.once(this, function() {
-      self.prepareValueAttributes();
-      if (self.get('slider')) {
-        self.get('slider').destroy();
-        self.initSlider();
-        if (self.get('config.value') > Em.get(valueAttributes, 'maximum')) {
-          self.set('mirrorValue', Em.get(valueAttributes, 'maximum'))
-        }
-        if (self.get('config.value') < Em.get(valueAttributes, 'minimum')) {
-          self.set('mirrorValue', Em.get(valueAttributes, 'minimum'))
-        }
-      }
-    })
-  },
-  /**
    * Determines if widget controls should be disabled
    * @type {boolean}
    */
@@ -178,7 +153,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * set widget value same as config value
    */
   setValue: function() {
-    this.set('mirrorValue', this.get('config.value'));
+    var parseFunction = this.get('parseFunction');
+    this.set('mirrorValue', parseFunction(this.get('config.value')));
   },
 
   /**
@@ -255,38 +231,42 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       var val = parseFunction(obj.newValue);
       self.set('config.value', '' + val);
       self.set('mirrorValue', val);
-    });
-    /**
-     * action to run sendRequestRorDependentConfigs when
-     * we have changed config value within slider
-     */
-    slider.on('slideStop', function() {
-      self.sendRequestRorDependentConfigs(self.get('config'));
-    });
+    }).on('slideStop', function() {
+        /**
+         * action to run sendRequestRorDependentConfigs when
+         * we have changed config value within slider
+         */
+        self.sendRequestRorDependentConfigs(self.get('config'));
+      });
+    this.set('slider', slider);
+    var sliderTicks = this.$('.ui-slider-wrapper:eq(0) .slider-tick');
 
-    this.$('.slider-track .slider-tick.round:eq({0})'.format(defaultValueId)).addClass('slider-tick-default').on('click', function() {
+    sliderTicks.eq(defaultValueId).addClass('slider-tick-default').on('click', function() {
       self.restoreValue();
     });
     // if mirrored value was added need to hide the tick for it
     if (defaultValueMirroredId) {
-      this.$('.slider-tick:eq({0})'.format(defaultValueMirroredId)).hide();
+      sliderTicks.eq(defaultValueMirroredId).hide();
     }
-    this.set('slider', slider);
     // hide some ticks. can't do this via css
     if (defaultValueId == 0) {
-      this.$('.slider-tick:last').hide();
-    } else if (defaultValueId == ticks.length - 1) {
-      this.$('.slider-tick:first').hide();
-    } else {
-      this.$('.slider-tick:first, .slider-tick:last').hide();
-    }
+      sliderTicks.last().hide();
+    } else
+      if (defaultValueId == ticks.length - 1) {
+        sliderTicks.first().hide();
+      }
+      else {
+        sliderTicks.first().hide();
+        sliderTicks.last().hide();
+      }
   },
 
   /**
    * Convert value according to property attribute unit.
    *
    * @method valueForTick
-   * @param {Number}
+   * @param {Number} val
+   * @private
    * @returns {Number}
    */
   valueForTick: function(val) {
@@ -304,6 +284,40 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       val = parseFunction(this.get('config.value'));
     this.get('slider').setValue(val);
     this.set('mirrorValue', val);
+  },
+
+  /**
+   * Run changeBoundariesOnce only once
+   * @method changeBoundaries
+   */
+  changeBoundaries: function() {
+    Em.run.once(this, 'changeBoundariesOnce');
+  },
+
+  /**
+   * recreate widget in case max or min values were changed
+   * @method changeBoundariesOnce
+   */
+  changeBoundariesOnce: function () {
+    if ($.mocho) {
+      //temp fix as it can broke test that doesn't have any connection with this method
+      return;
+    }
+    var self = this;
+    var valueAttributes = this.get('config.stackConfigProperty.valueAttributes');
+
+    self.prepareValueAttributes();
+    if (self.get('slider')) {
+      self.get('slider').destroy();
+      self.initSlider();
+      if (self.get('config.value') > Em.get(valueAttributes, 'maximum')) {
+        self.set('mirrorValue', Em.get(valueAttributes, 'maximum'))
+      }
+      if (self.get('config.value') < Em.get(valueAttributes, 'minimum')) {
+        self.set('mirrorValue', Em.get(valueAttributes, 'minimum'))
+      }
+      self.toggleWidgetState();
+    }
   }
 
 });
