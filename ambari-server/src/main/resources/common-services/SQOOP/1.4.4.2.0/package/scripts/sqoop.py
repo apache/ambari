@@ -17,14 +17,21 @@ limitations under the License.
 
 """
 
-from resource_management import *
+from resource_management.core.source import InlineTemplate, DownloadSource
+from resource_management.libraries.functions import format
+from resource_management.core.resources.system import File, Link, Directory
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 import os
 
 def sqoop(type=None):
   import params
   Link(params.sqoop_lib + "/mysql-connector-java.jar",
        to = '/usr/share/java/mysql-connector-java.jar'
-  ) 
+  )
+  
+  jdbc_connector()
+  
   Directory(params.sqoop_conf_dir,
             owner = params.sqoop_user,
             group = params.user_group,
@@ -49,3 +56,30 @@ def update_config_permissions(names):
           group = params.user_group,
           only_if = format("test -e {full_filename}")
     )
+
+def jdbc_connector():
+  import params
+  from urllib2 import HTTPError
+  from resource_management import Fail
+  for jar_name in params.sqoop_jdbc_drivers_dict:
+    if 'mysql-connector-java.jar' in jar_name:
+      continue
+    downloaded_custom_connector = format("{sqoop_lib}/{jar_name}")
+    jdbc_symlink_remote = params.sqoop_jdbc_drivers_dict[jar_name]
+    jdbc_driver_label = params.sqoop_jdbc_drivers_name_dict[jar_name]
+    driver_curl_source = format("{jdk_location}/{jdbc_symlink_remote}")
+    environment = {
+      "no_proxy": format("{ambari_server_hostname}")
+    }
+    try:
+      File(downloaded_custom_connector,
+           content = DownloadSource(driver_curl_source),
+           mode = 0644,
+      )
+    except HTTPError:
+      error_string = format("Could not download {driver_curl_source}\n\
+                 Please upload jdbc driver to server by run command:\n\
+                 ambari-server setup --jdbc-db={jdbc_driver_label} --jdbc-driver=<PATH TO DRIVER>\n\
+                 at {ambari_server_hostname}") 
+      raise Fail(error_string)
+                 

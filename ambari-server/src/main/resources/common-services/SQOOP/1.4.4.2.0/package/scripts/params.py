@@ -22,6 +22,7 @@ from resource_management.libraries.functions.default import default
 from resource_management import *
 
 config = Script.get_config()
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 stack_name = default("/hostLevelParams/stack_name", None)
 
@@ -58,3 +59,37 @@ sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 kinit_path_local = functions.get_kinit_path()
+#JDBC driver jar name
+sqoop_jdbc_drivers_dict = {}
+sqoop_jdbc_drivers_name_dict = {}
+if "jdbc_drivers" in config['configurations']['sqoop-env']:
+  sqoop_jdbc_drivers = config['configurations']['sqoop-env']['jdbc_drivers'].split(',')
+
+  for driver_name in sqoop_jdbc_drivers:
+    driver_name = driver_name.strip()
+    if driver_name and not driver_name == '':
+      if driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver":
+        jdbc_jar_name = "sqljdbc4.jar"
+        jdbc_symlink_name = "mssql-jdbc-driver.jar"
+        jdbc_driver_name = "mssql"
+      elif driver_name == "com.mysql.jdbc.Driver":
+        jdbc_jar_name = "mysql-connector-java.jar"
+        jdbc_symlink_name = "mysql-jdbc-driver.jar"
+        jdbc_driver_name = "mysql"
+      elif driver_name == "org.postgresql.Driver":
+        jdbc_jar_name = "postgresql-jdbc.jar"
+        jdbc_symlink_name = "postgres-jdbc-driver.jar"
+        jdbc_driver_name = "postgres"
+      elif driver_name == "oracle.jdbc.driver.OracleDriver":
+        jdbc_jar_name = "ojdbc.jar"
+        jdbc_symlink_name = "oracle-jdbc-driver.jar"
+        jdbc_driver_name = "oracle"
+      elif driver_name == "org.hsqldb.jdbc.JDBCDriver":
+        jdbc_jar_name = "hsqldb.jar"
+        jdbc_symlink_name = "hsqldb-jdbc-driver.jar"
+        jdbc_driver_name = "hsqldb"
+    else:
+      continue
+    sqoop_jdbc_drivers_dict[jdbc_jar_name] = jdbc_symlink_name
+    sqoop_jdbc_drivers_name_dict[jdbc_jar_name] = jdbc_driver_name
+jdk_location = config['hostLevelParams']['jdk_location']

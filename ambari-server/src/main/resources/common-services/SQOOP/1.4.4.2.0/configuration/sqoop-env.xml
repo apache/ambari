@@ -51,4 +51,9 @@ export SQOOP_USER_CLASSPATH="`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:
     <property-type>USER</property-type>
     <value>sqoop</value>
   </property>
+  <property>
+    <name>jdbc_drivers</name>
+    <description>Comma separated list of additional JDBC drivers class names</description>
+    <value> </value>
+  </property>  
 </configuration>

@@ -357,7 +357,7 @@ def init_parser_options(parser):
   parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file for the " \
                                                         "database type specified with the --jdbc-db option. Used only with --jdbc-db option.",
                     dest="jdbc_driver")
-  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|oracle] for the " \
+  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|oracle|hsqldb] for the " \
                                                     "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
                     dest="jdbc_db")
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")

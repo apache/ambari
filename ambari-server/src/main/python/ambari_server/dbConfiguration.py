@@ -328,7 +328,8 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       'oracle',
       'mysql',
       'postgres',
-      'mssql'
+      'mssql',
+      'hsqldb'
     ]
 
     self.DBMS_LIST = [
