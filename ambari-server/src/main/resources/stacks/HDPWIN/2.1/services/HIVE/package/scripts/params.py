@@ -23,6 +23,10 @@ from resource_management import *
 # server configurations
 config = Script.get_config()
 
+# This is expected to be of the form #.#.#.#
+stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 hive_conf_dir = os.environ["HIVE_CONF_DIR"]
 hive_home = os.environ["HIVE_HOME"]
@@ -37,3 +41,15 @@ hive_warehouse_dir = config['configurations']['hive-site']['hive.metastore.wareh
 hive_user = "hadoop"
 hadoop_user = "hadoop"
 hcat_user = "hadoop"
+
+hive_bin = os.path.join(hive_home, "bin")
+hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
+hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
+hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
+
+######## Metastore Schema
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
+  init_metastore_schema = False
+else:
+  init_metastore_schema = True
+

@@ -32,3 +32,30 @@ def hive(name=None):
   )
   if name in ["hiveserver2","metastore"]:
     Execute(format("cmd /c hadoop fs -mkdir -p {hive_warehouse_dir}"), logoutput=True, user=params.hadoop_user)
+
+  if name == 'metastore':
+    if params.init_metastore_schema:
+      check_schema_created_cmd = format('cmd /c "{hive_bin}\\hive.cmd --service schematool -info '
+                                        '-dbType {hive_metastore_db_type} '
+                                        '-userName {hive_metastore_user_name} '
+                                        '-passWord {hive_metastore_user_passwd!p}'
+                                        '&set EXITCODE=%ERRORLEVEL%&exit /B %EXITCODE%"', #cmd "feature", propagate the process exit code manually
+                                        hive_bin=params.hive_bin,
+                                        hive_metastore_db_type=params.hive_metastore_db_type,
+                                        hive_metastore_user_name=params.hive_metastore_user_name,
+                                        hive_metastore_user_passwd=params.hive_metastore_user_passwd)
+      try:
+        Execute(check_schema_created_cmd)
+      except Fail:
+        create_schema_cmd = format('cmd /c {hive_bin}\\hive.cmd --service schematool -initSchema '
+                                   '-dbType {hive_metastore_db_type} '
+                                   '-userName {hive_metastore_user_name} '
+                                   '-passWord {hive_metastore_user_passwd!p}',
+                                   hive_bin=params.hive_bin,
+                                   hive_metastore_db_type=params.hive_metastore_db_type,
+                                   hive_metastore_user_name=params.hive_metastore_user_name,
+                                   hive_metastore_user_passwd=params.hive_metastore_user_passwd)
+        Execute(create_schema_cmd,
+                user = params.hive_user,
+                logoutput=True
+      )

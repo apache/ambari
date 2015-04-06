@@ -17,6 +17,11 @@
   </property>
 
   <property>
+    <name>datanucleus.autoCreateSchema</name>
+    <value>false</value>
+  </property>
+
+  <property>
     <name>hive.querylog.location</name>
     <value>c:\hadoop\logs\hive</value>
   </property>
