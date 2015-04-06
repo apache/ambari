@@ -332,45 +332,6 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#getCurrentServiceComponents", function () {
-    var t = Em.Object.create({
-      content: Em.Object.create({
-        hostComponents: [
-          Em.Object.create({
-            componentName: "componentName1",
-            displayName: "displayName1"
-          }),
-          Em.Object.create({
-            componentName: "componentName2",
-            displayName: "displayName2"
-          })
-        ]
-      }),
-      validComponents: Em.A([
-        Em.Object.create({
-          componentName: "componentName1",
-          displayName: "displayName1",
-          selected: false
-        }),
-        Em.Object.create({
-          componentName: "componentName2",
-          displayName: "displayName2",
-          selected: false
-        })
-      ])
-    });
-
-    beforeEach(function () {
-      mainServiceInfoConfigsController.set("content", { hostComponents: Em.A([])});
-    });
-
-    it("get current service components", function () {
-      mainServiceInfoConfigsController.get("content.hostComponents").push(t.content.hostComponents[0]);
-      var com = mainServiceInfoConfigsController.get("getCurrentServiceComponents");
-      expect(com[0]).to.eql(t.validComponents[0]);
-    });
-  });
-
   describe("#getMasterComponentHostValue", function () {
     var tests = [
       {
