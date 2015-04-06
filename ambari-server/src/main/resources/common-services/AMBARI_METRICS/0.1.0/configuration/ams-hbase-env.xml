@@ -59,11 +59,7 @@
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
-    <description>
-        HBase RegionServer minimum heap size is calculated as a percentage
-        of max heap size. If hbase_regionserver_xmn_max is defined, the ratio
-        will be used to calculate -Xmn setting.
-    </description>
+    <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
   </property>
   <property>
     <name>hbase_master_heapsize</name>

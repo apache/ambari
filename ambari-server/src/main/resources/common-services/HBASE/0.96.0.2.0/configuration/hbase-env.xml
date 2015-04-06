@@ -47,12 +47,16 @@
   <property>
     <name>hbase_regionserver_xmn_max</name>
     <value>512</value>
-    <description>HBase RegionServer maximum value for minimum heap size.</description>
+    <description>
+Sets the upper bound on HBase RegionServers' young generation size.
+This value is used in case the young generation size (-Xmn) calculated based on the max heapsize (hbase_regionserver_heapsize)
+and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
+    </description>
   </property>
   <property>
     <name>hbase_regionserver_xmn_ratio</name>
     <value>0.2</value>
-    <description>HBase RegionServer minimum heap size is calculated as a percentage of max heap size.</description>
+    <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
   </property>
   <property>
     <name>hbase_master_heapsize</name>
