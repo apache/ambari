@@ -628,12 +628,16 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
    * @method installStackVersionSuccess
    */
   installRepoVersionSuccess: function (data, opt, params) {
+    var version = App.RepositoryVersion.find(params.id);
     App.db.set('repoVersionInstall', 'id', [data.Requests.id]);
     App.clusterStatus.setClusterStatus({
       wizardControllerName: this.get('name'),
       localdb: App.db.data
     });
-    App.RepositoryVersion.find(params.id).set('defaultStatus', 'INSTALLING');
+    version.set('defaultStatus', 'INSTALLING');
+    if (version.get('stackVersion')) {
+      version.set('stackVersion.state', 'INSTALLING');
+    }
   },
 
   /**

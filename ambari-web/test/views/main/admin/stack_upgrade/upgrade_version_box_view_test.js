@@ -25,7 +25,10 @@ describe('App.UpgradeVersionBoxView', function () {
     controller: Em.Object.create({
       upgrade: Em.K
     }),
-    content: Em.Object.create()
+    content: Em.Object.create(),
+    parentView: Em.Object.create({
+      repoVersions: []
+    })
   });
 
   describe("#isUpgrading", function () {

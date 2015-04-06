@@ -609,7 +609,11 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#installRepoVersionSuccess()", function() {
-    var mock = {set: Em.K};
+    var mock = Em.Object.create({
+      id: 1,
+      defaultStatus: 'INIT',
+      stackVersion: {}
+    });
     before(function () {
       sinon.spy(mock, 'set');
       sinon.stub(App.db, 'set', Em.K);
@@ -617,7 +621,6 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       sinon.stub(App.RepositoryVersion, 'find').returns(mock);
     });
     after(function () {
-      mock.set.restore();
       App.db.set.restore();
       App.clusterStatus.setClusterStatus.restore();
       App.RepositoryVersion.find.restore();
@@ -627,7 +630,9 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       expect(App.db.set.calledWith('repoVersionInstall', 'id', [1])).to.be.true;
       expect(App.clusterStatus.setClusterStatus.calledOnce).to.be.true;
       expect(App.RepositoryVersion.find.calledWith(1)).to.be.true;
-      expect(mock.set.calledWith('defaultStatus', 'INSTALLING')).to.be.true;    });
+      expect(App.RepositoryVersion.find(1).get('defaultStatus')).to.equal('INSTALLING');
+      expect(App.RepositoryVersion.find(1).get('stackVersion.state')).to.equal('INSTALLING');
+    });
   });
 
   describe("#setUpgradeItemStatus()", function () {

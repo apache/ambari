@@ -108,6 +108,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       }.property('status'),
       isDisabled: false
     });
+    var isInstalling = this.get('parentView.repoVersions').someProperty('status', 'INSTALLING');
 
     if (status === 'CURRENT') {
       element.set('isLabel', true);
@@ -117,7 +118,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       element.set('isButton', true);
       element.set('text', Em.I18n.t('admin.stackVersions.version.installNow'));
       element.set('action', 'installRepoVersionConfirmation');
-      element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress'));
+      element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling);
     } else if (status === 'INSTALLING') {
       element.set('iconClass', 'icon-cog');
       element.set('isLink', true);
@@ -128,7 +129,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
         element.set('isButton', true);
         element.set('text', Em.I18n.t('admin.stackVersions.version.performUpgrade'));
         element.set('action', 'confirmUpgrade');
-        element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress'));
+        element.set('isDisabled', !App.isAccessible('ADMIN') || this.get('controller.requestInProgress') || isInstalling);
       } else {
         element.set('iconClass', 'icon-ok');
         element.set('isLink', true);
@@ -155,7 +156,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
       }
     }
     return element;
-  }.property('content.status', 'controller.isDowngrade', 'isUpgrading', 'controller.requestInProgress'),
+  }.property('content.status', 'controller.isDowngrade', 'isUpgrading', 'controller.requestInProgress', 'parentView.repoVersions.@each.status'),
 
   didInsertElement: function () {
     App.tooltip($('.link-tooltip'), {title: Em.I18n.t('admin.stackVersions.version.linkTooltip')});
