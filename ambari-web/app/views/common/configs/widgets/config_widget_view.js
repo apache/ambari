@@ -83,6 +83,10 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   restoreValue: function () {
     this.set('config.value', this.get('config.defaultValue'));
     this.sendRequestRorDependentConfigs(this.get('config'));
+
+    if (this.get('config.supportsFinal')) {
+      this.get('config').set('isFinal', this.get('config.defaultIsFinal'));
+    }
   },
 
   /**
@@ -104,6 +108,19 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     if (!config) return false;
     return !config.get('cantBeUndone') && config.get('isNotDefaultValue');
   }.property('config.cantBeUndone', 'config.isNotDefaultValue'),
+
+  showFinalConfig: function () {
+    var config = this.get('config');
+    return config.get('isFinal') || (!config.get('isNotEditable') && this.get('isHover'));
+  }.property('config.isFinal', 'config.isNotEditable', 'isHover'),
+
+  toggleFinalFlag: function (event) {
+    var configProperty = event.context;
+    if (configProperty.get('isNotEditable')) {
+      return;
+    }
+    configProperty.toggleProperty('isFinal');
+  },
 
   /**
    * sync widget value with config value when dependent properties

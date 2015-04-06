@@ -25,13 +25,18 @@
     <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
     <div class="pull-right ui-slider-label">{{view.mirrorValue}} {{view.unitLabel}}</div>
   </div>
-  <div {{bindAttr class="view.isHover:show:not-show :clearfix"}}>
-      {{#if view.isOriginalSCP}}
-        {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
+  <div {{bindAttr class=":clearfix"}}>
+      {{#if view.config.supportsFinal}}
+        <a href="#" data-toggle="tooltip"
+          {{bindAttr class=":btn :btn-small :btn-final :pull-left view.config.isFinal:active view.showFinalConfig:show:not-show" disabled="view.config.isNotEditable"}}
+          {{action "toggleFinalFlag" view.config target="view"}}
+          {{translateAttr data-original-title="services.service.config.final"}}>
+          <i class="icon-lock"></i>
+        </a>
       {{/if}}
       {{#if view.overrideAllowed}}
         {{#isAccessible ADMIN}}
-          <div class="pull-left action-button">
+          <div {{bindAttr class=":pull-left :action-button view.isHover:show:not-show"}}>
             <a class="btn btn-small" href="#" data-toggle="tooltip"
               {{action "createOverrideProperty" view.config target="view.parentView"}}
               {{translateAttr data-original-title="common.override"}}>
@@ -39,6 +44,9 @@
             </a>
           </div>
         {{/isAccessible}}
+      {{/if}}
+      {{#if view.isOriginalSCP}}
+        {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
       {{/if}}
   </div>
 

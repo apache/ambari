@@ -25,5 +25,6 @@ var App = require('app');
 App.RestoreConfigView = Em.View.extend({
   templateName: require('templates/common/configs/restore_config'),
   classNames: ['pull-left', 'action-button'],
-  visibleBinding: 'parentView.valueIsChanged'
+  visibleBinding: 'parentView.valueIsChanged',
+  classNameBindings: ['parentView.isHover:show:not-show']
 });
