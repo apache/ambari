@@ -98,10 +98,56 @@ describe('App.BaseUnitConvertMixin', function() {
           { type: 'minutes', value: 1}
         ]
       },
+      {
+        value: 80,
+        fromUnit: 'percent',
+        toUnit: 'int',
+        currentDimensionType: 'percent.percent_int',
+        e: 80
+      },
+      {
+        value: 80,
+        fromUnit: 'int',
+        toUnit: 'percent',
+        currentDimensionType: 'percent.percent_int',
+        e: 80
+      },
+      {
+        value: 0.89,
+        fromUnit: 'float',
+        toUnit: 'percent',
+        currentDimensionType: 'percent.percent_float',
+        e: 89
+      },
+      {
+        value: 89,
+        fromUnit: 'percent',
+        toUnit: 'float',
+        currentDimensionType: 'percent.percent_float',
+        e: 0.89
+      },
+      {
+        value: 100,
+        fromUnit: 'percent',
+        toUnit: 'float',
+        currentDimensionType: 'percent.percent_float',
+        e: 1
+      },
+      {
+        value: 1,
+        fromUnit: 'float',
+        toUnit: 'percent',
+        currentDimensionType: 'percent.percent_float',
+        e: 100
+      }
     ];
 
     tests.forEach(function(test) {
       it('should convert {0} {1} to {2} {3}'.format(JSON.stringify(test.value), test.fromUnit, JSON.stringify(test.e), test.toUnit), function() {
+        if (test.currentDimensionType) {
+          this.mixin.set('currentDimensionType', test.currentDimensionType);
+        }
+
         var result = this.mixin.convertValue(test.value, test.fromUnit, test.toUnit);
         if (Em.isArray(result)) {
           result = result.map(function(item) {

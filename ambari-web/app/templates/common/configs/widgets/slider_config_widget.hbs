@@ -23,7 +23,7 @@
   {{/if}}
   <div {{bindAttr class="view.isOriginalSCP:original-widget :ui-slider-wrapper"}}>
     <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
-    <div class="pull-right ui-slider-label">{{view.mirrorValue}} {{view.config.stackConfigProperty.valueAttributes.unit}}</div>
+    <div class="pull-right ui-slider-label">{{view.mirrorValue}} {{view.unitLabel}}</div>
   </div>
   <div {{bindAttr class="view.isHover:show:not-show :clearfix"}}>
       {{#if view.isOriginalSCP}}

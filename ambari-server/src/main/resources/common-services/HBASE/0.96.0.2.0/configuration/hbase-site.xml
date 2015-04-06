@@ -121,7 +121,7 @@
       <unit>milliseconds</unit>
     </value-attributes>
   </property>
-  
+
   <property>
     <name>hbase.regionserver.global.memstore.lowerLimit</name>
     <value>0.38</value>
@@ -145,9 +145,17 @@
     <display-name>Per-Column Family Memstore Block Multiplier</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>2</entries>
-      <entries>4</entries>
-      <entries>8</entries>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+        <entry>
+          <value>8</value>
+        </entry>
+      </entries>
       <selection_cardinality>1</selection_cardinality>
     </value-attributes>
   </property>
@@ -162,10 +170,10 @@
     <display-name>Per-Column Family Memstore Flush Size</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>32</minimum>
-      <maximum>256</maximum>
-      <step-increment>1</step-increment>
-      <unit>MB</unit>
+      <minimum>33554432</minimum>
+      <maximum>268435456</maximum>
+      <step-increment>1048576</step-increment>
+      <unit>B</unit>
     </value-attributes>
   </property>
   <property>
@@ -263,9 +271,17 @@
     <display-name>Maximum Files in a Store before Compaction</display-name>
     <value-attributes>
       <type>int</type>
-      <entries>2</entries>
-      <entries>3</entries>
-      <entries>4</entries>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>3</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+      </entries>
     </value-attributes>
   </property>
   <property>
@@ -275,7 +291,7 @@
     The number of times the region flush operation will be retried.
     </description>
   </property>
-  
+
   <property>
     <name>hbase.hstore.blockingStoreFiles</name>
     <value>10</value>
@@ -321,8 +337,14 @@
     <display-name>Enable Authentication</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
+      <entries>
+        <entry>
+          <value>true</value>
+        </entry>
+        <entry>
+          <value>false</value>
+        </entry>
+      </entries>
       <selection_cardinality>1</selection_cardinality>
     </value-attributes>
   </property>
@@ -335,8 +357,14 @@
     <display-name>Enable Authorization</display-name>
     <value-attributes>
       <type>value-list</type>
-      <entries>true</entries>
-      <entries>false</entries>
+      <entries>
+        <entry>
+          <value>true</value>
+        </entry>
+        <entry>
+          <value>false</value>
+        </entry>
+      </entries>
       <selection_cardinality>1</selection_cardinality>
     </value-attributes>
   </property>

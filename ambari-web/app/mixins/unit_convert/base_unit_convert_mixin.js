@@ -25,11 +25,23 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
    * For more info regarding dimension table @see convertMapTable property.
    *
    * This property can be used in mixed object to specify which dimension table map will
-   * be used for conversion.
+   * be used for conversion. If type is not specified we try to find correct table by input unit type.
+   *
+   * Note: You should specify dimension for `percentage` conversion with specified property unit type.
+   *
    * @property currentDimensionType
    * @type {String}
    */
   currentDimensionType: null,
+
+  /**
+   * Labels related to units. Specify desired display names here that not much actual unit name.
+   */
+  unitLabelMap: {
+    percent: '%',
+    int: '',
+    float: ''
+  },
 
   convertMapTable: Em.Object.create({
     size: {
@@ -46,6 +58,22 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
       minutes: 60,
       hours: 60,
       days: 24
+    },
+    /**
+     * Percent dimension type should be specified directly through `currentDimensionType` property.
+     * For example:
+     * 'percent.percent_int' if widget `unit-name` is "percent" and config property `type` is "int"
+     * 'percent.percent_float' if widget `unit-name` is "percent" and config property `type` is "float"
+     */
+    percent: {
+      percent_int: {
+        int: 1,
+        percent: 1
+      },
+      percent_float: {
+        float: 1,
+        percent: 0.01
+      }
     }
   }),
 
@@ -70,7 +98,7 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
    * @param {String|String[]} fromUnit - specified value unit type(s) e.g. "mb"
    *    Form multi dimensional format pass units separated with "," or list of unit types
    *    e.g. "gb,mb", ['gb', 'mb']
-   * @param {Boolean} [isObjectOutput] - returned value should be object this option usefull for widgets where its
+   * @param {Boolean} [isObjectOutput=false] - 'returned' value should be object this option usefull for widgets where its
    *    value should be an Object
    * @param {String|String[]} toUnit - desired unit(s) to convert specified value. Same format as for `fromUnit`
    * @returns {Number|Object[]} returns single value or array of objects according to multi unit format
@@ -137,7 +165,7 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
     }
     else {
       unitType = Em.keys(this.get('convertMapTable')).filter(function(item) {
-        return Em.keys(this.get('convertMapTable.' + item)).contains(Em.isArray(unit) ? unit[0] : unit);
+        return Em.keys(this.get('convertMapTable.' + item)).contains(Em.isArray(unit) ? unit[0].toLowerCase() : unit.toLowerCase());
       }, this)[0];
     }
     return this.get('convertMapTable.' + unitType);
@@ -156,6 +184,9 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
     var units = Em.keys(convertTable);
     var fromUnitIndex = units.indexOf(fromUnit.toLowerCase());
     var toUnitIndex = units.indexOf(toUnit.toLowerCase());
+    var isInt = function(val) {
+      return parseInt(val) === val;
+    };
     Em.assert("Invalid value unit type " + fromUnit, fromUnitIndex > -1);
     Em.assert("Invalid desired unit type " + toUnit, toUnitIndex > -1);
     if (fromUnitIndex == toUnitIndex) {
@@ -167,10 +198,11 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
       return Em.get(convertTable, unit);
     }, this).reduce(function(p,c) { return p*c; });
     if (range[0] < range[1]) {
-      return value / factor;
+      value /= factor;
     }
     else {
-      return value * factor;
+      value *= factor;
     }
+    return isInt(value) ? value : parseFloat(value.toFixed(2));
   }
 });

@@ -25,8 +25,8 @@ App.ConvertUnitWidgetViewMixin = Em.Mixin.create(App.BaseUnitConvertMixin, {
   /**
    * Get converted value according to widget value format from specified config property value.
    *
-   * @param {String|Number} value - value to convert
-   * @param {Boolean} returnObject - returned value should be an array of objects
+   * @param {String|Number} value - config property value to convert
+   * @param {Boolean} [returnObject=false] - returned value should be an array of objects
    * @returns {Number|Object[]}
    */
   widgetValueByConfigAttributes: function(value, returnObject) {
@@ -36,7 +36,7 @@ App.ConvertUnitWidgetViewMixin = Em.Mixin.create(App.BaseUnitConvertMixin, {
   /**
    * Get converted value according to config property unit format from specified widget value.
    *
-   * @param {String|Number|Object[]} value - value to convert
+   * @param {String|Number|Object[]} value - widget value to convert
    * @param {Boolean} returnObject - returned value should be an array of objects
    * @returns {Number}
    */
@@ -65,8 +65,8 @@ App.ConvertUnitWidgetViewMixin = Em.Mixin.create(App.BaseUnitConvertMixin, {
    */
   _converterGetPropertyAttributes: function() {
     var propertyAttributes = this.get('config.stackConfigProperty.valueAttributes');
-    var propertyUnits = Em.getWithDefault(propertyAttributes, 'unit', false);
-    Em.assert('Invalid property unit type for ' + this.get('config.name') + ' valueAttributes: ' + propertyAttributes, propertyUnits);
+    var propertyUnits = Em.getWithDefault(propertyAttributes, 'unit', false) || Em.getWithDefault(propertyAttributes, 'type', false);
+    Em.assert('Invalid property unit type for ' + this.get('config.name') + ' valueAttributes: ' + JSON.stringify(propertyAttributes), propertyUnits);
     return propertyUnits;
   }
 });

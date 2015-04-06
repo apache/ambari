@@ -55,6 +55,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   isMirrorValueValid: true,
 
   /**
+   * Unit label to display.
+   * @type {String}
+   */
+  unitLabel: '',
+
+  /**
    * Function used to parse config value (based on <code>config.stackConfigProperty.valueAttributes.type</code>)
    * For integer - parseInt, for float - parseFloat
    * @type {Function}
@@ -84,12 +90,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
   willInsertElement: function () {
     this._super();
+    this.prepareValueConverter();
     this.addObserver('mirrorValue', this, this.mirrorValueObs);
   },
 
   didInsertElement: function () {
     this._super();
-    this.set('mirrorValue', this.get('config.value'));
+    this.set('mirrorValue', this.widgetValueByConfigAttributes(this.get('config.value')));
     this.prepareValueAttributes();
     this.initSlider();
     this.toggleWidgetState();
@@ -114,6 +121,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       this.get('parentView').sendRequestRorDependentConfigs(this.get('parentView.config'));
     }
   }),
+
   /**
    * Check if <code>mirrorValue</code> was updated by user
    * Validate it. If value is correct, set it to slider and config.value
@@ -122,8 +130,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   mirrorValueObs: function () {
     var mirrorValue = this.get('mirrorValue'),
       slider = this.get('slider'),
-      min = this.get('config.stackConfigProperty.valueAttributes.minimum'),
-      max = this.get('config.stackConfigProperty.valueAttributes.maximum'),
+      min = this.widgetValueByConfigAttributes(this.get('config.stackConfigProperty.valueAttributes.minimum')),
+      max = this.widgetValueByConfigAttributes(this.get('config.stackConfigProperty.valueAttributes.maximum')),
       validationFunction = this.get('validateFunction'),
       parseFunction = this.get('parseFunction');
     if (validationFunction(mirrorValue)) {
@@ -131,7 +139,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (parsed >= min && parsed <= max) {
         this.set('isMirrorValueValid', true);
         this.set('config.errorMessage', '');
-        this.set('config.value', '' + parsed);
+        this.set('config.value', '' + this.configValueByWidget(parsed));
         if (slider) {
           slider.setValue(parsed);
         }
@@ -154,7 +162,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   setValue: function() {
     var parseFunction = this.get('parseFunction');
-    this.set('mirrorValue', parseFunction(this.get('config.value')));
+    this.set('mirrorValue', this.widgetValueByConfigAttributes(parseFunction(this.get('config.value'))));
   },
 
   /**
@@ -171,6 +179,18 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * Setup convert table according to widget unit-name and property type.
+   * Set label for unit to display.
+   */
+  prepareValueConverter: function() {
+    var widgetUnit = this._converterGetWidgetUnits();
+    if (['int', 'float'].contains(this._converterGetPropertyAttributes()) && widgetUnit == 'percent') {
+      this.set('currentDimensionType', 'percent.percent_' + this._converterGetPropertyAttributes());
+    }
+    this.set('unitLabel', Em.getWithDefault(this.get('unitLabelMap'), widgetUnit, widgetUnit));
+  },
+
+  /**
    * Draw slider for current config
    * @method initSlider
    */
@@ -178,23 +198,22 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var self = this,
       config = this.get('config'),
       valueAttributes = config.get('stackConfigProperty.valueAttributes'),
-      unit = Em.getWithDefault(valueAttributes, 'unit', ''),
       parseFunction = this.get('parseFunction'),
-      ticks = [valueAttributes.minimum],
+      ticks = [this.widgetValueByConfigAttributes(valueAttributes.minimum)],
       ticksLabels = [],
-      defaultValue = this.valueForTick(+config.get('defaultValue')),
+      defaultValue = this.widgetValueByConfigAttributes(this.valueForTick(+config.get('defaultValue'))),
       defaultValueMirroredId,
       defaultValueId;
 
     // ticks and labels
     for (var i = 1; i <= 3; i++) {
-      var val = (valueAttributes.minimum + valueAttributes.maximum) / 4 * i;
+      var val = this.widgetValueByConfigAttributes((valueAttributes.minimum + valueAttributes.maximum)) / 4 * i;
       // if value's type is float, ticks may be float too
       ticks.push(this.valueForTick(val));
     }
-    ticks.push(valueAttributes.maximum);
+    ticks.push(this.widgetValueByConfigAttributes(valueAttributes.maximum));
     ticks.forEach(function (tick, index) {
-      ticksLabels.push(index % 2 === 0 ? tick + ' ' + unit : '');
+      ticksLabels.push(index % 2 === 0 ? tick + ' ' + self.get('unitLabel') : '');
     });
     // process additional tick for default value if it not defined in previous computation
     if (!ticks.contains(defaultValue)) {
@@ -219,7 +238,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     }
 
     var slider = new Slider(this.$('input.slider-input')[0], {
-      value: parseFunction(this.get('config.value')),
+      value: this.widgetValueByConfigAttributes(parseFunction(this.get('config.value'))),
       ticks: ticks,
       tooltip: 'hide',
       ticks_labels: ticksLabels,
@@ -229,7 +248,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
     slider.on('change', function (obj) {
       var val = parseFunction(obj.newValue);
-      self.set('config.value', '' + val);
+      self.set('config.value', '' + self.configValueByWidget(val));
       self.set('mirrorValue', val);
     }).on('slideStop', function() {
         /**
@@ -270,7 +289,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @returns {Number}
    */
   valueForTick: function(val) {
-    return this.get('config.stackConfigProperty.valueAttributes').type === 'int' ? Math.round(val) : parseFloat(val.toFixed(1));
+    return this.get('config.stackConfigProperty.valueAttributes').type === 'int' ? Math.round(val) : parseFloat(val.toFixed(2));
   },
 
   /**
@@ -281,7 +300,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   restoreValue: function () {
     this._super();
     var parseFunction = this.get('parseFunction'),
-      val = parseFunction(this.get('config.value'));
+      val = this.widgetValueByConfigAttributes(parseFunction(this.get('config.value')));
     this.get('slider').setValue(val);
     this.set('mirrorValue', val);
   },
@@ -311,10 +330,10 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       self.get('slider').destroy();
       self.initSlider();
       if (self.get('config.value') > Em.get(valueAttributes, 'maximum')) {
-        self.set('mirrorValue', Em.get(valueAttributes, 'maximum'))
+        self.set('mirrorValue', this.widgetValueByConfigAttributes(Em.get(valueAttributes, 'maximum')));
       }
       if (self.get('config.value') < Em.get(valueAttributes, 'minimum')) {
-        self.set('mirrorValue', Em.get(valueAttributes, 'minimum'))
+        self.set('mirrorValue', this.widgetValueByConfigAttributes(Em.get(valueAttributes, 'minimum')));
       }
       self.toggleWidgetState();
     }

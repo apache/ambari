@@ -28,7 +28,7 @@
     The number of times the region flush operation will be retried.
     </description>
   </property>
-  
+
   <property>
     <name>hbase.hregion.majorcompaction</name>
     <value>604800000</value>
@@ -40,6 +40,12 @@
       environment, you can configure them to run at off-peak times for your deployment, or disable
       time-based major compactions by setting this parameter to 0, and run major compactions in a
       cron job or by another external mechanism.</description>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>2592000000</maximum>
+      <unit>milliseconds</unit>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.hregion.majorcompaction.jitter</name>
@@ -60,6 +66,20 @@
     resultant flush files take a long time to compact or split, or
     worse, we OOME.
     </description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>2</value>
+        </entry>
+        <entry>
+          <value>4</value>
+        </entry>
+        <entry>
+          <value>8</value>
+        </entry>
+      </entries>
+    </value-attributes>
   </property>
   <property>
     <name>hbase.bucketcache.ioengine</name>
@@ -85,5 +105,22 @@
       Updates are blocked and flushes are forced until size of all memstores
       in a region server hits hbase.regionserver.global.memstore.size.lower.limit.
     </description>
+  </property>
+  <property>
+    <name>hbase.regionserver.wal.codec</name>
+    <display-name>Phoenix SQL</display-name>
+    <value>false</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+        </entry>
+        <entry>
+          <value>false</value>
+        </entry>
+      </entries>
+    </value-attributes>
+    <description>Phoenix SQL</description>
   </property>
 </configuration>

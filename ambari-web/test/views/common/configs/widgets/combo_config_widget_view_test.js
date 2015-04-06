@@ -35,8 +35,16 @@ describe('App.ComboConfigWidgetView', function() {
     var tests = [
       {
         valueAttributes: {
-          entry_labels: ["Item A", "Item B"],
-          entries: ["a", "b"]
+          entries: [
+            {
+              label: "Item A",
+              value: "a"
+            },
+            {
+              label: "Item B",
+              value: "b"
+            },
+          ]
         },
         e: [
           {

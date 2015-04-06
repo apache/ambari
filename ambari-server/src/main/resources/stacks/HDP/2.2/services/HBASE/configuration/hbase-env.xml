@@ -32,11 +32,6 @@
     <description>Pid Directory for HBase.</description>
   </property>
   <property>
-    <name>hbase_regionserver_heapsize</name>
-    <value>1024</value>
-    <description>HBase RegionServer Heap Size.</description>
-  </property>
-  <property>
     <name>hbase_regionserver_xmn_max</name>
     <value>512</value>
     <description>
@@ -51,11 +46,6 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <description>Percentage of max heap size (-Xmx) which used for young generation heap (-Xmn).</description>
   </property>
   <property>
-    <name>hbase_master_heapsize</name>
-    <value>1024</value>
-    <description>HBase Master Heap Size</description>
-  </property>
-   <property>
     <name>hbase_user</name>
     <value>hbase</value>
     <property-type>USER</property-type>

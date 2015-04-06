@@ -61,10 +61,10 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * @returns {Object[]} - values list map @see content.valuesList
    */
   convertToWidgetUnits: function(valueAttributes) {
-    return Em.get(valueAttributes, 'entries').map(function(item, index) {
+    return Em.get(valueAttributes, 'entries').map(function(item) {
       return Em.Object.create({
-        configValue: item,
-        widgetValue: Em.get(valueAttributes, 'entry_labels.' + index)
+        configValue: item.value,
+        widgetValue: Em.getWithDefault(item, 'label', item.value)
       });
     });
   },

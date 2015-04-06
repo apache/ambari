@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-var viewInt, viewFloat;
+var viewInt, viewFloat, viewPercent;
 
 describe('App.SliderConfigWidgetView', function () {
 
@@ -42,12 +42,17 @@ describe('App.SliderConfigWidgetView', function () {
             minimum: '0',
             maximum: '2096',
             unit: 'MB'
+          }),
+          widget: Em.Object.create({
+            type: 'slider',
+            units: [{ 'unit-name': 'MB'}]
           })
         })
       })
     });
     viewInt.willInsertElement();
     viewInt.didInsertElement();
+
     viewFloat = App.SliderConfigWidgetView.create({
       initSlider: Em.K,
       initPopover: Em.K,
@@ -66,26 +71,65 @@ describe('App.SliderConfigWidgetView', function () {
             type: 'float',
             minimum: '0',
             maximum: '100',
-            unit: '%'
+          }),
+          widget: Em.Object.create({
+            type: 'slider',
+            units: [{ 'unit-name': 'float'}]
           })
         })
       })
     });
     viewFloat.willInsertElement();
     viewFloat.didInsertElement();
+
+    viewPercent = App.SliderConfigWidgetView.create({
+      initSlider: Em.K,
+      initPopover: Em.K,
+      slider: {
+        enable: Em.K,
+        disable: Em.K,
+        setValue: Em.K
+      },
+      config: Em.Object.create({
+        name: 'a.b.c3',
+        description: 'A B C 3',
+        value: '0.22',
+        defaultValue: '0.22',
+        stackConfigProperty: Em.Object.create({
+          valueAttributes: Em.Object.create({
+            type: 'float',
+            minimum: '0',
+            maximum: '0.8',
+          }),
+          widget: Em.Object.create({
+            type: 'slider',
+            units: [{ 'unit-name': 'percent'}]
+          })
+        })
+      })
+    });
+    viewPercent.willInsertElement();
+    viewPercent.didInsertElement();
+
     sinon.stub(viewInt, 'changeBoundaries', Em.K);
     sinon.stub(viewFloat, 'changeBoundaries', Em.K);
+    sinon.stub(viewPercent, 'changeBoundaries', Em.K);
   });
 
   afterEach(function() {
     viewInt.changeBoundaries.restore();
     viewFloat.changeBoundaries.restore();
+    viewPercent.changeBoundaries.restore();
   });
 
   describe('#mirrorValue', function () {
     it('should be equal to config.value after init', function () {
-      expect(viewInt.get('mirrorValue')).to.equal('' + viewInt.get('config.value'));
-      expect(viewFloat.get('mirrorValue')).to.equal('' + viewFloat.get('config.value'));
+      expect('' + viewInt.get('mirrorValue')).to.equal(viewInt.get('config.value'));
+      expect('' + viewFloat.get('mirrorValue')).to.equal(viewFloat.get('config.value'));
+    });
+
+    it('should be converted according to widget format', function() {
+      expect(viewPercent.get('mirrorValue')).to.equal(22);
     });
   });
 
@@ -115,6 +159,17 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewFloat.get('config.errorMessage')).to.have.property('length').that.is.least(1);
     });
 
+    it('check percent', function () {
+      viewPercent.set('mirrorValue', 32);
+      expect(viewPercent.get('isMirrorValueValid')).to.be.true;
+      expect(viewPercent.get('config.value')).to.equal('0.32');
+      expect(viewPercent.get('config.errorMessage')).to.equal('');
+
+      viewPercent.set('mirrorValue', 100500.5);
+      expect(viewPercent.get('isMirrorValueValid')).to.be.false;
+      expect(viewPercent.get('config.value')).to.equal('0.32');
+      expect(viewPercent.get('config.errorMessage')).to.have.property('length').that.is.least(1);
+    });
   });
 
   describe('#prepareValueAttributes', function () {
