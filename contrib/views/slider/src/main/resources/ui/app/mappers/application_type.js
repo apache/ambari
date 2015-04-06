@@ -53,7 +53,8 @@ App.ApplicationTypeMapper = App.Mapper.create({
   map: {
     id: 'id',
     configs: 'typeConfigs',
-    displayName: 'typeName',
+    typeName: 'typeName',
+    typeVersion: 'typeVersion',
     index: 'id',
     description: 'typeDescription',
     version: 'typeVersion',

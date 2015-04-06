@@ -625,8 +625,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
           String value = tag.substring(index + 1).trim();
           if ("name".equals(key)) {
             app.setType(value);
+            app.setTypeId(value.toUpperCase() + "-" + app.getAppVersion());
           } else if ("version".equals(key)) {
             app.setAppVersion(value);
+            app.setTypeId(app.getType() + "-" + value);
           } else if ("description".equals(key)) {
             app.setDescription(value);
           }
@@ -643,6 +645,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
               && (appType.getTypeVersion() != null && appType.getTypeVersion()
                   .equalsIgnoreCase(app.getAppVersion()))) {
             matchedAppType = appType;
+            app.setTypeId(appType.getId());
             break;
           }
         }
@@ -1040,7 +1043,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
                 throw new IllegalStateException("Slider App package '" + appZip.getName() + "' does not contain 'resources-default.json' file");
               }
               SliderAppType appType = new SliderAppType();
-              appType.setId(application.getName());
+              appType.setId(application.getName() + "-" + application.getVersion());
               appType.setTypeName(application.getName());
               appType.setTypeDescription(application.getComment());
               appType.setTypeVersion(application.getVersion());
@@ -1167,7 +1170,8 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       YarnException, InterruptedException {
     if (json.has("name") && json.has("typeConfigs")
         && json.has("resources") && json.has("typeName")) {
-      final String appType = json.get("typeName").getAsString();
+      final String appTypeId = json.get("typeName").getAsString();
+      SliderAppType sliderAppType = getSliderAppType(appTypeId, null);
       final String appName = json.get("name").getAsString();
       final String queueName = json.has("queue") ? json.get("queue").getAsString() : null;
       final boolean securityEnabled = Boolean.valueOf(getHadoopConfigs().get("security_enabled"));
@@ -1202,7 +1206,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       appCreateFolder.mkdirs();
       File appConfigJsonFile = new File(appCreateFolder, "appConfig.json");
       File resourcesJsonFile = new File(appCreateFolder, "resources.json");
-      saveAppConfigs(configs, componentsArray, appName, appType, securityEnabled, appConfigJsonFile);
+      saveAppConfigs(configs, componentsArray, appName, sliderAppType.getTypeName(), securityEnabled, appConfigJsonFile);
       saveAppResources(resourcesObj, resourcesJsonFile);
 
       final ActionCreateArgs createArgs = new ActionCreateArgs();
@@ -1213,15 +1217,14 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
       }
 
       final ActionInstallPackageArgs installArgs = new ActionInstallPackageArgs();
-      SliderAppType sliderAppType = getSliderAppType(appType, null);
       String localAppPackageFileName = sliderAppType.getTypePackageFileName();
-      installArgs.name = appType;
+      installArgs.name = sliderAppType.getTypeName();
       installArgs.packageURI = getAppsFolderPath() + "/" + localAppPackageFileName;
       installArgs.replacePkg = true;
 
       final List<ActionInstallKeytabArgs> installKeytabActions = new ArrayList<ActionInstallKeytabArgs>();
       if (securityEnabled) {
-        for (String keytab : getUserToRunAsKeytabs(appType)) {
+        for (String keytab : getUserToRunAsKeytabs(sliderAppType.getTypeName())) {
           ActionInstallKeytabArgs keytabArgs = new ActionInstallKeytabArgs();
           keytabArgs.keytabUri = keytab;
           keytabArgs.folder = appName;

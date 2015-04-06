@@ -30,6 +30,7 @@ public class SliderApp {
   private String appVersion;
   private String description;
   private String type;
+  private String typeId;
   private String user;
   private String state;
   private String diagnostics;
@@ -185,5 +186,13 @@ public class SliderApp {
 
   public void setAlerts(Map<String, Object> alerts) {
     this.alerts = alerts;
+  }
+
+  public String getTypeId() {
+    return typeId;
+  }
+
+  public void setTypeId(String typeId) {
+    this.typeId = typeId;
   }
 }

@@ -26,7 +26,12 @@ App.SliderAppType = DS.Model.extend({
   /**
    * @type {string}
    */
-  displayName: DS.attr('string'),
+  typeName: DS.attr('string'),
+
+  /**
+   * @type {string}
+   */
+  typeVersion: DS.attr('string'),
 
   /**
    * @type {App.SliderAppTypeComponent[]}
@@ -46,8 +51,14 @@ App.SliderAppType = DS.Model.extend({
   /**
    * @type {object}
    */
-  configs: DS.attr('object')
-
+  configs: DS.attr('object'),
+  
+  displayName : function() {
+    var typeName = this.get('typeName');
+    var typeVersion = this.get('typeVersion');
+    return (typeName == null ? '' : typeName) + " ("
+        + (typeVersion == null ? '' : typeVersion) + ")"
+  }.property('typeName', 'typeVersion')
 });
 
 App.SliderAppType.FIXTURES = [];
