@@ -73,7 +73,7 @@ App.supports = {
   installGanglia: false,
   opsDuringRollingUpgrade: false,
   customizedWidgets: false,
-  enhancedConfigs: true,
+  enhancedConfigs: false,
   setRackId: false
 };
 
