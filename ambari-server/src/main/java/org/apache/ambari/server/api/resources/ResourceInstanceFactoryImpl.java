@@ -362,6 +362,14 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new SimpleResourceDefinition(Resource.Type.Theme, "theme", "themes");
         break;
 
+      case Widget:
+        resourceDefinition = new WidgetResourceDefinition();
+        break;
+
+      case WidgetLayout:
+        resourceDefinition = new WidgetLayoutResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

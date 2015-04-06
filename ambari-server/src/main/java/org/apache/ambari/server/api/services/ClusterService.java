@@ -634,6 +634,16 @@ public class ClusterService extends BaseService {
     return new PreUpgradeCheckService(clusterName);
   }
 
+  /**
+   * Gets the widget layout service
+   */
+  @Path("{clusterName}/widget_layouts")
+  public WidgetLayoutService getWidgetLayoutService(@Context javax.ws.rs.core.Request request,
+                                                    @PathParam ("clusterName") String clusterName) {
+
+    return new WidgetLayoutService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

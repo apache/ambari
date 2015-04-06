@@ -1,0 +1,343 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.apache.ambari.server.controller.internal;
+
+import com.google.inject.Inject;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ObjectNotFoundException;
+import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.WidgetResponse;
+import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
+import org.apache.ambari.server.controller.spi.NoSuchResourceException;
+import org.apache.ambari.server.controller.spi.Predicate;
+import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
+import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
+import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
+import org.apache.commons.lang.ObjectUtils;
+import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+/**
+ * Resource provider for widget layout resources.
+ */
+@StaticallyInject
+public class WidgetLayoutResourceProvider extends AbstractControllerResourceProvider {
+
+  // ----- Property ID constants ---------------------------------------------
+
+  public static final String WIDGETLAYOUT_ID_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "id");
+  public static final String WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "cluster_name");
+  public static final String WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "section_name");
+  public static final String WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "layout_name");
+  public static final String WIDGETLAYOUT_SCOPE_PROPERTY_ID                  = PropertyHelper.getPropertyId("WidgetLayouts", "scope");
+  public static final String WIDGETLAYOUT_INFO_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "WidgetInfo");
+  public static final String WIDGETLAYOUT_USERNAME_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "user_name");
+  public static final String WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "display_name");
+
+  @SuppressWarnings("serial")
+  private static Set<String> pkPropertyIds = new HashSet<String>() {
+    {
+      add(WIDGETLAYOUT_ID_PROPERTY_ID);
+    }
+  };
+
+  @SuppressWarnings("serial")
+  public static Set<String> propertyIds = new HashSet<String>() {
+    {
+      add(WIDGETLAYOUT_ID_PROPERTY_ID);
+      add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_INFO_PROPERTY_ID);
+      add(WIDGETLAYOUT_SCOPE_PROPERTY_ID);
+      add(WIDGETLAYOUT_USERNAME_PROPERTY_ID);
+      add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID);
+    }
+  };
+
+  @SuppressWarnings("serial")
+  public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {
+    {
+      put(Type.WidgetLayout, WIDGETLAYOUT_ID_PROPERTY_ID);
+      put(Type.Cluster, WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
+      put(Type.User, WIDGETLAYOUT_USERNAME_PROPERTY_ID);
+    }
+  };
+
+  @Inject
+  private static WidgetDAO widgetDAO;
+
+  @Inject
+  private static WidgetLayoutDAO widgetLayoutDAO;
+
+  /**
+   * Create a new resource provider.
+   *
+   */
+  public WidgetLayoutResourceProvider(
+                                      AmbariManagementController managementController) {
+    super(propertyIds, keyPropertyIds, managementController);
+  }
+
+  @Override
+  public RequestStatus createResources(final Request request)
+      throws SystemException,
+      UnsupportedPropertyException,
+      ResourceAlreadyExistsException,
+      NoSuchParentResourceException {
+
+    for (final Map<String, Object> properties : request.getProperties()) {
+      Void resources = createResources(new Command<Void>() {
+
+        @Override
+        public Void invoke() throws AmbariException {
+          final String[] requiredProperties = {
+              WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID,
+              WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID,
+              WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID,
+              WIDGETLAYOUT_SCOPE_PROPERTY_ID,
+              WIDGETLAYOUT_INFO_PROPERTY_ID,
+              WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID,
+              WIDGETLAYOUT_USERNAME_PROPERTY_ID
+          };
+          for (String propertyName : requiredProperties) {
+            if (properties.get(propertyName) == null) {
+              throw new AmbariException("Property " + propertyName + " should be provided");
+            }
+          }
+          final WidgetLayoutEntity entity = new WidgetLayoutEntity();
+
+          Set widgetsSet = (LinkedHashSet) properties.get(WIDGETLAYOUT_INFO_PROPERTY_ID);
+
+          String clusterName = properties.get(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID).toString();
+          entity.setLayoutName(properties.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID).toString());
+
+          entity.setClusterId(getManagementController().getClusters().getCluster(clusterName).getClusterId());
+          entity.setSectionName(properties.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID).toString());
+          entity.setScope(properties.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID).toString());
+          entity.setUserName(properties.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString());
+          entity.setDisplayName(properties.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID).toString());
+
+          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+          int order=0;
+          for (Object widgetObject : widgetsSet) {
+            HashMap<String, Object> widget = (HashMap) widgetObject;
+            long id = Integer.parseInt(widget.get("id").toString());
+            WidgetEntity widgetEntity = widgetDAO.findById(id);
+            if (widgetEntity == null) {
+              throw new AmbariException("Widget with id " + widget.get("id").toString() + " does not exists");
+            }
+            WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+
+            widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
+            widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
+            widgetLayoutUserWidgetEntity.setWidgetLayout(entity);
+            widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
+
+          }
+
+          entity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
+          widgetLayoutDAO.create(entity);
+          notifyCreate(Type.WidgetLayout, request);
+
+          return null;
+        }
+      });
+    }
+
+    return getRequestStatus(null);
+  }
+
+  @Override
+  public Set<Resource> getResources(Request request, Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    final Set<Resource> resources = new HashSet<Resource>();
+    final Set<String> requestedIds = getRequestPropertyIds(request, predicate);
+    final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
+
+    List<WidgetEntity> widgetEntities = new ArrayList<WidgetEntity>();
+    List<WidgetLayoutEntity> layoutEntities = new ArrayList<WidgetLayoutEntity>();
+
+    for (Map<String, Object> propertyMap: propertyMaps) {
+      final String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+      if (propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID) != null) {
+        final Long id;
+        try {
+          id = Long.parseLong(propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID).toString());
+        } catch (Exception ex) {
+          throw new SystemException("WidgetLayout should have numerical id");
+        }
+        final WidgetLayoutEntity entity = widgetLayoutDAO.findById(id);
+        if (entity == null) {
+          throw new NoSuchResourceException("WidgetLayout with id " + id + " does not exists");
+        }
+        layoutEntities.add(entity);
+      } else {
+        layoutEntities.addAll(widgetLayoutDAO.findAll());
+      }
+    }
+
+    for (WidgetLayoutEntity layoutEntity : layoutEntities) {
+      Resource resource = new ResourceImpl(Type.WidgetLayout);
+      resource.setProperty(WIDGETLAYOUT_ID_PROPERTY_ID, layoutEntity.getId());
+      String clusterName = null;
+      try {
+        clusterName = getManagementController().getClusters().getClusterById(layoutEntity.getClusterId()).getClusterName();
+      } catch (AmbariException e) {
+        throw new SystemException(e.getMessage());
+      }
+      resource.setProperty(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, clusterName);
+      resource.setProperty(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, layoutEntity.getLayoutName());
+      resource.setProperty(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID, layoutEntity.getSectionName());
+      resource.setProperty(WIDGETLAYOUT_SCOPE_PROPERTY_ID, layoutEntity.getScope());
+      resource.setProperty(WIDGETLAYOUT_USERNAME_PROPERTY_ID, layoutEntity.getUserName());
+      resource.setProperty(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID, layoutEntity.getDisplayName());
+
+      List<HashMap> widgets = new ArrayList<HashMap>();
+      List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = layoutEntity.getListWidgetLayoutUserWidgetEntity();
+      for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : widgetLayoutUserWidgetEntityList) {
+        WidgetEntity widgetEntity = widgetLayoutUserWidgetEntity.getWidget();
+        HashMap<String, Object> widgetInfoMap = new HashMap<String, Object>();
+        widgetInfoMap.put("Widget",WidgetResponse.coerce(widgetEntity));
+        widgets.add(widgetInfoMap);
+      }
+      resource.setProperty(WIDGETLAYOUT_INFO_PROPERTY_ID, widgets);
+
+      resources.add(resource);
+    }
+    return resources;
+  }
+
+  @Override
+  public RequestStatus updateResources(Request request, Predicate predicate)
+    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<Map<String, Object>> propertyMaps = request.getProperties();
+
+    modifyResources(new Command<Void>() {
+      @Override
+      public Void invoke() throws AmbariException {
+        for (Map<String, Object> propertyMap : propertyMaps) {
+          final Long layoutId;
+          try {
+            layoutId = Long.parseLong(propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID).toString());
+          } catch (Exception ex) {
+            throw new AmbariException("WidgetLayout should have numerical id");
+          }
+          final WidgetLayoutEntity entity = widgetLayoutDAO.findById(layoutId);
+          if (entity == null) {
+            throw new ObjectNotFoundException("There is no widget layout with id " + layoutId);
+          }
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID)))) {
+            entity.setLayoutName(propertyMap.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID).toString());
+          }
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID)))) {
+            entity.setSectionName(propertyMap.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID).toString());
+          }
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID)))) {
+            entity.setDisplayName(propertyMap.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID).toString());
+          }
+          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID)))) {
+            entity.setScope(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID).toString());
+          }
+
+          Set widgetsSet = (LinkedHashSet) propertyMap.get(WIDGETLAYOUT_INFO_PROPERTY_ID);
+
+          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+          int order=0;
+          for (Object widgetObject : widgetsSet) {
+            HashMap<String, Object> widget = (HashMap) widgetObject;
+            long id = Integer.parseInt(widget.get("id").toString());
+            WidgetEntity widgetEntity = widgetDAO.findById(id);
+            if (widgetEntity == null) {
+              throw new AmbariException("Widget with id " + widget.get("id").toString() + " does not exists");
+            }
+            WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+
+            widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
+            widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
+            widgetLayoutUserWidgetEntity.setWidgetLayout(entity);
+            widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
+
+          }
+
+          entity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
+
+          widgetLayoutDAO.merge(entity);
+        }
+        return null;
+      }
+    });
+
+    return getRequestStatus(null);
+  }
+
+  @Override
+  public RequestStatus deleteResources(Predicate predicate)
+      throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+    final Set<Map<String, Object>> propertyMaps = getPropertyMaps(predicate);
+
+    final List<WidgetLayoutEntity> entitiesToBeRemoved = new ArrayList<WidgetLayoutEntity>();
+    for (Map<String, Object> propertyMap : propertyMaps) {
+      final Long id;
+      try {
+        id = Long.parseLong(propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID).toString());
+      } catch (Exception ex) {
+        throw new SystemException("WidgetLayout should have numerical id");
+      }
+
+      final WidgetLayoutEntity entity = widgetLayoutDAO.findById(id);
+      if (entity == null) {
+        throw new NoSuchResourceException("There is no widget layout with id " + id);
+      }
+
+      entitiesToBeRemoved.add(entity);
+    }
+
+    for (WidgetLayoutEntity entity: entitiesToBeRemoved) {
+      widgetLayoutDAO.remove(entity);
+    }
+
+    return getRequestStatus(null);
+  }
+
+  @Override
+  protected Set<String> getPKPropertyIds() {
+    return pkPropertyIds;
+  }
+
+}

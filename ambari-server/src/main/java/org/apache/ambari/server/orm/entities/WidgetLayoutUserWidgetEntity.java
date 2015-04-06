@@ -17,7 +17,6 @@
  */
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -40,13 +39,13 @@ public class WidgetLayoutUserWidgetEntity {
   @Column(name = "user_widget_id", nullable = false, updatable = false, insertable = false)
   private Long userWidgetId;
 
-  @ManyToOne(cascade = { CascadeType.ALL })
+  @ManyToOne
   @JoinColumn(name = "widget_layout_id", referencedColumnName = "id")
   private WidgetLayoutEntity widgetLayout;
 
-  @ManyToOne(cascade = { CascadeType.ALL })
+  @ManyToOne
   @JoinColumn(name = "user_widget_id", referencedColumnName = "id")
-  private UserWidgetEntity userWidget;
+  private WidgetEntity widget;
 
   @Column(name = "widget_order")
   private Integer widgetOrder;
@@ -75,12 +74,12 @@ public class WidgetLayoutUserWidgetEntity {
     this.widgetLayout = widgetLayout;
   }
 
-  public UserWidgetEntity getUserWidget() {
-    return userWidget;
+  public WidgetEntity getWidget() {
+    return widget;
   }
 
-  public void setUserWidget(UserWidgetEntity userWidget) {
-    this.userWidget = userWidget;
+  public void setWidget(WidgetEntity widget) {
+    this.widget = widget;
   }
 
   public Integer getWidgetOrder() {
@@ -99,7 +98,7 @@ public class WidgetLayoutUserWidgetEntity {
     WidgetLayoutUserWidgetEntity that = (WidgetLayoutUserWidgetEntity) o;
 
     if (widgetLayout.getId() != that.widgetLayout.getId()) return false;
-    if (userWidget.getId() != that.userWidget.getId()) return false;
+    if (widget.getId() != that.widget.getId()) return false;
 
     return true;
   }
@@ -107,7 +106,7 @@ public class WidgetLayoutUserWidgetEntity {
   @Override
   public int hashCode() {
     int result = null != widgetLayout ? widgetLayout.hashCode() : 0;
-    result = 31 * result + (userWidget != null ? userWidget.hashCode() : 0);
+    result = 31 * result + (widget != null ? widget.hashCode() : 0);
     return result;
   }
 

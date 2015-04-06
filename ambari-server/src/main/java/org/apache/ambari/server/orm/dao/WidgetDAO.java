@@ -22,16 +22,14 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.UserWidgetEntity;
-import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
 
 import javax.persistence.EntityManager;
-import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Singleton
-public class UserWidgetDAO {
+public class WidgetDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
@@ -42,49 +40,49 @@ public class UserWidgetDAO {
   private DaoUtils daoUtils;
 
   @RequiresSession
-  public UserWidgetEntity findById(Long id) {
-    return entityManagerProvider.get().find(UserWidgetEntity.class, id);
+  public WidgetEntity findById(Long id) {
+    return entityManagerProvider.get().find(WidgetEntity.class, id);
   }
 
   @RequiresSession
-  public List<UserWidgetEntity> findByCluster(long clusterId) {
-    TypedQuery<UserWidgetEntity> query = entityManagerProvider.get()
-            .createNamedQuery("UserWidgetEntity.findByCluster", UserWidgetEntity.class);
+  public List<WidgetEntity> findByCluster(long clusterId) {
+    TypedQuery<WidgetEntity> query = entityManagerProvider.get()
+            .createNamedQuery("WidgetEntity.findByCluster", WidgetEntity.class);
     query.setParameter("clusterId", clusterId);
 
     return daoUtils.selectList(query);
   }
 
   @RequiresSession
-  public List<UserWidgetEntity> findBySectionName(String sectionName) {
-    TypedQuery<UserWidgetEntity> query = entityManagerProvider.get()
-            .createNamedQuery("UserWidgetEntity.findBySectionName", UserWidgetEntity.class);
+  public List<WidgetEntity> findBySectionName(String sectionName) {
+    TypedQuery<WidgetEntity> query = entityManagerProvider.get()
+            .createNamedQuery("WidgetEntity.findBySectionName", WidgetEntity.class);
     query.setParameter("sectionName", sectionName);
 
     return daoUtils.selectList(query);
   }
 
   @RequiresSession
-  public List<UserWidgetEntity> findAll() {
-    TypedQuery<UserWidgetEntity> query = entityManagerProvider.get()
-            .createNamedQuery("UserWidgetEntity.findAll", UserWidgetEntity.class);
+  public List<WidgetEntity> findAll() {
+    TypedQuery<WidgetEntity> query = entityManagerProvider.get()
+            .createNamedQuery("WidgetEntity.findAll", WidgetEntity.class);
 
     return daoUtils.selectList(query);
   }
 
   @Transactional
-  public void create(UserWidgetEntity userWidgetEntity) {
-    entityManagerProvider.get().persist(userWidgetEntity);
+  public void create(WidgetEntity widgetEntity) {
+    entityManagerProvider.get().persist(widgetEntity);
   }
 
   @Transactional
-  public UserWidgetEntity merge(UserWidgetEntity userWidgetEntity) {
-    return entityManagerProvider.get().merge(userWidgetEntity);
+  public WidgetEntity merge(WidgetEntity widgetEntity) {
+    return entityManagerProvider.get().merge(widgetEntity);
   }
 
   @Transactional
-  public void remove(UserWidgetEntity userWidgetEntity) {
-    entityManagerProvider.get().remove(merge(userWidgetEntity));
+  public void remove(WidgetEntity widgetEntity) {
+    entityManagerProvider.get().remove(merge(widgetEntity));
   }
 
   @Transactional
@@ -93,7 +91,7 @@ public class UserWidgetDAO {
   }
 
   @Transactional
-  public void refresh(UserWidgetEntity userWidgetEntity) {
-    entityManagerProvider.get().refresh(userWidgetEntity);
+  public void refresh(WidgetEntity widgetEntity) {
+    entityManagerProvider.get().refresh(widgetEntity);
   }
 }

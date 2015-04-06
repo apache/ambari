@@ -399,6 +399,8 @@ public class JsonRequestBodyParserTest {
     Set<NamedPropertySet> setProps2 = body.getNamedPropertySets();
     assertEquals(1, setProps2.size());
     assertEquals(setProperties, setProps2);
+    assertEquals("java.util.LinkedHashSet",
+            body.getNamedPropertySets().iterator().next().getProperties().get("services").getClass().getName());
   }
 
   @Test

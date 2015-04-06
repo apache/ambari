@@ -29,31 +29,40 @@ import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import java.util.List;
 
 @Entity
 @Table(name = "user_widget")
+@TableGenerator(name = "widget_id_generator",
+        table = "ambari_sequences",
+        pkColumnName = "sequence_name",
+        valueColumnName = "sequence_value",
+        pkColumnValue = "widget_id_seq",
+        initialValue = 0,
+        allocationSize = 1
+)
 @NamedQueries({
-    @NamedQuery(name = "UserWidgetEntity.findAll", query = "SELECT userWidget FROM UserWidgetEntity userWidget"),
-    @NamedQuery(name = "UserWidgetEntity.findByCluster", query = "SELECT userWidget FROM UserWidgetEntity userWidget WHERE userWidget.clusterId = :clusterId"),
-    @NamedQuery(name = "UserWidgetEntity.findBySectionName", query =
-                "SELECT userWidget FROM UserWidgetEntity userWidget " +
-                "INNER JOIN userWidget.listWidgetLayoutUserWidgetEntity widgetLayoutUserWidget " +
+    @NamedQuery(name = "WidgetEntity.findAll", query = "SELECT widget FROM WidgetEntity widget"),
+    @NamedQuery(name = "WidgetEntity.findByCluster", query = "SELECT widget FROM WidgetEntity widget WHERE widget.clusterId = :clusterId"),
+    @NamedQuery(name = "WidgetEntity.findBySectionName", query =
+                "SELECT widget FROM WidgetEntity widget " +
+                "INNER JOIN widget.listWidgetLayoutUserWidgetEntity widgetLayoutUserWidget " +
                 "INNER JOIN widgetLayoutUserWidget.widgetLayout  widgetLayout " +
                 "WHERE widgetLayout.sectionName = :sectionName")
         })
-public class UserWidgetEntity {
+public class WidgetEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "widget_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 
   @Column(name = "user_widget_name", nullable = false, length = 255)
-  private String userWidgetName;
+  private String widgetName;
 
   @Column(name = "user_widget_type", nullable = false, length = 255)
-  private String userWidgetType;
+  private String widgetType;
 
   @Column(name = "metrics", length = 32672)
   private String metrics;
@@ -86,7 +95,7 @@ public class UserWidgetEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, updatable = false, insertable = false)
   private ClusterEntity clusterEntity;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "userWidget")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "widget")
   private List<WidgetLayoutUserWidgetEntity> listWidgetLayoutUserWidgetEntity;
 
   public Long getId() {
@@ -97,20 +106,20 @@ public class UserWidgetEntity {
     this.id = id;
   }
 
-  public String getUserWidgetName() {
-    return userWidgetName;
+  public String getWidgetName() {
+    return widgetName;
   }
 
-  public void setUserWidgetName(String userWidgetName) {
-    this.userWidgetName = userWidgetName;
+  public void setWidgetName(String widgetName) {
+    this.widgetName = widgetName;
   }
 
-  public String getUserWidgetType() {
-    return userWidgetType;
+  public String getWidgetType() {
+    return widgetType;
   }
 
-  public void setUserWidgetType(String userWidgetType) {
-    this.userWidgetType = userWidgetType;
+  public void setWidgetType(String widgetType) {
+    this.widgetType = widgetType;
   }
 
   public String getMetrics() {
@@ -206,7 +215,7 @@ public class UserWidgetEntity {
     if (this == o) return true;
     if (o == null || getClass() != o.getClass()) return false;
 
-    UserWidgetEntity that = (UserWidgetEntity) o;
+    WidgetEntity that = (WidgetEntity) o;
 
     if (id != that.id) return false;
 

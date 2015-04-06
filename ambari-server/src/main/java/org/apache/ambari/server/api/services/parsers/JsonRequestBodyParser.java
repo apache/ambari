@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -118,7 +119,7 @@ public class JsonRequestBodyParser implements RequestBodyParser {
       if (child.isArray()) {
         //array
         Iterator<JsonNode>       arrayIter = child.getElements();
-        Set<Map<String, Object>> arraySet  = new HashSet<Map<String, Object>>();
+        Set<Map<String, Object>> arraySet  = new LinkedHashSet<Map<String, Object>>();
         List<String> primitives = new ArrayList<String>();
 
         while (arrayIter.hasNext()) {

@@ -321,8 +321,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("layout_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("section_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("cluster_id", Long.class,  255,   null, false));
+    columns.add(new DBColumnInfo("scope", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("user_name", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("display_name", String.class,  255,   null, false));
+
     dbAccessor.createTable(WIDGET_LAYOUT_TABLE, columns, "id");
-    dbAccessor.executeQuery("ALTER TABLE widget_layout ADD CONSTRAINT UQ_widget_layout UNIQUE (layout_name, section_name)");
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("widget_layout_id", Long.class,    null,  null, false));

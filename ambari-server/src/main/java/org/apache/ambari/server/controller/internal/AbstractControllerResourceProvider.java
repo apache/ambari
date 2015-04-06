@@ -157,6 +157,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new StackArtifactResourceProvider(managementController);
       case Theme:
         return new ThemeArtifactResourceProvider(managementController);
+      case WidgetLayout:
+        return new WidgetLayoutResourceProvider(managementController);
 
       default:
         throw new IllegalArgumentException("Unknown type " + type);

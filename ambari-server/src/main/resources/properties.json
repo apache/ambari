@@ -421,6 +421,33 @@
         "HostRoles/host_name",
         "_"
     ],
+    "Widget":[
+      "Widgets/id",
+      "Widgets/cluster_name",
+      "Widgets/widget_name",
+      "Widgets/display_name",
+      "Widgets/widget_type",
+      "Widgets/time_created",
+      "Widgets/author",
+      "Widgets/description",
+      "Widgets/scope",
+      "Widgets/metrics",
+      "Widgets/values",
+      "Widgets/properties",
+      "_"
+    ],
+    "WidgetLayout":[
+      "WidgetLayouts/id",
+      "WidgetLayouts/section_name",
+      "WidgetLayouts/cluster_name",
+      "WidgetLayouts/layout_name",
+      "WidgetLayouts/display_name",
+      "WidgetLayouts/scope",
+      "WidgetLayouts/user_name",
+      "WidgetLayouts/WidgetsInfo",
+      "User/user_name",
+      "_"
+    ],
     "StackLevelConfiguration":[
         "StackLevelConfigurations/stack_name",
         "StackLevelConfigurations/stack_version",

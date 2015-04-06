@@ -268,11 +268,11 @@ public class UpgradeCatalog210Test {
 
       // Verify widget tables
       assertEquals(12, userWidgetColumnsCapture.getValue().size());
-      assertEquals(4, widgetLayoutColumnsCapture.getValue().size());
+      assertEquals(7, widgetLayoutColumnsCapture.getValue().size());
       assertEquals(3, widgetLayoutUserWidgetColumnsCapture.getValue().size());
     }
   }
-  
+
   /**
    * Verify view changes
    */
@@ -289,7 +289,7 @@ public class UpgradeCatalog210Test {
       captures.put("viewinstance", viewInstanceColumnCapture);
       captures.put("viewparameter", viewParamColumnCapture);
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -301,7 +301,7 @@ public class UpgradeCatalog210Test {
       dbAccessor.addColumn(eq("viewinstance"), capture(viewInstanceColumnCapture));
       dbAccessor.addColumn(eq("viewparameter"), capture(viewParamColumnCapture));
     }
-    
+
     /**
      * {@inheritDoc}
      */
@@ -310,7 +310,7 @@ public class UpgradeCatalog210Test {
       verifyViewInstance(captures.get("viewinstance"));
       verifyViewParameter(captures.get("viewparameter"));
     }
-    
+
     private void verifyViewInstance(Capture<DBAccessor.DBColumnInfo> viewInstanceColumnCapture) {
       DBColumnInfo clusterIdColumn = viewInstanceColumnCapture.getValue();
       Assert.assertEquals(String.class, clusterIdColumn.getType());

@@ -138,6 +138,8 @@ public interface Resource {
     Stage,
     StackArtifact,
     Artifact,
+    Widget,
+    WidgetLayout,
     Theme;
 
     /**
@@ -238,6 +240,8 @@ public interface Resource {
     public static final Type StackArtifact = InternalType.StackArtifact.getType();
     public static final Type Artifact = InternalType.Artifact.getType();
     public static final Type Theme = InternalType.Theme.getType();
+    public static final Type Widget = InternalType.Widget.getType();
+    public static final Type WidgetLayout = InternalType.WidgetLayout.getType();
 
     /**
      * The type name.

@@ -554,6 +554,9 @@ CREATE TABLE ambari.widget_layout (
   id BIGINT NOT NULL,
   layout_name VARCHAR(255) NOT NULL,
   section_name VARCHAR(255) NOT NULL,
+  scope VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) NOT NULL,
+  display_name VARCHAR(255) NOT NULL,
   cluster_id BIGINT NOT NULL,
   PRIMARY KEY(id)
 );
@@ -584,7 +587,6 @@ ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
-ALTER TABLE widget_layout ADD CONSTRAINT UQ_widget_layout UNIQUE (layout_name, section_name);
 
 -- altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
@@ -865,6 +867,8 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_id_
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_group_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_item_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'

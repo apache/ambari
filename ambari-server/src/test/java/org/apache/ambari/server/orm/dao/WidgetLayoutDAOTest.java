@@ -24,7 +24,7 @@ import com.google.inject.persist.PersistService;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.entities.UserWidgetEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.junit.After;
@@ -42,6 +42,7 @@ public class WidgetLayoutDAOTest {
 
   private static Injector injector;
   private WidgetLayoutDAO widgetLayoutDAO;
+  private WidgetDAO widgetDAO;
   OrmTestHelper helper;
   Long clusterId;
 
@@ -50,6 +51,7 @@ public class WidgetLayoutDAOTest {
   public void before() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     widgetLayoutDAO = injector.getInstance(WidgetLayoutDAO.class);
+    widgetDAO = injector.getInstance(WidgetDAO.class);
     injector.getInstance(GuiceJpaInitializer.class);
     helper = injector.getInstance(OrmTestHelper.class);
     clusterId = helper.createCluster();
@@ -61,29 +63,37 @@ public class WidgetLayoutDAOTest {
     widgetLayoutEntity.setClusterId(clusterId);
     widgetLayoutEntity.setLayoutName("layout name0");
     widgetLayoutEntity.setSectionName("section0");
+    widgetLayoutEntity.setUserName("username");
+    widgetLayoutEntity.setScope("CLUSTER");
+    widgetLayoutEntity.setDisplayName("displ_name");
 
     WidgetLayoutEntity widgetLayoutEntity2 = new WidgetLayoutEntity();
     widgetLayoutEntity2.setClusterId(clusterId);
     widgetLayoutEntity2.setLayoutName("layout name1");
     widgetLayoutEntity2.setSectionName("section1");
+    widgetLayoutEntity2.setUserName("username");
+    widgetLayoutEntity2.setScope("CLUSTER");
+    widgetLayoutEntity2.setDisplayName("displ_name2");
 
     List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
 
     for (int i=0; i<3; i++) {
-      UserWidgetEntity userWidgetEntity = new UserWidgetEntity();
-      userWidgetEntity.setDisplayName("display name" + i);
-      userWidgetEntity.setAuthor("author");
-      userWidgetEntity.setClusterId(clusterId);
-      userWidgetEntity.setMetrics("metrics");
-      userWidgetEntity.setDescription("description");
-      userWidgetEntity.setProperties("{\"warning_threshold\": 0.5,\"error_threshold\": 0.7 }");
-      userWidgetEntity.setScope("CLUSTER");
-      userWidgetEntity.setUserWidgetName("widget" + i);
-      userWidgetEntity.setUserWidgetType("GAUGE");
-      userWidgetEntity.setWidgetValues("${`jvmMemoryHeapUsed + jvmMemoryHeapMax`}");
+      WidgetEntity widgetEntity = new WidgetEntity();
+      widgetEntity.setDisplayName("display name" + i);
+      widgetEntity.setAuthor("author");
+      widgetEntity.setClusterId(clusterId);
+      widgetEntity.setMetrics("metrics");
+      widgetEntity.setDescription("description");
+      widgetEntity.setProperties("{\"warning_threshold\": 0.5,\"error_threshold\": 0.7 }");
+      widgetEntity.setScope("CLUSTER");
+      widgetEntity.setWidgetName("widget" + i);
+      widgetEntity.setWidgetType("GAUGE");
+      widgetEntity.setWidgetValues("${`jvmMemoryHeapUsed + jvmMemoryHeapMax`}");
+
+      widgetDAO.create(widgetEntity);
 
       WidgetLayoutUserWidgetEntity widgetLayoutUserWidget = new WidgetLayoutUserWidgetEntity();
-      widgetLayoutUserWidget.setUserWidget(userWidgetEntity);
+      widgetLayoutUserWidget.setWidget(widgetEntity);
       widgetLayoutUserWidget.setWidgetLayout(widgetLayoutEntity);
       widgetLayoutUserWidget.setWidgetOrder(0);
       widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidget);
