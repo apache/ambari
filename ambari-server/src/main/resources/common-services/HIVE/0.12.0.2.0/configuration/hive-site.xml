@@ -349,15 +349,19 @@ limitations under the License.
 
   <property>
     <name>hive.default.fileformat</name>
-    <value>Text</value>
+    <value>TextFile</value>
     <description>Default file format for CREATE TABLE statement.</description>
     <display-name>Default File Format</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>ORCFile</entries>
-      <entries>Text</entries>
+      <entries>TextFile</entries>
+      <entries>SequenceFile</entries>
+      <entries>RCfile</entries>      
       <entry_descriptions>The Optimized Row Columnar (ORC) file format provides a highly efficient way to store Hive data. It was designed to overcome limitations of the other Hive file formats. Using ORC files improves performance when Hive is reading, writing, and processing data.</entry_descriptions>
       <entry_descriptions>Text file format saves Hive data as normal text.</entry_descriptions>
+      <entry_descriptions>Compressed text file format saves Hive data in CompressedStorage.</entry_descriptions>
+      <entry_descriptions>Short of Record Columnar File, are flat files consisting of binary key/value pairs</entry_descriptions>      
     </value-attributes>
   </property>
 </configuration>
