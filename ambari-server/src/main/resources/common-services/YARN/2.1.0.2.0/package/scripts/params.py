@@ -224,3 +224,4 @@ min_user_id = config['configurations']['yarn-env']['min_user_id']
 
 # Node labels
 node_labels_dir = default("/configurations/yarn-site/yarn.node-labels.fs-store.root-dir", None)
+node_label_enable = config['configurations']['yarn-site']['yarn.node-labels.enabled']

@@ -144,7 +144,7 @@ def yarn(name = None):
        owner=params.yarn_user,
        group=params.user_group
     )
-    if params.node_labels_dir:
+    if not is_empty(params.node_label_enable) and params.node_label_enable or is_empty(params.node_label_enable) and params.node_labels_dir:
       params.HdfsDirectory(params.node_labels_dir,
                            action="create",
                            owner=params.yarn_user,

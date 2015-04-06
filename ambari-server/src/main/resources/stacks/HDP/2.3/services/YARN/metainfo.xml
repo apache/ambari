@@ -73,6 +73,7 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <configuration-dir>configuration-mapred</configuration-dir>
     </service>
 
   </services>
