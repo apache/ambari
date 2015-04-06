@@ -5,9 +5,9 @@
  * licenses this file to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  * http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
  * WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
@@ -23,13 +23,13 @@ var validator = require('utils/validator');
 module.exports = {
 
   /**
-   * Launches a dialog to select hosts from the provided available hosts. 
-   * 
-   * Once the user clicks OK or Cancel, the callback is called with the 
+   * Launches a dialog to select hosts from the provided available hosts.
+   *
+   * Once the user clicks OK or Cancel, the callback is called with the
    * array of hosts (App.Host[]) selected. If the dialog was cancelled
    * or closed, <code>null</code> is provided to the callback. Else
    * an array (maybe empty) will be provided to the callback.
-   * 
+   *
    * @param initialHosts  {App.Host[]} List of hosts to pick from
    * @param selectedHosts {App.Host[]} List of hosts already selected from the available hosts
    * @param selectAtleastOneHost  {boolean} If true atleast one host has to be selected
@@ -190,7 +190,7 @@ module.exports = {
     var hostNames = hosts.mapProperty('hostName');
     return App.ModalPopup.show({
       header: Em.I18n.t('hosts.host.details.setRackId'),
-      disablePrimary: false,
+      disablePrimary: true,
       rackId: rackId,
       bodyClass: Em.View.extend({
         templateName: require('templates/main/host/rack_id_popup'),

@@ -206,7 +206,7 @@ module.exports = {
       return true;
     };
     if (/^[\?\|\*\!,]/.test(value)) return false;
-    return /^((\.\*?)?([\w\s\[\]\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
+    return /^((\.\*?)?([\w\s\[\]\/\?\-_,\|\*\!\{\}]*)?)+(\.\*?)?$/g.test(value) && (checkPair(['[',']'])) && (checkPair(['{','}']));
   },
 
   /**
@@ -218,7 +218,7 @@ module.exports = {
       // true is there is no host with this component
       return hostComponents.filterProperty("componentName", item["component-name"]).filterProperty("hostName", item.host).length === 0;
     });
-  }, 
+  },
 
   isValidRackId: function(path) {
     // See app/message.js:hostPopup.setRackId.invalid

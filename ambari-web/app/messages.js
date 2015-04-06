@@ -116,7 +116,8 @@ Em.I18n.translations = {
   'common.ipAddress':'IP Address',
   'common.rack':'Rack',
   'common.cpu':'CPU',
-  'common.cores': 'Cores (CPU)',
+  'common.cores': 'Cores',
+  'common.cores.cpu': 'Cores (CPU)',
   'common.ram':'RAM',
   'common.disk':'Disk',
   'common.diskUsage':'Disk Usage',
@@ -314,7 +315,7 @@ Em.I18n.translations = {
   'hostPopup.setRackId.success': 'Updating rack id to \"{0}\". It may take a few moments for it to get refreshed.',
   'hostPopup.setRackId.error': 'Updating the rack id failed.',
   'hostPopup.setRackId.invalid': 'Should start with a forward slash it may include alphanumeric chars, dots, dashes and forward slashes.',
-  'hostPopup.RackId': 'Rack Id',
+  'hostPopup.RackId': 'Rack',
   'hostPopup.recommendation.beforeDecommission': '{0} Maintenance Mode is pre required for decommissioning.',
 
   'question.sure':'Are you sure?',
@@ -2098,7 +2099,7 @@ Em.I18n.translations = {
   'hosts.host.details.restartAllComponents':'Restart All Components',
   'hosts.host.details.refreshConfigs':'Refresh configs',
   'hosts.host.details.for.postfix':'{0} for host',
-  'hosts.host.details.setRackId':'Set Rack Id',
+  'hosts.host.details.setRackId':'Set Rack',
   'host.host.details.installClients': 'Install clients',
 
   'host.host.componentFilter.master':'Master Components',

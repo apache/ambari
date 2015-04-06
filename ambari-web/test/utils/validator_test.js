@@ -393,6 +393,7 @@ describe('validator', function () {
         { value: 'a1[1]asd[1]', expected: true },
         { value: 'a1[1]asd[1][', expected: false },
         { value: 'a1[1|1]asd[1]', expected: true },
+        { value: '/a1[1|1]asd[1]', expected: true },
         { value: 'a1-2!', expected: true },
         { value: '|a1-2', expected: false },
         { value: '[a1', expected: false },

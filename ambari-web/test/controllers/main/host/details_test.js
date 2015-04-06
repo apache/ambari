@@ -24,6 +24,7 @@ require('models/host_component');
 require('models/host_stack_version');
 var batchUtils = require('utils/batch_scheduled_requests');
 var componentsUtils = require('utils/components');
+var hostsManagement = require('utils/hosts');
 var controller;
 
 describe('App.MainHostDetailsController', function () {
@@ -1702,6 +1703,26 @@ describe('App.MainHostDetailsController', function () {
     });
   });
 
+
+  describe('#setRackId', function () {
+    beforeEach(function () {
+      sinon.stub(hostsManagement, 'setRackInfo', Em.K);
+
+    });
+    afterEach(function () {
+      hostsManagement.setRackInfo.restore();
+    });
+    it('should call setRackInfo with appropriate arguments', function () {
+      var mockedHost = Em.Object.create({
+        rack: 'rackId'
+      });
+      controller.setRackId({
+        context: mockedHost
+      });
+      expect(hostsManagement.setRackInfo.calledWith({message: Em.I18n.t('hosts.host.details.setRackId')}, [mockedHost], 'rackId')).to.be.true;
+    });
+  });
+
   describe('#restartAllStaleConfigComponents()', function () {
 
     beforeEach(function () {
@@ -1911,13 +1932,13 @@ describe('App.MainHostDetailsController', function () {
 
   describe('#_doDeleteHostComponentSuccessCallback()', function () {
     beforeEach(function() {
-      sinon.stub(controller, 'removeHostComponentModel', Em.K);      
+      sinon.stub(controller, 'removeHostComponentModel', Em.K);
     });
-    
+
     afterEach(function() {
-      controller.removeHostComponentModel.restore();      
+      controller.removeHostComponentModel.restore();
     });
-    
+
     it('ZOOKEEPER_SERVER component', function () {
       var data = {
         componentName: 'ZOOKEEPER_SERVER'

@@ -18,7 +18,6 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-var hostsManagement = require('utils/hosts');
 require('utils/batch_scheduled_requests');
 require('controllers/main/host');
 require('mappers/server_data_mapper');
@@ -199,7 +198,7 @@ describe('MainHostController', function () {
         }];
       });
     });
-    
+
     afterEach(function() {
       App.db.getFilterConditions.restore();
       hostController.getRegExp.restore();
@@ -238,29 +237,6 @@ describe('MainHostController', function () {
     it('should set default sorting condition', function () {
       hostController.getSortProps();
       expect(db.mainHostController).to.eql([{name: 'hostName', status: 'sorting_asc'}]);
-    });
-
-  });
-
-  describe('#setRackId', function () {
-
-    beforeEach(function () {
-      sinon.stub(hostsManagement, 'setRackInfo', Em.K);
-
-    });
-
-    afterEach(function () {
-      hostsManagement.setRackInfo.restore();
-    });
-
-    it('should call setRackInfo with appropriate arguments', function () {
-      var mockedHost = Em.Object.create({
-        rack: 'rackId'
-      });
-      hostController.setRackId({
-        context: mockedHost
-      });
-      expect(hostsManagement.setRackInfo.calledWith({message: Em.I18n.t('hosts.host.details.setRackId')}, [mockedHost], 'rackId')).to.be.true;
     });
 
   });

@@ -362,6 +362,11 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         break;
     }
 
+    if (operationData.action === 'SET_RACK_INFO') {
+      this.getHostsForBulkOperations(queryParams, operationData, null);
+      return;
+    }
+
     var loadingPopup = App.ModalPopup.show({
       header: Em.I18n.t('jobs.loadingTasks'),
       primary: false,
@@ -370,13 +375,22 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
         template: Ember.Handlebars.compile('<div class="spinner"></div>')
       })
     });
-    var parameters = App.router.get('updateController').computeParameters(queryParams);
-    if (!parameters.length) parameters = '&';
+
+    this.getHostsForBulkOperations(queryParams, operationData, loadingPopup);
+  },
+
+  getHostsForBulkOperations: function (queryParams, operationData, loadingPopup) {
+    var params = App.router.get('updateController').computeParameters(queryParams);
+
+    if (!params.length) {
+      params = '&';
+    }
+
     App.ajax.send({
       name: 'hosts.bulk.operations',
       sender: this,
       data: {
-        parameters: parameters.substring(0, parameters.length - 1),
+        parameters: params.substring(0, params.length - 1),
         operationData: operationData,
         loadingPopup: loadingPopup
       },
@@ -439,7 +453,16 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
     else {
       message = Em.I18n.t('hosts.bulkOperation.confirmation.hosts').format(operationData.message, hostNames.length);
     }
-    param.loadingPopup.hide();
+
+    if (param.loadingPopup) {
+      param.loadingPopup.hide();
+    }
+
+    if (operationData.action === 'SET_RACK_INFO') {
+      self.get('controller').bulkOperation(operationData, hosts);
+      return;
+    }
+
     App.ModalPopup.show({
       header: Em.I18n.t('hosts.bulkOperation.confirmation.header'),
       hostNames: hostNames.join("\n"),
@@ -853,7 +876,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
    */
   rackFilterView: filters.createTextView({
     column: 12,
-    fieldType: 'filter-input-width',
+    fieldType: 'filter-input-width rack-input',
     onChangeValue: function(){
       this.get('parentView').updateFilter(this.get('column'), this.get('value'), 'string');
     }

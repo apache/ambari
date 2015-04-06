@@ -574,6 +574,17 @@ App.MainHostDetailsController = Em.Controller.extend({
   },
 
   /**
+   * Call <code>setRackInfo</code> function to show Set Rack Id popup
+   * @param data
+   */
+  setRackId: function (data) {
+    var rack = data.context.get('rack');
+    var hosts = [data.context];
+    var operationData = {message: Em.I18n.t('hosts.host.details.setRackId')};
+    hostsManagement.setRackInfo(operationData, hosts, rack);
+  },
+
+  /**
    * Call load tags
    * @method checkHiveDone
    */
