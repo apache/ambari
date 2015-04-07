@@ -573,6 +573,12 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   },
 
   /**
+   * Define if some widget is currently moving
+   * @type {boolean}
+   */
+  isMoving: false,
+
+  /**
    * Make widgets' list sortable on New Dashboard style
    */
   makeSortable: function () {
@@ -591,6 +597,12 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
           var layout = self.get('controller.widgetLayouts').objectAt(0);
 
           self.get('controller').saveLayout(widgets, layout);
+        },
+        activate: function (event, ui) {
+          self.set('isMoving', true);
+        },
+        deactivate: function (event, ui) {
+          self.set('isMoving', false);
         }
       }).disableSelection();
       $('html').off('DOMNodeInserted', '#widget_layout');

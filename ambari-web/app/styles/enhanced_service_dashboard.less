@@ -51,7 +51,6 @@
 #widget_layout,
 #widget-preview {
   .frame {
-    overflow: hidden;
     height: 150px;
     width: 90%;
   }
@@ -59,7 +58,6 @@
     width: 19.3%;
     background-color: white;
     margin: 5px 0 5px 5px;
-    cursor: move;
   }
   .widget {
     .spinner {
@@ -70,22 +68,26 @@
       height: 25px;
       font-weight: bold;
       text-align: left;
+      position: relative;
     }
     .content {
       text-align: center;
       color: @health-status-green;
-      padding-top: 35px;
       font-weight: bold;
       font-size: 35px;
+      position: relative;
     }
     .template-widget,
     .number-widget {
       .frame;
+      .content {
+        padding-top: 70px;
+      }
     }
     .graph-widget {
       .frame;
       .content {
-        padding-top: 0;
+        padding-top: 30px;
       }
       .chart-legend {
         min-width: 100%;
@@ -98,7 +100,7 @@
     .gauge-widget {
       .frame;
       .content {
-        padding-top: 5px;
+        padding-top: 40px;
       }
     }
     .red {
@@ -115,9 +117,48 @@
 
 #widget-preview {
   max-width: 200px;
-  .graph-widget {
-    .title {
-      height: 0;
+  .widget {
+    .thumbnail .corner-icon {
+      display: none;
+    }
+    .graph-widget {
+      .title {
+        height: 0;
+      }
+    }
+  }
+}
+
+#widget_layout {
+  .widget {
+    .thumbnail .corner-icon {
+      display: none;
+      position: relative;
+      .icon-remove-sign{
+        color: #000000;
+        text-shadow: #fff 0px 0px 15px;
+        position: relative;
+        left: -17px;
+        top: -11px;
+      }
+      .icon-edit,.icon-copy{
+        color: #555555;
+        position: relative;
+      }
+      .icon-edit {
+        left: 2px;
+      }
+    }
+    .thumbnail:hover {
+      cursor: move;
+      .corner-icon{
+        display: block;
+        text-decoration: none;
+        z-index: 9;
+      }
+      .caption{
+        margin-left: -10px;
+      }
     }
   }
 }

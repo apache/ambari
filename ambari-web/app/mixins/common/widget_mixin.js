@@ -248,10 +248,29 @@ App.WidgetMixin = Ember.Mixin.create({
 
   getHostComponentMetricsSuccessCallback: function () {
     //TODO push data to metrics after response structure approved
+  },
+
+  /*
+   * make call when clicking on "remove icon" on widget
+   */
+  hideWidget: function () {
+
+  },
+  /*
+   * make call when clicking on "clone icon" on widget
+   */
+  cloneWidget: function () {
+
+  },
+
+  /*
+   * make call when clicking on "edit icon" on widget
+   */
+  editWidget: function () {
+
   }
 
 });
-
 App.WidgetPreviewMixin = Ember.Mixin.create({
   beforeRender: Em.K,
   isLoaded: true,
