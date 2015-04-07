@@ -16,27 +16,25 @@
 
 What's New with Ambari?
 
- * The latest release Ambari 1.7.0 added the following features:
+ * The latest release Ambari 2.0.0 added the following features:
 
-   * Exposes Ambari UI for config versioning, history and rollback, to facilitate the management of services
+   * Automated Rolling Upgrades
 
-   * Ambari Views framework was greatly improved to better support instantiating and loading custom views
+   * Automated Kerberization of Hadoop Cluster
 
-   * Migrated "Jobs" tab into a "Jobs View" (e.g deliver as part of Views framework)
+   * Ambari Alerting Framework
 
-   * Ambari Administration was revamped and has better controls for managing users, groups, view instances, and cluster permissions
+   * Ambari Metrics System
 
-   * Ubuntu 12 support
+   * "Add Hosts" Blueprints API support
 
-   * Cancel/Abort background operation requests
+   * Blueprint Support for HA Clusters
 
-   * New Host Check: THP (Transparent Huge Pages)
+   * Enable Explicit Service Stack Inheritance
 
-   * Download Service client configs
+   * Common Services
 
-   * Ability to manage -env.sh configuration files
-
-   * Ability to set configuration properties as <final>
+   * Move master components to different host after installation
 
 Getting Ambari Source
 
@@ -51,7 +49,7 @@ JIRA
 
 User Guide
 
-  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+1.7.0} how to install a Hadoop cluster using Ambari 1.7.0}}.
+  Take a look at {{{https://cwiki.apache.org/confluence/display/AMBARI/Installation+Guide+for+Ambari+2.0.0} how to install a Hadoop cluster using Ambari 2.0.0}}.
 
 Stay Tuned
 
