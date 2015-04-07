@@ -788,6 +788,62 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__exportedValue_UsingMinusSymbolInHostGroupName() {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("yarn.resourcemanager.hostname", "%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-6%");
+    properties.put("yarn-site", typeProps);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    HostGroup group1 = new TestHostGroup("os-amb-r6-secha-1427972156-hbaseha-3-6", Collections.singleton("testhost"), hgComponents);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    HostGroup group2 = new TestHostGroup("group2", Collections.singleton("testhost2"), hgComponents2);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+    hostGroups.put(group2.getName(), group2);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
+    String updatedVal = updatedProperties.get("yarn-site").get("yarn.resourcemanager.hostname");
+    assertEquals("testhost", updatedVal);
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_SingleHostProperty__exportedValue_WithPort_UsingMinusSymbolInHostGroupName() {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("yarn.resourcemanager.hostname", "%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-6%:2180");
+    properties.put("yarn-site", typeProps);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    HostGroup group1 = new TestHostGroup("os-amb-r6-secha-1427972156-hbaseha-3-6", Collections.singleton("testhost"), hgComponents);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    HostGroup group2 = new TestHostGroup("group2", Collections.singleton("testhost2"), hgComponents2);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+    hostGroups.put(group2.getName(), group2);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
+    String updatedVal = updatedProperties.get("yarn-site").get("yarn.resourcemanager.hostname");
+    assertEquals("testhost:2180", updatedVal);
+  }
+
+  @Test
   public void testDoUpdateForClusterCreate_SingleHostProperty__exportedValue__WithPort() {
     Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
     Map<String, String> typeProps = new HashMap<String, String>();
@@ -919,6 +975,62 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals(4, hosts.length);
     for (String host : hosts) {
       assertTrue(expectedHosts.contains(host));
+      expectedHosts.remove(host);
+    }
+  }
+
+  @Test
+  public void testDoUpdateForClusterCreate_MultiHostProperty__exportedValues___withPorts_UsingMinusSymbolInHostGroupName() {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("ha.zookeeper.quorum", "%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-6%:2181,%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-5%:2181,%HOSTGROUP::os-amb-r6-secha-1427972156-hbaseha-3-7%:2181");
+    properties.put("core-site", typeProps);
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    HostGroup group1 = new TestHostGroup("os-amb-r6-secha-1427972156-hbaseha-3-6", Collections.singleton("testhost"), hgComponents);
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    Set<String> hosts2 = new HashSet<String>();
+    hosts2.add("testhost2");
+    hosts2.add("testhost2a");
+    hosts2.add("testhost2b");
+    HostGroup group2 = new TestHostGroup("os-amb-r6-secha-1427972156-hbaseha-3-5", hosts2, hgComponents2);
+
+    Collection<String> hgComponents3 = new HashSet<String>();
+    hgComponents2.add("HDFS_CLIENT");
+    hgComponents2.add("ZOOKEEPER_CLIENT");
+    Set<String> hosts3 = new HashSet<String>();
+    hosts3.add("testhost3");
+    hosts3.add("testhost3a");
+    HostGroup group3 = new TestHostGroup("os-amb-r6-secha-1427972156-hbaseha-3-7", hosts3, hgComponents3);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put(group1.getName(), group1);
+    hostGroups.put(group2.getName(), group2);
+    hostGroups.put(group3.getName(), group3);
+
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
+    Map<String, Map<String, String>> updatedProperties = updater.doUpdateForClusterCreate(hostGroups, null);
+    String updatedVal = updatedProperties.get("core-site").get("ha.zookeeper.quorum");
+    String[] hosts = updatedVal.split(",");
+
+    Collection<String> expectedHosts = new HashSet<String>();
+    expectedHosts.add("testhost:2181");
+    expectedHosts.add("testhost2:2181");
+    expectedHosts.add("testhost2a:2181");
+    expectedHosts.add("testhost2b:2181");
+    expectedHosts.add("testhost3:2181");
+    expectedHosts.add("testhost3a:2181");
+
+    assertEquals(6, hosts.length);
+    for (String host : hosts) {
+      assertTrue("Expected host :" + host + "was not included in the multi-server list in this property.", expectedHosts.contains(host));
       expectedHosts.remove(host);
     }
   }
@@ -2263,6 +2375,56 @@ public class BlueprintConfigurationProcessorTest {
     final String expectedPortNum = "808080";
     final String expectedHostGroupName = "host_group_1";
     final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostNameOne)).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo)).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // setup properties that include host information
+    // setup shared edit property, that includes a qjournal URL scheme
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", "qjournal://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + ";" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo) + "/mycluster");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put(expectedHostGroupNameTwo, mockHostGroupTwo);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
+
+    // expect that all servers are included in the updated config, and that the qjournal URL format is preserved
+    assertEquals("HDFS HA shared edits directory property not properly updated for cluster create.",
+      "qjournal://" + createHostAddress(expectedHostNameOne, expectedPortNum) + ";" + createHostAddress(expectedHostNameTwo, expectedPortNum) + "/mycluster",
+      hdfsSiteProperties.get("dfs.namenode.shared.edits.dir"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHDFSConfigClusterUpdateQuorumJournalURL_UsingMinusSymbolInHostName() throws Exception {
+    final String expectedHostNameOne = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host-group-1";
+    final String expectedHostGroupNameTwo = "host-group-2";
 
     EasyMockSupport mockSupport = new EasyMockSupport();
 

@@ -85,7 +85,7 @@ public class BlueprintConfigurationProcessor {
   /**
    * Compiled regex for hostgroup token with port information.
    */
-  private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\w+|\\d+)%:?(\\d+)?");
+  private static Pattern HOSTGROUP_PORT_REGEX = Pattern.compile("%HOSTGROUP::(\\S+?)%:?(\\d+)?");
 
   /**
    * Statically-defined set of properties that can support using a nameservice name
@@ -93,6 +93,7 @@ public class BlueprintConfigurationProcessor {
    */
   private static Set<String> configPropertiesWithHASupport =
     new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir"));
+
 
 
   /**
