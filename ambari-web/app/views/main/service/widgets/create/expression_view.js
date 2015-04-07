@@ -21,7 +21,15 @@ var misc = require('utils/misc');
 App.WidgetWizardExpressionView = Em.View.extend({
   templateName: require('templates/main/service/widgets/create/expression'),
 
+  /**
+   * @type {Array}
+   */
   classNames: ['metric-container'],
+
+  /**
+   * @type {Array}
+   */
+  classNameBindings: ['isInvalid'],
 
   /**
    * list of operators that can be used in expression
@@ -48,11 +56,16 @@ App.WidgetWizardExpressionView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  isValid: true,
+  isInvalid: false,
 
+  /**
+   * add operator to expression data
+   * @param event
+   */
   addOperator: function (event) {
     var data = this.get('expression.data');
     var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
+
     data.pushObject(Em.Object.create({
       id: ++lastId,
       name: event.context,
@@ -60,12 +73,19 @@ App.WidgetWizardExpressionView = Em.View.extend({
     }));
   },
 
-  redrawField: function(){
+  /**
+   * redraw expression
+   * NOTE: needed in order to avoid collision between scrollable lib and metric action event
+   */
+  redrawField: function () {
     this.set('expression.data', misc.sortByOrder($(this.get('element')).find('.metric-instance').map(function () {
       return this.id;
     }), this.get('expression.data')));
   },
 
+  /**
+   * enable metric edit area
+   */
   startEdit: function () {
     var self = this;
     this.set('dataBefore', this.get('expression.data').slice(0));
@@ -82,25 +102,61 @@ App.WidgetWizardExpressionView = Em.View.extend({
     });
   },
 
+  /**
+   * discard changes and disable metric edit area
+   */
   cancelEdit: function () {
     this.set('expression.data', this.get('dataBefore'));
     this.set('editMode', false);
   },
 
+  /**
+   * save changes and disable metric edit area
+   */
   saveMetrics: function () {
     this.set('editMode', false);
   },
 
+  /**
+   * remove metric or operator from expression
+   * @param {object} event
+   */
   removeElement: function (event) {
     this.get('expression.data').removeObject(event.context);
   },
 
-  validate: function() {
-    //todo add validation
+  validate: function () {
+    //number 1 used as substitute to test expression to be mathematically correct
+    var testNumber = 1;
+    var isInvalid = true;
+    var expression = this.get('expression.data').map(function (element) {
+      if (element.isMetric) {
+        return testNumber;
+      } else {
+        return element.name;
+      }
+    }, this).join(" ");
+
+    if (expression.length > 0) {
+      if (/^((\(\s)*[\d]+)[\(\)\+\-\*\/\d\s]*[\d\)]*$/.test(expression)) {
+        try {
+          isInvalid = !isFinite(window.eval(expression));
+        } catch (e) {
+          isInvalid = true;
+        }
+      }
+    } else {
+      isInvalid = false;
+    }
+
+    this.set('isInvalid', isInvalid);
   }.observes('expression.data.length'),
 
+  /**
+   * show popup that provide ability to add metric
+   */
   addMetric: function () {
-    App.ModalPopup.show({
+    return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.wizard.step2.addMetric'),
       classNames: ['modal-690px-width'],
       disablePrimary: true,
