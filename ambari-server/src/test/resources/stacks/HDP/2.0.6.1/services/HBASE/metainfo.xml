@@ -16,9 +16,12 @@
    limitations under the License.
 -->
 <metainfo>
-    <versions>
-      <active>true</active>
-    </versions>
-    <extends>2.0.6</extends>
+  <schemaVersion>2.0</schemaVersion>
+  <services>
+    <service>
+      <name>HBASE</name>
+      <comment>Non-relational distributed database and centralized service for configuration management &amp; synchronization</comment>
+      <version>0.95.2.2.0.6.1</version>
+    </service>
+  </services>
 </metainfo>
-

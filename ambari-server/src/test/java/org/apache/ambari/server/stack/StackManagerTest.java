@@ -462,6 +462,23 @@ public class StackManagerTest {
     assertNotNull(yarnService.getComponentByName("YARN_CLIENT"));
   }
 
+
+  @Test
+  public void testInheritanceAfterComponentDeletion() {
+    StackInfo stack = stackManager.getStack("HDP", "2.0.6");
+    ServiceInfo yarnService = stack.getService("HBASE");
+    assertNull(yarnService.getComponentByName("HBASE_CLIENT"));
+
+    stack = stackManager.getStack("HDP", "2.0.6.1");
+    yarnService = stack.getService("HBASE");
+    assertNull(yarnService.getComponentByName("HBASE_CLIENT"));
+
+    stack = stackManager.getStack("HDP", "2.0.8");
+    yarnService = stack.getService("HBASE");
+    assertNotNull(yarnService.getComponentByName("HBASE_CLIENT"));
+  }
+
+
   @Test
   public void testPopulateConfigTypes() throws Exception {
     StackInfo stack = stackManager.getStack("HDP", "2.0.7");

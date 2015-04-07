@@ -414,7 +414,7 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     serviceInfo.getComponents().clear();
     Collection<ComponentModule> mergedModules = mergeChildModules(
         allStacks, commonServices, componentModules, parent.componentModules);
-
+    componentModules.clear();
     for (ComponentModule module : mergedModules) {
       componentModules.put(module.getId(), module);
       serviceInfo.getComponents().add(module.getModuleInfo());
