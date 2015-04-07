@@ -22,13 +22,23 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   name: "widgetWizardStep2Controller",
 
   widgetProperties: [],
-  widgetMetrics: {},
   widgetValues: {},
 
   //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
   isSubmitDisabled: function () {
     return this.get('widgetProperties').someProperty('isValid', false);
   }.property('widgetProperties.@each.isValid'),
+
+  filteredMetrics: function () {
+    var type = this.get('content.widgetType');
+    return this.get('content.widgetMetrics').filter(function (metric) {
+      if (type === 'GRAPH') {
+        return metric.temporal;
+      } else {
+        return metric.point_in_time;
+      }
+    }, this);
+  }.property('content.widgetMetrics'),
 
   /*
    * Generate the thresholds, unit, time range.etc object based on the widget type selected in previous step.

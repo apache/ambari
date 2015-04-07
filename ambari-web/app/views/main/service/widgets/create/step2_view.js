@@ -20,6 +20,15 @@ App.WidgetWizardStep2View = Em.View.extend({
 
   templateName: require('templates/main/service/widgets/create/step2'),
 
+  /**
+   * @type {Array}
+   */
+  expressions: [
+    Em.Object.create({
+      data: []
+    })
+  ],
+
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.renderProperties();

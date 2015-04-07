@@ -210,7 +210,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
    
     data.items.forEach(function (request) {
       if (this.isUpgradeRequest(request)) {
-        if (!App.get('upgradeIsRunning')) {
+        if (!App.get('upgradeIsRunning') && !App.get('testMode')) {
           App.router.get('clusterController').restoreUpgradeState();
         }
         return;

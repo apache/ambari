@@ -2438,6 +2438,11 @@ var urls = {
   'widgets.hostComponent.metrics.get': {
     real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{hostComponentCriteria}&fields={widgetIds}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
+  },
+
+  'widgets.wizard.metrics.get': {
+    real: '{stackVersionURL}/services?artifacts/Artifacts/artifact_name=metrics_descriptor&StackServices/service_name.in({serviceNames})&fields=artifacts/*',
+    mock: '/data/metrics/HBASE/definition.json'
   }
 };
 /**

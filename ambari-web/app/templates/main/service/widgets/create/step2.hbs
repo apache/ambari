@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div id="add-widget-step2">
+<div class="step2">
   <h2>{{t widget.create.wizard.step2.header}}</h2>
   <div class="alert alert-info">
     {{t widget.create.wizard.step2.body.text}}
@@ -24,6 +24,10 @@
       {{t widget.create.wizard.step2.body.warning}}
     </div>
   </div>
+
+  {{#each expression in view.expressions}}
+    {{view App.WidgetWizardExpressionView expressionBinding="expression"}}
+  {{/each}}
 
   <div>
     <form class="form-horizontal">
@@ -44,7 +48,7 @@
 
 
   <div class="btn-area">
-    <a id="add-widget-step2-back" class="btn" {{action back}}>&larr; {{t common.back}}</a>
-    <a id="add-widget-step2-next" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</a>
+    <button id="add-widget-step2-back" class="btn" {{action back}}>&larr; {{t common.back}}</button>
+    <button id="add-widget-step2-next" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</button>
   </div>
 </div>

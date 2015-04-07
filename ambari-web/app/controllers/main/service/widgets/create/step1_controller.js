@@ -21,12 +21,26 @@ var App = require('app');
 App.WidgetWizardStep1Controller = Em.Controller.extend({
   name: "widgetWizardStep1Controller",
 
+  /**
+   * Types:
+   * - GAUGE
+   * - NUMBER
+   * - GRAPH
+   * - TEMPLATE
+   * @type {string}
+   */
   widgetType: '',
 
+  /**
+   * @type {boolean}
+   */
   isSubmitDisabled: function() {
     return !this.get('widgetType');
   }.property('widgetType'),
 
+  /**
+   * @type {App.WidgetType}
+   */
   options: App.WidgetType.find(),
 
   loadStep: function() {

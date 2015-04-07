@@ -318,6 +318,7 @@ require('views/main/service/widgets/create/wizard_view');
 require('views/main/service/widgets/create/step1_view');
 require('views/main/service/widgets/create/step2_view');
 require('views/main/service/widgets/create/step3_view');
+require('views/main/service/widgets/create/expression_view');
 
 require('views/main/views_view');
 

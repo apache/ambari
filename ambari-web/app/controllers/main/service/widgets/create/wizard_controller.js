@@ -36,6 +36,22 @@ App.WidgetWizardController = App.WizardController.extend({
     widgetService: null,
     widgetType: '',
     widgetProperties: [],
+
+    /**
+     * widgetMetric schema:
+     * {
+     *  widget_id: DS.attr('string'), //example: "metrics/rpc/closeRegion_num_ops",
+     *  name: DS.attr('string'),       //example: "rpc.rpc.closeRegion_num_ops",
+     *  pointInTime: true,
+     *  temporal: true,
+     *  category: DS.attr('string'),                 //example: default
+     *  serviceName: DS.attr('string'),          //example: HBASE
+     *  componentName: DS.attr('string'),    //example: HBASE_CLIENT
+     *  type: DS.attr('string'),                        //options: GANGLIA | JMX
+     *  level: DS.attr('string'),                         //options: COMPONENT | HOSTCOMPONENT
+     * }
+     * @type {Array}
+     */
     widgetMetrics: [],
     widgetValues: [],
     widgetName: null,
@@ -105,8 +121,77 @@ App.WidgetWizardController = App.WizardController.extend({
     this.set('content.widgetProperties', this.getDBProperty('widgetProperties'));
   },
 
-  loadWidgetMetrics: function() {
-    this.set('content.widgetMetrics', this.getDBProperty('widgetMetrics'));
+  /**
+   * load widget metrics
+   * on resolve deferred return array of widget metrics
+   * @returns {$.Deferred}
+   */
+  loadWidgetMetrics: function () {
+    var widgetMetrics = this.getDBProperty('widgetMetrics');
+    var self = this;
+    var dfd = $.Deferred();
+
+    if (widgetMetrics.length === 0) {
+      this.loadWidgetMetricsFromServer(function () {
+        dfd.resolve(self.get('content.widgetMetrics'));
+      });
+    } else {
+      this.set('content.widgetMetrics', widgetMetrics);
+      dfd.resolve(widgetMetrics);
+    }
+    return dfd.promise();
+  },
+
+  /**
+   * load metrics from server
+   * @param {function} callback
+   * @returns {$.ajax}
+   */
+  loadWidgetMetricsFromServer: function (callback) {
+    return App.ajax.send({
+      name: 'widgets.wizard.metrics.get',
+      sender: this,
+      data: {
+        stackVersionURL: App.get('stackVersionURL'),
+        serviceNames: App.Service.find().mapProperty('serviceName').join(',')
+      },
+      callback: callback,
+      success: 'loadWidgetMetricsFromServerCallback'
+    })
+  },
+
+  /**
+   *
+   * @param {object} json
+   */
+  loadWidgetMetricsFromServerCallback: function (json) {
+    var result = [];
+    var metrics = {};
+
+    if (json) {
+      var data = json.items[0].artifacts[0].artifact_data;
+
+      for (var serviceName in data) {
+        for (var componentName in data[serviceName]) {
+          for (var level in data[serviceName][componentName]) {
+            metrics = data[serviceName][componentName][level][0]['metrics']['default'];
+            for (var widgetId in metrics) {
+              result.push({
+                widget_id: widgetId,
+                point_in_time: metrics[widgetId].pointInTime,
+                temporal: metrics[widgetId].temporal,
+                name: metrics[widgetId].name,
+                level: level.toUpperCase(),
+                type: data[serviceName][componentName][level][0]["type"].toUpperCase(),
+                component_name: componentName,
+                service_name: serviceName
+              });
+            }
+          }
+        }
+      }
+    }
+    this.saveWidgetMetrics(result);
   },
 
   loadWidgetValues: function() {
@@ -154,8 +239,13 @@ App.WidgetWizardController = App.WizardController.extend({
         type: 'sync',
         callback: function () {
           this.loadWidgetProperties();
-          this.loadWidgetMetrics();
           this.loadWidgetValues();
+        }
+      },
+      {
+        type: 'async',
+        callback: function () {
+          return this.loadWidgetMetrics();
         }
       }
     ]
