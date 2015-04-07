@@ -213,3 +213,5 @@ IF OBJECT_ID('repo_version', 'U') IS NOT NULL DROP TABLE repo_version
 GO
 IF OBJECT_ID('artifact', 'U') IS NOT NULL DROP TABLE artifact
 GO
+IF OBJECT_ID('stack', 'U') IS NOT NULL DROP TABLE stack
+GO
