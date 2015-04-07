@@ -40,19 +40,7 @@ CREATE TABLE clusterconfigmapping (cluster_id BIGINT NOT NULL, type_name VARCHAR
 CREATE TABLE clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY CLUSTERED (service_name, cluster_id));
 CREATE TABLE clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (cluster_id));
 CREATE TABLE cluster_version (id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, repo_version_id BIGINT NOT NULL, state VARCHAR(255) NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, user_name VARCHAR(255), PRIMARY KEY (id));
-
-CREATE TABLE hostcomponentdesiredstate (
-  cluster_id BIGINT NOT NULL,
-  component_name VARCHAR(255) NOT NULL,
-  desired_stack_version VARCHAR(255) NOT NULL,
-  desired_state VARCHAR(255) NOT NULL,
-  host_id BIGINT NOT NULL,
-  service_name VARCHAR(255) NOT NULL,
-  admin_state VARCHAR(32),
-  maintenance_state VARCHAR(32) NOT NULL,
-  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  restart_required BIT NOT NULL DEFAULT 0,
-  PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name));
+CREATE TABLE hostcomponentdesiredstate (cluster_id BIGINT NOT NULL, component_name VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, host_name VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, admin_state VARCHAR(32), maintenance_state VARCHAR(32) NOT NULL, security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED', restart_required BIT NOT NULL DEFAULT 0, PRIMARY KEY CLUSTERED (cluster_id, component_name, host_name, service_name));
 
 CREATE TABLE hostcomponentstate (
   cluster_id BIGINT NOT NULL,
@@ -168,7 +156,8 @@ ALTER TABLE clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id F
 ALTER TABLE clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE cluster_version ADD CONSTRAINT FK_cluster_version_repovers_id FOREIGN KEY (repo_version_id) REFERENCES repo_version (repo_version_id);
-ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (host_id);
+ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
+--ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmponentdesiredstatehstid FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE hostcomponentdesiredstate ADD CONSTRAINT hstcmpnntdesiredstatecmpnntnme FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT hstcomponentstatecomponentname FOREIGN KEY (component_name, cluster_id, service_name) REFERENCES servicecomponentdesiredstate (component_name, cluster_id, service_name);
 ALTER TABLE hostcomponentstate ADD CONSTRAINT FK_hostcomponentstate_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
