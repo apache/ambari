@@ -190,7 +190,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     }
 
     // Re-add the FK to the cluster_id; will add the host_id at the end.
-    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clusterhostmapping_cluster_id",
+    dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clhostmapping_cluster_id",
         "cluster_id", CLUSTERS_TABLE, "cluster_id", false);
 
     // Drop the PK, and recreate it on the host_id instead
@@ -246,7 +246,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
-    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hostcomponentdesiredstate_host_id",
+    dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hcdesiredstate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
