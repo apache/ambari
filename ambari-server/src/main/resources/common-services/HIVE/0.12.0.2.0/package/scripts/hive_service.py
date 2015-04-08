@@ -128,13 +128,15 @@ def hive_service(name, action='start', rolling_restart=False):
 
 def check_fs_root():
   import params  
-  fs_root_url = format("{fs_root}{hive_apps_whs_dir}")
   metatool_cmd = format("hive --config {hive_server_conf_dir} --service metatool")
-  cmd = as_user(format("{metatool_cmd} -listFSRoot 2>/dev/null", env={'PATH' : params.execute_path }), params.hive_user) + " | grep hdfs:// | grep -v '.db$'"
+  cmd = as_user(format("{metatool_cmd} -listFSRoot 2>/dev/null", env={'PATH': params.execute_path}), params.hive_user) \
+        + format(" | grep hdfs:// | cut -f1,2,3 -d '/' | grep -v '{fs_root}' | head -1")
   code, out = shell.call(cmd)
-  if code == 0 and fs_root_url.strip() != out.strip():
-    cmd = format("{metatool_cmd} -updateLocation {fs_root}{hive_apps_whs_dir} {out}")
+
+  if code == 0 and out.strip() != "" and params.fs_root.strip() != out.strip():
+    out = out.strip()
+    cmd = format("{metatool_cmd} -updateLocation {fs_root} {out}")
     Execute(cmd,
             user=params.hive_user,
-            environment= {'PATH' : params.execute_path }
+            environment={'PATH': params.execute_path}
     )
