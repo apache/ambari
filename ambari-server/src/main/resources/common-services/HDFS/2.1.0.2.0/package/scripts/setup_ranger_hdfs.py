@@ -204,7 +204,7 @@ def hdfs_repo_properties():
   repo['config'] = json.dumps(config_dict)
   repo['description'] = "hdfs repo"
   repo['name'] = params.repo_name
-  repo['repositoryType'] = "Hdfs"
+  repo['repositoryType'] = "hdfs"
   repo['assetType'] = '1'
 
   data = json.dumps(repo)

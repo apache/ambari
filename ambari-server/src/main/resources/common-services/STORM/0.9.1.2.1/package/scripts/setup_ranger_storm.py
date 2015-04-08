@@ -187,7 +187,7 @@ def storm_repo_properties():
   repo['config'] = json.dumps(config_dict)
   repo['description'] = "storm repo"
   repo['name'] = params.repo_name
-  repo['repositoryType'] = "Storm"
+  repo['repositoryType'] = "storm"
   repo['assetType'] = '6'
 
   data = json.dumps(repo)

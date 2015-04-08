@@ -192,7 +192,7 @@ def hive_repo_properties():
   repo['config'] = json.dumps(config_dict)
   repo['description'] = "hive repo"
   repo['name'] = params.repo_name
-  repo['repositoryType'] = "Hive"
+  repo['repositoryType'] = "hive"
   repo['assetType'] = '3'
 
   data = json.dumps(repo)

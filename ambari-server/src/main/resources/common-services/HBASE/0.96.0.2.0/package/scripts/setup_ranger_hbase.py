@@ -194,7 +194,7 @@ def hbase_repo_properties():
   repo['config'] = json.dumps(config_dict)
   repo['description'] = "hbase repo"
   repo['name'] = params.repo_name
-  repo['repositoryType'] = "Hbase"
+  repo['repositoryType'] = "hbase"
   repo['assetType'] = '2'
 
   data = json.dumps(repo)

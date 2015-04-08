@@ -186,7 +186,7 @@ def knox_repo_properties():
   repo['config'] = json.dumps(config_dict)
   repo['description'] = "knox repo"
   repo['name'] = params.repo_name
-  repo['repositoryType'] = "Knox"
+  repo['repositoryType'] = "knox"
   repo['assetType'] = '5'
 
   data = json.dumps(repo)

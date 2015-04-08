@@ -96,7 +96,7 @@ class Rangeradmin:
         ##Get Policies by repo name
         policyList = self.get_policy_by_repo_name(name=repoName, component=typeOfPolicy, status="true",
                                                   usernamepassword=usernamepassword)
-        if (len(policyList)) > 0:
+        if policyList is not None and (len(policyList)) > 0:
           policiesUpdateCount = 0
           for policy in policyList:
             updatedPolicyObj = self.get_policy_params(typeOfPolicy, policy, policy_user)
