@@ -181,19 +181,23 @@ def yarn(name = None):
        content=InlineTemplate(params.yarn_env_sh_template)
   )
 
-  if params.security_enabled:
-    container_executor = format("{yarn_container_bin}/container-executor")
-    File(container_executor,
-         group=params.yarn_executor_container_group,
-         mode=06050
-    )
+  container_executor = format("{yarn_container_bin}/container-executor")
+  File(container_executor,
+      group=params.yarn_executor_container_group,
+      mode=06050
+  )
 
-    File(format("{hadoop_conf_dir}/container-executor.cfg"),
-         group=params.user_group,
-         mode=0644,
-         content=Template('container-executor.cfg.j2')
-    )
+  File(format("{hadoop_conf_dir}/container-executor.cfg"),
+      group=params.user_group,
+      mode=0644,
+      content=Template('container-executor.cfg.j2')
+  )
 
+  Directory(params.cgroups_dir,
+            group=params.user_group,
+            recursive=True,
+            mode=0755,
+            cd_access="a")
 
   if params.security_enabled:
     tc_mode = 0644

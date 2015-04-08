@@ -136,6 +136,21 @@ class TestMapReduce2Client(RMFTestCase):
       group = 'hadoop',
       mode = 0755,
     )
+    self.assertResourceCalled('File', '/usr/lib/hadoop-yarn/bin/container-executor',
+                              group = 'hadoop',
+                              mode = 06050,
+                              )
+    self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
+                              content = Template('container-executor.cfg.j2'),
+                              group = 'hadoop',
+                              mode = 0644,
+                              )
+    self.assertResourceCalled('Directory', '/cgroups_test/cpu',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              cd_access="a"
+    )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
                               owner = 'hdfs',
@@ -287,6 +302,12 @@ class TestMapReduce2Client(RMFTestCase):
       content = Template('container-executor.cfg.j2'),
       group = 'hadoop',
       mode = 0644,
+    )
+    self.assertResourceCalled('Directory', '/cgroups_test/cpu',
+                              group = 'hadoop',
+                              recursive = True,
+                              mode = 0755,
+                              cd_access="a"
     )
     self.assertResourceCalled('File', '/etc/hadoop/conf/mapred-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['mapred-env']['content']),
