@@ -93,8 +93,13 @@ App.MainServiceItemView = Em.View.extend({
 
   maintenance: [],
 
+  isMaintenanceSet: false,
+
   observeMaintenance: function() {
-    Em.run.once(this, 'observeMaintenanceOnce');
+    if (!this.get('isMaintenanceSet')) {
+      this.observeMaintenanceOnce();
+    }
+    Em.run.once(this, 'clearIsMaintenanceSet');
   },
 
   observeMaintenanceOnce: function() {
@@ -225,6 +230,11 @@ App.MainServiceItemView = Em.View.extend({
         }
       });
     }
+    this.set('isMaintenanceSet', true);
+  },
+
+  clearIsMaintenanceSet: function () {
+    this.set('isMaintenanceSet', false);
   },
 
   isMaintenanceActive: function() {

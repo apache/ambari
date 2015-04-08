@@ -463,8 +463,17 @@ describe('App.MainServiceItemView', function () {
         view.set('controller.content.passiveState', 'ON');
         view.observeMaintenanceOnce();
         expect(view.get('maintenance')).to.not.eql(oldMaintenance);
+        expect(view.get('isMaintenanceSet')).to.be.true;
       });
 
+    });
+  });
+
+  describe('#clearIsMaintenanceSet', function () {
+    it('isMaintenanceSet should be false', function () {
+      view.set('isMaintenanceSet', true);
+      view.clearIsMaintenanceSet();
+      expect(view.get('isMaintenanceSet')).to.be.false;
     });
   });
 });
