@@ -17,20 +17,10 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -53,9 +43,6 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -67,6 +54,18 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.commons.lang.StringUtils;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource provider for host component resources.
@@ -163,7 +162,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     for (Map<String, Object> propertyMap : request.getProperties()) {
-      requests.add(getRequest(propertyMap));
+      requests.add(changeRequest(propertyMap));
     }
 
     createResources(new Command<Void>() {
@@ -189,6 +188,25 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       requests.add(getRequest(propertyMap));
     }
 
+    return findResources(request, predicate, requests);
+  }
+
+  private Set<Resource> getResourcesForUpdate(Request request, Predicate predicate)
+    throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+
+    final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
+
+    for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
+      requests.add(changeRequest(propertyMap));
+    }
+
+    return findResources(request, predicate, requests);
+  }
+
+
+  private Set<Resource> findResources(Request request, final Predicate predicate,
+                                      final Set<ServiceComponentHostRequest> requests)
+          throws SystemException, NoSuchResourceException, NoSuchParentResourceException {
     Set<Resource> resources = new HashSet<Resource>();
     Set<String> requestedIds = getRequestPropertyIds(request, predicate);
     // We always need host_name for sch
@@ -204,34 +222,34 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     for (ServiceComponentHostResponse response : responses) {
       Resource resource = new ResourceImpl(Resource.Type.HostComponent);
       setResourceProperty(resource, HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID,
-          response.getClusterName(), requestedIds);
+              response.getClusterName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID,
-          response.getServiceName(), requestedIds);
+              response.getServiceName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID,
-          response.getComponentName(), requestedIds);
+              response.getComponentName(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_HOST_NAME_PROPERTY_ID,
-          response.getHostname(), requestedIds);
+              response.getHostname(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STATE_PROPERTY_ID,
-          response.getLiveState(), requestedIds);
+              response.getLiveState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID,
-          response.getDesiredState(), requestedIds);
+              response.getDesiredState(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STACK_ID_PROPERTY_ID,
-          response.getStackVersion(), requestedIds);
+              response.getStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_DESIRED_STACK_ID_PROPERTY_ID,
-          response.getDesiredStackVersion(), requestedIds);
+              response.getDesiredStackVersion(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_ACTUAL_CONFIGS_PROPERTY_ID,
-          response.getActualConfigs(), requestedIds);
+              response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
-          response.isStaleConfig(), requestedIds);
-      
+              response.isStaleConfig(), requestedIds);
+
       if (response.getAdminState() != null) {
         setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,
-            response.getAdminState(), requestedIds);
+                response.getAdminState(), requestedIds);
       }
-      
+
       if (null != response.getMaintenanceState()) {
         setResourceProperty(resource, HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID,
-            response.getMaintenanceState(), requestedIds);
+                response.getMaintenanceState(), requestedIds);
       }
 
       String componentName = (String) resource.getPropertyValue(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID);
@@ -276,7 +294,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
     final Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
     for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
-      requests.add(getRequest(propertyMap));
+      requests.add(changeRequest(propertyMap));
     }
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
@@ -316,7 +334,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     final RequestStageContainer requestStages;
     Map<String, Object> installProperties = new HashMap<String, Object>();
 
-    installProperties.put(HOST_COMPONENT_STATE_PROPERTY_ID, "INSTALLED");
+    installProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<String, String>();
     requestInfo.put("context", "Install and start components on added hosts");
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
@@ -338,7 +356,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
 
       Map<String, Object> startProperties = new HashMap<String, Object>();
-      startProperties.put(HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
+      startProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "STARTED");
       Request startRequest = PropertyHelper.getUpdateRequest(startProperties, requestInfo);
       // Important to query against desired_state as this has been updated when install stage was created
       // If I query against state, then the getRequest compares predicate prop against desired_state and then when the predicate
@@ -573,9 +591,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
         (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
-        (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
-    serviceComponentHostRequest.setDesiredStackId(
-        (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
+        (String) properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
+    serviceComponentHostRequest.setState((String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
+    serviceComponentHostRequest.setDesiredStackId((String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
     if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setStaleConfig(
           properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
@@ -586,6 +604,42 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
           properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
     }
     
+    Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
+    if (null != o) {
+      serviceComponentHostRequest.setMaintenanceState (o.toString());
+    }
+
+    return serviceComponentHostRequest;
+  }
+
+  /**
+   * Put changes to component request object from a map of property values.
+   *
+   * @param properties the predicate
+   * @return the component request object
+   */
+  private ServiceComponentHostRequest changeRequest(Map<String, Object> properties) {
+    ServiceComponentHostRequest serviceComponentHostRequest = new ServiceComponentHostRequest(
+            (String) properties.get(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID),
+            (String) properties.get(HOST_COMPONENT_SERVICE_NAME_PROPERTY_ID),
+            (String) properties.get(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID),
+            (String) properties.get(HOST_COMPONENT_HOST_NAME_PROPERTY_ID),
+            (String) properties.get(HOST_COMPONENT_STATE_PROPERTY_ID));
+    if (properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID) != null) {
+      serviceComponentHostRequest.setDesiredState((String)properties.get(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID));
+    }
+    serviceComponentHostRequest.setDesiredStackId(
+            (String) properties.get(HOST_COMPONENT_STACK_ID_PROPERTY_ID));
+    if (properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID) != null) {
+      serviceComponentHostRequest.setStaleConfig(
+              properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
+    }
+
+    if (properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID) != null) {
+      serviceComponentHostRequest.setAdminState(
+              properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
+    }
+
     Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
       serviceComponentHostRequest.setMaintenanceState (o.toString());
@@ -623,7 +677,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     Request queryRequest = PropertyHelper.getReadRequest(queryIds);
     // will take care of 404 exception
-    Set<Resource> matchingResources = getResources(queryRequest, predicate);
+
+    Set<Resource> matchingResources = getResourcesForUpdate(queryRequest, predicate);
 
     for (Resource queryResource : matchingResources) {
       //todo: predicate evaluation was removed for BUG-28737 and the removal of this breaks
@@ -641,7 +696,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
         if (request.getProperties() != null && request.getProperties().size() != 0) {
           updateRequestProperties.putAll(request.getProperties().iterator().next());
         }
-        requests.add(getRequest(updateRequestProperties));
+        requests.add(changeRequest(updateRequestProperties));
       }
     }
 
