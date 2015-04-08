@@ -29,6 +29,7 @@ describe('App.ListConfigWidgetView', function () {
         name: 'a.b.c',
         defaultValue: '2,1',
         value: '2,1',
+        filename: 'f1',
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
             entries: ['1', '2', '3', '4', '5'],
@@ -37,7 +38,8 @@ describe('App.ListConfigWidgetView', function () {
             selection_cardinality: '3'
           }
         })
-      })
+      }),
+      controller: App.MainServiceInfoConfigsController.create({})
     });
     view.willInsertElement();
     view.didInsertElement();
@@ -112,6 +114,12 @@ describe('App.ListConfigWidgetView', function () {
 
   describe('#restoreValue', function () {
 
+    beforeEach(function() {
+      sinon.stub(view.get('controller'), 'removeCurrentFromDependentList', Em.K)
+    });
+    afterEach(function() {
+      view.get('controller.removeCurrentFromDependentList').restore();
+    });
     it('should restore default value', function () {
       view.toggleOption({context: view.get('options')[0]});
       view.toggleOption({context: view.get('options')[1]});
@@ -119,6 +127,7 @@ describe('App.ListConfigWidgetView', function () {
       expect(view.get('config.value')).to.equal('3');
       view.restoreValue();
       expect(view.get('config.value')).to.equal('2,1');
+      expect(view.get('controller.removeCurrentFromDependentList')).to.be.called
     });
 
   });

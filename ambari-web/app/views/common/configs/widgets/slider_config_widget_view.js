@@ -255,6 +255,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
          * action to run sendRequestRorDependentConfigs when
          * we have changed config value within slider
          */
+        self.get('controller').removeCurrentFromDependentList(self.get('config'));
         self.sendRequestRorDependentConfigs(self.get('config'));
       });
     this.set('slider', slider);

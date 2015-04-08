@@ -18,5 +18,28 @@
 
 var App = require('app');
 
-describe('App.EnhancedConfigsMixin', function() {});
+describe('App.EnhancedConfigsMixin', function() {
+
+  var mixinObject = Em.Controller.extend(App.EnhancedConfigsMixin, {});
+  var instanceObject = mixinObject.create({});
+  describe('#removeCurrentFromDependentList()', function() {
+    it('update some fields', function() {
+      instanceObject.get('_dependentConfigValues').pushObject({
+          saveRecommended: true,
+          saveRecommendedDefault: true,
+          propertyName: 'p1',
+          fileName: 'f1',
+          value: 'v1'
+        });
+      instanceObject.removeCurrentFromDependentList(Em.Object.create({name: 'p1', filename: 'f1.xml', value: 'v2'}));
+      expect(instanceObject.get('_dependentConfigValues')[0]).to.eql({
+        saveRecommended: false,
+        saveRecommendedDefault: false,
+        propertyName: 'p1',
+        fileName: 'f1',
+        value: 'v2'
+      });
+    });
+  });
+});
 

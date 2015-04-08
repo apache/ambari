@@ -63,6 +63,14 @@ App.ServiceConfigPopoverSupport = Ember.Mixin.create({
 App.SupportsDependentConfigs = Ember.Mixin.create({
 
   /**
+   * do not apply recommended value if user change value by himself.
+   */
+  keyUp: function() {
+    if (App.get('supports.enhancedConfigs')) {
+      this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig'));
+    }
+  },
+  /**
    * method send request to check if some of dependent configs was changes
    * and in case there was changes shows popup with info about changed configs
    */
@@ -202,7 +210,7 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
  * Textarea control
  * @type {*}
  */
-App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
+App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
@@ -215,7 +223,7 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
  * Textarea control for content type
  * @type {*}
  */
-App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
+App.ServiceConfigTextAreaContent = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
 
   valueBinding: 'serviceConfig.value',
   rows: 20,
@@ -234,7 +242,7 @@ App.ServiceConfigBigTextArea = App.ServiceConfigTextArea.extend(App.ServiceConfi
  * Checkbox control
  * @type {*}
  */
-App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
+App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
 
   allowedPairs: {
     'trueFalse': ["true", "false"],
@@ -336,7 +344,7 @@ App.ServiceConfigCheckboxWithDependencies = App.ServiceConfigCheckbox.extend({
   }
 });
 
-App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, {
+App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
   templateName: require('templates/wizard/controls_service_config_radio_buttons'),
 
   didInsertElement: function () {
@@ -688,7 +696,7 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
   }.property('parentView.serviceConfig.isEditable')
 });
 
-App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, {
+App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
   placeholderBinding: 'serviceConfig.defaultValue',

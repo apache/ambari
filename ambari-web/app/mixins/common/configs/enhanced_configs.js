@@ -154,6 +154,22 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
 
   /**
+   * disable saving recommended value for current config
+   * @param config
+   * @method removeCurrentFromDependentList
+   */
+  removeCurrentFromDependentList: function (config) {
+    var current = this.get('_dependentConfigValues').filterProperty('propertyName', config.get('name')).findProperty('fileName', App.config.getConfigTagFromFileName(config.get('filename')));
+    if (current) {
+      Em.setProperties(current, {
+          'saveRecommended': false,
+          'saveRecommendedDefault': false,
+          'value': config.get('value')
+        });
+    }
+  },
+
+  /**
    * sends request to get values for dependent configs
    * @param changedConfigs
    * @param initial
@@ -162,7 +178,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   getRecommendationsForDependencies: function(changedConfigs, initial, onComplete) {
     if (Em.isArray(changedConfigs) && changedConfigs.length > 0 || initial) {
-      var self = this;
       var recommendations = this.get('hostGroups');
       var configs = this._getConfigsByGroup(this.get('stepConfigs'));
       recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), configs);
@@ -188,7 +203,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         success: 'dependenciesSuccess',
         error: 'dependenciesError',
         callback: function() {
-          self.onRecommendationsReceived();
           if (onComplete) {
             onComplete()
           }
@@ -197,14 +211,6 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     } else {
       return null;
     }
-  },
-
-  /**
-   * complete callback on <code>getRecommendationsForDependencies<code>
-   * @method onRecommendationsReceived
-   */
-  onRecommendationsReceived: function() {
-    this.set('recommendationTimeStamp', (new Date).getTime());
   },
 
   /**
@@ -233,7 +239,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * method to show popup with dependent configs
    * @method showChangedDependentConfigs
    */
-  showChangedDependentConfigs: function(event, callback) {
+  showChangedDependentConfigs: function(event, callback, secondary) {
     var self = this;
     if (self.get('_dependentConfigValues.length') > 0) {
       App.showDependentConfigsPopup(this.get('_dependentConfigValues'), function() {
@@ -241,7 +247,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         if (callback) {
           callback();
         }
-      });
+      }, secondary);
     } else {
       if (callback) {
         callback();
@@ -257,6 +263,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @param opt
    */
   dependenciesError: function(jqXHR, ajaxOptions, error, opt) {
+    this.set('recommendationTimeStamp', (new Date).getTime());
     App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
   },
 
@@ -322,6 +329,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         }
       })
     });
+    this.set('recommendationTimeStamp', (new Date).getTime());
   },
 
   /**

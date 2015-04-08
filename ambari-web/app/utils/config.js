@@ -311,6 +311,7 @@ App.config = Em.Object.create({
           defaultValue: properties[index],
           filename: filename,
           isUserProperty: !advancedConfig,
+          isVisible: !!service,
           isOverridable: true,
           isReconfigurable: true,
           isRequired: isAdvanced,

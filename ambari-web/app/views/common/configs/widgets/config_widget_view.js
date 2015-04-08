@@ -82,6 +82,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   restoreValue: function () {
     this.set('config.value', this.get('config.defaultValue'));
+    this.get('controller').removeCurrentFromDependentList(this.get('config'));
     this.sendRequestRorDependentConfigs(this.get('config'));
 
     if (this.get('config.supportsFinal')) {
