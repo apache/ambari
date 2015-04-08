@@ -946,7 +946,7 @@ def check_setup_already_done():
 # Setup the Ambari Server.
 #
 def setup(options):
-  if get_silent():
+  if options.only_silent:
     if check_setup_already_done():
       print "Nothing was done. Please, use ambari-server setup command without [-s] key, to change configuration."
       sys.exit(0)

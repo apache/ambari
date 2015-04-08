@@ -591,6 +591,16 @@ def mainBody():
   init_parser_options(parser)
   (options, args) = parser.parse_args()
 
+  # check if only silent key set
+  default_options = parser.get_default_values()
+  silent_options = default_options
+  silent_options.silent = True
+
+  if options == silent_options:
+    options.only_silent = True
+  else:
+    options.only_silent = False
+
   # set verbose
   set_verbose(options.verbose)
   if options.verbose:
