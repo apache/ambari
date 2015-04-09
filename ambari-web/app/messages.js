@@ -890,6 +890,8 @@ Em.I18n.translations = {
 
   'alerts.notifications.error.email': 'Must be a valid email address',
   'alerts.notifications.error.integer': 'Must be an integer',
+  'alerts.notifications.error.host': 'Hosts must be a valid Fully Qualified Domain Name (FQDN)',
+
   'alerts.notifications.error.retypePassword': 'Password confirmation must match password',
 
   'alerts.notifications.addCustomPropertyPopup.header': 'Add Property',
@@ -1921,7 +1923,10 @@ Em.I18n.translations = {
   'alerts.actions.manage_alert_notifications_popup.emailFrom':'Email From',
   'alerts.actions.manage_alert_notifications_popup.version':'Version',
   'alerts.actions.manage_alert_notifications_popup.OIDs':'OIDs',
+  'alerts.actions.manage_alert_notifications_popup.OIDSubject':'OID Subject',
+  'alerts.actions.manage_alert_notifications_popup.OIDBody':'OID Body',
   'alerts.actions.manage_alert_notifications_popup.community':'Community',
+  'alerts.actions.manage_alert_notifications_popup.host':'Hosts',
   'alerts.actions.manage_alert_notifications_popup.port':'Port',
   'alerts.actions.manage_alert_notifications_popup.global':'Global',
   'alerts.actions.manage_alert_notifications_popup.noDescription':'<i>No description</i>',
