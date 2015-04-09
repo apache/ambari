@@ -75,7 +75,7 @@ export HADOOP_DATANODE_OPTS="-server -XX:ParallelGCThreads=4 -XX:+UseConcMarkSwe
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 {% endif %}
 
-HADOOP_NFS3_OPTS="-Xmx{{nfsgateway_heapsize}} -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_NFS3_OPTS}"
+HADOOP_NFS3_OPTS="-Xmx{{nfsgateway_heapsize}}m -Dhadoop.security.logger=ERROR,DRFAS ${HADOOP_NFS3_OPTS}"
 HADOOP_BALANCER_OPTS="-server -Xmx{{hadoop_heapsize}}m ${HADOOP_BALANCER_OPTS}"
 
 export HADOOP_SECONDARYNAMENODE_OPTS=$HADOOP_NAMENODE_OPTS
