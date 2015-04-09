@@ -21,35 +21,41 @@ var App = require('app');
 /**
  * Show confirmation popup
  * @param {[Object]} configs
- * @param {function} [callback=null]
+ * @param {function} [primary=null]
  * @param {function} [secondary=null]
  * we use this parameter to defer saving configs before we make some decisions.
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (configs, callback, secondary) {
+App.showDependentConfigsPopup = function (configs, primary, secondary) {
   return App.ModalPopup.show({
     encodeBody: false,
     header: Em.I18n.t('popup.dependent.configs.header'),
     classNames: ['sixty-percent-width-modal','modal-full-width'],
     configs: configs,
     bodyClass: Em.View.extend({
-      templateName: require('templates/common/modal_popups/dependent_configs_list')
+      templateName: require('templates/common/modal_popups/dependent_configs_list'),
+
+      ToggleAll: Em.Checkbox.extend({
+        didInsertElement: function () {
+          this.set('checked', !this.get('parentView.parentView.configs').someProperty('saveRecommended', false));
+        },
+        click: function () {
+          this.get('parentView.parentView.configs').setEach('saveRecommended', this.get('checked'));
+        }
+      })
     }),
-    stepConfigs: function() {
-      return App.get('router.mainServiceInfoConfigsController.stepConfigs').objectAt(0).get('configs');
-    }.property('controller.stepConfigs.@each'),
     onPrimary: function () {
       this._super();
-      configs.forEach(function(c) {
+      this.get('configs').forEach(function (c) {
         Em.set(c, 'saveRecommendedDefault', Em.get(c, 'saveRecommended'));
       });
-      if (callback) {
-        callback();
+      if (primary) {
+        primary();
       }
     },
     onSecondary: function() {
       this._super();
-      configs.forEach(function(c) {
+      this.get('configs').forEach(function(c) {
         Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
       });
       if (secondary) {

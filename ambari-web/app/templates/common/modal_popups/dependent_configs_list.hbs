@@ -19,11 +19,11 @@
 <div class="alert alert-warning">
   {{t popup.dependent.configs.title}}
 </div>
-<div id="config-validation-warnings" class="limited-height-2">
-  <table class="table no-borders">
+<div id="config-dependencies" class="limited-height-2">
+  <table class="table table-striped">
     <thead>
     <tr>
-      <th>{{t popup.dependent.configs.table.saveProperty}}</th>
+      <th class="check-box-col">{{view view.ToggleAll}}</th>
       <th>{{t common.property}}</th>
       <th>{{t common.service}}</th>
       <th>{{t common.configGroup}}</th>
@@ -35,10 +35,15 @@
     <tbody>
     {{#each config in view.parentView.configs}}
       <tr>
-        <td>{{view Em.Checkbox checkedBinding="config.saveRecommended"}}</td>
+        <td class="check-box-col">{{view Em.Checkbox checkedBinding="config.saveRecommended"}}</td>
         <td>{{config.propertyName}}</td>
-        <td>{{config.serviceName}}</td>
-        <td>{{config.configGroup}}</td>
+        <td>{{config.serviceDisplayName}}</td>
+        <td>
+          <span {{bindAttr class="config.allowChangeGroup::not-active-link"}} ><a href="javascript:void(null);" class="black"
+            {{action showSelectGroupPopup config.serviceName target="App.router.mainServiceInfoConfigsController"}}>
+            {{config.configGroup}}
+          </a></span>
+        </td>
         <td>{{config.fileName}}</td>
         <td>{{config.value}}</td>
         <td>{{config.recommendedValue}}</td>

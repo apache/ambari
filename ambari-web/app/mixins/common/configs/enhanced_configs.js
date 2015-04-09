@@ -57,6 +57,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    *   configGroup: {string},
    *   value: {string},
    *   serviceName: {string},
+   *   allowChangeGroup: {boolean}, //used to disable group link for current service
+   *   serviceDisplayName: {string},
    *   recommendedValue: {string}
    * }
    * @private
@@ -91,7 +93,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * contains config group name that need to be saved
    * {
-   *    serviceName: configGroupName
+   *    serviceName: {String} configGroupName
    * }
    * @type {Object}
    */
@@ -111,6 +113,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
   onConfigGroupChangeForEnhanced: function() {
     this.clearDependentConfigs();
+    this.get('dependentServiceNames').forEach(function(serviceName) {
+      var defaultGroup = this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
+      this.get('groupsToSave')[serviceName] = defaultGroup.get('name');
+    }, this);
   }.observes('selectedConfigGroup'),
 
 
@@ -132,23 +138,14 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * to which dependent configs will ve saved
    * @method showSelectGroupsPopup
    */
-  showSelectGroupsPopup: function(callback) {
-    var servicesWithConfigGroups = [];
-    this.get('dependentServiceNames').forEach(function(serviceName) {
-      if (serviceName !== this.get('content.serviceName')) {
-        if (!this.get('groupsToSave')[serviceName]) {
-          var groups = this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).mapProperty('name').uniq();
-          servicesWithConfigGroups.push({
-            serviceName: serviceName,
-            configGroupNames: groups
-          })
-        }
+  showSelectGroupPopup: function(event) {
+    var serviceName = event.context;
+    if (serviceName !== this.get('content.serviceName')) {
+      var groups = this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).mapProperty('name').uniq();
+      if (groups.length) {
+        var configs = this.get('_dependentConfigValues').filterProperty('serviceName', serviceName);
+        App.showSelectGroupsPopup(serviceName, groups, this.get('groupsToSave'), configs);
       }
-    }, this);
-    if (servicesWithConfigGroups.length > 0) {
-      App.showSelectGroupsPopup(servicesWithConfigGroups, this.get('groupsToSave'), callback);
-    } else {
-      callback();
     }
   },
 
@@ -223,16 +220,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @method dependenciesSuccess
    */
   dependenciesSuccess: function (data, opt, params) {
-    var self = this;
-    if (!this.get('selectedConfigGroup.isDefault')) {
-      self.showSelectGroupsPopup(function () {
-        self._saveRecommendedValues(data, params.initial);
-        self._updateDependentConfigs(self.get('selectedConfigGroup.isDefault'));
-      });
-    } else {
-      self._saveRecommendedValues(data, params.initial);
-      self._updateDependentConfigs(self.get('selectedConfigGroup.isDefault'));
-    }
+    this._saveRecommendedValues(data, params.initial);
+    this._updateDependentConfigs();
   },
 
   /**
@@ -241,9 +230,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   showChangedDependentConfigs: function(event, callback, secondary) {
     var self = this;
-    if (self.get('_dependentConfigValues.length') > 0) {
+    if (this.get('_dependentConfigValues.length') > 0) {
       App.showDependentConfigsPopup(this.get('_dependentConfigValues'), function() {
-        self._updateDependentConfigs(self.get('selectedConfigGroup.isDefault'));
+        self._updateDependentConfigs();
         if (callback) {
           callback();
         }
@@ -297,10 +286,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * save values that are stored in <code>_dependentConfigValues<code>
    * to step configs
-   * @param isDefaultConfigGroup
    * @private
    */
-  _updateDependentConfigs: function(isDefaultConfigGroup) {
+  _updateDependentConfigs: function() {
     var self = this;
     var dependentConfigs = this.get('_dependentConfigValues');
     this.get('stepConfigs').forEach(function(serviceConfigs) {
@@ -309,9 +297,12 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         var dependentConfig = dependentConfigs.filterProperty('propertyName', cp.get('name')).findProperty('fileName', App.config.getConfigTagFromFileName(cp.get('filename')));
         if (dependentConfig) {
           var valueToSave = dependentConfig.saveRecommended ? dependentConfig.recommendedValue : dependentConfig.value;
-          if (isDefaultConfigGroup || selectedGroup.get('isDefault')) {
+          if (selectedGroup.get('isDefault')) {
             cp.set('value', valueToSave);
           } else {
+            if (serviceConfigs.get('serviceName') !== self.get('content.serviceName')) {
+              cp.set('value', cp.get('defaultValue'));
+            }
             var overridenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
             if (overridenConfig) {
               overridenConfig.set('value', valueToSave);
@@ -430,6 +421,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                   configGroup: group ? group.get('name') : service.get('displayName') + " Default",
                   value: value,
                   serviceName: serviceName,
+                  allowChangeGroup: serviceName != this.get('content.serviceName') && !this.get('selectedConfigGroup.isDefault'),
+                  serviceDisplayName: service.get('displayName'),
                   recommendedValue: configs[key].properties[propertyName]
                 });
               }

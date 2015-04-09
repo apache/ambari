@@ -16,17 +16,12 @@
 * limitations under the License.
 }}
 
-<div class="alert alert-warning">
-  {{t popup.dependent.configs.select.config.group}}
-</div>
 <form class="form-horizontal">
-{{#each service in view.parentView.dependentServices}}
   <div class="form-group">
-    <label class="col-sm-2 control-label">{{service.serviceName}}&nbsp;</label>
+    <label class="col-sm-2 control-label"><strong>{{view.parentView.serviceName}}&nbsp;</strong>&nbsp;</label>
     <div class="col-sm-8">
-      {{view App.selectConfigGroupForService contentBinding="service.configGroupNames" serviceNameBinding="service.serviceName" groupsToSaveBinding="groupsToSave"}}
+      {{view Ember.Select contentBinding="view.parentView.groups" valueBinding="view.parentView.selectedGroup"}}
     </div>
   </div>
-{{/each}}
 </form>
 

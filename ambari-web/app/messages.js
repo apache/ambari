@@ -340,12 +340,13 @@ Em.I18n.translations = {
   'popup.invalid.KDC.admin.principal': 'Admin principal',
   'popup.invalid.KDC.admin.password': 'Admin password',
 
-  'popup.dependent.configs.header': 'Dependent Properties',
-  'popup.dependent.configs.title': 'Properties that was changed has dependent properties. It\'s recommended to update these properties!',
+  'popup.dependent.configs.header': 'Dependent Configurations',
+  'popup.dependent.configs.title': 'Configurations depending on changes made are show below. It is recommended to update these values',
   'popup.dependent.configs.table.saveProperty': 'Save property',
   'popup.dependent.configs.table.currentValue': 'Current value',
-  'popup.dependent.configs.table.recommendedValue': 'Recommended value',
+  'popup.dependent.configs.table.recommendedValue': 'Recommended',
 
+  'popup.dependent.configs.select.config.group.header': 'Select Config Group',
   'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
 
   'popup.dependent.configs.dependencies.info': 'There are {0} configs was changed in {1} services.',

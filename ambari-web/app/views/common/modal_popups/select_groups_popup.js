@@ -20,58 +20,33 @@ var App = require('app');
 
 /**
  * Show confirmation popup
- * @param {[Object]} servicesWithGroups
+ * * @param {String} serviceName
+ * @param {String[]} groups
  * @param {Object} groupsToSave
- * @param {function} [callback=null]
- * @param {function} [secondaryCallback=null]
- * we use this parameter to defer saving configs before we make some decisions.
+ * @param {Object[]} configs
  * @return {App.ModalPopup}
  */
-App.showSelectGroupsPopup = function (servicesWithGroups, groupsToSave, callback, secondaryCallback) {
+App.showSelectGroupsPopup = function (serviceName, groups, groupsToSave, configs) {
   return App.ModalPopup.show({
     encodeBody: false,
     primary: Em.I18n.t('common.save'),
     secondary: Em.I18n.t('common.cancel'),
-    header: Em.I18n.t('popup.dependent.configs.header'),
-    dependentServices: servicesWithGroups,
+    header: Em.I18n.t('popup.dependent.configs.select.config.group.header'),
+    groups: groups,
+    serviceName: serviceName,
     groupsToSave: groupsToSave,
+    selectedGroup: '',
+    didInsertElement: function() {
+      this._super();
+      this.set('selectedGroup', this.get('groupsToSave')[this.get('serviceName')]);
+    },
     bodyClass: Em.View.extend({
       templateName: require('templates/common/modal_popups/select_groups_popup')
     }),
-
     onPrimary: function () {
       this._super();
-      if (callback) {
-        callback();
-      }
-    },
-
-    onSecondary: function() {
-      this._super();
-      if(secondaryCallback) {
-        secondaryCallback();
-      }
+      this.get('groupsToSave')[this.get('serviceName')] = this.get('selectedGroup');
+      configs.setEach('configGroup', this.get('groupsToSave')[this.get('serviceName')]);
     }
   });
 };
-
-App.selectConfigGroupForService = Ember.Select.extend({
-
-  /**
-   * set Default group by default
-   */
-  didInsertElement: function() {
-    var defaultVersion = this.get('content').find(function(cg) {
-      return cg.contains('Default');
-    });
-    this.set('value', defaultVersion);
-  },
-
-  /**
-   *
-   */
-  onChangeValue: function() {
-    var groupsToSave = this.get('groupsToSave');
-    groupsToSave[this.get('serviceName')] = this.get('value');
-  }.observes('value')
-});
