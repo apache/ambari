@@ -1,0 +1,118 @@
+{
+  "Theme": {
+    "name": "default",
+    "description": "Default theme for MAPREDUCE service",
+    "configuration": {
+      "layouts": [
+        {
+          "name": "default",
+          "tabs": [
+            {
+              "name": "settings",
+              "display-name": "Settings",
+              "layout": {
+                "tab-columns": "1",
+                "tab-rows": "1",
+                "sections": [
+                  {
+                    "name": "section-mr-scheduler",
+                    "display-name": "MR Scheduler Defaults",
+                    "row-index": "0",
+                    "column-index": "0",
+                    "row-span": "1",
+                    "column-span": "2",
+                    "section-columns": "2",
+                    "section-rows": "1",
+                    "subsections": [
+                      {
+                        "name": "subsection-mr-scheduler-col1",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "subsection-mr-scheduler-col2",
+                        "row-index": "0",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "mapred-site/mapreduce.map.memory.mb",
+          "subsection-name": "subsection-mr-scheduler-col1"
+        },
+        {
+          "config": "mapred-site/mapreduce.reduce.memory.mb",
+          "subsection-name": "subsection-mr-scheduler-col1"
+        },
+        {
+          "config": "mapred-site/yarn.app.mapreduce.am.resource.mb",
+          "subsection-name": "subsection-mr-scheduler-col2"
+        },
+        {
+          "config": "mapred-site/mapreduce.task.io.sort.mb",
+          "subsection-name": "subsection-mr-scheduler-col2"
+        }
+      ]
+    },
+    "widgets":[
+      {
+        "config":"mapred-site/mapreduce.map.memory.mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"GB"
+            }
+          ]
+        }
+      },
+      {
+        "config":"mapred-site/mapreduce.reduce.memory.mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"GB"
+            }
+          ]
+        }
+      },
+      {
+        "config":"mapred-site/yarn.app.mapreduce.am.resource.mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"GB"
+            }
+          ]
+        }
+      },
+      {
+        "config":"mapred-site/mapreduce.task.io.sort.mb",
+        "widget":{
+          "type":"slider",
+          "units":[
+            {
+              "unit-name":"MB"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
