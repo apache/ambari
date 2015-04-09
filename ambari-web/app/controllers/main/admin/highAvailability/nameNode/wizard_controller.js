@@ -94,9 +94,7 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
         component: _component.get('component_name'),
         hostName: _component.get('selectedHost'),
         serviceId: _component.get('serviceId'),
-        isCurNameNode: _component.get('isCurNameNode'),
-        isAddNameNode: _component.get('isAddNameNode'),
-        isInstalled: true
+        isInstalled:  _component.get('isInstalled')
       });
     });
     this.setDBProperty('masterComponentHosts', masterComponentHosts);

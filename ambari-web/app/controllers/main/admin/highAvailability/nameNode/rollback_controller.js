@@ -247,12 +247,12 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   stopStandbyNameNode: function(){
     console.warn('func: stopStandbyNameNode');
-    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
     this.updateComponent('NAMENODE', hostName, "HDFS", "Stop");
   },
   stopNameNode: function(){
     console.warn('func: stopNameNode');
-    var hostName = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
     this.updateComponent('NAMENODE', hostName, "HDFS", "Stop");
   },
   restoreHDFSConfigs: function(){
@@ -276,7 +276,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   },
   deleteAdditionalNameNode: function(){
     console.warn('func: deleteAdditionalNameNode');
-    var hostNames = this.get('content.masterComponentHosts').filterProperty('isAddNameNode', true).mapProperty('hostName');
+    var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).mapProperty('hostName');
     this.unInstallComponent('NAMENODE', hostNames);
   },
   startAllServices: function(){

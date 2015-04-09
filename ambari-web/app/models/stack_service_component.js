@@ -137,15 +137,20 @@ App.StackServiceComponent = DS.Model.extend({
 
   /**
    * Master component list that could be assigned for more than 1 host.
-   * Some components like NameNode and ResourceManager have range cardinality value
-   * like 1-2. We can assign only components with cardinality 1+/0+. Strict range value
-   * show that this components will be assigned for 2 hosts only if HA mode activated.
+   * Some components like NameNode and ResourceManager have range cardinality value, so they are excluded using isMasterAddableOnlyOnHA property
    *
    * @property {Boolean} isMasterAddableInstallerWizard
    **/
   isMasterAddableInstallerWizard: function() {
-    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') === Infinity;
+    return this.get('isMaster') && this.get('isMultipleAllowed') && this.get('maxToInstall') > 1 && !this.get('isMasterAddableOnlyOnHA').contains(this.get('componentName'));
   }.property('componentName'),
+
+  /**
+   * Master components with cardinality more than 1 (n+ or n-n) that could not be added in wizards
+   * New instances of these components are added in appropriate HA wizards
+   * @property {Boolean} isMasterAddableOnlyOnHA
+   */
+  isMasterAddableOnlyOnHA: ['NAMENODE', 'RESOURCEMANAGER', 'HIVE_METASTORE', 'HIVE_SERVER', 'RANGER_ADMIN'],
 
   /** @property {Boolean} isHAComponentOnly - Components that can be installed only if HA enabled **/
   isHAComponentOnly: function() {

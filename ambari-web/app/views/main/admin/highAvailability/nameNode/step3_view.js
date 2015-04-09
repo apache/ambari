@@ -26,10 +26,10 @@ App.HighAvailabilityWizardStep3View = Em.View.extend({
     this.get('controller').loadStep();
   },
   curNameNode: function () {
-    return this.get('controller.content.masterComponentHosts').findProperty('isCurNameNode', true).hostName;
+    return this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
   }.property('controller.content.masterComponentHosts'),
   addNameNode: function () {
-    return this.get('controller.content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
+    return this.get('controller.content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
   }.property('controller.content.masterComponentHosts'),
   secondaryNameNode: function () {
     return this.get('controller.content.masterComponentHosts').findProperty('component', "SECONDARY_NAMENODE").hostName;

@@ -45,7 +45,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   },
 
   installNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode').hostName;
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
     this.createComponent('NAMENODE', hostName, "HDFS");
   },
 

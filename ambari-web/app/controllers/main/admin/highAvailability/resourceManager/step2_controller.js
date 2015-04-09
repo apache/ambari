@@ -18,35 +18,18 @@
 
 var App = require('app');
 
-App.RMHighAvailabilityWizardStep2Controller = App.WizardStep5Controller.extend({
+App.RMHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
+
   name: "rMHighAvailabilityWizardStep2Controller",
 
-  loadStepCallback: function (components, self) {
-    this._super(components, self);
-    self.hideUnusedComponents();
-  },
+  useServerValidation: false,
 
-  renderComponents: function (masterComponents) {
-    var existedRM = masterComponents.findProperty('component_name', 'RESOURCEMANAGER');
-    existedRM.isAdditional = false;
-    var additionalRMSelectedHost = this.get('content.rmHosts.additionalRM') ||
-        this.get('hosts').mapProperty('host_name').without(existedRM.selectedHost)[0];
-    var additionalRM = $.extend({}, existedRM, {
-      isInstalled: false,
-      isAdditional: true,
-      selectedHost: additionalRMSelectedHost
-    });
-    masterComponents.push(additionalRM);
-    this._super(masterComponents);
-  },
+  mastersToShow: ['RESOURCEMANAGER'],
 
-  /**
-   * Remove service masters, that should be hidden in this wizard
-   */
-  hideUnusedComponents: function () {
-    var servicesMasters = this.get('servicesMasters');
-    servicesMasters = servicesMasters.filterProperty('component_name', 'RESOURCEMANAGER');
-    this.set('servicesMasters', servicesMasters);
-  }
+  mastersToAdd: ['RESOURCEMANAGER'],
+
+  showCurrentPrefix: ['RESOURCEMANAGER'],
+
+  showAdditionalPrefix: ['RESOURCEMANAGER']
 });
 

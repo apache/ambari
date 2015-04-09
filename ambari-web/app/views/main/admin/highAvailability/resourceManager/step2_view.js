@@ -19,8 +19,10 @@
 
 var App = require('app');
 
-App.RMHighAvailabilityWizardStep2View = App.WizardStep5View.extend({
+App.RMHighAvailabilityWizardStep2View = App.AssignMasterComponentsView.extend({
 
-  templateName: require('templates/main/admin/highAvailability/resourceManager/step2')
+  title: Em.I18n.t('admin.rm_highAvailability.wizard.step2.header'),
+
+  alertMessage: Em.I18n.t('admin.rm_highAvailability.wizard.step2.body')
 
 });

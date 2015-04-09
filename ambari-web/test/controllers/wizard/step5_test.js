@@ -34,28 +34,6 @@ describe('App.WizardStep5Controller', function () {
 
   controller.set('content', {});
 
-  describe('#isReassignWizard', function () {
-    it('true if content.controllerName is reassignMasterController', function () {
-      controller.set('content.controllerName', 'reassignMasterController');
-      expect(controller.get('isReassignWizard')).to.equal(true);
-    });
-    it('false if content.controllerName is not reassignMasterController', function () {
-      controller.set('content.controllerName', 'mainController');
-      expect(controller.get('isReassignWizard')).to.equal(false);
-    });
-  });
-
-  describe('#isAddServiceWizard', function () {
-    it('true if content.controllerName is addServiceController', function () {
-      controller.set('content.controllerName', 'addServiceController');
-      expect(controller.get('isAddServiceWizard')).to.equal(true);
-    });
-    it('false if content.controllerName is not addServiceController', function () {
-      controller.set('content.controllerName', 'mainController');
-      expect(controller.get('isAddServiceWizard')).to.equal(false);
-    });
-  });
-
   describe('#sortHosts', function () {
 
     var tests = Em.A([
@@ -295,28 +273,6 @@ describe('App.WizardStep5Controller', function () {
         serviceComponents: [
           Em.Object.create({
             componentName: 'HBASE_SERVER',
-            stackService: Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
-          })
-        ],
-        selectedServicesMasters: Em.A([
-          Em.Object.create({showAddControl: false, showRemoveControl: true, component_name: 'HBASE_SERVER'})
-        ]),
-        hosts: Em.A([
-          Em.Object.create({}),
-          Em.Object.create({})
-        ]),
-        controllerName: 'addServiceController',
-        m: 'service not installed, not all host already have provided component',
-        e: {
-          showAddControl: true,
-          showRemoveControl: true
-        }
-      },
-      {
-        componentName: 'HBASE_SERVER',
-        serviceComponents: [
-          Em.Object.create({
-            componentName: 'HBASE_SERVER',
             stackService:  Em.Object.create({isInstalled: false, serviceName: 'HBASE'})
           })
         ],
@@ -496,6 +452,17 @@ describe('App.WizardStep5Controller', function () {
   });
 
   describe('#removeComponent', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'getMaxNumberOfMasters', function () {
+        return Infinity;
+      });
+    });
+
+    afterEach(function(){
+      c.getMaxNumberOfMasters.restore();
+    });
+
     var tests = Em.A([
       {
         componentName: 'c1',
@@ -546,38 +513,6 @@ describe('App.WizardStep5Controller', function () {
         serviceComponentId: 2,
         selectedServicesMasters: Em.A([
           Em.Object.create({serviceComponentId: 1, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
-          Em.Object.create({serviceComponentId: 2, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false})
-        ]),
-        hosts: [
-          {}
-        ],
-        m: 'two components, add not allowed, remove not allowed',
-        e: true,
-        showAddControl: false,
-        showRemoveControl: false
-      },
-      {
-        componentName: 'ZOOKEPEER_SERVER',
-        serviceComponentId: 2,
-        selectedServicesMasters: Em.A([
-          Em.Object.create({serviceComponentId: 1, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
-          Em.Object.create({serviceComponentId: 2, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
-          Em.Object.create({serviceComponentId: 3, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: true})
-        ]),
-        hosts: [
-          {},
-          {}
-        ],
-        m: 'three components, add not allowed, remove allowed',
-        e: true,
-        showAddControl: false,
-        showRemoveControl: true
-      },
-      {
-        componentName: 'ZOOKEPEER_SERVER',
-        serviceComponentId: 2,
-        selectedServicesMasters: Em.A([
-          Em.Object.create({serviceComponentId: 1, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
           Em.Object.create({serviceComponentId: 2, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
           Em.Object.create({serviceComponentId: 3, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: true})
         ]),
@@ -606,6 +541,17 @@ describe('App.WizardStep5Controller', function () {
   });
 
   describe('#addComponent', function () {
+
+    beforeEach(function () {
+      sinon.stub(c, 'getMaxNumberOfMasters', function () {
+        return Infinity;
+      });
+    });
+
+    afterEach(function(){
+      c.getMaxNumberOfMasters.restore();
+    });
+
     var tests = Em.A([
       {
         componentName: 'c1',
@@ -626,25 +572,6 @@ describe('App.WizardStep5Controller', function () {
       {
         componentName: 'ZOOKEPEER_SERVER',
         selectedServicesMasters: Em.A([
-          Em.Object.create({serviceComponentId: 1, component_name: 'ZOOKEPEER_SERVER'})
-        ]),
-        hosts: [],
-        m: 'one component, 0 hosts',
-        e: false
-      },
-      {
-        componentName: 'ZOOKEPEER_SERVER',
-        selectedServicesMasters: Em.A([
-          Em.Object.create({serviceComponentId: 1, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
-          Em.Object.create({serviceComponentId: 2, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false})
-        ]),
-        hosts: [Em.Object.create({}), Em.Object.create({})],
-        m: 'two components, two hosts',
-        e: false
-      },
-      {
-        componentName: 'ZOOKEPEER_SERVER',
-        selectedServicesMasters: Em.A([
           Em.Object.create({serviceComponentId: 1, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false}),
           Em.Object.create({serviceComponentId: 2, component_name: 'ZOOKEPEER_SERVER', showAddControl: false, showRemoveControl: false})
         ]),
@@ -659,17 +586,6 @@ describe('App.WizardStep5Controller', function () {
         c.set('hosts', test.hosts);
         expect(c.addComponent(test.componentName)).to.equal(test.e);
       });
-    });
-  });
-
-  describe('#title', function () {
-    it('should be custom title for reassignMasterController', function () {
-      c.set('content', {controllerName: 'reassignMasterController'});
-      expect(c.get('title')).to.equal(Em.I18n.t('installer.step5.reassign.header'));
-    });
-    it('should be default for other', function () {
-      c.set('content', {controllerName: 'notReassignMasterController'});
-      expect(c.get('title')).to.equal(Em.I18n.t('installer.step5.header'));
     });
   });
 
@@ -987,7 +903,7 @@ describe('App.WizardStep5Controller', function () {
             serviceName: 's1'
           }),
           hostName: 'h1',
-          controllerName: 'reassignMasterController',
+          mastersToMove: ['c1'],
           savedComponent: {
             hostName: 'h2',
             isInstalled: true
@@ -1008,7 +924,7 @@ describe('App.WizardStep5Controller', function () {
             serviceName: 's1'
           }),
           hostName: 'h1',
-          controllerName: 'installerController',
+          mastersToMove: [],
           stackServiceComponents: [Em.Object.create({componentName: 'c1', isCoHostedComponent: false})],
           e: {
             component_name: 'c1',
@@ -1025,7 +941,7 @@ describe('App.WizardStep5Controller', function () {
             serviceName: 's1'
           }),
           hostName: 'h1',
-          controllerName: 'installerController',
+          mastersToMove: [],
           stackServiceComponents: [Em.Object.create({componentName: 'c1', isCoHostedComponent: true})],
           e: {
             component_name: 'c1',
@@ -1041,6 +957,7 @@ describe('App.WizardStep5Controller', function () {
           sinon.stub(App.StackServiceComponent, 'find', function () {
             return test.stackServiceComponents;
           });
+          c.set('mastersToMove', test.mastersToMove);
           c.set('content', {controllerName: test.controllerName});
           expect(c.createComponentInstallationObject(test.fullComponent, test.hostName, test.savedComponent)).to.eql(test.e);
         });

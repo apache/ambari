@@ -44,7 +44,8 @@ describe('App.HighAvailabilityWizardStep6View', function () {
   describe("#step6BodyText", function() {
     it("", function() {
       view.set('controller.content.masterComponentHosts', [{
-        isCurNameNode: true,
+        component: 'NAMENODE',
+        isInstalled: true,
         hostName: 'host1'
       }]);
       view.set('controller.content.hdfsUser', 'user');

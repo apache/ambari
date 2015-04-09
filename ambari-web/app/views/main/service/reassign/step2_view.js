@@ -19,8 +19,11 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep2View = App.WizardStep5View.extend({
-  body: function () {
+App.ReassignMasterWizardStep2View = App.AssignMasterComponentsView.extend({
+
+  title: Em.I18n.t('installer.step5.reassign.header'),
+
+  alertMessage: function () {
     if (this.get('controller.content.reassign.component_name') === 'NAMENODE' && App.get('isHaEnabled')) {
       return Em.I18n.t('services.reassign.step2.body.namenodeHA').format(this.get('controller.content.reassign.display_name'));
     }

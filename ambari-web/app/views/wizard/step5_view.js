@@ -19,25 +19,27 @@
 var App = require('app');
 var stringUtils = require('utils/string_utils');
 
-App.WizardStep5View = Em.View.extend({
+App.WizardStep5View = App.AssignMasterComponentsView.extend({
 
-  templateName: require('templates/wizard/step5'),
+  title: function () {
+    if (this.get('controller.content.controllerName') == 'reassignMasterController') {
+      return Em.I18n.t('installer.step5.reassign.header');
+    }
+    return Em.I18n.t('installer.step5.header');
+  }.property('controller.content.controllerName'),
 
-  /**
-   * If install more than 25 hosts, should use App.InputHostView for hosts selection
-   * Otherwise - App.SelectHostView
-   * @type {bool}
-   */
-  shouldUseInputs: function() {
-    return this.get('controller.hosts.length') > 25;
-  }.property('controller.hosts.length'),
-
-  didInsertElement: function () {
-    this.get('controller').loadStep();
-    this.setCoHostedComponentText();
-  },
+  alertMessage: function () {
+    var result = Em.I18n.t('installer.step5.body');
+    result += this.get('coHostedComponentText') ? '\n' + this.get('coHostedComponentText') : '';
+    return result;
+  }.property('coHostedComponentText'),
 
   coHostedComponentText: '',
+
+  didInsertElement: function () {
+    this._super();
+    this.setCoHostedComponentText();
+  },
 
   setCoHostedComponentText: function () {
     var coHostedComponents = App.StackServiceComponent.find().filterProperty('isOtherComponentCoHosted').filterProperty('stackService.isSelected');
@@ -55,156 +57,5 @@ App.WizardStep5View = Em.View.extend({
 
     this.set('coHostedComponentText', coHostedComponentsText);
   }
-});
 
-App.InputHostView = Em.TextField.extend(App.SelectHost, {
-
-  attributeBindings: ['disabled'],
-  /**
-   * Saved typeahead component
-   * @type {$}
-   */
-  typeahead: null,
-
-  /**
-   * When <code>value</code> (host_info) is changed this method is triggered
-   * If new hostname is valid, this host is assigned to master component
-   * @method changeHandler
-   */
-  changeHandler: function() {
-    if (!this.shouldChangeHandlerBeCalled()) return;
-    var host = this.get('controller.hosts').findProperty('host_name', this.get('value'));
-    if (Em.isNone(host)) {
-      this.get('controller').updateIsHostNameValidFlag(this.get("component.component_name"), this.get("component.serviceComponentId"), false);
-      return;
-    }
-    this.get('controller').assignHostToMaster(this.get("component.component_name"), host.get('host_name'), this.get("component.serviceComponentId"));
-    this.tryTriggerRebalanceForMultipleComponents();
-  }.observes('controller.hostNameCheckTrigger'),
-
-  didInsertElement: function () {
-    this.initContent();
-    var value = this.get('content').findProperty('host_name', this.get('component.selectedHost')).get('host_name');
-    this.set("value", value);
-    var content = this.get('content').mapProperty('host_info'),
-      self = this,
-      updater = function (item) {
-        return self.get('content').findProperty('host_info', item).get('host_name');
-      },
-      typeahead = this.$().typeahead({items: 10, source: content, updater: updater, minLength: 0});
-    typeahead.on('blur', function() {
-      self.change();
-    }).on('keyup', function(e) {
-        self.set('value', $(e.currentTarget).val());
-        self.change();
-      });
-    this.set('typeahead', typeahead);
-  },
-
-  /**
-   * Extract hosts from controller,
-   * filter out available to selection and
-   * push them into Em.Select content
-   * @method initContent
-   */
-  initContent: function () {
-    this._super();
-    this.updateTypeaheadData(this.get('content').mapProperty('host_info'));
-  },
-
-  /**
-   * Update <code>source</code> property of <code>typeahead</code> with a new list of hosts
-   * @param {string[]} hosts
-   * @method updateTypeaheadData
-   */
-  updateTypeaheadData: function(hosts) {
-    if (this.get('typeahead')) {
-      this.get('typeahead').data('typeahead').source = hosts;
-    }
-  }
-
-});
-
-App.SelectHostView = Em.Select.extend(App.SelectHost, {
-
-  attributeBindings: ['disabled'],
-
-  didInsertElement: function () {
-    this.initContent();
-    this.set("value", this.get("component.selectedHost"));
-    App.popover($("[rel=popover]"), {'placement': 'right', 'trigger': 'hover'});
-  },
-
-  /**
-   * Handler for selected value change
-   * @method change
-   */
-  changeHandler: function () {
-    if (!this.shouldChangeHandlerBeCalled()) return;
-    this.get('controller').assignHostToMaster(this.get("component.component_name"), this.get("value"), this.get("component.serviceComponentId"));
-    this.tryTriggerRebalanceForMultipleComponents();
-  }.observes('controller.hostNameCheckTrigger'),
-
-  /**
-   * On click handler
-   * @method click
-   */
-  click: function () {
-    this.initContent();
-  }
-
-});
-
-App.AddControlView = Em.View.extend({
-
-  /**
-   * Current component name
-   * @type {string}
-   */
-  componentName: null,
-
-  tagName: "span",
-
-  classNames: ["badge", "badge-important"],
-
-  template: Em.Handlebars.compile('+'),
-
-  /**
-   * Onclick handler
-   * Add selected component
-   * @method click
-   */
-  click: function () {
-    this.get('controller').addComponent(this.get('componentName'));
-  }
-});
-
-App.RemoveControlView = Em.View.extend({
-
-  /**
-   * Index for multiple component
-   * @type {number}
-   */
-  serviceComponentId: null,
-
-  /**
-   * Current component name
-   * @type {string}
-   */
-  componentName: null,
-
-  tagName: "span",
-
-  classNames: ["badge", "badge-important"],
-
-  template: Em.Handlebars.compile('-'),
-
-  /**
-   * Onclick handler
-   * Remove current component
-   * @method click
-   */
-  click: function () {
-    this.get('controller').removeComponent(this.get('componentName'), this.get("serviceComponentId"));
-  }
 });

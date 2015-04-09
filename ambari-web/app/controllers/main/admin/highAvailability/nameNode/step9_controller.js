@@ -36,7 +36,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   startSecondNameNode: function () {
-    var hostName = this.get('content.masterComponentHosts').findProperty('isAddNameNode', true).hostName;
+    var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
     this.updateComponent('NAMENODE', hostName, "HDFS", "Start");
   },
 

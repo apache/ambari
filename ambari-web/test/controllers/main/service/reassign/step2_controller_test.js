@@ -32,212 +32,8 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
     renderComponents: Em.K,
     multipleComponents: []
   });
-  controller.set('_super', Em.K);
 
-  describe('#loadStep', function () {
-
-    beforeEach(function () {
-      sinon.stub(App.router, 'send', Em.K);
-      sinon.stub(controller, 'clearStep', Em.K);
-      sinon.stub(controller, 'loadComponents', Em.K);
-      sinon.stub(controller, 'loadStepCallback', Em.K);
-      sinon.stub(controller, 'rebalanceSingleComponentHosts', Em.K);
-    });
-
-    afterEach(function () {
-      App.router.send.restore();
-      controller.clearStep.restore();
-      controller.loadStepCallback.restore();
-      controller.loadComponents.restore();
-      controller.rebalanceSingleComponentHosts.restore();
-    });
-
-    it('SECONDARY_NAMENODE is absent, reassign component is NAMENODE', function () {
-      sinon.stub(App, 'get', function (k) {
-        if (k === 'isHaEnabled') return true;
-        return Em.get(App, k);
-      });
-      controller.set('content.reassign.component_name', 'NAMENODE');
-      controller.set('content.masterComponentHosts', []);
-
-      controller.loadStep();
-      expect(controller.get('showCurrentHost')).to.be.false;
-      expect(controller.get('componentToRebalance')).to.equal('NAMENODE');
-      expect(controller.get('rebalanceComponentHostsCounter')).to.equal(1);
-      App.get.restore();
-    });
-    it('SECONDARY_NAMENODE is present, reassign component is NAMENODE', function () {
-      sinon.stub(App, 'get', function (k) {
-        if (k === 'isHaEnabled') return false;
-        return Em.get(App, k);
-      });
-      controller.set('content.reassign.component_name', 'NAMENODE');
-      controller.set('content.masterComponentHosts', [
-        {
-          component: 'SECONDARY_NAMENODE'
-        }
-      ]);
-
-      controller.loadStep();
-      expect(controller.get('showCurrentHost')).to.be.true;
-      expect(controller.rebalanceSingleComponentHosts.calledWith('NAMENODE'));
-      App.get.restore();
-    });
-    it('SECONDARY_NAMENODE is absent, reassign component is not NAMENODE', function () {
-      controller.set('content.reassign.component_name', 'COMP');
-      controller.set('content.masterComponentHosts', []);
-
-      controller.loadStep();
-      expect(controller.get('showCurrentHost')).to.be.true;
-      expect(controller.rebalanceSingleComponentHosts.calledWith('COMP'));
-    });
-    it('if HA is enabled then multipleComponents should contain NAMENODE', function () {
-      controller.get('multipleComponents').clear();
-      sinon.stub(App, 'get', function (k) {
-        if (k === 'isHaEnabled') return true;
-        return Em.get(App, k);
-      });
-
-      controller.loadStep();
-      expect(controller.get('multipleComponents')).to.contain('NAMENODE');
-      expect(controller.get('multipleComponents')).to.have.length(1);
-      App.get.restore();
-    });
-  });
-
-  describe('#loadComponents', function () {
-    it('masterComponentHosts is empty', function () {
-      controller.set('content.masterComponentHosts', []);
-      controller.set('content.reassign.host_id', 1);
-
-      expect(controller.loadComponents()).to.be.empty;
-      expect(controller.get('currentHostId')).to.equal(1);
-    });
-    it('masterComponentHosts does not contain reassign component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [Em.Object.create({
-          componentName: 'COMP1',
-          serviceName: 'SERVICE'
-        })];
-      });
-      controller.set('content.masterComponentHosts', [{
-        component: 'COMP1',
-        hostName: 'host1'
-      }]);
-      controller.set('content.reassign.host_id', 1);
-      controller.set('content.reassign.component_name', 'COMP2');
-
-      expect(controller.loadComponents()).to.eql([
-        {
-          "component_name": "COMP1",
-          "display_name": "Comp1",
-          "selectedHost": "host1",
-          "isInstalled": true,
-          "serviceId": "SERVICE",
-          "isServiceCoHost": false,
-          "color": "grey"
-        }
-      ]);
-      expect(controller.get('currentHostId')).to.equal(1);
-
-      App.HostComponent.find.restore();
-    });
-    it('masterComponentHosts contains reassign component', function () {
-      sinon.stub(App.HostComponent, 'find', function () {
-        return [Em.Object.create({
-          componentName: 'COMP1',
-          serviceName: 'SERVICE'
-        })];
-      });
-      controller.set('content.masterComponentHosts', [{
-        component: 'COMP1',
-        hostName: 'host1'
-      }]);
-      controller.set('content.reassign.host_id', 1);
-      controller.set('content.reassign.component_name', 'COMP1');
-
-      expect(controller.loadComponents()).to.eql([
-        {
-          "component_name": "COMP1",
-          "display_name": "Comp1",
-          "selectedHost": "host1",
-          "isInstalled": true,
-          "serviceId": "SERVICE",
-          "isServiceCoHost": false,
-          "color": "green"
-        }
-      ]);
-      expect(controller.get('currentHostId')).to.equal(1);
-
-      App.HostComponent.find.restore();
-    });
-  });
-
-  describe('#rebalanceSingleComponentHosts', function () {
-    it('hosts is empty', function () {
-      controller.set('hosts', []);
-
-      expect(controller.rebalanceSingleComponentHosts()).to.be.false;
-    });
-    it('currentHostId matches one available host', function () {
-      controller.set('hosts', [Em.Object.create({
-        host_name: 'host1'
-      })]);
-      controller.set('currentHostId', 'host1');
-
-      expect(controller.rebalanceSingleComponentHosts()).to.be.false;
-    });
-
-    var testCases = [
-      {
-        title: 'selectedHost = currentHostId',
-        arguments: {
-          selectedHost: 'host1'
-        },
-        result: {
-          selectedHost: 'host3',
-          availableHosts: ['host2', 'host3']
-        }
-      },
-      {
-        title: 'selectedHost not equal to currentHostId',
-        arguments: {
-          selectedHost: 'host2'
-        },
-        result: {
-          selectedHost: 'host2',
-          availableHosts: ['host3']
-        }
-      }
-    ];
-
-    testCases.forEach(function (test) {
-      it(test.title, function () {
-        controller.set('hosts', [
-          Em.Object.create({
-            host_name: 'host1'
-          }),
-          Em.Object.create({
-            host_name: 'host3'
-          }),
-          Em.Object.create({
-            host_name: 'host2'
-          })
-        ]);
-        controller.set('currentHostId', 'host1');
-        controller.set('selectedServicesMasters', [Em.Object.create({
-          component_name: 'COMP1',
-          selectedHost: test.arguments.selectedHost
-        })]);
-
-        expect(controller.rebalanceSingleComponentHosts('COMP1')).to.be.true;
-        expect(controller.get('selectedServicesMasters')[0].get('selectedHost')).to.equal(test.result.selectedHost);
-        expect(controller.get('selectedServicesMasters')[0].get('availableHosts').mapProperty('host_name')).to.eql(test.result.availableHosts);
-      });
-    });
-  });
-
-  describe('#updateIsSubmitDisabled', function () {
+  describe('#customClientSideValidation', function () {
     var hostComponents = [];
     var isSubmitDisabled = false;
 
@@ -245,17 +41,12 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       sinon.stub(App.HostComponent, 'find', function () {
         return hostComponents;
       });
-      sinon.stub(controller, '_super', function() {
-        return isSubmitDisabled;
-      });
     });
     afterEach(function () {
       App.HostComponent.find.restore();
-      controller._super.restore();
     });
     it('No host-components, reassigned equal 0', function () {
-      expect(controller.updateIsSubmitDisabled()).to.be.true;
-      expect(controller.get('submitDisabled')).to.be.true;
+      expect(controller.customClientSideValidation()).to.be.false;
     });
     it('Reassign component match existed components, reassigned equal 0', function () {
       controller.set('content.reassign.component_name', 'COMP1');
@@ -264,11 +55,11 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
         hostName: 'host1'
       })];
       controller.set('servicesMasters', [{
+        component_name: 'COMP1',
         selectedHost: 'host1'
       }]);
 
-      expect(controller.updateIsSubmitDisabled()).to.be.true;
-      expect(controller.get('submitDisabled')).to.be.true;
+      expect(controller.customClientSideValidation()).to.be.false;
     });
     it('Reassign component do not match existed components, reassigned equal 1', function () {
       controller.set('content.reassign.component_name', 'COMP1');
@@ -278,8 +69,7 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       })];
       controller.set('servicesMasters', []);
 
-      expect(controller.updateIsSubmitDisabled()).to.be.false;
-      expect(controller.get('submitDisabled')).to.be.false;
+      expect(controller.customClientSideValidation()).to.be.true;
     });
     it('Reassign component do not match existed components, reassigned equal 2', function () {
       controller.set('content.reassign.component_name', 'COMP1');
@@ -295,15 +85,13 @@ describe('App.ReassignMasterWizardStep2Controller', function () {
       ];
       controller.set('servicesMasters', []);
 
-      expect(controller.updateIsSubmitDisabled()).to.be.true;
-      expect(controller.get('submitDisabled')).to.be.true;
+      expect(controller.customClientSideValidation()).to.be.false;
     });
 
     it('submitDisabled is already true', function () {
       isSubmitDisabled = true;
 
-      expect(controller.updateIsSubmitDisabled()).to.be.true;
-      expect(controller.get('submitDisabled')).to.be.true;
+      expect(controller.customClientSideValidation()).to.be.false;
     });
   });
 });

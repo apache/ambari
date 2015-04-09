@@ -44,7 +44,8 @@ describe('App.HighAvailabilityWizardStep3View', function () {
   describe("#curNameNode", function() {
     it("", function() {
       view.set('controller.content.masterComponentHosts', [{
-        isCurNameNode: true,
+        component: 'NAMENODE',
+        isInstalled: true,
         hostName: 'host1'
       }]);
       view.propertyDidChange('curNameNode');
@@ -55,7 +56,8 @@ describe('App.HighAvailabilityWizardStep3View', function () {
   describe("#addNameNode", function() {
     it("", function() {
       view.set('controller.content.masterComponentHosts', [{
-        isAddNameNode: true,
+        component: 'NAMENODE',
+        isInstalled: false,
         hostName: 'host1'
       }]);
       view.propertyDidChange('addNameNode');

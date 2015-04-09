@@ -131,8 +131,8 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var wizardController = router.get('rMHighAvailabilityWizardController');
       var stepController = router.get('rMHighAvailabilityWizardStep2Controller');
-      var currentRM = stepController.get('servicesMasters').findProperty('isAdditional', false);
-      var additionalRM = stepController.get('servicesMasters').findProperty('isAdditional', true);
+      var currentRM = stepController.get('servicesMasters').filterProperty('component_name', 'RESOURCEMANAGER').findProperty('isInstalled', true);
+      var additionalRM = stepController.get('servicesMasters').filterProperty('component_name', 'RESOURCEMANAGER').findProperty('isInstalled', false);
       var rmHost = {
         currentRM: currentRM.get('selectedHost'),
         additionalRM: additionalRM.get('selectedHost')

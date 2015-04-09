@@ -42,6 +42,7 @@ require('mixins/wizard/wizardEnableDone');
 require('mixins/wizard/selectHost');
 require('mixins/wizard/addSecurityConfigs');
 require('mixins/wizard/wizard_menu_view');
+require('mixins/wizard/assign_master_components');
 require('mixins/common/configs/enhanced_configs');
 require('mixins/common/configs/configs_saver');
 require('mixins/common/widget_mixin');

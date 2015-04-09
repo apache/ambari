@@ -16,12 +16,9 @@
 * limitations under the License.
 }}
 <div id="assign-masters">
-  <h2>{{title}}</h2>
+  <h2>{{view.title}}</h2>
   <div class="alert alert-info">
-    {{t installer.step5.body}}
-    {{#if view.coHostedComponentText}}
-      {{{view.coHostedComponentText}}}
-    {{/if}}
+    {{{view.alertMessage}}}
   </div>
   {{#each msg in controller.generalErrorMessages}}
     <div class="alert alert-error">{{msg}}</div>
@@ -47,16 +44,34 @@
             <div class="span12 control-group">
               <form class="form-horizontal" autocomplete="off">
                 <!-- View for array controller -->
-                {{#each servicesMasters}}
+                {{#each controller.additionalHostsList}}
+                  <div class="row-fluid additional-hosts-list">
+                    <div class="span5">
+                      <label class="pts pull-right">
+                        {{label}}
+                      </label>
+                    </div>
+                    <div class="span7 host-cell">
+                      {{host}}
+                    </div>
+                  </div>
+                {{/each}}
+                {{#each servicesMastersToShow}}
                   <div class="row-fluid">
-                    <div class="span4">
+                    <div class="span5">
                       <div class="control-group">
                         <label class="pts pull-right">
+                          {{#if showCurrentPrefix}}
+                            {{t common.current}}
+                          {{/if}}
+                          {{#if showAdditionalPrefix}}
+                            {{t common.additional}}
+                          {{/if}}
                           {{display_name}}:
                         </label>
                       </div>
                     </div>
-                    <div class="span8">
+                    <div class="span7">
                       {{#if isServiceCoHost}}
                         <div class="hostName">
                           {{selectedHost}}<i class="icon-asterisks">&#10037;</i>
@@ -123,7 +138,7 @@
     <div class="spinner"></div>
   {{/if}}
   <div class="btn-area">
-    <a class="btn pull-left installer-back-btn" {{action back href="true"}}>&larr; {{t common.back}}</a>
+    <a class="btn pull-left installer-back-btn" {{action back}}>&larr; {{t common.back}}</a>
     <a class="btn btn-success pull-right" {{bindAttr disabled="submitDisabled"}} {{action submit target="controller"}}>{{t common.next}} &rarr;</a>
   </div>
 </div>

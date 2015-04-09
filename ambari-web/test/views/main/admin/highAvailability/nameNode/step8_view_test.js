@@ -32,11 +32,13 @@ describe('App.HighAvailabilityWizardStep8View', function () {
     it("", function() {
       view.set('controller.content.masterComponentHosts', [
         {
-          isCurNameNode: true,
+          component: 'NAMENODE',
+          isInstalled: true,
           hostName: 'host1'
         },
         {
-          isAddNameNode: true,
+          component: 'NAMENODE',
+          isInstalled: false,
           hostName: 'host2'
         }
       ]);

@@ -111,8 +111,8 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   },
 
   tweakServiceConfigValues: function(configs,nameServiceId) {
-    var currentNameNodeHost = this.get('content.masterComponentHosts').findProperty('isCurNameNode').hostName;
-    var newNameNodeHost = this.get('content.masterComponentHosts').findProperty('isAddNameNode').hostName;
+    var currentNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', true).hostName;
+    var newNameNodeHost = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
     var journalNodeHosts = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
     var zooKeeperHosts = this.get('content.masterComponentHosts').filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
     var config = configs.findProperty('name','dfs.namenode.rpc-address.' + nameServiceId + '.nn1');

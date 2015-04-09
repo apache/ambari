@@ -18,110 +18,52 @@
 
 var App = require('app');
 
-App.ReassignMasterWizardStep2Controller = App.WizardStep5Controller.extend({
+App.ReassignMasterWizardStep2Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
 
-  currentHostId: null,
-  showCurrentHost: true,
+  name: "reassignMasterWizardStep2Controller",
+
   useServerValidation: false,
 
-  loadStep: function() {
-    // If High Availability is enabled NameNode became a multiple component
-    if (App.get('isHaEnabled')) {
-      this.get('multipleComponents').push('NAMENODE');
-    }
-    this.clearStep();
-    this.renderHostInfo();
-    this.loadStepCallback(this.loadComponents(), this);
+  mastersToShow: function () {
+    return [this.get('content.reassign.component_name')];
+  }.property('content.reassign.component_name'),
 
-    // if moving NameNode with HA enabled
-    if (this.get('content.reassign.component_name') === "NAMENODE" && App.get('isHaEnabled')) {
-      this.set('showCurrentHost', false);
-      this.set('componentToRebalance', 'NAMENODE');
-      this.incrementProperty('rebalanceComponentHostsCounter');
-
-    // if moving ResourceManager with HA enabled
-    } else if (this.get('content.reassign.component_name') === "RESOURCEMANAGER" && App.get('isRMHaEnabled')) {
-      this.set('showCurrentHost', false);
-      this.set('componentToRebalance', 'RESOURCEMANAGER');
-      this.incrementProperty('rebalanceComponentHostsCounter');
-    } else {
-      this.set('showCurrentHost', true);
-      this.rebalanceSingleComponentHosts(this.get('content.reassign.component_name'));
-    }
-  },
+  mastersToMove: function () {
+    return [this.get('content.reassign.component_name')];
+  }.property('content.reassign.component_name'),
 
   /**
-   * load master components
-   * @return {Array}
+   * Show 'Current: <host>' for masters with single instance
    */
-  loadComponents: function () {
-    var masterComponents = this.get('content.masterComponentHosts');
-    this.set('currentHostId', this.get('content').get('reassign').host_id);
-    var componentNameToReassign = this.get('content').get('reassign').component_name;
-    var result = [];
-
-    masterComponents.forEach(function (master) {
-      var color = "grey";
-      if (master.component == componentNameToReassign) {
-        color = 'green';
-      }
-      result.push({
-        component_name: master.component,
-        display_name: App.format.role(master.component),
-        selectedHost: master.hostName,
-        isInstalled: true,
-        serviceId: App.HostComponent.find().findProperty('componentName', master.component).get('serviceName'),
-        isServiceCoHost: ['HIVE_METASTORE', 'WEBHCAT_SERVER'].contains(master.component) && !this.get('this.isReassignWizard'),
-        color: color
-      });
-    }, this);
-    return result;
-  },
+  additionalHostsList: function () {
+    if (this.get('servicesMastersToShow.length') === 1) {
+      return [
+        {
+          label: Em.I18n.t('services.reassign.step2.currentHost'),
+          host: App.HostComponent.find().findProperty('componentName', this.get('content.reassign.component_name')).get('hostName')
+        }
+      ];
+    }
+    return [];
+  }.property('content.reassign.component_name', 'servicesMastersToShow.length'),
 
   /**
-   * rebalance single component among available hosts
-   * @param componentName
-   * @return {Boolean}
+   * Assignment is valid only if for one master component host was changed
+   * @returns {boolean}
    */
-  rebalanceSingleComponentHosts: function (componentName) {
-    var currentComponents = this.get("selectedServicesMasters").filterProperty("component_name", componentName),
-      availableComponentHosts = [];
-
-    this.get("hosts").forEach(function (item) {
-      if ( (this.get('currentHostId') !== item.get('host_name')) && !(currentComponents.mapProperty("selectedHost").contains(item.get('host_name')))) {
-        availableComponentHosts.pushObject(item);
+  customClientSideValidation: function () {
+    var reassigned = 0;
+    var existedComponents = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('hostName');
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', existedComponents);
+    var newComponents = this.get('servicesMasters').filterProperty('component_name', this.get('content.reassign.component_name')).mapProperty('selectedHost');
+    console.log('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>', newComponents);
+    existedComponents.forEach(function (host) {
+      if (!newComponents.contains(host)) {
+        reassigned++;
       }
     }, this);
+    return reassigned === 1;
+  }
 
-    if (availableComponentHosts.length > 0) {
-      var preparedAvailableHosts = availableComponentHosts.slice(0);
-
-      currentComponents.forEach(function (item) {
-        if (item.get('selectedHost') === this.get('currentHostId') && item.get('component_name') === componentName) {
-          item.set('selectedHost', preparedAvailableHosts.objectAt(0).host_name);
-        }
-        item.set("availableHosts", preparedAvailableHosts.sortProperty('host_name'));
-      }, this);
-      return true;
-    }
-    return false;
-  },
-
-  updateIsSubmitDisabled: function () {
-    var isSubmitDisabled = this._super();
-    if (!isSubmitDisabled) {
-      var reassigned = 0;
-      var existedComponents = App.HostComponent.find().filterProperty('componentName', this.get('content.reassign.component_name')).mapProperty('hostName');
-      var newComponents = this.get('servicesMasters').mapProperty('selectedHost');
-      existedComponents.forEach(function (host) {
-        if (!newComponents.contains(host)) {
-          reassigned++;
-        }
-      }, this);
-      isSubmitDisabled = reassigned !== 1;
-    }
-    this.set('submitDisabled', isSubmitDisabled);
-    return isSubmitDisabled;
-  }.observes('servicesMasters.@each.selectedHost', 'servicesMasters.@each.isHostNameValid')
 });
 
