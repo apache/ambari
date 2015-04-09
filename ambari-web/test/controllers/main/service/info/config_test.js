@@ -377,120 +377,7 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
   });
 
-  describe("#setServerConfigValue", function () {
-
-    it("parsing storm.zookeeper.servers property in non standart method", function () {
-      expect(mainServiceInfoConfigsController.setServerConfigValue("storm.zookeeper.servers", ["a", "b"])).to.equal('[\'a\',\'b\']');
-    });
-    it("parsing default properties", function () {
-      expect(mainServiceInfoConfigsController.setServerConfigValue("any.other.property", "value")).to.equal("value");
-    });
-  });
-
-  describe("#createSiteObj", function () {
-
-    var tests = [
-      {
-        siteName: "hdfs-site",
-        tagName: "version1",
-        siteObj: Em.A([
-          {
-            name: "property1",
-            value: "value1"
-          },
-          {
-            name: "property2",
-            value: "value2&lt;"
-          },
-          {
-            name: "property_heapsize",
-            value: "value3"
-          },
-          {
-            name: "property_permsize",
-            value: "value4m"
-          }
-        ]),
-        result: {
-          "type": "hdfs-site",
-          "tag": "version1",
-          "properties": {
-            "property1": "value1",
-            "property2": "value2&lt;",
-            "property_heapsize": "value3m",
-            "property_permsize": "value4m"
-          }
-        },
-        m: "default"
-      },
-      {
-        siteName: "falcon-startup.properties",
-        tagName: "version1",
-        siteObj: Em.A([
-          {
-            name: "property1",
-            value: "value1"
-          },
-          {
-            name: "property2",
-            value: "value2&lt;"
-          }
-        ]),
-        result: {
-          "type": "falcon-startup.properties",
-          "tag": "version1",
-          "properties": {
-            "property1": "value1",
-            "property2": "value2&lt;"
-          }
-        },
-        m: "for falcon-startup.properties"
-
-      }
-    ];
-    tests.forEach(function (t) {
-      it("create site object " + t.m, function () {
-        expect(mainServiceInfoConfigsController.createSiteObj(t.siteName, t.tagName, t.siteObj)).to.deep.eql(t.result)
-      });
-    });
-  });
-
-  describe("#createCoreSiteObj", function () {
-
-    var tests = [
-      {
-        tagName: "version1",
-        uiConfigs: Em.A([
-          Em.Object.create({
-            name: "property1",
-            value: "value1",
-            filename: "core-site.xml"
-          }),
-          Em.Object.create({
-            name: "property2",
-            value: "value2&lt;",
-            filename: "core-site.xml"
-          })
-        ]),
-        result: {
-          "type": "core-site",
-          "tag": "version1",
-          "properties": {
-            "property1": "value1",
-            "property2": "value2&lt;"
-          }
-        }
-      }
-    ];
-    tests.forEach(function (t) {
-      it("create core object", function () {
-        mainServiceInfoConfigsController.set("uiConfigs", t.uiConfigs);
-        expect(mainServiceInfoConfigsController.createCoreSiteObj(t.tagName)).to.deep.eql(t.result);
-      });
-    });
-  });
-
-  describe("#doPUTClusterConfigurationSites", function () {
+  describe("#putChangedConfigurations", function () {
       var sc = [
       Em.Object.create({
         configs: [
@@ -551,17 +438,17 @@ describe("App.MainServiceInfoConfigsController", function () {
     });
     it("ajax request to put cluster cfg", function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
-      expect(mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]));
+      expect(mainServiceInfoConfigsController.putChangedConfigurations([]));
       expect(App.ajax.send.calledOnce).to.be.true;
     });
     it('values should be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', sc);
-      mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]);
+      mainServiceInfoConfigsController.putChangedConfigurations([]);
       expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024m']);
     });
     it('values should not be parsed', function () {
       mainServiceInfoConfigsController.set('stepConfigs', scExc);
-      mainServiceInfoConfigsController.doPUTClusterConfigurationSites([]);
+      mainServiceInfoConfigsController.putChangedConfigurations([]);
       expect(mainServiceInfoConfigsController.get('stepConfigs')[0].get('configs').mapProperty('value').uniq()).to.eql(['1024m']);
     });
   });
@@ -864,53 +751,6 @@ describe("App.MainServiceInfoConfigsController", function () {
       expect(t.configs).to.deep.equal(t.result);
     });
 
-  });
-
-  describe("#createConfigObject", function() {
-    var tests = [
-      {
-        siteName: "core-site",
-        serviceName: "HDFS",
-        method: "createCoreSiteObj"
-      },
-      {
-        siteName: "core-site",
-        serviceName: "ANY",
-        method: false
-      },
-      {
-        siteName: "any",
-        method: "createSiteObj"
-      },
-      {
-        siteName: "mapred-queue-acls",
-        method: false
-      }
-    ];
-
-    beforeEach(function() {
-      sinon.stub(mainServiceInfoConfigsController, "createCoreSiteObj", Em.K);
-      sinon.stub(mainServiceInfoConfigsController, "createSiteObj", Em.K);
-      mainServiceInfoConfigsController.set("content", {});
-    });
-
-    afterEach(function() {
-      mainServiceInfoConfigsController.createCoreSiteObj.restore();
-      mainServiceInfoConfigsController.createSiteObj.restore();
-    });
-
-    tests.forEach(function(t) {
-      it("create object for " + t.siteName + " run method " + t.method, function() {
-        mainServiceInfoConfigsController.set("content.serviceName", t.serviceName);
-        mainServiceInfoConfigsController.createConfigObject(t.siteName, "versrion1");
-        if (t.method) {
-          expect(mainServiceInfoConfigsController[t.method].calledOnce).to.equal(true);
-        } else {
-          expect(mainServiceInfoConfigsController["createCoreSiteObj"].calledOnce).to.equal(false);
-          expect(mainServiceInfoConfigsController["createSiteObj"].calledOnce).to.equal(false);
-        }
-      });
-    });
   });
 
   describe("#putConfigGroupChanges", function() {

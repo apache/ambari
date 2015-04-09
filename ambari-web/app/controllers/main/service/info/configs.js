@@ -84,12 +84,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   selectedVersion: null,
 
   /**
-   * file names of changed configs
-   * @type {string[]}
-   */
-  modifiedFileNames: [],
-
-  /**
    * note passed on configs save
    * @type {string}
    */
@@ -237,18 +231,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   ],
 
   /**
-   * List of heapsize properties not to be parsed
-   * @type {string[]}
-   */
-  heapsizeException: ['hadoop_heapsize', 'yarn_heapsize', 'nodemanager_heapsize', 'resourcemanager_heapsize', 'apptimelineserver_heapsize', 'jobhistory_heapsize', 'nfsgateway_heapsize'],
-
-  /**
-   * Regular expression for heapsize properties detection
-   * @type {regexp}
-   */
-  heapsizeRegExp: /_heapsize|_newsize|_maxnewsize|_permsize|_maxpermsize$/,
-
-  /**
    * Dropdown menu items in filter combobox
    * @type {{attributeName: string, attributeValue: string, name: string, selected: boolean}[]}
    */
@@ -297,9 +279,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       this.get('requestInProgress').abort();
       this.set('requestInProgress', null);
     }
+    this.clearSaveInfo();
     this.setProperties({
       saveInProgress: false,
-      modifiedFileNames: [],
       isInit: true,
       hash: null,
       forceTransition: false,
@@ -1009,16 +991,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   },
 
   /**
-   * method to run saving configs
-   * @method saveStepConfigs
-   */
-  saveStepConfigs: function() {
-    if (!this.get("isSubmitDisabled")) {
-      this.startSave();
-      this.showWarningPopupsBeforeSave();
-    }
-  },
-  /**
    * Array of Objects
    * {
    *  hostProperty - hostName property name for current component
@@ -1029,7 +1001,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * }
    */
 
-  hostComponentsmapping: [
+  hostComponentsMapping: [
     {
       hostProperty: 'snamenode_host',
       componentName: 'SECONDARY_NAMENODE',
@@ -1149,7 +1121,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       console.log("No NameNode Host available.  This is expected if you're using GLUSTERFS rather than HDFS.");
     }
 
-    var hostProperties = this.get('hostComponentsmapping').filter(function (h) {
+    var hostProperties = this.get('hostComponentsMapping').filter(function (h) {
       return h.serviceUseThis.contains(serviceName) || h.serviceName == serviceName;
     });
     hostProperties.forEach(function (h) {

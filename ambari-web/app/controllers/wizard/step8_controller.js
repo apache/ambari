@@ -1619,7 +1619,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       configGroup.properties.forEach(function (property) {
         groupConfigs.push(Em.Object.create(property));
       });
-      groupData.desired_configs = serviceConfigController.buildGroupDesiredConfigs.call(serviceConfigController, groupConfigs, timeTag);
+      groupData.desired_configs = this.buildGroupDesiredConfigs(groupConfigs, timeTag);
       // check for group from installed service
       if (configGroup.isForInstalledService === true) {
         // if group is a new one, create it
@@ -1642,6 +1642,37 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     if (updateData.length > 0) {
       this.applyInstalledServicesConfigurationGroup(updateData);
     }
+  },
+
+  /**
+   * construct desired_configs for config groups from overriden properties
+   * @param configs
+   * @param timeTag
+   * @return {Array}
+   * @private
+   * @method buildGroupDesiredConfigs
+   */
+  buildGroupDesiredConfigs: function (configs, timeTag) {
+    var sites = [];
+    var time = timeTag || (new Date).getTime();
+    var siteFileNames = configs.mapProperty('filename').uniq();
+    sites = siteFileNames.map(function (filename) {
+      return {
+        type: filename.replace('.xml', ''),
+        tag: 'version' + time,
+        properties: []
+      };
+    });
+
+    configs.forEach(function (config) {
+      var type = config.get('filename').replace('.xml', '');
+      var site = sites.findProperty('type', type);
+      site.properties.push(config);
+    });
+
+    return sites.map(function (site) {
+      return this.createSiteObj(site.type, site.tag, site.properties);
+    }, this);
   },
 
   /**

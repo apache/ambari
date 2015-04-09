@@ -22,10 +22,11 @@ var App = require('app');
  * Show confirmation popup
  * @param {[Object]} configs
  * @param {function} [callback=null]
+ * @param {function} [secondary=null]
  * we use this parameter to defer saving configs before we make some decisions.
  * @return {App.ModalPopup}
  */
-App.showDependentConfigsPopup = function (configs, callback) {
+App.showDependentConfigsPopup = function (configs, callback, secondary) {
   return App.ModalPopup.show({
     encodeBody: false,
     header: Em.I18n.t('popup.dependent.configs.header'),
@@ -51,6 +52,9 @@ App.showDependentConfigsPopup = function (configs, callback) {
       configs.forEach(function(c) {
         Em.set(c, 'saveRecommended', Em.get(c, 'saveRecommendedDefault'));
       });
+      if (secondary) {
+        secondary();
+      }
     }
   });
 };

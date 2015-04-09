@@ -147,5 +147,45 @@ describe('App.ConfigsSaverMixin', function() {
       expect(instanceObject.createDesiredConfig).to.be.calledOnce
     })
   });
+
+  describe('#getModifiedConfigs', function () {
+    var configs = [
+      Em.Object.create({
+        name: 'p1',
+        filename: 'f1',
+        isNotDefaultValue: true,
+        value: 'v1'
+      }),
+      Em.Object.create({
+        name: 'p2',
+        filename: 'f1',
+        isNotDefaultValue: false,
+        value: 'v2'
+      }),
+      Em.Object.create({
+        name: 'p3',
+        filename: 'f2',
+        isNotSaved: true,
+        value: 'v4'
+      }),
+      Em.Object.create({
+        name: 'p4',
+        filename: 'f3',
+        isNotDefaultValue: false,
+        isNotSaved: false,
+        value: 'v4'
+      })
+    ];
+    it('filter out changed configs', function () {
+      expect(instanceObject.getModifiedConfigs(configs).mapProperty('name')).to.eql(['p1','p2','p3']);
+      expect(instanceObject.getModifiedConfigs(configs).mapProperty('filename').uniq()).to.eql(['f1','f2']);
+    });
+
+    it('filter out changed configs and modifiedFileNames', function () {
+      instanceObject.set('modifiedFileNames', ['f3']);
+      expect(instanceObject.getModifiedConfigs(configs).mapProperty('name')).to.eql(['p1','p2','p3','p4']);
+      expect(instanceObject.getModifiedConfigs(configs).mapProperty('filename').uniq()).to.eql(['f1','f2','f3']);
+    });
+  });
 });
 
