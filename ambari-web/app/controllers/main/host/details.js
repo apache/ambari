@@ -1753,6 +1753,8 @@ App.MainHostDetailsController = Em.Controller.extend({
       onPrimary: function () {
         var popup = this;
         var completeCallback = function () {
+          var remainingHosts = App.db.getSelectedHosts('mainHostController').removeObject(self.get('content.hostName'));
+          App.db.setSelectedHosts('mainHostController', remainingHosts);
           popup.hide();
         };
         self.doDeleteHost(completeCallback);
