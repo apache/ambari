@@ -36,7 +36,7 @@ public class WidgetLayoutUserWidgetEntity {
   private Long widgetLayoutId;
 
   @Id
-  @Column(name = "user_widget_id", nullable = false, updatable = false, insertable = false)
+  @Column(name = "widget_id", nullable = false, updatable = false, insertable = false)
   private Long userWidgetId;
 
   @ManyToOne
@@ -44,7 +44,7 @@ public class WidgetLayoutUserWidgetEntity {
   private WidgetLayoutEntity widgetLayout;
 
   @ManyToOne
-  @JoinColumn(name = "user_widget_id", referencedColumnName = "id")
+  @JoinColumn(name = "widget_id", referencedColumnName = "id")
   private WidgetEntity widget;
 
   @Column(name = "widget_order")

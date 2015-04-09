@@ -534,12 +534,12 @@ CREATE TABLE repo_version (
   PRIMARY KEY(repo_version_id)
 );
 
-CREATE TABLE user_widget (
+CREATE TABLE widget (
   id BIGINT NOT NULL,
-  user_widget_name VARCHAR(255) NOT NULL,
-  user_widget_type VARCHAR(255) NOT NULL,
+  widget_name VARCHAR(255) NOT NULL,
+  widget_type VARCHAR(255) NOT NULL,
   metrics LONGTEXT,
-  time_created TIMESTAMP DEFAULT NOW(),
+  time_created BIGINT NOT NULL,
   author VARCHAR(255),
   description VARCHAR(255),
   display_name VARCHAR(255) NOT NULL,
@@ -563,9 +563,9 @@ CREATE TABLE widget_layout (
 
 CREATE TABLE widget_layout_user_widget (
   widget_layout_id BIGINT NOT NULL,
-  user_widget_id BIGINT NOT NULL,
+  widget_id BIGINT NOT NULL,
   widget_order smallint,
-  PRIMARY KEY(widget_layout_id, user_widget_id)
+  PRIMARY KEY(widget_layout_id, widget_id)
 );
 
 CREATE TABLE artifact (
@@ -653,7 +653,7 @@ ALTER TABLE users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (principal_id
 ALTER TABLE groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES adminprincipal(principal_id);
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
-ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_user_widget_id FOREIGN KEY (user_widget_id) REFERENCES user_widget(id);
+ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (

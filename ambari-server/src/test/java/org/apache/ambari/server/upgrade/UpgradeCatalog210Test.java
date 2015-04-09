@@ -217,7 +217,7 @@ public class UpgradeCatalog210Test {
   }
 
   /**
-   * Verify that the user_widget, widget_layout, and widget_layout_user_widget tables are created correctly.
+   * Verify that the widget, widget_layout, and widget_layout_user_widget tables are created correctly.
    */
   class WidgetSectionDDL implements SectionDDL {
 
@@ -230,7 +230,7 @@ public class UpgradeCatalog210Test {
       Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = new Capture<List<DBColumnInfo>>();
       Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = new Capture<List<DBColumnInfo>>();
 
-      captures.put("user_widget", userWidgetColumnsCapture);
+      captures.put("widget", userWidgetColumnsCapture);
       captures.put("widget_layout", widgetLayoutColumnsCapture);
       captures.put("widget_layout_user_widget", widgetLayoutUserWidgetColumnsCapture);
     }
@@ -240,12 +240,12 @@ public class UpgradeCatalog210Test {
      */
     @Override
     public void execute(DBAccessor dbAccessor) throws SQLException {
-      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = captures.get("user_widget");
+      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = captures.get("widget");
       Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = captures.get("widget_layout");
       Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = captures.get("widget_layout_user_widget");
 
       // User Widget
-      dbAccessor.createTable(eq("user_widget"),
+      dbAccessor.createTable(eq("widget"),
           capture(userWidgetColumnsCapture), eq("id"));
 
       // Widget Layout
@@ -254,7 +254,7 @@ public class UpgradeCatalog210Test {
 
       // Widget Layout User Widget
       dbAccessor.createTable(eq("widget_layout_user_widget"),
-          capture(widgetLayoutUserWidgetColumnsCapture), eq("widget_layout_id"), eq("user_widget_id"));
+          capture(widgetLayoutUserWidgetColumnsCapture), eq("widget_layout_id"), eq("widget_id"));
     }
 
     /**
@@ -262,12 +262,12 @@ public class UpgradeCatalog210Test {
      */
     @Override
     public void verify(DBAccessor dbAccessor) throws SQLException {
-      Capture<List<DBColumnInfo>> userWidgetColumnsCapture = captures.get("user_widget");
+      Capture<List<DBColumnInfo>> widgetColumnsCapture = captures.get("widget");
       Capture<List<DBColumnInfo>> widgetLayoutColumnsCapture = captures.get("widget_layout");
       Capture<List<DBColumnInfo>> widgetLayoutUserWidgetColumnsCapture = captures.get("widget_layout_user_widget");
 
       // Verify widget tables
-      assertEquals(12, userWidgetColumnsCapture.getValue().size());
+      assertEquals(12, widgetColumnsCapture.getValue().size());
       assertEquals(7, widgetLayoutColumnsCapture.getValue().size());
       assertEquals(3, widgetLayoutUserWidgetColumnsCapture.getValue().size());
     }

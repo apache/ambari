@@ -39,7 +39,7 @@ public class WidgetLayoutUserWidgetEntityPK  implements Serializable {
   private Long userWidgetId;
 
   @Id
-  @Column(name = "user_widget_id", nullable = false, updatable = false)
+  @Column(name = "widget_id", nullable = false, updatable = false)
   public Long getUserWidgetId() {
     return userWidgetId;
   }

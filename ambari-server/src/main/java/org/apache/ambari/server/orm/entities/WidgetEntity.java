@@ -33,7 +33,7 @@ import javax.persistence.TableGenerator;
 import java.util.List;
 
 @Entity
-@Table(name = "user_widget")
+@Table(name = "widget")
 @TableGenerator(name = "widget_id_generator",
         table = "ambari_sequences",
         pkColumnName = "sequence_name",
@@ -53,15 +53,18 @@ import java.util.List;
         })
 public class WidgetEntity {
 
+  public static final String CLUSTER_SCOPE = "CLUSTER";
+  public static final String USER_SCOPE = "USER";
+
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "widget_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 
-  @Column(name = "user_widget_name", nullable = false, length = 255)
+  @Column(name = "widget_name", nullable = false, length = 255)
   private String widgetName;
 
-  @Column(name = "user_widget_type", nullable = false, length = 255)
+  @Column(name = "widget_type", nullable = false, length = 255)
   private String widgetType;
 
   @Column(name = "metrics", length = 32672)
@@ -95,7 +98,7 @@ public class WidgetEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false, updatable = false, insertable = false)
   private ClusterEntity clusterEntity;
 
-  @OneToMany(cascade = CascadeType.ALL, mappedBy = "widget")
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "widget", orphanRemoval = true)
   private List<WidgetLayoutUserWidgetEntity> listWidgetLayoutUserWidgetEntity;
 
   public Long getId() {

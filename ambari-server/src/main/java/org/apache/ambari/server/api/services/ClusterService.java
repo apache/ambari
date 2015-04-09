@@ -644,6 +644,16 @@ public class ClusterService extends BaseService {
     return new WidgetLayoutService(clusterName);
   }
 
+  /**
+   * Gets the widget service
+   */
+  @Path("{clusterName}/widgets")
+  public WidgetService getWidgetService(@Context javax.ws.rs.core.Request request,
+                                                    @PathParam ("clusterName") String clusterName) {
+
+    return new WidgetService(clusterName);
+  }
+
   // ----- helper methods ----------------------------------------------------
 
   /**

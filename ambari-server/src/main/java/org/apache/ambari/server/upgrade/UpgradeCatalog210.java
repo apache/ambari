@@ -51,7 +51,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String CONFIG_GROUP_HOST_MAPPING_TABLE = "configgrouphostmapping";
   private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
   private static final String CLUSTER_HOST_MAPPING_TABLE = "ClusterHostMapping";
-  private static final String USER_WIDGET_TABLE = "user_widget";
+  private static final String WIDGET_TABLE = "widget";
   private static final String WIDGET_LAYOUT_TABLE = "widget_layout";
   private static final String WIDGET_LAYOUT_USER_WIDGET_TABLE = "widget_layout_user_widget";
   private static final String VIEW_INSTANCE_TABLE = "viewinstance";
@@ -303,8 +303,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
 
     columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
-    columns.add(new DBColumnInfo("user_widget_name", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("user_widget_type", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("widget_name", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("widget_type", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("metrics", String.class,  32672,   null, true));
     columns.add(new DBColumnInfo("time_created", Long.class,  255,   null, false));
     columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
@@ -314,7 +314,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("widget_values", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("properties", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("cluster_id", Long.class,  255,   null, false));
-    dbAccessor.createTable(USER_WIDGET_TABLE, columns, "id");
+    dbAccessor.createTable(WIDGET_TABLE, columns, "id");
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
@@ -329,11 +329,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("widget_layout_id", Long.class,    null,  null, false));
-    columns.add(new DBColumnInfo("user_widget_id", Long.class,    null,  null, false));
+    columns.add(new DBColumnInfo("widget_id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("widget_order", Integer.class,    null,  null, false));
-    dbAccessor.createTable(WIDGET_LAYOUT_USER_WIDGET_TABLE, columns, "widget_layout_id", "user_widget_id");
+    dbAccessor.createTable(WIDGET_LAYOUT_USER_WIDGET_TABLE, columns, "widget_layout_id", "widget_id");
     dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_layout_id", "widget_layout_id", "widget_layout", "id", true, false);
-    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_user_widget_id", "user_widget_id", "user_widget", "id", true, false);
+    dbAccessor.addFKConstraint(WIDGET_LAYOUT_USER_WIDGET_TABLE, "FK_widget_id", "widget_id", "widget", "id", true, false);
   }
 
   /**

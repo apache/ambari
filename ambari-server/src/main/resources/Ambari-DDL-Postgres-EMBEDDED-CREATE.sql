@@ -602,12 +602,12 @@ CREATE TABLE ambari.artifact (
   PRIMARY KEY (artifact_name, foreign_keys));
 GRANT ALL PRIVILEGES ON TABLE ambari.artifact TO :username;
 
-CREATE TABLE ambari.user_widget (
+CREATE TABLE ambari.widget (
   id BIGINT NOT NULL,
-  user_widget_name VARCHAR(255) NOT NULL,
-  user_widget_type VARCHAR(255) NOT NULL,
+  widget_name VARCHAR(255) NOT NULL,
+  widget_type VARCHAR(255) NOT NULL,
   metrics TEXT,
-  time_created TIMESTAMP DEFAULT NOW(),
+  time_created BIGINT NOT NULL,
   author VARCHAR(255),
   description VARCHAR(255),
   display_name VARCHAR(255) NOT NULL,
@@ -617,7 +617,7 @@ CREATE TABLE ambari.user_widget (
   cluster_id BIGINT NOT NULL,
   PRIMARY KEY(id)
 );
-GRANT ALL PRIVILEGES ON TABLE ambari.user_widget TO :username;
+GRANT ALL PRIVILEGES ON TABLE ambari.widget TO :username;
 
 CREATE TABLE ambari.widget_layout (
   id BIGINT NOT NULL,
@@ -633,9 +633,9 @@ GRANT ALL PRIVILEGES ON TABLE ambari.widget_layout TO :username;
 
 CREATE TABLE ambari.widget_layout_user_widget (
   widget_layout_id BIGINT NOT NULL,
-  user_widget_id BIGINT NOT NULL,
+  widget_id BIGINT NOT NULL,
   widget_order smallint,
-  PRIMARY KEY(widget_layout_id, user_widget_id)
+  PRIMARY KEY(widget_layout_id, widget_id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.widget_layout_user_widget TO :username;
 
@@ -715,7 +715,7 @@ ALTER TABLE ambari.users ADD CONSTRAINT FK_users_principal_id FOREIGN KEY (princ
 ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_id) REFERENCES ambari.adminprincipal(principal_id);
 ALTER TABLE ambari.clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
 ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES ambari.widget_layout(id);
-ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_user_widget_id FOREIGN KEY (user_widget_id) REFERENCES ambari.user_widget(id);
+ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES ambari.widget(id);
 
 -- Kerberos
 CREATE TABLE ambari.kerberos_principal (
