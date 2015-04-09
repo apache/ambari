@@ -1659,12 +1659,15 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, String>();
     Map<String, String> coreSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> accumuloSiteProperties =
+        new HashMap<String, String>();
 
 
     configProperties.put("hdfs-site", hdfsSiteProperties);
     configProperties.put("hadoop-env", hadoopEnvProperties);
     configProperties.put("core-site", coreSiteProperties);
     configProperties.put("hbase-site", hbaseSiteProperties);
+    configProperties.put("accumulo-site", accumuloSiteProperties);
 
     // setup hdfs HA config for test
     hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
@@ -1689,6 +1692,9 @@ public class BlueprintConfigurationProcessorTest {
 
     // configure the hbase rootdir to use the nameservice URL
     hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -1728,6 +1734,9 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("hbase.rootdir should not be modified by cluster update when NameNode HA is enabled.",
       "hdfs://" + expectedNameService + "/hbase/test/root/dir", hbaseSiteProperties.get("hbase.rootdir"));
+
+    assertEquals("instance.volumes should not be modified by cluster update when NameNode HA is enabled.",
+        "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes", accumuloSiteProperties.get("instance.volumes"));
 
     mockSupport.verifyAll();
   }
@@ -1907,15 +1916,20 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, String>();
     Map<String, String> hbaseSiteProperties =
       new HashMap<String, String>();
+    Map<String, String> accumuloSiteProperties =
+        new HashMap<String, String>();
 
 
     configProperties.put("core-site", coreSiteProperties);
     configProperties.put("hbase-site", hbaseSiteProperties);
+    configProperties.put("accumulo-site", accumuloSiteProperties);
 
     // configure fs.defaultFS to include a nameservice name, rather than a host name
     coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
     // configure hbase.rootdir to include a nameservice name, rather than a host name
     hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/apps/hbase/data");
+    // configure instance.volumes to include a nameservice name, rather than a host name
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/apps/accumulo/data");
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -1928,6 +1942,8 @@ public class BlueprintConfigurationProcessorTest {
       "hdfs://" + expectedNameService, coreSiteProperties.get("fs.defaultFS"));
     assertEquals("Property containing an HA nameservice (hbase.rootdir), was not correctly exported by the processor",
       "hdfs://" + expectedNameService + "/apps/hbase/data", hbaseSiteProperties.get("hbase.rootdir"));
+    assertEquals("Property containing an HA nameservice (instance.volumes), was not correctly exported by the processor",
+        "hdfs://" + expectedNameService + "/apps/accumulo/data", accumuloSiteProperties.get("instance.volumes"));
 
     mockSupport.verifyAll();
 
@@ -2316,9 +2332,13 @@ public class BlueprintConfigurationProcessorTest {
     Map<String, String> hbaseSiteProperties =
       new HashMap<String, String>();
 
+    Map<String, String> accumuloSiteProperties =
+        new HashMap<String, String>();
+
     configProperties.put("hdfs-site", hdfsSiteProperties);
     configProperties.put("core-site", coreSiteProperties);
     configProperties.put("hbase-site", hbaseSiteProperties);
+    configProperties.put("accumulo-site", accumuloSiteProperties);
 
     // setup properties that include host information
     hdfsSiteProperties.put("dfs.http.address", expectedHostName + ":" + expectedPortNum);
@@ -2334,6 +2354,7 @@ public class BlueprintConfigurationProcessorTest {
 
     hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedHostName + ":" + expectedPortNum + "/apps/hbase/data");
 
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedHostName + ":" + expectedPortNum + "/apps/accumulo/data");
 
     BlueprintConfigurationProcessor configProcessor =
       new BlueprintConfigurationProcessor(configProperties);
@@ -2363,6 +2384,9 @@ public class BlueprintConfigurationProcessorTest {
 
     assertEquals("hdfs config in hbase-site not exported properly",
       "hdfs://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "/apps/hbase/data", hbaseSiteProperties.get("hbase.rootdir"));
+
+    assertEquals("hdfs config in accumulo-site not exported properly",
+      "hdfs://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "/apps/accumulo/data", accumuloSiteProperties.get("instance.volumes"));
 
     mockSupport.verifyAll();
 
@@ -2669,6 +2693,8 @@ public class BlueprintConfigurationProcessorTest {
       new HashMap<String, String>();
     Map<String, String> kafkaBrokerProperties =
       new HashMap<String, String>();
+    Map<String, String> accumuloSiteProperties =
+        new HashMap<String, String>();
 
     configProperties.put("core-site", coreSiteProperties);
     configProperties.put("hbase-site", hbaseSiteProperties);
@@ -2676,6 +2702,7 @@ public class BlueprintConfigurationProcessorTest {
     configProperties.put("slider-client", sliderClientProperties);
     configProperties.put("yarn-site", yarnSiteProperties);
     configProperties.put("kafka-broker", kafkaBrokerProperties);
+    configProperties.put("accumulo-site", accumuloSiteProperties);
 
     coreSiteProperties.put("ha.zookeeper.quorum", expectedHostName + "," + expectedHostNameTwo);
     hbaseSiteProperties.put("hbase.zookeeper.quorum", expectedHostName + "," + expectedHostNameTwo);
@@ -2683,6 +2710,7 @@ public class BlueprintConfigurationProcessorTest {
     yarnSiteProperties.put("hadoop.registry.zk.quorum", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
     sliderClientProperties.put("slider.zookeeper.quorum", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
     kafkaBrokerProperties.put("zookeeper.connect", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
+    accumuloSiteProperties.put("instance.zookeeper.host", createHostAddress(expectedHostName, expectedPortNumberOne) + "," + createHostAddress(expectedHostNameTwo, expectedPortNumberTwo));
 
 
     BlueprintConfigurationProcessor configProcessor =
@@ -2709,6 +2737,9 @@ public class BlueprintConfigurationProcessorTest {
     assertEquals("kafka zookeeper config not properly exported",
       createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
       kafkaBrokerProperties.get("zookeeper.connect"));
+    assertEquals("accumulo-site zookeeper config not properly exported",
+        createExportedHostName(expectedHostGroupName, expectedPortNumberOne) + "," + createExportedHostName(expectedHostGroupNameTwo, expectedPortNumberTwo),
+        accumuloSiteProperties.get("instance.zookeeper.host"));
 
     mockSupport.verifyAll();
 

@@ -92,7 +92,7 @@ public class BlueprintConfigurationProcessor {
    *   in the configuration, rather than just a host name.
    */
   private static Set<String> configPropertiesWithHASupport =
-    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir"));
+    new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes"));
 
 
 
@@ -676,6 +676,11 @@ public class BlueprintConfigurationProcessor {
                 return origValue;
               }
 
+              if (properties.containsKey("accumulo-site") && properties.get("accumulo-site").get("instance.volumes").equals(origValue)) {
+                // accumulo-site's reference to the namenode is handled differently in HA mode, since the
+                // reference must point to the logical nameservice, rather than an individual namenode
+                return origValue;
+              }
             }
 
             if (isNameNodeHAEnabled(properties) && isComponentSecondaryNameNode() && (matchingGroups.isEmpty())) {
@@ -1085,6 +1090,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> oozieSiteOriginalValueMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> oozieSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> stormSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> accumuloSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> falconStartupPropertiesMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> kafkaBrokerMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> mapredEnvMap = new HashMap<String, PropertyUpdater>();
@@ -1103,6 +1109,7 @@ public class BlueprintConfigurationProcessor {
     Map<String, PropertyUpdater> multiSliderClientMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiYarnSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> multiOozieSiteMap = new HashMap<String, PropertyUpdater>();
+    Map<String, PropertyUpdater> multiAccumuloSiteMap = new HashMap<String, PropertyUpdater>();
     Map<String, PropertyUpdater> dbHiveSiteMap = new HashMap<String, PropertyUpdater>();
 
 
@@ -1114,6 +1121,7 @@ public class BlueprintConfigurationProcessor {
     singleHostTopologyUpdaters.put("hive-site", hiveSiteMap);
     singleHostTopologyUpdaters.put("oozie-site", oozieSiteMap);
     singleHostTopologyUpdaters.put("storm-site", stormSiteMap);
+    singleHostTopologyUpdaters.put("accumulo-site", accumuloSiteMap);
     singleHostTopologyUpdaters.put("falcon-startup.properties", falconStartupPropertiesMap);
     singleHostTopologyUpdaters.put("hive-env", hiveEnvMap);
     singleHostTopologyUpdaters.put("oozie-env", oozieEnvMap);
@@ -1133,6 +1141,7 @@ public class BlueprintConfigurationProcessor {
     multiHostTopologyUpdaters.put("slider-client", multiSliderClientMap);
     multiHostTopologyUpdaters.put("yarn-site", multiYarnSiteMap);
     multiHostTopologyUpdaters.put("oozie-site", multiOozieSiteMap);
+    multiHostTopologyUpdaters.put("accumulo-site", multiAccumuloSiteMap);
 
     dbHostTopologyUpdaters.put("hive-site", dbHiveSiteMap);
 
@@ -1148,6 +1157,7 @@ public class BlueprintConfigurationProcessor {
     hdfsSiteMap.put("dfs.namenode.rpc-address", new SingleHostTopologyUpdater("NAMENODE"));
     coreSiteMap.put("fs.defaultFS", new SingleHostTopologyUpdater("NAMENODE"));
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
+    accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
     multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';'));
 
@@ -1211,6 +1221,7 @@ public class BlueprintConfigurationProcessor {
     multiYarnSiteMap.put("hadoop.registry.zk.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiSliderClientMap.put("slider.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiKafkaBrokerMap.put("zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+    multiAccumuloSiteMap.put("instance.zookeeper.host", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
 
     // STORM
     stormSiteMap.put("nimbus.host", new SingleHostTopologyUpdater("NIMBUS"));
