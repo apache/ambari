@@ -32,8 +32,13 @@ import threading
 import traceback
 import re
 from datetime import datetime
-from resource_management.core.shell import quote_bash_args
-from ambari_commons.os_check import OSCheck
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+if OSCheck.is_windows_family():
+  from ambari_commons.os_utils import run_os_command, run_in_shell
+else:
+  from resource_management.core.shell import quote_bash_args
 
 AMBARI_PASSPHRASE_VAR_NAME = "AMBARI_PASSPHRASE"
 HOST_BOOTSTRAP_TIMEOUT = 300
@@ -44,6 +49,10 @@ POLL_INTERVAL_SEC = 1
 DEBUG = False
 DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/data/tmp"
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER
+CREATE_REMOTING_DIR_SCRIPT_NAME = "Create-RemotingDir.ps1"
+SEND_REMOTING_FILE_SCRIPT_NAME = "Send-RemotingFile.ps1"
+UNZIP_REMOTING_SCRIPT_NAME = "Unzip-RemotingFile.ps1"
+RUN_REMOTING_SCRIPT_NAME = "Run-RemotingScript.ps1"
 
 
 class HostLog:
@@ -103,7 +112,6 @@ class SCP:
     return {"exitstatus": scpstat.returncode, "log": log, "errormsg": errorMsg}
 
 
-
 class SSH:
   """ Ssh implementation of this """
   def __init__(self, user, sshkey_file, host, command, bootdir, host_log, errorMessage = None):
@@ -143,15 +151,45 @@ class SSH:
     return  {"exitstatus": sshstat.returncode, "log": log, "errormsg": errorMsg}
 
 
+class PSR:
+  """ PowerShell Remoting implementation of this """
+  def __init__(self, command, host, host_log, params=None, errorMessage=None):
+    self.command = command
+    self.host = host
+    self.host_log = host_log
+    self.params = params
+    self.errorMessage = errorMessage
+    pass
+
+  def run(self):
+    #os.environ['COMSPEC'] = 'c:\\System32\\WindowsPowerShell\\v1.0\\powershell.exe'
+    psrcommand = ["powershell.exe",
+                  "-NoProfile",
+                  "-InputFormat", "Text",
+                  "-ExecutionPolicy", "unrestricted",
+                  "-Command", self.command]
+    if self.params:
+      psrcommand.extend([self.params])
+    if DEBUG:
+      self.host_log.write("Running PowerShell command " + ' '.join(psrcommand))
+    self.host_log.write("==========================")
+    self.host_log.write("\nCommand start time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    retcode, stdout, stderr = run_os_command(psrcommand)
+    errorMsg = stderr
+    if self.errorMessage and retcode != 0:
+      errorMsg = self.errorMessage + "\n" + stderr
+    log = stdout + "\n" + errorMsg
+    self.host_log.write(log)
+    self.host_log.write("PowerShell command execution finished")
+    self.host_log.write("host=" + self.host + ", exitcode=" + str(retcode))
+    self.host_log.write("Command end time " + datetime.now().strftime('%Y-%m-%d %H:%M:%S'))
+    return {"exitstatus": retcode, "log": log, "errormsg": errorMsg}
+
 
 class Bootstrap(threading.Thread):
   """ Bootstrap the agent on a separate host"""
-  TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
-  OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
-  AMBARI_REPO_FILENAME = "ambari"
   SETUP_SCRIPT_FILENAME = "setupAgent.py"
-  PASSWORD_FILENAME = "host_pass"
-  ambari_commons="/usr/lib/python2.6/site-packages/ambari_commons"
+  AMBARI_REPO_FILENAME = "ambari"
 
   def __init__(self, host, shared_state):
     threading.Thread.__init__(self)
@@ -170,6 +208,152 @@ class Bootstrap(threading.Thread):
     else:
       self.AMBARI_REPO_FILENAME = self.AMBARI_REPO_FILENAME + ".repo"
 
+  # This method is needed  to implement the descriptor protocol (make object
+  # to pass self reference to mockups)
+  def __get__(self, obj, objtype):
+    def _call(*args, **kwargs):
+      self(obj, *args, **kwargs)
+    return _call
+
+  def try_to_execute(self, action):
+    last_retcode = {"exitstatus": 177, "log":"Try to execute '{0}'".format(str(action)), "errormsg":"Execute of '{0}' failed".format(str(action))}
+    try:
+      retcode = action()
+      if isinstance(retcode, int):
+        last_retcode["exitstatus"] = retcode
+      else:
+        last_retcode = retcode
+    except Exception:
+      self.host_log.write("Traceback: " + traceback.format_exc())
+    return last_retcode
+
+  def getAmbariVersion(self):
+    ambari_version = self.shared_state.ambari_version
+    if ambari_version is None or ambari_version == "null":
+      return ""
+    else:
+      return ambari_version
+
+  def createDoneFile(self, retcode):
+    """ Creates .done file for current host. These files are later read from Java code.
+    If .done file for any host is not created, the bootstrap will hang or fail due to timeout"""
+    params = self.shared_state
+    doneFilePath = os.path.join(params.bootdir, self.host + ".done")
+    if not os.path.exists(doneFilePath):
+      doneFile = open(doneFilePath, "w+")
+      doneFile.write(str(retcode))
+      doneFile.close()
+
+  def getStatus(self):
+    return self.status
+
+  def interruptBootstrap(self):
+    """
+    Thread is not really interrupted (moreover, Python seems to have no any
+    stable/portable/official api to do that: _Thread__stop only marks thread
+    as stopped). The bootstrap thread is marked as a daemon at init, and will
+    exit when the main parallel bootstrap thread exits.
+    All we need to do now is a proper logging and creating .done file
+    """
+    self.host_log.write("Automatic Agent registration timed out (timeout = {0} seconds). " \
+                        "Check your network connectivity and retry registration," \
+                        " or use manual agent registration.".format(HOST_BOOTSTRAP_TIMEOUT))
+    self.createDoneFile(199)
+
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class BootstrapWindows(Bootstrap):
+  bootstrapArchiveName = "bootstrap.zip"
+
+  def getTempFolder(self):
+    installationDrive = os.path.splitdrive(self.shared_state.script_dir)[0]
+    return os.path.join(installationDrive, os.sep, "var", "temp", "bootstrap", self.getAmbariVersion())
+
+  def createTargetDir(self):
+    # Creating target dir
+    self.host_log.write("==========================\n")
+    self.host_log.write("Creating target directory...")
+    command = os.path.join(self.shared_state.script_dir, CREATE_REMOTING_DIR_SCRIPT_NAME)
+    psr = PSR(command, self.host, self.host_log, params="{0} {1}".format(self.host, self.getTempFolder()))
+    retcode = psr.run()
+    self.host_log.write("\n")
+    return retcode
+
+  def unzippingBootstrapArchive(self):
+    # Unzipping bootstrap archive
+    zipFile = os.path.join(self.getTempFolder(), self.bootstrapArchiveName)
+    self.host_log.write("==========================\n")
+    self.host_log.write("Unzipping bootstrap archive...")
+    command = os.path.join(self.shared_state.script_dir, UNZIP_REMOTING_SCRIPT_NAME)
+    psr = PSR(command, self.host, self.host_log, params="{0} {1} {2}".format(self.host, zipFile, self.getTempFolder()))
+    result = psr.run()
+    self.host_log.write("\n")
+    return result
+
+  def copyBootstrapArchive(self):
+    # Copying the bootstrap archive file
+    fileToCopy = os.path.join(self.shared_state.script_dir, os.path.dirname(self.shared_state.script_dir), self.shared_state.setup_agent_file)
+    target = os.path.join(self.getTempFolder(), self.bootstrapArchiveName)
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying bootstrap archive...")
+    command = os.path.join(self.shared_state.script_dir, SEND_REMOTING_FILE_SCRIPT_NAME)
+    psr = PSR(command, self.host, self.host_log, params="{0} {1} {2}".format(self.host, fileToCopy, target))
+    result = psr.run()
+    self.host_log.write("\n")
+    return result
+
+  def getRunSetupCommand(self, expected_hostname):
+    setupFile = os.path.join(self.getTempFolder(), self.SETUP_SCRIPT_FILENAME)
+    msi_url = 'http://{0}:{1}/resources/ambari-agent.msi'.format(self.shared_state.ambari_server, self.shared_state.server_port)
+    server = self.shared_state.ambari_server
+    version = self.getAmbariVersion()
+    return ' '.join(['python', setupFile, msi_url, server, version])
+
+  def runSetupAgent(self):
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running setup agent script...")
+    command = os.path.join(self.shared_state.script_dir, RUN_REMOTING_SCRIPT_NAME)
+    psr = PSR(command, self.host, self.host_log, params="{0} \"{1}\"".format(self.host, self.getRunSetupCommand(self.host)))
+    retcode = psr.run()
+    self.host_log.write("\n")
+    return retcode
+
+  def run(self):
+    """ Copy files and run commands on remote host """
+    self.status["start_time"] = time.time()
+    # Population of action queue
+    action_queue = [self.createTargetDir,
+                    self.copyBootstrapArchive,
+                    self.unzippingBootstrapArchive,
+                    self.runSetupAgent
+    ]
+    # Execution of action queue
+    last_retcode = 0
+    while action_queue and last_retcode == 0:
+      action = action_queue.pop(0)
+      ret = self.try_to_execute(action)
+      last_retcode = ret["exitstatus"]
+      err_msg = ret["errormsg"]
+      std_out = ret["log"]
+    # Checking execution result
+    if last_retcode != 0:
+      message = "ERROR: Bootstrap of host {0} fails because previous action " \
+                "finished with non-zero exit code ({1})\nERROR MESSAGE: {2}\nSTDOUT: {3}".format(self.host, last_retcode, err_msg, std_out)
+      self.host_log.write(message)
+      logging.error(message)
+
+    self.createDoneFile(last_retcode)
+    self.status["return_code"] = last_retcode
+
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class BootstrapDefault(Bootstrap):
+  ambari_commons="/usr/lib/python2.6/site-packages/ambari_commons"
+  TEMP_FOLDER = DEFAULT_AGENT_TEMP_FOLDER
+  OS_CHECK_SCRIPT_FILENAME = "os_check_type.py"
+  PASSWORD_FILENAME = "host_pass"
 
   def getRemoteName(self, filename):
     full_name = os.path.join(self.TEMP_FOLDER, filename)
@@ -178,21 +362,12 @@ class Bootstrap(threading.Thread):
       remote_files[full_name] = self.generateRandomFileName(full_name)
     return remote_files[full_name]
 
-
   def generateRandomFileName(self, filename):
     if filename is None:
       return self.getUtime()
     else:
       name, ext = os.path.splitext(filename)
       return str(name) + str(self.getUtime()) + str(ext)
-
-
-  # This method is needed  to implement the descriptor protocol (make object
-  # to pass self reference to mockups)
-  def __get__(self, obj, objtype):
-    def _call(*args, **kwargs):
-      self(obj, *args, **kwargs)
-    return _call
   
   def getRepoDir(self):
     if OSCheck.is_redhat_family():
@@ -203,7 +378,6 @@ class Bootstrap(threading.Thread):
       return "/etc/apt/sources.list.d"
     else:
       raise Exception("Unsupported OS family '{0}'".format(OSCheck.get_os_family()))
-
 
   def getRepoFile(self):
     """ Ambari repo file for Ambari."""
@@ -227,23 +401,6 @@ class Bootstrap(threading.Thread):
   def hasPassword(self):
     password_file = self.shared_state.password_file
     return password_file is not None and password_file != 'null'
-
-
-  def createTargetDir(self):
-    # Creating target dir
-    self.host_log.write("==========================\n")
-    self.host_log.write("Creating target directory...")
-    params = self.shared_state
-    user = params.user
-
-    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0}".format(self.TEMP_FOLDER,quote_bash_args(params.user))
-
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
-              params.bootdir, self.host_log)
-    retcode = ssh.run()
-    self.host_log.write("\n")
-    return retcode
-
 
   def copyOsCheckScript(self):
     # Copying the os check script file
@@ -271,12 +428,10 @@ class Bootstrap(threading.Thread):
     self.host_log.write("\n")
     return result
 
-
   def getMoveRepoFileWithPasswordCommand(self, targetDir):
     return "sudo -S mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) \
            + " " + os.path.join(str(targetDir), self.AMBARI_REPO_FILENAME) + \
            " < " + str(self.getPasswordFile())
-
 
   def getMoveRepoFileWithoutPasswordCommand(self, targetDir):
     return "sudo mv " + str(self.getRemoteName(self.AMBARI_REPO_FILENAME)) \
@@ -336,14 +491,6 @@ class Bootstrap(threading.Thread):
 
     return max(retcode1["exitstatus"], retcode2["exitstatus"], retcode3["exitstatus"])
 
-
-  def getAmbariVersion(self):
-    ambari_version = self.shared_state.ambari_version
-    if ambari_version is None or ambari_version == "null":
-      return ""
-    else:
-      return ambari_version
-
   def getAmbariPort(self):
     server_port = self.shared_state.server_port
     if server_port is None or server_port == "null":
@@ -363,7 +510,6 @@ class Bootstrap(threading.Thread):
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port) + " < " + str(passwordFile)
 
-
   def getRunSetupWithoutPasswordCommand(self, expected_hostname):
     setupFile=self.getRemoteName(self.SETUP_SCRIPT_FILENAME)
     passphrase=os.environ[AMBARI_PASSPHRASE_VAR_NAME]
@@ -374,14 +520,6 @@ class Bootstrap(threading.Thread):
     return "sudo python " + str(setupFile) + " " + str(expected_hostname) + \
            " " + str(passphrase) + " " + str(server)+ " " + quote_bash_args(str(user_run_as)) + " " + str(version) + \
            " " + str(port)
-
-
-  def getRunSetupCommand(self, expected_hostname):
-    if self.hasPassword():
-      return self.getRunSetupWithPasswordCommand(expected_hostname)
-    else:
-      return self.getRunSetupWithoutPasswordCommand(expected_hostname)
-
 
   def runOsCheckScript(self):
     params = self.shared_state
@@ -397,29 +535,6 @@ class Bootstrap(threading.Thread):
     retcode = ssh.run()
     self.host_log.write("\n")
     return retcode
-
-
-  def runSetupAgent(self):
-    params = self.shared_state
-    self.host_log.write("==========================\n")
-    self.host_log.write("Running setup agent script...")
-    command = self.getRunSetupCommand(self.host)
-    ssh = SSH(params.user, params.sshkey_file, self.host, command,
-              params.bootdir, self.host_log)
-    retcode = ssh.run()
-    self.host_log.write("\n")
-    return retcode
-
-
-  def createDoneFile(self, retcode):
-    """ Creates .done file for current host. These files are later read from Java code.
-    If .done file for any host is not created, the bootstrap will hang or fail due to timeout"""
-    params = self.shared_state
-    doneFilePath = os.path.join(params.bootdir, self.host + ".done")
-    if not os.path.exists(doneFilePath):
-      doneFile = open(doneFilePath, "w+")
-      doneFile.write(str(retcode))
-      doneFile.close()
 
   def checkSudoPackage(self):
     """ Checking 'sudo' package on remote host """
@@ -458,7 +573,6 @@ class Bootstrap(threading.Thread):
     self.host_log.write("Copying password file finished")
     return max(retcode1["exitstatus"], retcode2["exitstatus"])
 
-
   def changePasswordFileModeOnHost(self):
     # Change password file mode to 600
     self.host_log.write("Changing password file mode...")
@@ -469,7 +583,6 @@ class Bootstrap(threading.Thread):
     retcode = ssh.run()
     self.host_log.write("Change password file mode on host finished")
     return retcode
-
 
   def deletePasswordFile(self):
     # Deleting the password file
@@ -482,17 +595,37 @@ class Bootstrap(threading.Thread):
     self.host_log.write("Deleting password file finished")
     return retcode
 
-  def try_to_execute(self, action):
-    last_retcode = {"exitstatus": 177, "log":"Try to execute '{0}'".format(str(action)), "errormsg":"Execute of '{0}' failed".format(str(action))}
-    try:
-      retcode = action()
-      if isinstance(retcode, int):
-        last_retcode["exitstatus"] = retcode
-      else:
-        last_retcode = retcode
-    except Exception:
-      self.host_log.write("Traceback: " + traceback.format_exc())
-    return last_retcode
+  def createTargetDir(self):
+    # Creating target dir
+    self.host_log.write("==========================\n")
+    self.host_log.write("Creating target directory...")
+    params = self.shared_state
+    user = params.user
+
+    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0}".format(self.TEMP_FOLDER,quote_bash_args(params.user))
+
+    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+              params.bootdir, self.host_log)
+    retcode = ssh.run()
+    self.host_log.write("\n")
+    return retcode
+
+  def getRunSetupCommand(self, expected_hostname):
+    if self.hasPassword():
+      return self.getRunSetupWithPasswordCommand(expected_hostname)
+    else:
+      return self.getRunSetupWithoutPasswordCommand(expected_hostname)
+
+  def runSetupAgent(self):
+    params = self.shared_state
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running setup agent script...")
+    command = self.getRunSetupCommand(self.host)
+    ssh = SSH(params.user, params.sshkey_file, self.host, command,
+              params.bootdir, self.host_log)
+    retcode = ssh.run()
+    self.host_log.write("\n")
+    return retcode
 
   def run(self):
     """ Copy files and run commands on remote host """
@@ -537,24 +670,6 @@ class Bootstrap(threading.Thread):
 
     self.createDoneFile(last_retcode)
     self.status["return_code"] = last_retcode
-
-
-
-  def getStatus(self):
-    return self.status
-
-  def interruptBootstrap(self):
-    """
-    Thread is not really interrupted (moreover, Python seems to have no any
-    stable/portable/official api to do that: _Thread__stop only marks thread
-    as stopped). The bootstrap thread is marked as a daemon at init, and will
-    exit when the main parallel bootstrap thread exits.
-    All we need to do now is a proper logging and creating .done file
-    """
-    self.host_log.write("Automatic Agent registration timed out (timeout = {0} seconds). " \
-                        "Check your network connectivity and retry registration," \
-                        " or use manual agent registration.".format(HOST_BOOTSTRAP_TIMEOUT))
-    self.createDoneFile(199)
 
 
 
@@ -604,7 +719,6 @@ class PBootstrap:
     logging.info("Finished parallel bootstrap")
 
 
-
 class SharedState:
   def __init__(self, user, sshkey_file, script_dir, boottmpdir, setup_agent_file,
                ambari_server, cluster_os_type, ambari_version, server_port,
@@ -651,11 +765,12 @@ def main(argv=None):
   user_run_as = onlyargs[9]
   passwordFile = onlyargs[10]
 
-  # ssh doesn't like open files
-  subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
+  if not OSCheck.is_windows_family():
+    # ssh doesn't like open files
+    subprocess.Popen(["chmod", "600", sshkey_file], stdout=subprocess.PIPE)
 
-  if passwordFile is not None and passwordFile != 'null':
-    subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
+    if passwordFile is not None and passwordFile != 'null':
+      subprocess.Popen(["chmod", "600", passwordFile], stdout=subprocess.PIPE)
 
   logging.info("BootStrapping hosts " + pprint.pformat(hostList) +
                " using " + scriptDir + " cluster primary OS: " + cluster_os_type +

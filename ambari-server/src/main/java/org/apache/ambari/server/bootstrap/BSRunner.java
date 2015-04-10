@@ -20,8 +20,7 @@ package org.apache.ambari.server.bootstrap;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
@@ -196,14 +195,36 @@ class BSRunner extends Thread {
       command[9] = this.serverPort+"";
       command[10] = userRunAs;
       command[11] = (this.passwordFile==null) ? "null" : this.passwordFile.toString();
+
+      Map<String, String> envVariables = new HashMap<String, String>();
+
+      if (System.getProperty("os.name").contains("Windows")) {
+        String command2[] = new String[command.length + 1];
+        command2[0] = "python";
+        System.arraycopy(command, 0, command2, 1, command.length);
+        command = command2;
+
+        Map<String, String> envVarsWin = System.getenv();
+        if (envVarsWin != null) {
+          envVariables.putAll(envVarsWin);  //envVarsWin is non-modifiable
+        }
+      }
+
       LOG.info("Host= " + hostString + " bs=" + this.bsScript + " requestDir=" +
           requestIdDir + " user=" + user + " keyfile=" + this.sshKeyFile +
           " passwordFile " + this.passwordFile + " server=" + this.ambariHostname +
-          " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs="+ userRunAs);
+          " version=" + projectVersion + " serverPort=" + this.serverPort + " userRunAs=" + userRunAs);
 
-      String[] env = new String[] { "AMBARI_PASSPHRASE=" + agentSetupPassword };
+      envVariables.put("AMBARI_PASSPHRASE", agentSetupPassword);
       if (this.verbose)
-        env = new String[] { env[0], " BS_VERBOSE=\"-vvv\" " };
+        envVariables.put("BS_VERBOSE", "\"-vvv\"");
+
+      String[] env = new String[envVariables.size()];
+      int iVar = 0;
+      for(Map.Entry<String, String> pair : envVariables.entrySet())
+      {
+        env[iVar++] = pair.getKey() + "=" + pair.getValue();
+      }
 
       if (LOG.isDebugEnabled()) {
         LOG.debug(Arrays.toString(command));

@@ -33,7 +33,7 @@
     </file>
     <file>
       <source>${project.build.directory}/bootstrap.zip</source>
-      <outputDirectory>/ambari-server-${project.version}/bootstrap</outputDirectory>
+      <outputDirectory>/ambari-server-${project.version}/resources</outputDirectory>
     </file>
     <file>
       <source>${basedir}/conf/windows/ambari.properties</source>
@@ -61,7 +61,7 @@
     </file>
     <file>
       <source>${basedir}/src/main/python/bootstrap.py</source>
-      <outputDirectory>/ambari-server-${project.version}/bootstrap</outputDirectory>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
     </file>
     <file>
       <source>${basedir}/src/main/windows/ambari-server.cmd</source>
@@ -83,6 +83,13 @@
   </files>
   <fileSets>
     <!-- Distro files, readme, licenses, etc -->
+    <fileSet>
+      <directory>${basedir}/src/main/windows/psremoting/</directory>
+      <outputDirectory>/ambari-server-${project.version}/sbin</outputDirectory>
+      <includes>
+        <include>*.ps1</include>
+      </includes>
+    </fileSet>
     <fileSet>
       <directory>${basedir}/../ambari-admin/target</directory>
       <outputDirectory>/ambari-server-${project.version}/resources/views</outputDirectory>
