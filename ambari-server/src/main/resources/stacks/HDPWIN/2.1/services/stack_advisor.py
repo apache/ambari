@@ -93,13 +93,13 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
       config[configType]["properties"][key] = str(value)
     return appendProperty
 
-  def recommendYARNConfigurations(self, configurations, clusterData):
+  def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site")
     putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
 
-  def recommendMapReduce2Configurations(self, configurations, clusterData):
+  def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     putMapredProperty = self.putProperty(configurations, "mapred-site")
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', int(clusterData['amMemory']))
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(round(0.8 * clusterData['amMemory']))) + "m")
@@ -109,7 +109,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(round(0.8 * clusterData['reduceMemory']))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
 
-  def recommendOozieConfigurations(self, configurations, clusterData):
+  def recommendOozieConfigurations(self, configurations, clusterData, services, hosts):
     if "FALCON_SERVER" in clusterData["components"]:
       putMapredProperty = self.putProperty(configurations, "oozie-site")
       putMapredProperty("oozie.services.ext",
@@ -117,7 +117,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
                         "org.apache.oozie.service.PartitionDependencyManagerService," +
                         "org.apache.oozie.service.HCatAccessorService")
 
-  def recommendHiveConfigurations(self, configurations, clusterData):
+  def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
     containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
     putHiveProperty = self.putProperty(configurations, "hive-site")
@@ -125,8 +125,9 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(round(0.8 * containerSize)))
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC")
     putHiveProperty('hive.tez.container.size', containerSize)
+    putHiveProperty('datanucleus.autoCreateSchema', 'true')
 
-  def recommendTezConfigurations(self, configurations, clusterData):
+  def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']))
     putTezProperty("tez.am.java.opts",
@@ -235,7 +236,7 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
   def getServiceConfigurationValidators(self):
     return {
       "MAPREDUCE2": ["mapred-site", self.validateMapReduce2Configurations],
-      "YARN": ["yarn-site", self.validateYARNConfigurations]
+      "YARN": ["yarn-site", self.validateYARNConfigurations],
       "HIVE": ["hive-site", self.validateHiveConfigurations],
       "TEZ": ["tez-site", self.validateTezConfigurations]
     }
