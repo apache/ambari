@@ -17,17 +17,18 @@
 }}
 
 <div class="step2">
-  <h2>{{t widget.create.wizard.step2.header}}</h2>
-  <div class="alert alert-info">
-    {{t widget.create.wizard.step2.body.text}}
-    <div class="alert alert-warning">
-      {{t widget.create.wizard.step2.body.warning}}
-    </div>
-  </div>
 
-  {{#each expression in view.expressions}}
-    {{view App.WidgetWizardExpressionView expressionBinding="expression"}}
-  {{/each}}
+  {{#if view.templateType.isNumber}}
+    {{template "templates/main/service/widgets/create/step2_number"}}
+  {{/if}}
+
+  {{#if view.templateType.isGraph}}
+    {{template "templates/main/service/widgets/create/step2_graph"}}
+  {{/if}}
+
+  {{#if view.templateType.isTemplate}}
+    {{template "templates/main/service/widgets/create/step2_template"}}
+  {{/if}}
 
   <div>
     <form class="form-horizontal">

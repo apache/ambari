@@ -48,8 +48,10 @@
   }
 }
 
-#widget_layout {
+#widget_layout,
+#widget-preview {
   .frame {
+    overflow: hidden;
     height: 150px;
     width: 90%;
   }
@@ -111,6 +113,15 @@
   }
 }
 
+#widget-preview {
+  max-width: 200px;
+  .graph-widget {
+    .title {
+      height: 0;
+    }
+  }
+}
+
 #add-widget-wizard {
   .step2 {
     .badge-container {
@@ -132,6 +143,14 @@
         background-color: @health-status-red;
       }
     }
+    .remove-link {
+      padding: 5px;
+      cursor: pointer;
+      color: #555555;
+      right: 10px;
+      bottom: 10px;
+      position: absolute;
+    }
     .icon-asterisk {
       color: red;
       font-size: 8px;
@@ -142,7 +161,7 @@
     }
     .metric-container {
       position: relative;
-      margin-bottom: 70px;
+      margin-bottom: 50px;
       height: 200px;
       border: 1px solid @border-color;
       button,
@@ -188,6 +207,23 @@
       .controls.is-invalid {
         border-color: red;
       }
+    }
+    .template {
+      margin-bottom: 10px;
+      textarea {
+        width: ~"calc(100% - 10px)";
+      }
+    }
+    fieldset {
+      position: relative;
+      border: 2px groove #ddd;
+      padding: 0 1.4em 1.4em 1.4em;
+      margin: 0 0 1.5em 0;
+    }
+    legend {
+      width: inherit;
+      padding: 0 10px;
+      border-bottom: none;
     }
   }
 }

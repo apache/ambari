@@ -20,5 +20,50 @@ var App = require('app');
 
 App.WidgetWizardView = Em.View.extend(App.WizardMenuMixin, {
 
-  templateName: require('templates/main/service/widgets/create/wizard')
+  templateName: require('templates/main/service/widgets/create/wizard'),
+
+  /**
+   * @type {App.Widget}
+   */
+  previewWidgetClass: function () {
+    switch (this.get('controller.content.widgetType')) {
+      case 'GRAPH':
+        return App.GraphWidgetView.extend(App.WidgetPreviewMixin, {
+          MOCK_VALUE: function () {
+            var nowTime = App.dateTime();
+            var mock = [];
+
+            for (var i = 0; i < 240; i++) {
+              mock.push([
+                1,
+                (nowTime + (15 * i))
+              ])
+            }
+            return mock;
+          }.property()
+        });
+      case 'TEMPLATE':
+        return App.TemplateWidgetView.extend(App.WidgetPreviewMixin, {
+          MOCK_VALUE: 50
+        });
+      case 'NUMBER':
+        return App.NumberWidgetView.extend(App.WidgetPreviewMixin, {
+          MOCK_VALUE: 50
+        });
+      case 'GAUGE':
+        return App.GaugeWidgetView.extend(App.WidgetPreviewMixin, {
+          MOCK_VALUE: 0.5
+        });
+      default:
+        return Em.View;
+    }
+  }.property('controller.content.widgetType'),
+
+  /**
+   * Widget preview should be shown on 2nd step of wizard
+   * @type {boolean}
+   */
+  showPreview: function () {
+    return this.get('controller.currentStep') == "2";
+  }.property('controller.currentStep')
 });

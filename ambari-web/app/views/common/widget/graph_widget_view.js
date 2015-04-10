@@ -58,11 +58,16 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     var seriesData = [];
 
     this.get('content.values').forEach(function (value) {
-      var computedExpressions = this.computeExpression(this.extractExpressions(value)[0], metrics);
-      seriesData.push({
-        name: value.name,
-        data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
-      });
+      var expression =  this.extractExpressions(value)[0];
+      var computedExpressions;
+
+      if (expression) {
+        computedExpressions = this.computeExpression(expression, metrics);
+        seriesData.push({
+          name: value.name,
+          data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
+        });
+      }
     }, this);
     return seriesData;
   },

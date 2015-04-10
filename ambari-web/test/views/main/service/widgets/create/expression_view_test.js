@@ -23,7 +23,10 @@ describe('App.WidgetWizardExpressionView', function () {
   var view = App.WidgetWizardExpressionView.create({
     expression: {
       data: []
-    }
+    },
+    parentView: Em.Object.create({
+      updatePreview: Em.K
+    })
   });
 
   describe("#validate()", function() {

@@ -150,6 +150,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
     }
 
     this.set('isInvalid', isInvalid);
+    if (!isInvalid) this.get('parentView').updatePreview();
   }.observes('expression.data.length'),
 
   /**

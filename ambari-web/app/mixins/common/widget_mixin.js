@@ -60,6 +60,16 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
+   * draw widget
+   */
+  drawWidget: function () {
+    if (this.get('isLoaded')) {
+      this.calculateValues();
+      this.set('value', this.get('content.values')[0] && this.get('content.values')[0].computedValue);
+    }
+  },
+
+  /**
    * callback on metrics loaded
    */
   onMetricsLoaded: function () {
@@ -240,4 +250,30 @@ App.WidgetMixin = Ember.Mixin.create({
     //TODO push data to metrics after response structure approved
   }
 
+});
+
+App.WidgetPreviewMixin = Ember.Mixin.create({
+  beforeRender: Em.K,
+  isLoaded: true,
+  metrics: [],
+  content: Em.Object.create({
+    widgetName: 'mock-widget',
+    values: []
+  }),
+  drawWidget: function () {
+    this.loadMetrics();
+    this.set('content.values', this.get('controller.expressionData.values'));
+    this.set('content.properties', this.get('controller.widgetPropertiesData'));
+    this._super();
+  }.observes('controller.widgetPropertiesData', 'controller.expressionData'),
+  loadMetrics: function () {
+    var metrics = [];
+    this.get('controller.expressionData.metrics').forEach(function (metric) {
+      metrics.push({
+        name: metric,
+        data: this.get('MOCK_VALUE')
+      });
+    }, this);
+    this.set('metrics', metrics);
+  }
 });

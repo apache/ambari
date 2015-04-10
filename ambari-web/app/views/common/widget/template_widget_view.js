@@ -30,12 +30,5 @@ App.TemplateWidgetView = Em.View.extend(App.WidgetMixin, {
    * common metrics container
    * @type {Array}
    */
-  metrics: [],
-
-  drawWidget: function () {
-    if (this.get('isLoaded')) {
-      this.calculateValues();
-      this.set('value', this.get('content.values')[0].computedValue);
-    }
-  }
+  metrics: []
 });

@@ -22,4 +22,7 @@
 
 require('templates/main/service/info/summary/base');
 require('templates/common/progress');
+require("templates/main/service/widgets/create/step2_number");
+require("templates/main/service/widgets/create/step2_template");
+require("templates/main/service/widgets/create/step2_graph");
 require('templates/common/configs/widgets/controls');

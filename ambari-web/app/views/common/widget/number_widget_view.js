@@ -48,12 +48,5 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
     } else {
       return 'red';
     }
-  }.property('value', 'content.properties.warning_threshold', 'content.properties.error_threshold'),
-
-  drawWidget: function () {
-    if (this.get('isLoaded')) {
-      this.calculateValues();
-      this.set('value', this.get('content.values')[0].computedValue);
-    }
-  }
+  }.property('value', 'content.properties.warning_threshold', 'content.properties.error_threshold')
 });

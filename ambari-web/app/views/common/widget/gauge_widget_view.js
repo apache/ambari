@@ -32,13 +32,6 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   metrics: [],
 
-  drawWidget: function () {
-    if (this.get('isLoaded')) {
-      this.calculateValues();
-      this.set('value', this.get('content.values')[0].computedValue);
-    }
-  },
-
   chartView: App.ChartPieView.extend({
     stroke: '#D6DDDF', //light grey
     innerR: 25,
