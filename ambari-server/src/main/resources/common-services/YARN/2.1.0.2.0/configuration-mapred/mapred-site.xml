@@ -37,7 +37,7 @@
       <minimum>0</minimum>
       <maximum>2047</maximum>
       <unit>MB</unit>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -285,7 +285,7 @@
       <minimum>512</minimum>
       <maximum>5120</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
     <depends-on>
       <property>

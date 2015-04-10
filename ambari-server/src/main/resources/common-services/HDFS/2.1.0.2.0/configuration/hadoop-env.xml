@@ -51,7 +51,7 @@
       <minimum>0</minimum>
       <maximum>268435456</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -64,7 +64,7 @@
       <minimum>0</minimum>
       <maximum>16384</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -77,7 +77,7 @@
       <minimum>0</minimum>
       <maximum>16384</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -90,7 +90,7 @@
       <minimum>0</minimum>
       <maximum>2096</maximum>
       <unit>MB</unit>
-      <step-increment>125</step-increment>
+      <increment-step>125</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -103,7 +103,7 @@
       <minimum>0</minimum>
       <maximum>2096</maximum>
       <unit>MB</unit>
-      <step-increment>125</step-increment>
+      <increment-step>125</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -116,7 +116,7 @@
       <minimum>0</minimum>
       <maximum>268435456</maximum>
       <unit>MB</unit>
-      <step-increment>125</step-increment>
+      <increment-step>125</increment-step>
     </value-attributes>
   </property>
   <property>

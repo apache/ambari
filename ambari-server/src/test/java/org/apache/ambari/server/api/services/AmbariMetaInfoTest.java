@@ -811,6 +811,7 @@ public class AmbariMetaInfoTest {
     Assert.assertEquals("int", newEnhancedProperty.getPropertyValueAttributes().getType());
     Assert.assertEquals("512", newEnhancedProperty.getPropertyValueAttributes().getMinimum());
     Assert.assertEquals("15360", newEnhancedProperty.getPropertyValueAttributes().getMaximum());
+    Assert.assertEquals("256", newEnhancedProperty.getPropertyValueAttributes().getIncrementStep());
     Assert.assertTrue(newEnhancedProperty.getPropertyValueAttributes().getEntries().isEmpty());
     Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntriesEditable());
 //    Assert.assertNull(newEnhancedProperty.getPropertyValueAttributes().getEntryDescriptions());

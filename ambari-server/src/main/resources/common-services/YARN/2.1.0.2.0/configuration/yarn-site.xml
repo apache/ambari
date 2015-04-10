@@ -76,7 +76,7 @@
       <minimum>0</minimum>
       <maximum>5120</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -100,7 +100,7 @@
       <minimum>0</minimum>
       <maximum>5120</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -141,7 +141,7 @@
       <minimum>0</minimum>
       <maximum>268435456</maximum>
       <unit>MB</unit>
-      <step-increment>250</step-increment>
+      <increment-step>250</increment-step>
     </value-attributes>
   </property>
 
@@ -164,7 +164,7 @@
       <type>float</type>
       <minimum>0.1</minimum>
       <maximum>5.0</maximum>
-      <step-increment>0.1</step-increment>
+      <increment-step>0.1</increment-step>
     </value-attributes>
   </property>
 

@@ -173,7 +173,7 @@
       <type>int</type>
       <minimum>600</minimum>
       <maximum>86400</maximum>
-      <step-increment>600</step-increment>
+      <increment-step>600</increment-step>
       <unit>seconds</unit>
     </value-attributes>
   </property>

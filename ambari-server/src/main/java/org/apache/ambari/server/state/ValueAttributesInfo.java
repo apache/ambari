@@ -27,7 +27,6 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -37,6 +36,10 @@ public class ValueAttributesInfo {
   private String maximum;
   private String minimum;
   private String unit;
+
+  @XmlElement(name = "increment-step")
+  @JsonProperty("increment_step")
+  private String incrementStep;
 
   @XmlElementWrapper(name = "entries")
   @XmlElements(@XmlElement(name = "entry"))
@@ -109,6 +112,14 @@ public class ValueAttributesInfo {
     this.selectionCardinality = selectionCardinality;
   }
 
+  public String getIncrementStep() {
+    return incrementStep;
+  }
+
+  public void setIncrementStep(String incrementStep) {
+    this.incrementStep = incrementStep;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -125,6 +136,7 @@ public class ValueAttributesInfo {
       return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (unit != null ? !unit.equals(that.unit) : that.unit != null) return false;
+    if (incrementStep != null ? !incrementStep.equals(that.incrementStep) : that.incrementStep != null) return false;
 
     return true;
   }
@@ -138,6 +150,7 @@ public class ValueAttributesInfo {
     result = 31 * result + (entries != null ? entries.hashCode() : 0);
     result = 31 * result + (entriesEditable != null ? entriesEditable.hashCode() : 0);
     result = 31 * result + (selectionCardinality != null ? selectionCardinality.hashCode() : 0);
+    result = 31 * result + (incrementStep != null ? incrementStep.hashCode() : 0);
     return result;
   }
 
@@ -149,6 +162,7 @@ public class ValueAttributesInfo {
       ", maximum='" + maximum + '\'' +
       ", minimum='" + minimum + '\'' +
       ", unit='" + unit + '\'' +
+      ", incrementStep='" + incrementStep + '\'' +
       ", entriesEditable=" + entriesEditable +
       ", selectionCardinality='" + selectionCardinality + '\'' +
       '}';

@@ -367,7 +367,7 @@ limitations under the License.
       <minimum>682</minimum>
       <minimum>6820</minimum>
       <unit>MB</unit>
-      <step-increment>682</step-increment>
+      <increment-step>682</increment-step>
     </value-attributes>
   </property>
 
@@ -480,7 +480,7 @@ limitations under the License.
       <type>int</type>
       <minimum>0</minimum>
       <maximum>20</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
 

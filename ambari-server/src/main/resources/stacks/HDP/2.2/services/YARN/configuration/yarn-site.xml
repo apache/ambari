@@ -203,7 +203,7 @@
       <type>int</type>
       <minimum>0</minimum>
       <maximum>100</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -349,7 +349,7 @@
       <type>int</type>
       <minimum>0</minimum>
       <maximum>8</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
     <depends-on>
       <property>
@@ -367,7 +367,7 @@
       <type>int</type>
       <minimum>0</minimum>
       <maximum>8</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
     <depends-on>
       <property>

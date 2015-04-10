@@ -59,7 +59,7 @@
       <type>int</type>
       <minimum>0</minimum>
       <maximum>2</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
 
@@ -181,7 +181,7 @@
           <label>No NN HA</label>
         </entry>
       </entries>
-      <selection_cardinality>1</selection_cardinality>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 

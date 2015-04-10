@@ -103,7 +103,7 @@
       <type>int</type>
       <minimum>5</minimum>
       <maximum>240</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -156,7 +156,7 @@
           <value>8</value>
         </entry>
       </entries>
-      <selection_cardinality>1</selection_cardinality>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
   <property>
@@ -172,7 +172,7 @@
       <type>int</type>
       <minimum>33554432</minimum>
       <maximum>268435456</maximum>
-      <step-increment>1048576</step-increment>
+      <increment-step>1048576</increment-step>
       <unit>B</unit>
     </value-attributes>
   </property>
@@ -200,7 +200,7 @@
       <minimum>1073741824</minimum>
       <maximum>10737418240</maximum>
       <unit>B</unit>
-      <step-increment>268435456</step-increment>
+      <increment-step>268435456</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -218,7 +218,7 @@
       <type>int</type>
       <minimum>100</minimum>
       <maximum>10000</maximum>
-      <step-increment>100</step-increment>
+      <increment-step>100</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -237,7 +237,7 @@
       <minimum>10000</minimum>
       <maximum>180000</maximum>
       <unit>milliseconds</unit>
-      <step-increment>10000</step-increment>
+      <increment-step>10000</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -256,7 +256,7 @@
       <minimum>1048576</minimum>
       <maximum>31457280</maximum>
       <unit>B</unit>
-      <step-increment>262144</step-increment>
+      <increment-step>262144</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -345,7 +345,7 @@
           <value>false</value>
         </entry>
       </entries>
-      <selection_cardinality>1</selection_cardinality>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 
@@ -365,7 +365,7 @@
           <value>false</value>
         </entry>
       </entries>
-      <selection_cardinality>1</selection_cardinality>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 
@@ -451,7 +451,7 @@
       <type>int</type>
       <minimum>5</minimum>
       <maximum>50</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -466,7 +466,7 @@
       <minimum>30000</minimum>
       <maximum>300000</maximum>
       <unit>milliseconds</unit>
-      <step-increment>10000</step-increment>
+      <increment-step>10000</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -484,7 +484,7 @@
       <minimum>30000</minimum>
       <maximum>300000</maximum>
       <unit>milliseconds</unit>
-      <step-increment>10000</step-increment>
+      <increment-step>10000</increment-step>
     </value-attributes>
   </property>
 

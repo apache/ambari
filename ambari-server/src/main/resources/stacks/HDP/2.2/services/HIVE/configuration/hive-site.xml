@@ -482,7 +482,7 @@ limitations under the License.
       <minimum>8388608</minimum>
       <maximum>268435456</maximum>
       <unit>B</unit>
-      <step-increment>8388608</step-increment>
+      <increment-step>8388608</increment-step>
     </value-attributes>
   </property>
 
@@ -1162,7 +1162,7 @@ limitations under the License.
       <type>int</type>
       <minimum>1</minimum>
       <maximum>20</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
 
@@ -1433,7 +1433,7 @@ limitations under the License.
       <type>int</type>
       <minimum>1</minimum>
       <maximum>10</maximum>
-      <step-increment>1</step-increment>
+      <increment-step>1</increment-step>
     </value-attributes>
   </property>
 
