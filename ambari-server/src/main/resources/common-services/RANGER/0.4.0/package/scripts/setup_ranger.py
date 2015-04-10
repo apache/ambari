@@ -115,6 +115,9 @@ def setup_usersync():
   Execute(('chown', params.unix_user, params.usersync_stop),
     sudo = True,
   )
+  File(params.usersync_services_file,
+    mode = 0755,
+  )
 
 def write_properties_to_file(file_path, value):
   for key in value:

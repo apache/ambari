@@ -32,6 +32,7 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
+stack_is_hdp23_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0
 
 if stack_is_hdp22_or_further:
   ranger_home    = '/usr/hdp/current/ranger-admin'
@@ -41,6 +42,8 @@ if stack_is_hdp22_or_further:
   usersync_home  = '/usr/hdp/current/ranger-usersync'
   usersync_start = '/usr/bin/ranger-usersync-start'
   usersync_stop  = '/usr/bin/ranger-usersync-stop'
+  
+usersync_services_file = "/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh"
 
 java_home = config['hostLevelParams']['java_home']
 unix_user  = default("/configurations/ranger-env/ranger_user", "ranger")
