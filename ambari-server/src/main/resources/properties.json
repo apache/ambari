@@ -77,7 +77,6 @@
         "HostRoles/stale_configs",
         "HostRoles/desired_admin_state",
         "HostRoles/maintenance_state",
-        "HostRoles/hdp_version",
         "HostRoles/service_name",
         "_"
     ],
