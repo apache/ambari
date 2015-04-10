@@ -173,8 +173,6 @@ if has_ganglia_server:
   user_to_groups_dict[gmetad_user] = [gmetad_user]
 if has_tez:
   user_to_groups_dict[tez_user] = [proxyuser_group]
-if has_oozie_server:
-  user_to_groups_dict[oozie_user] = [proxyuser_group]
 
 user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
