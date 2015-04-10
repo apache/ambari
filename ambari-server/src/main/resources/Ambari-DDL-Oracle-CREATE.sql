@@ -530,7 +530,7 @@ CREATE TABLE widget (
   time_created NUMBER(19) NOT NULL,
   author VARCHAR2(255),
   description VARCHAR2(255),
-  display_name VARCHAR2(255) NOT NULL,
+  display_name VARCHAR2(255),
   scope VARCHAR2(255),
   widget_values VARCHAR2(4000),
   properties VARCHAR2(4000),
@@ -544,7 +544,7 @@ CREATE TABLE widget_layout (
   section_name VARCHAR2(255) NOT NULL,
   scope VARCHAR2(255) NOT NULL,
   user_name VARCHAR2(255) NOT NULL,
-  display_name VARCHAR2(255) NOT NULL,
+  display_name VARCHAR2(255),
   cluster_id NUMBER(19) NOT NULL,
   PRIMARY KEY(id)
 );
