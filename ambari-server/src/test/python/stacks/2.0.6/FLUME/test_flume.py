@@ -119,7 +119,7 @@ class TestFlumeHandler(RMFTestCase):
   def test_struct_out(self):
    from resource_management.libraries.script import Script
 
-   configs_path = os.path.join(RMFTestCase._getSrcFolder(),
+   configs_path = os.path.join(RMFTestCase.get_src_folder(),
      "test/python/stacks", self.STACK_VERSION, "configs")
 
    script = Script()

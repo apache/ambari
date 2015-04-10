@@ -22,7 +22,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.libraries.functions import Direction, SafeMode
 from resource_management.core.exceptions import Fail
 
@@ -48,7 +48,7 @@ def reach_safemode_state(user, safemode_state, in_ha):
 
   grep_pattern = format("Safe mode is {safemode_state} in {hostname}") if in_ha else format("Safe mode is {safemode_state}")
   safemode_check_with_grep = format("su - {user} -c 'hdfs dfsadmin -safemode get | grep \"{grep_pattern}\"'")
-  code, out = call(safemode_check)
+  code, out = shell.call(safemode_check)
   Logger.info("Command: %s\nCode: %d." % (safemode_check, code))
   if code == 0 and out is not None:
     Logger.info(out)

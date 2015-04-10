@@ -78,7 +78,6 @@ public class DistributeRepositoriesActionListener {
   }
 
   @Subscribe
-  // @AllowConcurrentEvents //TODO: is it thread safe?
   public void onActionFinished(ActionFinalReportReceivedEvent event) {
     // Check if it is "Distribute repositories/install packages" action.
     if (! event.getRole().equals(INSTALL_PACKAGES)) {

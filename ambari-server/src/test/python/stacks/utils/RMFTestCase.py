@@ -68,7 +68,7 @@ class RMFTestCase(TestCase):
                     target=TARGET_STACKS
                     ):
     norm_path = os.path.normpath(path)
-    src_dir = RMFTestCase._getSrcFolder()
+    src_dir = RMFTestCase.get_src_folder()
     if target == self.TARGET_STACKS:
       stack_version = norm_path.split(os.sep)[0]
       base_path = os.path.join(src_dir, PATH_TO_STACKS)
@@ -145,16 +145,16 @@ class RMFTestCase(TestCase):
     return self.config_dict
           
   @staticmethod
-  def _getSrcFolder():
+  def get_src_folder():
     return os.path.join(os.path.abspath(os.path.dirname(__file__)),os.path.normpath("../../../../"))
   
   @staticmethod
   def _getCommonServicesFolder():
-    return os.path.join(RMFTestCase._getSrcFolder(), PATH_TO_COMMON_SERVICES)
+    return os.path.join(RMFTestCase.get_src_folder(), PATH_TO_COMMON_SERVICES)
 
   @staticmethod
   def _getStackTestsFolder():
-    return os.path.join(RMFTestCase._getSrcFolder(), PATH_TO_STACK_TESTS)
+    return os.path.join(RMFTestCase.get_src_folder(), PATH_TO_STACK_TESTS)
 
   @staticmethod
   def _get_attr(module, attr):

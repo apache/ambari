@@ -149,7 +149,7 @@ class TestDatanode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_secured_HDP22_root(self):
-    config_file = self._getSrcFolder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
@@ -187,7 +187,7 @@ class TestDatanode(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_start_secured_HDP22_non_root_https_only(self):
-    config_file = self._getSrcFolder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
@@ -265,7 +265,7 @@ class TestDatanode(RMFTestCase):
 
   @patch("os.path.exists", new = MagicMock(return_value=False))
   def test_stop_secured_HDP22_root(self):
-    config_file = self._getSrcFolder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
@@ -306,7 +306,7 @@ class TestDatanode(RMFTestCase):
 
   @patch("os.path.exists", new = MagicMock(return_value=False))
   def test_stop_secured_HDP22_non_root_https_only(self):
-    config_file = self._getSrcFolder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       secured_json = json.load(f)
 
@@ -439,6 +439,23 @@ class TestDatanode(RMFTestCase):
                               recursive = True,
                               cd_access='a'
                               )
+
+
+  def test_pre_rolling_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/datanode.py",
+                       classname = "DataNode",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertResourceCalled('Execute',
+                              'hdp-select set hadoop-hdfs-datanode %s' % version,)
+    self.assertNoMoreResources()
 
 
   @patch('time.sleep')

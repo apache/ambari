@@ -260,7 +260,7 @@ class TestInstallPackages(RMFTestCase):
     allInstalledPackages_mock = MagicMock(side_effect = TestInstallPackages._add_packages)
     is_suse_family_mock.return_value = True
 
-    config_file = self._getSrcFolder()+"/test/python/custom_actions/configs/install_packages_config.json"
+    config_file = self.get_src_folder()+"/test/python/custom_actions/configs/install_packages_config.json"
     with open(config_file, "r") as f:
       config_dict = json.load(f)
 
@@ -315,7 +315,7 @@ class TestInstallPackages(RMFTestCase):
     self.assertNoMoreResources()
 
     # Check case when LZO is enabled
-    config_file = self._getSrcFolder()+"/test/python/custom_actions/configs/install_packages_config.json"
+    config_file = self.get_src_folder()+"/test/python/custom_actions/configs/install_packages_config.json"
     with open(config_file, "r") as f:
       config_dict = json.load(f)
     config_dict['configurations']['core-site'] = {

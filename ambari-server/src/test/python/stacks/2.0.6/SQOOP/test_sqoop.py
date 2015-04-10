@@ -59,7 +59,7 @@ class TestSqoop(RMFTestCase):
     self.assertNoMoreResources()
 
   def test_configure_add_jdbc(self):
-    config_file = self._getSrcFolder()+"/test/python/stacks/2.0.6/configs/secured.json"
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       loaded_json = json.load(f)
 
