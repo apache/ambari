@@ -21,7 +21,7 @@
     {{#each alert in view.alerts}}
       <li class="alert-list-wrap">
         <div class="row-fluid">
-          <div class="span7 name-text">
+          <div class="span8 name-text">
             <div>
               <a href="#" {{action "gotoAlertDetails" alert target="view"}}>{{alert.label}}</a>
             </div>
@@ -29,7 +29,7 @@
               {{alert.latestText}}
             </div>
           </div>
-          <div class="span5 status-col" rel="alert-status-tooltip" >
+          <div class="span4 status-col" rel="alert-status-tooltip" >
             <span class="timeago" {{bindAttr data-original-title="alert.lastTriggeredVerboseDisplay"}}>
               <span class="status-icon">{{{alert.status}}}</span>
               <time>{{alert.lastTriggeredForFormatted}}</time>
