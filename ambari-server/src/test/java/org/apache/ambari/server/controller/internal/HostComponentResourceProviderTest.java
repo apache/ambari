@@ -32,6 +32,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
@@ -250,6 +251,7 @@ public class HostComponentResourceProviderTest {
     Resource.Type type = Resource.Type.HostComponent;
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    HostVersionDAO hostVersionDAO = createMock(HostVersionDAO.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     Injector injector = createNiceMock(Injector.class);
@@ -298,10 +300,12 @@ public class HostComponentResourceProviderTest {
     stageContainer.persist();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
 
-    HostComponentResourceProvider provider =
+    TestHostComponentResourceProvider provider =
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            managementController, injector, maintenanceStateHelper);
+            managementController, injector);
+    provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
+    provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
         anyObject(Map.class),
@@ -352,6 +356,7 @@ public class HostComponentResourceProviderTest {
     ServiceComponentHost clientComponentHost = createNiceMock(ServiceComponentHost.class);
     RequestStageContainer stageContainer = createNiceMock(RequestStageContainer.class);
     MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
+    HostVersionDAO hostVersionDAO = createMock(HostVersionDAO.class);
 
     Collection<String> hosts = new HashSet<String>();
     hosts.add("Host100");
@@ -392,6 +397,7 @@ public class HostComponentResourceProviderTest {
     expect(clientComponentHost.getHostName()).andReturn("Host100").anyTimes();
     expect(clientComponentHost.getServiceComponentName()).andReturn("some-client").anyTimes();
     expect(response.getMessage()).andReturn("response msg").anyTimes();
+    expect(hostVersionDAO.findByHostAndStateCurrent(anyObject(String.class), anyObject(String.class))).andReturn(null).anyTimes();
 
     //Cluster is default type.  Maintenance mode is not being tested here so the default is returned.
     expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
@@ -424,20 +430,22 @@ public class HostComponentResourceProviderTest {
     expect(stageContainer.getProjectedState("Host100", "Component100")).andReturn(State.INSTALLED).once();
     expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
 
-    HostComponentResourceProvider provider =
+    TestHostComponentResourceProvider provider =
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            managementController, injector, maintenanceStateHelper);
+            managementController, injector);
+    provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
+    provider.setFieldValue("hostVersionDAO", hostVersionDAO);
 
     expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
-        anyObject(Map.class),
-        eq(managementController))).
+            anyObject(Map.class),
+            eq(managementController))).
         andReturn(provider).anyTimes();
 
     // replay
     replay(managementController, response, resourceProviderFactory, clusters, cluster, service,
         component, componentHost, stageContainer, maintenanceStateHelper, clientComponent,
-        clientComponentHost);
+        clientComponentHost, hostVersionDAO);
 
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
     properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
@@ -549,8 +557,8 @@ public class HostComponentResourceProviderTest {
     HostComponentResourceProvider provider =
         new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
             PropertyHelper.getKeyPropertyIds(type),
-            controller, injector, injector.getInstance(MaintenanceStateHelper.class)
-        );
+            controller, injector);
+
     RequestStageContainer requestStages = provider.updateHostComponents(null, requests, requestProperties, runSmokeTest);
     requestStages.persist();
     return requestStages.getRequestStatusResponse();
@@ -566,16 +574,16 @@ public class HostComponentResourceProviderTest {
      * @param managementController the management controller
      */
     public TestHostComponentResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds,
-                                             AmbariManagementController managementController, Injector injector,
-                                             MaintenanceStateHelper maintenanceStateHelper) throws Exception {
-
+                                             AmbariManagementController managementController, Injector injector) throws Exception {
       super(propertyIds, keyPropertyIds, managementController, injector);
-
-      Class<?> c = getClass().getSuperclass();
-
-      Field f = c.getDeclaredField("maintenanceStateHelper");
-      f.setAccessible(true);
-      f.set(this, maintenanceStateHelper);
     }
+
+    public void setFieldValue(String fieldName, Object fieldValue) throws Exception {
+      Class<?> c = getClass().getSuperclass();
+      Field f = c.getDeclaredField(fieldName);
+      f.setAccessible(true);
+      f.set(this, fieldValue);
+    }
+
   }
 }
