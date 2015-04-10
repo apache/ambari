@@ -835,15 +835,17 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         Set<String> configTypes = configHelper.findConfigTypesByPropertyName(cluster.getCurrentStackVersion(),
                 property.getKey(), cluster.getClusterName());
         // i'm not sure, but i hope that every service property is unique
-        String configType = configTypes.iterator().next();
+        if (configTypes != null && configTypes.size() > 0) {
+          String configType = configTypes.iterator().next();
 
-        if (configs.containsKey(configType)) {
-          HashMap<String, String> config = configs.get(configType);
-          config.put(property.getKey(), property.getValue());
-        } else {
-          HashMap<String, String> config = new HashMap<String, String>();
-          config.put(property.getKey(), property.getValue());
-          configs.put(configType, config);
+          if (configs.containsKey(configType)) {
+            HashMap<String, String> config = configs.get(configType);
+            config.put(property.getKey(), property.getValue());
+          } else {
+            HashMap<String, String> config = new HashMap<String, String>();
+            config.put(property.getKey(), property.getValue());
+            configs.put(configType, config);
+          }
         }
       }
 
