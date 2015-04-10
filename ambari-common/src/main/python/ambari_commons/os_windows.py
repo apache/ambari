@@ -616,6 +616,8 @@ class WinService(win32serviceutil.ServiceFramework):
               perfMonIni = None, perfMonDll = None):
     installArgs = [sys.argv[0], "--startup=" + startupMode]
     if username is not None and username:
+      if username.find('\\') == -1:
+        username = '.\\' + username
       installArgs.append("--username=" + username)
       if password is not None and password:
         installArgs.append("--password=" + password)
@@ -703,19 +705,34 @@ class UserHelper(object):
   USER_EXISTS = 1
   ACTION_FAILED = -1
 
-  def __init__(self):
-    self._policy = win32security.LsaOpenPolicy(None,
+  def __init__(self, userName):
+    self.domainName, self.dcName, self.userName = UserHelper._parse_user_name(userName)
+    self._policy = win32security.LsaOpenPolicy(self.dcName,
                                                win32security.POLICY_CREATE_ACCOUNT | win32security.POLICY_LOOKUP_NAMES)
 
-  def create_user(self, name, password, comment="Ambari user"):
+  @staticmethod
+  def _parse_user_name(userName):
+    dcName = None
+    domainName = None
+    domainSepIndex = userName.find('\\')
+    if domainSepIndex != -1:
+      domainName = userName[0:domainSepIndex]
+      userName = userName[domainSepIndex + 1:]
+      if domainName == '.' or domainName == win32api.GetComputerName():
+        domainName = None
+      else:
+        dcName = win32net.NetGetDCName(None, domainName)
+    return (domainName, dcName, userName)
+
+  def create_user(self, password, comment="Ambari user"):
     user_info = {}
-    user_info['name'] = name
+    user_info['name'] = self.userName
     user_info['password'] = password
     user_info['priv'] = win32netcon.USER_PRIV_USER
     user_info['comment'] = comment
     user_info['flags'] = win32netcon.UF_NORMAL_ACCOUNT | win32netcon.UF_SCRIPT
     try:
-      win32net.NetUserAdd(None, 1, user_info)
+      win32net.NetUserAdd(self.dcName, 1, user_info)
     except pywintypes.error as e:
       if e.winerror == 2224:
         return UserHelper.USER_EXISTS, e.strerror
@@ -723,9 +740,9 @@ class UserHelper(object):
         return UserHelper.ACTION_FAILED, e.strerror
     return UserHelper.ACTION_OK, "User created."
 
-  def add_user_privilege(self, name, privilege):
+  def add_user_privilege(self, privilege):
     try:
-      acc_sid = win32security.LookupAccountName(None, name)[0]
+      acc_sid = win32security.LookupAccountName(self.dcName, self.userName)[0]
       win32security.LsaAddAccountRights(self._policy, acc_sid, (privilege,))
     except pywintypes.error as e:
       return UserHelper.ACTION_FAILED, e.strerror
@@ -733,7 +750,7 @@ class UserHelper(object):
 
   def remove_user_privilege(self, name, privilege):
     try:
-      acc_sid = win32security.LookupAccountName(None, name)[0]
+      acc_sid = win32security.LookupAccountName(self.dcName, self.userName)[0]
       win32security.LsaRemoveAccountRights(self._policy, acc_sid, 0, (privilege,))
     except pywintypes.error as e:
       return UserHelper.ACTION_FAILED, e.strerror

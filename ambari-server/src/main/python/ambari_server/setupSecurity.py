@@ -128,6 +128,7 @@ def adjust_directory_permissions(ambari_user):
       pass
   else:
     print_warning_msg("Bootstrap directory lingering around after 5s. Unable to complete the cleanup.")
+  pass
 
   # Add master key and credential store if exists
   keyLocation = get_master_key_location(properties)

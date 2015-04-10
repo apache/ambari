@@ -217,9 +217,9 @@ class AmbariUserChecksWindows(AmbariUserChecks):
 
     from ambari_commons.os_windows import UserHelper
 
-    uh = UserHelper()
+    uh = UserHelper(user)
 
-    status, message = uh.create_user(user,password)
+    status, message = uh.create_user(password)
     if status == UserHelper.USER_EXISTS:
       print_info_msg("User {0} already exists, make sure that you typed correct password for user, "
                      "skipping user creation".format(user))
@@ -230,16 +230,18 @@ class AmbariUserChecksWindows(AmbariUserChecks):
 
     # setting SeServiceLogonRight to user
 
-    status, message = uh.add_user_privilege(user, 'SeServiceLogonRight')
+    status, message = uh.add_user_privilege('SeServiceLogonRight')
     if status == UserHelper.ACTION_FAILED:
       print_warning_msg("Can't add SeServiceLogonRight to user {0}. Failed with message {1}".format(user, message))
       return UserHelper.ACTION_FAILED, None
 
     print_info_msg("User configuration is done.")
-    print_warning_msg("When using non SYSTEM user make sure that your user have read\write access to log directories and "
+    print_warning_msg("When using non SYSTEM user make sure that your user has read\write access to log directories and "
                       "all server directories. In case of integrated authentication for SQL Server make sure that your "
-                      "user properly configured to use ambari and metric database.")
+                      "user is properly configured to use the ambari database.")
     #storing username and password in os.environ temporary to pass them to service
+    if uh.domainName:
+      user = uh.domainName + '\\' + user
     os.environ[SERVICE_USERNAME_KEY] = user
     os.environ[SERVICE_PASSWORD_KEY] = password
     return 0, user
