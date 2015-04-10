@@ -20,8 +20,8 @@
 {{/if}}
 <div {{bindAttr class="view.isOriginalSCP:original-widget"}}>
   <div class="input-append">
-    {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}
     <div class="dropdown btn-group">
+      {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}
       <button {{bindAttr class="view.disabled:disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
         <span class="caret"></span>
       </button>

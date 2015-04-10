@@ -183,21 +183,19 @@
 
 .combo-widget {
   .input-append {
-
-    > input {
-      border-radius: 3px 0 0 3px;
-      width: @combo-widget-width;
-
-      &[disabled] {
-        background: #fff;
-        cursor: default;
-      }
-    }
-
     .btn-group {
       display: inline-block;
       margin-left: -1px;
 
+      > input {
+        border-radius: 3px 0 0 3px;
+        width: @combo-widget-width;
+
+        &[disabled] {
+          background: #fff;
+          cursor: default;
+        }
+      }
       .btn {
         border-radius: 0 3px 3px 0;
       }
