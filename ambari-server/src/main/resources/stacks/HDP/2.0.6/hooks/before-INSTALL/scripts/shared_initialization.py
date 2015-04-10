@@ -62,6 +62,11 @@ def setup_java():
           not_if = format("test -e {java_exec}")
   )
   
+  File(format("{java_home}/bin/java"),
+          mode=0755,
+          cd_access="a",
+  )
+  
   Execute(("chgrp","-R", params.user_group, params.java_home),
           sudo = True,          
   )
