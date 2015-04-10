@@ -115,9 +115,11 @@ describe('App.ListConfigWidgetView', function () {
   describe('#restoreValue', function () {
 
     beforeEach(function() {
+      sinon.stub(view, 'restoreDependentConfigs', Em.K);
       sinon.stub(view.get('controller'), 'removeCurrentFromDependentList', Em.K)
     });
     afterEach(function() {
+      view.restoreDependentConfigs.restore();
       view.get('controller.removeCurrentFromDependentList').restore();
     });
     it('should restore default value', function () {

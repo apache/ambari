@@ -149,4 +149,56 @@ describe('App.ConfigWidgetView', function () {
 
   });
 
+  describe('#restoreDependentConfigs', function() {
+    beforeEach(function() {
+      view = App.ConfigWidgetView.create({
+        controller: Em.Object.create({
+          _updateDependentConfigs: function() {}
+        }),
+        config: Em.Object.create({ name: 'config1'})
+      });
+    });
+
+    var tests = [
+      {
+        dependentConfigs: [
+          {name: 'dependent1', parentConfigs: ['config1']},
+          {name: 'dependent2', parentConfigs: ['config2']},
+          {name: 'dependent3', parentConfigs: ['config1']}
+        ],
+        e: ['dependent2'],
+        m: 'when dependent configs has one parent they should be removed'
+      },
+      {
+        dependentConfigs: [
+          {name: 'dependent1', parentConfigs: ['config1', 'config2']},
+          {name: 'dependent2', parentConfigs: ['config2']},
+          {name: 'dependent3', parentConfigs: ['config1']}
+        ],
+        e: ['dependent1', 'dependent2'],
+        m: 'when dependent configs has multiple parents they should not be removed'
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it(test.m, function() {
+        view.set('controller._dependentConfigValues', test.dependentConfigs);
+        view.restoreDependentConfigs(view.get('config'));
+        expect(view.get('controller._dependentConfigValues').mapProperty('name')).to.be.eql(test.e);
+      });
+    });
+
+    it('when dependent configs has multiple parents appropriate parent config should be removed', function() {
+      view.set('controller._dependentConfigValues', [
+        {name: 'dependent1', parentConfigs: ['config1', 'config2']},
+        {name: 'dependent2', parentConfigs: ['config2', 'config1']},
+        {name: 'dependent3', parentConfigs: ['config1']}
+      ]);
+      view.restoreDependentConfigs(view.get('config'));
+      expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent1').parentConfigs.toArray()).to.be.eql(["config2"]);
+      expect(view.get('controller._dependentConfigValues').findProperty('name', 'dependent2').parentConfigs.toArray()).to.be.eql(["config2"]);
+      expect(view.get('controller._dependentConfigValues.length')).to.be.eql(2);
+    });
+
+  });
 });

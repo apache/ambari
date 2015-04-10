@@ -70,9 +70,13 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig'));
     }
   },
+
   /**
    * method send request to check if some of dependent configs was changes
    * and in case there was changes shows popup with info about changed configs
+   *
+   * @param {App.ServiceConfigProperty} config
+   * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
     if (App.get('supports.enhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
@@ -80,13 +84,41 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.StackConfigProperty.find(name + '_' + type);
       if (p && p.get('propertyDependedBy.length') > 0) {
-        this.get('controller').getRecommendationsForDependencies([{
+        return this.get('controller').getRecommendationsForDependencies([{
           "type": type,
           "name": name
         }]);
       }
     }
+
+    return $.Deferred().resolve().promise();
+  },
+
+  /**
+   * Restore values for dependent configs by parent config info.
+   * NOTE: If dependent config inherited from multiply configs its
+   * value will be restored only when all parent configs are being restored.
+   *
+   * @param {App.ServiceConfigProperty} parentConfig
+   */
+  restoreDependentConfigs: function(parentConfig) {
+    var controller = this.get('controller');
+    var dependentConfigs = controller.get('_dependentConfigValues');
+    if (controller._updateDependentConfigs) {
+      controller._updateDependentConfigs();
+      controller.set('_dependentConfigValues', dependentConfigs.reject(function(item) {
+        if (item.parentConfigs.contains(parentConfig.get('name'))) {
+          if (item.parentConfigs.length > 1) {
+            item.parentConfigs.removeObject(parentConfig.get('name'));
+          } else {
+            return true;
+          }
+        }
+        return false;
+      }));
+    }
   }
+
 });
 
 /**

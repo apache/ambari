@@ -54,6 +54,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    *   saveRecommendedDefault: {boolean}, used for cancel operation to restore previous state
    *   fileName: {string}, //file name without '.xml'
    *   propertyName: {string},
+   *   parentConfigs: {string[]} // name of the parent configs
    *   configGroup: {string},
    *   value: {string},
    *   serviceName: {string},
@@ -63,7 +64,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * }
    * @private
    */
-  _dependentConfigValues: [],
+  _dependentConfigValues: Em.A([]),
 
   /**
    * dependent properties that was changed by Ambari
@@ -168,9 +169,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
   /**
    * sends request to get values for dependent configs
-   * @param changedConfigs
-   * @param initial
-   * @param onComplete
+   * @param {Object[]} changedConfigs - list of changed configs to track recommendations
+   * @param {Boolean} initial
+   * @param {Function} onComplete
    * @returns {$.ajax|null}
    */
   getRecommendationsForDependencies: function(changedConfigs, initial, onComplete) {
@@ -220,7 +221,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @method dependenciesSuccess
    */
   dependenciesSuccess: function (data, opt, params) {
-    this._saveRecommendedValues(data, params.initial);
+    this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations);
     this._updateDependentConfigs();
   },
 
@@ -378,14 +379,16 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
   /**
    * saves values from response for dependent configs to <code>_dependentConfigValues<code>
-   * @param data
+   * @param data - JSON response from `recommendations` endpoint
    * @param updateOnlyBoundaries
+   * @param {App.ServiceConfigProperty[]} parentConfigs - config properties for which recommendations were recieved
    * @method saveRecommendedValues
    * @private
    */
-  _saveRecommendedValues: function(data, updateOnlyBoundaries) {
+  _saveRecommendedValues: function(data, updateOnlyBoundaries, parentConfigs) {
     Em.assert('invalid data - `data.resources[0].recommendations.blueprint.configurations` not defined ', data && data.resources[0] && Em.get(data.resources[0], 'recommendations.blueprint.configurations'));
     var configs = data.resources[0].recommendations.blueprint.configurations;
+    var parentPropertiesNames = parentConfigs ? parentConfigs.mapProperty('name') : [];
     /** get all configs by config group **/
     var stepConfigsByGroup = this._getConfigsByGroup(this.get('stepConfigs'));
     for (var key in configs) {
@@ -410,6 +413,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               if (value != configs[key].properties[propertyName]) {
                 Em.set(dependentProperty, 'value', value);
                 Em.set(dependentProperty, 'recommendedValue', configs[key].properties[propertyName]);
+                Em.set(dependentProperty, 'parentConfigs', dependentProperty.parentConfigs.concat(parentPropertiesNames).uniq());
               }
             } else {
               if (value != configs[key].properties[propertyName]) {
@@ -420,6 +424,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                   propertyName: propertyName,
                   configGroup: group ? group.get('name') : service.get('displayName') + " Default",
                   value: value,
+                  parentConfigs: parentPropertiesNames,
                   serviceName: serviceName,
                   allowChangeGroup: serviceName != this.get('content.serviceName') && !this.get('selectedConfigGroup.isDefault'),
                   serviceDisplayName: service.get('displayName'),

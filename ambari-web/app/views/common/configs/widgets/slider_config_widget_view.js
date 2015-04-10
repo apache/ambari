@@ -246,18 +246,20 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       self.set('config.value', '' + self.configValueByWidget(val));
       self.set('mirrorValue', val);
     }).on('slideStop', function() {
-        /**
-         * action to run sendRequestRorDependentConfigs when
-         * we have changed config value within slider
-         */
-        self.get('controller').removeCurrentFromDependentList(self.get('config'));
-        self.sendRequestRorDependentConfigs(self.get('config'));
-      });
+      /**
+       * action to run sendRequestRorDependentConfigs when
+       * we have changed config value within slider
+       */
+      self.get('controller').removeCurrentFromDependentList(self.get('config'));
+      self.sendRequestRorDependentConfigs(self.get('config'));
+    });
     this.set('slider', slider);
     var sliderTicks = this.$('.ui-slider-wrapper:eq(0) .slider-tick');
 
-    sliderTicks.eq(defaultValueId).addClass('slider-tick-default').on('click', function() {
+    sliderTicks.eq(defaultValueId).addClass('slider-tick-default').on('mousedown', function(e) {
+      if (self.get('disabled')) return false;
       self.restoreValue();
+      e.stopPropagation();
     });
     // if mirrored value was added need to hide the tick for it
     if (defaultValueMirroredId) {

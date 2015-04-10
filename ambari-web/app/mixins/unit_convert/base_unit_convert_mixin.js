@@ -205,4 +205,5 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
     }
     return isInt(value) ? value : parseFloat(value.toFixed(2));
   }
+
 });
