@@ -164,12 +164,16 @@ App.MainServiceItemController = Em.Controller.extend({
     var self = this;
     var serviceDisplayName = this.get('content.displayName');
     var isMaintenanceOFF = this.get('content.passiveState') === 'OFF';
+    
+    var msg = isMaintenanceOFF && serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null;
+    msg = self.addAdditionalWarningMessage(serviceHealth, msg, serviceDisplayName);
+    
     var bodyMessage = Em.Object.create({
       putInMaintenance: (serviceHealth == 'INSTALLED' && isMaintenanceOFF) || (serviceHealth == 'STARTED' && !isMaintenanceOFF),
       turnOnMmMsg: serviceHealth == 'INSTALLED' ? Em.I18n.t('passiveState.turnOnFor').format(serviceDisplayName) : Em.I18n.t('passiveState.turnOffFor').format(serviceDisplayName),
       confirmMsg: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmMsg').format(serviceDisplayName) : Em.I18n.t('services.service.start.confirmMsg').format(serviceDisplayName),
       confirmButton: serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.confirmButton') : Em.I18n.t('services.service.start.confirmButton'),
-      additionalWarningMsg:  isMaintenanceOFF && serviceHealth == 'INSTALLED'? Em.I18n.t('services.service.stop.warningMsg.turnOnMM').format(serviceDisplayName) : null
+      additionalWarningMsg:  msg
     });
 
     return App.showConfirmationFeedBackPopup(function(query, runMmOperation) {
@@ -178,6 +182,50 @@ App.MainServiceItemController = Em.Controller.extend({
     }, bodyMessage);
   },
 
+  addAdditionalWarningMessage: function(serviceHealth, msg, serviceDisplayName){
+    var servicesAffectedDisplayNames = [];
+    var servicesAffected = [];
+    
+    if(serviceHealth == 'INSTALLED'){
+      //To stop a service, display dependencies message...
+      var currentService = this.get('content.serviceName');
+      console.debug("Service to be stopped:", currentService);
+
+      var stackServices = App.StackService.find();
+      stackServices.forEach(function(service){
+        if(service.get('isInstalled') || service.get('isSelected')){ //only care about services installed...
+          var stackServiceDisplayName = service.get("displayName");
+          console.debug("Checking service dependencies for " + stackServiceDisplayName);
+          var requiredServices = service.get('requiredServices'); //services required in order to have the current service be functional...
+          if (!!requiredServices && requiredServices.length) { //only care about services with a non-empty requiredServices list.
+            console.debug("Service dependencies for " + stackServiceDisplayName, requiredServices);
+
+            requiredServices.forEach(function(_requiredService){
+              if (currentService === _requiredService) { //the service to be stopped is a required service by some other services...
+                console.debug(currentService + " is a service dependency for " + stackServiceDisplayName);
+                if(servicesAffected.indexOf(service) == -1 ) {
+                  servicesAffected.push(service);
+                  servicesAffectedDisplayNames.push(stackServiceDisplayName);
+                }
+              }
+            },this);
+          }
+        }
+      },this);
+      
+      var names = servicesAffectedDisplayNames.join();
+      if(names){
+        //only display this line with a non-empty dependency list
+        var dependenciesMsg = Em.I18n.t('services.service.stop.warningMsg.dependent.services').format(serviceDisplayName,names);
+        if(msg)
+          msg = msg + " " + dependenciesMsg;
+        else
+          msg = dependenciesMsg;
+      }
+    }
+    
+    return msg;
+  },
 
   startStopWithMmode: function(serviceHealth, query, runMmOperation) {
     var self = this;
