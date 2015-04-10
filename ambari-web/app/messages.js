@@ -1351,6 +1351,7 @@ Em.I18n.translations = {
     ' and go to the <b>Ambari Administration</b> interface. You can return to cluster management by using the' +
     ' “Go to Dashboard” link in the Ambari Administration > Clusters section.',
   'admin.stackVersions.version.installNow': "Install Packages",
+  'admin.stackVersions.version.reinstall': "Reinstall Packages",
   'admin.stackVersions.version.performUpgrade': "Perform Upgrade",
   'admin.stackVersions.version.upgrade.pause': "Upgrade: Action Required",
   'admin.stackVersions.version.upgrade.running': "Upgrade: In Process",

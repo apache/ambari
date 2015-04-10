@@ -27,13 +27,16 @@
   </a>
 </p>
 <p class="repository-name">({{view.content.repositoryVersion}})</p>
-<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
+<div {{bindAttr class="view.stateElement.isInstalling:installing view.stateElement.hasMultipleButtons:multiple-buttons-container :align-center :state"}}>
   {{#if view.stateElement.isButton}}
-    <button class="btn btn-primary"
-      {{action runAction target="view"}}
-      {{bindAttr disabled="view.stateElement.isDisabled"}}>
-      {{view.stateElement.text}}
-    </button>
+    {{#each button in view.stateElement.buttons}}
+      <button class="btn btn-primary"
+        {{action runAction button.action target="view"}}
+        {{bindAttr disabled="view.stateElement.isDisabled"}}>
+        {{button.text}}
+      </button>
+      <br />
+    {{/each}}
   {{/if}}
   {{#if view.stateElement.isLabel}}
     <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
