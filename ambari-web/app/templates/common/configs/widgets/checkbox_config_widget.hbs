@@ -24,43 +24,4 @@
     {{/if}}
   </label>
 </div>
-<div {{bindAttr class="view.isHover:show:not-show :clearfix"}}>
-  {{#if view.isOriginalSCP}}
-    {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
-  {{/if}}
-  {{#if view.overrideAllowed}}
-    {{#isAccessible ADMIN}}
-      <div class="pull-left action-button">
-        <a class="btn btn-small" href="#" data-toggle="tooltip"
-          {{action "createOverrideProperty" view.config target="view.parentView"}}
-          {{translateAttr data-original-title="common.override"}}>
-          <i class="icon-plus-sign"></i>
-        </a>
-      </div>
-    {{/isAccessible}}
-  {{/if}}
-</div>
-
-{{#if view.isComparison}}
-  {{#if controller.selectedConfigGroup.isDefault}}
-    <span
-        class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-    {{#if controller.isCurrentSelected}}
-      <span class="label label-success">{{t common.current}}</span>
-    {{/if}}
-  {{else}}
-    <span class="label label-info">{{t common.default}}
-      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
-  {{/if}}
-{{/if}}
-
-{{#if view.isOriginalSCP}}
-  {{view App.ConfigWidgetOverrideView
-  serviceConfigPropertyBinding="view.config"
-  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-  }}
-{{/if}}
-
-{{#if view.isComparison}}
-  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
-{{/if}}
+{{template "templates/common/configs/widgets/controls"}}

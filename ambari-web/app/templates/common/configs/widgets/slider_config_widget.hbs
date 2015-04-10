@@ -16,8 +16,7 @@
 * limitations under the License.
 }}
 
-
-<div {{bindAttr class="view.config.isHiddenByFilter:hide :widget-config :slider-widget"}}>
+<div class="widget-config slider-widget">
   {{#if view.isOriginalSCP}}
     <p class="widget-config-label">{{formatWordBreak view.configLabel}}</p>
   {{/if}}
@@ -25,52 +24,5 @@
     <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
     <div class="pull-right ui-slider-label">{{view.mirrorValue}} {{view.unitLabel}}</div>
   </div>
-  <div {{bindAttr class=":clearfix"}}>
-      {{#if view.config.supportsFinal}}
-        <a href="#" data-toggle="tooltip"
-          {{bindAttr class=":btn :btn-small :btn-final :pull-left view.config.isFinal:active view.showFinalConfig:show:not-show" disabled="view.config.isNotEditable"}}
-          {{action "toggleFinalFlag" view.config target="view"}}
-          {{translateAttr data-original-title="services.service.config.final"}}>
-          <i class="icon-lock"></i>
-        </a>
-      {{/if}}
-      {{#if view.overrideAllowed}}
-        {{#isAccessible ADMIN}}
-          <div {{bindAttr class=":pull-left :action-button view.isHover:show:not-show"}}>
-            <a class="btn btn-small" href="#" data-toggle="tooltip"
-              {{action "createOverrideProperty" view.config target="view.parentView"}}
-              {{translateAttr data-original-title="common.override"}}>
-              <i class="icon-plus-sign"></i>
-            </a>
-          </div>
-        {{/isAccessible}}
-      {{/if}}
-      {{#if view.isOriginalSCP}}
-        {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
-      {{/if}}
-  </div>
-
-  {{#if view.isComparison}}
-    {{#if controller.selectedConfigGroup.isDefault}}
-      <span
-          class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-      {{#if controller.isCurrentSelected}}
-        <span class="label label-success">{{t common.current}}</span>
-      {{/if}}
-    {{else}}
-      <span class="label label-info">{{t common.default}}
-        &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
-    {{/if}}
-  {{/if}}
-
-  {{#if view.isOriginalSCP}}
-    {{view App.ConfigWidgetOverrideView
-      serviceConfigPropertyBinding="view.config"
-      isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-    }}
-  {{/if}}
-
-  {{#if view.isComparison}}
-    {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
-  {{/if}}
+  {{template "templates/common/configs/widgets/controls"}}
 </div>

@@ -15,22 +15,11 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+
 <div class="span10">
-  <span class="widget-config-label">{{view.config.displayName}}</span>
+  {{#if view.isOriginalSCP}}
+    <span class="widget-config-label">{{view.config.displayName}}</span>
+  {{/if}}
   {{view view.configView}}
 </div>
-{{view App.RestoreConfigView}}
-<div class="clearfix"></div>
-{{#if view.configErrorMessage}}
-  <p class="text-error">{{view.configErrorMessage}}</p>
-{{/if}}
-{{#if view.isOriginalSCP}}
-  {{view App.ConfigWidgetOverrideView
-  serviceConfigPropertyBinding="view.config"
-  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-  }}
-{{/if}}
-
-{{#if view.isComparison}}
-  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
-{{/if}}
+{{template "templates/common/configs/widgets/controls"}}

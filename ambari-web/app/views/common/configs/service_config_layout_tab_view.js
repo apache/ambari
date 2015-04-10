@@ -21,6 +21,15 @@ var App = require('app');
 App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
 
   /**
+   * Determines if view is editable
+   * It true - show all control-elements (undo, override, finalize etc) for each widget
+   * If false - no widgets control-elements will be shown
+   * Bound from template
+   * @type {boolean}
+   */
+  canEdit: true,
+
+  /**
    * @type {App.Service}
    */
   service: function () {
@@ -46,7 +55,8 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     'radio-buttons': App.RadioButtonConfigWidgetView,
     slider: App.SliderConfigWidgetView,
     'time-interval-spinner': App.TimeIntervalSpinnerView,
-    toggle: App.ToggleConfigWidgetView
+    toggle: App.ToggleConfigWidgetView,
+    string: App.StringConfigWidgetView
   },
 
   /**

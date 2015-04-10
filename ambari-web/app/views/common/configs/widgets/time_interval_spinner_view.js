@@ -20,7 +20,7 @@ var App = require('app');
 
 App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/time_interval_spinner'),
-  classNames: ['spinner-input-widget'],
+  classNames: ['widget-config', 'spinner-input-widget'],
 
   /**
    * @property isValid
@@ -82,6 +82,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   didInsertElement: function () {
     Em.run.once(this, 'prepareContent');
     this._super();
+    this.toggleWidgetState();
+    this.initPopover();
   },
 
   /**
@@ -126,7 +128,6 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   valueObserver: function() {
     if (!this.get('content')) return;
-    var self = this;
     Em.run.once(this, 'valueObserverCallback');
   }.observes('content.@each.value'),
 
@@ -138,6 +139,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
 
   /**
    * Check for property modification.
+   * @method checkModified
    */
   checkModified: function() {
     this.set('valueIsChanged', this.configValueByWidget(this.get('content')) != parseInt(this.get('config.defaultValue')));

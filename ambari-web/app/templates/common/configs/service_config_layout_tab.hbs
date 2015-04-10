@@ -28,10 +28,11 @@
                 <tr>
                   {{#each subsection in subRow}}
                     <td {{bindAttr class="subsection.isHiddenByFilter:invisible :config-subsection"}}>
+                      <h5>{{subsection.displayName}}&nbsp;</h5>
                       {{#each config in subsection.configs}}
-                        {{#if config.view}}
+                        {{#if config.widget}}
                           {{#unless config.isHiddenByFilter}}
-                            {{view config.widget configBinding="config"}}
+                            {{view config.widget configBinding="config" canEditBinding="view.canEdit"}}
                           {{/unless}}
                         {{/if}}
                       {{/each}}

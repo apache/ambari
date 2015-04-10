@@ -61,5 +61,88 @@ fi
 export METASTORE_PORT={{hive_metastore_port}}
     </value>
   </property>
-  
+
+  <property>
+    <name>hive_exec_orc_storage_strategy</name>
+    <display-name>ORC Storage Strategy</display-name>
+    <value>SPEED</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive_txn_acid</name>
+    <display-name>ACID Transactions</display-name>
+    <value>true</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive_security_authorization</name>
+    <display-name>Choose Authorization</display-name>
+    <value>None</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>None</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>SQLStdAuth</value>
+          <label>SQLStdAuth</label>
+        </entry>
+        <entry>
+          <value>Ranger</value>
+          <label>Ranger</label>
+        </entry>
+      </entries>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive_timeline_logging_enabled</name>
+    <display-name>Use ATS Logging</display-name>
+    <value>true</value>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
 </configuration>

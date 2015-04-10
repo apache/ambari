@@ -111,7 +111,7 @@
             {{/each}}
           {{else}}
               {{! Render Enhanced Config Section }}
-              {{view App.ServiceConfigLayoutTabView contentBinding="tab"}}
+              {{view App.ServiceConfigLayoutTabView contentBinding="tab" canEditBinding="view.canEdit" }}
           {{/if}}
         </div>
       {{/each}}

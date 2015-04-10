@@ -36,6 +36,21 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   isHover: false,
 
   /**
+   * Determines if widget controls should be disabled
+   * @type {boolean}
+   */
+  disabled: false,
+
+  /**
+   * Determines if widget is editable
+   * It true - show all control-elements (undo, override, finalize etc) for widget
+   * If false - no widget control-elements will be shown
+   * Bound from template
+   * @type {boolean}
+   */
+  canEdit: true,
+
+  /**
    * Alias to <code>config.isOriginalSCP</code>
    * Should be used in the templates
    * Don't use original <code>config.isOriginalSCP</code> in the widget-templates!!!
@@ -75,6 +90,14 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   valueIsChanged: function () {
     return this.get('config.value') != this.get('config.defaultValue');
   }.property('config.value'),
+
+  /**
+   * Enable/disable widget state
+   * @method toggleWidgetState
+   */
+  toggleWidgetState: function () {
+    this.set('disabled', !this.get('config.isEditable'));
+  }.observes('config.isEditable'),
 
   /**
    * Reset config-value to its default

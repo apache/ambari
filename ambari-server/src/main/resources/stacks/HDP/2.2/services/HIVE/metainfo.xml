@@ -108,6 +108,13 @@
         </osSpecific>
       </osSpecifics>
 
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
+
       <requiredServices>
         <service>PIG</service>
       </requiredServices>

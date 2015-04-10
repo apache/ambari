@@ -907,12 +907,14 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    */
   checkOverrideProperty: function (componentConfig) {
     var overrideToAdd = this.get('overrideToAdd');
+    var value = Em.get(overrideToAdd, 'value');
+    var isEnhanced = !!this.get('overrideToAdd.widget');
     if (overrideToAdd) {
       overrideToAdd = componentConfig.configs.filter(function(c){
         return c.name == overrideToAdd.name && c.filename == overrideToAdd.filename;
       });
       if (overrideToAdd[0]) {
-        this.addOverrideProperty(overrideToAdd[0], this.get('selectedConfigGroup'));
+        this.addOverrideProperty(overrideToAdd[0], this.get('selectedConfigGroup'), isEnhanced ? value : null);
         this.set('overrideToAdd', null);
       }
     }

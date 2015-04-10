@@ -19,12 +19,12 @@
 var App = require('app');
 
 /**
- * Toggle wiget view for config property.
+ * Toggle widget view for config property.
  * @type {Em.View}
  */
 App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/toggle_config_widget'),
-  classNames: ['widget', 'toggle-widget'],
+  classNames: ['widget-config', 'toggle-widget'],
 
   /**
    * Saved switcher for current config.
@@ -68,8 +68,11 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
     // plugin should be initiated after applying binding for switcherValue
     Em.run.later('sync', function() {
       this.initSwitcher();
+      this.toggleWidgetState();
+      this.initPopover();
     }.bind(this), 10);
     this.addObserver('switcherValue', this.updateConfigValue);
+    this._super();
   },
 
   /**
@@ -80,7 +83,7 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   initSwitcher: function () {
     var labels = this.get('config.stackConfigProperty.valueAttributes.entries'),
       self = this;
-    if (this.$("input")) {
+    if (this.$()) {
       var switcher = this.$("input").bootstrapSwitch({
         onText: labels[0].label,
         offText: labels[1].label,
@@ -105,6 +108,17 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
     var value = this.getNewSwitcherValue(this.get('config.value'));
     this.get('switcher').bootstrapSwitch('toggleState', value);
     this.set('switcherValue', value);
-  }
+  },
+
+  /**
+   * Enable/disable switcher basing on config isEditable value
+   * @method toggleWidgetState
+   */
+  toggleWidgetState: function () {
+    if (this.get('switcher')){
+      this.get('switcher').bootstrapSwitch('disabled', !this.get('config.isEditable'));
+    }
+    this._super();
+  }.observes('config.isEditable')
 
 });

@@ -175,6 +175,14 @@ limitations under the License.
     <name>hive.exec.reducers.bytes.per.reducer</name>
     <value>67108864</value>
     <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
+    <display-name>Memory</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>64</minimum>
+      <maximum>4398046511104</maximum>
+      <unit>B</unit>
+      <step-increment></step-increment>
+    </value-attributes>
   </property>
 
   <property>
@@ -194,6 +202,12 @@ limitations under the License.
       A pre-execution hook is specified as the name of a Java class which implements the
       org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext interface.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_timeline_logging_enabled </name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -204,6 +218,12 @@ limitations under the License.
       A post-execution hook is specified as the name of a Java class which implements the
       org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext interface.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_timeline_logging_enabled </name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -214,6 +234,12 @@ limitations under the License.
       An on-failure hook is specified as the name of Java class which implements the
       org.apache.hadoop.hive.ql.hooks.ExecuteWithHookContext interface.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_timeline_logging_enabled </name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -253,16 +279,22 @@ limitations under the License.
       <type>value-list</type>
       <entries>
         <entry>
-          <value>true</value>
-          <label>True</label>
+          <value>nonstrict</value>
+          <label>On</label>
         </entry>
         <entry>
-          <value>false</value>
-          <label>False</label>
+          <value>strict</value>
+          <label>Off</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -508,16 +540,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.exec.orc.compression.strategy</name>
-    <value>SPEED</value>
-    <description>
-      Expects one of [speed, compression].
-      Define the compression strategy to use while writing data.
-      This changes the compression level of higher level compression codec (like ZLIB).
-    </description>
-  </property>
-
-  <property>
     <name>hive.orc.splits.include.file.footer</name>
     <value>false</value>
     <description>
@@ -586,6 +608,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.enforce.sorting</name>
@@ -783,6 +811,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -817,6 +851,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -902,6 +942,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -914,12 +960,19 @@ limitations under the License.
   </property>
   <property>
     <name>hive.security.metastore.authorization.manager</name>
+    <display-name>Hive Authorization Manager</display-name>
     <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly</value>
     <description>
       authorization manager class name to be used in the metastore for authorization.
       The user defined authorization class should implement interface
       org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.security.metastore.authorization.auth.reads</name>
@@ -1167,16 +1220,6 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.server2.tez.default.queues</name>
-    <value>default</value>
-    <description>
-      A list of comma separated values corresponding to YARN queues of the same name.
-      When HiveServer2 is launched in Tez mode, this configuration needs to be set
-      for multiple Tez sessions to run in parallel on the cluster.
-    </description>
-  </property>
-
-  <property>
     <name>hive.convert.join.bucket.mapjoin.tez</name>
     <value>false</value>
     <description>
@@ -1324,12 +1367,20 @@ limitations under the License.
   </property>
 
   <property>
-    <name>hive.vectorized.execution.reduce.enabled</name>
-    <value>false</value>
-    <description>
-      This flag should be set to true to enable vectorized mode of the reduce-side of query execution.
-      The default value is true.
+    <name>hive.auto.convert.join.noconditionaltask.size</name>
+    <value>2147483648</value>
+    <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
+      is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
+      converted to a mapjoin(there is no conditional task). The default is 10MB.
     </description>
+    <display-name>For Map Join, per Map memory threshold</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1073741824</minimum>
+      <maximum>17179869184</maximum>
+      <unit>B</unit>
+      <step-increment></step-increment>
+    </value-attributes>
   </property>
 
   <property>
@@ -1486,6 +1537,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_exec_orc_storage_strategy</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -1510,6 +1567,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_exec_orc_storage_strategy</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

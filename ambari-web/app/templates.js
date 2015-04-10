@@ -22,3 +22,4 @@
 
 require('templates/main/service/info/summary/base');
 require('templates/common/progress');
+require('templates/common/configs/widgets/controls');

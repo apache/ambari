@@ -365,7 +365,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <minimum>682</minimum>
-      <minimum>6820</minimum>
+      <maximum>6820</maximum>
       <unit>MB</unit>
       <increment-step>682</increment-step>
     </value-attributes>
@@ -469,6 +469,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -482,6 +488,12 @@ limitations under the License.
       <maximum>20</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

@@ -24,20 +24,21 @@
                     "section-columns": "2",
                     "section-rows": "1",
                     "subsections": [
-	                  {
-	                    "name": "subsection-nm-sizing-col1",
-	                    "row-index": "0",
-	                    "column-index": "0",
-	                    "row-span": "1",
-	                    "column-span": "1"
-	                  }, {
-	                    "name": "subsection-nm-sizing-col2",
-	                    "row-index": "0",
-	                    "column-index": "1",
-	                    "row-span": "1",
-	                    "column-span": "1"
-	                  }
-	                ]
+                      {
+                        "name": "subsection-nm-sizing-col1",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "subsection-nm-sizing-col2",
+                        "row-index": "0",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
                   },
                   {
                     "name": "section-yarn-platform-features",
@@ -74,7 +75,8 @@
                         "column-index": "0",
                         "row-span": "1",
                         "column-span": "1"
-                      }, {
+                      },
+                      {
                         "name": "subsection-container-sizing-col2",
                         "row-index": "0",
                         "column-index": "1",
@@ -139,14 +141,14 @@
         }
       ]
     },
-    "widgets":[
+    "widgets": [
       {
-        "config":"yarn-site/yarn.nodemanager.resource.memory-mb",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "config": "yarn-site/yarn.nodemanager.resource.memory-mb",
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"MB"
+              "unit-name": "MB"
             }
           ]
         }
@@ -185,65 +187,65 @@
         }
       },
       {
-        "config":"yarn-site/yarn.scheduler.minimum-allocation-mb",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "config": "yarn-site/yarn.scheduler.minimum-allocation-mb",
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"MB"
+              "unit-name": "MB"
             }
           ]
         }
       },
       {
-        "config":"yarn-site/yarn.scheduler.maximum-allocation-mb",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "config": "yarn-site/yarn.scheduler.maximum-allocation-mb",
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"MB"
+              "unit-name": "MB"
             }
           ]
         }
       },
       {
-        "config":"yarn-site/yarn.scheduler.minimum-allocation-vcores",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "config": "yarn-site/yarn.scheduler.minimum-allocation-vcores",
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"int"
+              "unit-name": "int"
             }
           ]
         }
       },
       {
-        "config":"yarn-site/yarn.scheduler.maximum-allocation-vcores",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "config": "yarn-site/yarn.scheduler.maximum-allocation-vcores",
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"int"
+              "unit-name": "int"
             }
           ]
         }
       },
       {
-        "config":"yarn-site/yarn.node-labels.enabled",
-        "widget":{
-          "type":"checkbox"
+        "config": "yarn-site/yarn.node-labels.enabled",
+        "widget": {
+          "type": "checkbox"
         }
       },
       {
-        "config":"yarn-site/yarn.log-aggregation-enable",
-        "widget":{
-          "type":"checkbox"
+        "config": "yarn-site/yarn.log-aggregation-enable",
+        "widget": {
+          "type": "checkbox"
         }
       },
       {
-        "config":"yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
-        "widget":{
-          "type":"checkbox"
+        "config": "yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
+        "widget": {
+          "type": "checkbox"
         }
       }
     ]

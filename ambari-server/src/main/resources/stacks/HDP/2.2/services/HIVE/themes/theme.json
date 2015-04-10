@@ -1,0 +1,609 @@
+{
+  "Theme": {
+    "name": "default",
+    "description": "Default theme for HIVE service",
+    "configuration": {
+      "layouts": [
+        {
+          "name": "default",
+          "tabs": [
+            {
+              "name": "settings",
+              "display-name": "Settings",
+              "layout": {
+                "sections": [
+                  {
+                    "name": "optimization",
+                    "display-name": "Optimization",
+                    "row-index": "0",
+                    "column-index": "0",
+                    "row-span": "3",
+                    "column-span": "2",
+                    "section-columns": "2",
+                    "section-rows": "3",
+                    "subsections": [
+                      {
+                        "name": "optimization-row1-col1",
+                        "display-name": "Storage",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "optimization-row1-col2",
+                        "display-name": "",
+                        "row-index": "0",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "optimization-row2-col1",
+                        "display-name": "Optimization Vectorization",
+                        "row-index": "1",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "optimization-row2-col2",
+                        "display-name": "",
+                        "row-index": "1",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "optimization-row3-col1",
+                        "display-name": "Memory",
+                        "row-index": "2",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "optimization-row3-col2",
+                        "display-name": "",
+                        "row-index": "2",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "acid-transactions",
+                    "display-name": "Acid Transactions",
+                    "row-index": "0",
+                    "column-index": "2",
+                    "row-span": "2",
+                    "column-span": "1",
+                    "section-columns": "1",
+                    "section-rows": "2",
+                    "subsections": [
+                      {
+                        "name": "acid-transactions-row1-col1",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "performance",
+                    "display-name": "Performance",
+                    "row-index": "3",
+                    "column-index": "0",
+                    "row-span": "3",
+                    "column-span": "2",
+                    "section-columns": "2",
+                    "section-rows": "3",
+                    "subsections": [
+                      {
+                        "name": "performance-row1-col1",
+                        "display-name": "TEZ Engine",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "performance-row1-col2",
+                        "display-name": "",
+                        "row-index": "0",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "performance-row2-col1",
+                        "row-index": "1",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "performance-row2-col2",
+                        "row-index": "1",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "interactive-query",
+                    "display-name": "Interactive Query",
+                    "row-index": "2",
+                    "column-index": "2",
+                    "row-span": "2",
+                    "column-span": "1",
+                    "section-columns": "1",
+                    "section-rows": "2",
+                    "subsections": [
+                      {
+                        "name": "interactive-query-row1-col1",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
+                  },
+                  {
+                    "name": "security",
+                    "display-name": "Security",
+                    "row-index": "4",
+                    "column-index": "2",
+                    "row-span": "2",
+                    "column-span": "1",
+                    "section-columns": "1",
+                    "section-rows": "2",
+                    "subsections": [
+                      {
+                        "name": "security-row1-col1",
+                        "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      }
+                    ]
+                  }
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "placement": {
+      "configuration-layout": "default",
+      "configs": [
+        {
+          "config": "hive-site/hive.default.fileformat",
+          "subsection-name": "optimization-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.exec.orc.default.stripe.size",
+          "subsection-name": "optimization-row1-col1"
+        },
+        {
+          "config": "hive-env/hive_exec_orc_storage_strategy",
+          "subsection-name": "optimization-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.exec.orc.default.compress",
+          "subsection-name": "optimization-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.optimize.index.filter",
+          "subsection-name": "optimization-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.optimize.sort.dynamic.partition",
+          "subsection-name": "optimization-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.exec.orc.encoding.strategy",
+          "subsection-name": "optimization-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.exec.orc.compression.strategy",
+          "subsection-name": "optimization-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.vectorized.execution.enabled",
+          "subsection-name": "optimization-row2-col1"
+        },
+        {
+          "config": "hive-site/hive.vectorized.execution.reduce.enabled",
+          "subsection-name": "optimization-row2-col2"
+        },
+        {
+          "config": "hive-site/hive.auto.convert.join.noconditionaltask.size",
+          "subsection-name": "optimization-row3-col1"
+        },
+        {
+          "config": "hive-site/hive.exec.reducers.bytes.per.reducer",
+          "subsection-name": "optimization-row3-col2"
+        },
+        {
+          "config": "hive-env/hive_txn_acid",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.txn.manager",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.support.concurrency",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.compactor.initiator.on",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.compactor.worker.threads",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.enforce.bucketing",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.exec.dynamic.partition.mode",
+          "subsection-name": "acid-transactions-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.execution.engine",
+          "subsection-name": "performance-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.tez.container.size",
+          "subsection-name": "performance-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.prewarm.enabled",
+          "subsection-name": "performance-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.prewarm.numcontainers",
+          "subsection-name": "performance-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.tez.auto.reducer.parallelism",
+          "subsection-name": "performance-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.tez.dynamic.partition.pruning",
+          "subsection-name": "performance-row1-col2"
+        },
+        {
+          "config": "hive-site/hive.cbo.enable",
+          "subsection-name": "performance-row2-col1"
+        },
+        {
+          "config": "hive-site/hive.stats.fetch.partition.stats",
+          "subsection-name": "performance-row2-col1"
+        },
+        {
+          "config": "hive-site/hive.stats.fetch.column.stats",
+          "subsection-name": "performance-row2-col1"
+        },
+        {
+          "config": "hive-site/hive.compute.query.using.stats",
+          "subsection-name": "performance-row2-col2"
+        },
+        {
+          "config": "hiveserver2-site/hive.server2.tez.initialize.default.sessions",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
+          "config": "hiveserver2-site/hive.server2.tez.sessions.per.default.queue",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
+          "config": "hiveserver2-site/hive.server2.enable.doAs",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
+          "config": "hiveserver2-site/tez.session.am.dag.submit.timeout.secs",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
+          "config": "hive-env/hive_security_authorization",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.security.authorization.enabled",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.security.metastore.authorization.manager",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.server2.authentication",
+          "subsection-name": "security-row1-col1"
+        },
+        {
+          "config": "hive-site/hive.server2.use.SSL",
+          "subsection-name": "security-row1-col1"
+        }
+      ]
+    },
+    "widgets": [
+      {
+        "config": "hive-site/hive.default.fileformat",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.orc.default.stripe.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.orc.default.compress",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.optimize.index.filter",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.optimize.sort.dynamic.partition",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.orc.encoding.strategy",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-env/hive_exec_orc_storage_strategy",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.orc.compression.strategy",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.vectorized.execution.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.vectorized.execution.reduce.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.auto.convert.join.noconditionaltask.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.reducers.bytes.per.reducer",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive_txn_acid",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.txn.manager",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.security.metastore.authorization.manager",
+        "widget": {
+          "type": "string"
+        }
+      },
+      {
+        "config": "hive-site/hive.support.concurrency",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.compactor.initiator.on",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.compactor.worker.threads",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.enforce.bucketing",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.exec.dynamic.partition.mode",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.execution.engine",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.tez.container.size",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "MB"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.prewarm.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.prewarm.numcontainers",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-site/hive.tez.auto.reducer.parallelism",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.tez.dynamic.partition.pruning",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.cbo.enable",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.stats.fetch.partition.stats",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.stats.fetch.column.stats",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.compute.query.using.stats",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hiveserver2-site/hive.server2.tez.initialize.default.sessions",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hiveserver2-site/hive.server2.tez.sessions.per.default.queue",
+        "widget": {
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "int"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hiveserver2-site/hive.server2.enable.doAs",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hiveserver2-site/tez.session.am.dag.submit.timeout.secs",
+        "widget": {
+          "type": "time-interval-spinner",
+          "units": [
+            {
+              "unit-name": "hours,minutes"
+            }
+          ]
+        }
+      },
+      {
+        "config": "hive-env/hive_security_authorization",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.security.authorization.enabled",
+        "widget": {
+          "type": "toggle"
+        }
+      },
+      {
+        "config": "hive-site/hive.server2.authentication",
+        "widget": {
+          "type": "combo"
+        }
+      },
+      {
+        "config": "hive-site/hive.server2.use.SSL",
+        "widget": {
+          "type": "toggle"
+        }
+      }
+    ]
+  }
+}

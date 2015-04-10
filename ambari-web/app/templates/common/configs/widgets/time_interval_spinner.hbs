@@ -15,29 +15,14 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<p class="widget-config-label">{{view.configLabel}}</p>
-{{#each spinnerContent in view.content}}
-  {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
-{{/each}}
-{{#if view.valueIsChanged}}
-  <div class="action-button">
-    <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
-      <i class="icon-undo"></i>
-    </a>
-  </div>
-{{/if}}
-{{#if view.errorMessage}}
-  <div class="clearfix"></div>
-  <p class="text-error">{{view.errorMessage}}</p>
-{{/if}}
-{{#if view.isOriginalSCP}}
-  {{view App.ConfigWidgetOverrideView
-  serviceConfigPropertyBinding="view.config"
-  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-  }}
-{{/if}}
 
-{{#if view.isComparison}}
-  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
+{{#if view.isOriginalSCP}}
+  <p class="widget-config-label">{{view.configLabel}}</p>
 {{/if}}
-<div class="clearfix"></div>
+<div {{bindAttr class="view.isOriginalSCP:original-widget"}}>
+  {{#each spinnerContent in view.content}}
+    {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
+  {{/each}}
+  <div class="clearfix"></div>
+</div>
+{{template "templates/common/configs/widgets/controls"}}

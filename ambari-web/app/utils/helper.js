@@ -561,6 +561,7 @@ App.format = {
  * @param {object} options
  */
 App.popover = function (self, options) {
+  if (!self) return;
   self.popover(options);
   self.on("remove", function () {
     $(this).trigger('mouseleave');

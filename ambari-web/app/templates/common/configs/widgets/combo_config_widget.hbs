@@ -15,32 +15,24 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
-<p class="widget-config-label">{{view.configLabel}}</p>
-<div class="input-append pull-left">
-  {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}
-  <div class="dropdown btn-group">
-    <button class="btn dropdown-toggle" data-toggle="dropdown">
-      <span class="caret"></span>
-    </button>
-    <ul class="dropdown-menu">
-      {{#each item in view.content.valuesList}}
-        <li>
-          <a href="#" {{action setConfigValue item.configValue target="view"}}>{{item.widgetValue}}</a>
-        </li>
-      {{/each}}
-    </ul>
+{{#if view.isOriginalSCP}}
+  <p class="widget-config-label">{{view.configLabel}}</p>
+{{/if}}
+<div {{bindAttr class="view.isOriginalSCP:original-widget"}}>
+  <div class="input-append">
+    {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}
+    <div class="dropdown btn-group">
+      <button {{bindAttr class="view.disabled:disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        {{#each item in view.content.valuesList}}
+          <li>
+            <a href="#" {{action setConfigValue item.configValue target="view"}}>{{item.widgetValue}}</a>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
   </div>
 </div>
-{{view App.RestoreConfigView}}
-{{#if view.isOriginalSCP}}
-  {{view App.ConfigWidgetOverrideView
-  serviceConfigPropertyBinding="view.config"
-  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-  }}
-{{/if}}
-
-{{#if view.isComparison}}
-  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
-{{/if}}
-<div class="clearfix"></div>
+{{template "templates/common/configs/widgets/controls"}}

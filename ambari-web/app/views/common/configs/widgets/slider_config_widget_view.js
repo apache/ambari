@@ -36,12 +36,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   slider: null,
 
   /**
-   * Determines if widget controls should be disabled
-   * @type {boolean}
-   */
-  disabled: false,
-
-  /**
    * Mirror of the config-value shown in the input on the left of the slider
    * @type {number}
    */
@@ -85,7 +79,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   toggleWidgetState: function () {
     var slider = this.get('slider');
     this.get('config.isEditable') ? slider.enable() : slider.disable();
-    this.set('disabled', !this.get('config.isEditable'));
+    this._super();
   }.observes('config.isEditable'),
 
   willInsertElement: function () {
@@ -181,6 +175,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   /**
    * Setup convert table according to widget unit-name and property type.
    * Set label for unit to display.
+   * @method prepareValueConverter
    */
   prepareValueConverter: function() {
     var widgetUnit = this._converterGetWidgetUnits();

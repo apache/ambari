@@ -17,7 +17,9 @@
 }}
 
 <div {{bindAttr class="view.config.isHiddenByFilter:hide :widget-config :list-widget"}}>
-  <p class="widget-config-label">{{view.configLabel}}</p>
+  {{#if view.isOriginalSCP}}
+    <p class="widget-config-label">{{view.configLabel}}</p>
+  {{/if}}
   <div class="btn-group">
     <a class="btn dropdown-toggle" data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
     {{#if view.valueIsChanged}}
@@ -39,14 +41,4 @@
       {{/each}}
     </ul>
   </div>
-  {{#if view.isOriginalSCP}}
-    {{view App.ConfigWidgetOverrideView
-    serviceConfigPropertyBinding="view.config"
-    isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-    }}
-  {{/if}}
-
-  {{#if view.isComparison}}
-    {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
-  {{/if}}
-</div>
+{{template "templates/common/configs/widgets/controls"}}

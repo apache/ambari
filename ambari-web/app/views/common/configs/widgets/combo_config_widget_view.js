@@ -24,7 +24,7 @@ var App = require('app');
  */
 App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/combo_config_widget'),
-  classNames: ['widget', 'combo-widget'],
+  classNames: ['widget-config', 'combo-widget'],
 
   /**
    * Object with following structure:
@@ -40,6 +40,9 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
 
   didInsertElement: function() {
     this.generateContent();
+    this.toggleWidgetState();
+    this.initPopover();
+    this._super();
   },
 
   /**
@@ -57,14 +60,14 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * Generate values map according to widget/value format.
    *
    * @method convertToWidgetUnits
-   * @params {Object} valueAttributes
+   * @param {Object} valueAttributes
    * @returns {Object[]} - values list map @see content.valuesList
    */
   convertToWidgetUnits: function(valueAttributes) {
     return Em.get(valueAttributes, 'entries').map(function(item) {
       return Em.Object.create({
         configValue: item.value,
-        widgetValue: Em.getWithDefault(item, 'label', item.value)
+        widgetValue: item.label || item.value
       });
     });
   },
