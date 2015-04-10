@@ -61,6 +61,12 @@
       <maximum>2</maximum>
       <increment-step>1</increment-step>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hdfs-site</type>
+        <name>dfs.datanode.data.dir</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

@@ -117,7 +117,17 @@ public class DiskInfo {
   public void setSize(String size) {
     this.size = size;
   }
-  
+
+  @JsonProperty("device")
+  public String getDevice() {
+    return device;
+  }
+
+  @JsonProperty("device")
+  public void setDevice(String device) {
+    this.device = device;
+  }
+
   @Override
   public String toString() {
     return "available=" + this.available + ",mountpoint=" + this.mountpoint

@@ -135,7 +135,6 @@ class TestHDP22StackAdvisor(TestCase):
 
 
   def test_validateHDFSConfigurations(self):
-    self.maxDiff = None
     recommendedDefaults = None
 
     unsecure_cluster_core_site = {
@@ -1152,7 +1151,14 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
   def test_recommendHDFSConfigurations(self):
-    configurations = {}
+    configurations = {
+      'ranger-hdfs-plugin-properties':{
+        "properties": {"ranger-hdfs-plugin-enabled":"Yes"}
+      },
+      'hdfs-site': {
+        "properties": {"dfs.datanode.data.dir": "/path/1,/path/2,/path/3,/path/4"}
+      }
+    }
     clusterData = {
       "totalAvailableRam": 2048,
       "hBaseInstalled": 111
@@ -1163,27 +1169,178 @@ class TestHDP22StackAdvisor(TestCase):
           'namenode_heapsize': '1024',
           'namenode_opt_newsize' : '256',
           'namenode_opt_maxnewsize' : '256'
+        },
+        'property_attributes': {
+          'dtnode_heapsize': {'max': '2048'},
+          'namenode_heapsize': {'max': '1024'}
         }
       },
       'hdfs-site': {
         'properties': {
-          'dfs.datanode.max.transfer.threads': '16384'
+          'dfs.datanode.max.transfer.threads': '16384',
+          'dfs.namenode.safemode.threshold-pct': '1.0f',
+          'dfs.datanode.failed.volumes.tolerated': '1',
+          'dfs.namenode.handler.count': '25',
+          'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4'
         },
+        'property_attributes': {
+          'dfs.datanode.failed.volumes.tolerated': {'max': '4'}
+        }
+      },
+      'ranger-hdfs-plugin-properties': {
+        'properties': {
+          'ranger-hdfs-plugin-enabled': 'Yes'
+        }
       }
     }
     services = {"services":
                     [{"StackServices":
                           {"service_name" : "HDFS",
-                           "service_version" : "2.6.0.2.2",
-                           }
-                     }],
-                "configurations": {
-                    'ranger-hdfs-plugin-properties':{
-                        "properties": {"ranger-hdfs-plugin-enabled":"Yes"}
-                    }
+                           "service_version" : "2.6.0.2.2"
+                           },
+                      "components":[
+                        {
+                          "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/DATANODE",
+                          "StackServiceComponents":{
+                            "advertise_version":"true",
+                            "cardinality":"1+",
+                            "component_category":"SLAVE",
+                            "component_name":"DATANODE",
+                            "custom_commands":[
+
+                            ],
+                            "display_name":"DataNode",
+                            "is_client":"false",
+                            "is_master":"false",
+                            "service_name":"HDFS",
+                            "stack_name":"HDP",
+                            "stack_version":"2.2",
+                            "hostnames":[
+                              "host1"
+                            ]
+                          },
+                          "dependencies":[
+
+                          ]
+                        },
+                        {
+                          "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/JOURNALNODE",
+                          "StackServiceComponents":{
+                            "advertise_version":"true",
+                            "cardinality":"0+",
+                            "component_category":"SLAVE",
+                            "component_name":"JOURNALNODE",
+                            "custom_commands":[
+
+                            ],
+                            "display_name":"JournalNode",
+                            "is_client":"false",
+                            "is_master":"false",
+                            "service_name":"HDFS",
+                            "stack_name":"HDP",
+                            "stack_version":"2.2",
+                            "hostnames":[
+                              "host1"
+                            ]
+                          },
+                          "dependencies":[
+                            {
+                              "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/JOURNALNODE/dependencies/HDFS_CLIENT",
+                              "Dependencies":{
+                                "component_name":"HDFS_CLIENT",
+                                "dependent_component_name":"JOURNALNODE",
+                                "dependent_service_name":"HDFS",
+                                "stack_name":"HDP",
+                                "stack_version":"2.2"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/NAMENODE",
+                          "StackServiceComponents":{
+                            "advertise_version":"true",
+                            "cardinality":"1-2",
+                            "component_category":"MASTER",
+                            "component_name":"NAMENODE",
+                            "custom_commands":[
+                              "DECOMMISSION",
+                              "REBALANCEHDFS"
+                            ],
+                            "display_name":"NameNode",
+                            "is_client":"false",
+                            "is_master":"true",
+                            "service_name":"HDFS",
+                            "stack_name":"HDP",
+                            "stack_version":"2.2",
+                            "hostnames":[
+                              "host2"
+                            ]
+                          },
+                          "dependencies":[
+
+                          ]
+                        },
+                        {
+                          "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/SECONDARY_NAMENODE",
+                          "StackServiceComponents":{
+                            "advertise_version":"true",
+                            "cardinality":"1",
+                            "component_category":"MASTER",
+                            "component_name":"SECONDARY_NAMENODE",
+                            "custom_commands":[
+
+                            ],
+                            "display_name":"SNameNode",
+                            "is_client":"false",
+                            "is_master":"true",
+                            "service_name":"HDFS",
+                            "stack_name":"HDP",
+                            "stack_version":"2.2",
+                            "hostnames":[
+                              "host1"
+                            ]
+                          },
+                          "dependencies":[
+
+                          ]
+                        },
+                      ],
+                    }],
+                "configurations": configurations
                 }
-                }
-    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, '')
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/host1",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "host1",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "host1",
+            "rack_info" : "/default-rack",
+            "total_mem" : 2097152
+          }
+        },
+        {
+          "href" : "/api/v1/hosts/host2",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "host2",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "host2",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1048576
+          }
+        },
+      ]
+    }
+
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
 
   def test_validateHDFSConfigurationsEnv(self):

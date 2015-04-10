@@ -53,19 +53,60 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
-    putHdfsProperty = self.putProperty(configurations, "hdfs-site")
-    putHdfsProperty("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
-    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
-    putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
-    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
-    putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
-    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
-    putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+    putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
+    putHdfsSiteProperty("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
+    dataDirsCount = 1
+    if "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]:
+      dataDirsCount = len(str(configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"]).split(","))
+    if dataDirsCount <= 2:
+      failedVolumesTolerated = 0
+    elif dataDirsCount <= 4:
+      failedVolumesTolerated = 1
+    else:
+      failedVolumesTolerated = 2
+    putHdfsSiteProperty("dfs.datanode.failed.volumes.tolerated", failedVolumesTolerated)
+
+    namenodeHosts = self.getHostsWithComponent("HDFS", "NAMENODE", services, hosts)
+
+    # 25 * # of cores on NameNode
+    nameNodeCores = 4
+    if namenodeHosts is not None and len(namenodeHosts):
+      nameNodeCores = int(namenodeHosts[0]['Hosts']['cpu_count'])
+    putHdfsSiteProperty("dfs.namenode.handler.count", 25*nameNodeCores)
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
-        putHDFSProperty("dfs.permissions.enabled",'true')
+        putHdfsSiteProperty("dfs.permissions.enabled",'true')
+
+    putHdfsSiteProperty("dfs.namenode.safemode.threshold-pct", "0.99f" if len(namenodeHosts) > 1 else "1.0f")
+
+    putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
+    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
+    putHdfsEnvProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
+    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+
+    # Property Attributes
+    putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
+    if (namenodeHosts is not None and len(namenodeHosts) > 0):
+      if len(namenodeHosts) > 1:
+        namenode_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
+      else:
+        namenode_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
+
+      putHdfsEnvPropertyAttribute('namenode_heapsize', 'max', namenode_heapsize)
+
+    datanodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
+    if (datanodeHosts is not None and len(datanodeHosts)>0):
+      min_datanode_ram_kb = 1073741824 # 1 TB
+      for datanode in datanodeHosts:
+        ram_kb = datanode['Hosts']['total_mem']
+        min_datanode_ram_kb = min(min_datanode_ram_kb, ram_kb)
+      putHdfsEnvPropertyAttribute('dtnode_heapsize', 'max', int(min_datanode_ram_kb/1024))
+
+    putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
+    putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'max', dataDirsCount)
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)

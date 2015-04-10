@@ -139,11 +139,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putMapredProperty('mapreduce.task.io.sort.mb', min(int(round(0.4 * clusterData['mapMemory'])), 1024))
  
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
-    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
+    putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
-    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
+    putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
-    putHDFSProperty = self.putProperty(configurations, "hadoop-env")
+    putHDFSProperty = self.putProperty(configurations, "hadoop-env", services)
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
   def recommendHbaseEnvConfigurations(self, configurations, clusterData, services, hosts):
@@ -152,7 +152,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
 
   def recommendAmsConfigurations(self, configurations, clusterData, services, hosts):
-    putAmsEnvProperty = self.putProperty(configurations, "ams-env")
     putAmsEnvProperty = self.putProperty(configurations, "ams-env")
     putAmsHbaseSiteProperty = self.putProperty(configurations, "ams-hbase-site")
     putTimelineServiceProperty = self.putProperty(configurations, "ams-site")
@@ -209,16 +208,22 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
 
 
 
-  def getHostWithComponent(self, serviceName, componentName, services, hosts):
+  def getHostsWithComponent(self, serviceName, componentName, services, hosts):
     if services is not None and hosts is not None and serviceName in [service["StackServices"]["service_name"] for service in services["services"]]:
       service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
       components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
       if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
-        # NodeManager available - determine hosts and memory
+        # component available - determine hosts and memory
         componentHostname = components[0]["StackServiceComponents"]["hostnames"][0]
         componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] == componentHostname]
-        if (componentHosts is not None and len(componentHosts) > 0):
-          return componentHosts[0]
+        return componentHosts
+    return []
+
+  def getHostWithComponent(self, serviceName, componentName, services, hosts):
+    componentHosts = self.getHostsWithComponent(serviceName, componentName, services, hosts)
+    if (len(componentHosts) > 0):
+      return componentHosts[0]
+    return None
 
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
