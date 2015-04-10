@@ -1027,7 +1027,7 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
         for (File appZip : appZips) {
           try {
             ZipFile zipFile = new ZipFile(appZip);
-            Metainfo metainfo = new MetainfoParser().parse(zipFile
+            Metainfo metainfo = new MetainfoParser().fromXmlStream(zipFile
                 .getInputStream(zipFile.getEntry("metainfo.xml")));
             // Create app type object
             if (metainfo.getApplication() != null) {
