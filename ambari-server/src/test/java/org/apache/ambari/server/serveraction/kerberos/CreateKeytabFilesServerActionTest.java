@@ -24,11 +24,6 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.attribute.PosixFilePermission;
-import java.util.Set;
 
 public class CreateKeytabFilesServerActionTest {
 
@@ -37,32 +32,15 @@ public class CreateKeytabFilesServerActionTest {
 
   @Test
   public void testEnsureAmbariOnlyAccess() throws Exception {
-    Path path;
-    Set<PosixFilePermission> permissions;
-
     File directory = testFolder.newFolder();
     Assert.assertNotNull(directory);
 
     new CreateKeytabFilesServerAction().ensureAmbariOnlyAccess(directory);
 
     // The directory is expected to have the following permissions: rwx------ (700)
-    path = Paths.get(directory.getAbsolutePath());
-    Assert.assertNotNull(path);
-
-    permissions = Files.getPosixFilePermissions(path);
-    Assert.assertNotNull(permissions);
-
-    Assert.assertNotNull(permissions);
-    Assert.assertEquals(3, permissions.size());
-    Assert.assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
-    Assert.assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
-    Assert.assertTrue(permissions.contains(PosixFilePermission.OWNER_EXECUTE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.GROUP_READ));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.GROUP_WRITE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.GROUP_EXECUTE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OTHERS_READ));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OTHERS_WRITE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+    Assert.assertTrue(directory.canRead());
+    Assert.assertTrue(directory.canWrite());
+    Assert.assertTrue(directory.canExecute());
 
     File file = File.createTempFile("temp_", "", directory);
     Assert.assertNotNull(file);
@@ -71,21 +49,8 @@ public class CreateKeytabFilesServerActionTest {
     new CreateKeytabFilesServerAction().ensureAmbariOnlyAccess(file);
 
     // The file is expected to have the following permissions: rw------- (600)
-    path = Paths.get(file.getAbsolutePath());
-    Assert.assertNotNull(path);
-
-    permissions = Files.getPosixFilePermissions(path);
-    Assert.assertNotNull(permissions);
-
-    Assert.assertEquals(2, permissions.size());
-    Assert.assertTrue(permissions.contains(PosixFilePermission.OWNER_READ));
-    Assert.assertTrue(permissions.contains(PosixFilePermission.OWNER_WRITE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OWNER_EXECUTE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.GROUP_READ));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.GROUP_WRITE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.GROUP_EXECUTE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OTHERS_READ));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OTHERS_WRITE));
-    Assert.assertFalse(permissions.contains(PosixFilePermission.OTHERS_EXECUTE));
+    Assert.assertTrue(file.canRead());
+    Assert.assertTrue(file.canWrite());
+    Assert.assertFalse(file.canExecute());
   }
 }
