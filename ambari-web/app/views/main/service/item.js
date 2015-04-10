@@ -62,7 +62,7 @@ App.MainServiceItemView = Em.View.extend({
         action: 'refreshConfigs',
         label: Em.I18n.t('hosts.host.details.refreshConfigs'),
         cssClass: 'icon-refresh',
-        disabled: !this.get('controller.content.isRestartRequired')
+        disabled: false
       },
       REFRESH_YARN_QUEUE: {
         action: 'refreshYarnQueues',

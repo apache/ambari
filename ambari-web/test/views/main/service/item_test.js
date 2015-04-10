@@ -248,7 +248,7 @@ describe('App.MainServiceItemView', function () {
             {'isAddDisabled-FLUME_HANDLER': ''}
           ],
           result: [
-            {"action": "refreshConfigs", "label": "Refresh configs", "cssClass": "icon-refresh", "disabled": true},
+            {"action": "refreshConfigs", "label": "Refresh configs", "cssClass": "icon-refresh", "disabled": false},
             {"action": "restartAllHostComponents", "context": "FLUME", "label": "Restart All", "cssClass": "icon-repeat", "disabled": false},
             {"action": "rollingRestart", "label": "Restart Flumes", "cssClass": "icon-time", "disabled": false, "context": "FLUME_HANDLER"},
             {"action": "runSmokeTest", "label": "Run Service Check", "cssClass": "icon-thumbs-up-alt"},

@@ -1762,23 +1762,12 @@ describe('App.MainHostDetailsController', function () {
       controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.called).to.be.false;
     });
-    it('No components with stale configs', function () {
-      var event = {context: [Em.Object.create({
-        staleConfigs: false
-      })]};
-      controller.refreshConfigs(event);
-      expect(App.showConfirmationPopup.called).to.be.false;
-    });
-    it('Components with stale configs', function () {
-      var event = {context: [Em.Object.create({
-        staleConfigs: true
-      })]};
+    it('Some components present', function () {
+      var event = {context: [Em.Object.create()]};
       var popup = controller.refreshConfigs(event);
       expect(App.showConfirmationPopup.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(batchUtils.restartHostComponents.calledWith([Em.Object.create({
-        staleConfigs: true
-      })])).to.be.true;
+      expect(batchUtils.restartHostComponents.calledWith([Em.Object.create()])).to.be.true;
     });
   });
 
