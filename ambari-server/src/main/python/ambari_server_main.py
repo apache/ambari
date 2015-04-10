@@ -58,7 +58,8 @@ jvm_args = os.getenv('AMBARI_JVM_ARGS', '-Xms512m -Xmx2048m')
 SERVER_START_CMD = "{0} " \
     "-server -XX:NewRatio=3 " \
     "-XX:+UseConcMarkSweepGC " + \
-    "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " + \
+    "-XX:-UseGCOverheadLimit -XX:CMSInitiatingOccupancyFraction=60 " \
+    "-Dsun.zip.disableMemoryMapping=true " + \
     "{1} {2} " \
     "-cp {3} "\
     "org.apache.ambari.server.controller.AmbariServer " \
