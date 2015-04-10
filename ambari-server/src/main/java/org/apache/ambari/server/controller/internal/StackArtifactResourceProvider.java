@@ -431,7 +431,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     }
   }
 
-  private Map<String, Object> getWidgetsDescriptorForService(StackInfo stackInfo, String serviceName)
+  public Map<String, Object> getWidgetsDescriptorForService(StackInfo stackInfo, String serviceName)
       throws NoSuchParentResourceException, IOException {
 
     Map<String, Object> widgetDescriptor = null;
@@ -449,7 +449,7 @@ public class StackArtifactResourceProvider extends AbstractControllerResourcePro
     return widgetDescriptor;
   }
 
-  private Map<String, Object> getWidgetsDescriptorForCluster(StackInfo stackInfo)
+  public Map<String, Object> getWidgetsDescriptorForCluster(StackInfo stackInfo)
       throws NoSuchParentResourceException, IOException {
 
     Map<String, Object> widgetDescriptor = null;

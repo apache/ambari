@@ -28,6 +28,8 @@ public class WidgetLayout {
   private String layoutName;
   @SerializedName("section_name")
   private String sectionName;
+  @SerializedName("display_name")
+  private String displayName;
   @SerializedName("widgetLayoutInfo")
   private List<WidgetLayoutInfo> widgetLayoutInfoList;
 
@@ -47,6 +49,11 @@ public class WidgetLayout {
   @JsonProperty("section_name")
   public void setSectionName(String sectionName) {
     this.sectionName = sectionName;
+  }
+
+  @JsonProperty("display_name")
+  public String getDisplayName() {
+    return displayName;
   }
 
   @JsonProperty("widgetLayoutInfo")

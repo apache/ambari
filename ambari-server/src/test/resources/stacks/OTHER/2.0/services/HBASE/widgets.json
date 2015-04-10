@@ -102,7 +102,7 @@
           "widget_name": "ACTIVE_HANDLER",
           "display_name": "Active Handlers vs Calls in General Queue",
           "widget_type": "GRAPH",
-          "is_visible": true,
+          "is_visible": false,
           "metrics": [
             {
               "name": "ipc.IPC.numOpenConnections",

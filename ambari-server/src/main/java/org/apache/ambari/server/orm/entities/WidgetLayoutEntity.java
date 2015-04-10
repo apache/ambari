@@ -47,6 +47,7 @@ import java.util.List;
     @NamedQuery(name = "WidgetLayoutEntity.findAll", query = "SELECT widgetLayout FROM WidgetLayoutEntity widgetLayout"),
     @NamedQuery(name = "WidgetLayoutEntity.findByCluster", query = "SELECT widgetLayout FROM WidgetLayoutEntity widgetLayout WHERE widgetLayout.clusterId = :clusterId"),
     @NamedQuery(name = "WidgetLayoutEntity.findBySectionName", query = "SELECT widgetLayout FROM WidgetLayoutEntity widgetLayout WHERE widgetLayout.sectionName = :sectionName"),
+    @NamedQuery(name = "WidgetLayoutEntity.findByName", query = "SELECT widgetLayout FROM WidgetLayoutEntity widgetLayout WHERE widgetLayout.clusterId = :clusterId AND widgetLayout.layoutName = :layoutName AND widgetLayout.userName = :userName")
     })
 public class WidgetLayoutEntity {
 
@@ -70,7 +71,7 @@ public class WidgetLayoutEntity {
   @Column(name = "scope", nullable = false)
   private String scope;
 
-  @Column(name = "display_name", nullable = false)
+  @Column(name = "display_name")
   private String displayName;
 
   @ManyToOne

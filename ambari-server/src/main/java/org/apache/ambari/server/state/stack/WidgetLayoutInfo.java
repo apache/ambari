@@ -78,7 +78,7 @@ public class WidgetLayoutInfo {
   }
 
   @JsonProperty("is_visible")
-  public boolean getVisibility() {
+  public boolean isVisible() {
     return visibility;
   }
 

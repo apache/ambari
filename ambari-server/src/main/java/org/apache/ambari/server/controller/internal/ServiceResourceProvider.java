@@ -48,14 +48,12 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.serveraction.kerberos.KerberosAdminAuthenticationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
-import org.apache.ambari.server.serveraction.kerberos.KerberosKDCConnectionException;
-import org.apache.ambari.server.serveraction.kerberos.KerberosLDAPContainerException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
-import org.apache.ambari.server.serveraction.kerberos.KerberosRealmException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
@@ -65,9 +63,11 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.state.stack.WidgetLayout;
+import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.commons.lang.StringUtils;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -77,6 +77,7 @@ import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -510,6 +511,9 @@ public class ServiceResourceProvider extends AbstractControllerResourceProvider 
       s.setDesiredState(state);
       s.setDesiredStackVersion(cluster.getDesiredStackVersion());
       cluster.addService(s);
+      // Initialize service widgets
+      getManagementController().initializeWidgetsAndLayouts(cluster, s);
+
       s.persist();
     }
   }

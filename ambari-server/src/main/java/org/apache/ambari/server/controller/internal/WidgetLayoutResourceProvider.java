@@ -67,6 +67,10 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
   public static final String WIDGETLAYOUT_INFO_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "WidgetInfo");
   public static final String WIDGETLAYOUT_USERNAME_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "user_name");
   public static final String WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "display_name");
+  public static enum SCOPE {
+    CLUSTER,
+    USER
+  }
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -108,8 +112,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
    * Create a new resource provider.
    *
    */
-  public WidgetLayoutResourceProvider(
-                                      AmbariManagementController managementController) {
+  public WidgetLayoutResourceProvider(AmbariManagementController managementController) {
     super(propertyIds, keyPropertyIds, managementController);
   }
 
@@ -140,16 +143,16 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
             }
           }
           final WidgetLayoutEntity entity = new WidgetLayoutEntity();
+          String userName = getUserName(properties);
 
           Set widgetsSet = (LinkedHashSet) properties.get(WIDGETLAYOUT_INFO_PROPERTY_ID);
 
           String clusterName = properties.get(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID).toString();
           entity.setLayoutName(properties.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID).toString());
-
           entity.setClusterId(getManagementController().getClusters().getCluster(clusterName).getClusterId());
           entity.setSectionName(properties.get(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID).toString());
           entity.setScope(properties.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID).toString());
-          entity.setUserName(properties.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString());
+          entity.setUserName(userName);
           entity.setDisplayName(properties.get(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID).toString());
 
           List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
@@ -193,7 +196,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
     List<WidgetLayoutEntity> layoutEntities = new ArrayList<WidgetLayoutEntity>();
 
     for (Map<String, Object> propertyMap: propertyMaps) {
-      final String userName = propertyMap.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+      String userName = getUserName(propertyMap);
       if (propertyMap.get(WIDGETLAYOUT_ID_PROPERTY_ID) != null) {
         final Long id;
         try {
@@ -340,4 +343,10 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
     return pkPropertyIds;
   }
 
+  private String getUserName(Map<String, Object> properties) {
+    if (properties.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID) != null) {
+      return properties.get(WIDGETLAYOUT_USERNAME_PROPERTY_ID).toString();
+    }
+    return getManagementController().getAuthName();
+  }
 }

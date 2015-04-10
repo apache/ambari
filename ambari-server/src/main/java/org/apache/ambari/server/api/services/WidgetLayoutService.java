@@ -28,6 +28,7 @@ import javax.ws.rs.core.Response;
 import javax.ws.rs.core.UriInfo;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -119,13 +120,15 @@ public class WidgetLayoutService extends BaseService {
   }
 
   private String getUserName(HttpHeaders headers) {
-    String authorizationString = headers.getRequestHeaders().get("Authorization").get(0);
-    if (authorizationString != null && authorizationString.startsWith("Basic")) {
-      String base64Credentials = authorizationString.substring("Basic".length()).trim();
-      String clearCredentials = new String(Base64.decode(base64Credentials),Charset.forName("UTF-8"));
-      return clearCredentials.split(":", 2)[0];
-    } else {
-      return null;
+    List<String> authorizationHeaders = headers.getRequestHeaders().get("Authorization");
+    if (authorizationHeaders != null && !authorizationHeaders.isEmpty()){
+      String authorizationString = authorizationHeaders.get(0);
+      if (authorizationString != null && authorizationString.startsWith("Basic")) {
+        String base64Credentials = authorizationString.substring("Basic".length()).trim();
+        String clearCredentials = new String(Base64.decode(base64Credentials),Charset.forName("UTF-8"));
+        return clearCredentials.split(":", 2)[0];
+      }
     }
+    return null;
   }
 }

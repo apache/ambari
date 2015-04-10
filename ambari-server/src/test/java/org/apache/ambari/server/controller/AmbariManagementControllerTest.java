@@ -18,44 +18,13 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.createStrictMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.hamcrest.CoreMatchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.io.IOException;
-import java.io.StringReader;
-import java.lang.reflect.Type;
-import java.net.ConnectException;
-import java.net.MalformedURLException;
-import java.net.UnknownHostException;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-
-import javax.persistence.EntityManager;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.AbstractModule;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
@@ -92,7 +61,12 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
+import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
@@ -140,12 +114,41 @@ import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.AbstractModule;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import javax.persistence.EntityManager;
+import java.io.IOException;
+import java.io.StringReader;
+import java.lang.reflect.Type;
+import java.net.ConnectException;
+import java.net.MalformedURLException;
+import java.net.UnknownHostException;
+import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.createStrictMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.hamcrest.CoreMatchers.is;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class AmbariManagementControllerTest {
 
@@ -10293,6 +10296,67 @@ public class AmbariManagementControllerTest {
     );
     assertThat(rhel5Packages, is(expectedRhel5));
     assertThat(sles11Packages, is(expectedSles11));
+  }
+
+  @Test
+  public void testClusterWidgetCreateOnClusterCreate() throws Exception {
+    // TODO: Add once cluster widgets.json is available
+  }
+
+  @Test
+  public void testServiceWidgetCreationOnServiceCreate() throws Exception {
+    String clusterName = "foo1";
+    ClusterRequest r = new ClusterRequest(null, clusterName,
+      State.INSTALLED.name(), SecurityType.NONE, "OTHER-2.0", null);
+    controller.createCluster(r);
+    String serviceName = "HBASE";
+    clusters.getCluster("foo1").setDesiredStackVersion(new StackId("OTHER-2.0"));
+    createService(clusterName, serviceName, State.INIT);
+
+    Service s = clusters.getCluster(clusterName).getService(serviceName);
+    Assert.assertNotNull(s);
+    Assert.assertEquals(serviceName, s.getName());
+    Assert.assertEquals(clusterName, s.getCluster().getClusterName());
+
+    WidgetDAO widgetDAO = injector.getInstance(WidgetDAO.class);
+    WidgetLayoutDAO widgetLayoutDAO = injector.getInstance(WidgetLayoutDAO.class);
+    List<WidgetEntity> widgetEntities = widgetDAO.findAll();
+    List<WidgetLayoutEntity> layoutEntities = widgetLayoutDAO.findAll();
+
+    Assert.assertNotNull(widgetEntities);
+    Assert.assertFalse(widgetEntities.isEmpty());
+    Assert.assertNotNull(layoutEntities);
+    Assert.assertFalse(layoutEntities.isEmpty());
+
+    WidgetEntity candidateVisibleEntity = null;
+    for (WidgetEntity entity : widgetEntities) {
+      if (entity.getWidgetName().equals("OPEN_CONNECTIONS")) {
+        candidateVisibleEntity = entity;
+      }
+    }
+    Assert.assertNotNull(candidateVisibleEntity);
+    Assert.assertEquals("GRAPH", candidateVisibleEntity.getWidgetType());
+    Assert.assertEquals("ambari", candidateVisibleEntity.getAuthor());
+    Assert.assertEquals("CLUSTER", candidateVisibleEntity.getScope());
+    Assert.assertNotNull(candidateVisibleEntity.getMetrics());
+    Assert.assertNotNull(candidateVisibleEntity.getProperties());
+    Assert.assertNotNull(candidateVisibleEntity.getWidgetValues());
+
+    WidgetLayoutEntity candidateLayoutEntity = null;
+    for (WidgetLayoutEntity entity : layoutEntities) {
+      if (entity.getLayoutName().equals("default_hbase_layout")) {
+        candidateLayoutEntity = entity;
+      }
+    }
+    Assert.assertNotNull(candidateLayoutEntity);
+    List<WidgetLayoutUserWidgetEntity> layoutUserWidgetEntities =
+      candidateLayoutEntity.getListWidgetLayoutUserWidgetEntity();
+    Assert.assertNotNull(layoutUserWidgetEntities);
+    Assert.assertEquals(4, layoutUserWidgetEntities.size());
+    Assert.assertEquals("RS_READS_WRITES", layoutUserWidgetEntities.get(0).getWidget().getWidgetName());
+    Assert.assertEquals("OPEN_CONNECTIONS", layoutUserWidgetEntities.get(1).getWidget().getWidgetName());
+    Assert.assertEquals("FILES_LOCAL", layoutUserWidgetEntities.get(2).getWidget().getWidgetName());
+    Assert.assertEquals("UPDATED_BLOCKED_TIME", layoutUserWidgetEntities.get(3).getWidget().getWidgetName());
   }
 
   // this is a temporary measure as a result of moving updateHostComponents from AmbariManagementController

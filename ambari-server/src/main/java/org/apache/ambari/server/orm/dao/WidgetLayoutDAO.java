@@ -63,6 +63,17 @@ public class WidgetLayoutDAO {
   }
 
   @RequiresSession
+  public List<WidgetLayoutEntity> findByName(Long clusterId, String layoutName, String userName) {
+    TypedQuery<WidgetLayoutEntity> query = entityManagerProvider.get()
+      .createNamedQuery("WidgetLayoutEntity.findByName", WidgetLayoutEntity.class);
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("layoutName", layoutName);
+    query.setParameter("userName", userName);
+
+    return daoUtils.selectList(query);
+  }
+
+  @RequiresSession
   public List<WidgetLayoutEntity> findAll() {
     TypedQuery<WidgetLayoutEntity> query = entityManagerProvider.get()
             .createNamedQuery("WidgetLayoutEntity.findAll", WidgetLayoutEntity.class);

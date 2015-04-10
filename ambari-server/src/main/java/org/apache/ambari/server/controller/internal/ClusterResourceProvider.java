@@ -17,21 +17,16 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.*;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.ClusterRequest;
+import org.apache.ambari.server.controller.ClusterResponse;
+import org.apache.ambari.server.controller.ConfigGroupRequest;
+import org.apache.ambari.server.controller.ConfigurationRequest;
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.controller.ServiceConfigVersionRequest;
+import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -52,6 +47,17 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Resource provider for cluster resources.
@@ -125,7 +131,6 @@ public class ClusterResourceProvider extends BaseBlueprintProcessor {
    */
   private Map<String, Map<String, Map<String, String>>> mapClusterAttributes =
       new HashMap<String, Map<String, Map<String, String>>>();
-
 
   // ----- Constructors ----------------------------------------------------
 

@@ -45,6 +45,7 @@ import java.util.List;
 @NamedQueries({
     @NamedQuery(name = "WidgetEntity.findAll", query = "SELECT widget FROM WidgetEntity widget"),
     @NamedQuery(name = "WidgetEntity.findByCluster", query = "SELECT widget FROM WidgetEntity widget WHERE widget.clusterId = :clusterId"),
+    @NamedQuery(name = "WidgetEntity.findByName", query = "SELECT widget FROM WidgetEntity widget WHERE widget.clusterId = :clusterId AND widget.widgetName = :widgetName AND widget.author = :author"),
     @NamedQuery(name = "WidgetEntity.findBySectionName", query =
                 "SELECT widget FROM WidgetEntity widget " +
                 "INNER JOIN widget.listWidgetLayoutUserWidgetEntity widgetLayoutUserWidget " +
@@ -79,16 +80,16 @@ public class WidgetEntity {
   @Column(name = "description", length = 255)
   private String description;
 
-  @Column(name = "display_name", nullable = false,  length = 255)
+  @Column(name = "display_name",  length = 255)
   private String displayName;
 
   @Column(name = "scope", length = 255)
   private String scope;
 
-  @Column(name = "widget_values", length = 255)
+  @Column(name = "widget_values", length = 4000)
   private String widgetValues;
 
-  @Column(name = "properties", length = 255)
+  @Column(name = "properties", length = 4000)
   private String properties;
 
   @Column(name = "cluster_id", nullable = false)

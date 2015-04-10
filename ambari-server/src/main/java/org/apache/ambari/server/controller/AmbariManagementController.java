@@ -748,5 +748,14 @@ public interface AmbariManagementController {
    * @throws AmbariException if an error occurs during the rack change registration
    */
   public void registerRackChange(String clusterName) throws AmbariException;
+
+  /**
+   * Initialize cluster scoped widgets and widgetLayouts for different stack
+   * components.
+   *
+   * @param cluster @Cluster object
+   * @param service @Service object
+   */
+  public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException;
 }
 

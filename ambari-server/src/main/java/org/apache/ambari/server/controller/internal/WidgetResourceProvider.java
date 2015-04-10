@@ -40,7 +40,6 @@ import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
-import org.springframework.dao.PermissionDeniedDataAccessException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -72,6 +71,10 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   public static final String WIDGET_METRICS_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "metrics");
   public static final String WIDGET_VALUES_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "values");
   public static final String WIDGET_PROPERTIES_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "properties");
+  public static enum SCOPE {
+    CLUSTER,
+    USER
+  }
 
   @SuppressWarnings("serial")
   private static Set<String> pkPropertyIds = new HashSet<String>() {
@@ -147,7 +150,6 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           }
           final WidgetEntity entity = new WidgetEntity();
           String clusterName = properties.get(WIDGET_CLUSTER_NAME_PROPERTY_ID).toString();
-          String userName = properties.get(WIDGET_AUTHOR_PROPERTY_ID).toString();
           String scope = properties.get(WIDGET_SCOPE_PROPERTY_ID).toString();
 
           if (!isScopeAllowedForUser(scope)) {
@@ -165,7 +167,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
                   gson.toJson(properties.get(WIDGET_METRICS_PROPERTY_ID)) : null;
           entity.setMetrics(metrics);
 
-          entity.setAuthor(userName);
+          entity.setAuthor(getAuthorName(properties));
 
           String description = (properties.containsKey(WIDGET_DESCRIPTION_PROPERTY_ID)) ?
                   properties.get(WIDGET_DESCRIPTION_PROPERTY_ID).toString() : null;
@@ -285,9 +287,7 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
             entity.setMetrics(gson.toJson(propertyMap.get(WIDGET_METRICS_PROPERTY_ID)));
           }
 
-          if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_AUTHOR_PROPERTY_ID)))) {
-            entity.setAuthor(propertyMap.get(WIDGET_AUTHOR_PROPERTY_ID).toString());
-          }
+          entity.setAuthor(getAuthorName(propertyMap));
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(WIDGET_DESCRIPTION_PROPERTY_ID)))) {
             entity.setDescription(propertyMap.get(WIDGET_DESCRIPTION_PROPERTY_ID).toString());
@@ -379,5 +379,12 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
     } else {
       return false;
     }
+  }
+
+  private String getAuthorName(Map<String, Object> properties) {
+    if (StringUtils.isNotBlank(ObjectUtils.toString(properties.get(WIDGET_AUTHOR_PROPERTY_ID)))) {
+      return properties.get(WIDGET_AUTHOR_PROPERTY_ID).toString();
+    }
+    return getManagementController().getAuthName();
   }
 }

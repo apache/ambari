@@ -537,8 +537,8 @@ CREATE TABLE widget (
   description VARCHAR(255),
   display_name VARCHAR(255) NOT NULL,
   scope VARCHAR(255),
-  widget_values VARCHAR(255),
-  properties VARCHAR(255),
+  widget_values VARCHAR(4000),
+  properties VARCHAR(4000),
   cluster_id BIGINT NOT NULL,
   PRIMARY KEY(id)
 );

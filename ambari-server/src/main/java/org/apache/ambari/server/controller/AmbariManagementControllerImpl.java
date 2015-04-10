@@ -51,15 +51,24 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
+import org.apache.ambari.server.controller.internal.WidgetLayoutResourceProvider;
+import org.apache.ambari.server.controller.internal.WidgetResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.customactions.ActionDefinition;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
+import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
+import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.authorization.AuthorizationHelper;
 import org.apache.ambari.server.security.authorization.Group;
@@ -101,6 +110,8 @@ import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
+import org.apache.ambari.server.state.stack.WidgetLayout;
+import org.apache.ambari.server.state.stack.WidgetLayoutInfo;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStopEvent;
@@ -113,9 +124,10 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.net.InetAddress;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -132,7 +144,6 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
-
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_DRIVER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_PASSWORD;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.AMBARI_DB_RCA_URL;
@@ -208,6 +219,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private AmbariLdapDataPopulator ldapDataPopulator;
   @Inject
   private RepositoryVersionDAO repositoryVersionDAO;
+  @Inject
+  private WidgetDAO widgetDAO;
+  @Inject
+  private WidgetLayoutDAO widgetLayoutDAO;
+  @Inject
+  private ClusterDAO clusterDAO;
 
   private MaintenanceStateHelper maintenanceStateHelper;
 
@@ -3809,6 +3826,124 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       return batchInfo;
     } finally {
       ldapSyncInProgress = false;
+    }
+  }
+
+  @SuppressWarnings("unchecked")
+  @Override
+  public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException {
+    StackId stackId = cluster.getCurrentStackVersion();
+    Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
+
+    try {
+      Map<String, Object> widgetDescriptor = null;
+      StackInfo stackInfo = ambariMetaInfo.getStack(stackId.getStackName(), stackId.getStackVersion());
+      if (service != null) {
+        // Service widgets
+        ServiceInfo serviceInfo = stackInfo.getService(service.getName());
+        File widgetDescriptorFile = serviceInfo.getWidgetsDescriptorFile();
+        if (widgetDescriptorFile != null && widgetDescriptorFile.exists()) {
+          try {
+            widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+          } catch (Exception ex) {
+            String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+            LOG.error(msg, ex);
+            throw new AmbariException(msg);
+          }
+        }
+      } else {
+        // Cluster level widgets
+        String widgetDescriptorFileLocation = stackInfo.getWidgetsDescriptorFileLocation();
+        if (widgetDescriptorFileLocation != null) {
+          File widgetDescriptorFile = new File(widgetDescriptorFileLocation);
+          if (widgetDescriptorFile.exists()) {
+            try {
+              widgetDescriptor = gson.fromJson(new FileReader(widgetDescriptorFile), widgetLayoutType);
+            } catch (Exception ex) {
+              String msg = "Error loading widgets from file: " + widgetDescriptorFile;
+              LOG.error(msg, ex);
+              throw new AmbariException(msg);
+            }
+          }
+        }
+      }
+      if (widgetDescriptor != null) {
+        LOG.debug("Loaded widgest descriptor: " + widgetDescriptor);
+        for (Object artifact : widgetDescriptor.values()) {
+          List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
+          createWidgetsAndLayouts(cluster, widgetLayouts);
+        }
+      }
+    } catch (Exception e) {
+      throw new AmbariException("Error creating stack widget artifacts. " +
+        (service != null ? "Service: " + service.getName() + ", " : "") +
+        "Cluster: " + cluster.getClusterName(), e);
+    }
+  }
+
+  @Transactional
+  private void createWidgetsAndLayouts(Cluster cluster, List<WidgetLayout> widgetLayouts) {
+    String user = "ambari";
+    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
+    Long now = System.currentTimeMillis();
+    Long clusterId = cluster.getClusterId();
+
+    if (widgetLayouts != null) {
+      for (WidgetLayout widgetLayout : widgetLayouts) {
+        List<WidgetLayoutEntity> existingEntities =
+          widgetLayoutDAO.findByName(clusterId, widgetLayout.getLayoutName(), user);
+        // Avoid creating widgets / layouts if the layout exists
+        if (existingEntities == null || existingEntities.isEmpty()) {
+          WidgetLayoutEntity layoutEntity = new WidgetLayoutEntity();
+          layoutEntity.setClusterEntity(clusterEntity);
+          layoutEntity.setClusterId(clusterId);
+          layoutEntity.setLayoutName(widgetLayout.getLayoutName());
+          layoutEntity.setDisplayName(widgetLayout.getDisplayName());
+          layoutEntity.setSectionName(widgetLayout.getSectionName());
+          layoutEntity.setScope(WidgetLayoutResourceProvider.SCOPE.CLUSTER.name());
+          layoutEntity.setUserName(user);
+
+          List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
+          int order = 0;
+          for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
+            WidgetEntity widgetEntity = new WidgetEntity();
+            widgetEntity.setClusterId(clusterId);
+            widgetEntity.setClusterEntity(clusterEntity);
+            widgetEntity.setScope(WidgetResourceProvider.SCOPE.CLUSTER.name());
+            widgetEntity.setWidgetName(layoutInfo.getWidgetName());
+            widgetEntity.setDisplayName(layoutInfo.getDisplayName());
+            widgetEntity.setAuthor(user);
+            widgetEntity.setDescription(layoutInfo.getDescription());
+            widgetEntity.setTimeCreated(now);
+            widgetEntity.setWidgetType(layoutInfo.getType());
+            widgetEntity.setMetrics(gson.toJson(layoutInfo.getMetricsInfo()));
+            widgetEntity.setProperties(gson.toJson(layoutInfo.getProperties()));
+            widgetEntity.setWidgetValues(gson.toJson(layoutInfo.getValues()));
+            widgetDAO.create(widgetEntity);
+            // Add to layout if visibility is true
+            if (layoutInfo.isVisible()) {
+              List<WidgetEntity> createdEntities =
+                widgetDAO.findByName(clusterId, layoutInfo.getWidgetName(), user);
+
+              if (createdEntities != null && !createdEntities.isEmpty()) {
+                if (createdEntities.size() > 1) {
+                  LOG.error("Skipping layout entry for widget. Multiple widgets " +
+                    "found with name = " + layoutInfo.getWidgetName() +
+                    ", cluster = " + cluster.getClusterName() + ", user = " + user);
+                } else {
+                  WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+                  widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
+                  widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
+                  widgetLayoutUserWidgetEntity.setWidgetLayout(layoutEntity);
+                  widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
+                }
+              }
+            }
+          }
+          layoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
+          widgetLayoutDAO.create(layoutEntity);
+        }
+      }
     }
   }
 }
