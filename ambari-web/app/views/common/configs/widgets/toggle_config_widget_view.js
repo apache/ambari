@@ -78,18 +78,20 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
    * @method initSwitcher
    */
   initSwitcher: function () {
-    var labels = this.get('config.stackConfigProperty.valueAttributes.entry_labels'),
+    var labels = this.get('config.stackConfigProperty.valueAttributes.entries'),
       self = this;
-    var switcher = this.$("input").bootstrapSwitch({
-      onText: labels[0],
-      offText: labels[1],
-      offColor: 'danger',
-      handleWidth: 85,
-      onSwitchChange: function (event, state) {
-        self.set('switcherValue', state);
-      }
-    });
-    this.set('switcher', switcher);
+    if (this.$("input")) {
+      var switcher = this.$("input").bootstrapSwitch({
+        onText: labels[0].label,
+        offText: labels[1].label,
+        offColor: 'danger',
+        handleWidth: 85,
+        onSwitchChange: function (event, state) {
+          self.set('switcherValue', state);
+        }
+      });
+      this.set('switcher', switcher);
+    }
   },
 
   /**
