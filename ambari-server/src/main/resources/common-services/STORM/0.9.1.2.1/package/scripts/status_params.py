@@ -20,29 +20,35 @@ limitations under the License.
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import default, format
+from ambari_commons import OSCheck
 
 config = Script.get_config()
 
-pid_dir = config['configurations']['storm-env']['storm_pid_dir']
-pid_nimbus = format("{pid_dir}/nimbus.pid")
-pid_supervisor = format("{pid_dir}/supervisor.pid")
-pid_drpc = format("{pid_dir}/drpc.pid")
-pid_ui = format("{pid_dir}/ui.pid")
-pid_logviewer = format("{pid_dir}/logviewer.pid")
-pid_rest_api = format("{pid_dir}/restapi.pid")
-pid_files = {"logviewer":pid_logviewer,
-             "ui": pid_ui,
-             "nimbus": pid_nimbus,
-             "supervisor": pid_supervisor,
-             "drpc": pid_drpc,
-             "rest_api": pid_rest_api}
+if OSCheck.is_windows_family():
+  nimbus_win_service_name = "nimbus"
+  supervisor_win_service_name = "supervisor"
+  ui_win_service_name = "ui"
+else:
+  pid_dir = config['configurations']['storm-env']['storm_pid_dir']
+  pid_nimbus = format("{pid_dir}/nimbus.pid")
+  pid_supervisor = format("{pid_dir}/supervisor.pid")
+  pid_drpc = format("{pid_dir}/drpc.pid")
+  pid_ui = format("{pid_dir}/ui.pid")
+  pid_logviewer = format("{pid_dir}/logviewer.pid")
+  pid_rest_api = format("{pid_dir}/restapi.pid")
+  pid_files = {"logviewer":pid_logviewer,
+               "ui": pid_ui,
+               "nimbus": pid_nimbus,
+               "supervisor": pid_supervisor,
+               "drpc": pid_drpc,
+               "rest_api": pid_rest_api}
 
-# Security related/required params
-hostname = config['hostname']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = get_kinit_path()
-tmp_dir = Script.get_tmp_dir()
-conf_dir = "/etc/storm/conf"
-storm_user = config['configurations']['storm-env']['storm_user']
-storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
-storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)
+  # Security related/required params
+  hostname = config['hostname']
+  security_enabled = config['configurations']['cluster-env']['security_enabled']
+  kinit_path_local = get_kinit_path()
+  tmp_dir = Script.get_tmp_dir()
+  conf_dir = "/etc/storm/conf"
+  storm_user = config['configurations']['storm-env']['storm_user']
+  storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
+  storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)

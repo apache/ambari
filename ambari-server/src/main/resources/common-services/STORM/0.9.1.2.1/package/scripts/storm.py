@@ -27,8 +27,20 @@ from resource_management.libraries.resources.template_config import TemplateConf
 from resource_management.libraries.functions.format import format
 from resource_management.core.source import Template
 from resource_management.libraries.functions import compare_versions
-from yaml_utils import yaml_config_template
+from yaml_utils import yaml_config_template, yaml_config
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def storm():
+  import params
+  yaml_config("storm.yaml",
+              conf_dir=params.conf_dir,
+              configurations=params.config['configurations']['storm-site'],
+              owner=params.storm_user
+  )
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def storm():
   import params
 

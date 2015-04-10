@@ -24,16 +24,9 @@
   <property>
     <name>storm.local.dir</name>
     <value>c:\hadoop\storm</value>
-    <description>A directory on the local filesystem used by Storm for any local
-       filesystem usage it needs. The directory must exist and the Storm daemons must
-       have permission to read/write from this location.</description>
   </property>
   <property>
     <name>dev.zookeeper.path</name>
     <value>c:\hadoop\temp\dev-storm-zookeeper</value>
-    <description>The path to use as the zookeeper dir when running a zookeeper server via
-      "storm dev-zookeeper". This zookeeper instance is only intended for development;
-      it is not a production grade zookeeper setup.
-    </description>
   </property>
 </configuration>

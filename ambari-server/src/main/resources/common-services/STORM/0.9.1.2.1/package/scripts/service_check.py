@@ -24,8 +24,25 @@ from resource_management.core.resources import File
 from resource_management.core.resources import Execute
 from resource_management.libraries.script import Script
 from resource_management.core.source import StaticFile
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 class ServiceCheck(Script):
+  pass
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ServiceCheckWindows(ServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+    smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+    service = "STORM"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ServiceCheckDefault(ServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)

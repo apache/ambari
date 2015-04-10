@@ -66,3 +66,14 @@ def yaml_config_template(configurations):
   return InlineTemplate(storm_yaml_template, configurations=configurations,
                         extra_imports=[escape_yaml_propetry, replace_jaas_placeholder, resource_management,
                                        resource_management.core, resource_management.core.source])
+
+def yaml_config(filename, configurations = None, conf_dir = None, owner = None, group = None):
+  import params
+  config_content = source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
+{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
+
+  File (os.path.join(params.conf_dir, filename),
+        content = config_content,
+        owner = owner,
+        mode = "f"
+  )

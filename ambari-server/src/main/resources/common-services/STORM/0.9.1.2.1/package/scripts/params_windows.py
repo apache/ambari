@@ -18,33 +18,12 @@ limitations under the License.
 
 """
 
-import sys
 from resource_management import *
-import service_mapping
-from storm import storm
+from status_params import *
 
+# server configurations
+config = Script.get_config()
 
-class Supervisor(Script):
-  def install(self, env):
-    if not check_windows_service_exists(service_mapping.supervisor_win_service_name):
-      self.install_packages(env)
-    self.configure(env)
-
-  def start(self, env):
-    self.configure(env)
-    Service(service_mapping.supervisor_win_service_name, action="start")
-
-  def stop(self, env):
-    Service(service_mapping.supervisor_win_service_name, action="stop")
-
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    storm()
-
-  def status(self, env):
-    check_windows_service_status(service_mapping.supervisor_win_service_name)
-    pass
-
-if __name__ == "__main__":
-  Supervisor().execute()
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+conf_dir = os.environ["STORM_CONF_DIR"]
+storm_user = "hadoop"

@@ -29,19 +29,15 @@
   <property>
     <name>storm_log_dir</name>
     <value>c:\hadoop\logs\storm</value>
-    <description></description>
   </property>
   <property>
     <name>storm_pid_dir</name>
     <value>c:\hadoop\run\storm</value>
-    <description></description>
   </property>
 
   <!-- storm-env.cmd -->
   <property>
     <name>content</name>
-    <description>This is the jinja template for storm-env.cmd file</description>
-    <value>
-    </value>
+    <value/>
   </property>
 </configuration>
