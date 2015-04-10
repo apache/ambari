@@ -19,10 +19,28 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions.format import format
 import functions
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
 
 class HbaseServiceCheck(Script):
+  pass
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HbaseServiceCheckWindows(HbaseServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+    smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
+    service = "HBASE"
+    Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True)
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HbaseServiceCheckDefault(HbaseServiceCheck):
   def service_check(self, env):
     import params
     env.set_params(params)

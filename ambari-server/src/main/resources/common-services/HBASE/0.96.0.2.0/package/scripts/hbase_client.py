@@ -20,12 +20,32 @@ limitations under the License.
 
 import sys
 from resource_management import *
-
 from hbase import hbase
+from ambari_commons import OSCheck, OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
 
-         
+
 class HbaseClient(Script):
+  def install(self, env):
+    self.install_packages(env)
+    self.configure(env)
 
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    hbase(name='client')
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HbaseClientWindows(HbaseClient):
+  pass
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HbaseClientDefault(HbaseClient):
   def get_stack_to_component(self):
     return {"HDP": "hbase-client"}
 
@@ -40,19 +60,6 @@ class HbaseClient(Script):
       # of the final "CLIENTS" group and we need to ensure that hadoop-client
       # is also set
       Execute(format("hdp-select set hadoop-client {version}"))
-
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
-    
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    
-    hbase(name='client')
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
 
 
 if __name__ == "__main__":

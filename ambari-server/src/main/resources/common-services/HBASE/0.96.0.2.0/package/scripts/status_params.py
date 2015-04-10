@@ -19,18 +19,23 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons import OSCheck
 
 config = Script.get_config()
 
-pid_dir = config['configurations']['hbase-env']['hbase_pid_dir']
-hbase_user = config['configurations']['hbase-env']['hbase_user']
+if OSCheck.is_windows_family():
+  hbase_master_win_service_name = "master"
+  hbase_regionserver_win_service_name = "regionserver"
+else:
+  pid_dir = config['configurations']['hbase-env']['hbase_pid_dir']
+  hbase_user = config['configurations']['hbase-env']['hbase_user']
 
-# Security related/required params
-hostname = config['hostname']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path()
-tmp_dir = Script.get_tmp_dir()
+  # Security related/required params
+  hostname = config['hostname']
+  security_enabled = config['configurations']['cluster-env']['security_enabled']
+  kinit_path_local = functions.get_kinit_path()
+  tmp_dir = Script.get_tmp_dir()
 
 
-hbase_conf_dir_prefix = "/etc/hbase"
-hbase_conf_dir = format("{hbase_conf_dir_prefix}/conf")
+  hbase_conf_dir_prefix = "/etc/hbase"
+  hbase_conf_dir = format("{hbase_conf_dir_prefix}/conf")

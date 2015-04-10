@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
@@ -17,5 +18,20 @@ limitations under the License.
 
 """
 
-hbase_master_win_service_name = "master"
-hbase_regionserver_win_service_name = "regionserver"
+from resource_management import *
+import os
+import status_params
+
+# server configurations
+config = Script.get_config()
+hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
+hbase_bin_dir = os.path.join(os.environ["HBASE_HOME"],'bin')
+hbase_executable = os.path.join(hbase_bin_dir,"hbase.cmd")
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
+hbase_user = "hadoop"
+
+#decomm params
+region_drainer = os.path.join(hbase_bin_dir,"draining_servers.rb")
+region_mover = os.path.join(hbase_bin_dir,"region_mover.rb")
+hbase_excluded_hosts = config['commandParams']['excluded_hosts']
+hbase_drain_only = config['commandParams']['mark_draining_only']

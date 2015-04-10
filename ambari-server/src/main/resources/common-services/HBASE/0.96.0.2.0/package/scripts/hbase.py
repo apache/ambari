@@ -18,12 +18,24 @@ limitations under the License.
 
 """
 import os
-
 from resource_management import *
 import sys
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
-def hbase(name=None # 'master' or 'regionserver' or 'client'
-              ):
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hbase(name=None):
+  import params
+  XmlConfig("hbase-site.xml",
+            conf_dir = params.hbase_conf_dir,
+            configurations = params.config['configurations']['hbase-site'],
+            configuration_attributes=params.config['configuration_attributes']['hbase-site']
+  )
+
+# name is 'master' or 'regionserver' or 'client'
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def hbase(name=None):
   import params
 
   Directory( params.hbase_conf_dir_prefix,
@@ -155,9 +167,7 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
     )
     params.HdfsDirectory(None, action="create")
 
-def hbase_TemplateConfig(name, 
-                         tag=None
-                         ):
+def hbase_TemplateConfig(name, tag=None):
   import params
 
   TemplateConfig( format("{hbase_conf_dir}/{name}"),

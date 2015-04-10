@@ -19,8 +19,30 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hbase_decommission(env):
+  import params
+
+  env.set_params(params)
+  File(params.region_drainer, content=StaticFile("draining_servers.rb"), owner=params.hbase_user, mode="f")
+
+  hosts = params.hbase_excluded_hosts.split(",")
+  for host in hosts:
+    if host:
+      if params.hbase_drain_only == True:
+        regiondrainer_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_drainer} remove {host}")
+        Execute(regiondrainer_cmd, user=params.hbase_user, logoutput=True)
+      else:
+        regiondrainer_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_drainer} add {host}")
+        regionmover_cmd = format("cmd /c {hbase_executable} org.jruby.Main {region_mover} unload {host}")
+        Execute(regiondrainer_cmd, user=params.hbase_user, logoutput=True)
+        Execute(regionmover_cmd, user=params.hbase_user, logoutput=True)
 
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase_decommission(env):
   import params
 
@@ -68,7 +90,4 @@ def hbase_decommission(env):
         )
       pass
     pass
-  pass
-  
-
   pass
