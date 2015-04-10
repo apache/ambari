@@ -21,6 +21,9 @@ import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -45,6 +48,7 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -99,6 +103,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = PropertyHelper.getPropertyId("HostRoles", "desired_admin_state");
   protected static final String HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID
       = "HostRoles/maintenance_state";
+  protected static final String HOST_COMPONENT_HDP_VERSION
+      = PropertyHelper.getPropertyId("HostRoles", "hdp_version");
 
   //Component name mappings
   private final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
@@ -120,6 +126,9 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    */
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
+
+  @Inject
+  private HostVersionDAO hostVersionDAO;
 
   // ----- Constructors ----------------------------------------------------
 
@@ -241,6 +250,13 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
               response.isStaleConfig(), requestedIds);
+
+      HostVersionEntity versionEntity = hostVersionDAO.
+              findByHostAndStateCurrent(response.getClusterName(), response.getHostname());
+      if (versionEntity != null) {
+        setResourceProperty(resource, HOST_COMPONENT_HDP_VERSION,
+                versionEntity.getRepositoryVersion().getDisplayName(), requestedIds);
+      }
 
       if (response.getAdminState() != null) {
         setResourceProperty(resource, HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID,

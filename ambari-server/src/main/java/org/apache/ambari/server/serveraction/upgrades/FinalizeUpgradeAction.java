@@ -20,6 +20,7 @@ package org.apache.ambari.server.serveraction.upgrades;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -41,13 +42,18 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.serveraction.AbstractServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
+import org.apache.commons.lang.text.StrBuilder;
 
 /**
  * Action that represents finalizing the Upgrade by completing any database changes.
@@ -172,6 +178,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         outSB.append(message);
         throw new AmbariException(message);
       }
+
+      checkHostComponentVesions(cluster, version, stack);
 
       // May need to first transition to UPGRADED
       if (atLeastOneHostInInstalledState) {
@@ -301,6 +309,54 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       return createCommandReport(-1, HostRoleStatus.FAILED, "{}",
           out.toString(), err.toString());
     }
+  }
+
+
+  /**
+   * Confirms that all host components that are able to provide hdp version,
+   * have been upgraded to the target version.
+   * @param cluster     the cluster the upgrade is for
+   * @param desiredVersion     the target version of the upgrade
+   * @throws AmbariException if any host component has not been updated yet
+   */
+  private void checkHostComponentVesions(Cluster cluster, String desiredVersion, StackId stackId)
+          throws AmbariException {
+    class InfoTuple {
+      public InfoTuple(String serviceName, String componentName, String hostName) {
+        this.serviceName = serviceName;
+        this.componentName = componentName;
+        this.hostName = hostName;
+      }
+
+      public final String serviceName;
+      public final String componentName;
+      public final String hostName;
+    }
+    ArrayList<InfoTuple> errors = new ArrayList<InfoTuple>();
+    for (Service service : cluster.getServices().values()) {
+      for (ServiceComponent serviceComponent : service.getServiceComponents().values()) {
+        for (ServiceComponentHost serviceComponentHost : serviceComponent.getServiceComponentHosts().values()) {
+          ComponentInfo componentInfo = ambariMetaInfo.getComponent(stackId.getStackName(),
+                  stackId.getStackVersion(), service.getName(), serviceComponent.getName());
+          if (componentInfo.isVersionAdvertised() && ! serviceComponentHost.getVersion().equals(desiredVersion)) {
+            errors.add(new InfoTuple(
+                    service.getName(), serviceComponent.getName(), serviceComponentHost.getHostName()));
+          }
+        }
+      }
+    }
+
+    if (! errors.isEmpty()) {
+      StrBuilder messageBuff = new StrBuilder(String.format("The following %d host component(s) " +
+              "have not been upgraded to version %s. Please install and upgrade " +
+              "the Stack Version on those hosts and try again.\nHost components:\n",
+              errors.size(), desiredVersion));
+      for (InfoTuple error : errors) {
+        messageBuff.append(String.format("%s on host %s\n", error.componentName, error.hostName));
+      }
+      throw new AmbariException(messageBuff.toString());
+    }
+
   }
 
 }
