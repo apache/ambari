@@ -24,14 +24,23 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 import utils  # this is needed to avoid a circular dependency since utils.py calls this class
 from hdfs import hdfs
-
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
 
 class ZkfcSlave(Script):
   def install(self, env):
     import params
-
-    self.install_packages(env, params.exclude_packages)
     env.set_params(params)
+    self.install_packages(env, params.exclude_packages)
+
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    hdfs()
+    pass
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ZkfcSlaveDefault(ZkfcSlave):
 
   def start(self, env, rolling_restart=False):
     import params
@@ -68,22 +77,15 @@ class ZkfcSlave(Script):
       create_log_dir=True
     )
 
-  def configure(self, env):
-    hdfs()
-    pass
 
   def status(self, env):
     import status_params
-
     env.set_params(status_params)
-
     check_process_status(status_params.zkfc_pid_file)
 
   def security_status(self, env):
     import status_params
-
     env.set_params(status_params)
-
     props_value_check = {"hadoop.security.authentication": "kerberos",
                          "hadoop.security.authorization": "true"}
     props_empty_check = ["hadoop.security.auth_to_local"]
@@ -143,6 +145,22 @@ def initialize_ha_zookeeper(params):
   except Exception as ex:
     Logger.error('HA state initialization in ZooKeeper threw an exception. Reason %s' %(str(ex)))
   return False
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ZkfcSlaveWindows(ZkfcSlave):
+  def start(self, env):
+    import params
+    self.configure(env)
+    Service(params.zkfc_win_service_name, action="start")
+
+  def stop(self, env):
+    import params
+    Service(params.zkfc_win_service_name, action="stop")
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_windows_service_status(status_params.zkfc_win_service_name)
 
 if __name__ == "__main__":
   ZkfcSlave().execute()

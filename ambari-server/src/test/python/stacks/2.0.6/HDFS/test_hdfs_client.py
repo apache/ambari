@@ -25,6 +25,7 @@ from resource_management import *
 from stacks.utils.RMFTestCase import *
 
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(tarfile,"open", new = MagicMock())
 @patch.object(tempfile,"mkdtemp", new = MagicMock(return_value='/tmp/123'))
 @patch.object(contextlib,"closing", new = MagicMock())

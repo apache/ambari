@@ -23,51 +23,47 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from hdfs_snamenode import snamenode
 from hdfs import hdfs
-
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
 
 class SNameNode(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-hdfs-secondarynamenode"}
-
   def install(self, env):
     import params
-
     env.set_params(params)
-
     self.install_packages(env, params.exclude_packages)
 
-  def pre_rolling_restart(self, env):
-    # Secondary namenode is actually removed in an HA cluster, which is a pre-requisite for Rolling Upgrade,
-    # so it does not need any Rolling Restart logic.
-    pass
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    hdfs("secondarynamenode")
+    snamenode(action="configure")
 
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-
     self.configure(env)
     snamenode(action="start")
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-
     snamenode(action="stop")
-
-  def configure(self, env):
-    import params
-
-    env.set_params(params)
-    hdfs()
-    snamenode(action="configure")
 
   def status(self, env):
     import status_params
-
     env.set_params(status_params)
+    snamenode(action="status")
 
-    check_process_status(status_params.snamenode_pid_file)
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class SNameNodeDefault(SNameNode):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-hdfs-secondarynamenode"}
+
+  def pre_rolling_restart(self, env):
+    # Secondary namenode is actually removed in an HA cluster, which is a pre-requisite for Rolling Upgrade,
+    # so it does not need any Rolling Restart logic.
+    pass
 
   def security_status(self, env):
     import status_params
@@ -129,6 +125,9 @@ class SNameNode(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class SNameNodeWindows(SNameNode):
+  pass
 
 if __name__ == "__main__":
   SNameNode().execute()

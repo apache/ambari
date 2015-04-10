@@ -28,18 +28,20 @@ from resource_management.libraries.functions.security_commons import build_expec
 from utils import service
 from hdfs import hdfs
 import journalnode_upgrade
-
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
 
 class JournalNode(Script):
+  def install(self, env):
+    import params
+    self.install_packages(env, params.exclude_packages)
+    env.set_params(params)
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class JournalNodeDefault(JournalNode):
 
   def get_stack_to_component(self):
     return {"HDP": "hadoop-hdfs-journalnode"}
-
-  def install(self, env):
-    import params
-
-    self.install_packages(env, params.exclude_packages)
-    env.set_params(params)
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade pre-restart")
@@ -157,6 +159,28 @@ class JournalNode(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class JournalNodeWindows(JournalNode):
+
+  def start(self, env):
+    import params
+    self.configure(env)
+    Service(params.journalnode_win_service_name, action="start")
+
+  def stop(self, env):
+    import params
+    Service(params.journalnode_win_service_name, action="stop")
+
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    hdfs()
+    pass
+
+  def status(self, env):
+    import status_params
+    env.set_params(status_params)
+    check_windows_service_status(status_params.journalnode_win_service_name)
 
 if __name__ == "__main__":
   JournalNode().execute()

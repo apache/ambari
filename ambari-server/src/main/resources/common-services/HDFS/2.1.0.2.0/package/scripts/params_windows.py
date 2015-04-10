@@ -19,6 +19,7 @@ limitations under the License.
 
 from resource_management import *
 import os
+from status_params import *
 
 config = Script.get_config()
 hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
@@ -56,3 +57,4 @@ hdfs_user = "hadoop"
 grep_exe = "findstr"
 
 name_node_params = default("/commandParams/namenode", None)
+exclude_packages = []

@@ -23,51 +23,30 @@ from resource_management.libraries.functions.version import compare_versions, fo
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, FILE_TYPE_XML
 from hdfs import hdfs
-
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
 
 class DataNode(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-hdfs-datanode"}
-
   def install(self, env):
     import params
-
     self.install_packages(env, params.exclude_packages)
     env.set_params(params)
 
-
-  def pre_rolling_restart(self, env):
-    Logger.info("Executing DataNode Rolling Upgrade pre-restart")
+  def configure(self, env):
     import params
     env.set_params(params)
-
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      Execute(format("hdp-select set hadoop-hdfs-datanode {version}"))
-
-
-  def post_rolling_restart(self, env):
-    Logger.info("Executing DataNode Rolling Upgrade post-restart")
-    import params
-    env.set_params(params)
-
-    # ensure the DataNode has started and rejoined the cluster
-    datanode_upgrade.post_upgrade_check()
-
+    hdfs("datanode")
+    datanode(action="configure")
 
   def start(self, env, rolling_restart=False):
     import params
-
     env.set_params(params)
     self.configure(env)
     datanode(action="start")
 
-
   def stop(self, env, rolling_restart=False):
     import params
-
     env.set_params(params)
-
     # pre-upgrade steps shutdown the datanode, so there's no need to call
     # action=stop
     if rolling_restart:
@@ -75,19 +54,31 @@ class DataNode(Script):
     else:
       datanode(action="stop")
 
-
-  def configure(self, env):
-    import params
-    env.set_params(params)
-    hdfs()
-    datanode(action="configure")
-
-
   def status(self, env):
     import status_params
-
     env.set_params(status_params)
-    check_process_status(status_params.datanode_pid_file)
+    datanode(action = "status")
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class DataNodeDefault(DataNode):
+
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-hdfs-datanode"}
+
+  def pre_rolling_restart(self, env):
+    Logger.info("Executing DataNode Rolling Upgrade pre-restart")
+    import params
+    env.set_params(params)
+    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      Execute(format("hdp-select set hadoop-hdfs-datanode {version}"))
+
+  def post_rolling_restart(self, env):
+    Logger.info("Executing DataNode Rolling Upgrade post-restart")
+    import params
+    env.set_params(params)
+    # ensure the DataNode has started and rejoined the cluster
+    datanode_upgrade.post_upgrade_check()
 
   def security_status(self, env):
     import status_params
@@ -147,6 +138,9 @@ class DataNode(Script):
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
 
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class DataNodeWindows(DataNode):
+  pass
 
 if __name__ == "__main__":
   DataNode().execute()

@@ -20,6 +20,8 @@ limitations under the License.
 from resource_management import *
 from resource_management.libraries.functions.dfs_datanode_helper import handle_dfs_data_dir
 from utils import service
+from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+from ambari_commons import OSConst
 
 
 def create_dirs(data_dir, params):
@@ -36,10 +38,10 @@ def create_dirs(data_dir, params):
             ignore_failures=True
   )
 
-
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def datanode(action=None):
-  import params
   if action == "configure":
+    import params
     Directory(params.dfs_domain_socket_dir,
               recursive=True,
               mode=0751,
@@ -47,8 +49,8 @@ def datanode(action=None):
               group=params.user_group)
 
     handle_dfs_data_dir(create_dirs, params)
-
   elif action == "start" or action == "stop":
+    import params
     Directory(params.hadoop_pid_dir_prefix,
               mode=0755,
               owner=params.hdfs_user,
@@ -60,3 +62,18 @@ def datanode(action=None):
       create_pid_dir=True,
       create_log_dir=True
     )
+  elif action == "status":
+    import status_params
+    check_process_status(status_params.datanode_pid_file)
+
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def datanode(action=None):
+  if action == "configure":
+    pass
+  elif(action == "start" or action == "stop"):
+    import params
+    Service(params.datanode_win_service_name, action=action)
+  elif action == "status":
+    import status_params
+    check_windows_service_status(status_params.datanode_win_service_name)

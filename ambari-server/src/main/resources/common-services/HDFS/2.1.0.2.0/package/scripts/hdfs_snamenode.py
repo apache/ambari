@@ -20,12 +20,13 @@ limitations under the License.
 from resource_management import *
 from utils import service
 from utils import hdfs_directory
+from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
+from ambari_commons import OSConst
 
-
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def snamenode(action=None, format=False):
-  import params
-
   if action == "configure":
+    import params
     for fs_checkpoint_dir in params.fs_checkpoint_dirs:
       Directory(fs_checkpoint_dir,
                 recursive=True,
@@ -38,6 +39,7 @@ def snamenode(action=None, format=False):
          owner=params.hdfs_user,
          group=params.user_group)
   elif action == "start" or action == "stop":
+    import params
     Directory(params.hadoop_pid_dir_prefix,
               mode=0755,
               owner=params.hdfs_user,
@@ -50,3 +52,19 @@ def snamenode(action=None, format=False):
       create_pid_dir=True,
       create_log_dir=True
     )
+  elif action == "status":
+    import status_params
+    check_process_status(status_params.snamenode_pid_file)
+
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def snamenode(action=None, format=False):
+  if action == "configure":
+    pass
+  elif action == "start" or action == "stop":
+    import params
+    Service(params.snamenode_win_service_name, action=action)
+  elif action == "status":
+    import status_params
+    check_windows_service_status(status_params.snamenode_win_service_name)
+
