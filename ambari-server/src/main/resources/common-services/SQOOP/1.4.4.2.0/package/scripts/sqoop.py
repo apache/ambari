@@ -24,12 +24,21 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 import os
 
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def sqoop(type=None):
+  import params
+  File(os.path.join(params.sqoop_conf_dir, "sqoop-env.cmd"),
+       content=InlineTemplate(params.sqoop_env_cmd_template)
+  )
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def sqoop(type=None):
   import params
   Link(params.sqoop_lib + "/mysql-connector-java.jar",
        to = '/usr/share/java/mysql-connector-java.jar'
   )
-  
+
   jdbc_connector()
   
   Directory(params.sqoop_conf_dir,
