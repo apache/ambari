@@ -27,6 +27,7 @@ import static org.easymock.EasyMock.getCurrentArguments;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -203,7 +204,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     RequestStageContainer requestStageContainer = createNiceMock(RequestStageContainer.class);
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer, true);
     verifyAll();
   }
 
@@ -222,7 +223,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).once();
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null, true);
     verifyAll();
   }
 
@@ -244,7 +245,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).once();
 
     replayAll();
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, null, true);
     verifyAll();
   }
 
@@ -339,7 +340,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     try {
       kerberosHelper.executeCustomOperations(cluster,
-          Collections.singletonMap("invalid_operation", "false"), null);
+          Collections.singletonMap("invalid_operation", "false"), null, true);
     } catch (Throwable t) {
       Assert.fail("Exception should not have been thrown");
     }
@@ -351,7 +352,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     final Cluster cluster = createNiceMock(Cluster.class);
 
     kerberosHelper.executeCustomOperations(cluster,
-        Collections.singletonMap("regenerate_keytabs", "false"), null);
+        Collections.singletonMap("regenerate_keytabs", "false"), null, true);
     Assert.fail("AmbariException should have failed");
   }
 
@@ -683,7 +684,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer, true);
 
     verifyAll();
   }
@@ -975,7 +976,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.toggleKerberos(cluster, SecurityType.NONE, requestStageContainer);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.NONE, requestStageContainer, true);
 
     verifyAll();
   }
@@ -1265,7 +1266,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
-    Assert.assertNotNull(kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer));
+    Assert.assertNotNull(kerberosHelper.executeCustomOperations(cluster, Collections.singletonMap("regenerate_keytabs", "true"), requestStageContainer, true));
 
     verifyAll();
   }
@@ -1293,6 +1294,66 @@ public class KerberosHelperTest extends EasyMockSupport {
     assertTrue(kerberosHelper.isClusterKerberosEnabled(cluster));
     verify(cluster);
   }
+
+  @Test
+  public void testGetManageIdentitiesDirective_NotSet() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    assertEquals(null, kerberosHelper.getManageIdentitiesDirective(null));
+    assertEquals(null, kerberosHelper.getManageIdentitiesDirective(Collections.<String, String>emptyMap()));
+
+    assertEquals(null, kerberosHelper.getManageIdentitiesDirective(
+        new HashMap<String, String>() {
+          {
+            put(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, null);
+            put("some_directive_0", "false");
+            put("some_directive_1", null);
+          }
+        }
+    ));
+
+    assertEquals(null, kerberosHelper.getManageIdentitiesDirective(
+        new HashMap<String, String>() {
+          {
+            put("some_directive_0", "false");
+            put("some_directive_1", null);
+          }
+        }
+    ));
+  }
+
+  @Test
+  public void testGetManageIdentitiesDirective_True() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    assertEquals(Boolean.TRUE, kerberosHelper.getManageIdentitiesDirective(Collections.singletonMap(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "true")));
+    assertEquals(Boolean.TRUE, kerberosHelper.getManageIdentitiesDirective(Collections.singletonMap(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "not_false")));
+
+    assertEquals(Boolean.TRUE, kerberosHelper.getManageIdentitiesDirective(
+        new HashMap<String, String>() {
+          {
+            put(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "true");
+            put("some_directive_0", "false");
+            put("some_directive_1", null);
+          }
+        }
+    ));
+  }
+
+  @Test
+  public void testGetManageIdentitiesDirective_False() throws Exception {
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+    assertEquals(Boolean.FALSE, kerberosHelper.getManageIdentitiesDirective(Collections.singletonMap(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "false")));
+
+    assertEquals(Boolean.FALSE, kerberosHelper.getManageIdentitiesDirective(
+        new HashMap<String, String>() {
+          {
+            put(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "false");
+            put("some_directive_0", "false");
+            put("some_directive_1", null);
+          }
+        }
+    ));
+  }
+
 
   private void setClusterController() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
@@ -1682,7 +1743,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
     serviceComponentFilter.put("SERVICE1", null);
 
-    kerberosHelper.ensureIdentities(cluster, serviceComponentFilter, identityFilter, null, requestStageContainer);
+    kerberosHelper.ensureIdentities(cluster, serviceComponentFilter, identityFilter, null, requestStageContainer, true);
 
     verifyAll();
   }
@@ -1959,7 +2020,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     serviceComponentFilter.put("SERVICE3", Collections.singleton("COMPONENT3"));
     serviceComponentFilter.put("SERVICE1", null);
 
-    kerberosHelper.deleteIdentities(cluster, serviceComponentFilter, identityFilter, requestStageContainer);
+    kerberosHelper.deleteIdentities(cluster, serviceComponentFilter, identityFilter, requestStageContainer, true);
 
     verifyAll();
   }

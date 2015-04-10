@@ -24,6 +24,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.api.query.render.ClusterBlueprintRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
+import org.apache.ambari.server.controller.KerberosHelper;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
@@ -81,7 +82,7 @@ public class ClusterResourceDefinition extends BaseResourceDefinition {
   public Collection<String> getUpdateDirectives() {
     Collection<String> directives = super.getUpdateDirectives();
     directives.add("regenerate_keytabs");
-
+    directives.add(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES);
     return directives;
   }
 

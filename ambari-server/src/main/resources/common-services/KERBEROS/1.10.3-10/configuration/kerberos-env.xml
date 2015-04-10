@@ -29,6 +29,15 @@
     <value>mit-kdc</value>
   </property>
 
+  <property>
+    <name>manage_identities</name>
+    <description>
+      Indicates whether the Ambari user and service Kerberos identities (principals and keytab files)
+      should be managed (created, deleted, updated, etc...) by Ambari or managed manually.
+    </description>
+    <value>true</value>
+  </property>
+
   <property require-input="true">
     <name>ldap_url</name>
     <description>

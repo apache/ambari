@@ -1420,7 +1420,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       // most of the validation logic will be left to the KerberosHelper to avoid polluting the controller
       if (kerberosHelper.shouldExecuteCustomOperations(securityType, requestProperties)) {
         try {
-          requestStageContainer = kerberosHelper.executeCustomOperations(cluster, requestProperties, requestStageContainer);
+          requestStageContainer = kerberosHelper.executeCustomOperations(cluster, requestProperties, requestStageContainer,
+              kerberosHelper.getManageIdentitiesDirective(requestProperties));
         } catch (KerberosOperationException e) {
           throw new IllegalArgumentException(e.getMessage(), e);
         }
@@ -1433,7 +1434,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           // adding or removing Kerberos from the cluster. This may generate multiple stages
           // or not depending the current state of the cluster.
           try {
-            requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer);
+            requestStageContainer = kerberosHelper.toggleKerberos(cluster, securityType, requestStageContainer,
+                kerberosHelper.getManageIdentitiesDirective(requestProperties));
           } catch (KerberosOperationException e) {
             throw new IllegalArgumentException(e.getMessage(), e);
           }
@@ -2227,7 +2229,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
 
         try {
-          kerberosHelper.ensureIdentities(cluster, serviceFilter, null, hostsToForceKerberosOperations, requestStages);
+          kerberosHelper.ensureIdentities(cluster, serviceFilter, null, hostsToForceKerberosOperations, requestStages,
+              kerberosHelper.getManageIdentitiesDirective(requestProperties));
         } catch (KerberosOperationException e) {
           throw new IllegalArgumentException(e.getMessage(), e);
         }

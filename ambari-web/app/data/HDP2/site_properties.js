@@ -1961,6 +1961,15 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
+    "name": "manage_identities",
+    "displayName": "Manage Kerberos Identities",
+    "displayType": "checkbox",
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "Advanced kerberos-env"
+  },
+  {
+    "id": "puppet var",
     "name": "create_attributes_template",
     "displayName": "Attribute template",
     "serviceName": "KERBEROS",
