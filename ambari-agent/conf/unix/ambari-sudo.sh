@@ -20,9 +20,8 @@ if [[ $# -eq 0 ]] ; then
   exit 1
 fi
 
-$SUDO_BINARY -S -l 2>/dev/null 1>/dev/null
-
-if [ $? == 0 ] ; then
+# if user is non-root
+if [ "$EUID" -ne 0 ] ; then
   $SUDO_BINARY "$@"
 else
   ENV=()
