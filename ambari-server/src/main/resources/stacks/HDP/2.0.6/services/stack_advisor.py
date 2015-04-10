@@ -433,7 +433,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
             # TODO Add AMBARI_METRICS Collector Xmx property to ams-env
             requiredMemory = getMemorySizeRequired(hostComponents[collectorHostName], configurations)
             if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-              message = "No enough total RAM on the host {0}, " \
+              message = "Not enough total RAM on the host {0}, " \
                         "at least {1} MB required for the components({2})" \
                 .format(collectorHostName, requiredMemory/1048576,
                         str(", ".join(hostComponents[collectorHostName])))  # MB
