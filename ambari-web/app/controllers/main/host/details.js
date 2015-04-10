@@ -1906,9 +1906,7 @@ App.MainHostDetailsController = Em.Controller.extend({
    */
   refreshConfigs: function (event) {
     var self = this;
-    var components = event.context.filter(function (component) {
-      return component.get('staleConfigs');
-    });
+    var components = event.context;
     if (components.get('length') > 0) {
       return App.showConfirmationPopup(function () {
         batchUtils.restartHostComponents(components, Em.I18n.t('rollingrestart.context.allClientsOnSelectedHost').format(self.get('content.hostName')), "HOST");

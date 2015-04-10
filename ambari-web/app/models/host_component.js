@@ -245,7 +245,7 @@ App.HostComponentActionMap = {
         action: 'refreshConfigs',
         label: Em.I18n.t('hosts.host.details.refreshConfigs'),
         cssClass: 'icon-refresh',
-        disabled: !ctx.get('controller.content.isRestartRequired')
+        disabled: false
       },
       REFRESHQUEUES: {
         action: 'refreshYarnQueues',
