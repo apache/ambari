@@ -62,4 +62,6 @@ topology.metrics.consumer.register:
 metrics.reporter.register: "org.apache.hadoop.metrics2.sink.storm.StormTimelineMetricsReporter"
 {% endif %}
 
+{% if stack_is_hdp22_or_further %}
 storm.log.dir: "{{log_dir}}"
+{% endif %}
