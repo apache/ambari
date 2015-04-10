@@ -40,30 +40,28 @@
       {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
     {{/if}}
   </div>
-
-  {{#if view.isComparison}}
-    {{#if controller.selectedConfigGroup.isDefault}}
-      <span
-          class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-      {{#if controller.isCurrentSelected}}
-        <span class="label label-success">{{t common.current}}</span>
-      {{/if}}
-    {{else}}
-      <span class="label label-info">{{t common.default}}
-        &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
+{{/if}}
+{{#if view.isComparison}}
+  <div class="clearfix">
+  {{#if controller.selectedConfigGroup.isDefault}}
+    <span
+        class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+    {{#if controller.isCurrentSelected}}
+      <span class="label label-success">{{t common.current}}</span>
     {{/if}}
+  {{else}}
+    <span class="label label-info">{{t common.default}}
+      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
   {{/if}}
+  </div>
+{{/if}}
+{{#if view.isOriginalSCP}}
+  {{view App.ConfigWidgetOverrideView
+  serviceConfigPropertyBinding="view.config"
+  isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
+  }}
+{{/if}}
 
-  {{#if view.isOriginalSCP}}
-    {{view App.ConfigWidgetOverrideView
-    serviceConfigPropertyBinding="view.config"
-    isDefaultGroupSelectedBinding="controller.selectedConfigGroup.isDefault"
-    }}
-  {{/if}}
-
-  {{#if view.isComparison}}
-    {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
-  {{/if}}
-{{else}}
-  <div class="clearfix"></div>
+{{#if view.isComparison}}
+  {{view App.ConfigWidgetComparisonView serviceConfigPropertyBinding="view.config"}}
 {{/if}}
