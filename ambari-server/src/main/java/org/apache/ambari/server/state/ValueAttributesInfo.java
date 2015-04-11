@@ -43,7 +43,7 @@ public class ValueAttributesInfo {
 
   @XmlElementWrapper(name = "entries")
   @XmlElements(@XmlElement(name = "entry"))
-  private Collection<ValueEntryInfo> entries = new ArrayList<ValueEntryInfo>();
+  private Collection<ValueEntryInfo> entries;
 
   @XmlElement(name = "entries_editable")
   private Boolean entriesEditable;

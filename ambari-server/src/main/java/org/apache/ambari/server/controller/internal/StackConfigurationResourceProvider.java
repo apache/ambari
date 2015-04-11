@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.commons.lang.StringUtils;
 
 public class StackConfigurationResourceProvider extends
     ReadOnlyResourceProvider {
@@ -149,9 +150,12 @@ public class StackConfigurationResourceProvider extends
       setResourceProperty(resource, PROPERTY_DESCRIPTION_PROPERTY_ID,
           response.getPropertyDescription(), requestedIds);
 
-      setResourceProperty(resource, PROPERTY_DISPLAY_NAME_PROPERTY_ID,
-          response.getPropertyDisplayName(), requestedIds);
-      
+      //should not be returned if empty
+      if (StringUtils.isNotEmpty(response.getPropertyDisplayName())) {
+        setResourceProperty(resource, PROPERTY_DISPLAY_NAME_PROPERTY_ID,
+            response.getPropertyDisplayName(), requestedIds);
+      }
+
       setResourceProperty(resource, PROPERTY_PROPERTY_TYPE_PROPERTY_ID, 
           response.getPropertyType(), requestedIds);
       
