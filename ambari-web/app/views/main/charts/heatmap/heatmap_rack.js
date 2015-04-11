@@ -37,7 +37,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
    * get hosts from the root controller
    */
   getHosts: function () {
-    var controller = App.router.get('mainChartsHeatmapController');
+    var controller = this.get('controller');
     var rackId = this.get('rack.rackId');
     var rackMap = controller.get('rackMap');
     this.pushHostsToRack(rackMap[rackId].hosts);
@@ -53,7 +53,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
    */
   displayHosts: function () {
     var rackHosts = this.get('rack.hosts');
-    var rackCount = App.router.get('mainChartsHeatmapController.modelRacks.length');
+    var rackCount = this.get('controller.modelRacks.length');
 
     if (this.get('hosts.length') === 0) {
       if (rackHosts.length > 100 && rackCount == 1) {
@@ -143,7 +143,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
       this.displayHosts();
     }
     this.getHosts();
-    App.router.get('mainChartsHeatmapController').addRackView(this);
+    this.get('controller').addRackView(this);
   },
   /**
    * Provides the CSS style for an individual host.

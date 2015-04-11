@@ -102,7 +102,7 @@ App.StackService = DS.Model.extend({
 
   // Is the service required for reporting host metrics
   isHostMetricsService: function () {
-      var services = ['GANGLIA'];
+      var services = ['GANGLIA', 'AMBARI_METRICS'];
       return services.contains(this.get('serviceName'));
   }.property('serviceName'),
 
@@ -153,6 +153,10 @@ App.StackService = DS.Model.extend({
 
   customReviewHandler: function () {
     return App.StackService.reviewPageHandlers[this.get('serviceName')];
+  }.property('serviceName'),
+
+  hasHeatmapSection: function() {
+    return ['HDFS', 'YARN', 'HBASE'].contains(this.get('serviceName'));
   }.property('serviceName'),
 
   /**

@@ -657,6 +657,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           }
         }
       }),
+      heatmaps: Em.Route.extend({
+        route: '/heatmaps',
+        connectOutlets: function (router, context) {
+          var item = router.get('mainServiceItemController.content');
+          if (item.get('isLoaded')) {
+            router.get('mainController').dataLoading().done(function () {
+              router.get('mainServiceInfoHeatmapController').loadRacks();
+              router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
+            });
+          }
+        }
+      }),
       audit: Em.Route.extend({
         route: '/audit',
         connectOutlets: function (router, context) {

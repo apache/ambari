@@ -245,6 +245,10 @@ App.MainServiceItemView = Em.View.extend({
     return !App.get('services.noConfigTypes').contains(this.get('controller.content.serviceName'));
   }.property('controller.content.serviceName','App.services.noConfigTypes'),
 
+  hasHeatmapTab: function() {
+    return App.StackService.find().findProperty('serviceName', this.get('controller.content.serviceName')).get('hasHeatmapSection');
+  }.property('controller.content.serviceName'),
+
   didInsertElement: function () {
     this.get('controller').setStartStopState();
   },

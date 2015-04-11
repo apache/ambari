@@ -21,23 +21,16 @@
   <div class="container-fluid">
 	  <div class="row-fluid">
 	    <div class="span2 legend-column">
-		     <div class="btn-group">
+		     <div class="btn-group" id="select-metric-btn-group">
 				  <button class="btn heatmap-select-metric-btn">{{t charts.heatmap.selectMetric}}</button>
 				  <button class="btn dropdown-toggle heatmap-toggle-metrics-btn" data-toggle="dropdown">
 				    <span class="caret"></span>
 				  </button>
 				  <ul class="dropdown-menu">
-				    {{#each category in controller.allMetrics}}
-               <li class="dropdown-submenu">
-                <a tabindex="-1" >{{category.label}}</a>
-                <ul class="dropdown-menu">
-                  {{#each metric in category.items}}
-                    <li>
-                      <a tabindex="-1" {{action showHeatMapMetric metric target="controller"}}>{{metric.name}}</a>
-                    </li>
-                  {{/each}}
-                </ul>
-               </li>
+				    {{#each metric in controller.allMetrics}}
+							<li class="heatmap-metrics-dropdown-links">
+                <a tabindex="-1" {{action showHeatMapMetric metric target="controller"}}>{{metric.name}}</a>
+							</li>
             {{/each}}
 				  </ul>
 				</div>
@@ -61,9 +54,15 @@
 	    </div>
 	    <div class="span10 heatmap-content">
 	      <h4 id="heatmap-metric-loading">
-	        <span id="heatmap-metric-title">{{controller.selectedMetric.name}}</span>
+	        <span id="heatmap-metric-title">
+						{{controller.selectedMetric.name}} &nbsp;
+						{{#if controller.selectedMetric.loading}}
+              <i class='icon-spinner icon-spin icon-small'></i>
+						{{/if}}
+					</span>
 	      </h4>
 	      <div class="row-fluid">
+
 				  {{#each rack in controller.racks}}
 				    <div {{bindAttr class="controller.rackClass"}}>
 				      {{view App.MainChartsHeatmapRackView rackBinding="rack" }}

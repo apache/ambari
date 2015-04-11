@@ -1,8 +1,271 @@
+
 {
-  "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services?fields=StackServices/*,components/*&_=1409656091161",
+  "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services?fields=StackServices/*,components/*,components/dependencies/Dependencies/scope,artifacts/Artifacts/artifact_name",
   "items" : [
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/AMBARI_METRICS",
+      "StackServices" : {
+        "comments" : "A system for metrics collection that provides storage and retrieval capability for metrics collected from the cluster\n      ",
+        "custom_commands" : [ ],
+        "display_name" : "Ambari Metrics",
+        "required_services" : [
+          "ZOOKEEPER"
+        ],
+        "service_check_supported" : true,
+        "service_name" : "AMBARI_METRICS",
+        "service_version" : "0.1.0",
+        "stack_name" : "HDP",
+        "stack_version" : "2.1",
+        "user_name" : null,
+        "config_types" : {
+          "ams-env" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "ams-hbase-env" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "ams-hbase-log4j" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "ams-hbase-policy" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "true"
+            }
+          },
+          "ams-hbase-security-site" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "ams-hbase-site" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "ams-log4j" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "ams-site" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "ams-hbase-security-site/hbase.master.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${ams-env/ambari_metrics_user}",
+                    "value" : "amshbase/_HOST@${realm}"
+                  },
+                  "name" : "ams_hbase_master_hbase",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${ams-env/ambari_metrics_user}"
+                    },
+                    "file" : "${keytab_dir}/ams-hbase.master.keytab",
+                    "configuration" : "ams-hbase-security-site/hbase.master.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "ams-hbase-security-site/hbase.regionserver.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${ams-env/ambari_metrics_user}",
+                    "value" : "amshbase/_HOST@${realm}"
+                  },
+                  "name" : "ams_hbase_regionserver_hbase",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${ams-env/ambari_metrics_user}"
+                    },
+                    "file" : "${keytab_dir}/ams-hbase.regionserver.keytab",
+                    "configuration" : "ams-hbase-security-site/hbase.regionserver.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "ams-hbase-security-site/hbase.myclient.principal",
+                    "type" : "service",
+                    "local_username" : "${ams-env/ambari_metrics_user}",
+                    "value" : "amshbase/_HOST@${realm}"
+                  },
+                  "name" : "ams_collector",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${ams-env/ambari_metrics_user}"
+                    },
+                    "file" : "${keytab_dir}/ams.collector.keytab",
+                    "configuration" : "ams-hbase-security-site/hbase.myclient.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "ams-hbase-security-site/ams.zookeeper.principal",
+                    "type" : "service",
+                    "local_username" : "${ams-env/ambari_metrics_user}",
+                    "value" : "zookeeper/_HOST@${realm}"
+                  },
+                  "name" : "ams_zookeeper",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${ams-env/ambari_metrics_user}"
+                    },
+                    "file" : "${keytab_dir}/zk.service.ams.keytab",
+                    "configuration" : "ams-hbase-security-site/ams.zookeeper.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "configurations" : [
+                {
+                  "ams-hbase-security-site" : {
+                    "hbase.coprocessor.master.classes" : "org.apache.hadoop.hbase.security.access.AccessController",
+                    "hadoop.security.authentication" : "kerberos",
+                    "hbase.security.authentication" : "kerberos",
+                    "hbase.coprocessor.region.classes" : "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.AccessController",
+                    "hbase.security.authorization" : "true",
+                    "zookeeper.znode.parent" : "/ams-hbase-secure",
+                    "hbase.zookeeper.property.kerberos.removeRealmFromPrincipal" : "true",
+                    "hbase.zookeeper.property.jaasLoginRenew" : "3600000",
+                    "hbase.zookeeper.property.authProvider.1" : "org.apache.zookeeper.server.auth.SASLAuthenticationProvider",
+                    "hbase.zookeeper.property.kerberos.removeHostFromPrincipal" : "true"
+                  }
+                }
+              ],
+              "name" : "METRICS_COLLECTOR"
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/hdfs"
+            }
+          ],
+          "name" : "AMBARI_METRICS"
+        }
+      },
+      "components" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/AMBARI_METRICS/components/METRICS_COLLECTOR",
+          "StackServiceComponents" : {
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "METRICS_COLLECTOR",
+            "custom_commands" : [ ],
+            "display_name" : "Metrics Collector",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "AMBARI_METRICS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/AMBARI_METRICS/components/METRICS_COLLECTOR/dependencies/ZOOKEEPER_SERVER",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_SERVER",
+                "dependent_component_name" : "METRICS_COLLECTOR",
+                "dependent_service_name" : "AMBARI_METRICS",
+                "scope" : "cluster",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/AMBARI_METRICS/components/METRICS_MONITOR",
+          "StackServiceComponents" : {
+            "cardinality" : "ALL",
+            "component_category" : "SLAVE",
+            "component_name" : "METRICS_MONITOR",
+            "custom_commands" : [ ],
+            "display_name" : "Metrics Monitor",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "AMBARI_METRICS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "auto_deploy" : {
+            "enabled" : true
+          },
+          "dependencies" : [ ]
+        }
+      ],
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/AMBARI_METRICS/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "AMBARI_METRICS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/AMBARI_METRICS/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "AMBARI_METRICS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON",
       "StackServices" : {
         "comments" : "Data management and processing platform",
         "custom_commands" : [ ],
@@ -19,29 +282,102 @@
         "config_types" : {
           "falcon-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "falcon-runtime.properties" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "falcon-startup.properties" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
-          },
-          "oozie-site" : {
-            "supports" : {
-              "final" : "true"
-            }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "falcon-startup.properties/*.falcon.service.authentication.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${falcon-env/falcon_user}",
+                    "value" : "falcon/_HOST@${realm}"
+                  },
+                  "name" : "falcon_server",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${falcon-env/falcon_user}"
+                    },
+                    "file" : "${keytab_dir}/falcon.service.keytab",
+                    "configuration" : "falcon-startup.properties/*.falcon.service.authentication.kerberos.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "falcon-startup.properties/*.falcon.http.authentication.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : "HTTP/_HOST@${realm}"
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "falcon-startup.properties/*.falcon.http.authentication.kerberos.keytab",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "FALCON_SERVER"
+            }
+          ],
+          "configurations" : [
+            {
+              "falcon-startup.properties" : {
+                "*.dfs.namenode.kerberos.principal" : "nn/_HOST@${realm}",
+                "*.falcon.http.authentication.type" : "kerberos",
+                "*.falcon.authentication.type" : "kerberos"
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/smokeuser"
+            },
+            {
+              "name" : "/hdfs"
+            }
+          ],
+          "name" : "FALCON"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -57,7 +393,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -72,21 +408,23 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_SERVER/dependencies/OOZIE_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_SERVER/dependencies/OOZIE_CLIENT",
               "Dependencies" : {
                 "component_name" : "OOZIE_CLIENT",
                 "dependent_component_name" : "FALCON_SERVER",
                 "dependent_service_name" : "FALCON",
+                "scope" : "cluster",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_SERVER/dependencies/OOZIE_SERVER",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/components/FALCON_SERVER/dependencies/OOZIE_SERVER",
               "Dependencies" : {
                 "component_name" : "OOZIE_SERVER",
                 "dependent_component_name" : "FALCON_SERVER",
                 "dependent_service_name" : "FALCON",
+                "scope" : "cluster",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -94,22 +432,31 @@
           ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/FALCON/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "FALCON",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "FALCON",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FALCON/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "FALCON",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME",
       "StackServices" : {
-        "comments" : "Data management and processing platform",
+        "comments" : "A distributed service for collecting, aggregating, and moving large amounts of streaming data into HDFS",
         "custom_commands" : [ ],
         "display_name" : "Flume",
         "required_services" : [
@@ -124,16 +471,15 @@
         "config_types" : {
           "flume-conf" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "flume-env" : {
             "supports" : {
-              "final" : "false"
-            }
-          },
-          "flume-log4j" : {
-            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           }
@@ -141,7 +487,7 @@
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME/components/FLUME_HANDLER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME/components/FLUME_HANDLER",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "SLAVE",
@@ -157,10 +503,92 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": []
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/FLUME/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "FLUME",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA",
+      "StackServices" : {
+        "comments" : "Ganglia Metrics Collection system (<a href=\"http://oss.oetiker.ch/rrdtool/\" target=\"_blank\">RRDTool</a> will be installed too)",
+        "custom_commands" : [ ],
+        "display_name" : "Ganglia",
+        "required_services" : [ ],
+        "service_check_supported" : false,
+        "service_name" : "GANGLIA",
+        "service_version" : "3.5.0",
+        "stack_name" : "HDP",
+        "stack_version" : "2.1",
+        "user_name" : null,
+        "config_types" : {
+          "ganglia-env" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          }
+        }
+      },
+      "components" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA/components/GANGLIA_MONITOR",
+          "StackServiceComponents" : {
+            "cardinality" : "ALL",
+            "component_category" : "SLAVE",
+            "component_name" : "GANGLIA_MONITOR",
+            "custom_commands" : [ ],
+            "display_name" : "Ganglia Monitor",
+            "is_client" : false,
+            "is_master" : false,
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "auto_deploy" : {
+            "enabled" : true
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA/components/GANGLIA_SERVER",
+          "StackServiceComponents" : {
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "GANGLIA_SERVER",
+            "custom_commands" : [ ],
+            "display_name" : "Ganglia Server",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [ ]
+        }
+      ],
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/GANGLIA/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "GANGLIA",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE",
       "StackServices" : {
         "comments" : "Non-relational distributed database and centralized service for configuration management &\n        synchronization\n      ",
         "custom_commands" : [ ],
@@ -178,29 +606,138 @@
         "config_types" : {
           "hbase-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hbase-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hbase-policy" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           },
           "hbase-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hbase-site/hbase.regionserver.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hbase-env/hbase_user}",
+                    "value" : "hbase/_HOST@${realm}"
+                  },
+                  "name" : "hbase_regionserver_hbase",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hbase-env/hbase_user}"
+                    },
+                    "file" : "${keytab_dir}/hbase.service.keytab",
+                    "configuration" : "hbase-site/hbase.regionserver.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "HBASE_REGIONSERVER"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hbase-site/hbase.master.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hbase-env/hbase_user}",
+                    "value" : "hbase/_HOST@${realm}"
+                  },
+                  "name" : "hbase_master_hbase",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hbase-env/hbase_user}"
+                    },
+                    "file" : "${keytab_dir}/hbase.service.keytab",
+                    "configuration" : "hbase-site/hbase.master.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "HBASE_MASTER"
+            }
+          ],
+          "configurations" : [
+            {
+              "hbase-site" : {
+                "hbase.coprocessor.master.classes" : "org.apache.hadoop.hbase.security.access.AccessController",
+                "hbase.security.authentication" : "kerberos",
+                "hbase.coprocessor.region.classes" : "org.apache.hadoop.hbase.security.token.TokenProvider,org.apache.hadoop.hbase.security.access.SecureBulkLoadEndpoint,org.apache.hadoop.hbase.security.access.AccessController",
+                "hbase.security.authorization" : "true",
+                "hbase.bulkload.staging.dir" : "/apps/hbase/staging",
+                "zookeeper.znode.parent" : "/hbase-secure"
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/hdfs"
+            },
+            {
+              "principal" : {
+                "configuration" : "hbase-env/hbase_principal_name",
+                "type" : "user",
+                "local_username" : "${hbase-env/hbase_user}",
+                "value" : "${hbase-env/hbase_user}@${realm}"
+              },
+              "name" : "hbase",
+              "keytab" : {
+                "owner" : {
+                  "access" : "r",
+                  "name" : "${hbase-env/hbase_user}"
+                },
+                "file" : "${keytab_dir}/hbase.headless.keytab",
+                "configuration" : "hbase-env/hbase_user_keytab",
+                "group" : {
+                  "access" : "r",
+                  "name" : "${cluster-env/user_group}"
+                }
+              }
+            },
+            {
+              "name" : "/smokeuser"
+            }
+          ],
+          "name" : "HBASE"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -216,7 +753,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_MASTER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_MASTER",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "MASTER",
@@ -233,21 +770,23 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_MASTER/dependencies/HDFS_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_MASTER/dependencies/HDFS_CLIENT",
               "Dependencies" : {
                 "component_name" : "HDFS_CLIENT",
                 "dependent_component_name" : "HBASE_MASTER",
                 "dependent_service_name" : "HBASE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_MASTER/dependencies/ZOOKEEPER_SERVER",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_MASTER/dependencies/ZOOKEEPER_SERVER",
               "Dependencies" : {
                 "component_name" : "ZOOKEEPER_SERVER",
                 "dependent_component_name" : "HBASE_MASTER",
                 "dependent_service_name" : "HBASE",
+                "scope" : "cluster",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -255,7 +794,7 @@
           ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_REGIONSERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/components/HBASE_REGIONSERVER",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "SLAVE",
@@ -271,29 +810,38 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HBASE/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "HBASE",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         },
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HBASE/artifacts/widget_descriptor",
-          "Artifacts": {
-            "artifact_name": "widget_descriptor",
-            "service_name": "HBASE",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HBASE/artifacts/widgets_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "widgets_descriptor",
+            "service_name" : "HBASE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS",
       "StackServices" : {
         "comments" : "Apache Hadoop Distributed File System",
         "custom_commands" : [ ],
@@ -310,34 +858,274 @@
         "config_types" : {
           "core-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           },
           "hadoop-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hadoop-policy" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           },
           "hdfs-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hdfs-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "auth_to_local_properties" : [
+            "core-site/hadoop.security.auth_to_local"
+          ],
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.secondary.namenode.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hadoop-env/hdfs_user}",
+                    "value" : "nn/_HOST@${realm}"
+                  },
+                  "name" : "secondary_namenode_nn",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hadoop-env/hdfs_user}"
+                    },
+                    "file" : "${keytab_dir}/nn.service.keytab",
+                    "configuration" : "hdfs-site/dfs.secondary.namenode.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.secondary.namenode.kerberos.internal.spnego.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego"
+                }
+              ],
+              "name" : "SECONDARY_NAMENODE"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.datanode.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hadoop-env/hdfs_user}",
+                    "value" : "dn/_HOST@${realm}"
+                  },
+                  "name" : "datanode_dn",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hadoop-env/hdfs_user}"
+                    },
+                    "file" : "${keytab_dir}/dn.service.keytab",
+                    "configuration" : "hdfs-site/dfs.datanode.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "configurations" : [
+                {
+                  "hdfs-site" : {
+                    "dfs.datanode.address" : "0.0.0.0:1019",
+                    "dfs.datanode.http.address" : "0.0.0.0:1022"
+                  }
+                }
+              ],
+              "name" : "DATANODE"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/nfs.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hadoop-env/hdfs_user}",
+                    "value" : "nfs/_HOST@${realm}"
+                  },
+                  "name" : "nfsgateway",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hadoop-env/hdfs_user}"
+                    },
+                    "file" : "${keytab_dir}/nfs.service.keytab",
+                    "configuration" : "hdfs-site/nfs.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "NFS_GATEWAY"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.journalnode.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hadoop-env/hdfs_user}",
+                    "value" : "jn/_HOST@${realm}"
+                  },
+                  "name" : "journalnode_jn",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hadoop-env/hdfs_user}"
+                    },
+                    "file" : "${keytab_dir}/jn.service.keytab",
+                    "configuration" : "hdfs-site/dfs.journalnode.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.journalnode.kerberos.internal.spnego.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego"
+                }
+              ],
+              "name" : "JOURNALNODE"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.namenode.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hadoop-env/hdfs_user}",
+                    "value" : "nn/_HOST@${realm}"
+                  },
+                  "name" : "namenode_nn",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hadoop-env/hdfs_user}"
+                    },
+                    "file" : "${keytab_dir}/nn.service.keytab",
+                    "configuration" : "hdfs-site/dfs.namenode.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "hdfs-site/dfs.namenode.kerberos.internal.spnego.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego"
+                }
+              ],
+              "configurations" : [
+                {
+                  "hdfs-site" : {
+                    "dfs.block.access.token.enable" : "true"
+                  }
+                }
+              ],
+              "name" : "NAMENODE"
+            }
+          ],
+          "configurations" : [
+            {
+              "core-site" : {
+                "hadoop.http.authentication.cookie.domain" : "",
+                "hadoop.security.authentication" : "kerberos",
+                "hadoop.http.authentication.signer.secret.provider.object" : "",
+                "hadoop.http.authentication.kerberos.name.rules" : "",
+                "hadoop.security.auth_to_local" : "",
+                "hadoop.http.authentication.token.validity" : "",
+                "hadoop.rpc.protection" : "authentication",
+                "hadoop.http.authentication.cookie.path" : "",
+                "hadoop.security.authorization" : "true",
+                "hadoop.http.authentication.type" : "simple",
+                "hadoop.http.authentication.signature.secret.file" : "",
+                "hadoop.http.authentication.signature.secret" : "",
+                "hadoop.http.filter.initializers" : "",
+                "hadoop.http.authentication.signer.secret.provider" : "",
+                "hadoop.proxyuser.HTTP.groups" : "${hadoop-env/proxyuser_group}"
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "principal" : {
+                "configuration" : "hdfs-site/dfs.web.authentication.kerberos.principal",
+                "type" : "service",
+                "local_username" : null,
+                "value" : null
+              },
+              "name" : "/spnego",
+              "keytab" : {
+                "owner" : {
+                  "access" : null,
+                  "name" : null
+                },
+                "file" : null,
+                "configuration" : "hdfs-site/dfs.web.authentication.kerberos.keytab",
+                "group" : {
+                  "access" : null,
+                  "name" : null
+                }
+              }
+            },
+            {
+              "name" : "/smokeuser"
+            },
+            {
+              "name" : "/hdfs"
+            }
+          ],
+          "name" : "HDFS"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/DATANODE",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/DATANODE",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "SLAVE",
@@ -353,7 +1141,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/HDFS_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/HDFS_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -369,7 +1157,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/JOURNALNODE",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/JOURNALNODE",
           "StackServiceComponents" : {
             "cardinality" : "0+",
             "component_category" : "SLAVE",
@@ -382,10 +1170,22 @@
             "stack_name" : "HDP",
             "stack_version" : "2.1"
           },
-          "dependencies" : [ ]
+          "dependencies" : [
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/JOURNALNODE/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "JOURNALNODE",
+                "dependent_service_name" : "HDFS",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/NAMENODE",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/NAMENODE",
           "StackServiceComponents" : {
             "cardinality" : "1-2",
             "component_category" : "MASTER",
@@ -404,7 +1204,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/SECONDARY_NAMENODE",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/SECONDARY_NAMENODE",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -420,7 +1220,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/ZKFC",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/components/ZKFC",
           "StackServiceComponents" : {
             "cardinality" : "0+",
             "component_category" : "SLAVE",
@@ -436,29 +1236,38 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "HDFS",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         },
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HDFS/artifacts/widget_descriptor",
-          "Artifacts": {
-            "artifact_name": "widget_descriptor",
-            "service_name": "HDFS",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HDFS/artifacts/widgets_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "widgets_descriptor",
+            "service_name" : "HDFS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE",
       "StackServices" : {
         "comments" : "Data warehouse system for ad-hoc queries & analysis of large datasets and table & storage management service",
         "custom_commands" : [ ],
@@ -475,31 +1284,215 @@
         "stack_version" : "2.1",
         "user_name" : null,
         "config_types" : {
+          "hcat-env" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
           "hive-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hive-exec-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hive-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "hive-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "true"
+            }
+          },
+          "webhcat-env" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "webhcat-log4j" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "webhcat-site" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hive-site/hive.server2.authentication.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hive-env/hive_user}",
+                    "value" : "hive/_HOST@${realm}"
+                  },
+                  "name" : "hive_server_hive",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hive-env/hive_user}"
+                    },
+                    "file" : "${keytab_dir}/hive.service.keytab",
+                    "configuration" : "hive-site/hive.server2.authentication.kerberos.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "hive-site/hive.server2.authentication.spnego.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "hive-site/hive.server2.authentication.spnego.keytab",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "HIVE_SERVER"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "hive-site/hive.metastore.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${hive-env/hive_user}",
+                    "value" : "hive/_HOST@${realm}"
+                  },
+                  "name" : "hive_metastore_hive",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${hive-env/hive_user}"
+                    },
+                    "file" : "${keytab_dir}/hive.service.keytab",
+                    "configuration" : "hive-site/hive.metastore.kerberos.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "HIVE_METASTORE"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "webhcat-site/templeton.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "webhcat-site/templeton.kerberos.keytab",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "WEBHCAT_SERVER"
+            }
+          ],
+          "configurations" : [
+            {
+              "hive-site" : {
+                "hive.metastore.sasl.enabled" : "true",
+                "hive.server2.authentication" : "KERBEROS",
+                "hive.security.authorization.enabled" : "true"
+              }
+            },
+            {
+              "webhcat-site" : {
+                "templeton.hive.properties" : "hive.metastore.local=false,hive.metastore.uris=thrift://${clusterHostInfo/hive_metastore_host}:9083,hive.metastore.sasl.enabled=true,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse,hive.exec.mode.local.auto=false,hive.metastore.kerberos.principal=hive/_HOST@${realm}",
+                "templeton.kerberos.secret" : "secret"
+              }
+            },
+            {
+              "core-site" : {
+                "hadoop.proxyuser.HTTP.hosts" : "${clusterHostInfo/webhcat_server_host}"
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/smokeuser"
+            }
+          ],
+          "name" : "HIVE"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HCAT",
+          "StackServiceComponents" : {
+            "cardinality" : null,
+            "component_category" : "CLIENT",
+            "component_name" : "HCAT",
+            "custom_commands" : [ ],
+            "display_name" : "HCat Client",
+            "is_client" : true,
+            "is_master" : false,
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [ ]
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -515,23 +1508,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HCATALOG/components/HCAT",
-          "StackServiceComponents" : {
-            "cardinality" : null,
-            "component_category" : "CLIENT",
-            "component_name" : "HCAT",
-            "custom_commands" : [ ],
-            "display_name" : "HCat",
-            "is_client" : true,
-            "is_master" : false,
-            "service_name" : "HCATALOG",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [ ]
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_METASTORE",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_METASTORE",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -551,7 +1528,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -566,41 +1543,45 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/MAPREDUCE2_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/MAPREDUCE2_CLIENT",
               "Dependencies" : {
                 "component_name" : "MAPREDUCE2_CLIENT",
                 "dependent_component_name" : "HIVE_SERVER",
                 "dependent_service_name" : "HIVE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/TEZ_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/TEZ_CLIENT",
               "Dependencies" : {
                 "component_name" : "TEZ_CLIENT",
                 "dependent_component_name" : "HIVE_SERVER",
                 "dependent_service_name" : "HIVE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/YARN_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/YARN_CLIENT",
               "Dependencies" : {
                 "component_name" : "YARN_CLIENT",
                 "dependent_component_name" : "HIVE_SERVER",
                 "dependent_service_name" : "HIVE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/ZOOKEEPER_SERVER",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/HIVE_SERVER/dependencies/ZOOKEEPER_SERVER",
               "Dependencies" : {
                 "component_name" : "ZOOKEEPER_SERVER",
                 "dependent_component_name" : "HIVE_SERVER",
                 "dependent_service_name" : "HIVE",
+                "scope" : "cluster",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -608,79 +1589,14 @@
           ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER",
-          "StackServiceComponents" : {
-            "cardinality" : "1",
-            "component_category" : "MASTER",
-            "component_name" : "WEBHCAT_SERVER",
-            "custom_commands" : [ ],
-            "display_name" : "WebHCat Server",
-            "is_client" : false,
-            "is_master" : true,
-            "service_name" : "WEBHCAT",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/HDFS_CLIENT",
-              "Dependencies" : {
-                "component_name" : "HDFS_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
-              "Dependencies" : {
-                "component_name" : "MAPREDUCE2_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
-              "Dependencies" : {
-                "component_name" : "YARN_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
-              "Dependencies" : {
-                "component_name" : "ZOOKEEPER_CLIENT",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            },
-            {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/WEBHCAT/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
-              "Dependencies" : {
-                "component_name" : "ZOOKEEPER_SERVER",
-                "dependent_component_name" : "WEBHCAT_SERVER",
-                "dependent_service_name" : "WEBHCAT",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            }
-          ]
-        },
-        {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/MYSQL_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/MYSQL_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "0-1",
             "component_category" : "MASTER",
             "component_name" : "MYSQL_SERVER",
-            "custom_commands" : [ ],
+            "custom_commands" : [
+              "CLEAN"
+            ],
             "display_name" : "MySQL Server",
             "is_client" : false,
             "is_master" : true,
@@ -689,22 +1605,202 @@
             "stack_version" : "2.1"
           },
           "dependencies" : [ ]
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER",
+          "StackServiceComponents" : {
+            "cardinality" : "1",
+            "component_category" : "MASTER",
+            "component_name" : "WEBHCAT_SERVER",
+            "custom_commands" : [ ],
+            "display_name" : "WebHCat Server",
+            "is_client" : false,
+            "is_master" : true,
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "dependencies" : [
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER/dependencies/HDFS_CLIENT",
+              "Dependencies" : {
+                "component_name" : "HDFS_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "HIVE",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER/dependencies/MAPREDUCE2_CLIENT",
+              "Dependencies" : {
+                "component_name" : "MAPREDUCE2_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "HIVE",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER/dependencies/PIG",
+              "Dependencies" : {
+                "component_name" : "PIG",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "HIVE",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER/dependencies/YARN_CLIENT",
+              "Dependencies" : {
+                "component_name" : "YARN_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "HIVE",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_CLIENT",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_CLIENT",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "HIVE",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            },
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/components/WEBHCAT_SERVER/dependencies/ZOOKEEPER_SERVER",
+              "Dependencies" : {
+                "component_name" : "ZOOKEEPER_SERVER",
+                "dependent_component_name" : "WEBHCAT_SERVER",
+                "dependent_service_name" : "HIVE",
+                "scope" : "cluster",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/HIVE/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "HIVE",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/HIVE/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "HIVE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS",
+      "StackServices" : {
+        "comments" : "A computer network authentication protocol which works on\n        the basis of 'tickets' to allow nodes communicating over a\n        non-secure network to prove their identity to one another in a\n        secure manner.\n      ",
+        "custom_commands" : [ ],
+        "display_name" : "Kerberos",
+        "required_services" : [ ],
+        "service_check_supported" : true,
+        "service_name" : "KERBEROS",
+        "service_version" : "1.10.3-10",
+        "stack_name" : "HDP",
+        "stack_version" : "2.1",
+        "user_name" : null,
+        "config_types" : {
+          "kerberos-env" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
+          "krb5-conf" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "name" : "KERBEROS_CLIENT"
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/smokeuser"
+            }
+          ],
+          "name" : "KERBEROS"
+        }
+      },
+      "components" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KERBEROS_CLIENT",
+          "StackServiceComponents" : {
+            "cardinality" : "ALL",
+            "component_category" : "CLIENT",
+            "component_name" : "KERBEROS_CLIENT",
+            "custom_commands" : [
+              "SET_KEYTAB",
+              "REMOVE_KEYTAB"
+            ],
+            "display_name" : "Kerberos Client",
+            "is_client" : true,
+            "is_master" : false,
+            "service_name" : "KERBEROS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          },
+          "auto_deploy" : {
+            "enabled" : true
+          },
+          "dependencies" : [ ]
+        }
+      ],
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "KERBEROS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "KERBEROS",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
+    },
+    {
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2",
       "StackServices" : {
         "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
         "custom_commands" : [ ],
@@ -721,19 +1817,86 @@
         "config_types" : {
           "mapred-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "mapred-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "mapred-site/mapreduce.jobhistory.principal",
+                    "type" : "service",
+                    "local_username" : "${mapred-env/mapred_user}",
+                    "value" : "jhs/_HOST@${realm}"
+                  },
+                  "name" : "history_server_jhs",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${mapred-env/mapred_user}"
+                    },
+                    "file" : "${keytab_dir}/jhs.service.keytab",
+                    "configuration" : "mapred-site/mapreduce.jobhistory.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "mapred-site/mapreduce.jobhistory.webapp.spnego-principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "mapred-site/mapreduce.jobhistory.webapp.spnego-keytab-file",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "HISTORYSERVER"
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/hdfs"
+            },
+            {
+              "name" : "/smokeuser"
+            }
+          ],
+          "name" : "MAPREDUCE2"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/HISTORYSERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/HISTORYSERVER",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -752,11 +1915,12 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/HISTORYSERVER/dependencies/HDFS_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/HISTORYSERVER/dependencies/HDFS_CLIENT",
               "Dependencies" : {
                 "component_name" : "HDFS_CLIENT",
                 "dependent_component_name" : "HISTORYSERVER",
                 "dependent_service_name" : "MAPREDUCE2",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -764,7 +1928,7 @@
           ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/components/MAPREDUCE2_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "0+",
             "component_category" : "CLIENT",
@@ -779,21 +1943,39 @@
           },
           "dependencies" : [ ]
         }
-      ] ,
-      "artifacts": [
+      ],
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/MAPREDUCE2/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "MAPREDUCE2",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "MAPREDUCE2",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "MAPREDUCE2",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/MAPREDUCE2/artifacts/widgets_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "widgets_descriptor",
+            "service_name" : "MAPREDUCE2",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE",
       "StackServices" : {
         "comments" : "System for workflow coordination and execution of Apache Hadoop jobs.  This also includes the installation of the optional Oozie Web Console which relies on and will install the <a target=\"_blank\" href=\"http://www.sencha.com/legal/open-source-faq/\">ExtJS</a> Library.\n      ",
         "custom_commands" : [ ],
@@ -810,24 +1992,107 @@
         "config_types" : {
           "oozie-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "oozie-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "oozie-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "auth_to_local_properties" : [
+            "oozie-site/oozie.authentication.kerberos.name.rules"
+          ],
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "oozie-site/oozie.service.HadoopAccessorService.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : "${oozie-env/oozie_user}",
+                    "value" : "oozie/_HOST@${realm}"
+                  },
+                  "name" : "oozie_server",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${oozie-env/oozie_user}"
+                    },
+                    "file" : "${keytab_dir}/oozie.service.keytab",
+                    "configuration" : "oozie-site/oozie.service.HadoopAccessorService.keytab.file",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "oozie-site/oozie.authentication.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "oozie-site/oozie.authentication.kerberos.keytab",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "OOZIE_SERVER"
+            }
+          ],
+          "configurations" : [
+            {
+              "oozie-site" : {
+                "oozie.service.HadoopAccessorService.kerberos.enabled" : "true",
+                "oozie.authentication.type" : "kerberos",
+                "oozie.authentication.kerberos.name.rules" : "",
+                "oozie.service.AuthorizationService.authorization.enabled" : "true",
+                "local.realm" : "${realm}"
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/smokeuser"
+            },
+            {
+              "name" : "/hdfs"
+            }
+          ],
+          "name" : "OOZIE"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -842,21 +2107,23 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT/dependencies/HDFS_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT/dependencies/HDFS_CLIENT",
               "Dependencies" : {
                 "component_name" : "HDFS_CLIENT",
                 "dependent_component_name" : "OOZIE_CLIENT",
                 "dependent_service_name" : "OOZIE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT/dependencies/MAPREDUCE2_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_CLIENT/dependencies/MAPREDUCE2_CLIENT",
               "Dependencies" : {
                 "component_name" : "MAPREDUCE2_CLIENT",
                 "dependent_component_name" : "OOZIE_CLIENT",
                 "dependent_service_name" : "OOZIE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -864,7 +2131,7 @@
           ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -879,31 +2146,34 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER/dependencies/HDFS_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER/dependencies/HDFS_CLIENT",
               "Dependencies" : {
                 "component_name" : "HDFS_CLIENT",
                 "dependent_component_name" : "OOZIE_SERVER",
                 "dependent_service_name" : "OOZIE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER/dependencies/MAPREDUCE2_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER/dependencies/MAPREDUCE2_CLIENT",
               "Dependencies" : {
                 "component_name" : "MAPREDUCE2_CLIENT",
                 "dependent_component_name" : "OOZIE_SERVER",
                 "dependent_service_name" : "OOZIE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER/dependencies/YARN_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/components/OOZIE_SERVER/dependencies/YARN_CLIENT",
               "Dependencies" : {
                 "component_name" : "YARN_CLIENT",
                 "dependent_component_name" : "OOZIE_SERVER",
                 "dependent_service_name" : "OOZIE",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -911,20 +2181,29 @@
           ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/OOZIE/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "OOZIE",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "OOZIE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/OOZIE/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "OOZIE",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/PIG",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/PIG",
       "StackServices" : {
         "comments" : "Scripting platform for analyzing large datasets",
         "custom_commands" : [ ],
@@ -941,16 +2220,22 @@
         "config_types" : {
           "pig-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "pig-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "pig-properties" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           }
@@ -958,7 +2243,7 @@
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/PIG/components/PIG",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/PIG/components/PIG",
           "StackServiceComponents" : {
             "cardinality" : "0+",
             "component_category" : "CLIENT",
@@ -974,10 +2259,20 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": []
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/PIG/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "PIG",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP",
       "StackServices" : {
         "comments" : "Tool for transferring bulk data between Apache Hadoop and\n        structured data stores such as relational databases\n      ",
         "custom_commands" : [ ],
@@ -994,6 +2289,8 @@
         "config_types" : {
           "sqoop-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           }
@@ -1001,7 +2298,7 @@
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -1016,21 +2313,23 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP/dependencies/HDFS_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP/dependencies/HDFS_CLIENT",
               "Dependencies" : {
                 "component_name" : "HDFS_CLIENT",
                 "dependent_component_name" : "SQOOP",
                 "dependent_service_name" : "SQOOP",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
             },
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP/dependencies/MAPREDUCE2_CLIENT",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/components/SQOOP/dependencies/MAPREDUCE2_CLIENT",
               "Dependencies" : {
                 "component_name" : "MAPREDUCE2_CLIENT",
                 "dependent_component_name" : "SQOOP",
                 "dependent_service_name" : "SQOOP",
+                "scope" : "host",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -1038,10 +2337,20 @@
           ]
         }
       ],
-      "artifacts": []
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/SQOOP/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "SQOOP",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM",
       "StackServices" : {
         "comments" : "Apache Hadoop Stream processing framework",
         "custom_commands" : [ ],
@@ -1058,19 +2367,154 @@
         "config_types" : {
           "storm-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "storm-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "storm-env/storm_ui_principal_name",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "storm-env/storm_ui_keytab",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "STORM_UI_SERVER"
+            },
+            {
+              "name" : "SUPERVISOR"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "storm-env/nimbus_principal_name",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : "nimbus/_HOST@${realm}"
+                  },
+                  "name" : "nimbus_server",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${storm-env/storm_user}"
+                    },
+                    "file" : "${keytab_dir}/nimbus.service.keytab",
+                    "configuration" : "storm-env/nimbus_keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "NIMBUS"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "storm-env/nimbus_principal_name",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : "nimbus/_HOST@${realm}"
+                  },
+                  "name" : "nimbus_server",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${storm-env/storm_user}"
+                    },
+                    "file" : "${keytab_dir}/nimbus.service.keytab",
+                    "configuration" : "storm-env/nimbus_keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "DRPC_SERVER"
+            }
+          ],
+          "configurations" : [
+            {
+              "storm-site" : {
+                "nimbus.authorizer" : "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer",
+                "java.security.auth.login.config" : "{{conf_dir}}/storm_jaas.conf",
+                "drpc.authorizer" : "backtype.storm.security.auth.authorizer.DRPCSimpleACLAuthorizer",
+                "storm.principal.tolocal" : "backtype.storm.security.auth.KerberosPrincipalToLocal",
+                "storm.zookeeper.superACL" : "sasl:{{storm_bare_jaas_principal}}",
+                "ui.filter.params" : "{'type': 'kerberos', 'kerberos.principal': '{{storm_ui_jaas_principal}}', 'kerberos.keytab': '{{storm_ui_keytab_path}}', 'kerberos.name.rules': 'DEFAULT'}",
+                "nimbus.supervisor.users" : "['{{storm_user}}']",
+                "nimbus.admins" : "['{{storm_user}}']",
+                "ui.filter" : "org.apache.hadoop.security.authentication.server.AuthenticationFilter",
+                "supervisor.enable" : "true"
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/smokeuser"
+            },
+            {
+              "principal" : {
+                "configuration" : "storm-env/storm_principal_name",
+                "type" : "user",
+                "local_username" : null,
+                "value" : "storm@${realm}"
+              },
+              "name" : "storm_components",
+              "keytab" : {
+                "owner" : {
+                  "access" : "r",
+                  "name" : "${storm-env/storm_user}"
+                },
+                "file" : "${keytab_dir}/storm.service.keytab",
+                "configuration" : "storm-env/storm_keytab",
+                "group" : {
+                  "access" : "",
+                  "name" : "${cluster-env/user_group}"
+                }
+              }
+            }
+          ],
+          "name" : "STORM"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/DRPC_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/DRPC_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -1086,7 +2530,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/NIMBUS",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/NIMBUS",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -1101,11 +2545,12 @@
           },
           "dependencies" : [
             {
-              "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/NIMBUS/dependencies/ZOOKEEPER_SERVER",
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/NIMBUS/dependencies/ZOOKEEPER_SERVER",
               "Dependencies" : {
                 "component_name" : "ZOOKEEPER_SERVER",
                 "dependent_component_name" : "NIMBUS",
                 "dependent_service_name" : "STORM",
+                "scope" : "cluster",
                 "stack_name" : "HDP",
                 "stack_version" : "2.1"
               }
@@ -1113,7 +2558,7 @@
           ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/STORM_REST_API",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/STORM_REST_API",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -1129,7 +2574,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/STORM_UI_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/STORM_UI_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "1",
             "component_category" : "MASTER",
@@ -1145,7 +2590,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/SUPERVISOR",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/components/SUPERVISOR",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "SLAVE",
@@ -1161,20 +2606,29 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/STORM/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "STORM",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "STORM",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/STORM/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "STORM",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ",
       "StackServices" : {
         "comments" : "Tez is the next generation Hadoop Query Processing framework written on top of YARN.",
         "custom_commands" : [ ],
@@ -1182,7 +2636,7 @@
         "required_services" : [
           "YARN"
         ],
-        "service_check_supported" : false,
+        "service_check_supported" : true,
         "service_name" : "TEZ",
         "service_version" : "0.4.0.2.1",
         "stack_name" : "HDP",
@@ -1191,11 +2645,15 @@
         "config_types" : {
           "tez-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "tez-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
@@ -1203,7 +2661,7 @@
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ/components/TEZ_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ/components/TEZ_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
@@ -1219,17 +2677,26 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": []
+      "artifacts" : [
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/TEZ/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "TEZ",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        }
+      ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN",
       "StackServices" : {
         "comments" : "Apache Hadoop NextGen MapReduce (YARN)",
         "custom_commands" : [ ],
         "display_name" : "YARN",
         "required_services" : [
-          "HDFS",
-          "TEZ"
+          "HDFS"
         ],
         "service_check_supported" : true,
         "service_name" : "YARN",
@@ -1240,29 +2707,226 @@
         "config_types" : {
           "capacity-scheduler" : {
             "supports" : {
-              "final" : "true"
+              "adding_forbidden" : "true",
+              "do_not_extend" : "false",
+              "final" : "false"
             }
           },
           "yarn-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "yarn-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "yarn-site" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "true"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "yarn-site/yarn.nodemanager.principal",
+                    "type" : "service",
+                    "local_username" : "${yarn-env/yarn_user}",
+                    "value" : "nm/_HOST@${realm}"
+                  },
+                  "name" : "nodemanager_nm",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${yarn-env/yarn_user}"
+                    },
+                    "file" : "${keytab_dir}/nm.service.keytab",
+                    "configuration" : "yarn-site/yarn.nodemanager.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "yarn-site/yarn.nodemanager.webapp.spnego-principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "yarn-site/yarn.nodemanager.webapp.spnego-keytab-file",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "configurations" : [
+                {
+                  "yarn-site" : {
+                    "yarn.nodemanager.container-executor.class" : "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor"
+                  }
+                }
+              ],
+              "name" : "NODEMANAGER"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "yarn-site/yarn.timeline-service.principal",
+                    "type" : "service",
+                    "local_username" : "${yarn-env/yarn_user}",
+                    "value" : "yarn/_HOST@${realm}"
+                  },
+                  "name" : "app_timeline_server_yarn",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${yarn-env/yarn_user}"
+                    },
+                    "file" : "${keytab_dir}/yarn.service.keytab",
+                    "configuration" : "yarn-site/yarn.timeline-service.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "yarn-site/yarn.timeline-service.http-authentication.kerberos.principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "yarn-site/yarn.timeline-service.http-authentication.kerberos.keytab",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "APP_TIMELINE_SERVER"
+            },
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "yarn-site/yarn.resourcemanager.principal",
+                    "type" : "service",
+                    "local_username" : "${yarn-env/yarn_user}",
+                    "value" : "rm/_HOST@${realm}"
+                  },
+                  "name" : "resource_manager_rm",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${yarn-env/yarn_user}"
+                    },
+                    "file" : "${keytab_dir}/rm.service.keytab",
+                    "configuration" : "yarn-site/yarn.resourcemanager.keytab",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                },
+                {
+                  "principal" : {
+                    "configuration" : "yarn-site/yarn.resourcemanager.webapp.spnego-principal",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : null
+                  },
+                  "name" : "/spnego",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : null,
+                      "name" : null
+                    },
+                    "file" : null,
+                    "configuration" : "yarn-site/yarn.resourcemanager.webapp.spnego-keytab-file",
+                    "group" : {
+                      "access" : null,
+                      "name" : null
+                    }
+                  }
+                }
+              ],
+              "name" : "RESOURCEMANAGER"
+            }
+          ],
+          "configurations" : [
+            {
+              "yarn-site" : {
+                "yarn.timeline-service.http-authentication.signer.secret.provider.object" : "",
+                "yarn.resourcemanager.proxyusers.*.users" : "",
+                "yarn.timeline-service.http-authentication.token.validity" : "",
+                "yarn.timeline-service.http-authentication.kerberos.name.rules" : "",
+                "yarn.timeline-service.http-authentication.cookie.path" : "",
+                "yarn.timeline-service.http-authentication.type" : "kerberos",
+                "yarn.nodemanager.linux-container-executor.cgroups.mount-path" : "",
+                "yarn.resourcemanager.proxy-user-privileges.enabled" : "true",
+                "yarn.acl.enable" : "true",
+                "yarn.timeline-service.http-authentication.signer.secret.provider" : "",
+                "yarn.timeline-service.http-authentication.proxyusers.*.groups" : "",
+                "yarn.timeline-service.http-authentication.proxyusers.*.hosts" : "",
+                "yarn.timeline-service.http-authentication.signature.secret" : "",
+                "yarn.timeline-service.http-authentication.signature.secret.file" : "",
+                "yarn.resourcemanager.proxyusers.*.hosts" : "",
+                "yarn.resourcemanager.proxyusers.*.groups" : "",
+                "yarn.timeline-service.enabled" : "false",
+                "yarn.timeline-service.http-authentication.proxyusers.*.users" : "",
+                "yarn.timeline-service.http-authentication.cookie.domain" : ""
+              }
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/spnego"
+            },
+            {
+              "name" : "/hdfs"
+            },
+            {
+              "name" : "/smokeuser"
+            }
+          ],
+          "name" : "YARN"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/APP_TIMELINE_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/APP_TIMELINE_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "0-1",
             "component_category" : "MASTER",
@@ -1278,7 +2942,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/NODEMANAGER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/NODEMANAGER",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "SLAVE",
@@ -1294,7 +2958,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/RESOURCEMANAGER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/RESOURCEMANAGER",
           "StackServiceComponents" : {
             "cardinality" : "1-2",
             "component_category" : "MASTER",
@@ -1310,16 +2974,28 @@
             "stack_name" : "HDP",
             "stack_version" : "2.1"
           },
-          "dependencies" : [ ]
+          "dependencies" : [
+            {
+              "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/RESOURCEMANAGER/dependencies/TEZ_CLIENT",
+              "Dependencies" : {
+                "component_name" : "TEZ_CLIENT",
+                "dependent_component_name" : "RESOURCEMANAGER",
+                "dependent_service_name" : "YARN",
+                "scope" : "host",
+                "stack_name" : "HDP",
+                "stack_version" : "2.1"
+              }
+            }
+          ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/YARN_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/components/YARN_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
             "component_name" : "YARN_CLIENT",
             "custom_commands" : [ ],
-            "display_name" : "Yarn Client",
+            "display_name" : "YARN Client",
             "is_client" : true,
             "is_master" : false,
             "service_name" : "YARN",
@@ -1329,31 +3005,40 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/YARN/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "YARN",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "YARN",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         },
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/YARN/artifacts/widget_descriptor",
-          "Artifacts": {
-            "artifact_name": "widget_descriptor",
-            "service_name": "YARN",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "YARN",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/YARN/artifacts/widgets_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "widgets_descriptor",
+            "service_name" : "YARN",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
     },
     {
-      "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER",
+      "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER",
       "StackServices" : {
-        "comments" : "Centralized service which provides highly reliable distributed\n        coordination.",
+        "comments" : "Centralized service which provides highly reliable distributed coordination",
         "custom_commands" : [ ],
         "display_name" : "ZooKeeper",
         "required_services" : [ ],
@@ -1364,27 +3049,74 @@
         "stack_version" : "2.1",
         "user_name" : null,
         "config_types" : {
+          "zoo.cfg" : {
+            "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
+              "final" : "false"
+            }
+          },
           "zookeeper-env" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           },
           "zookeeper-log4j" : {
             "supports" : {
+              "adding_forbidden" : "false",
+              "do_not_extend" : "false",
               "final" : "false"
             }
           }
+        },
+        "kerberos_descriptor" : {
+          "components" : [
+            {
+              "identities" : [
+                {
+                  "principal" : {
+                    "configuration" : "zookeeper-env/zookeeper_principal_name",
+                    "type" : "service",
+                    "local_username" : null,
+                    "value" : "zookeeper/_HOST@${realm}"
+                  },
+                  "name" : "zookeeper_zk",
+                  "keytab" : {
+                    "owner" : {
+                      "access" : "r",
+                      "name" : "${zookeeper-env/zk_user}"
+                    },
+                    "file" : "${keytab_dir}/zk.service.keytab",
+                    "configuration" : "zookeeper-env/zookeeper_keytab_path",
+                    "group" : {
+                      "access" : "",
+                      "name" : "${cluster-env/user_group}"
+                    }
+                  }
+                }
+              ],
+              "name" : "ZOOKEEPER_SERVER"
+            }
+          ],
+          "identities" : [
+            {
+              "name" : "/smokeuser"
+            }
+          ],
+          "name" : "ZOOKEEPER"
         }
       },
       "components" : [
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/components/ZOOKEEPER_CLIENT",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "CLIENT",
             "component_name" : "ZOOKEEPER_CLIENT",
             "custom_commands" : [ ],
-            "display_name" : null,
+            "display_name" : "ZooKeeper Client",
             "is_client" : true,
             "is_master" : false,
             "service_name" : "ZOOKEEPER",
@@ -1394,7 +3126,7 @@
           "dependencies" : [ ]
         },
         {
-          "href" : "http://192.168.56.101:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/components/ZOOKEEPER_SERVER",
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/components/ZOOKEEPER_SERVER",
           "StackServiceComponents" : {
             "cardinality" : "1+",
             "component_category" : "MASTER",
@@ -1410,107 +3142,26 @@
           "dependencies" : [ ]
         }
       ],
-      "artifacts": [
+      "artifacts" : [
         {
-          "href": "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.2/services/ZOOKEEPER/artifacts/kerberos_descriptor",
-          "Artifacts": {
-            "artifact_name": "kerberos_descriptor",
-            "service_name": "ZOOKEEPER",
-            "stack_name": "HDP",
-            "stack_version": "2.2"
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/artifacts/kerberos_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "kerberos_descriptor",
+            "service_name" : "ZOOKEEPER",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
+          }
+        },
+        {
+          "href" : "http://c6401.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/ZOOKEEPER/artifacts/metrics_descriptor",
+          "Artifacts" : {
+            "artifact_name" : "metrics_descriptor",
+            "service_name" : "ZOOKEEPER",
+            "stack_name" : "HDP",
+            "stack_version" : "2.1"
           }
         }
       ]
-    },
-    {
-      "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS",
-      "StackServices" : {
-        "comments" : "A computer network authentication protocol which works on\n        the basis of 'tickets' to allow nodes communicating over a\n        non-secure network to prove their identity to one another in a\n        secure manner.\n      ",
-        "custom_commands" : [ ],
-        "display_name" : "Kerberos",
-        "required_services" : [ ],
-        "service_check_supported" : true,
-        "service_name" : "KERBEROS",
-        "service_version" : "1.10.3-10",
-        "stack_name" : "HDP",
-        "stack_version" : "2.1",
-        "user_name" : null,
-        "config_types" : {
-          "kadm5-acl" : {
-            "supports" : {
-              "adding_forbidden" : "false",
-              "do_not_extend" : "false",
-              "final" : "false"
-            }
-          },
-          "kdc-conf" : {
-            "supports" : {
-              "adding_forbidden" : "false",
-              "do_not_extend" : "false",
-              "final" : "false"
-            }
-          },
-          "krb5-conf" : {
-            "supports" : {
-              "adding_forbidden" : "false",
-              "do_not_extend" : "false",
-              "final" : "false"
-            }
-          }
-        }
-      },
-      "components" : [
-        {
-          "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KDC_SERVER",
-          "StackServiceComponents" : {
-            "cardinality" : "0-1",
-            "component_category" : "MASTER",
-            "component_name" : "KDC_SERVER",
-            "custom_commands" : [ ],
-            "display_name" : "Kerberos KDC",
-            "is_client" : false,
-            "is_master" : true,
-            "service_name" : "KERBEROS",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "dependencies" : [
-            {
-              "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KDC_SERVER/dependencies/KERBEROS_CLIENT",
-              "Dependencies" : {
-                "component_name" : "KERBEROS_CLIENT",
-                "dependent_component_name" : "KDC_SERVER",
-                "dependent_service_name" : "KERBEROS",
-                "scope" : "cluster",
-                "stack_name" : "HDP",
-                "stack_version" : "2.1"
-              }
-            }
-          ]
-        },
-        {
-          "href" : "http://c6403.ambari.apache.org:8080/api/v1/stacks/HDP/versions/2.1/services/KERBEROS/components/KERBEROS_CLIENT",
-          "StackServiceComponents" : {
-            "cardinality" : "ALL",
-            "component_category" : "CLIENT",
-            "component_name" : "KERBEROS_CLIENT",
-            "custom_commands" : [
-              "SET_KEYTAB"
-            ],
-            "display_name" : "Kerberos Client",
-            "is_client" : true,
-            "is_master" : false,
-            "service_name" : "KERBEROS",
-            "stack_name" : "HDP",
-            "stack_version" : "2.1"
-          },
-          "auto_deploy" : {
-            "enabled" : true
-          },
-          "dependencies" : [ ]
-        }
-      ],
-      "artifacts": []
     }
   ]
 }

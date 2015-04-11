@@ -22,6 +22,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   rackMap: [],
   modelRacks: [],
   rackViews: [],
+  loadRacksUrlParams: 'fields=Hosts/rack_info,Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free&minimal_response=true',
 
   racks: function () {
     return this.get('modelRacks');
@@ -33,10 +34,13 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   loadRacks: function () {
     this.get('modelRacks').clear();
     this.get('rackMap').clear();
+    var urlParams = this.get('loadRacksUrlParams');
     App.ajax.send({
       name: 'hosts.heatmaps',
       sender: this,
-      data: {},
+      data: {
+        urlParams: urlParams
+      },
       success: 'getHostsSuccessCallback'
     });
   },
@@ -108,64 +112,13 @@ App.MainChartsHeatmapController = Em.Controller.extend({
 
     // Display host heatmaps if the stack definition has a host metrics service to display it.
     if(App.get('services.hostMetrics').length) {
-      metrics.push(
-        Em.Object.create({
-          label: Em.I18n.t('charts.heatmap.category.host'),
-          category: 'host',
-          items: [
-            App.MainChartHeatmapDiskSpaceUsedMetric.create(),
-            App.MainChartHeatmapMemoryUsedMetric.create(),
-            App.MainChartHeatmapCpuWaitIOMetric.create()
-            /*, App.MainChartHeatmapProcessRunMetric.create()*/
-          ]
-        })
-      );
+      metrics.pushObjects([
+        App.MainChartHeatmapDiskSpaceUsedMetric.create(),
+        App.MainChartHeatmapMemoryUsedMetric.create(),
+        App.MainChartHeatmapCpuWaitIOMetric.create()
+      ]);
     }
 
-    if(App.HDFSService.find().get('length')) {
-      metrics.push(
-        Em.Object.create({
-          label: Em.I18n.t('charts.heatmap.category.hdfs'),
-          category: 'hdfs',
-          items: [
-            App.MainChartHeatmapDFSBytesReadMetric.create(),
-            App.MainChartHeatmapDFSBytesWrittenMetric.create(),
-            App.MainChartHeatmapDFSGCTimeMillisMetric.create(),
-            App.MainChartHeatmapDFSMemHeapUsedMetric.create()
-          ]
-        })
-      );
-    }
-
-    if (App.YARNService.find().get('length')) {
-      metrics.push(
-        Em.Object.create({
-          label: Em.I18n.t('charts.heatmap.category.yarn'),
-          category: 'yarn',
-          items: [
-            App.MainChartHeatmapYarnGCTimeMillisMetric.create(),
-            App.MainChartHeatmapYarnMemHeapUsedMetric.create(),
-            App.MainChartHeatmapYarnResourceUsedMetric.create()
-          ]
-        })
-      );
-    }
-
-    if (App.HBaseService.find().get('length')) {
-      metrics.push(
-        Em.Object.create({
-          label: Em.I18n.t('charts.heatmap.category.hbase'),
-          category: 'hbase',
-          items: [
-            App.MainChartHeatmapHbaseReadReqCount.create(),
-            App.MainChartHeatmapHbaseWriteReqCount.create(),
-            App.MainChartHeatmapHbaseCompactionQueueSize.create(),
-            App.MainChartHeatmapHbaseRegions.create(),
-            App.MainChartHeatmapHbaseMemStoreSize.create()
-          ]
-        })
-      );
-    }
     return metrics;
   }.property(),
 
@@ -213,7 +166,6 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   loadMetrics: function () {
     var selectedMetric = this.get('selectedMetric');
     var hostNames = [];
-
     if (selectedMetric && this.get('racks').everyProperty('isLoaded', true)) {
       this.get('racks').forEach(function (rack) {
         hostNames = hostNames.concat(rack.hosts.mapProperty('hostName'));

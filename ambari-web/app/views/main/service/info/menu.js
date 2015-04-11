@@ -26,6 +26,8 @@ App.MainServiceInfoMenuView = Em.CollectionView.extend({
       { label: Em.I18n.t('services.service.info.menu.summary'), id: 'summary-service-tab',routing:'summary', active:"active"}
       //{ label:'Audit', routing:'audit'}
     ];
+
+    if(this.get('heatmapTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.heatmaps'), id: 'heatmap-service-tab', routing:'heatmaps'});
     if(this.get('configTab')) menuItems.push({ label: Em.I18n.t('services.service.info.menu.configs'), id: 'configs-service-tab', routing:'configs'});
     return menuItems;
   }.property(),

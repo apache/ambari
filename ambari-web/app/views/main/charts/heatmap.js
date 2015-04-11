@@ -19,37 +19,10 @@ var App = require('app');
 
 App.MainChartsHeatmapView = Em.View.extend({
   templateName: require('templates/main/charts/heatmap'),
-  spinner: null,
   didInsertElement: function () {
     this._super();
     // set default metric
-    this.set('controller.selectedMetric', this.get('controller.allMetrics')[0].get('items')[0]);
+    this.set('controller.selectedMetric', this.get('controller.allMetrics')[0]);
     $("#heatmapDetailsBlock").hide();
-  },
-  /**
-   * show spinner while loading selected metric
-   */
-  showLoading: function () {
-    if (this.get('controller.selectedMetric.loading')) {
-      var e = document.getElementById("heatmap-metric-loading");
-      if (e) {
-        $(e).children('div.spinner').remove();
-        var spinOpts = {
-          lines: 9,
-          length: 4,
-          width: 2,
-          radius: 3,
-          top: '0',
-          left: '0'
-        };
-        this.set('spinner', new Spinner(spinOpts).spin(e));
-      }
-    } else {
-      var spinner = this.get('spinner');
-      if (spinner) {
-        spinner.stop();
-      }
-      this.set('spinner', null);
-    }
-  }.observes('controller.selectedMetric.loading')
+  }
 });

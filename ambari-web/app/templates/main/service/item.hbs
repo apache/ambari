@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-{{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab"}}
+{{view App.MainServiceInfoMenuView configTabBinding="view.hasConfigTab" heatmapTabBinding="view.hasHeatmapTab"}}
   <div class="span3 quick-links-wrapper">
     {{#if view.service.quickLinks.length}}
       {{#view App.QuickViewLinks contentBinding="view.service"}}
