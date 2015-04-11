@@ -22,10 +22,18 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -357,6 +365,32 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         false);
   }
 
+  /**
+   * Copy cluster & service widgets from stack to DB.
+   */
+  protected void initializeClusterAndServiceWidgets() throws AmbariException {
+    AmbariManagementController controller = injector.getInstance(AmbariManagementController.class);
+    Clusters clusters = controller.getClusters();
+    if (clusters == null) {
+      return;
+    }
+
+    Map<String, Cluster> clusterMap = clusters.getClusters();
+
+    if (clusterMap != null && !clusterMap.isEmpty()) {
+      for (Cluster cluster : clusterMap.values()) {
+        controller.initializeWidgetsAndLayouts(cluster, null);
+
+        Map<String, Service> serviceMap = cluster.getServices();
+        if (serviceMap != null && !serviceMap.isEmpty()) {
+          for (Service service : serviceMap.values()) {
+            controller.initializeWidgetsAndLayouts(cluster, service);
+          }
+        }
+      }
+    }
+  }
+
   // ----- UpgradeCatalog ----------------------------------------------------
 
   /**
@@ -425,5 +459,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+    // Initialize all default widgets and widget layouts
+    initializeClusterAndServiceWidgets();
   }
 }
