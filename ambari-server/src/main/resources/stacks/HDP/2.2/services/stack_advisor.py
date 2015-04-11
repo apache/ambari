@@ -735,7 +735,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    super(HDP22StackAdvisor, self).validateHbaseEnvConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hbase_site = properties
     validationItems = []
 

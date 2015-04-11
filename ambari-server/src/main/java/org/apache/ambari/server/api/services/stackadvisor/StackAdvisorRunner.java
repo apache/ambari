@@ -83,10 +83,12 @@ public class StackAdvisorRunner {
             if (index > -1) {
               errMessage = errMessage.substring(index + 1).trim();
             }
-            errorMessage = errMessage;
+            errorMessage = "Stack Advisor reported an error: " + errMessage;
           } else {
             errorMessage = "Error occurred during stack advisor execution";
           }
+          errorMessage += "\nStdOut file: " + outputFile + "\n";
+          errorMessage += "\nStdErr file: " + errorFile;
           switch (exitCode) {
             case 1:
               throw new StackAdvisorRequestException(errorMessage);

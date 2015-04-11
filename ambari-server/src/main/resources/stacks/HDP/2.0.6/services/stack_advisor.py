@@ -326,12 +326,16 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     for service in services["services"]:
       serviceName = service["StackServices"]["service_name"]
       validator = self.validateServiceConfigurations(serviceName)
-      if validator is not  None:
+      if validator is not None:
         for siteName, method in validator.items():
           if siteName in recommendedDefaults:
             siteProperties = getSiteProperties(configurations, siteName)
             if siteProperties is not None:
-              resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"], configurations, services, hosts)
+              siteRecommendations = recommendedDefaults[siteName]["properties"]
+              print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
+              print("Site properties: %s\n" % str(siteProperties))
+              print("Recommendations: %s\n********\n" % str(siteRecommendations))
+              resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
               items.extend(resultItems)
     self.validateMinMax(items, recommendedDefaults, configurations)
     return items
@@ -541,6 +545,11 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     return None
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    if propertyName not in recommendedDefaults:
+      # If a property name exists in say hbase-env and hbase-site (which is allowed), then it will exist in the
+      # "properties" dictionary, but not necessarily in the "recommendedDefaults" dictionary". In this case, ignore it.
+      return None
+
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     value = to_number(properties[propertyName])
