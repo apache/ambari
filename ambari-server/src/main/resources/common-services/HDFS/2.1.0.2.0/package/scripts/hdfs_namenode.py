@@ -103,6 +103,8 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
       if code != 0:
         leave_safe_mode_cmd = format("hdfs --config {hadoop_conf_dir} dfsadmin -fs {namenode_address} -safemode leave")
         Execute(leave_safe_mode_cmd,
+                tries=10,
+                try_sleep=10,
                 user=params.hdfs_user,
                 path=[params.hadoop_bin_dir],
         )

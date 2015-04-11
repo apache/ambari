@@ -89,6 +89,8 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf dfsadmin -fs hdfs://c6405.ambari.apache.org:8020 -safemode leave',
                               path = ['/usr/bin'],
+                              tries = 10,
+                              try_sleep = 10,
                               user = 'hdfs',
                               )
     self.assertResourceCalled('Execute', "hadoop dfsadmin -fs hdfs://c6405.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
@@ -179,6 +181,8 @@ class TestNamenode(RMFTestCase):
     )
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode leave',
         path = ['/usr/bin'],
+        tries = 10,
+        try_sleep = 10,
         user = 'hdfs',
     )
     self.assertResourceCalled('Execute', "hadoop dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
@@ -304,6 +308,8 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('Execute', 'hdfs --config /etc/hadoop/conf dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode leave',
         path = ['/usr/bin'],
+        tries = 10,
+        try_sleep = 10,
         user = 'hdfs',
     )
     self.assertResourceCalled('Execute', "hadoop dfsadmin -fs hdfs://c6401.ambari.apache.org:8020 -safemode get | grep 'Safe mode is OFF'",
