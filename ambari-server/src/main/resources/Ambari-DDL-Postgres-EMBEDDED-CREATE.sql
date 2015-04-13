@@ -610,7 +610,7 @@ CREATE TABLE ambari.widget (
   time_created BIGINT NOT NULL,
   author VARCHAR(255),
   description VARCHAR(255),
-  display_name VARCHAR(255) NOT NULL,
+  display_name VARCHAR(255),
   scope VARCHAR(255),
   widget_values VARCHAR(4000),
   properties VARCHAR(4000),
@@ -625,7 +625,7 @@ CREATE TABLE ambari.widget_layout (
   section_name VARCHAR(255) NOT NULL,
   scope VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) NOT NULL,
-  display_name VARCHAR(255) NOT NULL,
+  display_name VARCHAR(255),
   cluster_id BIGINT NOT NULL,
   PRIMARY KEY(id)
 );
