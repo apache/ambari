@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Assert;
@@ -62,7 +63,9 @@ public class BaseResourceDefinitionTest {
 
   @Before
   public void before() {
-    ViewRegistry.initInstance(new ViewRegistry());
+    AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
+    replay(publisher);
+    ViewRegistry.initInstance(new ViewRegistry(publisher));
   }
 
   @Test

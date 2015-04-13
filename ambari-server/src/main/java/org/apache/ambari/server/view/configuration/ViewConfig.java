@@ -131,6 +131,12 @@ public class ViewConfig {
   private List<ResourceConfig> resources;
 
   /**
+   * The view instance auto create configuration.
+   */
+  @XmlElement(name="auto-instance")
+  private AutoInstanceConfig autoInstance;
+
+  /**
    * The list of view instances.
    */
   @XmlElement(name="instance")
@@ -323,6 +329,15 @@ public class ViewConfig {
    */
   public List<ResourceConfig> getResources() {
     return resources == null ? Collections.<ResourceConfig>emptyList() : resources;
+  }
+
+  /**
+   * Get the configuration for the view instance auto create.
+   *
+   * @return the view instance auto create; null if no auto instance is specified
+   */
+  public AutoInstanceConfig getAutoInstance() {
+    return autoInstance;
   }
 
   /**

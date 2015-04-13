@@ -19,6 +19,8 @@
 package org.apache.ambari.server.view;
 
 import com.google.common.collect.Sets;
+import com.google.common.eventbus.AllowConcurrentEvents;
+import com.google.common.eventbus.Subscribe;
 import com.google.inject.AbstractModule;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -38,6 +40,8 @@ import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
@@ -62,7 +66,9 @@ import org.apache.ambari.server.orm.entities.ViewResourceEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.VersionUtils;
+import org.apache.ambari.server.view.configuration.AutoInstanceConfig;
 import org.apache.ambari.server.view.configuration.EntityConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.ParameterConfig;
@@ -257,7 +263,18 @@ public class ViewRegistry {
   AmbariSessionManager ambariSessionManager;
 
 
-  // ----- ViewRegistry ------------------------------------------------------
+ // ----- Constructors -----------------------------------------------------
+
+  /**
+   * Create the view registry.
+   */
+  @Inject
+  public ViewRegistry(AmbariEventPublisher publisher) {
+    publisher.register(this);
+  }
+
+
+// ----- ViewRegistry ------------------------------------------------------
 
   /**
    * Registry main method.
@@ -843,7 +860,102 @@ public class ViewRegistry {
     return null;
   }
 
+  /**
+   * Receive notification that a new service has been added to a cluster.
+   * </p>
+   * Used for view instance auto creation.
+   *
+   * @param event  the service installed event
+   */
+  @Subscribe
+  @AllowConcurrentEvents
+  public void onAmbariEvent(ServiceInstalledEvent event) {
+
+    Clusters clusters  = clustersProvider.get();
+    Long     clusterId = event.getClusterId();
+
+    try {
+      org.apache.ambari.server.state.Cluster cluster = clusters.getClusterById(clusterId);
+      String clusterName = cluster.getClusterName();
+
+      StackId     stackId       = cluster.getCurrentStackVersion();
+      Set<String> serviceNames  = cluster.getServices().keySet();
+
+      for (ViewEntity viewEntity : getDefinitions()) {
+
+        String             viewName   = viewEntity.getName();
+        ViewConfig         viewConfig = viewEntity.getConfiguration();
+        AutoInstanceConfig autoConfig = viewConfig.getAutoInstance();
+
+        try {
+          if (checkAutoInstanceConfig(autoConfig, stackId, event.getServiceName(), serviceNames)) {
+
+            LOG.info("Auto creating instance of view " + viewName + " for cluster " + clusterName + ".");
+            ViewInstanceEntity viewInstanceEntity = createViewInstanceEntity(viewEntity, viewConfig, autoConfig);
+            viewInstanceEntity.setClusterHandle(clusterName);
+            installViewInstance(viewInstanceEntity);
+          }
+        } catch (Exception e) {
+          LOG.error("Can't auto create instance of view " + viewName + " for cluster " + clusterName +
+              ".  Caught exception :" + e.getMessage(), e);
+        }
+      }
+    } catch (AmbariException e) {
+      LOG.warn("Unknown cluster id " + clusterId + ".");
+    }
+  }
+
+
   // ----- helper methods ----------------------------------------------------
+
+  /**
+   * Determine whether a new view instance should be automatically created and associated with
+   * a cluster based on the given configuration and cluster state.
+   *
+   * @param autoConfig    the view instance auto creation configuration
+   * @param stackId       the stack id of the cluster
+   * @param serviceName   the name of the service added which triggered this check
+   * @param serviceNames  the set of service names of the cluster
+   *
+   * @return true if a new view instance should be created
+   */
+  private boolean checkAutoInstanceConfig(AutoInstanceConfig autoConfig, StackId stackId,
+                                          String serviceName, Set<String> serviceNames) {
+
+    if (autoConfig != null) {
+      List<String> autoCreateServices = autoConfig.getServices();
+
+      if (autoCreateServices != null && autoCreateServices.contains(serviceName) &&
+          serviceNames.containsAll(autoCreateServices)) {
+
+        String configStackId = autoConfig.getStackId();
+
+        if (configStackId != null) {
+          StackId id = new StackId(configStackId);
+
+          if (id.getStackName().equals(stackId.getStackName())) {
+
+            String stackVersion       = stackId.getStackVersion();
+            String configStackVersion = id.getStackVersion();
+
+            // make sure that the configured stack version equals the cluster stack version (account for *)
+            int compVal = 0;
+
+            int index = configStackVersion.indexOf('*');
+            if (index == -1) {
+              compVal = VersionUtils.compareVersions(configStackVersion, stackVersion);
+            } else  if (index > 0) {
+              String[] parts = configStackVersion.substring(0, index).split("\\.");
+              compVal = VersionUtils.compareVersions(configStackVersion, stackVersion, parts.length);
+            }
+
+            return compVal == 0;
+          }
+        }
+      }
+    }
+    return false;
+  }
 
   /**
    * Clear the registry.
@@ -992,6 +1104,17 @@ public class ViewRegistry {
   protected ViewInstanceEntity createViewInstanceDefinition(ViewConfig viewConfig, ViewEntity viewDefinition,
                                                             InstanceConfig instanceConfig)
       throws ValidationException, ClassNotFoundException, SystemException {
+    ViewInstanceEntity viewInstanceDefinition = createViewInstanceEntity(viewDefinition, viewConfig, instanceConfig);
+    viewInstanceDefinition.validate(viewDefinition, Validator.ValidationContext.PRE_CREATE);
+
+    bindViewInstance(viewDefinition, viewInstanceDefinition);
+    return viewInstanceDefinition;
+  }
+
+  // create a view instance from the given configuration
+  private ViewInstanceEntity createViewInstanceEntity(ViewEntity viewDefinition, ViewConfig viewConfig,
+                                                      InstanceConfig instanceConfig)
+      throws SystemException {
     ViewInstanceEntity viewInstanceDefinition =
         new ViewInstanceEntity(viewDefinition, instanceConfig);
 
@@ -1001,9 +1124,6 @@ public class ViewRegistry {
       properties.put(propertyConfig.getKey(), propertyConfig.getValue());
     }
     setViewInstanceProperties(viewInstanceDefinition, properties, viewConfig, viewDefinition.getClassLoader());
-    viewInstanceDefinition.validate(viewDefinition, Validator.ValidationContext.PRE_CREATE);
-
-    bindViewInstance(viewDefinition, viewInstanceDefinition);
     return viewInstanceDefinition;
   }
 

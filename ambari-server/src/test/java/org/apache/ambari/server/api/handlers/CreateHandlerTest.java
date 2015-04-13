@@ -28,6 +28,7 @@ import org.apache.ambari.server.api.services.persistence.PersistenceManager;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.junit.Before;
 import org.junit.Test;
@@ -44,7 +45,9 @@ public class CreateHandlerTest {
 
   @Before
   public void before() {
-    ViewRegistry.initInstance(new ViewRegistry());
+    AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
+    replay(publisher);
+    ViewRegistry.initInstance(new ViewRegistry(publisher));
   }
 
   @Test

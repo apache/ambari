@@ -219,6 +219,38 @@
     </xs:sequence>
   </xs:complexType>
 
+  <xs:complexType name="ServiceType">
+    <xs:annotation>
+      <xs:documentation>Defines a persistence entity used by the view.</xs:documentation>
+    </xs:annotation>
+    <xs:sequence>
+      <xs:element type="xs:string" name="service" minOccurs="1" maxOccurs="unbounded">
+        <xs:annotation>
+          <xs:documentation>The name of a service required to auto create an instance of this view.</xs:documentation>
+        </xs:annotation>
+      </xs:element>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="AutoInstanceType">
+    <xs:complexContent>
+      <xs:extension base="InstanceType">
+        <xs:sequence>
+          <xs:element name="stack-id" type="xs:string" minOccurs="1" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>The stack id required to auto create an instance of this view.  The wildcard character '*' is supported (e.g. 'HDP-2.*').</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+          <xs:element type="ServiceType" name="services" minOccurs="1"  maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>The services required to auto create an instance of this view.</xs:documentation>
+            </xs:annotation>
+          </xs:element>
+        </xs:sequence>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:element name="view">
     <xs:annotation>
       <xs:documentation>Defines a view.</xs:documentation>
@@ -308,6 +340,11 @@
         <xs:element type="PersistenceType" name="persistence" minOccurs="0" maxOccurs="unbounded">
           <xs:annotation>
             <xs:documentation>Defines the persistence entities used by the view.</xs:documentation>
+          </xs:annotation>
+        </xs:element>
+        <xs:element type="AutoInstanceType" name="auto-instance" minOccurs="0" maxOccurs="1">
+          <xs:annotation>
+            <xs:documentation>Defines an auto create instance of the view.</xs:documentation>
           </xs:annotation>
         </xs:element>
         <xs:element type="InstanceType" name="instance" minOccurs="0" maxOccurs="unbounded">

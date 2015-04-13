@@ -56,6 +56,8 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.events.ServiceInstalledEvent;
+import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.MemberDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
@@ -76,6 +78,10 @@ import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntityTest;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
@@ -162,6 +168,39 @@ public class ViewRegistryTest {
       "    </instance>\n" +
       "</view>";
 
+  private static String AUTO_VIEW_XML = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <auto-instance>\n" +
+      "        <name>AUTO-INSTANCE</name>\n" +
+      "        <stack-id>HDP-2.0</stack-id>\n" +
+      "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
+      "    </auto-instance>\n" +
+      "</view>";
+
+  private static String AUTO_VIEW_WILD_STACK_XML = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <auto-instance>\n" +
+      "        <name>AUTO-INSTANCE</name>\n" +
+      "        <stack-id>HDP-2.*</stack-id>\n" +
+      "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
+      "    </auto-instance>\n" +
+      "</view>";
+
+  private static String AUTO_VIEW_BAD_STACK_XML = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <auto-instance>\n" +
+      "        <name>AUTO-INSTANCE</name>\n" +
+      "        <stack-id>HDP-2.5</stack-id>\n" +
+      "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
+      "    </auto-instance>\n" +
+      "</view>";
+
   // registry mocks
   private static final ViewDAO viewDAO = createMock(ViewDAO.class);
   private static final ViewInstanceDAO viewInstanceDAO = createNiceMock(ViewInstanceDAO.class);
@@ -174,15 +213,17 @@ public class ViewRegistryTest {
   private static final Configuration configuration = createNiceMock(Configuration.class);
   private static final ViewInstanceHandlerList handlerList = createNiceMock(ViewInstanceHandlerList.class);
   private static final AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+  private static final Clusters clusters = createNiceMock(Clusters.class);
 
 
   @Before
   public void resetGlobalMocks() {
     ViewRegistry.initInstance(getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO,
-        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, ambariMetaInfo));
+        resourceDAO, resourceTypeDAO, securityHelper, handlerList, null, null, ambariMetaInfo, clusters));
 
     reset(viewDAO, resourceDAO, viewInstanceDAO, userDAO, memberDAO,
-        privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo);
+        privilegeDAO, resourceTypeDAO, securityHelper, configuration, handlerList, ambariMetaInfo,
+        clusters);
   }
 
 
@@ -1265,6 +1306,42 @@ public class ViewRegistryTest {
   }
 
   @Test
+  public void testOnAmbariEventServiceCreation() throws Exception {
+    Set<String> serviceNames = new HashSet<String>();
+    serviceNames.add("HDFS");
+    serviceNames.add("HIVE");
+
+    testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, true);
+  }
+
+  @Test
+  public void testOnAmbariEventServiceCreation_widcardStackVersion() throws Exception {
+    Set<String> serviceNames = new HashSet<String>();
+    serviceNames.add("HDFS");
+    serviceNames.add("HIVE");
+
+    testOnAmbariEventServiceCreation(AUTO_VIEW_WILD_STACK_XML, serviceNames, true);
+  }
+
+  @Test
+  public void testOnAmbariEventServiceCreation_mismatchStackVersion() throws Exception {
+    Set<String> serviceNames = new HashSet<String>();
+    serviceNames.add("HDFS");
+    serviceNames.add("HIVE");
+
+    testOnAmbariEventServiceCreation(AUTO_VIEW_BAD_STACK_XML, serviceNames, false);
+  }
+
+  @Test
+  public void testOnAmbariEventServiceCreation_missingClusterService() throws Exception {
+    Set<String> serviceNames = new HashSet<String>();
+    serviceNames.add("STORM");
+    serviceNames.add("HIVE");
+
+    testOnAmbariEventServiceCreation(AUTO_VIEW_XML, serviceNames, false);
+  }
+
+  @Test
   public void testIncludeDefinitionForNoApiAuthentication() {
     ViewRegistry registry = ViewRegistry.getInstance();
     ViewEntity viewEntity = createNiceMock(ViewEntity.class);
@@ -1599,8 +1676,27 @@ public class ViewRegistryTest {
                                          ViewExtractor viewExtractor,
                                          ViewArchiveUtility archiveUtility,
                                          AmbariMetaInfo ambariMetaInfo) {
+    return getRegistry(viewDAO, viewInstanceDAO, userDAO, memberDAO, privilegeDAO, resourceDAO, resourceTypeDAO,
+        securityHelper, handlerList, viewExtractor, archiveUtility, ambariMetaInfo, null);
+  }
 
-    ViewRegistry instance = new ViewRegistry();
+  public static ViewRegistry getRegistry(ViewDAO viewDAO, ViewInstanceDAO viewInstanceDAO,
+                                         UserDAO userDAO, MemberDAO memberDAO,
+                                         PrivilegeDAO privilegeDAO, ResourceDAO resourceDAO,
+                                         ResourceTypeDAO resourceTypeDAO, SecurityHelper securityHelper,
+                                         ViewInstanceHandlerList handlerList,
+                                         ViewExtractor viewExtractor,
+                                         ViewArchiveUtility archiveUtility,
+                                         AmbariMetaInfo ambariMetaInfo,
+                                         Clusters clusters) {
+
+
+
+    AmbariEventPublisher publisher = createNiceMock(AmbariEventPublisher.class);
+    replay(publisher);
+
+
+    ViewRegistry instance = new ViewRegistry(publisher);
 
     instance.viewDAO = viewDAO;
     instance.resourceDAO = resourceDAO;
@@ -1624,6 +1720,13 @@ public class ViewRegistryTest {
       }
     };
 
+    final Clusters finalClusters = clusters;
+    instance.clustersProvider = new Provider<Clusters>() {
+      @Override
+      public Clusters get() {
+        return finalClusters;
+      }
+    };
     return instance;
   }
 
@@ -1654,5 +1757,49 @@ public class ViewRegistryTest {
 
     registry.bindViewInstance(viewDefinition, viewInstanceDefinition);
     return viewInstanceDefinition;
+  }
+
+  private void testOnAmbariEventServiceCreation(String xml, Set<String> serviceNames, boolean success) throws Exception {
+    ViewConfig config = ViewConfigTest.getConfig(xml);
+
+    ViewEntity viewDefinition = ViewEntityTest.getViewEntity(config);
+
+    ViewRegistry registry = ViewRegistry.getInstance();
+    registry.addDefinition(viewDefinition);
+
+    ViewInstanceEntity viewInstanceEntity = createNiceMock(ViewInstanceEntity.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    Service service = createNiceMock(Service.class);
+
+    Map<String, Service> serviceMap = new HashMap<String, Service>();
+
+    for (String serviceName : serviceNames) {
+      serviceMap.put(serviceName, service);
+    }
+
+    StackId stackId = new StackId("HDP-2.0");
+
+    expect(clusters.getClusterById(99L)).andReturn(cluster);
+    expect(cluster.getClusterName()).andReturn("c1").anyTimes();
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
+    expect(cluster.getServices()).andReturn(serviceMap).anyTimes();
+
+    Capture<ViewInstanceEntity> viewInstanceCapture = new Capture<ViewInstanceEntity>();
+
+    expect(viewInstanceDAO.merge(capture(viewInstanceCapture))).andReturn(viewInstanceEntity).anyTimes();
+    expect(viewInstanceDAO.findByName("MY_VIEW{1.0.0}", "AUTO-INSTANCE")).andReturn(viewInstanceEntity).anyTimes();
+
+    replay(securityHelper, configuration, viewInstanceDAO, clusters, cluster, viewInstanceEntity);
+
+
+    ServiceInstalledEvent event = new ServiceInstalledEvent(99L, "HDP", "2.0", "HIVE");
+
+    registry.onAmbariEvent(event);
+
+    if (success) {
+      Assert.assertEquals(viewInstanceCapture.getValue(), registry.getInstanceDefinition("MY_VIEW", "1.0.0", "AUTO-INSTANCE"));
+    }
+
+    verify(securityHelper, configuration, viewInstanceDAO, clusters, cluster, viewInstanceEntity);
   }
 }

@@ -87,6 +87,23 @@ public class ViewConfigTest {
       "        <provider-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResourceProvider</provider-class>\n" +
       "        <service-class>org.apache.ambari.server.view.configuration.ViewConfigTest$MyResourceService</service-class>\n" +
       "    </resource>\n" +
+      "    <auto-instance>\n" +
+      "        <name>AUTO-INSTANCE</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "        <description>This is a description.</description>\n" +
+      "        <icon64>/this/is/the/icon/url/instance_1_icon64.png</icon64>\n" +
+      "        <icon>/this/is/the/icon/url/instance_1_icon.png</icon>\n" +
+      "        <property>\n" +
+      "            <key>p1</key>\n" +
+      "            <value>v1-1</value>\n" +
+      "        </property>\n" +
+      "        <property>\n" +
+      "            <key>p2</key>\n" +
+      "            <value>v2-1</value>\n" +
+      "        </property>\n" +
+      "        <stack-id>HDP-2.0</stack-id>\n" +
+      "        <services><service>HIVE</service><service>HDFS</service></services>\n" +
+      "    </auto-instance>\n" +
       "    <instance>\n" +
       "        <name>INSTANCE1</name>\n" +
       "        <label>My Instance 1!</label>\n" +
@@ -230,6 +247,13 @@ public class ViewConfigTest {
     resources = config.getResources();
     Assert.assertNotNull(resources);
     Assert.assertEquals(0, resources.size());
+  }
+
+  @Test
+  public void testGetAutoInstance() throws Exception {
+    ViewConfig config = getConfig(xml);
+    AutoInstanceConfig instance = config.getAutoInstance();
+    Assert.assertEquals("AUTO-INSTANCE", instance.getName());
   }
 
   @Test
