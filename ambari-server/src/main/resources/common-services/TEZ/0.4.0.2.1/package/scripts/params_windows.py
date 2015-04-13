@@ -25,6 +25,8 @@ tez_user = "hadoop"
 tez_home_dir = None
 tez_conf_dir = "conf"
 
+hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
+
 if os.environ.has_key("TEZ_HOME"):
   tez_home_dir = os.environ["TEZ_HOME"]
   tez_conf_dir = os.path.join(tez_home_dir, "conf")
