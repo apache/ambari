@@ -388,7 +388,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       clusters.mapHostsToCluster(request.getHostNames(),
           request.getClusterName());
     }
-
+    // Create cluster widgets and layouts
+    initializeWidgetsAndLayouts(c, null);
   }
 
   @Override
@@ -3832,7 +3833,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @SuppressWarnings("unchecked")
   @Override
   public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException {
-    StackId stackId = cluster.getCurrentStackVersion();
+    StackId stackId = cluster.getDesiredStackVersion();
     Type widgetLayoutType = new TypeToken<Map<String, List<WidgetLayout>>>(){}.getType();
 
     try {
@@ -3868,7 +3869,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         }
       }
       if (widgetDescriptor != null) {
-        LOG.debug("Loaded widgest descriptor: " + widgetDescriptor);
+        LOG.debug("Loaded widget descriptor: " + widgetDescriptor);
         for (Object artifact : widgetDescriptor.values()) {
           List<WidgetLayout> widgetLayouts = (List<WidgetLayout>) artifact;
           createWidgetsAndLayouts(cluster, widgetLayouts);
