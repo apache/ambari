@@ -39,8 +39,8 @@ SETUP_DB_CONNECT_ATTEMPTS = 3
 
 USERNAME_PATTERN = "^[a-zA-Z_][a-zA-Z0-9_\-]*$"
 PASSWORD_PATTERN = "^[a-zA-Z0-9_-]*$"
-DATABASE_NAMES = ["postgres", "oracle", "mysql"]
-DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "postgres": "PostgreSQL"}
+DATABASE_NAMES = ["postgres", "oracle", "mysql", "mssql"]
+DATABASE_FULL_NAMES = {"oracle": "Oracle", "mysql": "MySQL", "mssql": "Microsoft SQL Server", "postgres": "PostgreSQL"}
 
 AMBARI_DATABASE_NAME = "ambari"
 AMBARI_DATABASE_TITLE = "ambari"
@@ -282,10 +282,10 @@ class DBMSConfigFactory(object):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class DBMSConfigFactoryWindows(DBMSConfigFactory):
   def __init__(self):
-    from ambari_server.dbConfiguration_windows import DATABASE_DBMS_SQLSERVER
+    from ambari_server.dbConfiguration_windows import DATABASE_DBMS_MSSQL
 
     self.DBMS_KEYS_LIST = [
-      DATABASE_DBMS_SQLSERVER
+      DATABASE_DBMS_MSSQL
     ]
 
   def select_dbms(self, options):
@@ -300,8 +300,8 @@ class DBMSConfigFactoryWindows(DBMSConfigFactory):
     #   right now in Windows we only support SQL Server, this argument is not yet used.
     # dbId = additional information, that helps distinguish between various database connections, if applicable
     """
-    from ambari_server.dbConfiguration_windows import createSQLServerConfig
-    return createSQLServerConfig(options, properties, STORAGE_TYPE_REMOTE, dbId)
+    from ambari_server.dbConfiguration_windows import createMSSQLConfig
+    return createMSSQLConfig(options, properties, STORAGE_TYPE_REMOTE, dbId)
 
   def get_supported_dbms(self):
     return self.DBMS_KEYS_LIST
@@ -315,13 +315,14 @@ class DBMSConfigFactoryWindows(DBMSConfigFactory):
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class DBMSConfigFactoryLinux(DBMSConfigFactory):
   def __init__(self):
-    from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig
+    from ambari_server.dbConfiguration_linux import createPGConfig, createOracleConfig, createMySQLConfig, createMSSQLConfig
 
     self.DBMS_KEYS_LIST = [
       'embedded',
       'oracle',
       'mysql',
-      'postgres'
+      'postgres',
+      'mssql'
     ]
 
     self.DRIVER_KEYS_LIST = [
@@ -336,7 +337,8 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_LOCAL, 'PostgreSQL', 'Embedded', createPGConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[1], STORAGE_TYPE_REMOTE, 'Oracle', '', createOracleConfig),
       DBMSDesc(self.DBMS_KEYS_LIST[2], STORAGE_TYPE_REMOTE, 'MySQL', '', createMySQLConfig),
-      DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_REMOTE, 'PostgreSQL', '', createPGConfig)
+      DBMSDesc(self.DBMS_KEYS_LIST[3], STORAGE_TYPE_REMOTE, 'PostgreSQL', '', createPGConfig),
+      DBMSDesc(self.DBMS_KEYS_LIST[4], STORAGE_TYPE_REMOTE, 'Microsoft SQL Server', '', createMSSQLConfig)
     ]
 
     self.DBMS_DICT = \
@@ -346,6 +348,8 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
       self.DBMS_KEYS_LIST[0] + '-' : 0,
       self.DBMS_KEYS_LIST[2] + '-'  : 2,
       self.DBMS_KEYS_LIST[2] + '-' + STORAGE_TYPE_REMOTE : 2,
+      self.DBMS_KEYS_LIST[4] + '-'  : 4,
+      self.DBMS_KEYS_LIST[4] + '-' + STORAGE_TYPE_REMOTE : 4,
       self.DBMS_KEYS_LIST[1] + '-' : 1,
       self.DBMS_KEYS_LIST[1] + '-' + STORAGE_TYPE_REMOTE : 1,
       self.DBMS_KEYS_LIST[3] + '-' : 3,
@@ -403,7 +407,7 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
     # Linux implementation of the factory method. The outcome of the derived implementations
     #  is expected to be a subclass of DBMSConfig.
     # properties = property bag that will ultimately define the type of database. Supported types are
-    #   MySQL, Oracle and PostgreSQL.
+    #   MySQL, MSSQL, Oracle and PostgreSQL.
     # dbId = additional information, that helps distinguish between various database connections, if applicable
     """
 
@@ -440,7 +444,7 @@ class DBMSConfigFactoryLinux(DBMSConfigFactory):
     try:
       def_index = self.DBMS_DICT[dbms_name + "-" + persistence_type]
     except KeyError:
-      # Unsupported database type (e.g. local Oracle or MySQL)
+      # Unsupported database type (e.g. local Oracle, MySQL or MSSQL)
       raise FatalException(15, "Invalid database selection: {0} {1}".format(
           getattr(options, "persistence_type", ""), getattr(options, "options.dbms", "")))
 

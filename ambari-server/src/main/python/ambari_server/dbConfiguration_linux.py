@@ -105,7 +105,7 @@ class LinuxDBMSConfig(DBMSConfig):
       if not self._configure_database_name():
         return False
 
-      # Username is common for Oracle/MySQL/Postgres
+      # Username is common for Oracle/MySQL/MSSQL/Postgres
       self.database_username = get_validated_string_input(
           'Username (' + self.database_username + '): ',
           self.database_username,
@@ -868,3 +868,51 @@ class MySQLConfig(LinuxDBMSConfig):
 
 def createMySQLConfig(options, properties, storage_type, dbId):
   return MySQLConfig(options, properties, storage_type)
+
+
+class MSSQLConfig(LinuxDBMSConfig):
+  def __init__(self, options, properties, storage_type):
+    super(MSSQLConfig, self).__init__(options, properties, storage_type)
+
+    #Init the database configuration data here, if any
+    self.dbms = "mssql"
+    self.dbms_full_name = "Microsoft SQL Server"
+    self.driver_class_name = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+    self.driver_file_name = "sqljdbc4.jar"
+    self.driver_symlink_name = "mssql-jdbc-driver.jar"
+
+    self.database_storage_name = "Database"
+    self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
+                                                                   properties, JDBC_PORT_PROPERTY, "1433")
+
+    self.database_url_pattern = "jdbc:sqlserver://{0}:{1};databaseName={2}"
+    self.database_url_pattern_alt = "jdbc:sqlserver://{0}:{1};databaseName={2}"
+
+    self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, ' \
+                                   'you must copy the {0} JDBC driver JAR file to {1}.'.format(
+      self.dbms_full_name, configDefaults.JAVA_SHARE_PATH)
+
+    self.init_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-SQLServer-CREATE.sql"
+    self.drop_tables_script_file = "/var/lib/ambari-server/resources/Ambari-DDL-SQLServer-DROP.sql"
+    self.client_tool_usage_pattern = ''
+
+  #
+  # Private implementation
+  #
+  def _reset_remote_database(self):
+    super(MSSQLConfig, self)._reset_remote_database()
+
+    raise NonFatalException("Please replace '*' symbols with password before running DDL`s!")
+
+  def _is_jdbc_driver_installed(self, properties):
+    return LinuxDBMSConfig._find_jdbc_driver("*sqljdbc*.jar")
+
+  def _configure_database_name(self):
+    self.database_name = LinuxDBMSConfig._get_validated_db_name(self.database_storage_name, self.database_name)
+    return True
+
+  def _get_remote_script_line(self, scriptFile):
+    return scriptFile
+
+def createMSSQLConfig(options, properties, storage_type, dbId):
+  return MSSQLConfig(options, properties, storage_type)

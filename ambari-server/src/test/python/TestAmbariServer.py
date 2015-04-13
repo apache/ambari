@@ -921,7 +921,7 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverConfiguration.print_info_msg")
   def test_get_share_jars(self, printInfoMsg_mock, globMock):
     globMock.return_value = ["one", "two"]
-    expected = "one:two:one:two"
+    expected = "one:two:one:two:one:two"
     result = get_share_jars()
     self.assertEqual(expected, result)
     globMock.return_value = []
@@ -2593,8 +2593,9 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     oracle_values = [hostname, port, oracle_service, oracle_service_name, user_name]
     mysql_values = [hostname, port, db_name, user_name]
     postgres_external_values = [hostname, port, db_name, postgres_schema, user_name]
+    mssql_values = [hostname, port, db_name, user_name]
 
-    list_of_return_values = postgres_embedded_values + oracle_values + mysql_values + postgres_external_values
+    list_of_return_values = postgres_embedded_values + oracle_values + mysql_values + postgres_external_values + mssql_values
     list_of_return_values = list_of_return_values[::-1]       # Reverse the list since the input will be popped
 
     def side_effect(*args, **kwargs):
@@ -2608,7 +2609,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     os.environ[AMBARI_CONF_VAR] = tempdir
     prop_file = os.path.join(tempdir, "ambari.properties")
 
-    for i in range(0, 4):
+    for i in range(0, 5):
       # Use the expected path of the ambari.properties file to delete it if it exists, and then create a new one
       # during each use case.
       if os.path.exists(prop_file):
@@ -2664,6 +2665,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
         self.assertEqual(properties[JDBC_DATABASE_PROPERTY], "postgres")
         self.assertEqual(properties[JDBC_DATABASE_NAME_PROPERTY], db_name)
         self.assertEqual(properties[JDBC_POSTGRES_SCHEMA_PROPERTY], postgres_schema)
+        self.assertEqual(properties[PERSISTENCE_TYPE_PROPERTY], "remote")
+      elif i == 4:
+        # MSSQL
+        self.assertEqual(properties[JDBC_DATABASE_PROPERTY], "mssql")
+        self.assertFalse(JDBC_POSTGRES_SCHEMA_PROPERTY in properties.propertyNames())
         self.assertEqual(properties[PERSISTENCE_TYPE_PROPERTY], "remote")
     pass
 
@@ -3893,6 +3899,18 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       fail = True
     self.assertTrue(fail)
 
+    # test getAmbariProperties failed
+    args.jdbc_db = "mssql"
+    get_ambari_properties_mock.return_value = -1
+    fail = False
+
+    try:
+      proceedJDBCProperties(args)
+    except FatalException as e:
+      self.assertEquals("Error getting ambari properties", e.reason)
+      fail = True
+    self.assertTrue(fail)
+
     # test get resource dir param failed
     args.jdbc_db = "oracle"
     p = MagicMock()
@@ -4119,7 +4137,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.return_value = properties
     get_ambari_properties_3_mock.side_effect = get_ambari_properties_2_mock.side_effect = [properties, properties2, properties2]
 
-    isfile_mock.side_effect = [False, True]
+    isfile_mock.side_effect = [False, True, False]
 
     try:
       upgrade(args)
@@ -4325,7 +4343,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
       get_ambari_properties_mock.return_value = props
     exists_mock.return_value = True
     lexists_mock.return_value = True
-    isfile_mock.side_effect = [True, False]
+    isfile_mock.side_effect = [True, False, False]
 
     upgrade(args)
     self.assertTrue(os_remove_mock.called)
@@ -5052,7 +5070,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
 
     isdir_mock.return_value = True
 
-    isfile_mock.side_effect = [True, False]
+    isfile_mock.side_effect = [True, False, False]
 
     del args.database_index
     del args.persistence_type
@@ -5074,7 +5092,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     get_ambari_properties_mock.reset_mock()
     os_symlink_mock.reset_mock()
 
-    isfile_mock.side_effect = [False, False]
+    isfile_mock.side_effect = [False, False, False]
 
     check_jdbc_drivers(args)
 
@@ -6340,7 +6358,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverConfiguration.get_ambari_version")
   def test_check_database_name_property(self, get_ambari_version_mock, get_ambari_properties_mock, write_property_mock):
     parser = OptionParser()
-    parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
+    parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres", dest="dbms")
     args = parser.parse_args()
 
     # negative case

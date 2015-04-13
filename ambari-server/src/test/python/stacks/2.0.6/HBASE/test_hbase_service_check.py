@@ -22,6 +22,7 @@ from stacks.utils.RMFTestCase import *
 import datetime
 import  resource_management.libraries.functions
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"

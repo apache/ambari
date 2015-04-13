@@ -343,7 +343,7 @@ def init_parser_options(parser):
                     dest="ldap_sync_users")
   parser.add_option('--groups', default=None, help="LDAP sync groups option.  Specifies the path to a CSV file of group names to be synchronized.",
                     dest="ldap_sync_groups")
-  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|postgres", dest="dbms")
+  parser.add_option('--database', default=None, help="Database to use embedded|oracle|mysql|mssql|postgres", dest="dbms")
   parser.add_option('--databasehost', default=None, help="Hostname of database server", dest="database_host")
   parser.add_option('--databaseport', default=None, help="Database port", dest="database_port")
   parser.add_option('--databasename', default=None, help="Database/Service name or ServiceID",
@@ -357,7 +357,7 @@ def init_parser_options(parser):
   parser.add_option('--jdbc-driver', default=None, help="Specifies the path to the JDBC driver JAR file for the " \
                                                         "database type specified with the --jdbc-db option. Used only with --jdbc-db option.",
                     dest="jdbc_driver")
-  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|oracle|hsqldb] for the " \
+  parser.add_option('--jdbc-db', default=None, help="Specifies the database type [postgres|mysql|mssql|oracle|hsqldb] for the " \
                                                     "JDBC driver specified with the --jdbc-driver option. Used only with --jdbc-driver option.",
                     dest="jdbc_db")
   parser.add_option('--cluster-name', default=None, help="Cluster name", dest="cluster_name")

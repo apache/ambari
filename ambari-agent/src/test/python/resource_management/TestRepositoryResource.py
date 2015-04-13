@@ -276,6 +276,7 @@ class TestRepositoryResource(TestCase):
     @patch.object(OSCheck, "is_suse_family")
     @patch.object(OSCheck, "is_ubuntu_family")
     @patch.object(OSCheck, "is_redhat_family")
+    @patch.object(System, "os_family", new='redhat')
     @patch("resource_management.libraries.providers.repository.File")
     def test_remove_repo_redhat(self, file_mock,
                               is_redhat_family, is_ubuntu_family, is_suse_family):

@@ -40,27 +40,27 @@ from ambari_server.userInput import get_validated_string_input
 
 
 # SQL Server settings
-DATABASE_DBMS_SQLSERVER = "sqlserver"
-DATABASE_DRIVER_NAME_SQLSERVER = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
-DATABASE_SERVER_SQLSERVER_DEFAULT = "localhost\\SQLEXPRESS"
+DATABASE_DBMS_MSSQL = "mssql"
+DATABASE_DRIVER_NAME_MSSQL = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+DATABASE_SERVER_MSSQL_DEFAULT = "localhost\\SQLEXPRESS"
 
-class SqlServerAuthenticationKeys(DbAuthenticationKeys):
+class MSSQLAuthenticationKeys(DbAuthenticationKeys):
   def __init__(self, i_integrated_auth_key, i_user_name_key, i_password_key, i_password_alias, i_password_filename):
     self.integrated_auth_key = i_integrated_auth_key
     DbAuthenticationKeys.__init__(self, i_user_name_key, i_password_key, i_password_alias, i_password_filename)
 
 #
-# SQL Server configuration and setup
+# Microsoft SQL Server configuration and setup
 #
-class SQLServerConfig(DBMSConfig):
+class MSSQLConfig(DBMSConfig):
   def __init__(self, options, properties, storage_type):
-    super(SQLServerConfig, self).__init__(options, properties, storage_type)
+    super(MSSQLConfig, self).__init__(options, properties, storage_type)
 
     """
     #Just load the defaults. The derived classes will be able to modify them later
     """
-    self.dbms = DATABASE_DBMS_SQLSERVER
-    self.driver_class_name = DATABASE_DRIVER_NAME_SQLSERVER
+    self.dbms = DATABASE_DBMS_MSSQL
+    self.driver_class_name = DATABASE_DRIVER_NAME_MSSQL
 
     self.JDBC_DRIVER_INSTALL_MSG = 'Before starting Ambari Server, you must install the SQL Server JDBC driver.'
 
@@ -72,7 +72,7 @@ class SQLServerConfig(DBMSConfig):
       else:
         self.database_host = compress_backslashes(self.database_host)
     except:
-      self.database_host = DATABASE_SERVER_SQLSERVER_DEFAULT
+      self.database_host = DATABASE_SERVER_MSSQL_DEFAULT
       pass
     self.database_port = DBMSConfig._init_member_with_prop_default(options, "database_port",
                                                                    properties, self.dbPropKeys.port_key, "1433")
@@ -287,10 +287,10 @@ class SQLServerConfig(DBMSConfig):
     os.environ[self.env_var_db_owner] = 'hadoop'
 
     # Don't create the database, assume it already exists. Just clear out the known tables structure
-    SQLServerConfig._execute_db_script(self.database_host, self.drop_tables_script_file)
+    MSSQLConfig._execute_db_script(self.database_host, self.drop_tables_script_file)
 
     # Init DB
-    SQLServerConfig._execute_db_script(self.database_host, self.init_script_file)
+    MSSQLConfig._execute_db_script(self.database_host, self.init_script_file)
     pass
 
   @staticmethod
@@ -305,9 +305,9 @@ class SQLServerConfig(DBMSConfig):
     pass
 
 #
-# SQL Server Ambari database configuration and setup
+# Microsoft SQL Server Ambari database configuration and setup
 #
-class SQLServerAmbariDBConfig(SQLServerConfig):
+class MSSQLAmbariDBConfig(MSSQLConfig):
   def __init__(self, options, properties, storage_type):
     self.dbPropKeys = DbPropKeys(
       JDBC_DATABASE_PROPERTY,
@@ -316,7 +316,7 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
       JDBC_PORT_PROPERTY,
       JDBC_DATABASE_NAME_PROPERTY,
       JDBC_URL_PROPERTY)
-    self.dbAuthKeys = SqlServerAuthenticationKeys(
+    self.dbAuthKeys = MSSQLAuthenticationKeys(
       JDBC_USE_INTEGRATED_AUTH_PROPERTY,
       JDBC_USER_NAME_PROPERTY,
       JDBC_PASSWORD_PROPERTY,
@@ -324,7 +324,7 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
       JDBC_PASSWORD_FILENAME
     )
 
-    super(SQLServerAmbariDBConfig, self).__init__(options, properties, storage_type)
+    super(MSSQLAmbariDBConfig, self).__init__(options, properties, storage_type)
 
     if self.database_name is None or self.database_name is "":
       self.database_name = AMBARI_DATABASE_NAME
@@ -342,14 +342,14 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
         "resources" + os.path.sep + "Ambari-DDL-SQLServer-DROP.sql"))
 
   def _setup_remote_server(self, properties):
-    super(SQLServerAmbariDBConfig, self)._setup_remote_server(properties)
+    super(MSSQLAmbariDBConfig, self)._setup_remote_server(properties)
 
     properties.process_pair(JDBC_RCA_DRIVER_PROPERTY, self.driver_class_name)
     properties.process_pair(JDBC_RCA_HOSTNAME_PROPERTY, ensure_double_backslashes(self.database_host))
     if self.database_port is not None and self.database_port != "":
       properties.process_pair(JDBC_RCA_PORT_PROPERTY, self.database_port)
 
-    authKeys = SqlServerAuthenticationKeys(
+    authKeys = MSSQLAuthenticationKeys(
       JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY,
       JDBC_RCA_USER_NAME_PROPERTY,
       JDBC_RCA_PASSWORD_FILE_PROPERTY,
@@ -362,5 +362,5 @@ class SQLServerAmbariDBConfig(SQLServerConfig):
     pass
 
 
-def createSQLServerConfig(options, properties, storage_type, dbId):
-  return SQLServerAmbariDBConfig(options, properties, storage_type)
+def createMSSQLConfig(options, properties, storage_type, dbId):
+  return MSSQLAmbariDBConfig(options, properties, storage_type)

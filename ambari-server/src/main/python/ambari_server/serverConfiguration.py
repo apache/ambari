@@ -81,11 +81,11 @@ JDK_NAME_PROPERTY = "jdk.name"
 JCE_NAME_PROPERTY = "jce.name"
 
 # JDBC
-JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar"}
+JDBC_PATTERNS = {"oracle": "*ojdbc*.jar", "mysql": "*mysql*.jar", "mssql": "*sqljdbc*.jar"}
 
 #TODO property used incorrectly in local case, it was meant to be dbms name, not postgres database name,
 # has workaround for now, as we don't need dbms name if persistence_type=local
-JDBC_DATABASE_PROPERTY = "server.jdbc.database"                 # E.g., embedded|oracle|mysql|postgres|sqlserver
+JDBC_DATABASE_PROPERTY = "server.jdbc.database"                 # E.g., embedded|oracle|mysql|mssql|postgres
 JDBC_DATABASE_NAME_PROPERTY = "server.jdbc.database_name"       # E.g., ambari. Not used on Windows.
 JDBC_HOSTNAME_PROPERTY = "server.jdbc.hostname"
 JDBC_PORT_PROPERTY = "server.jdbc.port"
@@ -491,6 +491,8 @@ def get_db_type(properties):
       db_type = "oracle"
     elif "mysql" in jdbc_url:
       db_type = "mysql"
+    elif "sqlserver" in jdbc_url:
+      db_type = "mssql"
     elif "derby" in jdbc_url:
       db_type = "derby"
 
@@ -507,7 +509,7 @@ def check_database_name_property(upgrade=False):
     return -1
 
   version = get_ambari_version(properties)
-  if upgrade and (properties[JDBC_DATABASE_PROPERTY] not in ["postgres", "oracle", "mysql", "derby"]
+  if upgrade and (properties[JDBC_DATABASE_PROPERTY] not in ["postgres", "oracle", "mysql", "mssql", "derby"]
                     or properties.has_key(JDBC_RCA_SCHEMA_PROPERTY)):
     # This code exists for historic reasons in which property names changed from Ambari 1.6.1 to 1.7.0
     persistence_type = properties[PERSISTENCE_TYPE_PROPERTY]
@@ -518,7 +520,7 @@ def check_database_name_property(upgrade=False):
 
       # If DB type is missing, attempt to reconstruct it from the JDBC URL
       db_type = properties[JDBC_DATABASE_PROPERTY]
-      if db_type is None or db_type.strip().lower() not in ["postgres", "oracle", "mysql", "derby"]:
+      if db_type is None or db_type.strip().lower() not in ["postgres", "oracle", "mysql", "mssql", "derby"]:
         db_type = get_db_type(properties)
         if db_type:
           write_property(JDBC_DATABASE_PROPERTY, db_type)
@@ -1001,6 +1003,7 @@ def get_share_jars():
   share_jars = ""
   file_list = []
   file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*mysql*"))
+  file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*sqljdbc*"))
   file_list.extend(glob.glob(configDefaults.JAVA_SHARE_PATH + os.sep + "*ojdbc*"))
   if len(file_list) > 0:
     share_jars = string.join(file_list, os.pathsep)
