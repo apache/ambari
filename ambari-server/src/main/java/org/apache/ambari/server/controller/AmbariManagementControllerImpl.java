@@ -3881,18 +3881,58 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     }
   }
 
+  private WidgetEntity addIfNotExistsWidgetEntity(WidgetLayoutInfo layoutInfo, ClusterEntity clusterEntity,
+                                          String user, long createTime) {
+    List<WidgetEntity> createdEntities =
+      widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(), user);
+
+    if (createdEntities == null || createdEntities.isEmpty()) {
+      WidgetEntity widgetEntity = new WidgetEntity();
+      widgetEntity.setClusterId(clusterEntity.getClusterId());
+      widgetEntity.setClusterEntity(clusterEntity);
+      widgetEntity.setScope(WidgetResourceProvider.SCOPE.CLUSTER.name());
+      widgetEntity.setWidgetName(layoutInfo.getWidgetName());
+      widgetEntity.setDisplayName(layoutInfo.getDisplayName());
+      widgetEntity.setAuthor(user);
+      widgetEntity.setDescription(layoutInfo.getDescription());
+      widgetEntity.setTimeCreated(createTime);
+      widgetEntity.setWidgetType(layoutInfo.getType());
+      widgetEntity.setMetrics(gson.toJson(layoutInfo.getMetricsInfo()));
+      widgetEntity.setProperties(gson.toJson(layoutInfo.getProperties()));
+      widgetEntity.setWidgetValues(gson.toJson(layoutInfo.getValues()));
+      LOG.debug("Creating cluster widget with: name = " +
+        layoutInfo.getWidgetName() + ", type = " + layoutInfo.getType() + ", " +
+        "cluster = " + clusterEntity.getClusterName());
+      widgetDAO.create(widgetEntity);
+
+      createdEntities = widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(), user);
+      if (createdEntities != null && !createdEntities.isEmpty()) {
+        return createdEntities.iterator().next();
+      }
+
+    } else {
+      LOG.warn("Skip creating widget from stack artifact since one or more " +
+        "already exits with name = " + layoutInfo.getWidgetName() + ", " +
+          "clusterId = " + clusterEntity.getClusterId() + ", user = " + user);
+    }
+    return null;
+  }
+
   @Transactional
   private void createWidgetsAndLayouts(Cluster cluster, List<WidgetLayout> widgetLayouts) {
     String user = "ambari";
-    ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
-    Long now = System.currentTimeMillis();
     Long clusterId = cluster.getClusterId();
+    ClusterEntity clusterEntity = clusterDAO.findById(clusterId);
+    if (clusterEntity == null) {
+      return;
+    }
+    Long now = System.currentTimeMillis();
 
     if (widgetLayouts != null) {
       for (WidgetLayout widgetLayout : widgetLayouts) {
         List<WidgetLayoutEntity> existingEntities =
           widgetLayoutDAO.findByName(clusterId, widgetLayout.getLayoutName(), user);
-        // Avoid creating widgets / layouts if the layout exists
+        // Update layout properties if the layout exists
         if (existingEntities == null || existingEntities.isEmpty()) {
           WidgetLayoutEntity layoutEntity = new WidgetLayoutEntity();
           layoutEntity.setClusterEntity(clusterEntity);
@@ -3906,42 +3946,49 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
           int order = 0;
           for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
-            WidgetEntity widgetEntity = new WidgetEntity();
-            widgetEntity.setClusterId(clusterId);
-            widgetEntity.setClusterEntity(clusterEntity);
-            widgetEntity.setScope(WidgetResourceProvider.SCOPE.CLUSTER.name());
-            widgetEntity.setWidgetName(layoutInfo.getWidgetName());
-            widgetEntity.setDisplayName(layoutInfo.getDisplayName());
-            widgetEntity.setAuthor(user);
-            widgetEntity.setDescription(layoutInfo.getDescription());
-            widgetEntity.setTimeCreated(now);
-            widgetEntity.setWidgetType(layoutInfo.getType());
-            widgetEntity.setMetrics(gson.toJson(layoutInfo.getMetricsInfo()));
-            widgetEntity.setProperties(gson.toJson(layoutInfo.getProperties()));
-            widgetEntity.setWidgetValues(gson.toJson(layoutInfo.getValues()));
-            widgetDAO.create(widgetEntity);
-            // Add to layout if visibility is true
-            if (layoutInfo.isVisible()) {
-              List<WidgetEntity> createdEntities =
-                widgetDAO.findByName(clusterId, layoutInfo.getWidgetName(), user);
-
-              if (createdEntities != null && !createdEntities.isEmpty()) {
-                if (createdEntities.size() > 1) {
-                  LOG.error("Skipping layout entry for widget. Multiple widgets " +
-                    "found with name = " + layoutInfo.getWidgetName() +
-                    ", cluster = " + cluster.getClusterName() + ", user = " + user);
-                } else {
-                  WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
-                  widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
-                  widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
-                  widgetLayoutUserWidgetEntity.setWidgetLayout(layoutEntity);
-                  widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
-                }
-              }
+            WidgetEntity widgetEntity = addIfNotExistsWidgetEntity(layoutInfo, clusterEntity, user, now);
+            // Add to layout if visibility is true and widget was newly added
+            if (widgetEntity != null && layoutInfo.isVisible()) {
+              WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+              widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
+              widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
+              widgetLayoutUserWidgetEntity.setWidgetLayout(layoutEntity);
+              widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
             }
           }
           layoutEntity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
           widgetLayoutDAO.create(layoutEntity);
+        } else {
+          if (existingEntities.size() > 1) {
+            LOG.warn("Skip updating layout since multiple widget layouts " +
+              "found with: name = " + widgetLayout.getLayoutName() + ", " +
+              "user = " + user + ", cluster = " + cluster.getClusterName());
+          } else {
+            WidgetLayoutEntity existingLayoutEntity = existingEntities.iterator().next();
+            existingLayoutEntity.setSectionName(widgetLayout.getSectionName());
+            existingLayoutEntity.setDisplayName(widgetLayout.getDisplayName());
+            // Add new widgets to end of the existing ones
+            List<WidgetLayoutUserWidgetEntity> layoutUserWidgetEntities = existingLayoutEntity.getListWidgetLayoutUserWidgetEntity();
+            if (layoutUserWidgetEntities == null) {
+              layoutUserWidgetEntities = new LinkedList<WidgetLayoutUserWidgetEntity>();
+              existingLayoutEntity.setListWidgetLayoutUserWidgetEntity(layoutUserWidgetEntities);
+            }
+            int order = layoutUserWidgetEntities.size() - 1;
+            List<WidgetLayoutInfo> layoutInfoList = widgetLayout.getWidgetLayoutInfoList();
+            if (layoutInfoList != null && !layoutInfoList.isEmpty()) {
+              for (WidgetLayoutInfo layoutInfo : layoutInfoList) {
+                WidgetEntity widgetEntity = addIfNotExistsWidgetEntity(layoutInfo, clusterEntity, user, now);
+                if (widgetEntity != null && layoutInfo.isVisible()) {
+                  WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity = new WidgetLayoutUserWidgetEntity();
+                  widgetLayoutUserWidgetEntity.setWidget(widgetEntity);
+                  widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
+                  widgetLayoutUserWidgetEntity.setWidgetLayout(existingLayoutEntity);
+                  layoutUserWidgetEntities.add(widgetLayoutUserWidgetEntity);
+                }
+              }
+            }
+            widgetLayoutDAO.merge(existingLayoutEntity);
+          }
         }
       }
     }
