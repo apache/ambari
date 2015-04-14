@@ -33,5 +33,6 @@ class PropertiesFile(Resource):
   mode = ResourceArgument()
   owner = ResourceArgument()
   group = ResourceArgument()
+  key_value_delimiter = ResourceArgument(default="=")
 
   actions = Resource.actions + ["create"]

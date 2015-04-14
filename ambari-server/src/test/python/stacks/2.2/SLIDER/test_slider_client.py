@@ -79,12 +79,11 @@ class TestSliderClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/lib/slider/bin/slider list',
-                              logoutput=True,
-                              tries=3,
-                              user='ambari-qa',
-                              try_sleep=5,
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/hdp/current/slider-client/bin/slider list',
+        logoutput = True,
+        tries = 3,
+        user = 'ambari-qa',
+        try_sleep = 5,
     )
     self.assertNoMoreResources()
 
@@ -98,11 +97,11 @@ class TestSliderClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', ' /usr/lib/slider/bin/slider list',
-                              logoutput=True,
-                              tries=3,
-                              user='ambari-qa',
-                              try_sleep=5,
+    self.assertResourceCalled('Execute', ' /usr/hdp/current/slider-client/bin/slider list',
+        logoutput = True,
+        tries = 3,
+        user = 'ambari-qa',
+        try_sleep = 5,
     )
     self.assertNoMoreResources()
 

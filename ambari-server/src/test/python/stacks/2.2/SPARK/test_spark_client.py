@@ -21,99 +21,30 @@ from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
 @patch("resource_management.libraries.functions.get_hdp_version", new=MagicMock(return_value="2.3.0.0-1597"))
-class TestJobHistoryServer(RMFTestCase):
+class TestSparkClient(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SPARK/1.2.0.2.2/package"
   STACK_VERSION = "2.2"
 
   def test_configure_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
-                   classname = "JobHistoryServer",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_client.py",
+                   classname = "SparkClient",
                    command = "configure",
                    config_file="default.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_default()
-    self.assertNoMoreResources()
-    
-  def test_start_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
-                   classname = "JobHistoryServer",
-                   command = "start",
-                   config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    self.assert_configure_default()
-    self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid` >/dev/null 2>&1',
-        user = 'spark',
-    )
-    self.assertNoMoreResources()
-    
-  def test_stop_default(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
-                   classname = "JobHistoryServer",
-                   command = "stop",
-                   config_file="default.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        user = 'spark',
-    )
-    self.assertResourceCalled('File', '/var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid',
-        action = ['delete'],
-    )
     self.assertNoMoreResources()
     
   def test_configure_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
-                   classname = "JobHistoryServer",
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_client.py",
+                   classname = "SparkClient",
                    command = "configure",
                    config_file="secured.json",
                    hdp_stack_version = self.STACK_VERSION,
                    target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assert_configure_secured()
-    self.assertNoMoreResources()
-    
-  def test_start_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
-                   classname = "JobHistoryServer",
-                   command = "start",
-                   config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    self.assert_configure_secured()
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/spark.service.keytab spark/localhost@EXAMPLE.COM; ',
-        user = 'spark',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/start-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        not_if = 'ls /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid >/dev/null 2>&1 && ps -p `cat /var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid` >/dev/null 2>&1',
-        user = 'spark',
-    )
-    self.assertNoMoreResources()
-    
-  def test_stop_secured(self):
-    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/job_history_server.py",
-                   classname = "JobHistoryServer",
-                   command = "stop",
-                   config_file="secured.json",
-                   hdp_stack_version = self.STACK_VERSION,
-                   target = RMFTestCase.TARGET_COMMON_SERVICES
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/spark-client/sbin/stop-history-server.sh',
-        environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
-        user = 'spark',
-    )
-    self.assertResourceCalled('File', '/var/run/spark/spark-spark-org.apache.spark.deploy.history.HistoryServer-1.pid',
-        action = ['delete'],
-    )
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
@@ -126,17 +57,6 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
-    )
-    self.assertResourceCalled('HdfsDirectory', '/user/spark',
-        security_enabled = False,
-        keytab = UnknownConfigurationMock(),
-        conf_dir = '/etc/hadoop/conf',
-        hdfs_user = 'hdfs',
-        kinit_path_local = '/usr/bin/kinit',
-        mode = 0775,
-        owner = 'spark',
-        bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        action = ['create'],
     )
     self.assertResourceCalled('PropertiesFile', '/etc/spark/conf/spark-defaults.conf',
         key_value_delimiter = ' ',
@@ -173,17 +93,6 @@ class TestJobHistoryServer(RMFTestCase):
         owner = 'spark',
         group = 'hadoop',
         recursive = True,
-    )
-    self.assertResourceCalled('HdfsDirectory', '/user/spark',
-        security_enabled = True,
-        keytab = UnknownConfigurationMock(),
-        conf_dir = '/etc/hadoop/conf',
-        hdfs_user = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        mode = 0775,
-        owner = 'spark',
-        bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        action = ['create'],
     )
     self.assertResourceCalled('PropertiesFile', '/etc/spark/conf/spark-defaults.conf',
         key_value_delimiter = ' ',

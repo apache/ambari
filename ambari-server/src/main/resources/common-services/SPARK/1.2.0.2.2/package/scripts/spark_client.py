@@ -28,6 +28,19 @@ from setup_spark import setup_spark
 
 
 class SparkClient(Script):
+  def install(self, env):
+    self.install_packages(env)
+    self.configure(env)
+
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    
+    setup_spark(env, 'client', action = 'config')
+
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+  
   def get_stack_to_component(self):
     return {"HDP": "spark-client"}
 
@@ -37,20 +50,6 @@ class SparkClient(Script):
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set spark-client {version}"))
-
-  def install(self, env):
-    self.install_packages(env)
-    self.configure(env)
-
-  def configure(self, env):
-    import params
-
-    env.set_params(params)
-    setup_spark(env, 'client', action = 'config')
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
-
 
 if __name__ == "__main__":
   SparkClient().execute()

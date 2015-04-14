@@ -93,21 +93,7 @@ else:
 spark_hive_sec_authorization_enabled = "false"
 spark_yarn_historyServer_address = default(spark_history_server_host, "localhost")
 
-spark_yarn_applicationMaster_waitTries = default(
-  "/configurations/spark-defaults/spark.yarn.applicationMaster.waitTries", '10')
-spark_yarn_submit_file_replication = default("/configurations/spark-defaults/spark.yarn.submit.file.replication", '3')
-spark_yarn_preserve_staging_files = default("/configurations/spark-defaults/spark.yarn.preserve.staging.files", "false")
-spark_yarn_scheduler_heartbeat_interval = default(
-  "/configurations/spark-defaults/spark.yarn.scheduler.heartbeat.interval-ms", "5000")
-spark_yarn_queue = default("/configurations/spark-defaults/spark.yarn.queue", "default")
-spark_yarn_containerLauncherMaxThreads = default(
-  "/configurations/spark-defaults/spark.yarn.containerLauncherMaxThreads", "25")
-spark_yarn_max_executor_failures = default("/configurations/spark-defaults/spark.yarn.max.executor.failures", "3")
-spark_yarn_executor_memoryOverhead = default("/configurations/spark-defaults/spark.yarn.executor.memoryOverhead", "384")
-spark_yarn_driver_memoryOverhead = default("/configurations/spark-defaults/spark.yarn.driver.memoryOverhead", "384")
-spark_history_provider = default("/configurations/spark-defaults/spark.history.provider",
-                                 "org.apache.spark.deploy.yarn.history.YarnHistoryProvider")
-spark_history_ui_port = default("/configurations/spark-defaults/spark.history.ui.port", "18080")
+spark_history_ui_port = config['configurations']['spark-defaults']['spark.history.ui.port']
 
 spark_env_sh = config['configurations']['spark-env']['content']
 spark_log4j_properties = config['configurations']['spark-log4j-properties']['content']
@@ -117,7 +103,7 @@ spark_javaopts_properties = config['configurations']['spark-javaopts-properties'
 hive_server_host = default("/clusterHostInfo/hive_server_host", [])
 is_hive_installed = not len(hive_server_host) == 0
 
-hdp_full_version = get_hdp_version()
+hdp_full_version = functions.get_hdp_version('spark-client')
 
 spark_driver_extraJavaOptions = str(config['configurations']['spark-defaults']['spark.driver.extraJavaOptions'])
 if spark_driver_extraJavaOptions.find('-Dhdp.version') == -1:
