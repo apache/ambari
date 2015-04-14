@@ -24,6 +24,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.google.inject.ProvisionException;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ServiceComponentHostNotFoundException;
@@ -123,10 +124,17 @@ public class ServiceComponentImpl implements ServiceComponent {
       pk.setHostId(hostComponentStateEntity.getHostId());
 
       HostComponentDesiredStateEntity hostComponentDesiredStateEntity = hostComponentDesiredStateDAO.findByPK(pk);
-
-      hostComponents.put(hostComponentStateEntity.getHostName(),
+      try {
+        hostComponents.put(hostComponentStateEntity.getHostName(),
           serviceComponentHostFactory.createExisting(this,
-              hostComponentStateEntity, hostComponentDesiredStateEntity));
+            hostComponentStateEntity, hostComponentDesiredStateEntity));
+      } catch(ProvisionException ex) {
+        StackId stackId = service.getCluster().getCurrentStackVersion();
+        LOG.error(String.format("Can not get host component info: stackName=%s, stackVersion=%s, serviceName=%s, componentName=%s, hostname=%s",
+          stackId.getStackName(), stackId.getStackVersion(),
+          service.getName(),serviceComponentDesiredStateEntity.getComponentName(), hostComponentStateEntity.getHostName()));
+        ex.printStackTrace();
+      }
     }
 
     StackId stackId = service.getDesiredStackVersion();
