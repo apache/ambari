@@ -146,7 +146,7 @@ public class AmbariServerAlertService extends AbstractScheduledService {
   protected void runOneIteration() throws Exception {
     Map<String, Cluster> clusterMap = m_clustersProvider.get().getClusters();
     for (Cluster cluster : clusterMap.values()) {
-      // get all of the cluster alerts for the server
+      // get all of the cluster alerts for AMBARI/AMBARI_SERVER
       List<AlertDefinitionEntity> entities = m_dao.findByServiceComponent(
           cluster.getClusterId(), Services.AMBARI.name(),
           Components.AMBARI_SERVER.name());
@@ -155,17 +155,25 @@ public class AmbariServerAlertService extends AbstractScheduledService {
       for (AlertDefinitionEntity entity : entities) {
         String definitionName = entity.getDefinitionName();
         ScheduledAlert scheduledAlert = m_futureMap.get(definitionName);
-        ScheduledFuture<?> scheduledFuture = scheduledAlert.getScheduledFuture();
+
+        // disabled or new alerts may not have anything mapped yet
+        ScheduledFuture<?> scheduledFuture = null;
+        if (null != scheduledAlert) {
+          scheduledFuture = scheduledAlert.getScheduledFuture();
+        }
 
         // if the definition is not enabled, ensure it's not scheduled and
         // then continue to the next one
         if (!entity.getEnabled()) {
-          unschedule(definitionName, scheduledFuture);
+          if (null != scheduledFuture) {
+            unschedule(definitionName, scheduledFuture);
+          }
+
           continue;
         }
 
-        // if there is no future, then schedule it
-        if (null == scheduledFuture) {
+        // if the definition hasn't been scheduled, then schedule it
+        if (null == scheduledAlert || null == scheduledFuture) {
           scheduleRunnable(entity);
           continue;
         }
@@ -190,12 +198,14 @@ public class AmbariServerAlertService extends AbstractScheduledService {
    *
    * @param scheduledFuture
    */
-  private void unschedule(String definitionName,
-      ScheduledFuture<?> scheduledFuture) {
-    scheduledFuture.cancel(true);
+  private void unschedule(String definitionName, ScheduledFuture<?> scheduledFuture) {
+
     m_futureMap.remove(definitionName);
 
-    LOG.info("Unscheduled server alert {}", definitionName);
+    if (null != scheduledFuture) {
+      scheduledFuture.cancel(true);
+      LOG.info("Unscheduled server alert {}", definitionName);
+    }
   }
 
   /**

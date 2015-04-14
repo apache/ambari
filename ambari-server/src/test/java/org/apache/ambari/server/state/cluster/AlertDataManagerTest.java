@@ -65,11 +65,11 @@ import org.apache.ambari.server.state.alert.Reporting.ReportTemplate;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.Source;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
@@ -396,12 +396,9 @@ public class AlertDataManagerTest {
       m_dao.merge(current);
     }
 
-    AlertEventPublisher publisher = m_injector.getInstance(AlertEventPublisher.class);
-
     // !!! need a synchronous op for testing
-    field = AlertEventPublisher.class.getDeclaredField("m_eventBus");
-    field.setAccessible(true);
-    field.set(publisher, new EventBus());
+    AlertEventPublisher publisher = m_injector.getInstance(AlertEventPublisher.class);
+    EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
 
     final AtomicReference<Alert> ref = new AtomicReference<Alert>();
     publisher.register(new TestListener() {

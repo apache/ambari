@@ -26,7 +26,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -34,7 +36,14 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentFactory;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.ServiceComponentHostFactory;
+import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -55,6 +64,8 @@ public class ClustersDeadlockTest {
 
   private final AtomicInteger hostNameCounter = new AtomicInteger(0);
 
+  private final StackId stackId = new StackId("HDP-0.1");
+
   @Inject
   private Injector injector;
 
@@ -62,7 +73,13 @@ public class ClustersDeadlockTest {
   private Clusters clusters;
 
   @Inject
-  private AmbariMetaInfo metaInfo;
+  private ServiceFactory serviceFactory;
+
+  @Inject
+  private ServiceComponentFactory serviceComponentFactory;
+
+  @Inject
+  private ServiceComponentHostFactory serviceComponentHostFactory;
 
   @Inject
   private OrmTestHelper helper;
@@ -81,6 +98,9 @@ public class ClustersDeadlockTest {
     cluster.setDesiredStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+
+    // install HDFS
+    installService("HDFS");
   }
 
   @After
@@ -89,7 +109,7 @@ public class ClustersDeadlockTest {
   }
 
   /**
-   * Tests that no deadlock exists when adding hosts from reading from the
+   * Tests that no deadlock exists when adding hosts while reading from the
    * cluster.
    *
    * @throws Exception
@@ -117,7 +137,34 @@ public class ClustersDeadlockTest {
   }
 
   /**
-   * Tests that no deadlock exists when adding hosts from reading from the
+   * Tests that no deadlock exists when adding hosts while reading from the
+   * cluster. This test ensures that there are service components installed on
+   * the hosts so that the cluster health report does some more work.
+   *
+   * @throws Exception
+   */
+  @Test(timeout = 35000)
+  public void testDeadlockWhileMappingHostsWithExistingServices()
+      throws Exception {
+    List<Thread> threads = new ArrayList<Thread>();
+    for (int i = 0; i < NUMBER_OF_THREADS; i++) {
+      ClusterReaderThread readerThread = new ClusterReaderThread();
+      ClustersHostAndComponentMapperThread writerThread = new ClustersHostAndComponentMapperThread();
+
+      threads.add(readerThread);
+      threads.add(writerThread);
+
+      readerThread.start();
+      writerThread.start();
+    }
+
+    for (Thread thread : threads) {
+      thread.join();
+    }
+  }
+
+  /**
+   * Tests that no deadlock exists when adding hosts while reading from the
    * cluster.
    *
    * @throws Exception
@@ -194,6 +241,38 @@ public class ClustersDeadlockTest {
   }
 
   /**
+   * The {@link ClustersHostAndComponentMapperThread} is used to map hosts to a
+   * cluster over and over. This will also add components to the hosts that are
+   * being mapped to further exercise the cluster health report concurrency.
+   */
+  private final class ClustersHostAndComponentMapperThread extends Thread {
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void run() {
+      try {
+        for (int i = 0; i < NUMBER_OF_HOSTS; i++) {
+          String hostName = "c64-" + hostNameCounter.getAndIncrement();
+          clusters.addHost(hostName);
+          setOsFamily(clusters.getHost(hostName), "redhat", "6.4");
+          clusters.getHost(hostName).persist();
+          clusters.mapHostToCluster(hostName, CLUSTER_NAME);
+
+          // create DATANODE on this host so that we end up exercising the
+          // cluster health report since we need a service component host
+          createNewServiceComponentHost("HDFS", "DATANODE", hostName);
+
+          Thread.sleep(10);
+        }
+      } catch (Exception exception) {
+        throw new RuntimeException(exception);
+      }
+    }
+  }
+
+  /**
    * The {@link ClustersHostUnMapperThread} is used to unmap hosts to a cluster
    * over and over.
    */
@@ -234,5 +313,54 @@ public class ClustersDeadlockTest {
     hostAttributes.put("os_family", osFamily);
     hostAttributes.put("os_release_version", osVersion);
     host.setHostAttributes(hostAttributes);
+  }
+
+  private Service installService(String serviceName) throws AmbariException {
+    Service service = null;
+
+    try {
+      service = cluster.getService(serviceName);
+    } catch (ServiceNotFoundException e) {
+      service = serviceFactory.createNew(cluster, serviceName);
+      cluster.addService(service);
+      service.persist();
+    }
+
+    return service;
+  }
+
+  private ServiceComponent addServiceComponent(Service service,
+      String componentName) throws AmbariException {
+    ServiceComponent serviceComponent = null;
+    try {
+      serviceComponent = service.getServiceComponent(componentName);
+    } catch (ServiceComponentNotFoundException e) {
+      serviceComponent = serviceComponentFactory.createNew(service,
+          componentName);
+      service.addServiceComponent(serviceComponent);
+      serviceComponent.setDesiredState(State.INSTALLED);
+      serviceComponent.persist();
+    }
+
+    return serviceComponent;
+  }
+
+  private ServiceComponentHost createNewServiceComponentHost(String svc,
+      String svcComponent, String hostName) throws AmbariException {
+    Assert.assertNotNull(cluster.getConfigGroups());
+    Service s = installService(svc);
+    ServiceComponent sc = addServiceComponent(s, svcComponent);
+
+    ServiceComponentHost sch = serviceComponentHostFactory.createNew(sc,
+        hostName);
+
+    sc.addServiceComponentHost(sch);
+    sch.setDesiredState(State.INSTALLED);
+    sch.setState(State.INSTALLED);
+    sch.setDesiredStackVersion(stackId);
+    sch.setStackVersion(stackId);
+
+    sch.persist();
+    return sch;
   }
 }

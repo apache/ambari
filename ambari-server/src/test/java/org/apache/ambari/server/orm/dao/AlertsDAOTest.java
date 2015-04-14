@@ -24,7 +24,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
@@ -45,8 +44,6 @@ import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequest.Order;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
-import org.apache.ambari.server.events.listeners.alerts.AlertMaintenanceModeListener;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.AlertDaoHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -66,11 +63,11 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.eventbus.EventBus;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
@@ -93,8 +90,6 @@ public class AlertsDAOTest {
   private ServiceFactory m_serviceFactory;
   private ServiceComponentFactory m_componentFactory;
   private ServiceComponentHostFactory m_schFactory;
-  private AmbariEventPublisher m_eventPublisher;
-  private EventBus m_synchronizedBus;
 
   private AlertDaoHelper m_alertHelper;
 
@@ -111,15 +106,11 @@ public class AlertsDAOTest {
     m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
     m_componentFactory = m_injector.getInstance(ServiceComponentFactory.class);
     m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
-    m_eventPublisher = m_injector.getInstance(AmbariEventPublisher.class);
     m_clusters = m_injector.getInstance(Clusters.class);
     m_alertHelper = m_injector.getInstance(AlertDaoHelper.class);
 
     // !!! need a synchronous op for testing
-    m_synchronizedBus = new EventBus();
-    Field field = AmbariEventPublisher.class.getDeclaredField("m_eventBus");
-    field.setAccessible(true);
-    field.set(m_eventPublisher, m_synchronizedBus);
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(m_injector);
 
     // install YARN so there is at least 1 service installed and no
     // unexpected alerts since the test YARN service doesn't have any alerts
@@ -908,8 +899,6 @@ public class AlertsDAOTest {
    */
   @Test
   public void testMaintenanceMode() throws Exception {
-    m_synchronizedBus.register(m_injector.getInstance(AlertMaintenanceModeListener.class));
-
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
 

@@ -17,19 +17,13 @@
  */
 package org.apache.ambari.server.state.alerts;
 
-import java.lang.reflect.Field;
 import java.util.UUID;
 
 import junit.framework.Assert;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AmbariEvent;
-import org.apache.ambari.server.events.listeners.alerts.AlertLifecycleListener;
-import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
-import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListener;
-import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -53,11 +47,11 @@ import org.apache.ambari.server.state.alert.Reporting;
 import org.apache.ambari.server.state.alert.Reporting.ReportTemplate;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.state.alert.SourceType;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import com.google.common.eventbus.EventBus;
 import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -77,10 +71,8 @@ public class AlertEventPublisherTest {
   private String clusterName;
   private Injector injector;
   private ServiceFactory serviceFactory;
-  private AmbariMetaInfo metaInfo;
   private OrmTestHelper ormHelper;
   private AggregateDefinitionMapping aggregateMapping;
-  private AmbariEventPublisher eventPublisher;
 
   /**
    *
@@ -90,18 +82,7 @@ public class AlertEventPublisherTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
-    eventPublisher = injector.getInstance(AmbariEventPublisher.class);
-    EventBus synchronizedBus = new EventBus();
-
-    // force singleton init via Guice so the listener registers with the bus
-    synchronizedBus.register(injector.getInstance(AlertLifecycleListener.class));
-    synchronizedBus.register(injector.getInstance(AlertStateChangedListener.class));
-    synchronizedBus.register(injector.getInstance(AlertServiceStateListener.class));
-
-    // !!! need a synchronous op for testing
-    Field field = AmbariEventPublisher.class.getDeclaredField("m_eventBus");
-    field.setAccessible(true);
-    field.set(eventPublisher, synchronizedBus);
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     dispatchDao = injector.getInstance(AlertDispatchDAO.class);
     definitionDao = injector.getInstance(AlertDefinitionDAO.class);
@@ -110,8 +91,6 @@ public class AlertEventPublisherTest {
     serviceFactory = injector.getInstance(ServiceFactory.class);
     ormHelper = injector.getInstance(OrmTestHelper.class);
     aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
-
-    metaInfo = injector.getInstance(AmbariMetaInfo.class);
 
     clusterName = "foo";
     clusters.addCluster(clusterName);

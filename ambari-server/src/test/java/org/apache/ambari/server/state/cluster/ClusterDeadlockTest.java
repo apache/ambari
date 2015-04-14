@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -78,9 +77,6 @@ public class ClusterDeadlockTest {
 
   @Inject
   private ServiceComponentHostFactory serviceComponentHostFactory;
-
-  @Inject
-  private AmbariMetaInfo metaInfo;
 
   @Inject
   private OrmTestHelper helper;
