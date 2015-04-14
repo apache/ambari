@@ -17,9 +17,9 @@
 }}
 
 <div class="input-prepend input-append">
-  <button class="btn" {{bindAttr disabled="view.disabled"}} {{action decrementValue target="view"}}><span class="icon icon-caret-left"></span></button>
-  {{view Em.TextField valueBinding="view.content.value" disabledBinding="view.disabled"}}
-  <button class="btn" {{bindAttr disabled="view.disabled"}} {{action incrementValue target="view"}}><span class="icon icon-caret-right"></span></button>
+  <button class="btn" {{bindAttr disabled="view.computedDisabled"}} {{action decrementValue target="view"}}><span class="icon icon-caret-left"></span></button>
+  {{view Em.TextField valueBinding="view.content.value" disabledBinding="view.computedDisabled"}}
+  <button class="btn" {{bindAttr disabled="view.computedDisabled"}} {{action incrementValue target="view"}}><span class="icon icon-caret-right"></span></button>
 </div>
 {{#if view.content.label}}
   <span class="spinner-input-label">{{view.content.label}}</span>

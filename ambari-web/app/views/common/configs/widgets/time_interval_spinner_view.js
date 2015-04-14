@@ -94,16 +94,36 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    *  @see minValue
    *  @see maxValue
    *       content
+   * @method prepareContent
    */
   prepareContent: function() {
-    var self = this;
     var property = this.get('config');
-    var propertyUnit = property.get('stackConfigProperty.valueAttributes').unit;
 
-    this.set('propertyUnit', propertyUnit);
-    this.set('minValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')));
-    this.set('maxValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')));
-    this.set('content', this.generateWidgetValue(property.get('value')));
+    this.setProperties({
+      propertyUnit: property.get('stackConfigProperty.valueAttributes.unit'),
+      minValue: this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')),
+      maxValue: this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')),
+      content: this.generateWidgetValue(property.get('value'))
+    });
+    this.parseIncrement();
+  },
+
+  /**
+   * If <code>config.stackConfigProperty.valueAttributes.increment_step</code> exists, it should be used as increment
+   * for controls. Also if it's value greater than maximum value for last unit, it (unit) should be disabled
+   * @method parseIncrement
+   */
+  parseIncrement: function () {
+    var property = this.get('config');
+    var type = this.get('content.lastObject.type');
+    var step = property.get('stackConfigProperty.valueAttributes.increment_step');
+    if (step) {
+      step = this.convertValue(step, property.get('stackConfigProperty.valueAttributes.unit'), type);
+      this.set('content.lastObject.incrementStep', step);
+      if (step >  Em.get(this, 'timeMaxValueOverflow.' + type)) {
+        this.set('content.lastObject.enabled', false);
+      }
+    }
   },
 
   /**
@@ -112,19 +132,23 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    *
    * @param {String|Number} value
    * @returns {Object[]}
+   * @method generateWidgetValue
    */
   generateWidgetValue: function(value) {
     return this.widgetValueByConfigAttributes(value, true).map(function(item) {
       item.label = Em.I18n.t('common.' + item.type);
       item.minValue = 0;
       item.maxValue = Em.get(this, 'timeMaxValueOverflow.' + item.type);
+      item.incrementStep = 1;
+      item.enabled = true;
       item.invertOnOverflow = true;
       return item;
     }, this);
   },
 
   /**
-   * Subscribe for value changes.
+   * Subscribe for value changes
+   * @method valueObserver
    */
   valueObserver: function() {
     if (!this.get('content')) return;
@@ -146,7 +170,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   },
 
   /**
-   * Check for validation errors like minimum or maximum required value.
+   * Check for validation errors like minimum or maximum required value
+   * @method checkErrors
    */
   checkErrors: function() {
     var convertedValue = this.configValueByWidget(this.get('content'));
@@ -166,6 +191,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
 
   /**
    * set appropriate attribute for configProperty model
+   * @method setConfigValue
    */
   setConfigValue: function() {
     this.set('config.value', this.configValueByWidget(this.get('content')));
@@ -176,6 +202,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    *
    * @param {Object[]} widgetFormatValue - value formatted for widget @see convertToWidgetUnits
    * @return {String}
+   * @method dateToText
    */
   dateToText: function(widgetFormatValue) {
     return widgetFormatValue.map(function(item) {
@@ -190,9 +217,11 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
 
   /**
    * Restore value to default.
+   * @method restoreValue
    */
   restoreValue: function() {
     this._super();
     this.set('content', this.generateWidgetValue(this.get('config.defaultValue')));
+    this.parseIncrement();
   }
 });

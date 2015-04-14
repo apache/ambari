@@ -77,7 +77,7 @@ describe('App.BaseUnitConvertMixin', function() {
         ],
         fromUnit: ["mb", "kb"],
         toUnit: "b",
-        e: 1294336,
+        e: 1294336
       },
       {
         value: [
@@ -86,7 +86,7 @@ describe('App.BaseUnitConvertMixin', function() {
         ],
         fromUnit: "mb,kb",
         toUnit: "b",
-        e: 1294336,
+        e: 1294336
       },
       {
         value: 60000,

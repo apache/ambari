@@ -19,115 +19,141 @@
 var App = require('app');
 
 App.SpinnerInputView = Em.View.extend({
-    templateName: require('templates/common/form/spinner_input'),
-    classNames: ['spinner-input'],
+  templateName: require('templates/common/form/spinner_input'),
+  classNames: ['spinner-input'],
+
+  /**
+   * Bind content directly from Handlebars template or any another way.
+   * For example:
+   * {{view App.SpinnerInputView contentBinding="someContent"}}
+   *
+   * @property content
+   * @type {Object}
+   */
+  content: {
 
     /**
-     * Bind content directly from Handlebars template or any another way.
-     * For example:
-     * {{view App.SpinnerInputView contentBinding="someContent"}}
+     * Minimal value that can be set. (not required)
      *
-     * @property content
-     * @type {Object}
+     * @property [minValue]
+     * @type {Number}
      */
-    content: {
-
-      /**
-       * Minimal value that can be set. (not required)
-       *
-       * @property [minValue]
-       * @type {Number}
-       */
-      minValue: null,
-
-      /**
-       * Maximum value that can be set. (not required)
-       *
-       * @property [maxValue]
-       * @type {Number}
-       */
-      maxValue: null,
-
-      /**
-       * Input value. (required)
-       *
-       * @property value
-       * @type {String|Number}
-       */
-      value: null,
-
-      /**
-       * Config display name. Will be shown beneath the input. (not required)
-       *
-       * @type {String}
-       * @property [label]
-       */
-      label: null,
-
-      /**
-       * If set to true value will toggle with max|min on property exceed value.
-       *
-       * @property [invertOnOverflow]
-       * @type {Boolean}
-       */
-      invertOnOverflow: false
-    },
-
-    incrementValue: function() {
-      this.setValue(true);
-    },
-
-    decrementValue: function() {
-      this.setValue();
-    },
-
-    setValue: function(increment) {
-      var value = parseInt(this.get('content.value')) + ((increment) ? 1 : -1);
-      // if minimal required value is specified and decremented property value is less than minimal
-      if (!Em.isEmpty(this.get('content.minValue')) && !increment && (value < this.get('content.minValue') )) {
-        // set maximum value if value invert accepted
-        value = (this.get('content.invertOnOverflow')) ? this.get('content.maxValue') : this.get('content.minValue');
-      }
-      // if maximum require value is specified and incremented value is more than maximum
-      else if (!Em.isEmpty(this.get('content.maxValue')) && increment && (value > this.get('content.maxValue'))) {
-        // set minimum if value invert accepted
-        value = (this.get('content.invertOnOverflow')) ? this.get('content.minValue') : this.get('content.maxValue');
-      }
-      this.set('content.value', value);
-    },
+    minValue: null,
 
     /**
-     * Handle keyboard event. Allow digits only and some key maps.
+     * Maximum value that can be set. (not required)
+     *
+     * @property [maxValue]
+     * @type {Number}
      */
-    keyDown: function(e) {
-      var charCode = (e.charCode) ? e.charCode : e.which;
-      if ([46, 8, 9, 27, 13, 110, 190].contains(charCode) ||
-        (charCode == 65 && e.ctrlKey === true) ||
-        (charCode == 67 && e.ctrlKey === true) ||
-        (charCode == 88 && e.ctrlKey === true) ||
-        (charCode >= 35 && charCode <= 39)) {
-          return;
-        }
-      if ((e.shiftKey || (charCode < 48 || charCode > 57)) && (charCode < 96 || charCode > 105)) {
-          e.preventDefault();
-      }
-    },
+    maxValue: null,
 
     /**
-     * Change value to maximum if exceeded.
+     * Input value. (required)
+     *
+     * @property value
+     * @type {String|Number}
      */
-    keyUp: function(e) {
-      if (!Em.isEmpty(this.get('content.maxValue')) && this.get('content.value') > this.get('content.maxValue')) {
-        this.set('content.value', this.get('content.maxValue'));
-      }
-    },
+    value: null,
 
     /**
-     * Set value to 0 if user removed it and changed focus to another element.
+     * Config display name. Will be shown beneath the input. (not required)
+     *
+     * @type {String}
+     * @property [label]
      */
-    focusOut: function(e) {
-      if (Em.isEmpty(this.get('content.value'))) {
-        this.set('content.value', 0);
-      }
+    label: null,
+
+    /**
+     * If set to true value will toggle with max|min on property exceed value.
+     *
+     * @property [invertOnOverflow]
+     * @type {Boolean}
+     */
+    invertOnOverflow: false,
+
+    /**
+     * Determines if this control should be enabled or disabled
+     * It's based on increment_step value
+     *
+     * @property [enabled]
+     * @type {Boolean}
+     */
+    enabled: true,
+
+    /**
+     * Increment value
+     *
+     * @property [incrementStep]
+     * @type {Number}
+     */
+    incrementStep: 1
+  },
+
+  /**
+   * Input should be disabled, if whole widget is disabled or if its unit is less than step_increment value
+   * @type {boolean}
+   */
+  computedDisabled: function () {
+    return !this.get('content.enabled') || this.get('disabled');
+  }.property('disabled', 'content.enabled'),
+
+  incrementValue: function () {
+    this.setValue(true);
+  },
+
+  decrementValue: function () {
+    this.setValue(false);
+  },
+
+  setValue: function (increment) {
+    var incrementStep = this.get('content.incrementStep');
+    var value = parseInt(this.get('content.value')) + ((increment) ? incrementStep : -incrementStep);
+    // if minimal required value is specified and decremented property value is less than minimal
+    if (!Em.isEmpty(this.get('content.minValue')) && !increment && (value < this.get('content.minValue') )) {
+      // set maximum value if value invert accepted
+      value = (this.get('content.invertOnOverflow')) ? (this.get('content.maxValue') + 1 - incrementStep) : this.get('content.minValue');
     }
+    // if maximum require value is specified and incremented value is more than maximum
+    else if (!Em.isEmpty(this.get('content.maxValue')) && increment && (value > this.get('content.maxValue'))) {
+      // set minimum if value invert accepted
+      value = (this.get('content.invertOnOverflow')) ? this.get('content.minValue') : this.get('content.maxValue');
+    }
+    this.set('content.value', value);
+  },
+
+  /**
+   * Handle keyboard event. Allow digits only and some key maps.
+   */
+  keyDown: function (e) {
+    var charCode = (e.charCode) ? e.charCode : e.which;
+    if ([46, 8, 9, 27, 13, 110, 190].contains(charCode) ||
+      (charCode == 65 && e.ctrlKey === true) ||
+      (charCode == 67 && e.ctrlKey === true) ||
+      (charCode == 88 && e.ctrlKey === true) ||
+      (charCode >= 35 && charCode <= 39)) {
+      return;
+    }
+    if ((e.shiftKey || (charCode < 48 || charCode > 57)) && (charCode < 96 || charCode > 105)) {
+      e.preventDefault();
+    }
+  },
+
+  /**
+   * Change value to maximum if exceeded.
+   */
+  keyUp: function (e) {
+    if (!Em.isEmpty(this.get('content.maxValue')) && this.get('content.value') > this.get('content.maxValue')) {
+      this.set('content.value', this.get('content.maxValue'));
+    }
+  },
+
+  /**
+   * Set value to 0 if user removed it and changed focus to another element.
+   */
+  focusOut: function (e) {
+    if (Em.isEmpty(this.get('content.value'))) {
+      this.set('content.value', 0);
+    }
+  }
 });

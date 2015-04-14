@@ -448,8 +448,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             if (configs[key].property_attributes[propertyName].max) {
               stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].max);
             }
-            if (configs[key].property_attributes[propertyName].step) {
-              stackProperty.set('valueAttributes.step', configs[key].property_attributes[propertyName].step);
+            if (configs[key].property_attributes[propertyName].increment_step) {
+              stackProperty.set('valueAttributes.increment_step', configs[key].property_attributes[propertyName].increment_step);
             }
           }
         }

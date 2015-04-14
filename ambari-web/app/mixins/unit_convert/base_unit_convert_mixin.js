@@ -78,7 +78,7 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
   }),
 
   /**
-   * Convert value between different unit types. Coversion works for following directions:
+   * Convert value between different unit types. Conversion works for following directions:
    *  single unit -> single unit e.g. from "s" -> "s".
    *  single unit -> multi unit e.g. from "ms" -> "days,hours"
    *  multi unit -> single unit e.g. from "days,hours" -> "ms"
@@ -98,7 +98,7 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
    * @param {String|String[]} fromUnit - specified value unit type(s) e.g. "mb"
    *    Form multi dimensional format pass units separated with "," or list of unit types
    *    e.g. "gb,mb", ['gb', 'mb']
-   * @param {Boolean} [isObjectOutput=false] - 'returned' value should be object this option usefull for widgets where its
+   * @param {Boolean} [isObjectOutput=false] - 'returned' value should be object this option useful for widgets where its
    *    value should be an Object
    * @param {String|String[]} toUnit - desired unit(s) to convert specified value. Same format as for `fromUnit`
    * @returns {Number|Object[]} returns single value or array of objects according to multi unit format

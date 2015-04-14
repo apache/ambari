@@ -231,14 +231,14 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     } else {
       defaultValueId = ticks.indexOf(defaultValue);
     }
-
+    var increment_step = Em.get(valueAttributes, 'increment_step');
     var slider = new Slider(this.$('input.slider-input')[0], {
       value: this.widgetValueByConfigAttributes(parseFunction(this.get('config.value'))),
       ticks: ticks,
       tooltip: 'hide',
       ticks_labels: ticksLabels,
       ticks_snap_bounds: Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1,
-      step: Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1
+      step: increment_step ? this.widgetValueByConfigAttributes(increment_step) : (Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1)
     });
 
     slider.on('change', function (obj) {
