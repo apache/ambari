@@ -27,7 +27,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -80,9 +79,6 @@ public class ClusterDeadlockTest {
   private ServiceComponentHostFactory serviceComponentHostFactory;
 
   @Inject
-  private AmbariMetaInfo metaInfo;
-
-  @Inject
   private OrmTestHelper helper;
 
   private StackId stackId = new StackId("HDP-0.1");
@@ -113,8 +109,6 @@ public class ClusterDeadlockTest {
     helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
     cluster.createClusterVersion(stackId.getStackName(),
         stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-
-    metaInfo.init();
 
     // 100 hosts
     for (int i = 0; i < NUMBER_OF_HOSTS; i++) {

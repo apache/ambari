@@ -17,17 +17,11 @@
  */
 package org.apache.ambari.server.state.alerts;
 
-import java.lang.reflect.Field;
-
 import junit.framework.Assert;
 
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.InitialAlertEvent;
 import org.apache.ambari.server.events.MockEventListener;
-import org.apache.ambari.server.events.listeners.alerts.AlertLifecycleListener;
-import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
-import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -41,6 +35,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -68,7 +63,7 @@ public class InitialAlertEventTest {
   private Cluster m_cluster;
   private String m_clusterName;
   private ServiceFactory m_serviceFactory;
-  private AmbariMetaInfo m_metaInfo;
+
 
   /**
    *
@@ -83,29 +78,18 @@ public class InitialAlertEventTest {
     // get a mock listener
     m_listener = m_injector.getInstance(MockEventListener.class);
 
-    m_alertsDao = m_injector.getInstance(AlertsDAO.class);
-
     // create the publisher and mock listener
     m_eventPublisher = m_injector.getInstance(AlertEventPublisher.class);
-    EventBus synchronizedBus = new EventBus();
 
     // register listeners needed
+    EventBus synchronizedBus = EventBusSynchronizer.synchronizeAlertEventPublisher(m_injector);
     synchronizedBus.register(m_listener);
-    synchronizedBus.register(m_injector.getInstance(AlertLifecycleListener.class));
-    synchronizedBus.register(m_injector.getInstance(AlertServiceStateListener.class));
-    synchronizedBus.register(m_injector.getInstance(AlertReceivedListener.class));
-
-    // !!! need a synchronous op for testing
-    Field field = AlertEventPublisher.class.getDeclaredField("m_eventBus");
-    field.setAccessible(true);
-    field.set(m_eventPublisher, synchronizedBus);
 
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
     m_clusters = m_injector.getInstance(Clusters.class);
     m_serviceFactory = m_injector.getInstance(ServiceFactory.class);
 
-    m_metaInfo = m_injector.getInstance(AmbariMetaInfo.class);
-    m_metaInfo.init();
+    m_alertsDao = m_injector.getInstance(AlertsDAO.class);
 
     m_clusterName = "c1";
     m_clusters.addCluster(m_clusterName);
@@ -191,12 +175,14 @@ public class InitialAlertEventTest {
   /**
    *
    */
-  private class MockModule implements Module {
+  private static class MockModule implements Module {
     /**
      * {@inheritDoc}
      */
     @Override
     public void configure(Binder binder) {
+      // sychronize on the ambari event bus for this test to work properly
+      EventBusSynchronizer.synchronizeAmbariEventPublisher(binder);
     }
   }
 }

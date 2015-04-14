@@ -17,16 +17,19 @@
  */
 package org.apache.ambari.server.events.publishers;
 
+import java.util.concurrent.Executors;
+
 import org.apache.ambari.server.events.AmbariEvent;
 
+import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Singleton;
 
 /**
  * The {@link AmbariEventPublisher} is used to publish instances of
- * {@link AmbariEvent} to any {@link Subscribe} interested. It uses a
- * single-threaded, serial {@link EventBus}.
+ * {@link AmbariEvent} to any {@link Subscribe} methods interested. It uses a
+ * single-threaded {@link AsyncEventBus}.
  */
 @Singleton
 public class AmbariEventPublisher {
@@ -40,7 +43,8 @@ public class AmbariEventPublisher {
    * Constructor.
    */
   public AmbariEventPublisher() {
-    m_eventBus = new EventBus("ambari-event-bus");
+    m_eventBus = new AsyncEventBus("ambari-event-bus",
+        Executors.newSingleThreadExecutor());
   }
 
   /**

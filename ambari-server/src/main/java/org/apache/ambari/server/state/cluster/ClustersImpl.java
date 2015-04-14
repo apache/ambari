@@ -28,7 +28,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import javax.persistence.RollbackException;
@@ -230,29 +229,25 @@ public class ClustersImpl implements Clusters {
   public Cluster getCluster(String clusterName)
       throws AmbariException {
     checkLoaded();
-    r.lock();
-    try {
-      if (!clusters.containsKey(clusterName)) {
-        throw new ClusterNotFoundException(clusterName);
-      }
-      return clusters.get(clusterName);
-    } finally {
-      r.unlock();
+
+    Cluster cluster = clusters.get(clusterName);
+    if (null == cluster) {
+      throw new ClusterNotFoundException(clusterName);
     }
+
+    return cluster;
   }
 
   @Override
   public Cluster getClusterById(long id) throws AmbariException {
     checkLoaded();
-    r.lock();
-    try {
-      if (!clustersById.containsKey(id)) {
-        throw new ClusterNotFoundException("clusterID=" + id);
-      }
-      return clustersById.get(id);
-    } finally {
-      r.unlock();
+
+    Cluster cluster = clustersById.get(id);
+    if (null == cluster) {
+      throw new ClusterNotFoundException("clusterID=" + id);
     }
+
+    return clustersById.get(id);
   }
 
   @Override
@@ -281,15 +276,8 @@ public class ClustersImpl implements Clusters {
   @Override
   public List<Host> getHosts() {
     checkLoaded();
-    r.lock();
 
-    try {
-      List<Host> hostList = new ArrayList<Host>(hosts.size());
-      hostList.addAll(hosts.values());
-      return hostList;
-    } finally {
-      r.unlock();
-    }
+    return new ArrayList<Host>(hosts.values());
   }
 
   @Override
@@ -315,15 +303,12 @@ public class ClustersImpl implements Clusters {
   @Override
   public Host getHost(String hostname) throws AmbariException {
     checkLoaded();
-    r.lock();
-    try {
-      if (!hosts.containsKey(hostname)) {
-        throw new HostNotFoundException(hostname);
-      }
-      return hosts.get(hostname);
-    } finally {
-      r.unlock();
+
+    if (!hosts.containsKey(hostname)) {
+      throw new HostNotFoundException(hostname);
     }
+
+    return hosts.get(hostname);
   }
 
   /**
@@ -421,41 +406,19 @@ public class ClustersImpl implements Clusters {
   private Map<String, Host> getHostsMap(Collection<String> hostSet) throws
       HostNotFoundException {
     checkLoaded();
-    Map<String, Host> hostMap = new HashMap<String, Host>();
-    r.lock();
-    try {
-      for (String host : hostSet) {
-        if (!hosts.containsKey(host)) {
-          throw new HostNotFoundException(host);
-        } else {
-          hostMap.put(host, hosts.get(host));
-        }
-      }
-    } finally {
-      r.unlock();
-    }
-    return hostMap;
-  }
 
-  private Map<String, Cluster> getClustersMap(Collection<String> clusterSet) throws
-      ClusterNotFoundException {
-    checkLoaded();
-    Map<String, Cluster> clusterMap = new HashMap<String, Cluster>();
-    r.lock();
-    try {
-      for (String c : clusterSet) {
-        if (c != null) {
-          if (!clusters.containsKey(c)) {
-            throw new ClusterNotFoundException(c);
-          } else {
-            clusterMap.put(c, clusters.get(c));
-          }
-        }
+    Map<String, Host> hostMap = new HashMap<String, Host>();
+
+    for (String hostName : hostSet) {
+      Host host = hosts.get(hostName);
+      if (null == hostName) {
+        throw new HostNotFoundException(hostName);
       }
-    } finally {
-      r.unlock();
+
+      hostMap.put(hostName, host);
     }
-    return clusterMap;
+
+    return hostMap;
   }
 
   /**
@@ -533,14 +496,8 @@ public class ClustersImpl implements Clusters {
       w.unlock();
     }
 
-    ReadWriteLock clusterLock = cluster.getClusterGlobalLock();
-    clusterLock.writeLock().lock();
-    try {
-      host.refresh();
-      cluster.refresh();
-    } finally {
-      clusterLock.writeLock().unlock();
-    }
+    cluster.refresh();
+    host.refresh();
   }
 
   /**

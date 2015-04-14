@@ -105,6 +105,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostStartEvent;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEvent;
+import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -2424,6 +2425,9 @@ public class TestHeartbeatHandler {
 
   @Test
   public void testInstallPackagesWithVersion() throws Exception {
+    // required since this test method checks the DAO result of handling a
+    // heartbeat which performs some async tasks
+    EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
 
     final HostRoleCommand command = new HostRoleCommand(DummyHostname1,
         Role.DATANODE, null, null);
