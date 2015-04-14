@@ -398,6 +398,12 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       class: 'icon-plus',
       action: 'createWidget',
       isAction: true
+    }),
+    Em.Object.create({
+      label: Em.I18n.t('dashboard.widgets.actions.browse'),
+      class: 'icon-th',
+      action: 'goToWidgetsBrowser',
+      isAction: true
     })
   ],
 
@@ -406,19 +412,9 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
    */
   widgetActions: function() {
     var options = [];
-
     options.pushObjects(this.get('staticWidgetActions'));
-    this.get('controller.widgets').forEach(function (widget) {
-      options.push(Em.Object.create({
-        label: widget.get('displayName'),
-        isVisible: widget.get('isVisible'),
-        selected: true,
-        isAction: false
-      }));
-    }, this);
-
     return options;
-  }.property('controller.widgets.length'),
+  }.property(''),
 
   /**
    * call action function defined in controller
@@ -546,11 +542,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
         this.get('controller').loadWidgetLayouts();
       }
     }
-
-    //prevent dropdown closing on checkbox click
-    $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
-      $(this).hasClass('keep-open') && e.stopPropagation();
-    });
 
     if (svcName && isMetricsSupported) {
       var allServices =  require('data/service_graph_config').getServiceGraphConfig();

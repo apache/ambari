@@ -9,6 +9,8 @@
         {
           "widget_name": "RS_READS_WRITES",
           "WidgetInfo": {
+            "id": 1,
+            "scope": "CLUSTER",
             "widget_name": "RS_READS_WRITES",
             "display_name": "RegionServer Reads and Writes",
             "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
@@ -77,6 +79,8 @@
         {
           "widget_name": "ACTIVE_HANDLER",
           "WidgetInfo": {
+            "id": 2,
+            "scope": "CLUSTER",
             "widget_name": "ACTIVE_HANDLER",
             "display_name": "Active Handlers vs Calls in General Queue",
             "widget_type": "GRAPH",
@@ -115,6 +119,8 @@
         {
           "widget_name": "OPEN_CONNECTIONS",
           "WidgetInfo": {
+            "id": 3,
+            "scope": "CLUSTER",
             "widget_name": "OPEN_CONNECTIONS",
             "display_name": "Open Connections",
             "description": "This widget shows number of current open connections",
@@ -144,6 +150,8 @@
         {
           "widget_name": "FILES_LOCAL",
           "WidgetInfo": {
+            "id": 4,
+            "scope": "CLUSTER",
             "widget_name": "FILES_LOCAL",
             "display_name": "Files Local",
             "description": "This widget shows percentage of files local.",
@@ -171,6 +179,8 @@
         {
           "widget_name": "UPDATED_BLOCKED_TIME",
           "WidgetInfo": {
+            "id": 5,
+            "scope": "CLUSTER",
             "widget_name": "UPDATED_BLOCKED_TIME",
             "display_name": "Updated Blocked Time",
             "description": "",

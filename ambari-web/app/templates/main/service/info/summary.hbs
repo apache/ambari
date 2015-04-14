@@ -97,10 +97,9 @@
                 </button>
                 <ul class="dropdown-menu">
                   {{#each option in view.widgetActions}}
-                    <li {{bindAttr class="option.layouts:dropdown-submenu option.isAction::keep-open"}}>
+                    <li {{bindAttr class="option.layouts:dropdown-submenu"}}>
                       {{#if option.isAction}}
-                        <a href="javascript:void(0);"
-                           class="action" {{action doWidgetAction option.action target="view"}}>
+                        <a href="#" {{action doWidgetAction option.action target="view"}}>
                           <i {{bindAttr class="option.class"}}></i>
                           {{option.label}}
                         </a>
@@ -115,26 +114,9 @@
                             {{/each}}
                           </ul>
                         {{/if}}
-                      {{else}}
-                        <label class="checkbox">
-                          {{view Em.Checkbox checkedBinding="option.selected"}}
-                          {{option.label}}
-                        </label>
                       {{/if}}
                     </li>
                   {{/each}}
-                  <li class="keep-open">
-                    <a href="javascript:void(0);">
-                      {{t hostPopup.serviceInfo.showMore}}
-                    </a>
-                  </li>
-                  <li class="btn-row">
-                    <div class="row-fluid">
-                      <button class="btn span4">{{t common.cancel}}</button>
-                      <button class="btn btn-danger span4" {{action deleteWidgets view.widgetActions target="controller"}}>{{t common.delete}}</button>
-                      <button class="btn btn-primary span4" {{action addWidgets view.widgetActions target="controller"}}>{{t common.add}}</button>
-                    </div>
-                  </li>
                 </ul>
               </div>
             {{/if}}
@@ -149,7 +131,7 @@
                 {{/each}}
                 <div class="span2p4">
                   <button id="add-widget-action-box"
-                          class="btn btn-default" {{action "goToAddWidgetWizard" controller.content target="view"}}><i
+                          class="btn btn-default" {{action "goToWidgetsBrowser" controller.content target="controller"}}><i
                           class="icon-plus"></i></button>
                 </div>
               </div>

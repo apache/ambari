@@ -311,6 +311,11 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   isWidgetLayoutsLoaded: false,
 
   /**
+   * @type {boolean}
+   */
+  isAllSharedWidgetsLoaded: false,
+
+  /**
    * @type {Em.A}
    */
   widgets: function() {
@@ -376,6 +381,47 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   /**
+   * load all shared widgets to show on widget browser
+   * @returns {$.ajax}
+   */
+  loadAllSharedWidgets: function () {
+    this.set('isAllSharedWidgetsLoaded', false);
+    return App.ajax.send({
+      name: 'widgets.all.shared.get',
+      sender: this,
+      success: 'loadAllSharedWidgetsSuccessCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>loadAllSharedWidgets</code>
+   * @param {object|null} data
+   */
+  loadAllSharedWidgetsSuccessCallback: function (data) {
+    var addedWidgetsNames = this.get('widgets').mapProperty('widgetName');
+    if (data.items[0] && data.items.length) {
+      this.set("allSharedWidgets",
+        data.items.map(function (widget) {
+          var widgetType = widget.Widgets.widget_type;
+          var widgetName = widget.Widgets.widget_name;
+          return Em.Object.create({
+            iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
+            widgetName: widgetName,
+            displayName: widget.Widgets.display_name,
+            description: widget.Widgets.description,
+            widgetType: widgetType,
+            serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
+            added: addedWidgetsNames.contains(widgetName)
+          });
+        })
+      );
+      this.set('isAllSharedWidgetsLoaded', true);
+    }
+  },
+
+  allSharedWidgets: [],
+
+  /**
    * load widgets defined by stack
    * @returns {$.ajax}
    */
@@ -401,18 +447,24 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   /**
-   * add widgets
+   * add widgets, on click handler for "Add"
    */
-  addWidgets: function (event) {
-    var widgets = event.context.filterProperty('selected');
+  addWidget: function (event) {
+    var widget = event.context;
+    var widgetName = widget.widgetName;
+    widget.set('added',!widget.added);
+    // add current widget to current layout
 
   },
 
   /**
-   * delete widgets
+   * delete widgets, on click handler for "Added"
    */
-  deleteWidgets: function (event) {
-    var widgets = event.context.filterProperty('selected');
+  hideWidget: function (event) {
+    var widget = event.context;
+    var widgetName = widget.widgetName;
+    widget.set('added',!widget.added);
+    // hide current widget from current layout
 
   },
 
@@ -444,6 +496,109 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   createWidget: function () {
     App.router.send('addServiceWidget', this.get('content'));
+  },
+
+  /**
+   * launch Widgets Browser popup
+   * @method showPopup
+   * @return {App.ModalPopup}
+   */
+  goToWidgetsBrowser: function () {
+
+    var self = this;
+
+    return App.ModalPopup.show({
+      header: function () {
+        return Em.I18n.t('dashboard.widgets.browser.header');
+      }.property(''),
+
+      classNames: ['sixty-percent-width-modal', 'widgets-browser-popup'],
+      primary: Em.I18n.t('common.close'),
+      secondary: null,
+      onPrimary: function () {
+        this.hide();
+        self.set('isAllSharedWidgetsLoaded', false);
+        self.set('allSharedWidgets', []);
+      },
+      autoHeight: false,
+      isHideBodyScroll: false,
+      bodyClass: Ember.View.extend({
+
+        templateName: require('templates/common/modal_popups/widget_browser_popup'),
+        controller: self,
+        willInsertElement: function () {
+          this.get('controller').loadAllSharedWidgets();
+        },
+
+        activeTab: 'shared',
+        activeService: this.get('controller.content.serviceName'),
+        activeStatus: '',
+
+        content: function () {
+          return this.get('controller.allSharedWidgets');
+        }.property('controller.allSharedWidgets.length', 'controller.isAllSharedWidgetsLoaded'),
+
+        // content filtered by tab, service name and status.
+        // If tab changed, service/status set to default
+        filteredContent: function () {
+
+        }.property('content', 'activeTab', 'activeService', 'activeStatus'),
+
+        isLoaded: function () {
+          return !!this.get('controller.isAllSharedWidgetsLoaded');
+        }.property('controller.isAllSharedWidgetsLoaded'),
+
+        isWidgetEmptyList: function () {
+          return !this.get('content.length');
+        }.property('content.length'),
+
+        /**
+         * top tabs: Share / Mine
+         */
+        categories: [
+          {
+            name: 'shared',
+            label: Em.I18n.t('dashboard.widgets.browser.menu.shared')
+          },
+          {
+            name: 'mine',
+            label: Em.I18n.t('dashboard.widgets.browser.menu.mine')
+          }
+        ],
+
+        NavItemView: Ember.View.extend({
+          tagName: 'li',
+          classNameBindings: 'isActive:active'.w(),
+          isActive: function () {
+            return this.get('item') == this.get('parentView.activeTab');
+          }.property('item', 'parentView.activeTab'),
+          elementId: Ember.computed(function(){
+            var label = Em.get(this, 'templateData.keywords.category.label');
+            return label ? 'widget-browser-view-tab-' + label.toLowerCase().replace(/\s/g, '-') : "";
+          }),
+          goToWidgetTab: function (event) {
+            var targetName = event.context;
+            this.set('parentView.activeTab', targetName);
+          }
+        }),
+
+        /**
+         * service name filter
+         */
+        serviceNames: function () {
+
+        }.property(),
+
+        createWidget: function () {
+          this.get('parentView').onPrimary();
+          this.get('controller').createWidget();
+        },
+
+        didInsertElement: function () {
+
+        }
+      })
+    });
   }
 
 });
