@@ -20,7 +20,8 @@ limitations under the License.
 class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
   def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
+    putHiveProperty = self.putProperty(configurations, "hive-site")
+
     super(HDPWIN22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
 
-    putHiveProperty = self.putProperty(configurations, "hive-site")
     putHiveProperty('datanucleus.autoCreateSchema', 'false')
