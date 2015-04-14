@@ -58,7 +58,7 @@
                   <p class="label-text">{{widget.displayName}}</p>
                   <p class="description-text">{{widget.description}}</p>
                 </div>
-                <span class="widget-section-actions">
+                <div class="widget-section-actions pull-right">
                   {{#if widget.added}}
                     <button type="button" class="btn btn-primary added-btn" {{action "hideWidget" widget target="controller"}} >
                       {{t dashboard.widgets.browser.action.added}}
@@ -83,13 +83,12 @@
                       {{t dashboard.widgets.browser.action.add}}
                     </button>
                   {{/if}}
-                </span>
+                </div>
               </div>
             {{/each}}
           </div>
         {{/if}}
       </div>
-
     </div>
 
       <div {{bindAttr class="view.filteringComplete:hidden :table-overlay"}}>

@@ -2407,7 +2407,7 @@ var urls = {
   },
 
   'widgets.all.shared.get': {
-    real: '/widgets?Widgets/scope=CLUSTER&fields=*',
+    real: '/clusters/{clusterName}/widgets?Widgets/scope=CLUSTER&fields=*',
     mock: '/data/widget_layouts/all_shared_widgets.json'
   },
 

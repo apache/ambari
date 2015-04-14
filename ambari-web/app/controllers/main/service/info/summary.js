@@ -404,15 +404,17 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         data.items.map(function (widget) {
           var widgetType = widget.Widgets.widget_type;
           var widgetName = widget.Widgets.widget_name;
-          return Em.Object.create({
-            iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
-            widgetName: widgetName,
-            displayName: widget.Widgets.display_name,
-            description: widget.Widgets.description,
-            widgetType: widgetType,
-            serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
-            added: addedWidgetsNames.contains(widgetName)
-          });
+          if (widgetType != "HEATMAP") {
+            return Em.Object.create({
+              iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
+              widgetName: widgetName,
+              displayName: widget.Widgets.display_name,
+              description: widget.Widgets.description,
+              widgetType: widgetType,
+              serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
+              added: addedWidgetsNames.contains(widgetName)
+            });
+          }
         })
       );
       this.set('isAllSharedWidgetsLoaded', true);
