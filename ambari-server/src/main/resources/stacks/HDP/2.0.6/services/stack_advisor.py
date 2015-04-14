@@ -113,7 +113,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     if configType not in config:
       config[configType] = {}
     def appendPropertyAttribute(key, attribute, attributeValue):
-      if "property_attributes" not in config[configType]:
+      if"property_attributes" not in config[configType]:
         config[configType]["property_attributes"] = {}
       if key not in config[configType]["property_attributes"]:
         config[configType]["property_attributes"][key] = {}
@@ -147,7 +147,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     putHDFSProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
   def recommendHbaseEnvConfigurations(self, configurations, clusterData, services, hosts):
-    putHbaseProperty = self.putProperty(configurations, "hbase-env", services)
+    putHbaseProperty = self.putProperty(configurations, "hbase-env")
     putHbaseProperty('hbase_regionserver_heapsize', int(clusterData['hbaseRam']) * 1024)
     putHbaseProperty('hbase_master_heapsize', int(clusterData['hbaseRam']) * 1024)
 
