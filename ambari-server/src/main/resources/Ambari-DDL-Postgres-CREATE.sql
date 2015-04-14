@@ -582,7 +582,7 @@ CREATE TABLE widget_layout_user_widget (
 );
 
 CREATE TABLE artifact (
-  artifact_name VARCHAR(255) NOT NULL,bug33634
+  artifact_name VARCHAR(255) NOT NULL,
   artifact_data TEXT NOT NULL,
   foreign_keys VARCHAR(255) NOT NULL,
   PRIMARY KEY (artifact_name, foreign_keys));
