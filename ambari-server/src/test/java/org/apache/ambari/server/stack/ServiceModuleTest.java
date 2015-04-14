@@ -538,7 +538,6 @@ public class ServiceModuleTest {
     // both non-intersecting components 2 and 4 should be included
     ComponentInfo info1 = new ComponentInfo();
     info1.setName("1");
-    info1.setCardinality("ALL");
     ComponentInfo info2 = new ComponentInfo();
     info2.setName("2");
     ComponentInfo XX = new ComponentInfo();
@@ -547,6 +546,7 @@ public class ServiceModuleTest {
     ComponentInfo info3 = new ComponentInfo();
     // overlaps with info1
     info3.setName("1");
+    info3.setCardinality("ALL");
     info3.setCategory("category");
     ComponentInfo info4 = new ComponentInfo();
     info4.setName("4");

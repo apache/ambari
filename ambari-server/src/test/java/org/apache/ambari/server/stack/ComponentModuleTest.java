@@ -158,7 +158,7 @@ public class ComponentModuleTest {
 
     // parent has value set, child value is null
     parentInfo.setCardinality(cardinality);
-    assertEquals(cardinality, resolveComponent(info, parentInfo).getModuleInfo().getCardinality());
+    assertEquals("0+", resolveComponent(info, parentInfo).getModuleInfo().getCardinality());
 
     // child has value set, parent value is null
     info.setCardinality(cardinality);

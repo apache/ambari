@@ -32,7 +32,7 @@ public class ComponentInfo {
   private String displayName;
   private String category;
   private boolean deleted;
-  private String cardinality;
+  private String cardinality = "0+";
 
   /**
    * Technically, no component is required to advertise a version. In practice, 
@@ -231,7 +231,7 @@ public class ComponentInfo {
   public void setCardinality(String cardinality) {
     this.cardinality = cardinality;
   }
-
+  
   public String getCardinality() {
     return cardinality;
   }
