@@ -612,7 +612,7 @@ def update_config(properties, config_type, attributes=None):
   expect_body = config_type != "cluster-env"  # ToDo: make exceptions more flexible
 
   curl(Options.CLUSTER_URL, request_type="PUT", data=properties_payload, validate=True,
-       validate_expect_body=expect_body)
+       validate_expect_body=expect_body, soft_validation=True)
 
 
 def get_zookeeper_quorum():
@@ -897,7 +897,7 @@ def validate_response(response, expect_body):
 
 
 def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=False,
-         simulate=None, validate=False, validate_expect_body=False):
+         simulate=None, validate=False, validate_expect_body=False, soft_validation=False):
 
   simulate_only = Options.CURL_PRINT_ONLY is not None or (simulate is not None and simulate is True)
   print_url = Options.CURL_PRINT_ONLY is not None and simulate is not None
@@ -954,7 +954,10 @@ def curl(url, tokens=None, headers=None, request_type="GET", data=None, parse=Fa
   if validate and not simulate_only:
     retcode, errdata = validate_response(out, validate_expect_body)
     if not retcode == 0:
-      raise FatalException(retcode, errdata)
+      if soft_validation:
+        Options.logger.warning("Response validation failed, please check previous action result manually.")
+      else:
+        raise FatalException(retcode, errdata)
 
   if parse:
     return json.loads(out)

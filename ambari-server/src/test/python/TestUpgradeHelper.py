@@ -453,6 +453,7 @@ class TestUpgradeHelper(TestCase):
         "request_type": "PUT",
         "data": copy.deepcopy(properties_payload),
         "validate": True,
+        "soft_validation": True,
         "validate_expect_body": True
       }
     )
@@ -464,6 +465,7 @@ class TestUpgradeHelper(TestCase):
         "request_type": "PUT",
         "data": copy.deepcopy(properties_payload),
         "validate": True,
+        "soft_validation": True,
         "validate_expect_body": True
       }
     )
