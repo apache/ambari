@@ -65,6 +65,7 @@ import org.apache.ambari.server.controller.internal.MemberResourceProvider;
 import org.apache.ambari.server.controller.internal.RepositoryVersionResourceProvider;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
+import org.apache.ambari.server.controller.utilities.DatabaseChecker;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -314,6 +315,7 @@ public class ControllerModule extends AbstractModule {
     bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
+    requestStaticInjection(DatabaseChecker.class);
 
     bindByAnnotation(null);
   }

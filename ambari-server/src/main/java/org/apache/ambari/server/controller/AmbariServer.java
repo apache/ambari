@@ -57,6 +57,7 @@ import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
 import org.apache.ambari.server.controller.internal.UserPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ViewPermissionResourceProvider;
+import org.apache.ambari.server.controller.utilities.DatabaseChecker;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
@@ -87,7 +88,6 @@ import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.utils.StageUtils;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.velocity.app.Velocity;
 import org.eclipse.jetty.server.Connector;
@@ -213,7 +213,8 @@ public class AmbariServer {
     server.setSessionIdManager(sessionIdManager);
     Server serverForAgent = new Server();
 
-    checkDBVersion();
+    DatabaseChecker.checkDBVersion();
+    DatabaseChecker.checkDBConsistency();
 
     try {
       ClassPathXmlApplicationContext parentSpringAppContext =
@@ -570,29 +571,6 @@ public class AmbariServer {
 
       metainfoDAO.create(schemaVersion);
     }
-  }
-
-  protected void checkDBVersion() throws AmbariException {
-    LOG.info("Checking DB store version");
-    MetainfoEntity schemaVersionEntity = metainfoDAO.findByKey(Configuration.SERVER_VERSION_KEY);
-    String schemaVersion = null;
-    String serverVersion = null;
-
-    if (schemaVersionEntity != null) {
-      schemaVersion = schemaVersionEntity.getMetainfoValue();
-      serverVersion = ambariMetaInfo.getServerVersion();
-    }
-
-    if (schemaVersionEntity==null || VersionUtils.compareVersions(schemaVersion, serverVersion, 3) != 0) {
-      String error = "Current database store version is not compatible with " +
-          "current server version"
-          + ", serverVersion=" + serverVersion
-          + ", schemaVersion=" + schemaVersion;
-      LOG.warn(error);
-      throw new AmbariException(error);
-    }
-
-    LOG.info("DB store version is compatible");
   }
 
   public void stop() throws Exception {
