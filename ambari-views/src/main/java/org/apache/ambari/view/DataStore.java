@@ -27,7 +27,7 @@ public interface DataStore {
 
   /**
    * Save the given entity to persistent storage.  The entity must be declared as an
-   * <entity> in the <persistence> element of the view.xml.
+   * {@code <entity>} in the {@code <persistence>} element of the view.xml.
    *
    * @param entity  the entity to be persisted.
    *
