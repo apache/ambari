@@ -109,10 +109,22 @@ App.ServiceConfigView = Em.View.extend({
     }
     var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
     this.processTabs(tabs);
-    // make first tab active
-    tabs.get('firstObject').set('isActive', true);
+    this.pickActiveTab(tabs);
     return tabs;
   }.property('controller.selectedService.serviceName'),
+
+  /**
+   * Pick the first non hidden tab and make it active when there is no active tab
+   */
+  pickActiveTab : function (tabs) {
+    var activeTab = tabs.findProperty('isActive', true);
+    if (!activeTab) {
+      var nonHiddenTabs = tabs.filter(function (tab) {
+        return !(tab.get('isHiddenByFilter') === true);
+      });
+      nonHiddenTabs.get('firstObject').set('isActive', true);
+    }
+  },
 
   /**
    * Data reordering before rendering.

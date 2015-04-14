@@ -189,13 +189,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
       }
     }
     // no more active tab? pick the first non hidden tab and make it active
-    var activeTab = this.get('parentView.tabs').findProperty('isActive', true);
-    if (!activeTab) {
-      var nonHiddenTabs = this.get('parentView.tabs').filter(function (tab) {
-        return !(tab.get('isHiddenByFilter') === true);
-      });
-      nonHiddenTabs.get('firstObject').set('isActive', true);
-    }
+    this.get('parentView').pickActiveTab(this.get('parentView.tabs'));
   }.observes('parentView.filter', 'parentView.columns.@each.selected'),
 
   willInsertElement: function () {
