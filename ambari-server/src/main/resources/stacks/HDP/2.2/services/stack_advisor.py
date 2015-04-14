@@ -125,12 +125,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
-    putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env", services)
+    putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env")
 
     rs_hosts = self.getHostsWithComponent("HBASE", "HBASE_REGIONSERVER", services, hosts)
     if rs_hosts is not None and len(rs_hosts) > 0:
       min_ram = rs_hosts[0]["Hosts"]["total_mem"]
-      for host in rs_hosts["items"]:
+      for host in rs_hosts:
         host_ram = host["Hosts"]["total_mem"]
         min_ram = min(min_ram, host_ram)
 
