@@ -1,0 +1,320 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_yarn_dashboard",
+      "display_name": "Standard YARN Dashboard",
+      "section_name": "YARN_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "NM_RAM_UTILIZATION",
+          "display_name": "NodeManager RAM Utilization",
+          "description": "",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedGB",
+              "metric_path": "metrics/yarn/AllocatedGB",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "proc_total",
+              "metric_path": "metrics/process/proc_total",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable RAM Utilized across NodeManager",
+              "value": "${yarn.NodeManagerMetrics.AllocatedGB}"
+            },
+            {
+              "name": "NodeManager total processes",
+              "value": "${proc_total}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "NM_CPU_UTILIZATION",
+          "display_name": "NodeManager CPU Utilization",
+          "description": "",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedVCores",
+              "metric_path": "metrics/yarn/AllocatedVCores",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "cpu_idle",
+              "metric_path": "metrics/cpu/cpu_idle",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable CPU Utilized across NodeManager",
+              "value": "${yarn.NodeManagerMetrics.AllocatedVCores}"
+            },
+            {
+              "name": "NodeManager CPU Idle",
+              "value": "${cpu_idle}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "NM_DISK_NETWORK_IO",
+          "display_name": "NodeManager Disk and Network Utilization",
+          "description": "",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "read_bytes",
+              "metric_path": "metrics/disk/read_bytes",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "write_bytes",
+              "metric_path": "metrics/disk/write_bytes",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "bytes_in",
+              "metric_path": "metrics/network/bytes_in",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "bytes_out",
+              "metric_path": "metrics/network/bytes_out",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "DISK IO",
+              "value": "${read_bytes + write_bytes}"
+            },
+            {
+              "name": "Network IO",
+              "value": "${bytes_in + bytes_out}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "NM_CONTAINER_FAILURES",
+          "display_name": "NodeManager Container Failures",
+          "description": "",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersFailed",
+              "metric_path": "metrics/yarn/ContainersFailed",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "NodeManager Container Failures",
+              "value": "${yarn.NodeManagerMetrics.ContainersFailed}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        }
+      ]
+    },
+    {
+      "layout_name": "default_yarn_heatmap",
+      "display_name": "YARN Heatmaps",
+      "section_name": "YARN_HEATMAPS",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "NM_GC_TIME",
+          "display_name": "NodeManager Garbage Collection Time",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=NodeManager,name=JvmMetrics.GcTimeMillis",
+              "metric_path": "metrics/jvm/gcTimeMillis",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "NodeManager Garbage Collection Time",
+              "value": "${Hadoop:service=NodeManager,name=JvmMetrics.GcTimeMillis}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "max_limit": "10000"
+          }
+        },
+        {
+          "widget_name": "NM_JVM_Heap_Used",
+          "display_name": "NodeManager JVM Heap Memory Used",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=NodeManager,name=JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "NodeManager JVM Heap Memory Used",
+              "value": "${Hadoop:service=NodeManager,name=JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "YARN_MEMORY_USED",
+          "display_name": "YARN Memory used %",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedGB",
+              "metric_path": "metrics/yarn/AllocatedGB",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.AvailableGB",
+              "metric_path": "metrics/yarn/AvailableGB",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "YARN Memory used %",
+              "value": "${yarn.NodeManagerMetrics.AllocatedGB/(yarn.NodeManagerMetrics.AvailableGB + yarn.NodeManagerMetrics.AllocatedGB)}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "ALLOCATED_CONTAINER",
+          "display_name": "Allocated Containers",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedContainers",
+              "metric_path": "metrics/yarn/AllocatedContainers",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Allocated Containers",
+              "value": "${yarn.NodeManagerMetrics.AllocatedContainers}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "NM_RAM_UTILIZED",
+          "display_name": "NodeManager RAM Utilized",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedGB",
+              "metric_path": "metrics/yarn/AllocatedGB",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "NodeManager RAM Utilized",
+              "value": "${yarn.NodeManagerMetrics.AllocatedGB}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "NM_CPU_UTILIZED",
+          "display_name": "NodeManager CPU Utilized",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedVCores",
+              "metric_path": "metrics/yarn/AllocatedVCores",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "NodeManager CPU Utilized",
+              "value": "${yarn.NodeManagerMetrics.AllocatedVCores}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,470 @@
+{
+  "layouts": [
+    {
+      "layout_name": "default_hdfs_dashboard",
+      "display_name": "Standard HDFS Dashboard",
+      "section_name": "HDFS_SUMMARY",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "GC_STATISTICS",
+          "display_name": "Garbage Collection Statistics",
+          "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.GcCount",
+              "metric_path": "metrics/jvm/gcCount",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep",
+              "metric_path": "metrics/jvm/GcTimeMillisConcurrentMarkSweep",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.GcCountConcurrentMarkSweep",
+              "metric_path": "metrics/jvm/GcCountConcurrentMarkSweep",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "GC total count",
+              "value": "${jvm.JvmMetrics.GcCount}"
+            },
+            {
+              "name": "GC time in major collection",
+              "value": "${jvm.JvmMetrics.GcTimeMillisConcurrentMarkSweep}"
+            },
+            {
+              "name": "GC count of type major collection",
+              "value": "${jvm.JvmMetrics.GcCountConcurrentMarkSweep}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Requests",
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "NUM_OPEN_CONNECTIONS",
+          "display_name": "Client connections",
+          "description": "Number of open connections for Active NameNode.",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "rpc.rpc.NumOpenConnections",
+              "metric_path": "metrics/rpc/NumOpenConnections",
+              "category": "",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "Client connections",
+              "value": "${rpc.rpc.NumOpenConnections}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Connections",
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "JVM_HEAP_STATISTICS",
+          "display_name": "NameNode JVM Heap Statistics",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "jvm.JvmMetrics.MemHeapCommittedM",
+              "metric_path": "metrics/jvm/memHeapCommittedM",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "jvm.JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "JVM heap committed",
+              "value": "${jvm.JvmMetrics.MemHeapCommittedM}"
+            },
+            {
+              "name": "JVM heap used",
+              "value": "${jvm.JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "NN_CPU_RAM_UTILIZATION",
+          "display_name": "NameNode CPU and RAM Utilization",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_idle",
+              "metric_path": "metrics/cpu/cpu_idle",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "proc_total",
+              "metric_path": "metrics/process/proc_total",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU Idle on NameNode host",
+              "value": "${cpu_idle}"
+            },
+            {
+              "name": "Total Processes on NameNode host",
+              "value": "${proc_total}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "86400000"
+          }
+        },
+        {
+          "widget_name": "RPC_QUEUE_WAIT",
+          "display_name": "RPC Queue Wait time",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime",
+              "metric_path": "metrics/rpc/RpcQueueTime_avg_time",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "RPC Queue Wait time",
+              "value": "${Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms"
+          }
+        },
+        {
+          "widget_name": "RPC_PROCESSING_TIME",
+          "display_name": "RPC Processing time",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=DataNode,name=RpcActivity.RpcProcessingTimeAvgTime",
+              "metric_path": "metrics/rpc/RpcProcessingTime_avg_time",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "RPC Processing time",
+              "value": "${Hadoop:service=DataNode,name=RpcActivity.RpcProcessingTimeAvgTime}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms"
+          }
+        },
+        {
+          "widget_name": "CORRUPTED_BLOCKS",
+          "display_name": "Corrupted Blocks",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=DataNode,name=DataNode.CorruptBlocks",
+              "metric_path": "metrics/dfs/FSNamesystem/CorruptBlocks",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Corrupted Blocks",
+              "value": "${Hadoop:service=DataNode,name=DataNode.CorruptBlocks}"
+            }
+          ],
+          "properties": {
+          }
+        },
+        {
+          "widget_name": "UNDER_REPLICATED_BLOCKS",
+          "display_name": "Under Replicated Blocks",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
+              "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Under Replicated Blocks",
+              "value": "${Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks}"
+            }
+          ],
+          "properties": {
+          }
+        }
+      ]
+    },
+    {
+      "layout_name": "default_hdfs_heatmap",
+      "display_name": "HDFS Heatmaps",
+      "section_name": "HDFS_HEATMAPS",
+      "widgetLayoutInfo": [
+        {
+          "widget_name": "HDFS_BYTES_READ",
+          "display_name": "HDFS Bytes Read",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesRead",
+              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "HDFS Bytes Read",
+              "value": "${dfs.datanode.BytesRead}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "1024"
+          }
+        },
+        {
+          "widget_name": "HDFS_BYTES_WRITE",
+          "display_name": "HDFS Bytes Written",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesWritten",
+              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "HDFS Bytes Written",
+              "value": "${dfs.datanode.BytesWritten}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "1024"
+          }
+        },
+        {
+          "widget_name": "DN_GC_TIME",
+          "display_name": "DataNode Garbage Collection Time",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=DataNode,name=JvmMetrics.GcTimeMillis",
+              "metric_path": "metrics/jvm/gcTimeMillis",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode Garbage Collection Time",
+              "value": "${Hadoop:service=DataNode,name=JvmMetrics.GcTimeMillis}"
+            }
+          ],
+          "properties": {
+            "display_unit": "ms",
+            "max_limit": "10000"
+          }
+        },
+        {
+          "widget_name": "DN_JVM_HEAP_USED",
+          "display_name": "DataNode JVM Heap Memory Used",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=DataNode,name=JvmMetrics.MemHeapUsedM",
+              "metric_path": "metrics/jvm/memHeapUsedM",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode JVM Heap Memory Used",
+              "value": "${Hadoop:service=DataNode,name=JvmMetrics.MemHeapUsedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "DN_JVM_HEAP_COMMITTED",
+          "display_name": "DataNode JVM Heap Memory Committed",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "Hadoop:service=DataNode,name=JvmMetrics.MemHeapCommittedM",
+              "metric_path": "metrics/jvm/memHeapCommittedM",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode JVM Heap Memory Committed",
+              "value": "${Hadoop:service=DataNode,name=JvmMetrics.MemHeapCommittedM}"
+            }
+          ],
+          "properties": {
+            "display_unit": "MB",
+            "max_limit": "512"
+          }
+        },
+        {
+          "widget_name": "DN_DISK_IO",
+          "display_name": "DataNode Process Disk I/O Utilization",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.BytesRead",
+              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.BytesWritten",
+              "metric_path": "metrics/dfs/datanode/bytes_written",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.TotalReadTime",
+              "metric_path": "metrics/dfs/datanode/total_read_time",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.TotalWriteTime",
+              "metric_path": "metrics/dfs/datanode/total_write_time",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode Process Disk I/O Utilization",
+              "value": "${(((dfs.datanode.BytesRead/dfs.datanode.TotalReadTime)+(dfs.datanode.BytesWritten/dfs.datanode.TotalWriteTime))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "DN_NETWORK_IO",
+          "display_name": "DataNode Process Network I/O Utilization",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "dfs.datanode.RemoteBytesRead",
+              "metric_path": "metrics/dfs/datanode/remote_bytes_read",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.ReadsFromRemoteClient",
+              "metric_path": "metrics/dfs/datanode/reads_from_remote_client",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.RemoteBytesWritten",
+              "metric_path": "metrics/dfs/datanode/remote_bytes_written",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "dfs.datanode.WritesFromRemoteClient",
+              "metric_path": "metrics/dfs/datanode/writes_from_remote_client",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "DataNode Process Network I/O Utilization",
+              "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        }
+      ]
+    }
+  ]
+}
