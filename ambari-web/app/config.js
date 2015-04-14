@@ -73,8 +73,7 @@ App.supports = {
   installGanglia: false,
   opsDuringRollingUpgrade: false,
   customizedWidgets: false,
-  enhancedConfigs: false,
-  setRackId: false
+  enhancedConfigs: false
 };
 
 if (App.enableExperimental) {

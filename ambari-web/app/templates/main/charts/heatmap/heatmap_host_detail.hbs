@@ -19,9 +19,7 @@
 <b>{{view.details.publicHostName}}</b><br/>
 {{t common.os}}: {{view.details.osType}}<br/>
 {{t common.ipAddress}}: {{view.details.ip}}<br/>
-{{#if App.supports.setRackId}}
-  {{t common.rack}}: {{view.details.rack}}<br/>
-{{/if}}
+{{t common.rack}}: {{view.details.rack}}<br/>
 {{#if view.details.metricName}}
   {{view.details.metricName}}: {{view.details.metricValue}}<br/>
 {{/if}}

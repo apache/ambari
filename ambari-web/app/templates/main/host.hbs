@@ -64,9 +64,7 @@
         <th> </th>
         <th> </th>
         {{view view.parentView.ipSort}}
-        {{#if App.supports.setRackId}}
-          {{view view.parentView.rackSort}}
-        {{/if}}
+        {{view view.parentView.rackSort}}
         {{view view.parentView.cpuSort}}
         {{view view.parentView.memorySort}}
         {{view view.parentView.diskUsageSort}}
@@ -83,9 +81,7 @@
         <th> </th>
         <th> </th>
         <th>{{view view.ipFilterView}}</th>
-        {{#if App.supports.setRackId}}
-          <th>{{view view.rackFilterView}}</th>
-        {{/if}}
+        <th>{{view view.rackFilterView}}</th>
         <th>{{view view.cpuFilterView}}</th>
         <th>{{view view.ramFilterView}}</th>
         <th> </th>
@@ -128,11 +124,9 @@
               <span rel="ComponentsTooltip" {{bindAttr data-original-title="view.componentsInPassiveStateMessage" class="host.componentsInPassiveStateCount:icon-medkit"}}></span>
           </td>
           <td class="host-ip">{{host.ip}}</td>
-          {{#if App.supports.setRackId}}
-            <td rel="UsageTooltip" {{bindAttr title="host.rack"}} class="rack-id">
-              {{host.rack}}
-            </td>
-          {{/if}}
+          <td rel="UsageTooltip" {{bindAttr title="host.rack"}} class="rack-id">
+            {{host.rack}}
+          </td>
           <td class="cores-formatted">{{host.coresFormatted}}</td>
           <td class="memory-formatted">{{host.memoryFormatted}}</td>
 
