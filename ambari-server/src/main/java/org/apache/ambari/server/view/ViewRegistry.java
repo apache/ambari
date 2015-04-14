@@ -37,7 +37,6 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.AmbariSessionManager;
-import org.apache.ambari.server.controller.ControllerModule;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.events.ServiceInstalledEvent;
@@ -67,6 +66,7 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.configuration.AutoInstanceConfig;
 import org.apache.ambari.server.view.configuration.EntityConfig;
@@ -284,24 +284,21 @@ public class ViewRegistry {
   public static void main(String[] args) {
 
     if (args.length >= 2) {
-      String archivePath = args[1];
 
-      try {
-        Injector injector = Guice.createInjector(new ControllerModule());
+      if (args[0].equals(EXTRACT_COMMAND)) {
 
-        ViewExtractor      extractor      = injector.getInstance(ViewExtractor.class);
-        ViewArchiveUtility archiveUtility = injector.getInstance(ViewArchiveUtility.class);
-        Configuration      configuration  = injector.getInstance(Configuration.class);
+        String     archivePath = args[1];
+        ViewModule viewModule  = new ViewModule();
 
-        if (args[0].equals(EXTRACT_COMMAND)) {
-          if (extractViewArchive(archivePath, extractor, archiveUtility, configuration, true)) {
+        try {
+          if (extractViewArchive(archivePath, viewModule, true)) {
             System.exit(0);
           }
+        } catch (Exception e) {
+          String msg = "Caught exception extracting view archive " + archivePath + ".";
+          LOG.error(msg, e);
+          System.exit(2);
         }
-      } catch (Exception e) {
-        String msg = "Caught exception extracting view archive " + archivePath + ".";
-        LOG.error(msg, e);
-        System.exit(2);
       }
     }
     System.exit(1);
@@ -1621,11 +1618,13 @@ public class ViewRegistry {
   }
 
   // extract the view archive for the given path.
-  protected static boolean extractViewArchive(String archivePath,
-                                            ViewExtractor extractor,
-                                            ViewArchiveUtility archiveUtility,
-                                            Configuration configuration,
-                                            boolean systemOnly ) throws Exception {
+  protected static boolean extractViewArchive(String archivePath, ViewModule viewModule, boolean systemOnly)
+      throws Exception {
+    Injector injector = Guice.createInjector(viewModule);
+
+    ViewExtractor      extractor      = injector.getInstance(ViewExtractor.class);
+    ViewArchiveUtility archiveUtility = injector.getInstance(ViewArchiveUtility.class);
+    Configuration      configuration  = injector.getInstance(Configuration.class);
 
     File viewDir = configuration.getViewsDir();
 
@@ -1715,5 +1714,18 @@ public class ViewRegistry {
             sslConfiguration.getTruststorePassword(),
             sslConfiguration.getTruststoreType());
     return new ViewAmbariStreamProvider(streamProvider, ambariSessionManager, AmbariServer.getController());
+  }
+
+  /**
+   * Module for stand alone view registry.
+   */
+  protected static class ViewModule extends AbstractModule {
+
+    @Override
+    protected void configure() {
+      Configuration configuration = new Configuration();
+      bind(Configuration.class).toInstance(configuration);
+      bind(OsFamily.class).toInstance(new OsFamily(configuration));
+    }
   }
 }

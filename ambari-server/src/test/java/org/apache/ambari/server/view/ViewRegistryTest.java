@@ -82,6 +82,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.view.configuration.InstanceConfig;
 import org.apache.ambari.server.view.configuration.InstanceConfigTest;
 import org.apache.ambari.server.view.configuration.PropertyConfig;
@@ -1575,18 +1576,44 @@ public class ViewRegistryTest {
 
     TestViewArchiveUtility archiveUtility = new TestViewArchiveUtility(viewConfigs, files, outputStreams, jarFiles, false);
 
+    TestViewModule module = new TestViewModule(viewExtractor, archiveUtility, configuration);
+
     if (System.getProperty("os.name").contains("Windows")) {
       Assert.assertTrue(ViewRegistry.extractViewArchive("\\var\\lib\\ambari-server\\resources\\views\\my_view-1.0.0.jar",
-              viewExtractor, archiveUtility, configuration, true));
+          module, true));
     }
     else {
       Assert.assertTrue(ViewRegistry.extractViewArchive("/var/lib/ambari-server/resources/views/my_view-1.0.0.jar",
-              viewExtractor, archiveUtility, configuration, true));
+          module, true));
     }
 
     // verify mocks
     verify(configuration, viewDir, extractedArchiveDir, viewArchive, archiveDir, entryFile, classesDir,
         libDir, metaInfDir, fileEntry, viewJarFile, jarEntry, is, fos, viewExtractor, resourceDAO, viewDAO, viewInstanceDAO);
+  }
+
+  public static class TestViewModule extends ViewRegistry.ViewModule {
+
+    private final ViewExtractor extractor;
+    private final ViewArchiveUtility archiveUtility;
+    private final Configuration configuration;
+
+    public TestViewModule(ViewExtractor extractor, ViewArchiveUtility archiveUtility, Configuration configuration) {
+      this.extractor = extractor;
+      this.archiveUtility = archiveUtility;
+      this.configuration = configuration;
+    }
+
+    @Override
+    protected void configure() {
+      bind(ViewExtractor.class).toInstance(extractor);
+      bind(ViewArchiveUtility.class).toInstance(archiveUtility);
+      bind(Configuration.class).toInstance(configuration);
+
+      OsFamily osFamily = createNiceMock(OsFamily.class);
+      replay(osFamily);
+      bind(OsFamily.class).toInstance(osFamily);
+    }
   }
 
   public static class TestViewArchiveUtility extends ViewArchiveUtility {
