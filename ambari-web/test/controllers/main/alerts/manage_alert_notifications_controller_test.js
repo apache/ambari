@@ -650,7 +650,7 @@ describe('App.ManageAlertNotificationsController', function () {
         var cases = [
           {
             method: 'EMAIL',
-            errors: ['portError']
+            errors: ['portError', 'hostError']
           },
           {
             method: 'SNMP',

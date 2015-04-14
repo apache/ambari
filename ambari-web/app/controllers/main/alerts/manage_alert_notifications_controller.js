@@ -375,7 +375,7 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
         clearValidationErrors: function () {
           var linkedErrorsMap = {
               EMAIL: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError'],
-              SNMP: ['portError']
+              SNMP: ['portError', 'hostError']
             },
             method = this.get('controller.inputFields.method.value');
           Em.keys(linkedErrorsMap).forEach(function (name) {
