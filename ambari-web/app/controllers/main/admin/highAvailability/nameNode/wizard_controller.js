@@ -139,51 +139,6 @@ App.HighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.serviceConfigProperties', data);
   },
 
-  /**
-   * load hosts from server
-   */
-  loadHosts: function () {
-    var dfd;
-    var hostsFromDb = this.getDBProperty('hosts');
-    if (hostsFromDb) {
-      this.set('content.hosts', hostsFromDb);
-      dfd = $.Deferred();
-      dfd.resolve();
-    } else {
-      dfd = App.ajax.send({
-        name: 'hosts.high_availability.wizard',
-        data: {},
-        sender: this,
-        success: 'loadHostsSuccessCallback',
-        error: 'loadHostsErrorCallback'
-      });
-    }
-    return dfd.promise();
-  },
-
-  /**
-   * success callback of <code>loadHosts</code>
-   * @param data
-   * @param opt
-   * @param params
-   */
-  loadHostsSuccessCallback: function (data, opt, params) {
-    var hosts = {};
-
-    data.items.forEach(function (item) {
-      hosts[item.Hosts.host_name] = {
-        name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
-        bootStatus: "REGISTERED",
-        isInstalled: true
-      };
-    });
-    this.setDBProperty('hosts', hosts);
-    this.set('content.hosts', hosts);
-  },
-
   loadHdfsClientHosts: function(){
     var hostNames = App.db.getHighAvailabilityWizardHdfsClientHosts();
     if (!(hostNames instanceof Array)) {

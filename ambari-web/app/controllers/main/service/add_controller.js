@@ -155,50 +155,6 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
     });
   },
 
-  loadHosts: function () {
-    var dfd;
-    if (this.getDBProperty('hosts')) {
-      dfd = $.Deferred();
-      dfd.resolve();
-    } else {
-      dfd = App.ajax.send({
-        name: 'hosts.confirmed',
-        sender: this,
-        data: {},
-        success: 'loadHostsSuccessCallback',
-        error: 'loadHostsErrorCallback'
-      });
-    }
-    return dfd.promise();
-  },
-
-  loadHostsSuccessCallback: function (response) {
-    var installedHosts = {};
-
-    response.items.forEach(function (item, indx) {
-      installedHosts[item.Hosts.host_name] = {
-        name: item.Hosts.host_name,
-        cpu: item.Hosts.cpu_count,
-        memory: item.Hosts.total_mem,
-        disk_info: item.Hosts.disk_info,
-        osType: item.Hosts.os_type,
-        osArch: item.Hosts.os_arch,
-        ip: item.Hosts.ip,
-        bootStatus: "REGISTERED",
-        isInstalled: true,
-        hostComponents: item.host_components,
-        id: indx++
-      };
-    });
-    this.setDBProperty('hosts', installedHosts);
-    this.set('content.hosts', installedHosts);
-  },
-
-  loadHostsErrorCallback: function (jqXHR, ajaxOptions, error, opt) {
-    App.ajax.defaultErrorHandler(jqXHR, opt.url, opt.method, jqXHR.status);
-    console.log('Loading hosts failed');
-  },
-
   /**
    * Load services data. Will be used at <code>Select services(step4)</code> step
    */

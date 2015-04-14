@@ -1217,6 +1217,7 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.wizard.header': 'Enable Ranger Admin HA Wizard',
   'admin.ra_highAvailability.wizard.step1.header': 'Get Started',
   'admin.ra_highAvailability.wizard.step2.header': 'Select Hosts',
+  'admin.ra_highAvailability.wizard.step2.body': 'Select a host or hosts that will be running the additional Ranger Admin components',
   'admin.ra_highAvailability.wizard.step3.header': 'Review',
   'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
   'admin.ra_highAvailability.closePopup':'Enable Ranger Admin HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +

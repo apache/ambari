@@ -19,8 +19,10 @@
 
 var App = require('app');
 
-App.RAHighAvailabilityWizardStep2View = Em.View.extend({
+App.RAHighAvailabilityWizardStep2View = App.AssignMasterComponentsView.extend({
 
-  templateName: require('templates/main/admin/highAvailability/rangerAdmin/step2')
+  title: Em.I18n.t('admin.ra_highAvailability.wizard.step2.header'),
+
+  alertMessage: Em.I18n.t('admin.ra_highAvailability.wizard.step2.body')
 
 });

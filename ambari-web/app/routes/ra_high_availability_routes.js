@@ -103,7 +103,9 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('rAHighAvailabilityWizardController');
       controller.setCurrentStep('1');
       controller.dataLoading().done(function () {
-        controller.connectOutlet('rAHighAvailabilityWizardStep1', controller.get('content'));
+        controller.loadAllPriorSteps().done(function(){
+          controller.connectOutlet('rAHighAvailabilityWizardStep1', controller.get('content'));
+        });
       })
     },
     next: function (router) {
@@ -117,7 +119,9 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('rAHighAvailabilityWizardController');
       controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
-        controller.connectOutlet('rAHighAvailabilityWizardStep2', controller.get('content'));
+        controller.loadAllPriorSteps().done(function(){
+          controller.connectOutlet('rAHighAvailabilityWizardStep2', controller.get('content'));
+        });
       })
     },
     next: function (router) {

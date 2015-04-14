@@ -18,7 +18,20 @@
 
 var App = require('app');
 
-App.RAHighAvailabilityWizardStep2Controller = Em.Controller.extend({
-  name: "rAHighAvailabilityWizardStep2Controller"
+App.RAHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.BlueprintMixin, App.AssignMasterComponents, {
+  name: "rAHighAvailabilityWizardStep2Controller",
+
+  useServerValidation: false,
+
+  mastersToShow: ['RANGER_ADMIN'],
+
+  mastersToAdd: ['RANGER_ADMIN'],
+
+  showCurrentPrefix: ['RANGER_ADMIN'],
+
+  showAdditionalPrefix: ['RANGER_ADMIN'],
+
+  mastersAddableInHA: ['RANGER_ADMIN']
+
 });
 

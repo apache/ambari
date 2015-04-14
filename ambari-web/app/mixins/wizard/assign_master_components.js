@@ -49,6 +49,13 @@ App.AssignMasterComponents = Em.Mixin.create({
   mastersToMove: [],
 
   /**
+   * Array of master component names, that should be addable
+   * Are used in HA wizards to add components, that are not addable for other wizards
+   * @type {Array}
+   */
+  mastersAddableInHA: [],
+
+  /**
    * Array of master component names to show 'Current' prefix in label before component name
    * Prefix will be shown only for installed instances
    * @type {Array}
@@ -121,8 +128,8 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @type {string[]}
    */
   addableComponents: function () {
-    return App.get('components.addableMasterInstallerWizard');
-  }.property('App.components.addableMasterInstallerWizard'),
+    return App.get('components.addableMasterInstallerWizard').concat(this.get('mastersAddableInHA')).uniq();
+  }.property('App.components.addableMasterInstallerWizard', 'mastersAddableInHA'),
 
   /**
    * Define state for submit button
@@ -501,7 +508,8 @@ App.AssignMasterComponents = Em.Mixin.create({
       return;
     }
 
-    var showControl = !App.StackServiceComponent.find().findProperty('componentName', componentName).get('stackService').get('isInstalled');
+    var showControl = !App.StackServiceComponent.find().findProperty('componentName', componentName).get('stackService').get('isInstalled')
+        || this.get('mastersAddableInHA').contains(componentName);
 
     if (showControl) {
       var mastersLength = this.get("selectedServicesMasters").filterProperty("component_name", componentName).length;
@@ -623,7 +631,6 @@ App.AssignMasterComponents = Em.Mixin.create({
     if (self.get('isInstallerWizard')) {
       masterComponents = App.StackServiceComponent.find().filterProperty('isShownOnInstallerAssignMasterPage');
     } else {
-      masterComponents = App.StackServiceComponent.find().filterProperty('isShownOnAddServiceAssignMasterPage');
       masterComponents = App.StackServiceComponent.find().filter(function(component){
         return component.get('isShownOnAddServiceAssignMasterPage') || self.get('mastersToShow').contains(component.get('componentName'));
       });
@@ -739,9 +746,10 @@ App.AssignMasterComponents = Em.Mixin.create({
     masterComponents.forEach(function (item) {
       var masterComponent = App.StackServiceComponent.find().findProperty('componentName', item.component_name);
       var componentObj = Em.Object.create(item);
+      var showRemoveControl;
       console.log("TRACE: render master component name is: " + item.component_name);
       if (masterComponent.get('isMasterWithMultipleInstances')) {
-        var showRemoveControl = installedServices.contains(masterComponent.get('stackService.serviceName')) &&
+        showRemoveControl = installedServices.contains(masterComponent.get('stackService.serviceName')) &&
             (masterComponents.filterProperty('component_name', item.component_name).length > 1);
         previousComponentName = item.component_name;
         componentObj.set('serviceComponentId', result.filterProperty('component_name', item.component_name).length + 1);
@@ -844,9 +852,11 @@ App.AssignMasterComponents = Em.Mixin.create({
    */
   assignHostToMaster: function (componentName, selectedHost, serviceComponentId) {
     var flag = this.isHostNameValid(componentName, selectedHost);
+    var component;
     this.updateIsHostNameValidFlag(componentName, serviceComponentId, flag);
     if (serviceComponentId) {
-      this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId).set("selectedHost", selectedHost);
+      component = this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId);
+      if (component) component.set("selectedHost", selectedHost);
     }
     else {
       this.get('selectedServicesMasters').findProperty("component_name", componentName).set("selectedHost", selectedHost);
@@ -886,9 +896,11 @@ App.AssignMasterComponents = Em.Mixin.create({
    * @method updateIsHostNameValidFlag
    */
   updateIsHostNameValidFlag: function (componentName, serviceComponentId, flag) {
+    var component;
     if (componentName) {
       if (serviceComponentId) {
-        this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId).set("isHostNameValid", flag);
+        component = this.get('selectedServicesMasters').filterProperty('component_name', componentName).findProperty("serviceComponentId", serviceComponentId);
+        if (component) component.set("isHostNameValid", flag);
       } else {
         this.get('selectedServicesMasters').findProperty("component_name", componentName).set("isHostNameValid", flag);
       }
@@ -944,6 +956,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       newMaster.set("selectedHost", lastMaster.get("selectedHost"));
       newMaster.set("serviceId", lastMaster.get("serviceId"));
       newMaster.set("isInstalled", false);
+      newMaster.set('showAdditionalPrefix', this.get('showAdditionalPrefix').contains(lastMaster.get("component_name")));
 
       if (currentMasters.get("length") === (maxNumMasters - 1)) {
         newMaster.set("showAddControl", false);
@@ -997,7 +1010,7 @@ App.AssignMasterComponents = Em.Mixin.create({
       currentMasters.set("lastObject.showAddControl", true);
     }
 
-    if (currentMasters.get("length") === 1) {
+    if (currentMasters.filterProperty('isInstalled', false).get("length") === 1) {
       currentMasters.set("lastObject.showRemoveControl", false);
     }
 
@@ -1012,7 +1025,7 @@ App.AssignMasterComponents = Em.Mixin.create({
 
     // load recommendations with partial request
     self.loadComponentsRecommendationsFromServer(function() {
-      // For validation use latest received recommendations because ir contains current master layout and recommended slave/client layout
+      // For validation use latest received recommendations because it contains current master layout and recommended slave/client layout
       self.validate(self.get('content.recommendations'), function() {
         if (callback) {
           callback();

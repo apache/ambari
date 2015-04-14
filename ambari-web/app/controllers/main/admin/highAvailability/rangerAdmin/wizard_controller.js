@@ -28,7 +28,11 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
   isFinished: false,
 
   content: Em.Object.create({
-    controllerName: 'rAHighAvailabilityWizardController'
+    controllerName: 'rAHighAvailabilityWizardController',
+    cluster: null,
+    hosts: null,
+    services: null,
+    masterComponentHosts: null
   }),
 
   init: function () {
@@ -49,15 +53,30 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
     });
   },
 
-  /**
-   * Load data for all steps until <code>current step</code>
-   */
-  loadAllPriorSteps: function () {
-    var step = this.get('currentStep');
-    switch (step) {
-      case '1':
-        this.load('cluster');
-    }
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('cluster');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'async',
+        callback: function () {
+          var dfd = $.Deferred();
+          var self = this;
+          this.loadHosts().done(function () {
+            self.loadServicesFromServer();
+            self.loadMasterComponentHosts();
+            dfd.resolve();
+          });
+          return dfd.promise();
+        }
+      }
+    ]
   },
 
   /**
