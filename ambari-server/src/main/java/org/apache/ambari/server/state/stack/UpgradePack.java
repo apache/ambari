@@ -47,6 +47,9 @@ public class UpgradePack {
   @XmlElement(name="target")
   private String target;
 
+  @XmlElement(name="target-stack")
+  private String targetStack;
+
 
   @XmlElementWrapper(name="order")
   @XmlElement(name="group")
@@ -68,6 +71,13 @@ public class UpgradePack {
    */
   public String getTarget() {
     return target;
+  }
+
+  /**
+   * @return the target stack, or {@code null} if the upgrade is within the same stack
+   */
+  public String getTargetStack() {
+    return targetStack;
   }
 
   /**

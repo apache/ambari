@@ -18,13 +18,13 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-import org.junit.Test;
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 import java.util.Set;
 
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertTrue;
+import org.apache.ambari.server.controller.spi.Resource;
+import org.junit.Test;
 
 /**
  * StackVersionResourceDefinition unit tests
@@ -42,13 +42,14 @@ public class StackVersionResourceDefinitionTest {
     ResourceDefinition def = new StackVersionResourceDefinition();
 
     Set<SubResourceDefinition> subResources = def.getSubResourceDefinitions();
-    assertEquals(5, subResources.size());
+    assertEquals(6, subResources.size());
 
     boolean operatingSystemFound = false;
     boolean serviceFound = false;
     boolean configFound = false;
     boolean repoFound = false;
     boolean artifactReturned = false;
+    boolean compatibleFound = false;
 
     for (SubResourceDefinition subResource : subResources) {
       Resource.Type type = subResource.getType();
@@ -58,10 +59,12 @@ public class StackVersionResourceDefinitionTest {
         serviceFound = true;
       } else if (type.equals(Resource.Type.StackLevelConfiguration)) {
         configFound = true;
-      }else if (type.equals(Resource.Type.RepositoryVersion)) {
+      } else if (type.equals(Resource.Type.RepositoryVersion)) {
         repoFound = true;
-      }else if (type.equals(Resource.Type.StackArtifact)) {
+      } else if (type.equals(Resource.Type.StackArtifact)) {
         artifactReturned = true;
+      } else if (type.equals(Resource.Type.CompatibleRepositoryVersion)) {
+        compatibleFound = true;
       }
     }
     assertTrue(operatingSystemFound);
@@ -69,5 +72,6 @@ public class StackVersionResourceDefinitionTest {
     assertTrue(configFound);
     assertTrue(repoFound);
     assertTrue(artifactReturned);
+    assertTrue(compatibleFound);
   }
 }

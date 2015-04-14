@@ -50,7 +50,6 @@ import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
-import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.apache.commons.lang.ObjectUtils;
 import org.apache.commons.lang.StringUtils;
@@ -180,6 +179,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     List<RepositoryVersionEntity> requestedEntities = new ArrayList<RepositoryVersionEntity>();
     for (Map<String, Object> propertyMap: propertyMaps) {
       final StackId stackId = getStackInformationFromUrl(propertyMap);
+
       if (propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
         requestedEntities.addAll(repositoryVersionDAO.findByStack(stackId.getStackId()));
       } else {

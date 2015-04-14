@@ -22,13 +22,8 @@ import java.util.HashSet;
 import java.util.Set;
 
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 
 public class StackVersionResourceDefinition extends BaseResourceDefinition {
-
-  public StackVersionResourceDefinition(Type resourceType) {
-    super(Resource.Type.StackVersion);
-  }
 
   public StackVersionResourceDefinition() {
     super(Resource.Type.StackVersion);
@@ -47,15 +42,15 @@ public class StackVersionResourceDefinition extends BaseResourceDefinition {
   @Override
   public Set<SubResourceDefinition> getSubResourceDefinitions() {
 
-    Set<SubResourceDefinition> setChildren = new HashSet<SubResourceDefinition>();
+    Set<SubResourceDefinition> children = new HashSet<SubResourceDefinition>();
 
-    setChildren.add(new SubResourceDefinition(Resource.Type.OperatingSystem));
-    setChildren.add(new SubResourceDefinition(Resource.Type.StackService));
-    setChildren.add(new SubResourceDefinition(Resource.Type.StackLevelConfiguration));
-    setChildren.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
-    setChildren.add(new SubResourceDefinition(Type.StackArtifact));
+    children.add(new SubResourceDefinition(Resource.Type.OperatingSystem));
+    children.add(new SubResourceDefinition(Resource.Type.StackService));
+    children.add(new SubResourceDefinition(Resource.Type.StackLevelConfiguration));
+    children.add(new SubResourceDefinition(Resource.Type.RepositoryVersion));
+    children.add(new SubResourceDefinition(Resource.Type.StackArtifact));
+    children.add(new SubResourceDefinition(Resource.Type.CompatibleRepositoryVersion));
 
-    return setChildren;
-
+    return children;
   }
 }

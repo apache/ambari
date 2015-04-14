@@ -309,6 +309,12 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new RepositoryVersionResourceDefinition();
         break;
 
+      case CompatibleRepositoryVersion:
+        resourceDefinition = new SimpleResourceDefinition(Resource.Type.CompatibleRepositoryVersion,
+            "compatible_repository_version", "compatible_repository_versions",
+            Resource.Type.OperatingSystem);
+        break;
+
       case HostStackVersion:
         resourceDefinition = new ComponentStackVersionResourceDefinition(Resource.Type.HostStackVersion);
         break;

@@ -381,7 +381,7 @@ public class QueryImplTest {
     Assert.assertEquals("StackVersion:1", versionNode.getName());
     Assert.assertEquals(Resource.Type.StackVersion, versionNode.getObject().getType());
 
-    Assert.assertEquals(5, versionNode.getChildren().size());
+    Assert.assertEquals(6, versionNode.getChildren().size());
 
     TreeNode<Resource> opSystemsNode = versionNode.getChild("operating_systems");
     Assert.assertEquals(3, opSystemsNode.getChildren().size());

@@ -17,13 +17,13 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -44,9 +44,6 @@ import org.slf4j.LoggerFactory;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
-import java.util.Collection;
-import javax.persistence.CascadeType;
-import javax.persistence.OneToMany;
 
 @Entity
 @Table(name = "repo_version", uniqueConstraints = {
@@ -94,10 +91,10 @@ public class RepositoryVersionEntity {
   @Lob
   @Column(name = "repositories")
   private String operatingSystems;
-  
+
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Collection<ClusterVersionEntity> clusterVersionEntities;
-  
+
   @OneToMany(cascade = CascadeType.REMOVE, mappedBy = "repositoryVersion")
   private Collection<HostVersionEntity> hostVersionEntities;
 
@@ -181,11 +178,15 @@ public class RepositoryVersionEntity {
   }
 
   public String getStackName() {
-    return new StackId(stack).getStackName();
+    return getStackId().getStackName();
   }
 
   public String getStackVersion() {
-    return new StackId(stack).getStackVersion();
+    return getStackId().getStackVersion();
+  }
+
+  public StackId getStackId() {
+    return new StackId(stack);
   }
 
   @Override

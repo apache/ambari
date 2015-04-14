@@ -1181,23 +1181,26 @@ public class ClusterImpl implements Cluster {
     return RepositoryVersionState.OUT_OF_SYNC;
   }
 
-  /**
-   * Recalculate what the Cluster Version state should be, depending on the individual Host Versions.
-   * @param repositoryVersion Repository version (e.g., 2.2.0.0-1234)
-   * @throws AmbariException
-   */
   @Override
   public void recalculateClusterVersionState(String repositoryVersion) throws AmbariException {
+    recalculateClusterVersionState(null, repositoryVersion);
+  }
+
+  @Override
+  public void recalculateClusterVersionState(StackId stackId, String repositoryVersion) throws AmbariException {
     if (repositoryVersion == null) {
       return;
     }
 
     Map<String, Host> hosts = clusters.getHostsForCluster(getClusterName());
 
+    if (null == stackId) {
+      stackId = getCurrentStackVersion();
+    }
+
     clusterGlobalLock.writeLock().lock();
     try {
       // Part 1, bootstrap cluster version if necessary.
-      StackId stackId = getCurrentStackVersion();
 
       ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(
           getClusterName(), stackId.getStackId(), repositoryVersion);
@@ -1318,6 +1321,7 @@ public class ClusterImpl implements Cluster {
    * @param stack Stack information
    * @throws AmbariException
    */
+  @Override
   @Transactional
   public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException {
     HostVersionEntity hostVersionEntity = hostVersionDAO.findByClusterStackVersionAndHost(getClusterName(), repositoryVersion.getStack(), repositoryVersion.getVersion(), host.getHostName());
@@ -1372,7 +1376,9 @@ public class ClusterImpl implements Cluster {
         if (clusterVersionEntity.getRepositoryVersion().getStack().equals(
             currentStackId.getStackId())
             && clusterVersionEntity.getState() != RepositoryVersionState.CURRENT) {
-          recalculateClusterVersionState(clusterVersionEntity.getRepositoryVersion().getVersion());
+          recalculateClusterVersionState(
+              clusterVersionEntity.getRepositoryVersion().getStackId(),
+              clusterVersionEntity.getRepositoryVersion().getVersion());
         }
       }
     } finally {

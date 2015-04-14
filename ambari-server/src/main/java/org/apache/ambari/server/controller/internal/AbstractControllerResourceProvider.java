@@ -153,6 +153,8 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
         return new ClientConfigResourceProvider(propertyIds, keyPropertyIds, managementController);
       case RepositoryVersion:
         return resourceProviderFactory.getRepositoryVersionResourceProvider();
+      case CompatibleRepositoryVersion:
+        return new CompatibleRepositoryVersionResourceProvider(managementController);
       case StackArtifact:
         return new StackArtifactResourceProvider(managementController);
       case Theme:

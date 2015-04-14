@@ -18,14 +18,8 @@
 
 package org.apache.ambari.server.api.services;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLDecoder;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.GET;
@@ -34,18 +28,11 @@ import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.PathSegment;
 import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 
-import org.apache.ambari.server.api.predicate.QueryLexer;
 import org.apache.ambari.server.api.resources.ResourceInstance;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.utils.URLEncodedUtils;
-import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Service for stacks management.
@@ -324,6 +311,23 @@ public class StacksService extends BaseService {
     stackProperties.put(Resource.Type.Stack, stackName);
     stackProperties.put(Resource.Type.StackVersion, stackVersion);
     return new RepositoryVersionService(stackProperties);
+  }
+
+  /**
+   * Handles ANY /{stackName}/versions/{stackVersion}/compatible_repository_versions.
+   *
+   * @param stackName stack name
+   * @param stackVersion stack version
+   * @return repository version service
+   */
+  @Path("{stackName}/versions/{stackVersion}/compatible_repository_versions")
+  public CompatibleRepositoryVersionService getCompatibleRepositoryVersionHandler(
+      @PathParam("stackName") String stackName,
+      @PathParam("stackVersion") String stackVersion) {
+    final Map<Resource.Type, String> stackProperties = new HashMap<Resource.Type, String>();
+    stackProperties.put(Resource.Type.Stack, stackName);
+    stackProperties.put(Resource.Type.StackVersion, stackVersion);
+    return new CompatibleRepositoryVersionService(stackProperties);
   }
 
   ResourceInstance createStackServiceComponentResource(

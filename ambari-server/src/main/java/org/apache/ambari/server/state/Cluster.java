@@ -152,7 +152,7 @@ public interface Cluster {
    * @throws AmbariException
    */
   public void inferHostVersions(ClusterVersionEntity sourceClusterVersion) throws AmbariException;
-  
+
   /**
    * For a given host, will either either update an existing Host Version Entity for the given version, or create
    * one if it doesn't exist
@@ -171,6 +171,14 @@ public interface Cluster {
    * @throws AmbariException
    */
   void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
+
+  /**
+   * Update state of a cluster stack version for cluster based on states of host versions and stackids.
+   * @param stackId           the stack id with the version
+   * @param repositoryVersion the repository version (e.g. 2.2.1.0-100)
+   * @throws AmbariException
+   */
+  void recalculateClusterVersionState(StackId stackId, String repositoryVersion) throws AmbariException;
 
   /**
    * Update state of all cluster stack versions for cluster based on states of host versions.

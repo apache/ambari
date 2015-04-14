@@ -71,6 +71,7 @@ public class OperatingSystemResourceProvider extends ReadOnlyResourceProvider {
       put(Resource.Type.Stack, OPERATING_SYSTEM_STACK_NAME_PROPERTY_ID);
       put(Resource.Type.StackVersion, OPERATING_SYSTEM_STACK_VERSION_PROPERTY_ID);
       put(Resource.Type.RepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
+      put(Resource.Type.CompatibleRepositoryVersion, OPERATING_SYSTEM_REPOSITORY_VERSION_ID_PROPERTY_ID);
     }
   };
 

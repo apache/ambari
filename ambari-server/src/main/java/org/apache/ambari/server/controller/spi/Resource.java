@@ -129,6 +129,7 @@ public interface Resource {
     LdapSyncEvent,
     UserPrivilege,
     RepositoryVersion,
+    CompatibleRepositoryVersion,
     ClusterStackVersion,
     HostStackVersion,
     Upgrade,
@@ -230,6 +231,7 @@ public interface Resource {
     public static final Type LdapSyncEvent = InternalType.LdapSyncEvent.getType();
     public static final Type UserPrivilege = InternalType.UserPrivilege.getType();
     public static final Type RepositoryVersion = InternalType.RepositoryVersion.getType();
+    public static final Type CompatibleRepositoryVersion = InternalType.CompatibleRepositoryVersion.getType();
     public static final Type ClusterStackVersion = InternalType.ClusterStackVersion.getType();
     public static final Type HostStackVersion = InternalType.HostStackVersion.getType();
     public static final Type Upgrade = InternalType.Upgrade.getType();

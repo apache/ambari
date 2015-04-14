@@ -30,7 +30,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -50,13 +49,13 @@ import org.apache.ambari.server.controller.spi.ProviderModule;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SortRequest;
 import org.apache.ambari.server.controller.spi.SortRequestProperty;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -943,6 +942,7 @@ public class ClusterControllerImplTest {
       providers.put(Resource.Type.OperatingSystem, new TestOperatingSystemResourceProvider());
       providers.put(Resource.Type.Repository, new TestRepositoryResourceProvider());
       providers.put(Resource.Type.RepositoryVersion, new TestRepositoryVersionResourceProvider());
+      providers.put(Resource.Type.CompatibleRepositoryVersion, new TestCompatibleRepositoryVersionResourceProvider());
       providers.put(Type.StackArtifact, new TestStackArtifactResourceProvider());
     }
 
@@ -966,7 +966,7 @@ public class ClusterControllerImplTest {
     private TestResourceProvider(Resource.Type type) {
       super(PropertyHelper.getPropertyIds(type), PropertyHelper.getKeyPropertyIds(type));
     }
-    
+
     private TestResourceProvider(Set<String> propertyIds, Map<Resource.Type, String> keyPropertyIds) {
       super(propertyIds, keyPropertyIds);
     }
@@ -1200,7 +1200,7 @@ public class ClusterControllerImplTest {
       return getResources(Resource.Type.Repository, predicate, "Repositories/repo_id", keyPropertyValues);
     }
   }
-  
+
   private static class TestRepositoryVersionResourceProvider extends TestResourceProvider {
     private TestRepositoryVersionResourceProvider() {
       super(RepositoryVersionResourceProvider.propertyIds, RepositoryVersionResourceProvider.keyPropertyIds);
@@ -1215,6 +1215,23 @@ public class ClusterControllerImplTest {
       keyPropertyValues.add("2");
 
       return getResources(Resource.Type.RepositoryVersion, predicate, "RepositoriVersions/id", keyPropertyValues);
+    }
+  }
+
+  private static class TestCompatibleRepositoryVersionResourceProvider extends TestResourceProvider {
+    private TestCompatibleRepositoryVersionResourceProvider() {
+      super(CompatibleRepositoryVersionResourceProvider.propertyIds, CompatibleRepositoryVersionResourceProvider.keyPropertyIds);
+    }
+
+    @Override
+    public Set<Resource> getResources(Request request, Predicate predicate)
+        throws SystemException, UnsupportedPropertyException, NoSuchResourceException, NoSuchParentResourceException {
+      Set<String> keyPropertyValues = new LinkedHashSet<String>();
+
+      keyPropertyValues.add("1");
+      keyPropertyValues.add("2");
+
+      return getResources(Resource.Type.CompatibleRepositoryVersion, predicate, "CompatibleRepositoriVersions/id", keyPropertyValues);
     }
   }
 
