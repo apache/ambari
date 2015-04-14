@@ -128,6 +128,10 @@
           "subsection-name": "subsection-container-sizing-col2"
         },
         {
+          "config": "yarn-site/yarn.node-labels.enabled",
+          "subsection-name": "subsection-yarn-platform-features-col1"
+        },
+        {
           "config": "yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
           "subsection-name": "subsection-yarn-platform-features-col1"
         },
@@ -224,6 +228,12 @@
               "unit-name": "int"
             }
           ]
+        }
+      },
+      {
+        "config": "yarn-site/yarn.node-labels.enabled",
+        "widget": {
+          "type": "checkbox"
         }
       },
       {

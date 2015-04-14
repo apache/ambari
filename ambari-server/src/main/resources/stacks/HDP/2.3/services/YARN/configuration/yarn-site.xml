@@ -27,34 +27,11 @@
     <description>If user want to enable this feature, specify it to "org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager</description>
     <deleted>true</deleted>
   </property>
+
   <property>
     <name>yarn.node-labels.enabled</name>
     <value>false</value>
-    <description>
-      Enabled node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
-    </description>
-    <dispaly-name>Enable Node Labels</dispaly-name>
-    <value-attributes>
-      <type>boolean</type>
-    </value-attributes>
-  </property>
-  <property>
-    <name>yarn.nodemanager.container-executor.class</name>
-    <depends-on>
-      <property>
-        <type>yarn-env</type>
-        <name>yarn_cgroups_enabled</name>
-      </property>
-    </depends-on>
-  </property>
-  <property>
-    <name>yarn.nodemanager.linux-container-executor.group</name>
-    <depends-on>
-      <property>
-        <type>yarn-env</type>
-        <name>yarn_cgroups_enabled</name>
-      </property>
-    </depends-on>
+    <description>Enable node labels</description>
   </property>
 
 </configuration>
