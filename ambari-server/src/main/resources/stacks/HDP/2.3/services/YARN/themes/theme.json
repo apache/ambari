@@ -2,96 +2,6 @@
   "Theme": {
     "name": "default",
     "description": "Default theme for YARN service",
-    "configuration": {
-      "layouts": [
-        {
-          "name": "default",
-          "tabs": [
-            {
-              "name": "settings",
-              "display-name": "Settings",
-              "layout": {
-                "tab-columns": "3",
-                "tab-rows": "2",
-                "sections": [
-                  {
-                    "name": "section-nm-sizing",
-                    "display-name": "NodeManager Sizing",
-                    "row-index": "0",
-                    "column-index": "0",
-                    "row-span": "1",
-                    "column-span": "2",
-                    "section-columns": "2",
-                    "section-rows": "1",
-                    "subsections": [
-                      {
-                        "name": "subsection-nm-sizing-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "subsection-nm-sizing-col2",
-                        "row-index": "0",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "section-yarn-platform-features",
-                    "display-name": "YARN Platform Features",
-                    "row-index": "0",
-                    "column-index": "2",
-                    "row-span": "1",
-                    "column-span": "1",
-                    "section-columns": "1",
-                    "section-rows": "1",
-                    "subsections": [
-                      {
-                        "name": "subsection-yarn-platform-features-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "section-container-sizing",
-                    "display-name": "Container Sizing",
-                    "row-index": "1",
-                    "column-index": "0",
-                    "row-span": "1",
-                    "column-span": "2",
-                    "section-columns": "2",
-                    "section-rows": "1",
-                    "subsections": [
-                      {
-                        "name": "subsection-container-sizing-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "subsection-container-sizing-col2",
-                        "row-index": "0",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      ]
-    },
     "placement": {
       "configuration-layout": "default",
       "configs": [
@@ -126,6 +36,14 @@
         {
           "config": "yarn-site/yarn.scheduler.maximum-allocation-vcores",
           "subsection-name": "subsection-container-sizing-col2"
+        },
+        {
+          "config": "yarn-site/yarn.node-labels.enabled",
+          "subsection-name": "subsection-yarn-platform-features-col1"
+        },
+        {
+          "config": "yarn-env/yarn_cgroups_enabled",
+          "subsection-name": "subsection-yarn-platform-features-col1"
         },
         {
           "config": "yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
@@ -224,6 +142,18 @@
               "unit-name": "int"
             }
           ]
+        }
+      },
+      {
+        "config": "yarn-site/yarn.node-labels.enabled",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config": "yarn-env/yarn_cgroups_enabled",
+        "widget": {
+          "type": "checkbox"
         }
       },
       {
