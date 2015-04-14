@@ -30,7 +30,6 @@ from resource_management.libraries.functions.version import compare_versions, \
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions import get_klist_path
 
 import namenode_upgrade
 from hdfs_namenode import namenode

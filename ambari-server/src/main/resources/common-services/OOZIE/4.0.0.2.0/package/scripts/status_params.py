@@ -26,7 +26,7 @@ oozie_pid_dir = config['configurations']['oozie-env']['oozie_pid_dir']
 pid_file = format("{oozie_pid_dir}/oozie.pid")
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 conf_dir = "/etc/oozie/conf"
 tmp_dir = Script.get_tmp_dir()
 oozie_user = config['configurations']['oozie-env']['oozie_user']

@@ -47,6 +47,9 @@ SECURITY_ENABLED_KEY = '{{cluster-env/security_enabled}}'
 WEBHCAT_PRINCIPAL_KEY = '{{webhcat-site/templeton.kerberos.principal}}'
 WEBHCAT_KEYTAB_KEY = '{{webhcat-site/templeton.kerberos.keytab}}'
 
+# The configured Kerberos executable search paths, if any
+KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
+
 WEBHCAT_OK_RESPONSE = 'ok'
 WEBHCAT_PORT_DEFAULT = 50111
 
@@ -57,7 +60,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY, WEBHCAT_PRINCIPAL_KEY)
+  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY, WEBHCAT_PRINCIPAL_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
   
 
 def execute(parameters=None, host_name=None):
@@ -110,7 +113,13 @@ def execute(parameters=None, host_name=None):
       ccache_file = "{0}{1}webhcat_alert_cc_{2}".format(env.tmp_dir, sep, getpid())
       kerberos_env = {'KRB5CCNAME': ccache_file}
 
-      klist_path_local = get_klist_path()
+      # Get the configured Kerberos executable search paths, if any
+      if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
+        kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+      else:
+        kerberos_executable_search_paths = None
+
+      klist_path_local = get_klist_path(kerberos_executable_search_paths)
       klist_command = format("{klist_path_local} -s {ccache_file}")
 
       # Determine if we need to kinit by testing to see if the relevant cache exists and has
@@ -118,7 +127,7 @@ def execute(parameters=None, host_name=None):
       # it kinits we do but recover quickly when keytabs are regenerated
       return_code, _ = call(klist_command)
       if return_code != 0:
-        kinit_path_local = get_kinit_path()
+        kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
         kinit_command = format("{kinit_path_local} -l 5m -c {ccache_file} -kt {webhcat_keytab} {webhcat_principal}; ")
 
         # kinit so that curl will work with --negotiate

@@ -36,6 +36,8 @@ HIVE_SERVER_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.pr
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+# The configured Kerberos executable search paths, if any
+KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
 
 PERCENT_WARNING = 200
 PERCENT_CRITICAL = 200
@@ -53,8 +55,10 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY,HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
-          SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,HIVE_SERVER_TRANSPORT_MODE_KEY)
+  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY, SMOKEUSER_KEY,
+    HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
+    SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
+    HIVE_SERVER_TRANSPORT_MODE_KEY,KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
 
 
 def execute(parameters=None, host_name=None):
@@ -104,7 +108,14 @@ def execute(parameters=None, host_name=None):
     smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
     if SMOKEUSER_KEYTAB_KEY in parameters:
       smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
-    kinit_path_local = get_kinit_path()
+
+    # Get the configured Kerberos executable search paths, if any
+    if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
+      kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+    else:
+      kerberos_executable_search_paths = None
+
+    kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
     kinitcmd=format("{kinit_path_local} -kt {smokeuser_keytab} {smokeuser_principal}; ")
   else:
     hive_server_principal = None

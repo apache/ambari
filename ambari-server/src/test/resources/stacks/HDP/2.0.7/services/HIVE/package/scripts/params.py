@@ -57,7 +57,7 @@ smoke_user_keytab = config['configurations']['global']['smokeuser_keytab']
 _authentication = config['configurations']['core-site']['hadoop.security.authentication']
 security_enabled = ( not is_empty(_authentication) and _authentication == 'kerberos')
 
-kinit_path_local = get_kinit_path()
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
 #hive_env

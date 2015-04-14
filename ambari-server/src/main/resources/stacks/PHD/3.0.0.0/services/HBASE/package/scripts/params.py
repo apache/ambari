@@ -102,7 +102,7 @@ master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
 else:
