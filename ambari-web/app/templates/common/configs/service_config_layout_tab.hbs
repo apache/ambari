@@ -32,7 +32,7 @@
                       {{#each config in subsection.configs}}
                         {{#if config.widget}}
                           {{#unless config.isHiddenByFilter}}
-                            {{view config.widget configBinding="config" canEditBinding="view.canEdit"}}
+                            {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
                           {{/unless}}
                         {{/if}}
                       {{/each}}

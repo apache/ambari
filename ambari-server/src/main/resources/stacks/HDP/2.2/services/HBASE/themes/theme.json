@@ -44,7 +44,7 @@
                     "name": "section-hbase-client",
                     "display-name": "Client",
                     "row-index": "0",
-                    "column-index": "1",
+                    "column-index": "2",
                     "row-span": "1",
                     "column-span": "1",
                     "section-columns": "1",
@@ -86,7 +86,7 @@
                       {
                         "name": "subsection-hbase-disk-col3",
                         "row-index": "0",
-                        "column-index": "1",
+                        "column-index": "2",
                         "row-span": "1",
                         "column-span": "1"
                       }

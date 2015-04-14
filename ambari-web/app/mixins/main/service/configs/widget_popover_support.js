@@ -41,7 +41,17 @@ App.WidgetPopoverSupport = Em.Mixin.create({
    * Where popover should be displayed - top|left|right|bottom
    * @type {string}
    */
-  popoverPlacement: 'right',
+  popoverPlacement: function () {
+    // popover to left if config is located at the right most sub-section of the right most section.
+    var secCI = this.get('section.columnIndex');
+    var secCS = this.get('section.columnSpan');
+    var tabCols = this.get('tab.columns');
+    var subsecCI = this.get('subSection.columnIndex');
+    var subsecCS = this.get('subSection.columnSpan');
+    var secCols = this.get('section.sectionColumns');
+
+    return ((secCI + secCS == tabCols) && (subsecCI + subsecCS == secCols))? 'left' : 'right';
+  }.property(),
 
   initPopover: function () {
     // if description for this config not exist, then no need to show popover

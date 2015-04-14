@@ -43,7 +43,7 @@
                     "name": "section-datanode",
                     "display-name": "DataNode",
                     "row-index": "0",
-                    "column-index": "1",
+                    "column-index": "2",
                     "row-span": "1",
                     "column-span": "1",
                     "section-columns": "1",
