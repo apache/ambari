@@ -29,6 +29,8 @@ OK_LABEL = 'All NodeManagers are healthy'
 NODEMANAGER_HTTP_ADDRESS_KEY = '{{yarn-site/yarn.resourcemanager.webapp.address}}'
 NODEMANAGER_HTTPS_ADDRESS_KEY = '{{yarn-site/yarn.resourcemanager.webapp.https.address}}'
 YARN_HTTP_POLICY_KEY = '{{yarn-site/yarn.http.policy}}'
+
+CONNECTION_TIMEOUT = 5.0
   
 def get_tokens():
   """
@@ -99,7 +101,7 @@ def execute(parameters=None, host_name=None):
     label = str(e)
     result_code = 'UNKNOWN'
 
-  return ((result_code, [label]))
+  return (result_code, [label])
 
 
 def get_value_from_jmx(query, jmx_property):
@@ -109,7 +111,7 @@ def get_value_from_jmx(query, jmx_property):
     # use a customer header process that will look for the non-standard
     # "Refresh" header and attempt to follow the redirect
     url_opener = urllib2.build_opener(RefreshHeaderProcessor())
-    response = url_opener.open(query)
+    response = url_opener.open(query, timeout=CONNECTION_TIMEOUT)
 
     data = response.read()
     data_dict = json.loads(data)

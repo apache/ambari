@@ -31,6 +31,8 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 
 logger = logging.getLogger()
 
+CONNECTION_TIMEOUT = 5.0
+
 class MetricAlert(BaseAlert):
   
   def __init__(self, alert_meta, alert_source_meta):
@@ -157,7 +159,7 @@ class MetricAlert(BaseAlert):
       response = None
       try:
         url_opener = urllib2.build_opener(RefreshHeaderProcessor())
-        response = url_opener.open(url)
+        response = url_opener.open(url, timeout=CONNECTION_TIMEOUT)
         content = response.read()
       finally:
         # explicitely close the connection as we've seen python hold onto these

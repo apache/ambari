@@ -36,6 +36,8 @@ PERCENT_CRITICAL = 200
 CHECKPOINT_TX_DEFAULT = 1000000
 CHECKPOINT_PERIOD_DEFAULT = 21600
 
+CONNECTION_TIMEOUT = 5.0
+
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
@@ -133,7 +135,7 @@ def get_value_from_jmx(query, jmx_property):
   response = None
   
   try:
-    response = urllib2.urlopen(query)
+    response = urllib2.urlopen(query, timeout=CONNECTION_TIMEOUT)
     data = response.read()
 
     data_dict = json.loads(data)
