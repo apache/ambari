@@ -2505,6 +2505,9 @@ Em.I18n.translations = {
   'widget.create.wizard.step3.header': 'Name and Description',
   'widget.create.wizard.step2.addExpression': 'Add Expression',
   'widget.create.wizard.step2.addDataset': 'Add data set',
+  'widget.create.wizard.step2.allComponents': 'All {0}',
+  'widget.create.wizard.step2.activeComponents': 'Active {0}',
+  'widget.create.wizard.step2.noMetricFound': 'No metric found',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ New Metric',

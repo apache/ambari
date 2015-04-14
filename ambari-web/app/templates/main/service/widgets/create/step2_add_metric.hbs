@@ -19,8 +19,8 @@
 <div class="row-fluid">
   <div class="span3">{{t dashboard.widgets.wizard.step2.selectComponent}}</div>
   <div class="btn-group component-select span5">
-    <button class="btn" {{bindAttr disabled="view.isComponentSelected"}}>{{t dashboard.widgets.wizard.step2.selectComponent}}</button>
-    <button class="btn dropdown-toggle" data-toggle="dropdown" {{bindAttr disabled="view.isComponentSelected"}}>
+    <button class="btn">{{t dashboard.widgets.wizard.step2.selectComponent}}</button>
+    <button class="btn dropdown-toggle" data-toggle="dropdown">
       <span class="caret"></span>
     </button>
     <ul class="dropdown-menu accordion" id="accordion2">
@@ -28,16 +28,14 @@
         <li class="accordion-group keep-open">
           <div class="accordion-heading">
             <a class="accordion-toggle" data-toggle="collapse" href="#collapseOne">
-              <i class="icon-caret-down"></i><i class="icon-caret-right"></i>{{service.serviceName}}
+              <i class="icon-caret-down"></i><i class="icon-caret-right"></i>{{service.displayName}}
             </a>
           </div>
           <div id="collapseOne" class="accordion-body collapse in">
             <ul class="accordion-inner">
               {{#each component in service.components}}
                 <li>
-                  <label class="checkbox">
-                    {{view Ember.Checkbox checkedBinding="component.selected"}} {{component.componentName}}
-                  </label>
+                  <a href="#" {{action selectComponents component target="view"}}> {{component.displayName}}</a>
                 </li>
               {{/each}}
             </ul>
@@ -45,22 +43,21 @@
         </li>
       {{/each}}
       <li><a class="link" href="#" {{action showMore target="view"}}>{{t hostPopup.serviceInfo.showMore}}</a></li>
-      {{#unless view.isComponentSelected}}
-        <li class="row-fluid">
-          <button class="btn span4 offset1">{{t common.cancel}}</button>
-          <button class="btn btn-primary span4" {{action selectComponents target="view"}} >{{t common.apply}}</button>
-        </li>
-      {{/unless}}
+      <li class="row-fluid">
+        <button class="btn span4 offset1">{{t common.cancel}}</button>
+        <button class="btn btn-primary span4">{{t common.apply}}</button>
+      </li>
     </ul>
   </div>
 </div>
 
-{{#if view.isComponentSelected}}
-  <div class="row-fluid">
-    <div class="span3">{{t dashboard.widgets.wizard.step2.selectMetric}}</div>
-    <div class="span5">{{view Em.Select contentBinding="view.componentMetrics" selectionBinding="view.parentView.selectedMetric"}}</div>
-    <div class="span4">
-      <button class="btn" {{action cancelMetric target="view"}}>{{t common.cancel}}</button>
-    </div>
+<div class="row-fluid">
+  <div class="span3">{{t dashboard.widgets.wizard.step2.selectMetric}}</div>
+  <div class="span9">
+    <select class="chosen-select">
+      {{#each metric in view.componentMetrics}}
+        <option>{{unbound metric}}</option>
+      {{/each}}
+    </select>
   </div>
-{{/if}}
+</div>

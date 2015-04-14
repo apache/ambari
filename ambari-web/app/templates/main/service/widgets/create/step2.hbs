@@ -50,6 +50,6 @@
 
   <div class="btn-area">
     <button id="add-widget-step2-back" class="btn" {{action back}}>&larr; {{t common.back}}</button>
-    <button id="add-widget-step2-next" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</button>
+    <button id="add-widget-step2-next" class="btn btn-success pull-right" {{bindAttr disabled="view.isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</button>
   </div>
 </div>

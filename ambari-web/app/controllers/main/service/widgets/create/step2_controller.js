@@ -56,11 +56,6 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     }
   },
 
-  //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
-  isSubmitDisabled: function () {
-    return this.get('widgetProperties').someProperty('isValid', false);
-  }.property('widgetProperties.@each.isValid'),
-
   /**
    * metrics filtered by type
    * @type {Array}

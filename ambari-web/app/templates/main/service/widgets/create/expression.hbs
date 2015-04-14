@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-{{#if view.editMode}}
+{{#if view.expression.editMode}}
   <div class="metric-field">
     {{#each element in view.expression.data}}
       <div class="metric-instance" {{bindAttr id="element.id"}}>{{element.name}}
@@ -39,8 +39,8 @@
     </div>
   </div>
   <div {{bindAttr class="view.isInvalid:is-invalid :controls"}}>
-    <button class="btn" {{action cancelEdit target="view"}}>{{t common.discard}}</button>
-    <button class="btn btn-primary" {{action saveMetrics target="view"}} {{bindAttr disabled="view.isInvalid"}}>{{t common.save}}</button>
+    <button class="btn" {{action cancelEdit target="view"}}>{{t common.reset}}</button>
+    <button class="btn btn-primary" {{action saveMetrics target="view"}} {{bindAttr disabled="view.isInvalid"}}>{{t common.done}}</button>
   </div>
 {{else}}
   <a {{action startEdit target="view"}} class="edit-link"><i class="icon-edit"></i></a>

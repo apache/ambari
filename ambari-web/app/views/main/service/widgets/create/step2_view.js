@@ -61,6 +61,34 @@ App.WidgetWizardStep2View = Em.View.extend({
   dataSets: [],
 
   /**
+   * @type {boolean}
+   */
+  isSubmitDisabled: function() {
+    if (this.get('controller.widgetProperties').someProperty('isValid', false)) {
+      return true;
+    }
+    switch (this.get('controller.content.widgetType')) {
+      case "NUMBER":
+      case "GAUGE":
+        return this.get('expressions')[0] &&
+          (this.get('expressions')[0].get('editMode') ||
+          this.get('expressions')[0].get('data.length') === 0);
+      case "GRAPH":
+        return this.get('dataSets.length') > 0 &&
+          (this.get('dataSets').someProperty('expression.editMode') ||
+          this.get('dataSets').someProperty('expression.data.length', 0));
+      case "TEMPLATE":
+        return !this.get('templateValue') ||
+          this.get('expressions.length') > 0 &&
+          (this.get('expressions').someProperty('editMode') ||
+          this.get('expressions').someProperty('data.length', 0));
+    }
+    return false;
+  }.property('controller.widgetProperties.@each.isValid',
+             'expressions.@each.editMode',
+             'dataSets.@each.expression'),
+
+  /**
    * Add data set
    * @param {object|null} event
    * @param {boolean} isDefault
@@ -73,7 +101,8 @@ App.WidgetWizardStep2View = Em.View.extend({
       label: '',
       isRemovable: !isDefault,
       expression: Em.Object.create({
-        data: []
+        data: [],
+        editMode: false
       })
     }));
   },
@@ -98,7 +127,8 @@ App.WidgetWizardStep2View = Em.View.extend({
       id: id,
       isRemovable: !isDefault,
       data: [],
-      alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}'
+      alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
+      editMode: false
     }));
   },
 
@@ -112,6 +142,7 @@ App.WidgetWizardStep2View = Em.View.extend({
 
   updatePreview: function() {
     this.get('controller').updateExpressions(this);
+    this.propertyDidChange('isSubmitDisabled');
   }.observes('templateValue', 'dataSets.@each.label'),
 
   didInsertElement: function () {

@@ -51,11 +51,6 @@ App.WidgetWizardExpressionView = Em.View.extend({
   /**
    * @type {boolean}
    */
-  editMode: false,
-
-  /**
-   * @type {boolean}
-   */
   isInvalid: false,
 
   /**
@@ -89,7 +84,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
   startEdit: function () {
     var self = this;
     this.set('dataBefore', this.get('expression.data').slice(0));
-    this.set('editMode', true);
+    this.set('expression.editMode', true);
+    this.propertyDidChange('expression');
     Em.run.next(function () {
       $(self.get('element')).find('.metric-field').sortable({
         items: "> div",
@@ -107,14 +103,16 @@ App.WidgetWizardExpressionView = Em.View.extend({
    */
   cancelEdit: function () {
     this.set('expression.data', this.get('dataBefore'));
-    this.set('editMode', false);
+    this.set('expression.editMode', false);
+    this.propertyDidChange('expression');
   },
 
   /**
    * save changes and disable metric edit area
    */
   saveMetrics: function () {
-    this.set('editMode', false);
+    this.set('expression.editMode', false);
+    this.propertyDidChange('expression');
   },
 
   /**
@@ -160,7 +158,9 @@ App.WidgetWizardExpressionView = Em.View.extend({
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.wizard.step2.addMetric'),
       classNames: ['modal-690px-width'],
-      disablePrimary: true,
+      disablePrimary: function () {
+        return Em.isNone(this.get('selectedMetric'));
+      }.property('selectedMetric'),
       expression: this.get('expression'),
 
       /**
@@ -178,9 +178,18 @@ App.WidgetWizardExpressionView = Em.View.extend({
         controller: this.get('controller'),
         elementId: 'add-metric-popup',
         didInsertElement: function () {
+          var self = this;
+
           //prevent dropdown closing on checkbox click
           $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
             $(this).hasClass('keep-open') && e.stopPropagation();
+          });
+
+          $(".chosen-select").chosen({
+            placeholder_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound'),
+            no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
+          }).change(function (event, obj) {
+            self.set('parentView.selectedMetric', obj.selected);
           });
         },
 
@@ -189,41 +198,41 @@ App.WidgetWizardExpressionView = Em.View.extend({
          */
         componentMetrics: [],
 
-        /**
-         * @type {boolean}
-         */
-        isComponentSelected: false,
-        selectComponents: function () {
+        selectComponents: function (event) {
           var componentMetrics = [];
 
           this.get('componentMap').forEach(function (service) {
-            service.get('components').filterProperty('selected').forEach(function (component) {
-              componentMetrics.pushObjects(component.get('metrics'));
-            }, this);
+            componentMetrics = service.get('components').findProperty('id', event.context.get('id')).get('metrics');
           }, this);
           this.set('componentMetrics', componentMetrics);
-          this.set('isComponentSelected', true);
-          this.set('parentView.disablePrimary', false);
+          this.set('parentView.selectedMetric', null);
+          Em.run.next(function () {
+            $('.chosen-select').trigger('chosen:updated');
+          });
         },
-        cancelMetric: function () {
-          this.get('componentMetrics').clear();
-          this.set('parentView.disablePrimary', true);
-          this.set('isComponentSelected', false);
-        },
+
+        /**
+         * map of components
+         * has following hierarchy: service -> component -> metrics
+         */
         componentMap: function () {
           var servicesMap = {};
           var result = [];
           var components = [];
+          var masterNames = App.StackServiceComponent.find().filterProperty('isMaster').mapProperty('componentName');
 
           this.get('controller.filteredMetrics').forEach(function (metric) {
             var service = servicesMap[metric.service_name];
+            var componentId = masterNames.contains(metric.component_name) ? metric.component_name + '_' + metric.level : metric.component_name;
             if (service) {
               service.count++;
-              if (service.components[metric.component_name]) {
-                service.components[metric.component_name].count++;
-                service.components[metric.component_name].metrics.push(metric.name);
+              if (service.components[componentId]) {
+                service.components[componentId].count++;
+                service.components[componentId].metrics.push(metric.name);
               } else {
-                service.components[metric.component_name] = {
+                service.components[componentId] = {
+                  component_name: metric.component_name,
+                  level: metric.level,
                   count: 1,
                   metrics: [metric.name]
                 };
@@ -237,16 +246,30 @@ App.WidgetWizardExpressionView = Em.View.extend({
           }, this);
 
           for (var serviceName in servicesMap) {
-            for (var componentName in servicesMap[serviceName].components) {
+            for (var componentId in servicesMap[serviceName].components) {
               components.push(Em.Object.create({
-                componentName: componentName,
-                count: servicesMap[serviceName].components[componentName].count,
-                metrics: servicesMap[serviceName].components[componentName].metrics,
-                selected: false
+                componentName: servicesMap[serviceName].components[componentId].component_name,
+                level: servicesMap[serviceName].components[componentId].level,
+                displayName: function() {
+                  var stackComponent = App.StackServiceComponent.find(this.get('componentName'));
+                  if (stackComponent.get('isMaster')) {
+                    if (this.get('level') === 'COMPONENT') {
+                      return Em.I18n.t('widget.create.wizard.step2.allComponents').format(stackComponent.get('displayName'));
+                    } else {
+                      return Em.I18n.t('widget.create.wizard.step2.activeComponents').format(stackComponent.get('displayName'));
+                    }
+                  }
+                  return stackComponent.get('displayName');
+                }.property('componentName', 'level'),
+                count: servicesMap[serviceName].components[componentId].count,
+                metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
+                selected: false,
+                id: componentId
               }));
             }
             result.push(Em.Object.create({
               serviceName: serviceName,
+              displayName: App.StackService.find(serviceName).get('displayName'),
               count: servicesMap[serviceName].count,
               components: components
             }));
