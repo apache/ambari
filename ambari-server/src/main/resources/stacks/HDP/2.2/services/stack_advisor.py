@@ -125,7 +125,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
-    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site")
+    putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env", services)
+
+    rs_hosts = self.getHostsWithComponent("HBASE", "HBASE_REGIONSERVER", services, hosts)
+    if rs_hosts is not None and len(rs_hosts) > 0:
+      min_ram = rs_hosts[0]["Hosts"]["total_mem"]
+      for host in rs_hosts["items"]:
+        host_ram = host["Hosts"]["total_mem"]
+        min_ram = min(min_ram, host_ram)
+
+      putHbaseEnvPropertyAttributes('hbase_regionserver_heapsize', 'max', max(1024, int(min_ram*0.8/1024)))
+
+    putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
@@ -154,7 +165,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       hbase_bucketcache_percentage_in_combinedcache_str = "{0:.4f}".format(math.ceil(hbase_bucketcache_percentage_in_combinedcache * 10000) / 10000.0)
 
       # Set values in hbase-site
-      putHbaseProperty = self.putProperty(configurations, "hbase-site")
+      putHbaseProperty = self.putProperty(configurations, "hbase-site", services)
       putHbaseProperty('hfile.block.cache.size', hfile_block_cache_size)
       putHbaseProperty('hbase.regionserver.global.memstore.upperLimit', hbase_regionserver_global_memstore_size)
       putHbaseProperty('hbase.bucketcache.ioengine', 'offheap')
@@ -162,17 +173,17 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', hbase_bucketcache_percentage_in_combinedcache_str)
 
       # Enable in hbase-env
-      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env")
+      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
       putHbaseEnvProperty('hbase_max_direct_memory_size', regionserver_max_direct_memory_size)
       putHbaseEnvProperty('hbase_regionserver_heapsize', regionserver_heap_size)
     else:
       # Disable
-      putHbaseProperty = self.putProperty(configurations, "hbase-site")
+      putHbaseProperty = self.putProperty(configurations, "hbase-site", services)
       putHbaseProperty('hbase.bucketcache.ioengine', '')
       putHbaseProperty('hbase.bucketcache.size', '')
       putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', '')
 
-      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env")
+      putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
       putHbaseEnvProperty('hbase_max_direct_memory_size', '')
 
 
