@@ -36,5 +36,5 @@ else:
     knox_principal_name = None
 hostname = config['hostname'].lower()
 knox_user = default("/configurations/knox-env/knox_user", "knox")
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 temp_dir = Script.get_tmp_dir()

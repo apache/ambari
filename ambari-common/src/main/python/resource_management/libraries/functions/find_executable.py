@@ -36,6 +36,7 @@ def find_executable(search_directories, filename):
 
   @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
   @param filename: the name of the file for which to search
+  @return: the absolute path to the specified executable; or, if not found just the specified executable name
   """
   if isinstance(search_directories, unicode):
     search_directories = map(str.strip, search_directories.encode("ascii").split(","))
@@ -45,4 +46,5 @@ def find_executable(search_directories, filename):
     search_directories = ["/usr/bin", "/usr/kerberos/bin", "/usr/sbin", '/usr/lib/mit/bin',
                           '/usr/lib/mit/sbin']
 
-  return find_path(search_directories, filename)
+  path = find_path(search_directories, filename)
+  return path if path else filename

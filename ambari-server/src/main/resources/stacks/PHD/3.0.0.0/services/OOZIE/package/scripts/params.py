@@ -101,7 +101,7 @@ catalina_properties_common_loader = "/usr/lib/hive-hcatalog/share/hcatalog/*.jar
 if (len(hive_jar_files) != 0):
     catalina_properties_common_loader = hive_jar_files + "," + catalina_properties_common_loader
 
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.keytab.file']
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']

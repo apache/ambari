@@ -32,7 +32,7 @@ else:
   hostname = config['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   hadoop_conf_dir = "/etc/hadoop/conf"
-  kinit_path_local = functions.get_kinit_path()
+  kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
   falcon_conf_dir_prefix = "/etc/falcon"
   falcon_conf_dir = format("{falcon_conf_dir_prefix}/conf")

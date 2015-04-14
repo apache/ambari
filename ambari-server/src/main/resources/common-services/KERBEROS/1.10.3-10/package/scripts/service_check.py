@@ -45,7 +45,7 @@ class KerberosServiceCheck(KerberosScript):
       ccache_file_name = _md5("{0}|{1}".format(params.smoke_test_principal,params.smoke_test_keytab_file)).hexdigest()
       ccache_file_path = "{0}{1}kerberos_service_check_cc_{2}".format(params.tmp_dir, os.sep, ccache_file_name)
 
-      kinit_path_local = functions.get_kinit_path()
+      kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
       kinit_command = "{0} -c {1} -kt {2} {3}".format(kinit_path_local, ccache_file_path, params.smoke_test_keytab_file, params.smoke_test_principal)
 
       try:

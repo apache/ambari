@@ -29,7 +29,6 @@ from resource_management.libraries.functions.version import compare_versions, \
   format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.core.exceptions import Fail
-from resource_management.libraries.functions import get_klist_path
 from datetime import datetime
 
 import namenode_upgrade

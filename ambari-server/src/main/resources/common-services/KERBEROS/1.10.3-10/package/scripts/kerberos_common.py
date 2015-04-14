@@ -304,8 +304,8 @@ class KerberosScript(Script):
   @staticmethod
   def test_kinit(identity, user=None):
     principal = get_property_value(identity, 'principal')
-    kinit_path_local = functions.get_kinit_path()
-    kdestroy_path_local = functions.get_kdestroy_path()
+    kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+    kdestroy_path_local = functions.get_kdestroy_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
     if principal is not None:
       keytab_file = get_property_value(identity, 'keytab_file')

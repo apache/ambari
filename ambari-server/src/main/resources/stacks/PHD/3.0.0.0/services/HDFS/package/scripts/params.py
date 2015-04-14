@@ -57,7 +57,7 @@ hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
 update_exclude_file_only = config['commandParams']['update_exclude_file_only']
 
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #hosts
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])

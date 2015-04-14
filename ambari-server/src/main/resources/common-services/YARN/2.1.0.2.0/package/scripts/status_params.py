@@ -39,5 +39,5 @@ mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-hi
 # Security related/required params
 hadoop_conf_dir = "/etc/hadoop/conf"
 hostname = config['hostname']
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']

@@ -42,7 +42,7 @@ else:
   path_to_tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
 hadoop_conf_dir = "/etc/hadoop/conf"
 
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']

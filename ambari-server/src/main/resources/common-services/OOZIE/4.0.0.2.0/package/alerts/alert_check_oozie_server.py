@@ -32,6 +32,9 @@ RESULT_CODE_OK = 'OK'
 RESULT_CODE_CRITICAL = 'CRITICAL'
 RESULT_CODE_UNKNOWN = 'UNKNOWN'
 
+# The configured Kerberos executable search paths, if any
+KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
+
 OOZIE_URL_KEY = '{{oozie-site/oozie.base.url}}'
 SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
 OOZIE_PRINCIPAL = '{{oozie-site/oozie.authentication.kerberos.principal}}'
@@ -53,7 +56,7 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB)
+  return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def get_check_command(oozie_url, host_name, parameters):
@@ -85,7 +88,13 @@ def get_check_command(oozie_url, host_name, parameters):
     ccache_file = "{0}{1}oozie_alert_cc_{2}".format(env.tmp_dir, os.sep, os.getpid())
     kerberos_env = {'KRB5CCNAME': ccache_file}
 
-    klist_path_local = get_klist_path()
+    # Get the configured Kerberos executable search paths, if any
+    if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
+      kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+    else:
+      kerberos_executable_search_paths = None
+
+    klist_path_local = get_klist_path(kerberos_executable_search_paths)
     klist_command = format("{klist_path_local} -s {ccache_file}")
 
     # Determine if we need to kinit by testing to see if the relevant cache exists and has
@@ -93,7 +102,7 @@ def get_check_command(oozie_url, host_name, parameters):
     # it kinits we do but recover quickly when keytabs are regenerated
     return_code, _ = call(klist_command)
     if return_code != 0:
-      kinit_path_local = get_kinit_path()
+      kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
       kinit_command = format("{kinit_path_local} -l 5m -kt {oozie_keytab} {oozie_principal}; ")
 
       # kinit

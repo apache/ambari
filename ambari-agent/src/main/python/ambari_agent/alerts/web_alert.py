@@ -170,12 +170,15 @@ class WebAlert(BaseAlert):
         ccache_file_path = "{0}{1}web_alert_cc_{2}".format(tmp_dir, os.sep, ccache_file_name)
         kerberos_env = {'KRB5CCNAME': ccache_file_path}
 
+        # Get the configured Kerberos executables search paths, if any
+        kerberos_executable_search_paths = self._get_configuration_value('{{kerberos-env/executable_search_paths}}')
+
         # If there are no tickets in the cache or they are expired, perform a kinit, else use what
         # is in the cache
-        klist_path_local = get_klist_path()
+        klist_path_local = get_klist_path(kerberos_executable_search_paths)
 
         if os.system("{0} -s {1}".format(klist_path_local, ccache_file_path)) != 0:
-          kinit_path_local = get_kinit_path()
+          kinit_path_local = get_kinit_path(kerberos_executable_search_paths)
           logger.debug("[Alert][{0}] Enabling Kerberos authentication via GSSAPI using ccache at {1}.".format(
             self.get_name(), ccache_file_path))
 

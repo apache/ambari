@@ -28,8 +28,9 @@ def find_path(search_directories, filename):
   """
   @param search_directories: comma separated list or a list of (absolute paths to) directories to search (in order of preference)
   @param filename: the name of the file for which to search
+  @return: the absolute path to the specified file if found within the search paths; otherwise None
   """
-  path = ""
+  path = None
 
   for current_directory in search_directories:
     if current_directory:  # current_directory neither None nor empty

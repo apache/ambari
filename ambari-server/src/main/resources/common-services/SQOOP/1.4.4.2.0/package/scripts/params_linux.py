@@ -19,7 +19,8 @@ limitations under the License.
 
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
-from resource_management import *
+from resource_management.libraries.functions.get_kinit_path import get_kinit_path
+from resource_management.libraries.script import Script
 
 config = Script.get_config()
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
@@ -58,7 +59,7 @@ sqoop_env_sh_template = config['configurations']['sqoop-env']['content']
 sqoop_user = config['configurations']['sqoop-env']['sqoop_user']
 
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path()
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #JDBC driver jar name
 sqoop_jdbc_drivers_dict = {}
 sqoop_jdbc_drivers_name_dict = {}
