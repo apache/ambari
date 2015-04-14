@@ -40,6 +40,8 @@ CRITICAL_NODEMANAGER_UNKNOWN_JSON_MESSAGE = 'Unable to determine NodeManager hea
 
 NODEMANAGER_DEFAULT_PORT = 8042
 
+CONNECTION_TIMEOUT = 5.0
+
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
@@ -106,7 +108,7 @@ def execute(parameters=None, host_name=None):
 
   try:
     # execute the query for the JSON that includes templeton status
-    url_response = urllib2.urlopen(query)
+    url_response = urllib2.urlopen(query, timeout=CONNECTION_TIMEOUT)
   except urllib2.HTTPError, httpError:
     label = CRITICAL_HTTP_STATUS_MESSAGE.format(str(httpError.code), query,
       str(httpError))

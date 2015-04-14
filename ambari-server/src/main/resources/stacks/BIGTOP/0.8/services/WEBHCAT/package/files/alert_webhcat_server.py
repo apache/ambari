@@ -53,7 +53,8 @@ KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}
 WEBHCAT_OK_RESPONSE = 'ok'
 WEBHCAT_PORT_DEFAULT = 50111
 
-CURL_CONNECTION_TIMEOUT = '10'
+CURL_CONNECTION_TIMEOUT = '5'
+CONNECTION_TIMEOUT = 5.0
 
 def get_tokens():
   """
@@ -177,7 +178,7 @@ def execute(parameters=None, host_name=None):
     try:
       # execute the query for the JSON that includes WebHCat status
       start_time = time.time()
-      url_response = urllib2.urlopen(query_url)
+      url_response = urllib2.urlopen(query_url, timeout=CONNECTION_TIMEOUT)
       total_time = time.time() - start_time
 
       json_response = json.loads(url_response.read())

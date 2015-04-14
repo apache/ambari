@@ -35,6 +35,8 @@ NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
 DFS_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
 
+CONNECTION_TIMEOUT = 5.0
+
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
@@ -163,7 +165,7 @@ def get_value_from_jmx(query, jmx_property):
   response = None
   
   try:
-    response = urllib2.urlopen(query)
+    response = urllib2.urlopen(query, timeout=CONNECTION_TIMEOUT)
     data = response.read()
 
     data_dict = json.loads(data)
