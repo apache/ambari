@@ -132,12 +132,11 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   calculateOptions: function () {
     var valueAttributes = this.get('config.stackConfigProperty.valueAttributes'),
       options = [];
-    Em.assert('valueAttributes `entries`, `entry_label` and `entry_descriptions` should have the same length', valueAttributes.entries.length == valueAttributes.entry_labels.length && valueAttributes.entries.length == valueAttributes.entry_descriptions.length);
-    valueAttributes.entries.forEach(function (entryValue, indx) {
+    valueAttributes.entries.forEach(function (entryValue) {
       options.pushObject(configOption.create({
-        value: entryValue,
-        label: valueAttributes.entry_labels[indx],
-        description: valueAttributes.entry_descriptions[indx]
+        value: entryValue.value,
+        label: entryValue.label || entryValue.value,
+        description: entryValue.description
       }));
     });
     this.set('options', options);

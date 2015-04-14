@@ -32,9 +32,13 @@ describe('App.ListConfigWidgetView', function () {
         filename: 'f1',
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
-            entries: ['1', '2', '3', '4', '5'],
-            entry_labels: ['first label', 'second label', 'third label', '4th label', '5th label'],
-            entry_descriptions: ['1', '2', '3', '4', '5'],
+            entries: [
+              {value: '1', label: 'first label', description: '1'},
+              {value: '2', label: 'second label', description: '2'},
+              {value: '3', label: 'third label', description: '3'},
+              {value: '4', label: '4th label', description: '4'},
+              {value: '5', label: '5th label', description: '5'}
+            ],
             selection_cardinality: '3'
           }
         })
@@ -65,11 +69,6 @@ describe('App.ListConfigWidgetView', function () {
   });
 
   describe('#calculateOptions', function () {
-
-    it('should trigger error', function () {
-      view.set('config.stackConfigProperty.valueAttributes.entry_descriptions', ['1', '2', '3', '4']);
-      expect(view.calculateOptions.bind(view)).to.throw(Error, 'assertion failed');
-    });
 
     it('should create options for each entry', function () {
       view.set('options', []);

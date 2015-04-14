@@ -408,7 +408,7 @@
       {
         "config":"hbase-site/hbase.regionserver.wal.codec",
         "widget":{
-          "type":"list"
+          "type":"combo"
         }
       },
       {
