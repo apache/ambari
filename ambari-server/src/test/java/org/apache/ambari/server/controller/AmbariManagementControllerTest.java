@@ -989,6 +989,51 @@ public class AmbariManagementControllerTest {
 
   }
 
+  @Test
+  public void testGetExecutionCommand() throws Exception {
+    testCreateServiceComponentHostSimple();
+
+    String clusterName = "foo1";
+    String serviceName = "HDFS";
+
+    Cluster cluster = clusters.getCluster(clusterName);
+    Service s1 = cluster.getService(serviceName);
+
+    // Create and attach config
+    Map<String, String> configs = new HashMap<String, String>();
+    configs.put("a", "b");
+
+    ConfigurationRequest cr1,cr2;
+    cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
+                                   configs, null);
+    cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
+                                   configs, null);
+
+    ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr1));
+    controller.updateClusters(Collections.singleton(crReq), null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr2));
+    controller.updateClusters(Collections.singleton(crReq), null);
+
+    // Install
+    installService(clusterName, serviceName, false, false);
+    ExecutionCommand ec =
+        controller.getExecutionCommand(cluster,
+                                       s1.getServiceComponent("NAMENODE").getServiceComponentHost("h1"),
+                                       RoleCommand.START);
+    assertEquals("1-0", ec.getCommandId());
+    assertEquals("foo1", ec.getClusterName());
+    Map<String, Map<String, String>> configurations = ec.getConfigurations();
+    assertNotNull(configurations);
+    assertEquals(2, configurations.size());
+    assertTrue(configurations.containsKey("hdfs-site"));
+    assertTrue(configurations.containsKey("core-site"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("hdfs-site"));
+    assertTrue(ec.getConfigurationAttributes().containsKey("core-site"));
+    Map<String, Set<String>> chInfo = ec.getClusterHostInfo();
+    assertTrue(chInfo.containsKey("namenode_host"));
+  }
 
   @Test
   public void testCreateServiceComponentWithConfigs() {

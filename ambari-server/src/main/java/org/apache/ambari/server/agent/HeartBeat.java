@@ -41,6 +41,7 @@ public class HeartBeat {
   HostStatus nodeStatus;
   private AgentEnv agentEnv = null;
   private List<Alert> alerts = null;
+  private RecoveryReport recoveryReport;
 
   public long getResponseId() {
     return responseId;
@@ -82,6 +83,14 @@ public class HeartBeat {
 
   public void setNodeStatus(HostStatus nodeStatus) {
     this.nodeStatus = nodeStatus;
+  }
+
+  public RecoveryReport getRecoveryReport() {
+    return recoveryReport;
+  }
+
+  public void setRecoveryReport(RecoveryReport recoveryReport) {
+    this.recoveryReport = recoveryReport;
   }
 
   public AgentEnv getAgentEnv() {
@@ -129,6 +138,7 @@ public class HeartBeat {
             ", reports=" + reports +
             ", componentStatus=" + componentStatus +
             ", nodeStatus=" + nodeStatus +
+            ", recoveryReport=" + recoveryReport +
             '}';
   }
 }

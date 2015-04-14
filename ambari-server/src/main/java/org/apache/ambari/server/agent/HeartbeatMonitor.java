@@ -33,7 +33,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -75,6 +77,7 @@ public class HeartbeatMonitor implements Runnable {
   private final AmbariMetaInfo ambariMetaInfo;
   private final AmbariManagementController ambariManagementController;
   private final Configuration configuration;
+  private final AgentRequests agentRequests;
 
   public HeartbeatMonitor(Clusters clusters, ActionQueue aq, ActionManager am,
                           int threadWakeupInterval, Injector injector) {
@@ -87,6 +90,7 @@ public class HeartbeatMonitor implements Runnable {
     ambariManagementController = injector.getInstance(
             AmbariManagementController.class);
     configuration = injector.getInstance(Configuration.class);
+    agentRequests = new AgentRequests();
   }
 
   public void shutdown() {
@@ -104,6 +108,10 @@ public class HeartbeatMonitor implements Runnable {
 
   public boolean isAlive() {
     return monitorThread.isAlive();
+  }
+
+  public AgentRequests getAgentRequests() {
+    return this.agentRequests;
   }
 
   @Override
@@ -217,7 +225,7 @@ public class HeartbeatMonitor implements Runnable {
   }
 
   /**
-   * Generates status command and fills all apropriate fields.
+   * Generates status command and fills all appropriate fields.
    * @throws AmbariException
    */
   private StatusCommand createStatusCommand(String hostname, Cluster cluster,
@@ -241,6 +249,10 @@ public class HeartbeatMonitor implements Runnable {
     //Config clusterConfig = cluster.getDesiredConfigByType(GLOBAL);
     Collection<Config> clusterConfigs = cluster.getAllConfigs();
 
+    // Apply global properties for this host from all config groups
+    Map<String, Map<String, String>> allConfigTags = configHelper
+        .getEffectiveDesiredTags(cluster, hostname);
+
     for(Config clusterConfig: clusterConfigs) {
       if(!clusterConfig.getType().endsWith("-env")) {
         continue;
@@ -249,10 +261,6 @@ public class HeartbeatMonitor implements Runnable {
       if (clusterConfig != null) {
         // cluster config for 'global'
         Map<String, String> props = new HashMap<String, String>(clusterConfig.getProperties());
-
-        // Apply global properties for this host from all config groups
-        Map<String, Map<String, String>> allConfigTags = configHelper
-                .getEffectiveDesiredTags(cluster, hostname);
 
         Map<String, Map<String, String>> configTags = new HashMap<String,
                 Map<String, String>>();
@@ -294,6 +302,13 @@ public class HeartbeatMonitor implements Runnable {
     statusCmd.setConfigurationAttributes(configurationAttributes);
     statusCmd.setHostname(hostname);
 
+    // If Agent wants the command and the States differ
+    statusCmd.setDesiredState(sch.getDesiredState());
+    if (getAgentRequests().shouldSendExecutionDetails(hostname, componentName)) {
+      LOG.info(componentName + " is at " + sch.getState() + " adding more payload per agent ask");
+      statusCmd.setPayloadLevel(StatusCommand.StatusCommandPayload.EXECUTION_COMMAND);
+    }
+
     // Fill command params
     Map<String, String> commandParams = statusCmd.getCommandParams();
 
@@ -322,7 +337,13 @@ public class HeartbeatMonitor implements Runnable {
     hostLevelParams.put(STACK_NAME, stackId.getStackName());
     hostLevelParams.put(STACK_VERSION, stackId.getStackVersion());
 
+
+    if (statusCmd.getPayloadLevel() == StatusCommand.StatusCommandPayload.EXECUTION_COMMAND) {
+      ExecutionCommand ec = ambariManagementController.getExecutionCommand(cluster, sch, RoleCommand.START);
+      statusCmd.setExecutionCommand(ec);
+      LOG.debug(componentName + " has more payload for execution command");
+    }
+
     return statusCmd;
   }
-
 }

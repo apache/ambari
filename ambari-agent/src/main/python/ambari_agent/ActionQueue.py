@@ -53,6 +53,7 @@ class ActionQueue(threading.Thread):
 
   STATUS_COMMAND = 'STATUS_COMMAND'
   EXECUTION_COMMAND = 'EXECUTION_COMMAND'
+  AUTO_EXECUTION_COMMAND = 'AUTO_EXECUTION_COMMAND'
   BACKGROUND_EXECUTION_COMMAND = 'BACKGROUND_EXECUTION_COMMAND'
   ROLE_COMMAND_INSTALL = 'INSTALL'
   ROLE_COMMAND_START = 'START'
@@ -91,8 +92,8 @@ class ActionQueue(threading.Thread):
 
     for command in commands:
       logger.info("Adding " + command['commandType'] + " for service " + \
-                    command['serviceName'] + " of cluster " + \
-                    command['clusterName'] + " to the queue.")
+                  command['serviceName'] + " of cluster " + \
+                  command['clusterName'] + " to the queue.")
       self.statusCommandQueue.put(command)
 
   def put(self, commands):
@@ -102,7 +103,8 @@ class ActionQueue(threading.Thread):
       if not command.has_key('clusterName'):
         command['clusterName'] = 'null'
 
-      logger.info("Adding " + command['commandType'] + " for service " + \
+      logger.info("Adding " + command['commandType'] + " for role " + \
+                  command['role'] + " for service " + \
                   command['serviceName'] + " of cluster " + \
                   command['clusterName'] + " to the queue.")
       if command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND :
@@ -174,7 +176,7 @@ class ActionQueue(threading.Thread):
     commandType = command['commandType']
     logger.debug("Took an element of Queue (command type = %s)." % commandType)
     try:
-      if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND]:
+      if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND, self.AUTO_EXECUTION_COMMAND]:
         self.execute_command(command)
       elif commandType == self.STATUS_COMMAND:
         self.execute_status_command(command)
@@ -192,6 +194,7 @@ class ActionQueue(threading.Thread):
     clusterName = command['clusterName']
     commandId = command['commandId']
     isCommandBackground = command['commandType'] == self.BACKGROUND_EXECUTION_COMMAND
+    isAutoExecuteCommand = command['commandType'] == self.AUTO_EXECUTION_COMMAND
     message = "Executing command with id = {commandId} for role = {role} of " \
               "cluster {cluster}.".format(
               commandId = str(commandId), role=command['role'],
@@ -203,12 +206,21 @@ class ActionQueue(threading.Thread):
     in_progress_status = self.commandStatuses.generate_report_template(command)
     # The path of the files that contain the output log and error log use a prefix that the agent advertises to the
     # server. The prefix is defined in agent-config.ini
-    in_progress_status.update({
-      'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
-      'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt',
-      'structuredOut' : self.tmpdir + os.sep + 'structured-out-' + str(taskId) + '.json',
-      'status': self.IN_PROGRESS_STATUS
-    })
+    if not isAutoExecuteCommand:
+      in_progress_status.update({
+        'tmpout': self.tmpdir + os.sep + 'output-' + str(taskId) + '.txt',
+        'tmperr': self.tmpdir + os.sep + 'errors-' + str(taskId) + '.txt',
+        'structuredOut' : self.tmpdir + os.sep + 'structured-out-' + str(taskId) + '.json',
+        'status': self.IN_PROGRESS_STATUS
+      })
+    else:
+      in_progress_status.update({
+        'tmpout': self.tmpdir + os.sep + 'auto_output-' + str(taskId) + '.txt',
+        'tmperr': self.tmpdir + os.sep + 'auto_errors-' + str(taskId) + '.txt',
+        'structuredOut' : self.tmpdir + os.sep + 'auto_structured-out-' + str(taskId) + '.json',
+        'status': self.IN_PROGRESS_STATUS
+      })
+
     self.commandStatuses.put_command_status(command, in_progress_status)
 
     # running command
@@ -322,6 +334,7 @@ class ActionQueue(threading.Thread):
                               globalConfig, self.config, self.configTags)
 
       component_extra = None
+      request_execution_cmd = False
 
       # For custom services, responsibility to determine service status is
       # delegated to python scripts
@@ -330,13 +343,18 @@ class ActionQueue(threading.Thread):
 
       if component_status_result['exitcode'] == 0:
         component_status = LiveStatus.LIVE_STATUS
+        self.controller.recovery_manager.update_current_status(component, component_status)
       else:
         component_status = LiveStatus.DEAD_STATUS
+        self.controller.recovery_manager.update_current_status(component, component_status)
+        request_execution_cmd = self.controller.recovery_manager.requires_recovery(component)
 
       if component_status_result.has_key('structuredOut'):
         component_extra = component_status_result['structuredOut']
 
       result = livestatus.build(forsed_component_status= component_status)
+      if self.controller.recovery_manager.enabled():
+        result['sendExecCmdDet'] = str(request_execution_cmd)
 
       # Add security state to the result
       result['securityState'] = component_security_status_result

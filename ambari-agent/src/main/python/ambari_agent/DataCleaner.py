@@ -28,7 +28,10 @@ import logging
 logger = logging.getLogger()
 
 class DataCleaner(threading.Thread):
-  FILE_NAME_PATTERN = 'errors-\d+.txt|output-\d+.txt|site-\d+.pp|structured-out-\d+.json|command-\d+.json'
+  COMMAND_FILE_NAMES_PATTERN = 'errors-\d+.txt|output-\d+.txt|site-\d+.pp|structured-out-\d+.json|command-\d+.json'
+  AUTO_COMMAND_FILE_NAMES_PATTERN = \
+    'auto_command-\d+.json|auto_errors-\d+.txt|auto_output-\d+.txt|auto_structured-out-\d+.json'
+  FILE_NAME_PATTERN = AUTO_COMMAND_FILE_NAMES_PATTERN + "|" + COMMAND_FILE_NAMES_PATTERN
 
   def __init__(self, config):
     threading.Thread.__init__(self)

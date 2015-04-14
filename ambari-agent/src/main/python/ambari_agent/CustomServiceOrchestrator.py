@@ -230,6 +230,7 @@ class CustomServiceOrchestrator():
     override_output_files=True # by default, we override status command output
     if logger.level == logging.DEBUG:
       override_output_files = False
+
     res = self.runCommand(command, self.status_commands_stdout,
                           self.status_commands_stderr, self.COMMAND_NAME_STATUS,
                           override_output_files=override_output_files)
@@ -267,7 +268,7 @@ class CustomServiceOrchestrator():
 
   def resolve_script_path(self, base_dir, script):
     """
-    Incapsulates logic of script location determination.
+    Encapsulates logic of script location determination.
     """
     path = os.path.join(base_dir, script)
     if not os.path.exists(path):
@@ -305,7 +306,7 @@ class CustomServiceOrchestrator():
     command_type = command['commandType']
     from ActionQueue import ActionQueue  # To avoid cyclic dependency
     if command_type == ActionQueue.STATUS_COMMAND:
-      # These files are frequently created, thats why we don't
+      # These files are frequently created, that's why we don't
       # store them all, but only the latest one
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
@@ -313,6 +314,9 @@ class CustomServiceOrchestrator():
       if 'clusterHostInfo' in command and command['clusterHostInfo']:
         command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
+      if command_type == ActionQueue.AUTO_EXECUTION_COMMAND:
+        file_path = os.path.join(self.tmp_dir, "auto_command-{0}.json".format(task_id))
+
     # Json may contain passwords, that's why we need proper permissions
     if os.path.isfile(file_path):
       os.unlink(file_path)

@@ -47,6 +47,8 @@
         "Hosts/host_state",
         "Hosts/maintenance_state",
         "Hosts/desired_configs",
+        "Hosts/recovery_report",
+        "Hosts/recovery_summary",
         "_"
     ],
     "Component":[

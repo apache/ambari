@@ -156,6 +156,7 @@ public class HeartBeatHandler {
   @Inject
   private VersionEventPublisher versionEventPublisher;
 
+
   /**
    * KerberosPrincipalHostDAO used to set and get Kerberos principal details
    */
@@ -245,6 +246,11 @@ public class HeartBeatHandler {
       }
     }
 
+    if (heartbeat.getRecoveryReport() != null) {
+      RecoveryReport rr = heartbeat.getRecoveryReport();
+      processRecoveryReport(rr, hostname);
+    }
+
     try {
       if (heartbeat.getNodeStatus().getStatus().equals(HostStatus.Status.HEALTHY)) {
         hostObject.handleEvent(new HostHealthyHeartbeatEvent(hostname, now,
@@ -254,7 +260,7 @@ public class HeartBeatHandler {
             null));
       }
     } catch (InvalidStateTransitionException ex) {
-      LOG.warn("Asking agent to reregister due to " + ex.getMessage(), ex);
+      LOG.warn("Asking agent to re-register due to " + ex.getMessage(), ex);
       hostObject.setState(HostState.INIT);
       return createRegisterCommand();
     }
@@ -262,7 +268,7 @@ public class HeartBeatHandler {
     // Examine heartbeat for command reports
     processCommandReports(heartbeat, hostname, clusterFsm, now);
 
-    // Examine heartbeart for component live status reports
+    // Examine heartbeat for component live status reports
     processStatusReports(heartbeat, hostname, clusterFsm);
 
     // Calculate host status
@@ -315,6 +321,12 @@ public class HeartBeatHandler {
         }
       }
     }
+  }
+
+  protected void processRecoveryReport(RecoveryReport recoveryReport, String hostname) throws AmbariException {
+    LOG.debug("Received recovery report: " + recoveryReport.toString());
+    Host host = clusterFsm.getHost(hostname);
+    host.setRecoveryReport(recoveryReport);
   }
 
   protected void processHostStatus(HeartBeat heartbeat, String hostname) throws AmbariException {
@@ -696,6 +708,9 @@ public class HeartBeatHandler {
                       " (" + e.getMessage() + ")");
                 }
               }
+
+              this.heartbeatMonitor.getAgentRequests()
+                  .setExecutionDetailsRequest(hostname, componentName, status.getSendExecCmdDet());
             } else {
               // TODO: What should be done otherwise?
             }
@@ -940,6 +955,11 @@ public class HeartBeatHandler {
     // force the registering agent host to receive its list of alert definitions
     List<AlertDefinitionCommand> alertDefinitionCommands = getRegistrationAlertDefinitionCommands(hostname);
     response.setAlertDefinitionCommands(alertDefinitionCommands);
+
+    response.setRecoveryConfig(RecoveryConfig.getRecoveryConfig(config));
+    if(response.getRecoveryConfig() != null) {
+      LOG.debug("Recovery configuration set to " + response.getRecoveryConfig().toString());
+    }
 
     Long requestId = 0L;
     hostResponseIds.put(hostname, requestId);

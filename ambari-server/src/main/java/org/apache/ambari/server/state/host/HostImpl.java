@@ -30,6 +30,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
+import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.controller.HostResponse;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
@@ -119,6 +120,7 @@ public class HostImpl implements Host {
   private long lastHeartbeatTime = 0L;
   private AgentEnv lastAgentEnv = null;
   private List<DiskInfo> disksInfo = new ArrayList<DiskInfo>();
+  private RecoveryReport recoveryReport = new RecoveryReport();
   private boolean persisted = false;
   private Integer currentPingPort = null;
 
@@ -854,6 +856,26 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public RecoveryReport getRecoveryReport() {
+    try {
+      readLock.lock();
+      return recoveryReport;
+    } finally {
+      readLock.unlock();
+    }
+  }
+
+  @Override
+  public void setRecoveryReport(RecoveryReport recoveryReport) {
+    try {
+      writeLock.lock();
+      this.recoveryReport = recoveryReport;
+    } finally {
+      writeLock.unlock();
+    }
+  }
+
+  @Override
   public HostHealthStatus getHealthStatus() {
     try {
       readLock.lock();
@@ -1072,6 +1094,8 @@ public class HostImpl implements Host {
       r.setPublicHostName(getPublicHostName());
       r.setHostState(getState().toString());
       r.setStatus(getStatus());
+      r.setRecoveryReport(getRecoveryReport());
+      r.setRecoverySummary(getRecoveryReport().getSummary());
 
       return r;
     }

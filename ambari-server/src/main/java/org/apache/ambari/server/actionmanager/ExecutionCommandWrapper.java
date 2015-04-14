@@ -100,9 +100,9 @@ public class ExecutionCommandWrapper {
           Map<String, Map<String, Map<String, String>>> configAttributes = configHelper.getEffectiveConfigAttributes(cluster,
               executionCommand.getConfigurationTags());
 
-          for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurance : configAttributes.entrySet()) {
-            String type = attributesOccurance.getKey();
-            Map<String, Map<String, String>> attributes = attributesOccurance.getValue();
+          for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
+            String type = attributesOccurrence.getKey();
+            Map<String, Map<String, String>> attributes = attributesOccurrence.getValue();
 
             if (executionCommand.getConfigurationAttributes() != null) {
               if (!executionCommand.getConfigurationAttributes().containsKey(type)) {

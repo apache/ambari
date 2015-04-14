@@ -110,9 +110,13 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
       PropertyHelper.getPropertyId("Hosts", "host_status");
   protected static final String HOST_MAINTENANCE_STATE_PROPERTY_ID = 
       PropertyHelper.getPropertyId("Hosts", "maintenance_state");
-  
+
   protected static final String HOST_HOST_HEALTH_REPORT_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_health_report");
+  protected static final String HOST_RECOVERY_REPORT_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "recovery_report");
+  protected static final String HOST_RECOVERY_SUMMARY_PROPERTY_ID =
+      PropertyHelper.getPropertyId("Hosts", "recovery_summary");
   protected static final String HOST_STATE_PROPERTY_ID =
       PropertyHelper.getPropertyId("Hosts", "host_state");
   protected static final String HOST_LAST_AGENT_ENV_PROPERTY_ID =
@@ -251,6 +255,10 @@ public class HostResourceProvider extends BaseBlueprintProcessor {
           response.getStatus(),requestedIds);
       setResourceProperty(resource, HOST_HOST_HEALTH_REPORT_PROPERTY_ID,
           response.getHealthStatus().getHealthReport(), requestedIds);
+      setResourceProperty(resource, HOST_RECOVERY_REPORT_PROPERTY_ID,
+          response.getRecoveryReport(), requestedIds);
+      setResourceProperty(resource, HOST_RECOVERY_SUMMARY_PROPERTY_ID,
+          response.getRecoverySummary(), requestedIds);
       setResourceProperty(resource, HOST_DISK_INFO_PROPERTY_ID,
           response.getDisksInfo(), requestedIds);
       setResourceProperty(resource, HOST_STATE_PROPERTY_ID,

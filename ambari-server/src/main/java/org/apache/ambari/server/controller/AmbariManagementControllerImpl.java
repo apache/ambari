@@ -1695,7 +1695,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
    * Creates and populates an EXECUTION_COMMAND for host
    */
   private void createHostAction(Cluster cluster,
-                                Stage stage, ServiceComponentHost scHost,
+                                Stage stage,
+                                ServiceComponentHost scHost,
                                 Map<String, Map<String, String>> configurations,
                                 Map<String, Map<String, Map<String, String>>> configurationAttributes,
                                 Map<String, Map<String, String>> configTags,
@@ -1710,8 +1711,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     stage.addHostRoleExecutionCommand(scHost.getHostName(), Role.valueOf(scHost
       .getServiceComponentName()), roleCommand,
       event, scHost.getClusterName(),
-        serviceName, false);
-    String componentName = event.getServiceComponentName();
+      serviceName, false);
+    String componentName = scHost.getServiceComponentName();
     String hostname = scHost.getHostName();
     String osFamily = clusters.getHost(hostname).getOsFamily();
     StackId stackId = cluster.getDesiredStackVersion();
@@ -1975,12 +1976,12 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusters.getHostsForCluster(cluster.getClusterName()), cluster);
 
       String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
-      String HostParamsJson = StageUtils.getGson().toJson(
+      String hostParamsJson = StageUtils.getGson().toJson(
           customCommandExecutionHelper.createDefaultHostParams(cluster));
 
       Stage stage = createNewStage(requestStages.getLastStageId(), cluster,
           requestStages.getId(), requestProperties.get(REQUEST_CONTEXT_PROPERTY),
-          clusterHostInfoJson, "{}", HostParamsJson);
+          clusterHostInfoJson, "{}", hostParamsJson);
 
       Collection<ServiceComponentHost> componentsToEnableKerberos = new ArrayList<ServiceComponentHost>();
       Set<String> hostsToForceKerberosOperations = new HashSet<String>();
@@ -2148,23 +2149,6 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
                   + ", roleCommand=" + roleCommand.name());
             }
 
-            // [ type -> [ key, value ] ]
-            Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
-            Map<String, Map<String, Map<String, String>>> configurationAttributes = new TreeMap<String, Map<String, Map<String, String>>>();
-            Host host = clusters.getHost(scHost.getHostName());
-
-            Map<String, Map<String, String>> configTags =
-              findConfigurationTagsWithOverrides(cluster, host.getHostName());
-
-            // HACK - Set configs on the ExecCmd
-            if (!scHost.getHostName().equals(jobtrackerHost)) {
-              if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
-                configHelper.applyCustomConfig(
-                    configurations, Configuration.GLOBAL_CONFIG_TAG,
-                    Configuration.RCA_ENABLED_PROPERTY, "false", false);
-              }
-            }
-
             // any targeted information
             String keyName = scHost.getServiceComponentName().toLowerCase();
             if (requestProperties.containsKey(keyName)) {
@@ -2196,8 +2180,27 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
               requestParameters.put(keyName, requestProperties.get(keyName));
             }
 
+            Map<String, Map<String, String>> configurations = new TreeMap<String, Map<String, String>>();
+            Map<String, Map<String, Map<String, String>>>
+                configurationAttributes =
+                new TreeMap<String, Map<String, Map<String, String>>>();
+            Host host = clusters.getHost(scHost.getHostName());
+
+            Map<String, Map<String, String>> configTags =
+                findConfigurationTagsWithOverrides(cluster, host.getHostName());
+
+            // HACK - Set configs on the ExecCmd
+            if (!scHost.getHostName().equals(jobtrackerHost)) {
+              if (configTags.get(Configuration.GLOBAL_CONFIG_TAG) != null) {
+                configHelper.applyCustomConfig(
+                    configurations, Configuration.GLOBAL_CONFIG_TAG,
+                    Configuration.RCA_ENABLED_PROPERTY, "false", false);
+              }
+            }
+
+
             createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
-              roleCommand, requestParameters, event);
+                             roleCommand, requestParameters, event);
           }
         }
       }
@@ -2263,6 +2266,63 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
     return requestStages;
   }
+
+  public ExecutionCommand getExecutionCommand(Cluster cluster,
+                                              ServiceComponentHost scHost,
+                                              RoleCommand roleCommand) throws AmbariException {
+    Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(
+        clusters.getHostsForCluster(cluster.getClusterName()), cluster);
+    String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
+    Map<String, String> hostParamsCmd = customCommandExecutionHelper.createDefaultHostParams(cluster);
+    Stage stage = createNewStage(0, cluster,
+                                 1, "",
+                                 clusterHostInfoJson, "{}", "");
+
+
+    Map<String, Map<String, String>> configTags = configHelper.getEffectiveDesiredTags(cluster, scHost.getHostName());
+    Map<String, Map<String, String>> configurations = configHelper.getEffectiveConfigProperties(cluster, configTags);
+
+    Map<String, Map<String, Map<String, String>>>
+        configurationAttributes =
+        new TreeMap<String, Map<String, Map<String, String>>>();
+
+    createHostAction(cluster, stage, scHost, configurations, configurationAttributes, configTags,
+                     roleCommand, null, null);
+    ExecutionCommand ec = stage.getExecutionCommands().get(scHost.getHostName()).get(0).getExecutionCommand();
+
+    // createHostAction does not take a hostLevelParams but creates one
+    hostParamsCmd.putAll(ec.getHostLevelParams());
+    ec.getHostLevelParams().putAll(hostParamsCmd);
+
+    ec.setClusterHostInfo(
+        StageUtils.getClusterHostInfo(clusters.getHostsForCluster(cluster.getClusterName()), cluster));
+
+    // Hack - Remove passwords from configs
+    if (ec.getRole().equals(Role.HIVE_CLIENT.toString()) &&
+        ec.getConfigurations().containsKey(Configuration.HIVE_CONFIG_TAG)) {
+      ec.getConfigurations().get(Configuration.HIVE_CONFIG_TAG).remove(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY);
+    }
+
+    // Add attributes
+    Map<String, Map<String, Map<String, String>>> configAttributes =
+        configHelper.getEffectiveConfigAttributes(cluster,
+                                                  ec.getConfigurationTags());
+
+    for (Map.Entry<String, Map<String, Map<String, String>>> attributesOccurrence : configAttributes.entrySet()) {
+      String type = attributesOccurrence.getKey();
+      Map<String, Map<String, String>> attributes = attributesOccurrence.getValue();
+
+      if (ec.getConfigurationAttributes() != null) {
+        if (!ec.getConfigurationAttributes().containsKey(type)) {
+          ec.getConfigurationAttributes().put(type, new TreeMap<String, Map<String, String>>());
+        }
+        configHelper.cloneAttributesMap(attributes, ec.getConfigurationAttributes().get(type));
+      }
+    }
+
+    return ec;
+  }
+
 
   @Transactional
   void updateServiceStates(

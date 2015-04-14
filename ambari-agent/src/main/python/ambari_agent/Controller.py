@@ -44,6 +44,7 @@ from ambari_agent.NetUtil import NetUtil
 from ambari_agent.LiveStatus import LiveStatus
 from ambari_agent.AlertSchedulerHandler import AlertSchedulerHandler
 from ambari_agent.ClusterConfiguration import  ClusterConfiguration
+from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 
 logger = logging.getLogger()
@@ -81,6 +82,7 @@ class Controller(threading.Thread):
     self.heartbeat_stop_callback = heartbeat_stop_callback
     # List of callbacks that are called at agent registration
     self.registration_listeners = []
+    self.recovery_manager = RecoveryManager()
 
     # pull config directory out of config
     cache_dir = config.get('agent', 'cache_dir')
@@ -128,8 +130,10 @@ class Controller(threading.Thread):
                       self.hostname, prettyData)
 
         ret = self.sendRequest(self.registerUrl, data)
+        prettyData = pprint.pformat(ret)
+        logger.debug("Registration response is %s", prettyData)
 
-        # exitstatus is a code of error which was rised on server side.
+        # exitstatus is a code of error which was raised on server side.
         # exitstatus = 0 (OK - Default)
         # exitstatus = 1 (Registration failed because different version of agent and server)
         exitstatus = 0
@@ -158,17 +162,20 @@ class Controller(threading.Thread):
         # always update cached cluster configurations on registration
         self.cluster_configuration.update_configurations_from_heartbeat(ret)
 
+        self.recovery_manager.update_configuration_from_registration(ret)
+
         # always update alert definitions on registration
         self.alert_scheduler_handler.update_definitions(ret)
       except ssl.SSLError:
         self.repeatRegistration = False
         self.isRegistered = False
         return
-      except Exception:
+      except Exception, ex:
         # try a reconnect only after a certain amount of random time
         delay = randint(0, self.range)
         logger.error("Unable to connect to: " + self.registerUrl, exc_info=True)
-        """ Sleeping for {0} seconds and then retrying again """.format(delay)
+        logger.error("Error:" + str(ex))
+        logger.warn(""" Sleeping for {0} seconds and then trying again """.format(delay,))
         time.sleep(delay)
 
     return ret
@@ -265,10 +272,20 @@ class Controller(threading.Thread):
 
         if 'executionCommands' in response_keys:
           execution_commands = response['executionCommands']
+          self.recovery_manager.process_execution_commands(execution_commands)
           self.addToQueue(execution_commands)
 
         if 'statusCommands' in response_keys:
+          # try storing execution command details and desired state
+          self.recovery_manager.process_status_commands(response['statusCommands'])
           self.addToStatusQueue(response['statusCommands'])
+
+        if self.actionQueue.commandQueue.empty():
+          recovery_commands = self.recovery_manager.get_recovery_commands()
+          for recovery_command in recovery_commands:
+            logger.info("Adding recovery command %s for component %s",
+                        recovery_command['roleCommand'], recovery_command['role'])
+            self.addToQueue([recovery_command])
 
         if 'alertDefinitionCommands' in response_keys:
           self.alert_scheduler_handler.update_definitions(response)

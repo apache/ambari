@@ -35,6 +35,7 @@ from ambari_agent.CustomServiceOrchestrator import CustomServiceOrchestrator
 from ambari_agent.PythonExecutor import PythonExecutor
 from ambari_agent.CommandStatusDict import CommandStatusDict
 from ambari_agent.ActualConfigHandler import ActualConfigHandler
+from ambari_agent.RecoveryManager import RecoveryManager
 from FileCache import FileCache
 from ambari_commons import OSCheck
 from only_for_platform import only_for_platform, get_platform, not_for_platform, PLATFORM_LINUX, PLATFORM_WINDOWS
@@ -543,6 +544,8 @@ class TestActionQueue(TestCase):
     actionQueue = ActionQueue(AmbariConfig().getConfig(), dummy_controller)
 
     build_mock.return_value = {'dummy report': '' }
+
+    dummy_controller.recovery_manager = RecoveryManager()
 
     requestComponentStatus_mock.reset_mock()
     requestComponentStatus_mock.return_value = {'exitcode': 0 }

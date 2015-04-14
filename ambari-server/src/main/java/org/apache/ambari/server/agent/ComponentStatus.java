@@ -34,6 +34,7 @@ public class ComponentStatus {
    * @see org.apache.ambari.server.state.SecurityState
    */
   private String securityState;
+  private String sendExecCmdDet = "False";
 
   private String serviceName;
   private String clusterName;
@@ -59,6 +60,14 @@ public class ComponentStatus {
 
   public String getStatus() {
     return status;
+  }
+
+  public void setSendExecCmdDet(String sendExecCmdDet) {
+    this.sendExecCmdDet = sendExecCmdDet;
+  }
+
+  public String getSendExecCmdDet() {
+    return this.sendExecCmdDet;
   }
 
   public void setStatus(String status) {

@@ -150,7 +150,19 @@ public class TestHeartbeatHandler {
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule(){
+
+      @Override
+      protected void configure() {
+        getProperties().put("recovery.type", "FULL");
+        getProperties().put("recovery.lifetime_max_count", "10");
+        getProperties().put("recovery.max_count", "4");
+        getProperties().put("recovery.window_in_minutes", "23");
+        getProperties().put("recovery.retry_interval", "2");
+        super.configure();
+      }
+    };
+    injector = Guice.createInjector(module);
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
     injector.injectMembers(this);
@@ -832,6 +844,44 @@ public class TestHeartbeatHandler {
     assertTrue(hostObject.getLastRegistrationTime() != 0);
     assertEquals(hostObject.getLastHeartbeatTime(),
         hostObject.getLastRegistrationTime());
+  }
+
+  @Test
+  public void testRegistrationRecoveryConfig() throws AmbariException,
+      InvalidStateTransitionException {
+    ActionManager am = getMockActionManager();
+    replay(am);
+    Clusters fsm = clusters;
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, new ActionQueue(), am,
+                                                    injector);
+    clusters.addHost(DummyHostname1);
+    Host hostObject = clusters.getHost(DummyHostname1);
+    hostObject.setIPv4("ipv4");
+    hostObject.setIPv6("ipv6");
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOsType);
+    reg.setHostname(DummyHostname1);
+    reg.setCurrentPingPort(DummyCurrentPingPort);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
+    reg.setPrefix(Configuration.PREFIX_DIR);
+    RegistrationResponse rr = handler.handleRegistration(reg);
+    RecoveryConfig rc = rr.getRecoveryConfig();
+    assertEquals(rc.getMaxCount(), "4");
+    assertEquals(rc.getType(), "FULL");
+    assertEquals(rc.getMaxLifetimeCount(), "10");
+    assertEquals(rc.getRetryGap(), "2");
+    assertEquals(rc.getWindowInMinutes(), "23");
+
+    rc = RecoveryConfig.getRecoveryConfig(new Configuration());
+    assertEquals(rc.getMaxCount(), "6");
+    assertEquals(rc.getType(), "DEFAULT");
+    assertEquals(rc.getMaxLifetimeCount(), "12");
+    assertEquals(rc.getRetryGap(), "5");
+    assertEquals(rc.getWindowInMinutes(), "60");
   }
 
   @Test
@@ -1840,6 +1890,91 @@ public class TestHeartbeatHandler {
             stack130, serviceComponentHost1.getDesiredStackVersion());
     assertEquals("Stack version of SCH should not change after fail report",
             State.INSTALL_FAILED, serviceComponentHost2.getState());
+  }
+
+
+  @Test
+  @SuppressWarnings("unchecked")
+  public void testRecoveryStatusReports() throws Exception {
+    Clusters fsm = clusters;
+
+    Cluster cluster = getDummyCluster();
+    Host hostObject = clusters.getHost(DummyHostname1);
+    clusters.mapHostToCluster(hostObject.getHostName(), cluster.getClusterName());
+    Service hdfs = cluster.addService(HDFS);
+    hdfs.persist();
+    hdfs.addServiceComponent(DATANODE).persist();
+    hdfs.getServiceComponent(DATANODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.addServiceComponent(NAMENODE).persist();
+    hdfs.getServiceComponent(NAMENODE).addServiceComponentHost(DummyHostname1).persist();
+    hdfs.getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
+    hdfs.getServiceComponent(DATANODE).getServiceComponentHost(DummyHostname1).setState(State.STARTED);
+
+    ActionQueue aq = new ActionQueue();
+
+    final HostRoleCommand command = new HostRoleCommand(DummyHostname1,
+                                                        Role.DATANODE, null, null);
+    ActionManager am = getMockActionManager();
+    expect(am.getTasks(anyObject(List.class))).andReturn(
+        new ArrayList<HostRoleCommand>() {{
+          add(command);
+          add(command);
+        }}).anyTimes();
+    replay(am);
+    HeartBeatHandler handler = new HeartBeatHandler(fsm, aq, am, injector);
+
+    Register reg = new Register();
+    HostInfo hi = new HostInfo();
+    hi.setHostName(DummyHostname1);
+    hi.setOS(DummyOs);
+    hi.setOSRelease(DummyOSRelease);
+    reg.setHostname(DummyHostname1);
+    reg.setHardwareProfile(hi);
+    reg.setAgentVersion(metaInfo.getServerVersion());
+    handler.handleRegistration(reg);
+
+    hostObject.setState(HostState.UNHEALTHY);
+
+    aq.enqueue(DummyHostname1, new StatusCommand());
+
+    //All components are up
+    HeartBeat hb1 = new HeartBeat();
+    hb1.setResponseId(0);
+    hb1.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb1.setHostname(DummyHostname1);
+    RecoveryReport rr = new RecoveryReport();
+    rr.setSummary("RECOVERABLE");
+    List<ComponentRecoveryReport> compRecReports = new ArrayList<ComponentRecoveryReport>();
+    ComponentRecoveryReport compRecReport = new ComponentRecoveryReport();
+    compRecReport.setLimitReached(Boolean.FALSE);
+    compRecReport.setName("DATANODE");
+    compRecReport.setNumAttempts(2);
+    compRecReports.add(compRecReport);
+    rr.setComponentReports(compRecReports);
+    hb1.setRecoveryReport(rr);
+    handler.handleHeartBeat(hb1);
+    assertEquals("RECOVERABLE", hostObject.getRecoveryReport().getSummary());
+    assertEquals(1, hostObject.getRecoveryReport().getComponentReports().size());
+    assertEquals(2, hostObject.getRecoveryReport().getComponentReports().get(0).getNumAttempts());
+
+    HeartBeat hb2 = new HeartBeat();
+    hb2.setResponseId(1);
+    hb2.setNodeStatus(new HostStatus(Status.HEALTHY, DummyHostStatus));
+    hb2.setHostname(DummyHostname1);
+    rr = new RecoveryReport();
+    rr.setSummary("UNRECOVERABLE");
+    compRecReports = new ArrayList<ComponentRecoveryReport>();
+    compRecReport = new ComponentRecoveryReport();
+    compRecReport.setLimitReached(Boolean.TRUE);
+    compRecReport.setName("DATANODE");
+    compRecReport.setNumAttempts(5);
+    compRecReports.add(compRecReport);
+    rr.setComponentReports(compRecReports);
+    hb2.setRecoveryReport(rr);
+    handler.handleHeartBeat(hb2);
+    assertEquals("UNRECOVERABLE", hostObject.getRecoveryReport().getSummary());
+    assertEquals(1, hostObject.getRecoveryReport().getComponentReports().size());
+    assertEquals(5, hostObject.getRecoveryReport().getComponentReports().get(0).getNumAttempts());
   }
 
   @Test

@@ -25,6 +25,7 @@ import java.util.Map;
 
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
+import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.state.AgentVersion;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.HostConfig;
@@ -122,6 +123,16 @@ public class HostResponse {
    * Host Health Status
    */
   private HostHealthStatus healthStatus;
+
+  /**
+   * Recovery status
+   */
+  private RecoveryReport recoveryReport;
+
+  /**
+   * Summary of node recovery
+   */
+  private String recoverySummary = "DISABLED";
   
   /**
    * Public name.
@@ -440,6 +451,8 @@ public class HostResponse {
     this.healthStatus = healthStatus;
   }
 
+
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -489,7 +502,7 @@ public class HostResponse {
   }
   
   /**
-   * @param lastAgentEnv
+   * @param agentEnv
    */
   public void setLastAgentEnv(AgentEnv agentEnv) {
     lastAgentEnv = agentEnv;
@@ -534,5 +547,37 @@ public class HostResponse {
    */
   public MaintenanceState getMaintenanceState() {
     return maintenanceState;
+  }
+
+  /**
+   * Get the recovery summary for the host
+   * @return
+   */
+  public String getRecoverySummary() {
+    return recoverySummary;
+  }
+
+  /**
+   * Set the recovery summary for the host
+   * @return
+   */
+  public void setRecoverySummary(String recoverySummary) {
+    this.recoverySummary = recoverySummary;
+  }
+
+  /**
+   * Get the detailed recovery report
+   * @return
+   */
+  public RecoveryReport getRecoveryReport() {
+    return recoveryReport;
+  }
+
+  /**
+   * Set the detailed recovery report
+   * @param recoveryReport
+   */
+  public void setRecoveryReport(RecoveryReport recoveryReport) {
+    this.recoveryReport = recoveryReport;
   }
 }

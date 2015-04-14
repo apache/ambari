@@ -193,13 +193,13 @@ public class URLStreamProvider implements StreamProvider {
         return connection;
       } else {
         // no supported authentication type found
-        // we would let the original response propogate
+        // we would let the original response propagate
         LOG.error("Unsupported WWW-Authentication header:" + wwwAuthHeader+ ", for URL:" + spec);
         return connection;
       }
     } else {
         // not a 401 Unauthorized status code
-        // we would let the original response propogate
+        // we would let the original response propagate
         return connection;
     }
   }

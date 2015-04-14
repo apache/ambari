@@ -22,6 +22,8 @@ import com.google.gson.Gson;
 import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.HostNotFoundException;
+import org.apache.ambari.server.agent.ComponentRecoveryReport;
+import org.apache.ambari.server.agent.RecoveryReport;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariManagementControllerImpl;
@@ -57,6 +59,7 @@ import static org.powermock.api.easymock.PowerMock.replayAll;
 import java.net.InetAddress;
 import static org.powermock.api.easymock.PowerMock.*;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -644,6 +647,114 @@ public class HostResourceProviderTest {
   }
 
   @Test
+  public void testGetRecoveryReport() throws Exception {
+    Resource.Type type = Resource.Type.Host;
+
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    HostHealthStatus healthStatus = createNiceMock(HostHealthStatus.class);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    StackId stackId = createNiceMock(StackId.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    HostResponse hostResponse1 = createNiceMock(HostResponse.class);
+    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
+    ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
+
+    RecoveryReport rr = new RecoveryReport();
+    rr.setSummary("RECOVERABLE");
+    List<ComponentRecoveryReport> compRecReports = new ArrayList<ComponentRecoveryReport>();
+    ComponentRecoveryReport compRecReport = new ComponentRecoveryReport();
+    compRecReport.setLimitReached(Boolean.FALSE);
+    compRecReport.setName("DATANODE");
+    compRecReport.setNumAttempts(2);
+    compRecReports.add(compRecReport);
+    rr.setComponentReports(compRecReports);
+
+    AbstractControllerResourceProvider.init(resourceProviderFactory);
+
+    Set<Cluster> clusterSet = new HashSet<Cluster>();
+    clusterSet.add(cluster);
+
+    ServiceComponentHostResponse shr1 = new ServiceComponentHostResponse("Cluster100", "Service100", "Component100",
+                                                                         "Host100", "STARTED", "", null, null, null);
+
+    Set<ServiceComponentHostResponse> responses = new HashSet<ServiceComponentHostResponse>();
+    responses.add(shr1);
+
+    // set expectations
+    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
+    expect(managementController.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(managementController.getHostComponents((Set<ServiceComponentHostRequest>) anyObject())).andReturn(responses).anyTimes();
+    expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
+    expect(clusters.getClustersForHost("Host100")).andReturn(clusterSet).anyTimes();
+    expect(hostResponse1.getClusterName()).andReturn("Cluster100").anyTimes();
+    expect(hostResponse1.getHostname()).andReturn("Host100").anyTimes();
+    expect(hostResponse1.getRecoveryReport()).andReturn(rr).anyTimes();
+    expect(hostResponse1.getRecoverySummary()).andReturn(rr.getSummary()).anyTimes();
+    expect(ambariMetaInfo.getComponent((String) anyObject(), (String) anyObject(),
+                                       (String) anyObject(), (String) anyObject())).andReturn(componentInfo).anyTimes();
+    expect(componentInfo.getCategory()).andReturn("SLAVE").anyTimes();
+    expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
+                                                           eq(managementController))).andReturn(hostResourceProvider).anyTimes();
+
+
+    Set<String> propertyIds = new HashSet<String>();
+
+    propertyIds.add(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
+    propertyIds.add(HostResourceProvider.HOST_NAME_PROPERTY_ID);
+    propertyIds.add(HostResourceProvider.HOST_RECOVERY_REPORT_PROPERTY_ID);
+    propertyIds.add(HostResourceProvider.HOST_RECOVERY_SUMMARY_PROPERTY_ID);
+
+    Predicate predicate =
+        new PredicateBuilder().property(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").
+            toPredicate();
+    Request request = PropertyHelper.getReadRequest(propertyIds);
+
+    Set<Resource> hostsResources = new HashSet<Resource>();
+
+    Resource hostResource1 = new ResourceImpl(Resource.Type.Host);
+    hostResource1.setProperty(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    hostResource1.setProperty(HostResourceProvider.HOST_RECOVERY_SUMMARY_PROPERTY_ID, rr.getSummary());
+    hostResource1.setProperty(HostResourceProvider.HOST_RECOVERY_REPORT_PROPERTY_ID, rr);
+    hostsResources.add(hostResource1);
+
+    expect(hostResourceProvider.getResources(eq(request), eq(predicate))).andReturn(hostsResources).anyTimes();
+
+
+    // replay
+    replay(managementController, clusters, cluster,
+           hostResponse1, stackId, componentInfo,
+           healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+
+
+    Set<Resource> resources = provider.getResources(request, predicate);
+
+    Assert.assertEquals(1, resources.size());
+    for (Resource resource : resources) {
+      String clusterName = (String) resource.getPropertyValue(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID);
+      Assert.assertEquals("Cluster100", clusterName);
+      String recovery = (String) resource.getPropertyValue(HostResourceProvider.HOST_RECOVERY_SUMMARY_PROPERTY_ID);
+      Assert.assertEquals("RECOVERABLE", recovery);
+      RecoveryReport recRep = (RecoveryReport)resource.getPropertyValue(HostResourceProvider.HOST_RECOVERY_REPORT_PROPERTY_ID);
+      Assert.assertEquals("RECOVERABLE", recRep.getSummary());
+      Assert.assertEquals(1, recRep.getComponentReports().size());
+      Assert.assertEquals(2, recRep.getComponentReports().get(0).getNumAttempts());
+    }
+
+    // verify
+    verify(managementController, clusters, cluster,
+           hostResponse1, stackId, componentInfo,
+           healthStatus, ambariMetaInfo, resourceProviderFactory, hostResourceProvider);
+  }
+
+  @Test
   public void testGetResources_Status_Alert() throws Exception {
     Resource.Type type = Resource.Type.Host;
 
@@ -657,7 +768,6 @@ public class HostResourceProviderTest {
     HostResponse hostResponse1 = createNiceMock(HostResponse.class);
     ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
     ResourceProvider hostResourceProvider = createNiceMock(HostResourceProvider.class);
-    
     AbstractControllerResourceProvider.init(resourceProviderFactory);
 
     Set<Cluster> clusterSet = new HashSet<Cluster>();

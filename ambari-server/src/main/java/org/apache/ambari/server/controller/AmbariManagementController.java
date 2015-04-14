@@ -19,7 +19,9 @@
 package org.apache.ambari.server.controller;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
@@ -757,5 +759,13 @@ public interface AmbariManagementController {
    * @param service @Service object
    */
   public void initializeWidgetsAndLayouts(Cluster cluster, Service service) throws AmbariException;
+
+  /**
+   * Gets an execution command for host component life cycle command
+   * @return
+   */
+  public ExecutionCommand getExecutionCommand(Cluster cluster,
+                                              ServiceComponentHost scHost,
+                                              RoleCommand roleCommand) throws AmbariException;
 }
 

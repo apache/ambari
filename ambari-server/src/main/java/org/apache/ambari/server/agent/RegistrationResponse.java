@@ -58,6 +58,9 @@ public class RegistrationResponse {
   @JsonProperty("responseId")
   private long responseId;
 
+  @JsonProperty("recoveryConfig")
+  private RecoveryConfig recoveryConfig;
+
   @JsonProperty("statusCommands")
   private List<StatusCommand> statusCommands = null;
 
@@ -81,7 +84,6 @@ public class RegistrationResponse {
    * Gets the alert definition commands that contain the alert definitions for
    * each cluster that the host is a member of.
    *
-   * @param commands
    *          the commands, or {@code null} for none.
    */
   public List<AlertDefinitionCommand> getAlertDefinitionCommands() {
@@ -115,6 +117,14 @@ public class RegistrationResponse {
     this.log = log;
   }
 
+  public RecoveryConfig getRecoveryConfig() {
+    return recoveryConfig;
+  }
+
+  public void setRecoveryConfig(RecoveryConfig recoveryConfig) {
+    this.recoveryConfig = recoveryConfig;
+  }
+
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("RegistrationResponse{");
@@ -122,6 +132,7 @@ public class RegistrationResponse {
     buffer.append(", responseId=").append(responseId);
     buffer.append(", statusCommands=").append(statusCommands);
     buffer.append(", alertDefinitionCommands=").append(alertDefinitionCommands);
+    buffer.append(", recoveryConfig=").append(recoveryConfig);
     buffer.append('}');
     return buffer.toString();
   }

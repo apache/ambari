@@ -17,10 +17,11 @@
  */
 package org.apache.ambari.server.agent;
 
+import com.google.gson.annotations.SerializedName;
+import org.apache.ambari.server.state.State;
+
 import java.util.HashMap;
 import java.util.Map;
-
-import com.google.gson.annotations.SerializedName;
 
 /**
  * Command to report the status of a list of services in roles.
@@ -54,6 +55,39 @@ public class StatusCommand extends AgentCommand {
 
   @SerializedName("hostname")
   private String hostname = null;
+
+  @SerializedName("payloadLevel")
+  private StatusCommandPayload payloadLevel = StatusCommandPayload.DEFAULT;
+
+  @SerializedName("desiredState")
+  private State desiredState;
+
+  @SerializedName("executionCommandDetails")
+  private ExecutionCommand executionCommand;
+
+  public ExecutionCommand getExecutionCommand() {
+    return executionCommand;
+  }
+
+  public void setExecutionCommand(ExecutionCommand executionCommand) {
+    this.executionCommand = executionCommand;
+  }
+
+  public State getDesiredState() {
+    return desiredState;
+  }
+
+  public void setDesiredState(State desiredState) {
+    this.desiredState = desiredState;
+  }
+
+  public StatusCommandPayload getPayloadLevel() {
+    return payloadLevel;
+  }
+
+  public void setPayloadLevel(StatusCommandPayload payloadLevel) {
+    this.payloadLevel = payloadLevel;
+  }
 
   public String getClusterName() {
     return clusterName;
@@ -117,5 +151,14 @@ public class StatusCommand extends AgentCommand {
 
   public String getHostname() {
     return hostname;
+  }
+
+  public enum StatusCommandPayload {
+    // The minimal payload for status, agent adds necessary details
+    MINIMAL,
+    // default payload - backward compatible
+    DEFAULT,
+    // has enough details to construct START or INSTALL commands
+    EXECUTION_COMMAND
   }
 }

@@ -598,6 +598,112 @@ class TestController(unittest.TestCase):
     self.assertEquals(LiveStatus_mock.CLIENT_COMPONENTS, client_components_expected)
     self.assertEquals(LiveStatus_mock.COMPONENTS, components_expected)
 
+  @patch("socket.gethostbyname")
+  @patch("json.dumps")
+  @patch("time.sleep")
+  @patch("pprint.pformat")
+  @patch.object(Controller, "randint")
+  @patch.object(Controller, "LiveStatus")
+  def test_recoveryRegConfig(self, LiveStatus_mock, randintMock, pformatMock, sleepMock,
+                    dumpsMock, socketGhbnMock):
+    self.assertEquals(self.controller.recovery_manager.recovery_enabled, False)
+    self.assertEquals(self.controller.recovery_manager.auto_start_only, False)
+    self.assertEquals(self.controller.recovery_manager.max_count, 6)
+    self.assertEquals(self.controller.recovery_manager.window_in_min, 60)
+    self.assertEquals(self.controller.recovery_manager.retry_gap, 5)
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+
+    dumpsMock.return_value = '{"valid_object": true}'
+    socketGhbnMock.return_value = "host1"
+
+    sendRequest = MagicMock(name="sendRequest")
+    self.controller.sendRequest = sendRequest
+
+    register = MagicMock(name="register")
+    self.controller.register = register
+
+    sendRequest.return_value = {
+      "responseId": 1,
+      "recoveryConfig": {
+        "type": "FULL",
+        "maxCount": 5,
+        "windowInMinutes": 50,
+        "retryGap": 3,
+        "maxLifetimeCount": 7},
+      "log": "", "exitstatus": "0"}
+
+    self.controller.isRegistered = False
+    self.controller.registerWithServer()
+
+    self.assertEquals(self.controller.recovery_manager.recovery_enabled, True)
+    self.assertEquals(self.controller.recovery_manager.auto_start_only, False)
+    self.assertEquals(self.controller.recovery_manager.max_count, 5)
+    self.assertEquals(self.controller.recovery_manager.window_in_min, 50)
+    self.assertEquals(self.controller.recovery_manager.retry_gap, 3)
+    self.assertEquals(self.controller.recovery_manager.max_lifetime_count, 7)
+
+    sys.stdout = sys.__stdout__
+
+    self.controller.sendRequest = Controller.Controller.sendRequest
+    self.controller.addToStatusQueue = Controller.Controller.addToStatusQueue
+    pass
+
+  @patch.object(threading._Event, "wait")
+  @patch("time.sleep")
+  @patch("json.dumps")
+  def test_recoveryHbCmd(self, dumpsMock, sleepMock, event_mock):
+
+    out = StringIO.StringIO()
+    sys.stdout = out
+
+    hearbeat = MagicMock()
+    self.controller.heartbeat = hearbeat
+    event_mock.return_value = False
+    dumpsMock.return_value = "data"
+
+    sendRequest = MagicMock(name="sendRequest")
+    self.controller.sendRequest = sendRequest
+    addToQueue = MagicMock(name="addToQueue")
+    addToStatusQueue = MagicMock(name="addToStatusQueue")
+    self.addToQueue = addToQueue
+    self.addToStatusQueue = addToStatusQueue
+
+    process_execution_commands = MagicMock(name="process_execution_commands")
+    self.controller.recovery_manager.process_execution_commands = process_execution_commands
+    process_status_commands = MagicMock(name="process_status_commands")
+    self.controller.recovery_manager.process_status_commands = process_status_commands
+
+    self.controller.responseId = 0
+    response = {"responseId":1, "statusCommands": "commands2", "executionCommands" : "commands1", "log":"", "exitstatus":"0"}
+    sendRequest.return_value = response
+
+    def one_heartbeat(*args, **kwargs):
+      self.controller.DEBUG_STOP_HEARTBEATING = True
+      return response
+
+    sendRequest.side_effect = one_heartbeat
+
+    actionQueue = MagicMock()
+    actionQueue.isIdle.return_value = True
+
+    # one successful request, after stop
+    self.controller.actionQueue = actionQueue
+    self.controller.heartbeatWithServer()
+    self.assertTrue(sendRequest.called)
+    self.assertTrue(process_execution_commands.called)
+    self.assertTrue(process_status_commands.called)
+    process_execution_commands.assert_called_with("commands1")
+    process_status_commands.assert_called_with("commands2")
+
+    self.controller.heartbeatWithServer()
+    sys.stdout = sys.__stdout__
+    self.controller.sendRequest = Controller.Controller.sendRequest
+    self.controller.sendRequest = Controller.Controller.addToQueue
+    self.controller.sendRequest = Controller.Controller.addToStatusQueue
+    pass
 
 if __name__ == "__main__":
   unittest.main(verbosity=2)

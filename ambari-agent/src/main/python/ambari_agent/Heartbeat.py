@@ -55,6 +55,9 @@ class Heartbeat:
                   'nodeStatus'        : nodeStatus
                 }
 
+    rec_status = self.actionQueue.controller.recovery_manager.get_recovery_status()
+    heartbeat['recoveryReport'] = rec_status
+
     commandsInProgress = False
     if not self.actionQueue.commandQueue.empty():
       commandsInProgress = True

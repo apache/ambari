@@ -241,6 +241,21 @@ public class Configuration {
   public static final String KDC_CONNECTION_CHECK_TIMEOUT_DEFAULT = "10000";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_KEY = "kerberos.keytab.cache.dir";
   public static final String KERBEROS_KEYTAB_CACHE_DIR_DEFAULT = "/var/lib/ambari-server/data/cache";
+
+  /**
+   * Recovery related configuration
+   */
+  public static final String RECOVERY_TYPE_KEY = "recovery.type";
+  public static final String RECOVERY_TYPE_DEFAULT = "DEFAULT";
+  public static final String RECOVERY_LIFETIME_MAX_COUNT_KEY = "recovery.lifetime_max_count";
+  public static final String RECOVERY_LIFETIME_MAX_COUNT_DEFAULT = "12";
+  public static final String RECOVERY_MAX_COUNT_KEY = "recovery.max_count";
+  public static final String RECOVERY_MAX_COUNT_DEFAULT = "6";
+  public static final String RECOVERY_WINDOW_IN_MIN_KEY = "recovery.window_in_minutes";
+  public static final String RECOVERY_WINDOW_IN_MIN_DEFAULT = "60";
+  public static final String RECOVERY_RETRY_GAP_KEY = "recovery.retry_interval";
+  public static final String RECOVERY_RETRY_GAP_DEFAULT = "5";
+
   /**
    * This key defines whether stages of parallel requests are executed in
    * parallel or sequentally. Only stages from different requests
@@ -1069,7 +1084,7 @@ public class Configuration {
 
   public int getConnectionMaxIdleTime() {
     return Integer.parseInt(properties.getProperty
-            (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
+        (SERVER_CONNECTION_MAX_IDLE_TIME, String.valueOf("900000")));
   }
 
   /**
@@ -1105,7 +1120,8 @@ public class Configuration {
   }
 
   public int getOneWayAuthPort() {
-    return Integer.parseInt(properties.getProperty(SRVR_ONE_WAY_SSL_PORT_KEY, String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
+    return Integer.parseInt(properties.getProperty(SRVR_ONE_WAY_SSL_PORT_KEY,
+                                                   String.valueOf(SRVR_ONE_WAY_SSL_PORT_DEFAULT)));
   }
 
   public int getTwoWayAuthPort() {
@@ -1196,7 +1212,7 @@ public class Configuration {
 
   public Integer getRequestReadTimeout() {
     return Integer.parseInt(properties.getProperty(REQUEST_READ_TIMEOUT,
-        REQUEST_READ_TIMEOUT_DEFAULT));
+                                                   REQUEST_READ_TIMEOUT_DEFAULT));
   }
 
   public Integer getRequestConnectTimeout() {
@@ -1206,7 +1222,7 @@ public class Configuration {
 
   public String getExecutionSchedulerConnections() {
     return properties.getProperty(EXECUTION_SCHEDULER_CONNECTIONS,
-        DEFAULT_SCHEDULER_MAX_CONNECTIONS);
+                                  DEFAULT_SCHEDULER_MAX_CONNECTIONS);
   }
 
   public Long getExecutionSchedulerMisfireToleration() {
@@ -1232,7 +1248,7 @@ public class Configuration {
 
   public String getCustomActionDefinitionPath() {
     return properties.getProperty(CUSTOM_ACTION_DEFINITION_KEY,
-        CUSTOM_ACTION_DEFINITION_DEF_VALUE);
+                                  CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
   /**
@@ -1334,6 +1350,48 @@ public class Configuration {
    */
   public String getAlertTemplateFile() {
     return properties.getProperty(ALERT_TEMPLATE_FILE);
+  }
+
+  /**
+   * Get the node recovery type DEFAULT|AUTO_START|FULL
+   * @return
+   */
+  public String getNodeRecoveryType() {
+    return properties.getProperty(RECOVERY_TYPE_KEY, RECOVERY_TYPE_DEFAULT);
+  }
+
+  /**
+   * Get configured max count of recovery attempt allowed per host component in a window
+   * This is reset when agent is restarted.
+   * @return
+   */
+  public String getNodeRecoveryMaxCount() {
+    return properties.getProperty(RECOVERY_MAX_COUNT_KEY, RECOVERY_MAX_COUNT_DEFAULT);
+  }
+
+  /**
+   * Get configured max lifetime count of recovery attempt allowed per host component.
+   * This is reset when agent is restarted.
+   * @return
+   */
+  public String getNodeRecoveryLifetimeMaxCount() {
+    return properties.getProperty(RECOVERY_LIFETIME_MAX_COUNT_KEY, RECOVERY_LIFETIME_MAX_COUNT_DEFAULT);
+  }
+
+  /**
+   * Get configured window size in minutes
+   * @return
+   */
+  public String getNodeRecoveryWindowInMin() {
+    return properties.getProperty(RECOVERY_WINDOW_IN_MIN_KEY, RECOVERY_WINDOW_IN_MIN_DEFAULT);
+  }
+
+  /**
+   * Get the configured retry gap between tries per host component
+   * @return
+   */
+  public String getNodeRecoveryRetryGap() {
+    return properties.getProperty(RECOVERY_RETRY_GAP_KEY, RECOVERY_RETRY_GAP_DEFAULT);
   }
 
   /**
