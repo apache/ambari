@@ -29,6 +29,18 @@
       {{t common.started}}
   </td>
 </tr>
+<!-- NFS Gateway -->
+<tr>
+  <td><a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
+  <td>
+    <span>
+      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
+        {{view.liveComponents}}/{{view.totalComponents}}
+      {{/view}}
+    </span>
+    {{t common.started}}
+  </td>
+</tr>
 <!-- Data Node Counts -->
 <tr>
   <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
@@ -115,16 +127,4 @@
   <td>
     {{view.safeModeStatus}}
   </td>
-</tr>
-<!-- NFS Gateway -->
-<tr>
-  <td><a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
-  <!--td>
-    <span>
-      {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
-        {{view.liveComponents}}/{{view.totalComponents}}
-      {{/view}}
-    </span>
-      {{t common.started}}
-  </td-->
 </tr>

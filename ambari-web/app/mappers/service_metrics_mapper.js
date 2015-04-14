@@ -65,7 +65,10 @@ App.serviceMetricsMapper = App.QuickDataMapper.create({
     name_node_rpc: 'nameNodeComponent.host_components[0].metrics.rpc.RpcQueueTime_avg_time',
     data_nodes_started: 'data_nodes_started',
     data_nodes_installed: 'data_nodes_installed',
-    data_nodes_total: 'data_nodes_total'
+    data_nodes_total: 'data_nodes_total',
+    nfs_gateways_started: 'nfs_gateways_started',
+    nfs_gateways_installed: 'nfs_gateways_installed',
+    nfs_gateways_total: 'nfs_gateways_total'
   },
   yarnConfig: {
     version: 'resourceManagerComponent.ServiceComponentInfo.Version',

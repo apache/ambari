@@ -48,6 +48,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       data_nodes_installed: 'INSTALLED_PATH',
       data_nodes_total: 'TOTAL_PATH'
     },
+    'NFS_GATEWAY': {
+      nfs_gateways_started: 'STARTED_PATH',
+      nfs_gateways_installed: 'INSTALLED_PATH',
+      nfs_gateways_total: 'TOTAL_PATH'
+    },
     'NODEMANAGER': {
       node_managers_started: 'STARTED_PATH',
       node_managers_installed: 'INSTALLED_PATH',
