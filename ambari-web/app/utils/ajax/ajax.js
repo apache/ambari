@@ -1520,9 +1520,11 @@ var urls = {
     'format': function (data) {
       return {
         data: JSON.stringify({
+          "RequestInfo": {
+            "downgrade": "true"
+          },
           "Upgrade": {
-            "repository_version": data.value,
-            "force_downgrade": true
+            "repository_version": data.value
           }
         })
       }

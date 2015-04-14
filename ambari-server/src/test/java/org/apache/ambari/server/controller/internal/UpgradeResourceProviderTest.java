@@ -524,11 +524,15 @@ public class UpgradeResourceProviderTest {
     UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);
     assertEquals(1, group.getItems().size());
 
+    requestProps.clear();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
     requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.3");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FORCE_DOWNGRADE, "true");
 
-    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    Map<String, String> requestInfoProps = new HashMap<String, String>();
+    requestInfoProps.put("downgrade", "true");
+
+    request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), requestInfoProps);
     upgradeResourceProvider.createResources(request);
 
     upgrades = upgradeDao.findUpgrades(cluster.getClusterId());

@@ -105,8 +105,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   protected static final String UPGRADE_CLUSTER_NAME = "Upgrade/cluster_name";
   protected static final String UPGRADE_VERSION = "Upgrade/repository_version";
   protected static final String UPGRADE_REQUEST_ID = "Upgrade/request_id";
-  // TODO : Get rid of the UPGRADE_FORCE_DOWNGRADE property... should use downgrade create directive
-  protected static final String UPGRADE_FORCE_DOWNGRADE = "Upgrade/force_downgrade";
   protected static final String UPGRADE_FROM_VERSION = "Upgrade/from_version";
   protected static final String UPGRADE_TO_VERSION = "Upgrade/to_version";
   protected static final String UPGRADE_DIRECTION = "Upgrade/direction";
@@ -184,7 +182,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     PROPERTY_IDS.add(UPGRADE_CLUSTER_NAME);
     PROPERTY_IDS.add(UPGRADE_VERSION);
     PROPERTY_IDS.add(UPGRADE_REQUEST_ID);
-    PROPERTY_IDS.add(UPGRADE_FORCE_DOWNGRADE);
     PROPERTY_IDS.add(UPGRADE_FROM_VERSION);
     PROPERTY_IDS.add(UPGRADE_TO_VERSION);
     PROPERTY_IDS.add(UPGRADE_DIRECTION);
@@ -235,11 +232,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         @Override
         public UpgradeEntity invoke() throws AmbariException {
           String forceDowngrade = requestInfoProps.get(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE);
-
-          // check the property if the directive is not specified...
-          if (forceDowngrade == null) {
-            forceDowngrade = (String) requestMap.get(UPGRADE_FORCE_DOWNGRADE);
-          }
 
           Direction direction = Boolean.parseBoolean(forceDowngrade) ?
               Direction.DOWNGRADE : Direction.UPGRADE;
