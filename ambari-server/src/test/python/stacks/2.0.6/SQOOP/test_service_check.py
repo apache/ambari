@@ -19,6 +19,7 @@ limitations under the License.
 '''
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.functions import get_kinit_path
 
 class TestSqoopServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "SQOOP/1.4.4.2.0/package"
@@ -32,7 +33,8 @@ class TestSqoopServiceCheck(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit  -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM',
+    kinit_path_local = get_kinit_path()
+    self.assertResourceCalled('Execute', kinit_path_local + '  -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM',
                               user = 'ambari-qa'
     )
     self.assertResourceCalled('Execute', 'sqoop version',
