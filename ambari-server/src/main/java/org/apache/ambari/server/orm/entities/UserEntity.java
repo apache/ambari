@@ -70,7 +70,8 @@ public class UserEntity {
   })
   private PrincipalEntity principal;
 
-
+  @Column(name = "active_widget_layouts")
+  private String activeWidgetLayouts;
   // ----- UserEntity --------------------------------------------------------
 
   public Integer getUserId() {
@@ -155,8 +156,15 @@ public class UserEntity {
     this.principal = principal;
   }
 
+  public String getActiveWidgetLayouts() {
+    return activeWidgetLayouts;
+  }
 
-  // ----- Object overrides --------------------------------------------------
+  public void setActiveWidgetLayouts(String activeWidgetLayouts) {
+    this.activeWidgetLayouts = activeWidgetLayouts;
+  }
+
+// ----- Object overrides --------------------------------------------------
 
   @Override
   public boolean equals(Object o) {

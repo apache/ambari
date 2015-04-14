@@ -43,6 +43,6 @@ public class UserResourceDefinitionTest {
   public void testGetSubResourceDefinitions() throws Exception {
     final UserResourceDefinition userResourceDefinition = new UserResourceDefinition();
     Set<SubResourceDefinition> subResourceDefinitions = userResourceDefinition.getSubResourceDefinitions();
-    Assert.assertEquals(1, subResourceDefinitions.size());
+    Assert.assertEquals(2, subResourceDefinitions.size());
   }
 }

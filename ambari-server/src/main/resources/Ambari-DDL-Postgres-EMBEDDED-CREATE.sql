@@ -210,6 +210,7 @@ CREATE TABLE ambari.users (
   create_time TIMESTAMP DEFAULT NOW(),
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
+  active_widget_layouts VARCHAR(1024) DEFAULT NULL,
   PRIMARY KEY (user_id),
   UNIQUE (ldap_user, user_name));
 GRANT ALL PRIVILEGES ON TABLE ambari.users TO :username;

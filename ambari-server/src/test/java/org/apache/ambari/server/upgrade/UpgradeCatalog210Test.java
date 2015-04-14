@@ -300,6 +300,7 @@ public class UpgradeCatalog210Test {
   class WidgetSectionDDL implements SectionDDL {
 
     HashMap<String, Capture<List<DBColumnInfo>>> captures;
+    Capture<DBColumnInfo> userActiveLayoutsColumnCapture;
 
     public WidgetSectionDDL() {
       captures = new HashMap<String, Capture<List<DBColumnInfo>>>();
@@ -311,6 +312,7 @@ public class UpgradeCatalog210Test {
       captures.put("widget", userWidgetColumnsCapture);
       captures.put("widget_layout", widgetLayoutColumnsCapture);
       captures.put("widget_layout_user_widget", widgetLayoutUserWidgetColumnsCapture);
+      userActiveLayoutsColumnCapture = new Capture<DBColumnInfo>();
     }
 
     /**
@@ -333,6 +335,8 @@ public class UpgradeCatalog210Test {
       // Widget Layout User Widget
       dbAccessor.createTable(eq("widget_layout_user_widget"),
           capture(widgetLayoutUserWidgetColumnsCapture), eq("widget_layout_id"), eq("widget_id"));
+
+      dbAccessor.addColumn(eq("users"), capture(userActiveLayoutsColumnCapture));
     }
 
     /**
@@ -348,6 +352,10 @@ public class UpgradeCatalog210Test {
       assertEquals(12, widgetColumnsCapture.getValue().size());
       assertEquals(7, widgetLayoutColumnsCapture.getValue().size());
       assertEquals(3, widgetLayoutUserWidgetColumnsCapture.getValue().size());
+
+      DBColumnInfo idColumn = userActiveLayoutsColumnCapture.getValue();
+      Assert.assertEquals(String.class, idColumn.getType());
+      Assert.assertEquals("active_widget_layouts", idColumn.getName());
     }
   }
 

@@ -174,6 +174,7 @@ CREATE TABLE users (
   user_name VARCHAR2(255) NULL,
   user_password VARCHAR2(255) NULL,
   active INTEGER DEFAULT 1 NOT NULL,
+  active_widget_layouts VARCHAR2(1024) DEFAULT NULL,
   PRIMARY KEY (user_id));
 
 CREATE TABLE groups (

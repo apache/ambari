@@ -376,6 +376,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new WidgetLayoutResourceDefinition();
         break;
 
+      case ActiveWidgetLayout:
+        resourceDefinition = new ActiveWidgetLayoutResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

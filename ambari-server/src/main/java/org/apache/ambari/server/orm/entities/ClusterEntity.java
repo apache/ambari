@@ -131,6 +131,12 @@ public class ClusterEntity {
   @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
   private Collection<ClusterVersionEntity> clusterVersionEntities;
 
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  private Collection<WidgetEntity> widgetEntities;
+
+  @OneToMany(mappedBy = "clusterEntity", cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
+  private Collection<WidgetLayoutEntity> widgetLayoutEntities;
+
   @OneToOne(cascade = CascadeType.ALL)
   @JoinColumns({
       @JoinColumn(name = "resource_id", referencedColumnName = "resource_id", nullable = false)

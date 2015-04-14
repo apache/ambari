@@ -139,6 +139,16 @@ public class UserService extends BaseService {
   }
 
   /**
+   * Gets the active widget layout service
+   */
+  @Path("{userName}/activeWidgetLayouts")
+  public ActiveWidgetLayoutService getWidgetLayoutService(@Context javax.ws.rs.core.Request request,
+                                                    @PathParam ("userName") String userName) {
+
+    return new ActiveWidgetLayoutService(userName);
+  }
+
+  /**
    * Create a user resource instance.
    *
    * @param userName  user name

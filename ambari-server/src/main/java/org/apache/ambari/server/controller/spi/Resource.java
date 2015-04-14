@@ -141,6 +141,7 @@ public interface Resource {
     Artifact,
     Widget,
     WidgetLayout,
+    ActiveWidgetLayout,
     Theme;
 
     /**
@@ -244,6 +245,7 @@ public interface Resource {
     public static final Type Theme = InternalType.Theme.getType();
     public static final Type Widget = InternalType.Widget.getType();
     public static final Type WidgetLayout = InternalType.WidgetLayout.getType();
+    public static final Type ActiveWidgetLayout = InternalType.ActiveWidgetLayout.getType();
 
     /**
      * The type name.
