@@ -239,7 +239,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticks: ticks,
       tooltip: 'always',
       ticks_labels: ticksLabels,
-      ticks_snap_bounds: Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1,
       step: increment_step ? this.widgetValueByConfigAttributes(increment_step) : (Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1)
     });
 

@@ -99,12 +99,10 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   prepareContent: function() {
     var property = this.get('config');
 
-    this.setProperties({
-      propertyUnit: property.get('stackConfigProperty.valueAttributes.unit'),
-      minValue: this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')),
-      maxValue: this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')),
-      content: this.generateWidgetValue(property.get('value'))
-    });
+    this.set('propertyUnit', property.get('stackConfigProperty.valueAttributes.unit'));
+    this.set('minValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')));
+    this.set('maxValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')));
+    this.set('content', this.generateWidgetValue(property.get('value')));
     this.parseIncrement();
   },
 
@@ -115,12 +113,12 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   parseIncrement: function () {
     var property = this.get('config');
-    var type = this.get('content.lastObject.type');
     var step = property.get('stackConfigProperty.valueAttributes.increment_step');
     if (step) {
+      var type = this.get('content.lastObject.type');
       step = this.convertValue(step, property.get('stackConfigProperty.valueAttributes.unit'), type);
       this.set('content.lastObject.incrementStep', step);
-      if (step >  Em.get(this, 'timeMaxValueOverflow.' + type)) {
+      if (step > Em.get(this, 'timeMaxValueOverflow.' + type)) {
         this.set('content.lastObject.enabled', false);
       }
     }
