@@ -369,6 +369,12 @@ limitations under the License.
       <unit>MB</unit>
       <increment-step>682</increment-step>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

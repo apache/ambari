@@ -443,10 +443,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           var stackProperty = App.StackConfigProperty.find(propertyName + '_' + key);
           if (stackProperty && stackProperty.get('valueAttributes')) {
             if (configs[key].property_attributes[propertyName].min) {
-              stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].min);
+              stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].minimum);
             }
             if (configs[key].property_attributes[propertyName].max) {
-              stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].max);
+              stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].maximum);
             }
             if (configs[key].property_attributes[propertyName].increment_step) {
               stackProperty.set('valueAttributes.increment_step', configs[key].property_attributes[propertyName].increment_step);

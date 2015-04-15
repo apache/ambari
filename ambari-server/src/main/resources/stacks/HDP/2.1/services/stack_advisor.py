@@ -40,7 +40,7 @@ class HDP21StackAdvisor(HDP206StackAdvisor):
   def recommendHiveConfigurations(self, configurations, clusterData, services, hosts):
     containerSize = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
     containerSize = min(clusterData['containers'] * clusterData['ramPerContainer'], containerSize)
-    putHiveProperty = self.putProperty(configurations, "hive-site")
+    putHiveProperty = self.putProperty(configurations, "hive-site", services)
     putHiveProperty('hive.auto.convert.join.noconditionaltask.size', int(round(containerSize / 3)) * 1048576)
     putHiveProperty('hive.tez.java.opts', "-server -Xmx" + str(int(round((0.8 * containerSize) + 0.5)))
                     + "m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps")

@@ -33,7 +33,7 @@
     <description>
       Enabled node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
     </description>
-    <dispaly-name>Enable Node Labels</dispaly-name>
+    <display-name>Enable Node Labels</display-name>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>

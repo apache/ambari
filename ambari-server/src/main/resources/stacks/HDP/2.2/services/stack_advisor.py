@@ -19,7 +19,6 @@ limitations under the License.
 
 import math
 
-
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
   def getServiceConfigurationRecommenderDict(self):
@@ -45,12 +44,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
     if (nodeManagerHost is not None):
       putYarnProperty('yarn.nodemanager.resource.cpu-vcores', nodeManagerHost["Hosts"]["cpu_count"] * 2)
-      putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'max', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb
-      putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'max', nodeManagerHost["Hosts"]["cpu_count"] * 4)
-      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
-      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
-      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
-      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'max', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+      putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'maximum', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb
+      putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'maximum', nodeManagerHost["Hosts"]["cpu_count"] * 4)
+      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
+      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
+      putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
+      putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
@@ -95,7 +94,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       else:
         namenode_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
 
-      putHdfsEnvPropertyAttribute('namenode_heapsize', 'max', namenode_heapsize)
+      putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', namenode_heapsize)
 
     datanodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
     if (datanodeHosts is not None and len(datanodeHosts)>0):
@@ -103,25 +102,156 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       for datanode in datanodeHosts:
         ram_kb = datanode['Hosts']['total_mem']
         min_datanode_ram_kb = min(min_datanode_ram_kb, ram_kb)
-      putHdfsEnvPropertyAttribute('dtnode_heapsize', 'max', int(min_datanode_ram_kb/1024))
+      putHdfsEnvPropertyAttribute('dtnode_heapsize', 'maximum', int(min_datanode_ram_kb/1024))
 
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
-    putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'max', dataDirsCount)
+    putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'maximum', dataDirsCount)
 
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
+
+    putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
+    putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
+    putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hive-plugin-properties' in services['configurations'] and ('ranger-hive-plugin-enabled' in services['configurations']['ranger-hive-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hive-plugin-properties']['properties']['ranger-hive-plugin-enabled']
       if ("RANGER" in servicesList) :
         if (rangerPluginEnabled.lower() == "Yes".lower()):
-          putHiveProperty = self.putProperty(configurations, "hiveserver2-site")
-          putHiveProperty("hive.security.authorization.manager", 'com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory')
-          putHiveProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
+          putHiveServerProperty("hive.security.authorization.manager", 'com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory')
+          putHiveServerProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
         elif (rangerPluginEnabled.lower() == "No".lower()):
-          putHiveProperty = self.putProperty(configurations, "hiveserver2-site")
-          putHiveProperty("hive.security.authorization.manager", 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory')
-          putHiveProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
+          putHiveServerProperty("hive.security.authorization.manager", 'org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory')
+          putHiveServerProperty("hive.security.authenticator.manager", 'org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator')
+
+    #  Storage
+    putHiveEnvProperty("hive_exec_orc_storage_strategy", "SPEED")
+    putHiveSiteProperty("hive.exec.orc.encoding.strategy", configurations["hive-env"]["properties"]["hive_exec_orc_storage_strategy"])
+    putHiveSiteProperty("hive.exec.orc.compression.strategy", configurations["hive-env"]["properties"]["hive_exec_orc_storage_strategy"])
+
+    putHiveSiteProperty("hive.exec.orc.default.stripe.size", "67108864")
+    putHiveSiteProperty("hive.exec.orc.default.compress", "ZLIB")
+    putHiveSiteProperty("hive.optimize.index.filter", "true")
+    putHiveSiteProperty("hive.optimize.sort.dynamic.partition", "false")
+
+    # Vectorization
+    putHiveSiteProperty("hive.vectorized.execution.enabled", "true")
+    putHiveSiteProperty("hive.vectorized.execution.reduce.enabled", "false")
+
+    # Memory
+    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", "2147483648")
+    putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
+
+    # Transactions
+    putHiveEnvProperty("hive_txn_acid", "false")
+    if str(configurations["hive-env"]["properties"]["hive_txn_acid"]).lower() == "on":
+      putHiveSiteProperty("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager")
+      putHiveSiteProperty("hive.support.concurrency", "true")
+      putHiveSiteProperty("hive.compactor.initiator.on", "true")
+      putHiveSiteProperty("hive.compactor.worker.threads", "1")
+      putHiveSiteProperty("hive.enforce.bucketing", "true")
+      putHiveSiteProperty("hive.exec.dynamic.partition.mode", "nostrict")
+    else:
+      putHiveSiteProperty("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager")
+      putHiveSiteProperty("hive.support.concurrency", "false")
+      putHiveSiteProperty("hive.compactor.initiator.on", "false")
+      putHiveSiteProperty("hive.compactor.worker.threads", "0")
+      putHiveSiteProperty("hive.enforce.bucketing", "false")
+      putHiveSiteProperty("hive.exec.dynamic.partition.mode", "strict")
+
+    # ATS
+    putHiveEnvProperty("hive_timeline_logging_enabled", "true")
+
+    hooks_properties = ["hive.exec.pre.hooks", "hive.exec.post.hooks", "hive.exec.failure.hooks"]
+    include_ats_hook = str(configurations["hive-env"]["properties"]["hive_timeline_logging_enabled"]).lower() == "true"
+
+    ats_hook_class = "org.apache.hadoop.hive.ql.hooks.ATSHook"
+    for hooks_property in hooks_properties:
+      if hooks_property in configurations["hive-site"]["properties"]:
+        hooks_value = configurations["hive-site"]["properties"][hooks_property]
+      else:
+        hooks_value = " "
+      if include_ats_hook and ats_hook_class not in hooks_value:
+        if hooks_value == " ":
+          hooks_value = ats_hook_class
+        else:
+          hooks_value = hooks_value + "," + ats_hook_class
+      if not include_ats_hook and ats_hook_class in hooks_value:
+        hooks_classes = []
+        for hook_class in hooks_value.split(","):
+          if hook_class != ats_hook_class and hook_class != " ":
+            hooks_classes.append(hook_class)
+        if hooks_classes:
+          hooks_value = ",".join(hooks_classes)
+        else:
+          hooks_value = " "
+
+      putHiveSiteProperty(hooks_property, hooks_value)
+
+    # Tez Engine
+    if "TEZ" in servicesList:
+      putHiveSiteProperty("hive.execution.engine", "tez")
+    else:
+      putHiveSiteProperty("hive.execution.engine", "mr")
+
+    container_size = "512"
+
+    if "yarn-site" in configurations and \
+      "yarn.scheduler.minimum-allocation-mb" in configurations["yarn-site"]["properties"]:
+      container_size = configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]
+    putHiveSiteProperty("hive.tez.container.size", container_size)
+    putHiveSiteProperty("hive.prewarm.enabled", "false")
+    putHiveSiteProperty("hive.prewarm.numcontainers", "3")
+    putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
+    putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
+
+    # CBO
+    putHiveEnvProperty("cost_based_optimizer", "On")
+    if str(configurations["hive-env"]["properties"]["cost_based_optimizer"]).lower() == "on":
+      putHiveSiteProperty("hive.cbo.enable", "true")
+      putHiveSiteProperty("hive.stats.fetch.partition.stats", "true")
+      putHiveSiteProperty("hive.stats.fetch.column.stats", "true")
+    else:
+      putHiveSiteProperty("hive.cbo.enable", "false")
+      putHiveSiteProperty("hive.stats.fetch.partition.stats", "false")
+      putHiveSiteProperty("hive.stats.fetch.column.stats", "false")
+    putHiveSiteProperty("hive.compute.query.using.stats ", "true")
+
+    # Interactive Query
+    putHiveServerProperty("hive.server2.tez.initialize.default.sessions", "false")
+    putHiveServerProperty("hive.server2.tez.sessions.per.default.queue", "1")
+    putHiveServerProperty("hive.server2.enable.doAs", "true")
+    putHiveServerProperty("tez.session.am.dag.submit.timeout.secs", "600")
+
+    yarn_queues = "default"
+    if "capacity-scheduler" in configurations and \
+      "yarn.scheduler.capacity.root.queues" in configurations["capacity-scheduler"]["properties"]:
+      yarn_queues = str(configurations["capacity-scheduler"]["properties"]["yarn.scheduler.capacity.root.queues"])
+    putHiveServerProperty("hive.server2.tez.default.queues", yarn_queues)
+
+    # Interactive Queues property attributes
+    putHiveServerPropertyAttribute = self.putPropertyAttribute(configurations, "hiveserver2-site")
+    entries = []
+    for queue in yarn_queues.split(","):
+      entries.append({"label": str(queue) + " queue", "value": queue})
+    putHiveServerPropertyAttribute("hive.server2.tez.default.queues", "entries", entries)
+
+    # Security
+    putHiveEnvProperty("hive_security_authorization", "None")
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "none":
+      putHiveSiteProperty("hive.security.authorization.enabled", "false")
+    else:
+      putHiveSiteProperty("hive.security.authorization.enabled", "true")
+
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
+      auth_manager_value = str(configurations["hive-env"]["properties"]["hive.security.metastore.authorization.manager"])
+      sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+      if sqlstdauth_class not in auth_manager_value:
+        putHiveSiteProperty("hive.security.metastore.authorization.manager", auth_manager_value + "," + sqlstdauth_class)
+
+    putHiveServerProperty("hive.server2.enable.doAs", "true")
+    putHiveSiteProperty("hive.server2.use.SSL", "false")
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
@@ -134,7 +264,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
         host_ram = host["Hosts"]["total_mem"]
         min_ram = min(min_ram, host_ram)
 
-      putHbaseEnvPropertyAttributes('hbase_regionserver_heapsize', 'max', max(1024, int(min_ram*0.8/1024)))
+      putHbaseEnvPropertyAttributes('hbase_regionserver_heapsize', 'maximum', max(1024, int(min_ram*0.8/1024)))
 
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
@@ -232,12 +362,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredPropertyAttribute = self.putPropertyAttribute(configurations, "mapred-site")
     yarnMinAllocationSize = int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
     yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
-    putMapredPropertyAttribute("mapreduce.map.memory.mb", "max", yarnMaxAllocationSize)
-    putMapredPropertyAttribute("mapreduce.map.memory.mb", "min", yarnMinAllocationSize)
-    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "max", yarnMaxAllocationSize)
-    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "min", yarnMinAllocationSize)
-    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "max", yarnMaxAllocationSize)
-    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "min", yarnMinAllocationSize)
+    putMapredPropertyAttribute("mapreduce.map.memory.mb", "maximum", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("mapreduce.map.memory.mb", "minimum", yarnMinAllocationSize)
+    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "maximum", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "minimum", yarnMinAllocationSize)
+    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "maximum", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "minimum", yarnMinAllocationSize)
 
   def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
@@ -449,6 +579,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "item": self.getWarnItem(
                                   "If Ranger Hive Plugin is enabled." \
                                   " {0} needs to contain {1}".format(prop_name, ','.join(missing_vals)))})
+    stripe_size_values = [8388608, 16777216, 33554432, 67108864, 134217728, 268435456]
+    stripe_size_property = "hive.exec.orc.default.stripe.size"
+    if int(properties[stripe_size_property]) not in stripe_size_values:
+      validationItems.append({"config-name": stripe_size_property,
+                              "item": self.getWarnItem("Correct values are ")
+                             }
+      )
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):

@@ -117,7 +117,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
         config[configType]["property_attributes"] = {}
       if key not in config[configType]["property_attributes"]:
         config[configType]["property_attributes"][key] = {}
-      config[configType]["property_attributes"][key][attribute] = str(attributeValue)
+      config[configType]["property_attributes"][key][attribute] = attributeValue if isinstance(attributeValue, list) else str(attributeValue)
     return appendPropertyAttribute
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):

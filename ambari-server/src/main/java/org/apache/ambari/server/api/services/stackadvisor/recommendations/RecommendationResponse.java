@@ -22,6 +22,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
+import org.apache.ambari.server.state.ValueAttributesInfo;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -117,7 +118,7 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     @JsonProperty("property_attributes")
     @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
-    private Map<String, Map<String, String>> propertyAttributes;
+    private Map<String, ValueAttributesInfo> propertyAttributes;
 
     public BlueprintConfigurations() {
       System.out.println(this);
@@ -131,11 +132,11 @@ public class RecommendationResponse extends StackAdvisorResponse {
       this.properties = properties;
     }
 
-    public Map<String, Map<String, String>> getPropertyAttributes() {
+    public Map<String, ValueAttributesInfo> getPropertyAttributes() {
       return propertyAttributes;
     }
 
-    public void setPropertyAttributes(Map<String, Map<String, String>> propertyAttributes) {
+    public void setPropertyAttributes(Map<String, ValueAttributesInfo> propertyAttributes) {
       this.propertyAttributes = propertyAttributes;
     }
   }

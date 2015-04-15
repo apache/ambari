@@ -205,7 +205,7 @@ limitations under the License.
     <depends-on>
       <property>
         <type>hive-env</type>
-        <name>hive_timeline_logging_enabled </name>
+        <name>hive_timeline_logging_enabled</name>
       </property>
     </depends-on>
   </property>
@@ -221,7 +221,7 @@ limitations under the License.
     <depends-on>
       <property>
         <type>hive-env</type>
-        <name>hive_timeline_logging_enabled </name>
+        <name>hive_timeline_logging_enabled</name>
       </property>
     </depends-on>
   </property>
@@ -237,7 +237,7 @@ limitations under the License.
     <depends-on>
       <property>
         <type>hive-env</type>
-        <name>hive_timeline_logging_enabled </name>
+        <name>hive_timeline_logging_enabled</name>
       </property>
     </depends-on>
   </property>
@@ -412,6 +412,12 @@ limitations under the License.
     <name>hive.cbo.enable</name>
     <value>true</value>
     <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>cost_based_optimizer</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -753,6 +759,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>cost_based_optimizer</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.stats.fetch.column.stats</name>
@@ -778,6 +790,12 @@ limitations under the License.
       </entries>
       <selection-cardinality>1</selection-cardinality>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>cost_based_optimizer</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
