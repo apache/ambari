@@ -40,9 +40,9 @@ Introduction
   
     * Ambari provides a dashboard for monitoring health and status of the Hadoop cluster.
 
-    * Ambari leverages {{{http://ganglia.sourceforge.net/} Ganglia}} for metrics collection.
+    * Ambari leverages {{{https://issues.apache.org/jira/browse/AMBARI-5707} Ambari Metrics System}} for metrics collection.
 
-    * Ambari leverages {{{http://www.nagios.org/} Nagios}} for system alerting and will send emails when your attention is needed (e.g., a node goes down, remaining disk space is low, etc).
+    * Ambari leverages {{{https://issues.apache.org/jira/browse/AMBARI-6354} Ambari Alert Framework}} for system alerting and will notify you when your attention is needed (e.g., a node goes down, remaining disk space is low, etc).
 
   []
 
