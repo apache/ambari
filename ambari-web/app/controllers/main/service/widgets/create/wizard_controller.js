@@ -35,24 +35,51 @@ App.WidgetWizardController = App.WizardController.extend({
     controllerName: 'widgetWizardController',
     widgetService: null,
     widgetType: '',
-    widgetProperties: [],
 
     /**
-     * widgetMetric schema:
+     * Example:
      * {
-     *  widget_id: DS.attr('string'), //example: "metrics/rpc/closeRegion_num_ops",
-     *  name: DS.attr('string'),       //example: "rpc.rpc.closeRegion_num_ops",
+     *  "display_unit": "%",
+     *  "warning_threshold": 70,
+     *  "error_threshold": 90
+     * }
+     */
+    widgetProperties: {},
+
+    /**
+     * Example:
+     * [{
+     *  widget_id: "metrics/rpc/closeRegion_num_ops",
+     *  name: "rpc.rpc.closeRegion_num_ops",
      *  pointInTime: true,
      *  temporal: true,
-     *  category: DS.attr('string'),                 //example: default
-     *  serviceName: DS.attr('string'),          //example: HBASE
-     *  componentName: DS.attr('string'),    //example: HBASE_CLIENT
-     *  type: DS.attr('string'),                        //options: GANGLIA | JMX
-     *  level: DS.attr('string'),                         //options: COMPONENT | HOSTCOMPONENT
-     * }
+     *  category: "default"
+     *  serviceName: "HBASE"
+     *  componentName: "HBASE_CLIENT"
+     *  type: "GANGLIA"//or JMX
+     *  level: "COMPONENT"//or HOSTCOMPONENT
+     * }]
      * @type {Array}
      */
+    allMetrics: [],
+
+    /**
+     * Example:
+     * [{
+     *  "name": "regionserver.Server.percentFilesLocal",
+     *  "serviceName": "HBASE",
+     *  "componentName": "HBASE_REGIONSERVER"
+     * }]
+     */
     widgetMetrics: [],
+
+    /**
+     * Example:
+     * [{
+     *  "name": "Files Local",
+     *  "value": "${regionserver.Server.percentFilesLocal}"
+     * }]
+     */
     widgetValues: [],
     widgetName: null,
     widgetDescription: null,
@@ -90,7 +117,6 @@ App.WidgetWizardController = App.WizardController.extend({
   }.observes('currentStep', 'App.router.clusterController.isLoaded'),
 
 
-
   /**
    * save status of the cluster.
    * @param clusterStatus object with status,requestId fields.
@@ -109,15 +135,15 @@ App.WidgetWizardController = App.WizardController.extend({
     this.save('cluster');
   },
 
-  loadWidgetService: function() {
+  loadWidgetService: function () {
     this.set('content.widgetService', this.getDBProperty('widgetService'));
   },
 
-  loadWidgetType: function() {
+  loadWidgetType: function () {
     this.set('content.widgetType', this.getDBProperty('widgetType'));
   },
 
-  loadWidgetProperties: function() {
+  loadWidgetProperties: function () {
     this.set('content.widgetProperties', this.getDBProperty('widgetProperties'));
   },
 
@@ -126,17 +152,17 @@ App.WidgetWizardController = App.WizardController.extend({
    * on resolve deferred return array of widget metrics
    * @returns {$.Deferred}
    */
-  loadWidgetMetrics: function () {
-    var widgetMetrics = this.getDBProperty('widgetMetrics');
+  loadAllMetrics: function () {
+    var widgetMetrics = this.getDBProperty('allMetrics');
     var self = this;
     var dfd = $.Deferred();
 
     if (widgetMetrics.length === 0) {
-      this.loadWidgetMetricsFromServer(function () {
-        dfd.resolve(self.get('content.widgetMetrics'));
+      this.loadAllMetricsFromServer(function () {
+        dfd.resolve(self.get('content.allMetrics'));
       });
     } else {
-      this.set('content.widgetMetrics', widgetMetrics);
+      this.set('content.allMetrics', widgetMetrics);
       dfd.resolve(widgetMetrics);
     }
     return dfd.promise();
@@ -147,7 +173,7 @@ App.WidgetWizardController = App.WizardController.extend({
    * @param {function} callback
    * @returns {$.ajax}
    */
-  loadWidgetMetricsFromServer: function (callback) {
+  loadAllMetricsFromServer: function (callback) {
     return App.ajax.send({
       name: 'widgets.wizard.metrics.get',
       sender: this,
@@ -156,7 +182,7 @@ App.WidgetWizardController = App.WizardController.extend({
         serviceNames: App.Service.find().mapProperty('serviceName').join(',')
       },
       callback: callback,
-      success: 'loadWidgetMetricsFromServerCallback'
+      success: 'loadAllMetricsFromServerCallback'
     })
   },
 
@@ -164,7 +190,7 @@ App.WidgetWizardController = App.WizardController.extend({
    *
    * @param {object} json
    */
-  loadWidgetMetricsFromServerCallback: function (json) {
+  loadAllMetricsFromServerCallback: function (json) {
     var result = [];
     var metrics = {};
 
@@ -191,36 +217,44 @@ App.WidgetWizardController = App.WizardController.extend({
         }
       }
     }
-    this.saveWidgetMetrics(result);
+    this.saveAllMetrics(result);
   },
 
-  loadWidgetValues: function() {
+  loadWidgetValues: function () {
     this.set('content.widgetValues', this.getDBProperty('widgetValues'));
   },
 
+  loadWidgetMetrics: function () {
+    this.set('content.widgetMetrics', this.getDBProperty('widgetMetrics'));
+  },
 
-  saveWidgetService: function(widgetService) {
-    this.setDBProperty('widgetService',widgetService);
+  saveWidgetService: function (widgetService) {
+    this.setDBProperty('widgetService', widgetService);
     this.set('content.widgetService', widgetService);
   },
 
-  saveWidgetType: function(widgetType) {
-    this.setDBProperty('widgetType',widgetType);
+  saveWidgetType: function (widgetType) {
+    this.setDBProperty('widgetType', widgetType);
     this.set('content.widgetType', widgetType);
   },
 
-  saveWidgetProperties: function(widgetProperties) {
-    this.setDBProperty('widgetProperties',widgetProperties);
+  saveWidgetProperties: function (widgetProperties) {
+    this.setDBProperty('widgetProperties', widgetProperties);
     this.set('content.widgetProperties', widgetProperties);
   },
 
-  saveWidgetMetrics: function(widgetMetrics) {
-    this.setDBProperty('widgetMetrics',widgetMetrics);
+  saveAllMetrics: function (allMetrics) {
+    this.setDBProperty('allMetrics', allMetrics);
+    this.set('content.allMetrics', allMetrics);
+  },
+
+  saveWidgetMetrics: function (widgetMetrics) {
+    this.setDBProperty('widgetMetrics', widgetMetrics);
     this.set('content.widgetMetrics', widgetMetrics);
   },
 
-  saveWidgetValues: function(widgetValues) {
-    this.setDBProperty('widgetValues',widgetValues);
+  saveWidgetValues: function (widgetValues) {
+    this.setDBProperty('widgetValues', widgetValues);
     this.set('content.widgetValues', widgetValues);
   },
 
@@ -240,12 +274,13 @@ App.WidgetWizardController = App.WizardController.extend({
         callback: function () {
           this.loadWidgetProperties();
           this.loadWidgetValues();
+          this.loadWidgetMetrics();
         }
       },
       {
         type: 'async',
         callback: function () {
-          return this.loadWidgetMetrics();
+          return this.loadAllMetrics();
         }
       }
     ]

@@ -164,8 +164,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
       expression: this.get('expression'),
 
       /**
-       * @type {string}
-       * @default null
+       * @type {object|null}
        */
       selectedMetric: null,
 
@@ -189,22 +188,25 @@ App.WidgetWizardExpressionView = Em.View.extend({
             placeholder_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound'),
             no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
           }).change(function (event, obj) {
-            self.set('parentView.selectedMetric', obj.selected);
+            self.set('parentView.selectedMetric', {
+              name: obj.selected,
+              componentName: self.get('selectedComponent.componentName'),
+              serviceName: self.get('selectedComponent.serviceName')
+            });
           });
         },
 
         /**
-         * @type {Array}
+         * @type {Ember.Object}
+         * @default null
          */
-        componentMetrics: [],
+        selectedComponent: null,
 
         selectComponents: function (event) {
-          var componentMetrics = [];
+          var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))
+            .get('components').findProperty('id', event.context.get('id'));
 
-          this.get('componentMap').forEach(function (service) {
-            componentMetrics = service.get('components').findProperty('id', event.context.get('id')).get('metrics');
-          }, this);
-          this.set('componentMetrics', componentMetrics);
+          this.set('selectedComponent', component);
           this.set('parentView.selectedMetric', null);
           Em.run.next(function () {
             $('.chosen-select').trigger('chosen:updated');
@@ -264,7 +266,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
                 count: servicesMap[serviceName].components[componentId].count,
                 metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
                 selected: false,
-                id: componentId
+                id: componentId,
+                serviceName: serviceName
               }));
             }
             result.push(Em.Object.create({
@@ -284,7 +287,9 @@ App.WidgetWizardExpressionView = Em.View.extend({
         var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
         data.pushObject(Em.Object.create({
           id: ++lastId,
-          name: this.get('selectedMetric'),
+          name: this.get('selectedMetric.name'),
+          componentName: this.get('selectedMetric.componentName'),
+          serviceName: this.get('selectedMetric.serviceName'),
           isMetric: true
         }));
         this.hide();

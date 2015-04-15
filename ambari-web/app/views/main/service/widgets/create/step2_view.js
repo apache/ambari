@@ -64,7 +64,7 @@ App.WidgetWizardStep2View = Em.View.extend({
    * @type {boolean}
    */
   isSubmitDisabled: function() {
-    if (this.get('controller.widgetProperties').someProperty('isValid', false)) {
+    if (this.get('controller.widgetPropertiesViews').someProperty('isValid', false)) {
       return true;
     }
     switch (this.get('controller.content.widgetType')) {
@@ -142,7 +142,6 @@ App.WidgetWizardStep2View = Em.View.extend({
 
   updatePreview: function() {
     this.get('controller').updateExpressions(this);
-    this.propertyDidChange('isSubmitDisabled');
   }.observes('templateValue', 'dataSets.@each.label'),
 
   didInsertElement: function () {

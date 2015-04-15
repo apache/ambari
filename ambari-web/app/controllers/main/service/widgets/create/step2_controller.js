@@ -22,16 +22,26 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   name: "widgetWizardStep2Controller",
 
   /**
+   * views of properties
    * @type {Array}
    */
-  widgetProperties: [],
-  widgetValues: {},
+  widgetPropertiesViews: [],
 
-  expressionData: {
-    values: [],
-    metrics: []
-  },
-  widgetPropertiesData: {},
+  /**
+   * actual values of properties in API format
+   * @type {object}
+   */
+  widgetProperties: {},
+
+  /**
+   * @type {Array}
+   */
+  widgetValues: [],
+
+  /**
+   * @type {Array}
+   */
+  widgetMetrics: [],
 
   propertiesMap: {
     "warning_threshold": {
@@ -62,14 +72,14 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    */
   filteredMetrics: function () {
     var type = this.get('content.widgetType');
-    return this.get('content.widgetMetrics').filter(function (metric) {
+    return this.get('content.allMetrics').filter(function (metric) {
       if (type === 'GRAPH') {
         return metric.temporal;
       } else {
         return metric.point_in_time;
       }
     }, this);
-  }.property('content.widgetMetrics'),
+  }.property('content.allMetrics'),
 
   /**
    * update preview widget with latest expression data
@@ -100,7 +110,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
           break;
       }
     }
-    this.set('expressionData', expressionData);
+    this.set('widgetValues', expressionData.values);
+    this.set('widgetMetrics', expressionData.metrics);
   },
 
   /**
@@ -167,7 +178,11 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       value = '${';
       expression.data.forEach(function (element) {
         if (element.isMetric) {
-          metrics.push(element.name);
+          metrics.push({
+            name: element.name,
+            componentName: element.componentName,
+            serviceName: element.serviceName
+          });
         }
         value += element.name;
       }, this);
@@ -189,13 +204,13 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     var widgetProperty;
 
     for (var i in propertiesMap) {
-      widgetProperty = this.get('widgetProperties').findProperty('name', propertiesMap[i].name);
+      widgetProperty = this.get('widgetPropertiesViews').findProperty('name', propertiesMap[i].name);
       if (widgetProperty && widgetProperty.get('isValid')) {
         result[i] = widgetProperty.get(propertiesMap[i].property);
       }
     }
-    this.set('widgetPropertiesData', result);
-  }.observes('widgetProperties.@each.value', 'widgetProperties.@each.bigValue', 'widgetProperties.@each.smallValue'),
+    this.set('widgetProperties', result);
+  }.observes('widgetPropertiesViews.@each.value', 'widgetPropertiesViews.@each.bigValue', 'widgetPropertiesViews.@each.smallValue'),
 
   /*
    * Generate the thresholds, unit, time range.etc object based on the widget type selected in previous step.
@@ -221,7 +236,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       default:
         console.error('Incorrect Widget Type: ', widgetType);
     }
-    this.set('widgetProperties', properties);
+    this.set('widgetPropertiesViews', properties);
   },
 
   /**
@@ -229,16 +244,14 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @method renderGaugeProperties
    * @returns {App.WidgetProperties[]}
    */
-  renderGaugeProperties: function (widgetProperties) {
-    var result = [];
-    result = result.concat([
+  renderGaugeProperties: function () {
+    return [
       App.WidgetProperties.Thresholds.PercentageThreshold.create({
         smallValue: '0.7',
         bigValue: '0.9',
         isRequired: true
       })
-    ]);
-    return result;
+    ];
   },
 
   /**
@@ -246,10 +259,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @method renderNumberProperties
    * @returns {App.WidgetProperties[]}
    */
-  renderNumberProperties: function (widgetProperties) {
-    var result = [];
-
-    result = result.concat([
+  renderNumberProperties: function () {
+    return [
       App.WidgetProperties.Threshold.create({
         smallValue: '10',
         bigValue: '20',
@@ -259,8 +270,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         value: 'MB',
         isRequired: false
       })
-    ]);
-    return result;
+    ];
   },
 
   /**
@@ -269,14 +279,12 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @returns {App.WidgetProperties[]}
    */
   renderTemplateProperties: function (widgetProperties) {
-    var result = [];
-    result = result.concat([
+    return [
       App.WidgetProperties.Unit.create({
         value: 'MB',
         isRequired: false
       })
-    ]);
-    return result;
+    ];
   },
 
   /**
@@ -285,8 +293,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @returns {App.WidgetProperties[]}
    */
   renderGraphProperties: function (widgetProperties) {
-    var result = [];
-    result = result.concat([
+    return [
       App.WidgetProperties.GraphType.create({
         value: 'LINE',
         isRequired: true
@@ -299,8 +306,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         value: 'MB',
         isRequired: false
       })
-    ]);
-    return result;
+    ];
   },
 
   next: function () {

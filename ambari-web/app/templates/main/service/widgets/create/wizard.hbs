@@ -30,11 +30,19 @@
               <li {{bindAttr class="isStep3:active view.isStep3Disabled:disabled"}}><a href="javascript:void(null);"  {{action gotoStep3 target="controller"}}>{{t widget.create.wizard.step3.header}}</a></li>
             </ul>
           </div>
-          {{#if view.showPreview}}
+          {{#if view.isStep2}}
             <div class="preview" id="widget-preview">
               <h5>{{t common.preview}}:</h5>
               <div class="widget">
                 {{view view.previewWidgetClass controllerBinding="App.router.widgetWizardStep2Controller"}}
+              </div>
+            </div>
+          {{/if}}
+          {{#if view.isStep3}}
+            <div class="preview" id="widget-preview">
+              <h5>{{t common.preview}}:</h5>
+              <div class="widget">
+                {{view view.previewWidgetClass controllerBinding="App.router.widgetWizardStep3Controller"}}
               </div>
             </div>
           {{/if}}

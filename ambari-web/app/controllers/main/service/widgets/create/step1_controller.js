@@ -34,7 +34,7 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
   /**
    * @type {boolean}
    */
-  isSubmitDisabled: function() {
+  isSubmitDisabled: function () {
     return !this.get('widgetType');
   }.property('widgetType'),
 
@@ -43,11 +43,11 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
    */
   options: App.WidgetType.find(),
 
-  loadStep: function() {
+  loadStep: function () {
     this.clearStep();
   },
 
-  clearStep: function() {
+  clearStep: function () {
     this.set('widgetType', '');
   },
 

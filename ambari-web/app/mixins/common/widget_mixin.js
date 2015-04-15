@@ -281,15 +281,18 @@ App.WidgetPreviewMixin = Ember.Mixin.create({
   }),
   drawWidget: function () {
     this.loadMetrics();
-    this.set('content.values', this.get('controller.expressionData.values'));
-    this.set('content.properties', this.get('controller.widgetPropertiesData'));
+    this.get('content').setProperties({
+      'values': this.get('controller.widgetValues'),
+      'properties': this.get('controller.widgetProperties'),
+      'displayName': this.get('controller.widgetName')
+    });
     this._super();
-  }.observes('controller.widgetPropertiesData', 'controller.expressionData'),
+  }.observes('controller.widgetProperties', 'controller.widgetValues', 'controller.widgetMetrics', 'controller.widgetName'),
   loadMetrics: function () {
     var metrics = [];
-    this.get('controller.expressionData.metrics').forEach(function (metric) {
+    this.get('controller.widgetMetrics').forEach(function (metric) {
       metrics.push({
-        name: metric,
+        name: metric.name,
         data: this.get('MOCK_VALUE')
       });
     }, this);

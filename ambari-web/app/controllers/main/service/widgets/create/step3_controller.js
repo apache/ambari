@@ -21,8 +21,70 @@ var App = require('app');
 App.WidgetWizardStep3Controller = Em.Controller.extend({
   name: "widgetWizardStep3Controller",
 
+  /**
+   * @type {Array}
+   */
+  scopes: [
+    Em.Object.create({
+      name: 'User',
+      checked: true
+    }),
+    Em.Object.create({
+      name: 'Cluster',
+      checked: false
+    })
+  ],
+
+  /**
+   * @type {string}
+   */
+  widgetName: '',
+
+  /**
+   * @type {string}
+   */
+  widgetAuthor: '',
+
+  /**
+   * @type {string}
+   */
+  widgetScope: function () {
+    return this.get('scopes').findProperty('checked');
+  }.property('scopes.@each.checked'),
+
+  /**
+   * @type {string}
+   */
+  widgetDescription: '',
+
+  /**
+   * actual values of properties in API format
+   * @type {object}
+   */
+  widgetProperties: {},
+
+  /**
+   * @type {Array}
+   */
+  widgetValues: [],
+
+  /**
+   * @type {Array}
+   */
+  widgetMetrics: [],
+
+  /**
+   * restore widget data set on 2nd step
+   */
+  initPreviewData: function () {
+    this.set('widgetProperties', this.get('content.widgetProperties'));
+    this.set('widgetValues', this.get('content.widgetValues'));
+    this.set('widgetMetrics', this.get('content.widgetMetrics'));
+    this.set('widgetAuthor', App.router.get('loginName'));
+  },
+
   //TODO: Following computed propert needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
-  isSubmitDisabled: function() {
-    return false;
-  }.property('')
+  isSubmitDisabled: function () {
+    return !this.get('widgetName');
+  }.property('widgetName')
 });

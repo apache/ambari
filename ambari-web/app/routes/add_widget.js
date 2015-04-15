@@ -100,6 +100,7 @@ module.exports = App.WizardRoute.extend({
       widgetWizardController.saveWidgetType(widgetStep1controller.get('widgetType'));
       widgetWizardController.setDBProperty('widgetProperties', []);
       widgetWizardController.setDBProperty('widgetMetrics', []);
+      widgetWizardController.setDBProperty('allMetrics', []);
       widgetWizardController.setDBProperty('widgetValues', []);
       router.transitionTo('step2');
     }
@@ -152,7 +153,7 @@ module.exports = App.WizardRoute.extend({
     complete: function (router, context) {
       var controller = router.get('widgetWizardStep3Controller');
       if (!controller.get('isSubmitDisabled')) {
-        $(context.currentTarget).parents("#modal").find(".close").trigger('click');
+        router.get('widgetWizardController.popup').onClose();
       }
     }
   })

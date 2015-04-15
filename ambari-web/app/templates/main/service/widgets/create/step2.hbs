@@ -32,7 +32,7 @@
 
   <div>
     <form class="form-horizontal">
-      {{#each property in controller.widgetProperties}}
+      {{#each property in controller.widgetPropertiesViews}}
         <div {{bindAttr class=":control-group property.name property.isValid::error"}}>
           <label class="control-label">{{property.label}}
             {{#if property.isRequired }}

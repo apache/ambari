@@ -262,6 +262,7 @@ Em.I18n.translations = {
   'common.dataSet': 'Data Set',
   'common.label': 'Label',
   'common.preview': 'Preview',
+  'common.scope': 'Scope',
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
@@ -2502,12 +2503,13 @@ Em.I18n.translations = {
   'widget.create.wizard.step2.body.text':'Define the expression with any metrics and valid operators. </br>Use parentheses when necessary.',
   'widget.create.wizard.step2.body.template':'Define the template first, a template can have any number of {{expression}} and any string.',
   'widget.create.wizard.step2.body.warning':'Note: Valid operators are +, -, *, /',
-  'widget.create.wizard.step3.header': 'Name and Description',
   'widget.create.wizard.step2.addExpression': 'Add Expression',
   'widget.create.wizard.step2.addDataset': 'Add data set',
   'widget.create.wizard.step2.allComponents': 'All {0}',
   'widget.create.wizard.step2.activeComponents': 'Active {0}',
   'widget.create.wizard.step2.noMetricFound': 'No metric found',
+  'widget.create.wizard.step3.widgetName': 'Widget Name',
+  'widget.create.wizard.step3.header': 'Name and Description',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ New Metric',

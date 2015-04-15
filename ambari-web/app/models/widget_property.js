@@ -18,7 +18,6 @@
 
 var App = require('app');
 var validator = require('utils/validator');
-var numericUtils = require('utils/number_utils');
 
 App.WidgetProperty = Ember.Object.extend({
 
@@ -91,20 +90,6 @@ App.WidgetProperty = Ember.Object.extend({
 });
 
 App.WidgetProperties = {
-
-  WidgetName: App.WidgetProperty.extend({
-    name: 'widget_name',
-    label: 'Widget Name',
-    displayType: 'textField',
-    classNames: 'widget-property-text-input'
-  }),
-
-  Description: App.WidgetProperty.extend({
-    name: 'description',
-    label: 'Description',
-    displayType: 'textArea',
-    classNames: 'widget-property-text-area'
-  }),
 
   Unit: App.WidgetProperty.extend({
     name: 'display-unit',
@@ -245,5 +230,4 @@ App.WidgetProperties.Thresholds = {
     }.property('bigValue', 'smallValue')
 
   })
-}
-
+};

@@ -55,7 +55,7 @@
   <div class="span3">{{t dashboard.widgets.wizard.step2.selectMetric}}</div>
   <div class="span9">
     <select class="chosen-select">
-      {{#each metric in view.componentMetrics}}
+      {{#each metric in view.selectedComponent.metrics}}
         <option>{{unbound metric}}</option>
       {{/each}}
     </select>

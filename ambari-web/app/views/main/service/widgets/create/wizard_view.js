@@ -63,7 +63,15 @@ App.WidgetWizardView = Em.View.extend(App.WizardMenuMixin, {
    * Widget preview should be shown on 2nd step of wizard
    * @type {boolean}
    */
-  showPreview: function () {
+  isStep2: function () {
     return this.get('controller.currentStep') == "2";
+  }.property('controller.currentStep'),
+
+  /**
+   * Widget preview should be shown on 3rd step of wizard
+   * @type {boolean}
+   */
+  isStep3: function () {
+    return this.get('controller.currentStep') == "3";
   }.property('controller.currentStep')
 });
