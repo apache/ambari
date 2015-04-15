@@ -2442,6 +2442,16 @@ var urls = {
     }
   },
 
+  'widget.action.delete': {
+    real: '/clusters/{clusterName}/widgets/{id}',
+    mock: '',
+    format: function (data) {
+      return {
+        type: 'DELETE'
+      }
+    }
+  },
+
   'widgets.serviceComponent.metrics.get': {
     real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={widgetIds}',
     mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'

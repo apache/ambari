@@ -2270,6 +2270,8 @@ Em.I18n.translations = {
   'dashboard.widgets.browser.action.delete': 'Delete',
   'dashboard.widgets.browser.action.unshare': 'Unshare',
   'dashboard.widgets.browser.action.share': 'Share',
+  'dashboard.widgets.browser.action.delete.bodyMsg': 'You are about to permanently delete widget: {0}. You can add it back through creating new widget.',
+  'dashboard.widgets.browser.action.delete.btnMsg': 'Confirm Delete',
 
   'dashboard.widgets.NameNodeHeap': 'NameNode Heap',
   'dashboard.widgets.NameNodeCpu': 'NameNode CPU WIO',

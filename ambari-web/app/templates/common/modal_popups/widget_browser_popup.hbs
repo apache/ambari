@@ -72,14 +72,20 @@
                     </button>
                     <ul class="dropdown-menu">
                       <li>
-                        <a href="#" {{action deleteWidget widget target="controller"}}>
+                        <a href="#" {{action "deleteWidget" widget target="controller"}}>
                           {{t dashboard.widgets.browser.action.delete}}
                         </a>
                       </li>
                       <li>
-                        <a href="#" {{action unshareWidget widget target="controller"}}>
-                          {{t dashboard.widgets.browser.action.unshare}}
-                        </a>
+                        {{#if widget.isShared}}
+                          <a href="#" {{action "unshareWidget" widget target="controller"}}>
+                            {{t dashboard.widgets.browser.action.unshare}}
+                          </a>
+                        {{else}}
+                          <a href="#" {{action "shareWidget" widget target="controller"}}>
+                            {{t dashboard.widgets.browser.action.share}}
+                          </a>
+                        {{/if}}
                       </li>
                     </ul>
                     <button type="button" class="btn btn-default" {{action "addWidget" widget target="controller"}} >

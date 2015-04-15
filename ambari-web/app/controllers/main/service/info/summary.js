@@ -402,24 +402,26 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     var addedWidgetsNames = this.get('widgets').mapProperty('widgetName');
     if (data.items[0] && data.items.length) {
       this.set("allSharedWidgets",
-        data.items.map(function (widget) {
+        data.items.filter(function (widget) {
+          return widget.Widgets.widget_type != "HEATMAP";
+        }).map(function (widget) {
           var widgetType = widget.Widgets.widget_type;
           var widgetName = widget.Widgets.widget_name;
-          if (widgetType != "HEATMAP") {
-            return Em.Object.create({
-              iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
-              widgetName: widgetName,
-              displayName: widget.Widgets.display_name,
-              description: widget.Widgets.description,
-              widgetType: widgetType,
-              serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
-              added: addedWidgetsNames.contains(widgetName)
-            });
-          }
+          return Em.Object.create({
+            id: widget.Widgets.id,
+            widgetName: widgetName,
+            displayName: widget.Widgets.display_name,
+            description: widget.Widgets.description,
+            widgetType: widgetType,
+            iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
+            serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
+            added: addedWidgetsNames.contains(widgetName),
+            isShared: true
+          });
         })
       );
-      this.set('isAllSharedWidgetsLoaded', true);
     }
+    this.set('isAllSharedWidgetsLoaded', true);
   },
 
   allSharedWidgets: [],
@@ -449,24 +451,26 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     var addedWidgetsNames = this.get('widgets').mapProperty('widgetName');
     if (data.items[0] && data.items.length) {
       this.set("mineWidgets",
-        data.items.map(function (widget) {
+        data.items.filter(function (widget) {
+          return widget.Widgets.widget_type != "HEATMAP";
+        }).map(function (widget) {
           var widgetType = widget.Widgets.widget_type;
           var widgetName = widget.Widgets.widget_name;
-          if (widgetType != "HEATMAP") {
-            return Em.Object.create({
-              iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
-              widgetName: widgetName,
-              displayName: widget.Widgets.display_name,
-              description: widget.Widgets.description,
-              widgetType: widgetType,
-              serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
-              added: addedWidgetsNames.contains(widgetName)
-            });
-          }
+          return Em.Object.create({
+            id: widget.Widgets.id,
+            widgetName: widgetName,
+            displayName: widget.Widgets.display_name,
+            description: widget.Widgets.description,
+            widgetType: widgetType,
+            iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
+            serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
+            added: addedWidgetsNames.contains(widgetName),
+            isShared: false
+          });
         })
       );
-      this.set('isMineWidgetsLoaded', true);
     }
+    this.set('isMineWidgetsLoaded', true);
   },
 
   /**
@@ -513,6 +517,55 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     var widgetName = widget.widgetName;
     widget.set('added',!widget.added);
     // hide current widget from current layout
+
+  },
+
+  /**
+   * delete widgets, on click handler for "Delete"
+   */
+  deleteWidget: function (event) {
+    var widget = event.context;
+    var self = this;
+    var bodyMessage = Em.Object.create({
+      confirmMsg: Em.I18n.t('dashboard.widgets.browser.action.delete.bodyMsg').format(widget.displayName),
+      confirmButton: Em.I18n.t('dashboard.widgets.browser.action.delete.btnMsg')
+    });
+    return App.showConfirmationFeedBackPopup(function (query) {
+      return App.ajax.send({
+        name: 'widget.action.delete',
+        sender: self,
+        data: {
+          id: widget.id
+        },
+        success: 'updateWidgetBrowser'
+      });
+
+    }, bodyMessage);
+  },
+
+  /**
+   * update widget browser content after deleted some widget
+   */
+  updateWidgetBrowser: function () {
+    this.loadAllSharedWidgets();
+    this.loadMineWidgets();
+  },
+
+  /**
+   * unshare widgets, on click handler for "Unshare"
+   */
+  unshareWidget: function (event) {
+    var widget = event.context;
+    var widgetName = widget.widgetName;
+
+  },
+
+  /**
+   * Share widgets, on click handler for "Share"
+   */
+  shareWidget: function (event) {
+    var widget = event.context;
+    var widgetName = widget.widgetName;
 
   },
 
