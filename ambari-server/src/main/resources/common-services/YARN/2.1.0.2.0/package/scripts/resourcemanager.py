@@ -28,21 +28,64 @@ from resource_management.libraries.functions.security_commons import build_expec
 from install_jars import install_tez_jars
 from yarn import yarn
 from service import service
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+
 
 
 class Resourcemanager(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-yarn-resourcemanager"}
-
   def install(self, env):
     self.install_packages(env)
 
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    service('resourcemanager', action='stop')
+
   def configure(self, env):
+    import params
+    env.set_params(params)
+    yarn(name='resourcemanager')
+
+  def refreshqueues(self, env):
+    pass
+
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class ResourcemanagerWindows(Resourcemanager):
+  def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    service('resourcemanager', action='start')
+
+  def status(self, env):
+    service('resourcemanager', action='status')
+
+  def decommission(self, env):
     import params
 
     env.set_params(params)
-    yarn(name='resourcemanager')
+    yarn_user = params.yarn_user
+
+    yarn_refresh_cmd = format("cmd /c yarn rmadmin -refreshNodes")
+
+    File(params.exclude_file_path,
+         content=Template("exclude_hosts_list.j2"),
+         owner=yarn_user,
+         mode="f"
+    )
+
+    if params.update_exclude_file_only == False:
+      Execute(yarn_refresh_cmd, user=yarn_user)
+
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class ResourcemanagerDefault(Resourcemanager):
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-yarn-resourcemanager"}
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")
@@ -62,18 +105,7 @@ class Resourcemanager(Script):
     else:
       # will work only for stack versions >=2.2
       copy_tarballs_to_hdfs('tez', 'hadoop-yarn-resourcemanager', params.tez_user, params.hdfs_user, params.user_group)
-    service('resourcemanager',
-            action='start'
-    )
-
-  def stop(self, env, rolling_restart=False):
-    import params
-
-    env.set_params(params)
-
-    service('resourcemanager',
-            action='stop'
-    )
+    service('resourcemanager', action='start')
 
   def status(self, env):
     import status_params

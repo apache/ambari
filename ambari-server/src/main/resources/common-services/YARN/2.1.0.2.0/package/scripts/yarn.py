@@ -22,12 +22,37 @@ Ambari Agent
 from resource_management import *
 import sys
 import os
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def yarn(name = None):
   import params
+  XmlConfig("mapred-site.xml",
+            conf_dir=params.config_dir,
+            configurations=params.config['configurations']['mapred-site'],
+            owner=params.yarn_user,
+            mode='f'
+  )
+  XmlConfig("yarn-site.xml",
+            conf_dir=params.config_dir,
+            configurations=params.config['configurations']['yarn-site'],
+            owner=params.yarn_user,
+            mode='f',
+            configuration_attributes=params.config['configuration_attributes']['yarn-site']
+  )
+  XmlConfig("capacity-scheduler.xml",
+            conf_dir=params.config_dir,
+            configurations=params.config['configurations']['capacity-scheduler'],
+            owner=params.yarn_user,
+            mode='f'
+  )
 
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def yarn(name = None):
+  import params
   if name in ["nodemanager","historyserver"]:
     if params.yarn_log_aggregation_enabled:
       params.HdfsDirectory(params.yarn_nm_app_log_dir,

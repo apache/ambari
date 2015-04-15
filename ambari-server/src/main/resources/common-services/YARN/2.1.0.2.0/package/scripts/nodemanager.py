@@ -27,22 +27,43 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-
 from yarn import yarn
 from service import service
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+
 
 class Nodemanager(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-yarn-nodemanager"}
-
   def install(self, env):
     self.install_packages(env)
+
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    service('nodemanager',action='stop')
+
+  def start(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    self.configure(env) # FOR SECURITY
+    service('nodemanager',action='start')
 
   def configure(self, env):
     import params
     env.set_params(params)
     yarn(name="nodemanager")
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class NodemanagerWindows(Nodemanager):
+  def status(self, env):
+    service('nodemanager', action='status')
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class NodemanagerDefault(Nodemanager):
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-yarn-nodemanager"}
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing NodeManager Rolling Upgrade pre-restart")
@@ -52,24 +73,12 @@ class Nodemanager(Script):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hadoop-yarn-nodemanager {version}"))
 
-  def start(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    self.configure(env) # FOR SECURITY
-    service('nodemanager',action='start')
-
   def post_rolling_restart(self, env):
     Logger.info("Executing NodeManager Rolling Upgrade post-restart")
     import params
     env.set_params(params)
 
     nodemanager_upgrade.post_upgrade_check()
-
-  def stop(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-
-    service('nodemanager',action='stop')
 
   def status(self, env):
     import status_params
@@ -135,6 +144,7 @@ class Nodemanager(Script):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+
 
 if __name__ == "__main__":
   Nodemanager().execute()

@@ -19,25 +19,29 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons import OSCheck
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
-mapred_user = config['configurations']['mapred-env']['mapred_user']
-yarn_user = config['configurations']['yarn-env']['yarn_user']
-yarn_pid_dir_prefix = config['configurations']['yarn-env']['yarn_pid_dir_prefix']
-mapred_pid_dir_prefix = config['configurations']['mapred-env']['mapred_pid_dir_prefix']
-yarn_pid_dir = format("{yarn_pid_dir_prefix}/{yarn_user}")
-mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
+if OSCheck.is_windows_family():
+  service_map = {'resourcemanager':'resourcemanager', 'nodemanager':'nodemanager', 'historyserver':'jobhistoryserver', 'timelineserver':'historyserver'}
+else:
+  mapred_user = config['configurations']['mapred-env']['mapred_user']
+  yarn_user = config['configurations']['yarn-env']['yarn_user']
+  yarn_pid_dir_prefix = config['configurations']['yarn-env']['yarn_pid_dir_prefix']
+  mapred_pid_dir_prefix = config['configurations']['mapred-env']['mapred_pid_dir_prefix']
+  yarn_pid_dir = format("{yarn_pid_dir_prefix}/{yarn_user}")
+  mapred_pid_dir = format("{mapred_pid_dir_prefix}/{mapred_user}")
 
-resourcemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-resourcemanager.pid")
-nodemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-nodemanager.pid")
-yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/yarn-{yarn_user}-historyserver.pid")
-yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
-mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
+  resourcemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-resourcemanager.pid")
+  nodemanager_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-nodemanager.pid")
+  yarn_historyserver_pid_file_old = format("{yarn_pid_dir}/yarn-{yarn_user}-historyserver.pid")
+  yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
+  mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
 
-# Security related/required params
-hadoop_conf_dir = "/etc/hadoop/conf"
-hostname = config['hostname']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-security_enabled = config['configurations']['cluster-env']['security_enabled']
+  # Security related/required params
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  hostname = config['hostname']
+  kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  security_enabled = config['configurations']['cluster-env']['security_enabled']

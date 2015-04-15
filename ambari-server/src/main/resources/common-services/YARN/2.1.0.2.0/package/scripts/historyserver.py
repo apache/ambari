@@ -26,22 +26,43 @@ from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
-
 from yarn import yarn
 from service import service
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+
 
 class HistoryServer(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-mapreduce-historyserver"}
-
   def install(self, env):
     self.install_packages(env)
+
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    service('historyserver', action='stop', serviceName='mapreduce')
 
   def configure(self, env):
     import params
     env.set_params(params)
     yarn(name="historyserver")
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HistoryserverWindows(HistoryServer):
+  def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env)
+    service('historyserver', action='start', serviceName='mapreduce')
+
+  def status(self, env):
+    service('historyserver', action='status')
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HistoryServerDefault(HistoryServer):
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-mapreduce-historyserver"}
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade pre-restart")
@@ -58,12 +79,6 @@ class HistoryServer(Script):
     self.configure(env) # FOR SECURITY
     copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
-
-
-  def stop(self, env, rolling_restart=False):
-    import params
-    env.set_params(params)
-    service('historyserver', action='stop', serviceName='mapreduce')
 
   def status(self, env):
     import status_params
@@ -125,6 +140,7 @@ class HistoryServer(Script):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+
 
 if __name__ == "__main__":
   HistoryServer().execute()
