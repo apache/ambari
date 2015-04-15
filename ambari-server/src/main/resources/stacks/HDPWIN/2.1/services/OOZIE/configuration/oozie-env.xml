@@ -34,7 +34,7 @@
   </property>
   <property>
     <name>oozie_database</name>
-    <value>Existing MSSQL Server database with sql auth</value>
+    <value>Existing MSSQL Server database with SQL authentication</value>
     <description>Oozie Server Database.</description>
   </property>
   <property>

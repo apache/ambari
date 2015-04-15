@@ -273,7 +273,7 @@ limitations under the License.
 
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value>jdbc:mysql://localhost/hive?createDatabaseIfNotExist=true</value>
+    <value>jdbc:sqlserver://localhost;databaseName=hive</value>
     <description>JDBC connect string for a JDBC metastore</description>
   </property>
 
@@ -329,7 +329,7 @@ limitations under the License.
 
   <property>
     <name>javax.jdo.option.ConnectionDriverName</name>
-    <value>com.mysql.jdbc.Driver</value>
+    <value>com.microsoft.sqlserver.jdbc.SQLServerDriver</value>
     <description>Driver class name for a JDBC metastore</description>
   </property>
 

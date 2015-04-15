@@ -31,7 +31,7 @@
   </property>
   <property>
     <name>oozie.service.JPAService.jdbc.url</name>
-    <value></value>
+    <value>jdbc:sqlserver://localhost;databaseName=oozie</value>
     <description>
       JDBC URL.
     </description>

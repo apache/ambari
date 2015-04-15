@@ -386,6 +386,9 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
       if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value')) || this.dontUseHandleDbConnection.contains(this.get('serviceConfig.name'))) {
         this.onOptionsChange();
       } else {
+        if (App.get('isHadoopWindowsStack') && /SQL\sauthentication/.test(this.get('serviceConfig.value'))) {
+          this.onOptionsChange();
+        }
         this.handleDBConnectionProperty();
       }
     }

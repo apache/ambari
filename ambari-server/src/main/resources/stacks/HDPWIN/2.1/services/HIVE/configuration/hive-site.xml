@@ -6,7 +6,7 @@
   <!-- Windows specific properties -->
   <property>
     <name>javax.jdo.option.ConnectionURL</name>
-    <value></value>
+    <value>jdbc:sqlserver://localhost;databaseName=hive</value>
     <description>JDBC connect string for a JDBC metastore</description>
   </property>
 

@@ -3008,32 +3008,22 @@ var hdp2properties = [
       {
         displayName: 'New MySQL Database',
         foreignKeys: ['hive_ambari_database', 'hive_ambari_host'],
-        hidden: App.get('isHadoopWindowsStack')
+        hidden: false
       },
       {
         displayName: 'Existing MySQL Database',
         foreignKeys: ['hive_existing_mysql_database', 'hive_existing_mysql_host'],
-        hidden: App.get('isHadoopWindowsStack')
+        hidden: false
       },
       {
         displayName: 'Existing PostgreSQL Database',
         foreignKeys: ['hive_existing_postgresql_database', 'hive_existing_postgresql_host'],
-        hidden: App.get('isHadoopWindowsStack')
+        hidden: false
       },
       {
         displayName: 'Existing Oracle Database',
         foreignKeys: ['hive_existing_oracle_database', 'hive_existing_oracle_host'],
-        hidden: App.get('isHadoopWindowsStack')
-      },
-      {
-        displayName: 'Existing MSSQL Server database with SQL authentication',
-        foreignKeys: ['hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'],
-        hidden: !App.get('isHadoopWindowsStack')
-      },
-      {
-        displayName: 'Existing MSSQL Server database with integrated authentication',
-        foreignKeys: ['hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
-        hidden: !App.get('isHadoopWindowsStack')
+        hidden: false
       }
     ],
     "description": "MySQL will be installed by Ambari",
@@ -3437,32 +3427,22 @@ var hdp2properties = [
       {
         displayName: 'New Derby Database',
         foreignKeys: ['oozie_derby_database'],
-        hidden: App.get('isHadoopWindowsStack')
+        hidden: false
       },
       {
         displayName: 'Existing MySQL Database',
         foreignKeys: ['oozie_existing_mysql_database', 'oozie_existing_mysql_host'],
-        hidden: App.get('isHadoopWindowsStack')
+        hidden: false
       },
       {
         displayName: 'Existing PostgreSQL Database',
         foreignKeys: ['oozie_existing_postgresql_database', 'oozie_existing_postgresql_host'],
-        hidden: App.get('isHadoopWindowsStack')
+        hidden: false
       },
       {
         displayName: 'Existing Oracle Database',
         foreignKeys: ['oozie_existing_oracle_database', 'oozie_existing_oracle_host'],
-        hidden: App.get('isHadoopWindowsStack')
-      },
-      {
-        displayName: 'Existing MSSQL Server database with SQL authentication',
-        foreignKeys: ['oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'],
-        hidden: !App.get('isHadoopWindowsStack')
-      },
-      {
-        displayName: 'Existing MSSQL Server database with integrated authentication',
-        foreignKeys: ['oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
-        hidden: !App.get('isHadoopWindowsStack')
+        hidden: false
       }
     ],
     "description": "Current Derby Database will be installed by Ambari",
@@ -4046,7 +4026,7 @@ var hdp2properties = [
     "displayType": "checkbox",
     "isReconfigurable": true,
     "isOverridable": false,
-    "isVisible": !App.get('isHadoopWindowsStack'),
+    "isVisible": true,
     "filename": "cluster-env.xml",
     "category": "Users and Groups"
   },
@@ -4659,6 +4639,18 @@ var hdp2properties = [
 ];
 
 if (App.get('isHadoopWindowsStack')) {
+  var excludedWindowsConfigs = [
+    'dfs.client.read.shortcircuit',
+    'knox_pid_dir',
+    'ignore_groupsusers_create',
+    'hive_database',
+    'oozie_database'
+  ];
+
+  hdp2properties = hdp2properties.filter(function (item) {
+    return !excludedWindowsConfigs.contains(item.name);
+  });
+
   hdp2properties.push(
     {
       "id": "puppet var",
@@ -4669,7 +4661,7 @@ if (App.get('isHadoopWindowsStack')) {
       "isReconfigurable": false,
       "displayType": "user",
       "isOverridable": false,
-      "isVisible": App.get('isHadoopWindowsStack'),
+      "isVisible": true,
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups",
@@ -4684,12 +4676,70 @@ if (App.get('isHadoopWindowsStack')) {
       "isReconfigurable": false,
       "displayType": "password",
       "isOverridable": false,
-      "isVisible": App.get('isHadoopWindowsStack'),
+      "isVisible": true,
       "serviceName": "MISC",
       "filename": "cluster-env.xml",
       "category": "Users and Groups",
       "belongsToService": ["HDFS"],
       "index": 1
+    },
+    {
+      "id": "puppet var",
+      "name": "hive_database",
+      "displayName": "Hive Database",
+      "value": "",
+      "defaultValue": "Existing MSSQL Server database with SQL authentication",
+      "options": [
+        {
+          displayName: 'Existing MSSQL Server database with SQL authentication',
+          foreignKeys: ['hive_existing_mssql_server_database', 'hive_existing_mssql_server_host'],
+          hidden: false
+        },
+        {
+          displayName: 'Existing MSSQL Server database with integrated authentication',
+          foreignKeys: ['hive_existing_mssql_server_2_database', 'hive_existing_mssql_server_2_host'],
+          hidden: false
+        }
+      ],
+      "description": "",
+      "displayType": "radio button",
+      "isReconfigurable": true,
+      "radioName": "hive-database",
+      "isOverridable": false,
+      "isVisible": true,
+      "serviceName": "HIVE",
+      "filename": "hive-env.xml",
+      "category": "HIVE_METASTORE",
+      "index": 2
+    },
+    {
+      "id": "puppet var",
+      "name": "oozie_database",
+      "displayName": "Oozie Database",
+      "value": "",
+      "defaultValue": "Existing MSSQL Server database with SQL authentication",
+      "options": [
+        {
+          displayName: 'Existing MSSQL Server database with SQL authentication',
+          foreignKeys: ['oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_host'],
+          hidden: false
+        },
+        {
+          displayName: 'Existing MSSQL Server database with integrated authentication',
+          foreignKeys: ['oozie_existing_mssql_server_2_database', 'oozie_existing_mssql_server_2_host'],
+          hidden: false
+        }
+      ],
+      "description": "",
+      "displayType": "radio button",
+      "isReconfigurable": true,
+      "isOverridable": false,
+      "radioName": "oozie-database",
+      "isVisible": true,
+      "serviceName": "OOZIE",
+      "filename": "oozie-env.xml",
+      "category": "OOZIE_SERVER",
+      "index": 2
     }
   );
 }
