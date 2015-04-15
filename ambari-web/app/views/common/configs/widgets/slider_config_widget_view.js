@@ -54,6 +54,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   unitLabel: '',
 
+  undoAllowed: false,
+
   /**
    * Function used to parse config value (based on <code>config.stackConfigProperty.valueAttributes.type</code>)
    * For integer - parseInt, for float - parseFloat
@@ -235,7 +237,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var slider = new Slider(this.$('input.slider-input')[0], {
       value: this.widgetValueByConfigAttributes(parseFunction(this.get('config.value'))),
       ticks: ticks,
-      tooltip: 'hide',
+      tooltip: 'always',
       ticks_labels: ticksLabels,
       ticks_snap_bounds: Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1,
       step: increment_step ? this.widgetValueByConfigAttributes(increment_step) : (Em.get(valueAttributes, 'type') === 'int' ? 1 : 0.1)
@@ -255,27 +257,23 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     });
     this.set('slider', slider);
     var sliderTicks = this.$('.ui-slider-wrapper:eq(0) .slider-tick');
+    var defaultSliderTick = sliderTicks.eq(defaultValueId);
 
     sliderTicks.eq(defaultValueId).addClass('slider-tick-default').on('mousedown', function(e) {
       if (self.get('disabled')) return false;
       self.restoreValue();
       e.stopPropagation();
+      return false;
     });
+    // create label for default value and align it
+    defaultSliderTick.append('<span>{0}</span>'.format(defaultValue + this.get('unitLabel')));
+    defaultSliderTick.find('span').css('marginLeft', -defaultSliderTick.find('span').width()/2 + 'px');
     // if mirrored value was added need to hide the tick for it
     if (defaultValueMirroredId) {
       sliderTicks.eq(defaultValueMirroredId).hide();
     }
-    // hide some ticks. can't do this via css
-    if (defaultValueId == 0) {
-      sliderTicks.last().hide();
-    } else
-      if (defaultValueId == ticks.length - 1) {
-        sliderTicks.first().hide();
-      }
-      else {
-        sliderTicks.first().hide();
-        sliderTicks.last().hide();
-      }
+    // mark last tick to fix it style
+    sliderTicks.last().addClass('last');
   },
 
   /**

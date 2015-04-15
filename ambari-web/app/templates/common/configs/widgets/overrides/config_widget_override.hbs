@@ -19,10 +19,10 @@
 {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
   <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
     {{view view.serviceConfigProperty.widget configBinding="overriddenSCP" isPopoverEnabled="false"}}
-    <div {{bindAttr class="view.parentView.isHover:show:not-show"}}>
+    <div {{bindAttr class=":widget-config-controls view.parentView.isHover:show:not-show"}}>
       {{#if overriddenSCP.supportsFinal}}
         <a href="#" data-toggle="tooltip"
-          {{bindAttr class=":btn :btn-small :btn-final overriddenSCP.isFinal:active overriddenSCP.hideFinalIcon:hidden" disabled="overriddenSCP.isNotEditable"}}
+          {{bindAttr class=":widget-action :widget-action-final overriddenSCP.isFinal:active overriddenSCP.hideFinalIcon:hidden" disabled="overriddenSCP.isNotEditable"}}
           {{action "toggleFinalFlag" overriddenSCP target="view"}}
           {{translateAttr data-original-title="services.service.config.final"}}>
           <i class="icon-lock"></i>
@@ -45,17 +45,24 @@
             </a>
           {{/if}}
           {{#isAccessible ADMIN}}
-            <a class="btn btn-small" href="#" data-toggle="tooltip"
+            <a class="widget-action widget-action-remove" href="#" data-toggle="tooltip"
               {{action "removeOverride" overriddenSCP target="view"}}
               {{translateAttr data-original-title="common.remove"}}>
               <i class="icon-minus-sign"></i>
             </a>
+            <div class="clearfix"></div>
           {{/isAccessible}}
-          <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
         {{else}}
           <a class="action">{{overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
         {{/if}}
       {{/if}}
     </div>
+    {{#if overriddenSCP.isEditable}}
+      {{#if overriddenSCP.errorMessage}}
+        <div class="clearfix"></div>
+        <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
+      {{/if}}
+    {{/if}}
   </div>
+  <div class="clearfix"></div>
 {{/each}}

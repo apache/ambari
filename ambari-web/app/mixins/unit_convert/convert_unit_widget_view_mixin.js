@@ -37,11 +37,11 @@ App.ConvertUnitWidgetViewMixin = Em.Mixin.create(App.BaseUnitConvertMixin, {
    * Get converted value according to config property unit format from specified widget value.
    *
    * @param {String|Number|Object[]} value - widget value to convert
-   * @returns {Number}
+   * @returns {String}
    * @method configValueByWidget
    */
   configValueByWidget: function(value) {
-    return this.convertValue(value, this._converterGetWidgetUnits(), this._converterGetPropertyAttributes());
+    return '' + this.convertValue(value, this._converterGetWidgetUnits(), this._converterGetPropertyAttributes());
   },
 
   /**

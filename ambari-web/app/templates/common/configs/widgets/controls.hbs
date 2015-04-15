@@ -16,10 +16,10 @@
 * limitations under the License.
 }}
 {{#if view.canEdit}}
-  <div class="clearfix">
+  <div class="widget-config-controls">
     {{#if view.config.supportsFinal}}
       <a href="#" data-toggle="tooltip"
-        {{bindAttr class=":btn :btn-small :btn-final :pull-left view.config.isFinal:active view.showFinalConfig:show:not-show" disabled="view.config.isNotEditable"}}
+        {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:not-show" disabled="view.config.isNotEditable"}}
         {{action "toggleFinalFlag" view.config target="view"}}
         {{translateAttr data-original-title="services.service.config.final"}}>
         <i class="icon-lock"></i>
@@ -27,8 +27,8 @@
     {{/if}}
     {{#if view.overrideAllowed}}
       {{#isAccessible ADMIN}}
-        <div {{bindAttr class=":pull-left :action-button view.isHover:show:not-show"}}>
-          <a class="btn btn-small" href="#" data-toggle="tooltip"
+        <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:not-show"}}>
+          <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
             {{action "createOverrideProperty" view.config target="view.parentView"}}
             {{translateAttr data-original-title="common.override"}}>
             <i class="icon-plus-sign"></i>
@@ -42,7 +42,7 @@
   </div>
 {{/if}}
 {{#if view.isComparison}}
-  <div class="clearfix">
+  <div class="widget-config-controls">
   {{#if controller.selectedConfigGroup.isDefault}}
     <span
         class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>

@@ -429,6 +429,19 @@ App.ConfigOverridable = Em.Mixin.create({
         this.hide();
       }
     });
+  },
+
+  /**
+   * Persist config groups created in step7 wizard controller
+   * @method persistConfigGroups
+   */
+  persistConfigGroups: function () {
+    var installerController = App.router.get('installerController');
+    var step7Controller = App.router.get('wizardStep7Controller');
+    installerController.saveServiceConfigGroups(step7Controller, step7Controller.get('content.controllerName') == 'addServiceController');
+    App.clusterStatus.setClusterStatus({
+      localdb: App.db.data
+    });
   }
 
 });

@@ -15,13 +15,15 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-
 <div>
   <label>
     {{view view.configView class="pull-left"}}
     {{#if view.isOriginalSCP}}
       <span class="widget-config-label">{{view.configLabel}}</span>
+    {{else}}
+      <span class="widget-config-label text-success">{{t common.override}}</span>
     {{/if}}
+    <div class="clearfix"></div>
   </label>
 </div>
 {{template "templates/common/configs/widgets/controls"}}
