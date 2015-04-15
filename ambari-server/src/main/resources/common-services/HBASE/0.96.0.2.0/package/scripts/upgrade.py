@@ -20,7 +20,7 @@ limitations under the License.
 """
 from resource_management import *
 from resource_management.core.resources.system import Execute
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.decorator import retry
 
@@ -43,7 +43,7 @@ def post_regionserver(env):
 @retry(times=15, sleep_time=2, err_class=Fail)
 def call_and_match(cmd, user, regex):
 
-  code, out = call(cmd, user=user)
+  code, out = shell.call(cmd, user=user)
 
   if not (out and re.search(regex, out)):
     raise Fail("Could not verify RS available")
