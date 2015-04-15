@@ -27,11 +27,11 @@
       </div>
 
       <!--Top menu tabs-->
-      <div class="shared-mine-tabs" id="">
+      <div id="shared-mine-tabs">
         <ul class="nav nav-tabs">
           {{#each category in view.categories}}
             {{#view view.NavItemView itemBinding="category.name" }}
-                <a href="#" {{action "goToWidgetTab" category.name target="view"}} >{{category.label}}</a>
+                <a href="#" {{action "goToWidgetTab" category.name target="view"}} >{{category.label}} ({{view.count}})</a>
             {{/view}}
           {{/each}}
         </ul>
@@ -40,16 +40,19 @@
 
 
       <!--Filters bar: service name filter, status filter here-->
-      <div class="">
+      <div id="services-filter-bar">
+        {{#each service in view.services}}
+          <a {{bindAttr class="service.isActive:active"}} {{action "filterByService" service.value target="view"}}>{{service.label}}</a>
+        {{/each}}
       </div>
 
       <!--Widgets table two column-->
       <div id="widgets-info">
         {{#if view.isWidgetEmptyList}}
-            <div class="no-widgets-text">{{t dashboard.widgets.browser.noWidgets}}</div>
+           <div class="no-widgets-text">{{t dashboard.widgets.browser.noWidgets}}</div>
         {{else}}
           <div class="widgets-info-container row-fluid">
-            {{#each widget in view.content}}
+            {{#each widget in view.filteredContent}}
               <div class="span6 row-fluid widget-info-section">
                 <div class="icon span4">
                   <a class="widget-icon-image" target="_blank"><img {{bindAttr src="widget.iconPath"}}></a>
@@ -91,10 +94,9 @@
       </div>
     </div>
 
-      <div {{bindAttr class="view.filteringComplete:hidden :table-overlay"}}>
-          <div class="spinner"></div>
-      </div>
-
+    <div class="table-overlay">
+       <div class="spinner"></div>
+    </div>
   {{else}}
       <div class="spinner"></div>
   {{/if}}

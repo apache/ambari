@@ -27,6 +27,7 @@
         "widget_name": "MINE_ACTIVE_HANDLER",
         "display_name": "Mine Active Handlers/Calls",
         "widget_type": "GAUGE",
+        "author": "xi",
         "metrics": [
           {
             "name": "ipc.IPC.numOpenConnections",
@@ -53,6 +54,7 @@
         "display_name": "Mine Open Connections",
         "description": "This widget shows number of current open connections",
         "widget_type": "GRAPH",
+        "author": "xi",
         "metrics": [
           {
             "service_name": "HDFS"
@@ -68,6 +70,7 @@
         "display_name": "Mine Files Local",
         "description": "This widget shows percentage of files local.",
         "widget_type": "NUMBER",
+        "author": "xi",
         "metrics": [
           {
             "name": "regionserver.Server.percentFilesLocal",
@@ -96,6 +99,7 @@
         "display_name": "Mine Updated Blocked Time",
         "description": "",
         "widget_type": "GRAPH",
+        "author": "xi",
         "metrics": [
           {
             "service_name": "YARN"
@@ -111,6 +115,7 @@
         "display_name": "MINE WIDGET 1",
         "description": "this is to show .....this is a long description..very long ..very long..very long..very long..very long..very long..very long..very long..very long..very long..very long..very long..very long..very long..very long",
         "widget_type": "GAUGE",
+        "author": "xi",
         "metrics": [
           {
             "service_name": "HBASE"
@@ -129,6 +134,7 @@
         "display_name": "MINE  WIDGET 2",
         "description": "this is to show .....",
         "widget_type": "NUMBER",
+        "author": "xi",
         "metrics": [
           {
             "service_name": "YARN"

@@ -314,6 +314,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @type {boolean}
    */
   isAllSharedWidgetsLoaded: false,
+  isMineWidgetsLoaded: false,
 
   /**
    * @type {Em.A}
@@ -422,6 +423,51 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   allSharedWidgets: [],
+  mineWidgets: [],
+
+  /**
+   * load all mine widgets of current user to show on widget browser
+   * @returns {$.ajax}
+   */
+  loadMineWidgets: function () {
+    this.set('isMineWidgetsLoaded', false);
+    return App.ajax.send({
+      name: 'widgets.all.mine.get',
+      sender: this,
+      data: {
+        loginName: App.router.get('loginName')
+      },
+      success: 'loadMineWidgetsSuccessCallback'
+    });
+  },
+
+  /**
+   * success callback of <code>loadMineWidgets</code>
+   * @param {object|null} data
+   */
+  loadMineWidgetsSuccessCallback: function (data) {
+    var addedWidgetsNames = this.get('widgets').mapProperty('widgetName');
+    if (data.items[0] && data.items.length) {
+      this.set("mineWidgets",
+        data.items.map(function (widget) {
+          var widgetType = widget.Widgets.widget_type;
+          var widgetName = widget.Widgets.widget_name;
+          if (widgetType != "HEATMAP") {
+            return Em.Object.create({
+              iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
+              widgetName: widgetName,
+              displayName: widget.Widgets.display_name,
+              description: widget.Widgets.description,
+              widgetType: widgetType,
+              serviceName: widget.Widgets.metrics.mapProperty('service_name').uniq().join('-'),
+              added: addedWidgetsNames.contains(widgetName)
+            });
+          }
+        })
+      );
+      this.set('isMineWidgetsLoaded', true);
+    }
+  },
 
   /**
    * load widgets defined by stack
@@ -521,6 +567,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         this.hide();
         self.set('isAllSharedWidgetsLoaded', false);
         self.set('allSharedWidgets', []);
+        self.set('isMineWidgetsLoaded', false);
+        self.set('mineWidgets', []);
       },
       autoHeight: false,
       isHideBodyScroll: false,
@@ -530,29 +578,43 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         controller: self,
         willInsertElement: function () {
           this.get('controller').loadAllSharedWidgets();
+          this.get('controller').loadMineWidgets();
         },
-
-        activeTab: 'shared',
-        activeService: this.get('controller.content.serviceName'),
-        activeStatus: '',
-
-        content: function () {
-          return this.get('controller.allSharedWidgets');
-        }.property('controller.allSharedWidgets.length', 'controller.isAllSharedWidgetsLoaded'),
-
-        // content filtered by tab, service name and status.
-        // If tab changed, service/status set to default
-        filteredContent: function () {
-
-        }.property('content', 'activeTab', 'activeService', 'activeStatus'),
 
         isLoaded: function () {
           return !!this.get('controller.isAllSharedWidgetsLoaded');
         }.property('controller.isAllSharedWidgetsLoaded'),
 
         isWidgetEmptyList: function () {
-          return !this.get('content.length');
-        }.property('content.length'),
+          return !this.get('filteredContent.length');
+        }.property('filteredContent.length'),
+
+        activeTab: 'shared',
+        activeService: '',
+        activeStatus: '',
+
+        content: function () {
+          if (this.get('activeTab') == 'mine') {
+            return this.get('controller.mineWidgets');
+          } else if (this.get('activeTab') == 'shared') {
+            return this.get('controller.allSharedWidgets');
+          }
+        }.property('controller.allSharedWidgets.length', 'controller.isAllSharedWidgetsLoaded',
+          'controller.mineWidgets.length', 'controller.isMineWidgetsLoaded', 'activeTab'),
+
+        /**
+         * displaying content filtered by service name and status.
+         */
+        filteredContent: function () {
+          var activeService = this.get('activeService')? this.get('activeService'): this.get('controller.content.serviceName');
+          var result = [];
+          this.get('content').forEach(function(widget) {
+            if (widget.get('serviceName').indexOf(activeService) >= 0){
+              result.pushObject(widget);
+            }
+          });
+          return result;
+        }.property('content', 'activeService', 'activeStatus'),
 
         /**
          * top tabs: Share / Mine
@@ -578,6 +640,14 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
             var label = Em.get(this, 'templateData.keywords.category.label');
             return label ? 'widget-browser-view-tab-' + label.toLowerCase().replace(/\s/g, '-') : "";
           }),
+          count: function () {
+            if (this.get('item') == 'mine') {
+              return this.get('parentView.controller.mineWidgets.length');
+            } else if (this.get('item') == 'shared') {
+              return this.get('parentView.controller.allSharedWidgets.length');
+            }
+          }.property('item', 'parentView.controller.mineWidgets.length',
+            'parentView.controller.allSharedWidgets.length'),
           goToWidgetTab: function (event) {
             var targetName = event.context;
             this.set('parentView.activeTab', targetName);
@@ -587,9 +657,23 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
         /**
          * service name filter
          */
-        serviceNames: function () {
+        services: function () {
+          var view = this;
+          return App.Service.find().map(function (service) {
+            return Em.Object.create({
+              value: service.get('serviceName'),
+              label: service.get('displayName'),
+              isActive: function () {
+                var activeService = view.get('activeService')? view.get('activeService'): view.get('controller.content.serviceName');
+                return this.get('value') == activeService;
+              }.property('value', 'view.activeService')
+            })
+          });
+        }.property('activeService'),
 
-        }.property(),
+        filterByService: function (event) {
+          this.set('activeService', event.context);
+        },
 
         createWidget: function () {
           this.get('parentView').onPrimary();

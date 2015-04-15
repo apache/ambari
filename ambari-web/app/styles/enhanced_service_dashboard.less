@@ -332,6 +332,28 @@
 #widget-browser-popup {
   min-width: 750px;
   max-width: 900px;
+  #shared-mine-tabs {
+    a {
+      font-size: 15px;
+    }
+  }
+  #services-filter-bar {
+    padding: 10px;
+    a {
+      font-size: 14px;
+      padding: 3px;
+    }
+    a:hover {
+      cursor: pointer;
+    }
+    a.active {
+      color: #333;
+    }
+    a.active:hover {
+      text-decoration: none;
+      cursor: default;
+    }
+  }
   #widgets-info {
     .widgets-info-container {
       .span6.widget-info-section {
@@ -379,6 +401,7 @@
       .widget-section-actions {
         position: relative;
         top: -30px;
+        right: 5px;
         .btn {
           padding: 3px 8px;
           width: 60px;

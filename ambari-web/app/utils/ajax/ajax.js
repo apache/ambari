@@ -2411,6 +2411,11 @@ var urls = {
     mock: '/data/widget_layouts/all_shared_widgets.json'
   },
 
+  'widgets.all.mine.get': {
+    real: '/clusters/{clusterName}/widgets?Widgets/author={loginName}&fields=*',
+    mock: '/data/widget_layouts/all_mine_widgets.json'
+  },
+
   'widgets.layout.stackDefined.get': {
     real: '{stackVersionURL}/services/{serviceName}/artifacts/widget_descriptor',
     mock: '/data/widget_layouts/HBASE/stack_layout.json'
