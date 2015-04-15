@@ -91,6 +91,8 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
         handleWidth: 85,
         onSwitchChange: function (event, state) {
           self.set('switcherValue', state);
+          self.get('controller').removeCurrentFromDependentList(self.get('config'));
+          self.sendRequestRorDependentConfigs(self.get('config'));
         }
       });
       this.set('switcher', switcher);

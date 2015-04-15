@@ -219,6 +219,8 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     option.set('order', orderCounter);
     option.toggleProperty('isSelected');
     this.incrementProperty('orderCounter');
+    this.get('controller').removeCurrentFromDependentList(this.get('config'));
+    this.sendRequestRorDependentConfigs(this.get('config'));
     return false;
   },
 

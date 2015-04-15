@@ -122,7 +122,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
 });
 
 /**
- * mixin set class that serve as unique element identificator,
+ * mixin set class that serve as unique element identifier,
  * id not used in order to avoid collision with ember ids
  */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
@@ -152,14 +152,14 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     }
   },
   //Set editDone true for last edited config text field parameter
-  focusOut: function (event) {
+  focusOut: function () {
     if (this.get('serviceConfig.isNotDefaultValue')) {
       this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     }
     this.get('serviceConfig').set("editDone", true);
   },
   //Set editDone false for all current category config text field parameter
-  focusIn: function (event) {
+  focusIn: function () {
     if (!this.get('serviceConfig.isOverridden') && !this.get('serviceConfig.isComparison')) {
       this.get("parentView.categoryConfigsAll").setEach("editDone", false);
     }
@@ -187,7 +187,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
   placeholderBinding: 'serviceConfig.defaultValue',
 
   //Set editDone true for last edited config text field parameter
-  focusOut: function (event) {
+  focusOut: function () {
     if (this.get('serviceConfig.isNotDefaultValue')) {
       this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     }
@@ -775,7 +775,7 @@ App.ServiceConfigMasterHostView = Ember.View.extend(App.ServiceConfigHostPopover
 
 /**
  * text field property view that enables possibility
- * for check connectio
+ * for check connection
  * @type {*}
  */
 App.checkConnectionView = App.ServiceConfigTextField.extend({

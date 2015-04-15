@@ -348,11 +348,12 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * get array of config objects for current service depends on config group
    * for default group - it will be current stepConfigs
-   * for not default group - overriden property in case there is such property in group
+   * for not default group - overridden property in case there is such property in group
    * otherwise - property from default group
    * @param stepConfigs
    * @returns {Object[]}
    * @private
+   * @method _getConfigsByGroup
    */
   _getConfigsByGroup: function(stepConfigs) {
     if (this.get('selectedConfigGroup.isDefault') || this.get('controller.name') === 'wizardStep7Controller') {

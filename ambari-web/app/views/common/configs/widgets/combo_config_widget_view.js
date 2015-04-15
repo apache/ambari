@@ -103,6 +103,8 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   setConfigValue: function(e) {
     this.set('config.value', e.context);
     this.set('content.value', this.generateWidgetValue(e.context));
+    this.get('controller').removeCurrentFromDependentList(this.get('config'));
+    this.sendRequestRorDependentConfigs(this.get('config'));
   },
 
   /**
@@ -110,6 +112,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * @method restoreValue
    */
   restoreValue: function() {
+    this._super();
     this.setConfigValue({ context: this.get('config.defaultValue') });
   }
 

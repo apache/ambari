@@ -164,16 +164,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
-   * view class for text box that is used with slider widget
-   * @type {Em.TextField}
-   */
-  MirrorValueView: Em.TextField.extend({
-    focusOut: function() {
-      this.get('parentView').sendRequestRorDependentConfigs(this.get('parentView.config'));
-    }
-  }),
-
-  /**
    * Check if <code>mirrorValue</code> was updated by user
    * Validate it. If value is correct, set it to slider and config.value
    * @method mirrorValueObs

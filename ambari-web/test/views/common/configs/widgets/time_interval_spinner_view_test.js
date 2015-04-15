@@ -23,6 +23,9 @@ describe('App.TimeIntervalSpinnerView', function () {
 
   beforeEach(function () {
     view = App.TimeIntervalSpinnerView.create({
+      controller: Em.Object.create({
+        removeCurrentFromDependentList: Em.K
+      }),
       initPopover: Em.K,
       checkErrors: Em.K
     });
