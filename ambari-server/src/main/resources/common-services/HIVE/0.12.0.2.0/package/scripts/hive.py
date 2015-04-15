@@ -19,10 +19,54 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries import functions
 import sys
 import os
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hive(name=None):
+  import params
+  XmlConfig("hive-site.xml",
+            conf_dir = params.hive_conf_dir,
+            configurations = params.config['configurations']['hive-site'],
+            owner=params.hive_user,
+            configuration_attributes=params.config['configuration_attributes']['hive-site']
+  )
+  if name in ["hiveserver2","metastore"]:
+    Execute(format("cmd /c hadoop fs -mkdir -p {hive_warehouse_dir}"), logoutput=True, user=params.hadoop_user)
+
+  if name == 'metastore':
+    if params.init_metastore_schema:
+      check_schema_created_cmd = format('cmd /c "{hive_bin}\\hive.cmd --service schematool -info '
+                                        '-dbType {hive_metastore_db_type} '
+                                        '-userName {hive_metastore_user_name} '
+                                        '-passWord {hive_metastore_user_passwd!p}'
+                                        '&set EXITCODE=%ERRORLEVEL%&exit /B %EXITCODE%"', #cmd "feature", propagate the process exit code manually
+                                        hive_bin=params.hive_bin,
+                                        hive_metastore_db_type=params.hive_metastore_db_type,
+                                        hive_metastore_user_name=params.hive_metastore_user_name,
+                                        hive_metastore_user_passwd=params.hive_metastore_user_passwd)
+      try:
+        Execute(check_schema_created_cmd)
+      except Fail:
+        create_schema_cmd = format('cmd /c {hive_bin}\\hive.cmd --service schematool -initSchema '
+                                   '-dbType {hive_metastore_db_type} '
+                                   '-userName {hive_metastore_user_name} '
+                                   '-passWord {hive_metastore_user_passwd!p}',
+                                   hive_bin=params.hive_bin,
+                                   hive_metastore_db_type=params.hive_metastore_db_type,
+                                   hive_metastore_user_name=params.hive_metastore_user_name,
+                                   hive_metastore_user_passwd=params.hive_metastore_user_passwd)
+        Execute(create_schema_cmd,
+                user = params.hive_user,
+                logoutput=True
+        )
+
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive(name=None):
   import params
 
@@ -179,7 +223,6 @@ def fill_conf_dir(component_conf_dir):
          content=StaticFile(format("{component_conf_dir}/{log4j_filename}.template"))
     )
 
-
 def crt_directory(name):
   import params
 
@@ -190,7 +233,6 @@ def crt_directory(name):
             group=params.user_group,
             mode=0755)
 
-
 def crt_file(name):
   import params
 
@@ -198,7 +240,6 @@ def crt_file(name):
        owner=params.hive_user,
        group=params.user_group
   )
-
 
 def jdbc_connector():
   import params

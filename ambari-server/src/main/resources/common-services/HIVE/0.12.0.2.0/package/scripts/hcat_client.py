@@ -21,12 +21,11 @@ limitations under the License.
 import sys
 from resource_management import *
 from hcat import hcat
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyImpl
+
 
 class HCatClient(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hadoop-client"}
-
   def install(self, env):
     import params
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
@@ -39,6 +38,17 @@ class HCatClient(Script):
 
   def status(self, env):
     raise ClientComponentHasNoStatus()
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HCatClientWindows(HCatClient):
+  pass
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HCatClientDefault(HCatClient):
+  def get_stack_to_component(self):
+    return {"HDP": "hadoop-client"}
 
 
 if __name__ == "__main__":

@@ -23,7 +23,23 @@ import sys
 import os
 import time
 from resource_management.core import shell
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hive_service(name, action='start', rolling_restart=False):
+  import params
+  if name == 'metastore':
+    if action == 'start' or action == 'stop':
+      Service(params.hive_metastore_win_service_name, action=action)
+
+  if name == 'hiveserver2':
+    if action == 'start' or action == 'stop':
+      Service(params.hive_server_win_service_name, action=action)
+
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hive_service(name, action='start', rolling_restart=False):
 
   import params

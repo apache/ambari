@@ -27,22 +27,43 @@ from resource_management.libraries.functions.security_commons import build_expec
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
 from setup_ranger_hive import setup_ranger_hive
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
+
 
 class HiveServer(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hive-server2"}
-
   def install(self, env):
     import params
     self.install_packages(env, exclude_packages=params.hive_exclude_packages)
-
 
   def configure(self, env):
     import params
     env.set_params(params)
     hive(name='hiveserver2')
 
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HiveServerWindows(HiveServer):
+  def start(self, env):
+    import params
+    env.set_params(params)
+    self.configure(env) # FOR SECURITY
+    hive_service('hiveserver2', action='start')
+
+  def stop(self, env):
+    import params
+    env.set_params(params)
+    hive_service('hiveserver2', action='stop')
+
+  def status(self, env):
+    import status_params
+    check_windows_service_status(status_params.hive_server_win_service_name)
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HiveServerDefault(HiveServer):
+  def get_stack_to_component(self):
+    return {"HDP": "hive-server2"}
 
   def start(self, env, rolling_restart=False):
     import params
@@ -55,7 +76,6 @@ class HiveServer(Script):
     hive_service( 'hiveserver2', action = 'start',
       rolling_restart=rolling_restart )
 
-
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
@@ -65,7 +85,6 @@ class HiveServer(Script):
     else:
       hive_service( 'hiveserver2', action = 'stop' )
 
-
   def status(self, env):
     import status_params
     env.set_params(status_params)
@@ -73,7 +92,6 @@ class HiveServer(Script):
 
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
-
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing HiveServer2 Rolling Upgrade pre-restart")
@@ -84,7 +102,6 @@ class HiveServer(Script):
       Execute(format("hdp-select set hive-server2 {version}"))
       copy_tarballs_to_hdfs('mapreduce', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
       copy_tarballs_to_hdfs('tez', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
-
 
   def security_status(self, env):
     import status_params

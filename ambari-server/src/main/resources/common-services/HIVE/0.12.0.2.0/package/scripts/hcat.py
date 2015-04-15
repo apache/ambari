@@ -20,8 +20,23 @@ limitations under the License.
 
 from resource_management import *
 import sys
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hcat():
+  import params
+
+  XmlConfig("hive-site.xml",
+            conf_dir = params.hive_conf_dir,
+            configurations = params.config['configurations']['hive-site'],
+            owner=params.hive_user,
+            configuration_attributes=params.config['configuration_attributes']['hive-site']
+  )
+
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hcat():
   import params
 

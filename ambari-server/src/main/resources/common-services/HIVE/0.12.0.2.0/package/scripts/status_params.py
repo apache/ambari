@@ -23,29 +23,34 @@ from ambari_commons.os_check import OSCheck
 
 config = Script.get_config()
 
-hive_pid_dir = config['configurations']['hive-env']['hive_pid_dir']
-hive_pid = 'hive-server.pid'
-
-hive_metastore_pid = 'hive.pid'
-
-hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
-webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
-
-process_name = 'mysqld'
-if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
-  daemon_name = 'mysql'
+if OSCheck.is_windows_family():
+  hive_metastore_win_service_name = "metastore"
+  hive_client_win_service_name = "hwi"
+  hive_server_win_service_name = "hiveserver2"
+  webhcat_server_win_service_name = "templeton"
 else:
-  daemon_name = 'mysqld'
+  hive_pid_dir = config['configurations']['hive-env']['hive_pid_dir']
+  hive_pid = 'hive-server.pid'
 
+  hive_metastore_pid = 'hive.pid'
 
-# Security related/required params
-hostname = config['hostname']
-security_enabled = config['configurations']['cluster-env']['security_enabled']
-hadoop_conf_dir = "/etc/hadoop/conf"
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
-tmp_dir = Script.get_tmp_dir()
-hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
-hive_user = config['configurations']['hive-env']['hive_user']
-hive_conf_dir = "/etc/hive/conf"
-webhcat_user = config['configurations']['hive-env']['webhcat_user']
-webhcat_conf_dir = '/etc/hive-webhcat/conf'
+  hcat_pid_dir = config['configurations']['hive-env']['hcat_pid_dir'] #hcat_pid_dir
+  webhcat_pid_file = format('{hcat_pid_dir}/webhcat.pid')
+
+  process_name = 'mysqld'
+  if OSCheck.is_suse_family() or OSCheck.is_ubuntu_family():
+    daemon_name = 'mysql'
+  else:
+    daemon_name = 'mysqld'
+
+  # Security related/required params
+  hostname = config['hostname']
+  security_enabled = config['configurations']['cluster-env']['security_enabled']
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+  tmp_dir = Script.get_tmp_dir()
+  hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
+  hive_user = config['configurations']['hive-env']['hive_user']
+  hive_conf_dir = "/etc/hive/conf"
+  webhcat_user = config['configurations']['hive-env']['webhcat_user']
+  webhcat_conf_dir = '/etc/hive-webhcat/conf'

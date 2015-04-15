@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from status_params import *
 
 # server configurations
 config = Script.get_config()
@@ -47,9 +48,7 @@ hive_metastore_db_type = config['configurations']['hive-env']['hive_database_typ
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 
-######## Metastore Schema
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
-  init_metastore_schema = False
-else:
-  init_metastore_schema = True
+hive_exclude_packages = []
 
+######## Metastore Schema
+init_metastore_schema = config['configurations']['hive-site']['datanucleus.autoCreateSchema']

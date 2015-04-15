@@ -24,6 +24,10 @@
       <version>0.13.0.2.1.1.0</version>
       <components>
         <component>
+          <name>MYSQL_SERVER</name>
+          <deleted>true</deleted>
+        </component>
+        <component>
           <name>HIVE_CLIENT</name>
           <configFiles>
             <configFile>

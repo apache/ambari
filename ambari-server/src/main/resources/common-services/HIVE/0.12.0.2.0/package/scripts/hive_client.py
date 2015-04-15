@@ -19,34 +19,42 @@ limitations under the License.
 """
 import sys
 from resource_management import *
-
 from hive import hive
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
+
 
 class HiveClient(Script):
+  def install(self, env):
+    import params
+    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
+    self.configure(env)
 
+  def status(self, env):
+    raise ClientComponentHasNoStatus()
+
+  def configure(self, env):
+    import params
+    env.set_params(params)
+    hive(name='client')
+
+
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HiveClientWindows(HiveClient):
+  pass
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HiveClientDefault(HiveClient):
   def get_stack_to_component(self):
     return {"HDP": "hadoop-client"}
 
   def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
-
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hadoop-client {version}"))
 
-  def install(self, env):
-    import params
-    self.install_packages(env, exclude_packages=params.hive_exclude_packages)
-    self.configure(env)
-
-  def configure(self, env):
-    import params
-    env.set_params(params)
-
-    hive(name='client')
-
-  def status(self, env):
-    raise ClientComponentHasNoStatus()
 
 if __name__ == "__main__":
   HiveClient().execute()

@@ -21,13 +21,23 @@ Ambari Agent
 import sys
 import os.path
 import glob
-
 from resource_management import *
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def webhcat():
+  import params
+  XmlConfig("webhcat-site.xml",
+            conf_dir=params.hcat_config_dir,
+            configurations=params.config['configurations']['webhcat-site']
+  )
 
 
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def webhcat():
   import params
 

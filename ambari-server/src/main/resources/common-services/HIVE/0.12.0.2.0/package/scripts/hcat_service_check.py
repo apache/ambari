@@ -20,7 +20,18 @@ limitations under the License.
 
 from resource_management import *
 from resource_management.libraries.functions import get_unique_id_and_date
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def hcat_service_check():
+  import params
+  smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
+  service = "HCatalog"
+  Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hcat_user, logoutput=True)
+
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hcat_service_check():
     import params
     unique = get_unique_id_and_date()

@@ -25,50 +25,50 @@ from resource_management.libraries.functions.security_commons import build_expec
   FILE_TYPE_XML
 from hive import hive
 from hive_service import hive_service
+from ambari_commons.os_family_impl import OsFamilyImpl
+from ambari_commons import OSConst
 
 
 class HiveMetastore(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "hive-metastore"}
-
   def install(self, env):
     import params
-
     self.install_packages(env, exclude_packages = params.hive_exclude_packages)
 
+  def start(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    self.configure(env)  # FOR SECURITY
+    hive_service('metastore', action='start')
+
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    hive_service('metastore', action='stop')
 
   def configure(self, env):
     import params
-
     env.set_params(params)
-
     hive(name = 'metastore')
 
 
-  def start(self, env, rolling_restart = False):
-    import params
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class HiveMetastoreWindows(HiveMetastore):
+  def status(self, env):
+    import status_params
+    check_windows_service_status(status_params.hive_metastore_win_service_name)
 
-    env.set_params(params)
-    self.configure(env)  # FOR SECURITY
-    hive_service('metastore', action = 'start')
 
-
-  def stop(self, env, rolling_restart = False):
-    import params
-
-    env.set_params(params)
-    hive_service('metastore', action = 'stop' )
-
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class HiveMetastoreDefault(HiveMetastore):
+  def get_stack_to_component(self):
+    return {"HDP": "hive-metastore"}
 
   def status(self, env):
     import status_params
-
     env.set_params(status_params)
     pid_file = format("{hive_pid_dir}/{hive_metastore_pid}")
     # Recursively check all existing gmetad pid files
     check_process_status(pid_file)
-
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing Metastore Rolling Upgrade pre-restart")
@@ -77,7 +77,6 @@ class HiveMetastore(Script):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       Execute(format("hdp-select set hive-metastore {version}"))
-
 
   def security_status(self, env):
     import status_params

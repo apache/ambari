@@ -19,7 +19,18 @@ limitations under the License.
 """
 
 from resource_management import *
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+from ambari_commons import OSConst
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def webhcat_service_check():
+  import params
+  smoke_cmd = os.path.join(params.hdp_root,"Run-SmokeTests.cmd")
+  service = "WEBHCAT"
+  Execute(format("cmd /C {smoke_cmd} {service}"), user=params.hcat_user, logoutput=True)
+
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def webhcat_service_check():
   import params
   File(format("{tmp_dir}/templetonSmoke.sh"),
