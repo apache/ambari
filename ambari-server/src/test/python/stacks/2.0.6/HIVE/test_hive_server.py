@@ -25,6 +25,7 @@ from resource_management.core import shell
 from resource_management.libraries.functions import dynamic_variable_interpretation
 from stacks.utils.RMFTestCase import *
 
+@patch("resource_management.libraries.functions.check_thrift_port_sasl", new=MagicMock())
 class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -41,11 +42,9 @@ class TestHiveServer(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call", new=MagicMock(return_value=(0, '')))
-  @patch.object(subprocess,"Popen")
   @patch("socket.socket")
   @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
-  def test_start_default(self, socket_mock, popen_mock):
+  def test_start_default(self, socket_mock):
     s = socket_mock.return_value
     
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -57,6 +56,11 @@ class TestHiveServer(RMFTestCase):
     )
 
     self.assert_configure_default()
+
+    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
+        environment = {'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+        user = 'hive',
+    )
     self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
                               not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
                               environment = {'HADOOP_HOME' : '/usr', 'JAVA_HOME':'/usr/jdk64/jdk1.7.0_45'},
@@ -98,7 +102,6 @@ class TestHiveServer(RMFTestCase):
     )
     
     self.assertNoMoreResources()
-    self.assertFalse(socket_mock.called)
 
     
   def test_configure_secured(self):
@@ -175,7 +178,6 @@ class TestHiveServer(RMFTestCase):
     )
     
     self.assertNoMoreResources()
-    self.assertFalse(socket_mock.called)
 
   def assert_configure_default(self):
     self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
@@ -469,20 +471,19 @@ class TestHiveServer(RMFTestCase):
       self.fail("Script failure due to socket error was expected")
     except:
       self.assert_configure_default()
-      self.assertFalse(socket_mock.called)
-      self.assertFalse(s.close.called)
 
 
   @patch("hive_server.HiveServer.pre_rolling_restart")
   @patch("hive_server.HiveServer.start")
-  @patch.object(shell, "call", new=MagicMock(return_value=(0,"hive-server2 - 2.2.0.0-2041")))
   def test_stop_during_upgrade(self, hive_server_start_mock,
     hive_server_pre_rolling_mock):
     
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
      classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
-     target = RMFTestCase.TARGET_COMMON_SERVICES )
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = [(0,"hive-server2 - 2.2.0.0-2041"), (0,"hive-server2 - 2.2.0.0-2041")]
+    )
 
     self.assertResourceCalled('Execute', 'hive --service hiveserver2 --deregister 2.2.0.0-2041',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
@@ -493,14 +494,13 @@ class TestHiveServer(RMFTestCase):
 
   @patch("hive_server.HiveServer.pre_rolling_restart")
   @patch("hive_server.HiveServer.start")
-  @patch.object(shell, "call", new=MagicMock(return_value=(0,"BAD VERSION")))
-  def test_stop_during_upgrade_bad_hive_version(self, hive_server_start_mock,
-    hive_server_pre_rolling_mock):
+  def test_stop_during_upgrade_bad_hive_version(self, hive_server_start_mock, hive_server_pre_rolling_mock):
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
        classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
        hdp_stack_version = self.UPGRADE_STACK_VERSION,
-       target = RMFTestCase.TARGET_COMMON_SERVICES )
+       target = RMFTestCase.TARGET_COMMON_SERVICES,
+       call_mocks = [(0,"BAD VERSION")])
 
       self.fail("Invalid hive version should have caused an exception")
     except:

@@ -794,8 +794,7 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob")
   @patch("shutil.copy2", new = MagicMock())
-  @patch.object(shell, "call")
-  def test_upgrade(self, call_mock, glob_mock, chmod_mock, remove_mock,
+  def test_upgrade(self, glob_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
     isdir_mock.return_value = True
@@ -806,12 +805,12 @@ class TestOozieServer(RMFTestCase):
     prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
     New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
 
-    call_mock.return_value = (0, prepare_war_stdout)
-
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
      classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-upgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
-     target = RMFTestCase.TARGET_COMMON_SERVICES )
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = [(0, prepare_war_stdout)]
+    )
 
     # 2 calls to tarfile.open (1 directories, read + write)
     self.assertTrue(tarfile_open_mock.called)
@@ -846,8 +845,7 @@ class TestOozieServer(RMFTestCase):
   @patch("os.chmod")
   @patch("shutil.rmtree", new = MagicMock())
   @patch("shutil.copy2", new = MagicMock())
-  @patch.object(shell, "call")
-  def test_downgrade_no_compression_library_copy(self, call_mock, chmod_mock, remove_mock,
+  def test_downgrade_no_compression_library_copy(self, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
     isdir_mock.return_value = True
@@ -857,12 +855,11 @@ class TestOozieServer(RMFTestCase):
     prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
     New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
 
-    call_mock.return_value = (0, prepare_war_stdout)
-
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
      classname = "OozieServer", command = "pre_rolling_restart", config_file = "oozie-downgrade.json",
      hdp_stack_version = self.UPGRADE_STACK_VERSION,
-     target = RMFTestCase.TARGET_COMMON_SERVICES )
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = [(0, prepare_war_stdout)])
 
     # 2 calls to tarfile.open (1 directories, read + write)
     self.assertTrue(tarfile_open_mock.called)
@@ -892,15 +889,12 @@ class TestOozieServer(RMFTestCase):
   @patch("shutil.rmtree", new = MagicMock())
   @patch("glob.iglob", new = MagicMock(return_value=["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]))
   @patch("shutil.copy2")
-  @patch.object(shell, "call")
-  def test_upgrade_failed_prepare_war(self, call_mock, shutil_copy_mock, chmod_mock, remove_mock,
+  def test_upgrade_failed_prepare_war(self, shutil_copy_mock, chmod_mock, remove_mock,
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
     isdir_mock.return_value = True
     exists_mock.side_effect = [False,False,True]
     isfile_mock.return_value = True
-
-    call_mock.return_value = (0, 'Whoops, you messed up the WAR.')
 
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",

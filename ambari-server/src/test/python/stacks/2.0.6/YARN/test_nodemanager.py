@@ -631,34 +631,32 @@ class TestNodeManager(RMFTestCase):
                               )
 
   @patch('time.sleep')
-  @patch.object(shell, "call")
-  def test_post_rolling_restart(self, process_mock, time_mock):
+  def test_post_rolling_restart(self, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
-
-    process_mock.return_value = (0, process_output)
-
+    mocks_dict = {}
+    
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                        classname="Nodemanager",
                        command = "post_rolling_restart",
                        config_file="default.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, process_output)],
+                       mocks_dict = mocks_dict
     )
 
-    self.assertTrue(process_mock.called)
-    self.assertEqual(process_mock.call_count,1)
+    self.assertTrue(mocks_dict['call'].called)
+    self.assertEqual(mocks_dict['call'].call_count,1)
 
 
   @patch('time.sleep')
-  @patch.object(shell, "call")
-  def test_post_rolling_restart_nodemanager_not_ready(self, process_mock, time_mock):
+  def test_post_rolling_restart_nodemanager_not_ready(self, time_mock):
     process_output = """
       c9999.ambari.apache.org:45454  RUNNING  c9999.ambari.apache.org:8042  0
     """
-
-    process_mock.return_value = (0, process_output)
+    mocks_dict = {}
 
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
@@ -666,35 +664,37 @@ class TestNodeManager(RMFTestCase):
                          command = "post_rolling_restart",
                          config_file="default.json",
                          hdp_stack_version = self.STACK_VERSION,
-                         target = RMFTestCase.TARGET_COMMON_SERVICES
+                         target = RMFTestCase.TARGET_COMMON_SERVICES,
+                         call_mocks = [(0, process_output)],
+                         mocks_dict = mocks_dict,
       )
       self.fail('Missing NodeManager should have caused a failure')
     except Fail,fail:
-      self.assertTrue(process_mock.called)
-      self.assertEqual(process_mock.call_count,12)
+      self.assertTrue(mocks_dict['call'].called)
+      self.assertEqual(mocks_dict['call'].call_count,12)
 
 
   @patch('time.sleep')
-  @patch.object(shell, "call")
-  def test_post_rolling_restart_nodemanager_not_ready(self, process_mock, time_mock):
+  def test_post_rolling_restart_nodemanager_not_ready(self, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
     """
-
-    process_mock.return_value = (999, process_output)
-
+    mocks_dict = {}
+    
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/nodemanager.py",
                          classname="Nodemanager",
                          command = "post_rolling_restart",
                          config_file="default.json",
                          hdp_stack_version = self.STACK_VERSION,
-                         target = RMFTestCase.TARGET_COMMON_SERVICES
+                         target = RMFTestCase.TARGET_COMMON_SERVICES,
+                         call_mocks = [(999, process_output)],
+                         mocks_dict = mocks_dict,
       )
       self.fail('Invalid return code should cause a failure')
     except Fail,fail:
-      self.assertTrue(process_mock.called)
-      self.assertEqual(process_mock.call_count,12)
+      self.assertTrue(mocks_dict['call'].called)
+      self.assertEqual(mocks_dict['call'].call_count,12)
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")

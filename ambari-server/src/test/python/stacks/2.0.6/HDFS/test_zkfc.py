@@ -207,7 +207,6 @@ class TestZkfc(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call", new=MagicMock(return_value=(0,"")))
   def test_start_with_ha_active_namenode_bootstrap(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",
@@ -270,7 +269,6 @@ class TestZkfc(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call", new=MagicMock(return_value=(2,"")))
   def test_start_with_ha_standby_namenode_bootstrap(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zkfc_slave.py",
                        classname = "ZkfcSlave",

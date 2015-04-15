@@ -43,14 +43,14 @@ class TestNamenode(RMFTestCase):
     self.assert_configure_default()
     self.assertNoMoreResources()
 
-  @patch.object(shell, "call", new=MagicMock(return_value=(5,"")))
   def test_start_default_alt_fs(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
                        config_file = "altfs_plus_hdfs.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(5,"")],
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
@@ -135,14 +135,14 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
     pass
 
-  @patch.object(shell, "call", new=MagicMock(return_value=(5,"")))
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
                        config_file = "default.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(5,"")],
     )
     self.assert_configure_default()
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
@@ -259,14 +259,14 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch.object(shell, "call", new=MagicMock(return_value=(5,"")))
   def test_start_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "start",
                        config_file = "secured.json",
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(5,"")],
     )
     self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'ls /hadoop/hdfs/namenode | wc -l  | grep -q ^0$',)
@@ -1082,23 +1082,19 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-
-  @patch.object(shell, "call")
-  def test_prepare_rolling_upgrade__upgrade(self, shell_call_mock):
+  def test_prepare_rolling_upgrade__upgrade(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/secured.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     json_content['commandParams']['upgrade_direction'] = 'upgrade'
-
-    # Mock safemode_check call
-    shell_call_mock.return_value = 0, "Safe mode is OFF in c6401.ambari.apache.org"
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",
                        command = "prepare_rolling_upgrade",
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
-                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, "Safe mode is OFF in c6401.ambari.apache.org")])
     self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/hdfs.headless.keytab hdfs',)
     self.assertResourceCalled('Execute', 'hdfs dfsadmin -rollingUpgrade prepare',
                               logoutput = True,
