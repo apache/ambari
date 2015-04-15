@@ -177,8 +177,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   getRecommendationsForDependencies: function(changedConfigs, initial, onComplete) {
     if (Em.isArray(changedConfigs) && changedConfigs.length > 0 || initial) {
       var recommendations = this.get('hostGroups');
-      var configs = this._getConfigsByGroup(this.get('stepConfigs'));
-      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), configs);
+      recommendations.blueprint.configurations = blueprintUtils.buildConfigsJSON(this.get('services'), this.get('stepConfigs'));
 
       var dataToSend = {
         recommend: 'configurations',
@@ -298,7 +297,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         var dependentConfig = dependentConfigs.filterProperty('propertyName', cp.get('name')).findProperty('fileName', App.config.getConfigTagFromFileName(cp.get('filename')));
         if (dependentConfig) {
           var valueToSave = dependentConfig.saveRecommended ? dependentConfig.recommendedValue : dependentConfig.value;
-          if (selectedGroup.get('isDefault')) {
+          if (!selectedGroup || selectedGroup.get('isDefault')) {
             cp.set('value', valueToSave);
           } else {
             if (serviceConfigs.get('serviceName') !== self.get('content.serviceName')) {
@@ -327,16 +326,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * get config group object for current service
    * @param serviceName
-   * @returns {*}
+   * @returns {App.ConfigGroup|null}
    */
   getGroupForService: function(serviceName) {
-    if (this.get('content.serviceName') === serviceName) {
-      return this.get('selectedConfigGroup')
+    if (this.get('stepConfigs.length') === 0) return null;
+    if (this.get('name') === 'wizardStep7Controller') {
+      return this.get('stepConfigs').findProperty('serviceName', serviceName).get('selectedConfigGroup');
     } else {
-      if (this.get('selectedConfigGroup.isDefault')) {
-        return this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
+      if (this.get('content.serviceName') === serviceName) {
+        return this.get('selectedConfigGroup')
       } else {
-        return this.get('dependentConfigGroups').findProperty('name', this.get('groupsToSave')[serviceName]);
+        if (this.get('selectedConfigGroup.isDefault')) {
+          return this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
+        } else {
+          return this.get('dependentConfigGroups').findProperty('name', this.get('groupsToSave')[serviceName]);
+        }
       }
     }
   },
@@ -442,10 +446,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
           var stackProperty = App.StackConfigProperty.find(propertyName + '_' + key);
           if (stackProperty && stackProperty.get('valueAttributes')) {
-            if (configs[key].property_attributes[propertyName].min) {
+            if (configs[key].property_attributes[propertyName].minimum) {
               stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].minimum);
             }
-            if (configs[key].property_attributes[propertyName].max) {
+            if (configs[key].property_attributes[propertyName].maximum) {
               stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].maximum);
             }
             if (configs[key].property_attributes[propertyName].increment_step) {

@@ -203,7 +203,7 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
     else {
       value *= factor;
     }
-    return isInt(value) ? value : parseFloat(value.toFixed(2));
+    return isInt(value) ? value : parseFloat(value.toFixed(3));
   }
 
 });

@@ -41,7 +41,8 @@ App.ConvertUnitWidgetViewMixin = Em.Mixin.create(App.BaseUnitConvertMixin, {
    * @method configValueByWidget
    */
   configValueByWidget: function(value) {
-    return '' + this.convertValue(value, this._converterGetWidgetUnits(), this._converterGetPropertyAttributes());
+    var cfgValue = this.convertValue(value, this._converterGetWidgetUnits(), this._converterGetPropertyAttributes());
+    return '' + this.get('config.stackConfigProperty.valueAttributes.type') === 'int' ? Math.round(cfgValue) : cfgValue;
   },
 
   /**

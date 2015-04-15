@@ -172,32 +172,4 @@ describe('App.SliderConfigWidgetView', function () {
     });
   });
 
-  describe('#prepareValueAttributes', function () {
-
-    it('should parse string to int', function () {
-
-      var max = viewInt.get('config.stackConfigProperty.valueAttributes.maximum'),
-        min = viewInt.get('config.stackConfigProperty.valueAttributes.minimum');
-      viewInt.set('config.stackConfigProperty.valueAttributes.maximum', '' + max);
-      viewInt.set('config.stackConfigProperty.valueAttributes.minimum', '' + min);
-      viewInt.prepareValueAttributes();
-      expect(viewInt.get('config.stackConfigProperty.valueAttributes.maximum')).to.equal(max);
-      expect(viewInt.get('config.stackConfigProperty.valueAttributes.minimum')).to.equal(min);
-
-    });
-
-    it('should parse string to float', function () {
-
-      var max = viewFloat.get('config.stackConfigProperty.valueAttributes.maximum'),
-        min = viewFloat.get('config.stackConfigProperty.valueAttributes.minimum');
-      viewFloat.set('config.stackConfigProperty.valueAttributes.maximum', '' + max);
-      viewFloat.set('config.stackConfigProperty.valueAttributes.minimum', '' + min);
-      viewFloat.prepareValueAttributes();
-      expect(viewFloat.get('config.stackConfigProperty.valueAttributes.maximum')).to.equal(max);
-      expect(viewFloat.get('config.stackConfigProperty.valueAttributes.minimum')).to.equal(min);
-
-    });
-
-  });
-
 });
