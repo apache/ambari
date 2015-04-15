@@ -34,6 +34,7 @@
     <module>favorite-view</module>
     <module>phone-list-view</module>
     <module>calculator-view</module>
+    <module>cluster-view</module>
     <module>weather-view</module>
     <module>restricted-view</module>
     <module>simple-view</module>
