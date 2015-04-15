@@ -445,7 +445,7 @@ public class QueryImpl implements Query, ResourceInstance {
             new QueryResult(request, queryPredicate, subResourcePredicate, map, new QueryResponseImpl(resourceSet)));
         }
       }
-      clusterController.populateResources(resourceType, providerResourceSet, request, null);
+      clusterController.populateResources(resourceType, providerResourceSet, request, subResourcePredicate);
       subResource.queryForSubResources();
     }
   }

@@ -23,6 +23,7 @@ package org.apache.ambari.server.api.query;
 import static org.easymock.EasyMock.anyBoolean;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -298,6 +299,78 @@ public class QueryImplTest {
       //expected
     }
     verify(clusterController, queryResponse, schema, renderer);
+  }
+
+  @Test
+  public void testExecute_SubResourcePropertyPredicate() throws Exception {
+    ResourceDefinition resourceDefinition = new ClusterResourceDefinition();
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Cluster, "c1");
+    mapIds.put(Resource.Type.Host, "h1");
+
+    ClusterController clusterController = createNiceMock(ClusterController.class);
+    QueryResponse clusterResponse = createNiceMock(QueryResponse.class);
+    QueryResponse hostResponse = createNiceMock(QueryResponse.class);
+    Schema clusterSchema = createNiceMock("ClusterSchema", Schema.class);
+    Schema hostSchema = createNiceMock("HostSchema", Schema.class);
+    Renderer renderer = createNiceMock(Renderer.class);
+    Resource clusterResource = createMock("ClusterResource", Resource.class);
+    Resource hostResource = createMock("HostResource", Resource.class);
+    Set<Resource> clusterResources = Collections.singleton(clusterResource);
+    Set<Resource> hostResources = Collections.singleton(hostResource);
+    Iterable<Resource> iterable = createNiceMock(Iterable.class);
+    Iterator<Resource> iterator = createNiceMock(Iterator.class);
+
+    expect(clusterController.getSchema(Resource.Type.Cluster)).andReturn(clusterSchema).anyTimes();
+    expect(clusterController.getSchema(Resource.Type.Host)).andReturn(hostSchema).anyTimes();
+
+    expect(clusterController.getResources(eq(Resource.Type.Cluster),
+      anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class))).
+      andReturn(clusterResponse);
+
+    // Expect this call with a predicate passed down
+    expect(clusterController.getResources(eq(Resource.Type.Host),
+      anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class))).
+      andReturn(hostResponse);
+
+    expect(iterable.iterator()).andReturn(iterator).anyTimes();
+    expect(iterator.hasNext()).andReturn(false).anyTimes();
+
+    expect(clusterResponse.getResources()).andReturn(clusterResources).anyTimes();
+    expect(hostResponse.getResources()).andReturn(hostResources).anyTimes();
+    expect(clusterResource.getType()).andReturn(Resource.Type.Cluster).anyTimes();
+    expect(hostResource.getType()).andReturn(Resource.Type.Host).anyTimes();
+
+    expect(clusterSchema.getKeyPropertyId(Resource.Type.Cluster)).andReturn("Clusters/cluster_name").anyTimes();
+    expect(clusterSchema.getKeyTypes()).andReturn(Collections.singleton(Resource.Type.Cluster)).anyTimes();
+    expect(hostSchema.getKeyPropertyId(Resource.Type.Cluster)).andReturn(null).anyTimes();
+    expect(hostSchema.getKeyPropertyId(Resource.Type.Host)).andReturn("Hosts/host_name").anyTimes();
+    expect(hostSchema.getKeyTypes()).andReturn(Collections.singleton(Resource.Type.Host)).anyTimes();
+
+    expect(clusterResource.getPropertyValue("Clusters/cluster_name")).andReturn("c1").anyTimes();
+
+    TreeNode<Set<String>> treeNode = new TreeNodeImpl<Set<String>>(null, Collections.EMPTY_SET, null);
+    expect(renderer.finalizeProperties(anyObject(TreeNode.class), anyBoolean())).andReturn(treeNode).anyTimes();
+
+    expect(clusterController.getIterable(eq(Resource.Type.Cluster), anyObject(QueryResponse.class),
+      anyObject(org.apache.ambari.server.controller.spi.Request.class), anyObject(Predicate.class),
+      anyObject(PageRequest.class), anyObject(SortRequest.class))).andReturn(iterable).anyTimes();
+
+    replay(clusterController, clusterResponse, clusterSchema, renderer,
+      hostSchema, clusterResource, hostResource, hostResponse, iterable, iterator);
+
+    //test
+    QueryImpl query = new TestQuery(mapIds, resourceDefinition, clusterController);
+    query.setUserPredicate(new PredicateBuilder()
+      .property("hosts/Hosts/host_name").equals("h1").and()
+      .property("metrics/boottime").equals("value").toPredicate());
+    query.setRenderer(renderer);
+
+    query.execute();
+
+    verify(clusterController, clusterResponse, clusterSchema, renderer,
+      hostSchema, clusterResource, hostResource, hostResponse, iterable, iterator);
   }
 
   @Test
