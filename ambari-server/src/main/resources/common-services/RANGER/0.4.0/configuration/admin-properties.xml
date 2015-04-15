@@ -42,7 +42,6 @@
   <property>
     <name>db_root_user</name>
     <value>root</value>
-    <property-type>USER</property-type>
     <description>Database admin user</description>
   </property>
 
@@ -68,7 +67,6 @@
   <property>
     <name>db_user</name>
     <value>rangeradmin</value>
-    <property-type>USER</property-type>
     <description>Database user-id used for the Ranger schema</description>
   </property>
 
@@ -88,7 +86,6 @@
   <property>
     <name>audit_db_user</name>
     <value>rangerlogger</value>
-    <property-type>USER</property-type>
     <description>Database user-id for storing auditlog information</description>
   </property>
 
