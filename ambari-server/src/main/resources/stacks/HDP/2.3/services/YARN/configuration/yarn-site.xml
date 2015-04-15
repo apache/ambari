@@ -40,6 +40,8 @@
   </property>
   <property>
     <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
+    <description>ContainerExecutor for launching containers</description>
     <depends-on>
       <property>
         <type>yarn-env</type>
