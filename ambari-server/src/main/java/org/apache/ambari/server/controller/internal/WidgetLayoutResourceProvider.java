@@ -59,14 +59,14 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
 
   // ----- Property ID constants ---------------------------------------------
 
-  public static final String WIDGETLAYOUT_ID_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "id");
-  public static final String WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "cluster_name");
-  public static final String WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "section_name");
-  public static final String WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetLayouts", "layout_name");
-  public static final String WIDGETLAYOUT_SCOPE_PROPERTY_ID                  = PropertyHelper.getPropertyId("WidgetLayouts", "scope");
-  public static final String WIDGETLAYOUT_INFO_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "WidgetInfo");
-  public static final String WIDGETLAYOUT_USERNAME_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "user_name");
-  public static final String WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID                   = PropertyHelper.getPropertyId("WidgetLayouts", "display_name");
+  public static final String WIDGETLAYOUT_ID_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "id");
+  public static final String WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "cluster_name");
+  public static final String WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "section_name");
+  public static final String WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "layout_name");
+  public static final String WIDGETLAYOUT_SCOPE_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "scope");
+  public static final String WIDGETLAYOUT_WIDGETS_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "widgets");
+  public static final String WIDGETLAYOUT_USERNAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "user_name");
+  public static final String WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("WidgetLayoutInfo", "display_name");
   public static enum SCOPE {
     CLUSTER,
     USER
@@ -86,7 +86,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       add(WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID);
       add(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID);
       add(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID);
-      add(WIDGETLAYOUT_INFO_PROPERTY_ID);
+      add(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
       add(WIDGETLAYOUT_SCOPE_PROPERTY_ID);
       add(WIDGETLAYOUT_USERNAME_PROPERTY_ID);
       add(WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID);
@@ -133,7 +133,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
               WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID,
               WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID,
               WIDGETLAYOUT_SCOPE_PROPERTY_ID,
-              WIDGETLAYOUT_INFO_PROPERTY_ID,
+              WIDGETLAYOUT_WIDGETS_PROPERTY_ID,
               WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID,
               WIDGETLAYOUT_USERNAME_PROPERTY_ID
           };
@@ -145,7 +145,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
           final WidgetLayoutEntity entity = new WidgetLayoutEntity();
           String userName = getUserName(properties);
 
-          Set widgetsSet = (LinkedHashSet) properties.get(WIDGETLAYOUT_INFO_PROPERTY_ID);
+          Set widgetsSet = (LinkedHashSet) properties.get(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
 
           String clusterName = properties.get(WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID).toString();
           entity.setLayoutName(properties.get(WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID).toString());
@@ -235,10 +235,10 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : widgetLayoutUserWidgetEntityList) {
         WidgetEntity widgetEntity = widgetLayoutUserWidgetEntity.getWidget();
         HashMap<String, Object> widgetInfoMap = new HashMap<String, Object>();
-        widgetInfoMap.put("Widget",WidgetResponse.coerce(widgetEntity));
+        widgetInfoMap.put("WidgetInfo",WidgetResponse.coerce(widgetEntity));
         widgets.add(widgetInfoMap);
       }
-      resource.setProperty(WIDGETLAYOUT_INFO_PROPERTY_ID, widgets);
+      resource.setProperty(WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgets);
 
       resources.add(resource);
     }
@@ -278,7 +278,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
             entity.setScope(propertyMap.get(WIDGETLAYOUT_SCOPE_PROPERTY_ID).toString());
           }
 
-          Set widgetsSet = (LinkedHashSet) propertyMap.get(WIDGETLAYOUT_INFO_PROPERTY_ID);
+          Set widgetsSet = (LinkedHashSet) propertyMap.get(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
 
           List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
           int order=0;

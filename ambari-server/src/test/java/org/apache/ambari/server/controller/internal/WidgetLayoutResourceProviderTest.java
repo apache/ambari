@@ -104,7 +104,7 @@ public class WidgetLayoutResourceProviderTest {
         WidgetLayoutResourceProvider.WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID,
         WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID,
         WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID,
-        WidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID);
+        WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
@@ -134,7 +134,7 @@ public class WidgetLayoutResourceProviderTest {
     Assert.assertEquals("displ_name", r.getPropertyValue(WidgetLayoutResourceProvider.WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID));
     Assert.assertEquals("layout name0", r.getPropertyValue(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID));
 
-    Assert.assertEquals("[]", r.getPropertyValue(WidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID).toString());
+    Assert.assertEquals("[]", r.getPropertyValue(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID).toString());
   }
 
 
@@ -166,7 +166,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set widgetsInfo = new LinkedHashSet();
-    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID, widgetsInfo);
+    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
     provider.createResources(request);
@@ -212,7 +212,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set widgetsInfo = new LinkedHashSet();
-    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID, widgetsInfo);
+    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     Request request = PropertyHelper.getCreateRequest(
         Collections.singleton(requestProps), null);
@@ -245,7 +245,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, "layout_name_new");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "USER");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_ID_PROPERTY_ID, "1");
-    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID, widgetsInfo);
+    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     request = PropertyHelper.getUpdateRequest(requestProps, null);
 
@@ -285,7 +285,7 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set widgetsInfo = new LinkedHashSet();
-    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID, widgetsInfo);
+    requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
 
