@@ -26,6 +26,7 @@ import time
 from mock.mock import patch, MagicMock, call
 import StringIO
 import sys
+from ambari_agent.RecoveryManager import RecoveryManager
 
 
 with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
@@ -37,9 +38,9 @@ with patch("platform.linux_distribution", return_value = ('Suse','11','Final')):
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
   from ambari_agent.HostInfo import HostInfoLinux
 
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 
-@only_for_platform(PLATFORM_LINUX)
+@not_for_platform(PLATFORM_WINDOWS)
 class TestHeartbeat(TestCase):
 
   def setUp(self):
@@ -114,6 +115,7 @@ class TestHeartbeat(TestCase):
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
     dummy_controller = MagicMock()
+    dummy_controller.recovery_manager = RecoveryManager()
     actionQueue = ActionQueue(config, dummy_controller)
     result_mock.return_value = {
       'reports': [{'status': 'IN_PROGRESS',
@@ -174,6 +176,7 @@ class TestHeartbeat(TestCase):
     expected = {'nodeStatus':
                   {'status': 'HEALTHY',
                    'cause': 'NONE'},
+                'recoveryReport': {'summary': 'DISABLED'},
                 'timestamp': 'timestamp', 'hostname': 'hostname',
                 'responseId': 10, 'reports': [
       {'status': 'IN_PROGRESS', 'roleCommand': u'INSTALL',
@@ -195,6 +198,7 @@ class TestHeartbeat(TestCase):
        'stderr': 'stderr'}], 'componentStatus': [
       {'status': 'HEALTHY', 'componentName': 'DATANODE'},
       {'status': 'UNHEALTHY', 'componentName': 'NAMENODE'}]}
+    self.assertEqual.__self__.maxDiff = None
     self.assertEquals(hb, expected)
 
 
@@ -214,13 +218,13 @@ class TestHeartbeat(TestCase):
       "componentName" : "DATANODE",
       'configurations':{'global' : {}}
     }
-    actionQueue.put([statusCommand])
+    actionQueue.put_status([statusCommand])
 
     heartbeat = Heartbeat(actionQueue)
     heartbeat.build(12, 6)
     self.assertTrue(register_mock.called)
     args, kwargs = register_mock.call_args_list[0]
-    self.assertTrue(args[2])
+    self.assertFalse(args[2])
     self.assertFalse(args[1])
 
 
