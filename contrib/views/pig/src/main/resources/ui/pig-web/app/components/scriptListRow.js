@@ -38,5 +38,15 @@ App.ScriptListRowComponent = Em.Component.extend({
       return job.get('id') == jobId;
     });
     return scriptJob.get('firstObject');
-  }.property('currentJobId','scriptJobs')
+  }.property('currentJobId','scriptJobs'),
+  copyAction:'copyScript',
+  deleteAction:'deletescript',
+  actions:{
+    copyScript: function(script){
+      this.sendAction('copyAction',script);
+    },
+    deletescript: function(script){
+      this.sendAction('deleteAction',script);
+    }
+  }
 });
