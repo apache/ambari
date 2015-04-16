@@ -95,7 +95,7 @@ class TestFileResource(TestCase):
       )
     
 
-    create_file_mock.assert_called_with('/directory/file', 'file-content')
+    create_file_mock.assert_called_with('/directory/file', 'file-content', encoding=None)
     self.assertEqual(create_file_mock.call_count, 1)
     ensure_mock.assert_called()
 
@@ -120,8 +120,8 @@ class TestFileResource(TestCase):
            content='new-content'
       )
 
-    read_file_mock.assert_called_with('/directory/file')    
-    create_file_mock.assert_called_with('/directory/file', 'new-content')
+    read_file_mock.assert_called_with('/directory/file', encoding=None)    
+    create_file_mock.assert_called_with('/directory/file', 'new-content', encoding=None)
 
 
   @patch.object(sudo, "unlink")
@@ -297,7 +297,7 @@ class TestFileResource(TestCase):
       )
     
 
-    create_file_mock.assert_called_with('/directory/file', 'file-content')
+    create_file_mock.assert_called_with('/directory/file', 'file-content', encoding=None)
     self.assertEqual(create_file_mock.call_count, 1)
     stat_mock.assert_called_with('/directory/file')
     self.assertEqual(chmod_mock.call_count, 1)
@@ -346,7 +346,5 @@ class TestFileResource(TestCase):
       )
 
 
-    read_file_mock.assert_called_with('/directory/file')
-    content_mock.encode.assert_called_with('UTF-8')
-    old_content_mock.decode.assert_called_with('UTF-8')
+    read_file_mock.assert_called_with('/directory/file', encoding='UTF-8')
 

@@ -111,8 +111,7 @@ class FileProvider(Provider):
       reason = "it doesn't exist"
     elif self.resource.replace:
       if content is not None:
-        old_content = sudo.read_file(path)
-        old_content = old_content.decode(self.resource.encoding) if self.resource.encoding else old_content
+        old_content = sudo.read_file(path, encoding=self.resource.encoding)
         if content != old_content:
           write = True
           reason = "contents don't match"
@@ -121,11 +120,7 @@ class FileProvider(Provider):
 
     if write:
       Logger.info("Writing %s because %s" % (self.resource, reason))
-
-      if content:
-        content = content.encode(self.resource.encoding) if self.resource.encoding else content
-        
-      sudo.create_file(path, content)
+      sudo.create_file(path, content, encoding=self.resource.encoding)
 
     _ensure_metadata(self.resource.path, self.resource.owner,
                         self.resource.group, mode=self.resource.mode, cd_access=self.resource.cd_access)

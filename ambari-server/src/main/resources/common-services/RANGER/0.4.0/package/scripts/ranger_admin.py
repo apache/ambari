@@ -23,7 +23,7 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from setup_ranger import setup_ranger
+from setup_ranger import setup_ranger_admin
 from ranger_service import ranger_service
 import upgrade
 
@@ -67,7 +67,7 @@ class RangerAdmin(Script):
     import params
     env.set_params(params)
     
-    setup_ranger()
+    setup_ranger_admin()
 
 
 if __name__ == "__main__":

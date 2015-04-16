@@ -22,43 +22,43 @@
 <configuration supports_final="false">
 
   <property>
-    <name>HTTP_SERVICE_PORT</name>
+    <name>http.service.port</name>
     <value>6080</value>
     <description>The http port to be used</description>
   </property>
 
   <property>
-    <name>HTTPS_SERVICE_PORT</name>
+    <name>https.service.port</name>
     <value>6182</value>
     <description>The secured https port to be used</description>
   </property>
 
   <property>
-    <name>HTTPS_KEYSTORE_FILE</name>
+    <name>https.attrib.keystoreFile</name>
     <value>/etc/ranger/admin/keys/server.jks</value>
     <description>The keystore file location</description>
   </property>
 
   <property>
-    <name>HTTPS_KEYSTORE_PASS</name>
+    <name>https.attrib.keystorePass</name>
     <value>ranger</value>
     <description>The keystore pass to be used </description>
   </property>
 
   <property>
-    <name>HTTPS_KEY_ALIAS</name>
+    <name>https.attrib.keyAlias</name>
     <value>myKey</value>
     <description>The key alias to be used </description>
   </property>
 
   <property>
-    <name>HTTPS_CLIENT_AUTH</name>
+    <name>https.attrib.clientAuth</name>
     <value>want</value>
     <description>The client auth to be used </description>
   </property>
 
   <property>
-    <name>HTTP_ENABLED</name>
+    <name>http.enabled</name>
     <value>true</value>
     <description>http enabled or https enabled </description>
   </property>

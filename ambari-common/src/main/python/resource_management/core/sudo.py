@@ -65,13 +65,14 @@ def rmtree(path):
   shell.checked_call(["rm","-rf", path], sudo=True)
   
 # fp.write replacement
-def create_file(filename, content):
+def create_file(filename, content, encoding='utf-8'):
   """
   if content is None, create empty file
   """
   tmpf = tempfile.NamedTemporaryFile()
   
   if content:
+    content = content.encode(encoding) if encoding else content
     with open(tmpf.name, "wb") as fp:
       fp.write(content)
   
@@ -82,13 +83,16 @@ def create_file(filename, content):
   chmod(filename, 0644)
     
 # fp.read replacement
-def read_file(filename):
+def read_file(filename, encoding='utf-8'):
   tmpf = tempfile.NamedTemporaryFile()
   shell.checked_call(["cp", "-f", filename, tmpf.name], sudo=True)
   
   with tmpf:
     with open(tmpf.name, "rb") as fp:
-      return fp.read()
+      content = fp.read()
+      
+  content = content.decode(encoding) if encoding else content
+  return content
     
 # os.path.exists
 def path_exists(path):
@@ -101,6 +105,10 @@ def path_isdir(path):
 # os.path.lexists
 def path_lexists(path):
   return (shell.call(["test", "-L", path], sudo=True)[0] == 0)
+
+# os.path.isfile
+def path_isfile(path):
+  return (shell.call(["test", "-f", path], sudo=True)[0] == 0)
 
 # os.stat
 def stat(path):

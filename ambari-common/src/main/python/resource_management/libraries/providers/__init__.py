@@ -43,6 +43,7 @@ PROVIDERS = dict(
     PropertiesFile="resource_management.libraries.providers.properties_file.PropertiesFileProvider",
     MonitorWebserver="resource_management.libraries.providers.monitor_webserver.MonitorWebserverProvider",
     HdfsDirectory="resource_management.libraries.providers.hdfs_directory.HdfsDirectoryProvider",
-    CopyFromLocal="resource_management.libraries.providers.copy_from_local.CopyFromLocalProvider"
+    CopyFromLocal="resource_management.libraries.providers.copy_from_local.CopyFromLocalProvider",
+    ModifyPropertiesFile="resource_management.libraries.providers.modify_properties_file.ModifyPropertiesFileProvider"
   ),
 )

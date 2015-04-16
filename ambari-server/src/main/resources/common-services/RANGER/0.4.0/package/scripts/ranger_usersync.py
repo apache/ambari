@@ -23,37 +23,35 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from setup_ranger import setup_usersync
 from ranger_service import ranger_service
+from setup_ranger import setup_usersync
 import upgrade
 
 class RangerUsersync(Script):
-
-  def get_stack_to_component(self):
-    return {"HDP": "ranger-usersync"}
-
+  
   def install(self, env):
     self.install_packages(env)
     self.configure(env)
-
-  def stop(self, env, rolling_restart=False):
-    import params
-
-    env.set_params(params)
-    Execute((params.usersync_stop,), sudo=True)
-
-  def pre_rolling_restart(self, env):
+    
+  def configure(self, env):
     import params
     env.set_params(params)
-    upgrade.prestart(env, "ranger-usersync")
-
+    
+    setup_usersync()
+    
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
+    
     self.configure(env)
     ranger_service('ranger_usersync')
-
-
+    
+  def stop(self, env, rolling_restart=False):
+    import params
+    env.set_params(params)
+    
+    Execute((params.usersync_stop,), sudo=True)
+    
   def status(self, env):
     cmd = 'ps -ef | grep proc_rangerusersync | grep -v grep'
     code, output = shell.call(cmd, timeout=20)
@@ -63,10 +61,13 @@ class RangerUsersync(Script):
       raise ComponentIsNotRunning()
     pass
 
-  def configure(self, env):
+  def pre_rolling_restart(self, env):
     import params
     env.set_params(params)
-    setup_usersync()
+    upgrade.prestart(env, "ranger-usersync")
+
+  def get_stack_to_component(self):
+    return {"HDP": "ranger-usersync"}
 
 
 if __name__ == "__main__":
