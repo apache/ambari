@@ -64,12 +64,15 @@ public class TestActionManager {
 
   private Clusters clusters;
   private UnitOfWork unitOfWork;
+  private StageFactory stageFactory;
 
   @Before
   public void setup() throws AmbariException {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     clusters = injector.getInstance(Clusters.class);
+    stageFactory = injector.getInstance(StageFactory.class);
+
     clusters.addHost(hostname);
     clusters.getHost(hostname).persist();
     StackId stackId = new StackId("HDP-0.1");
@@ -169,7 +172,7 @@ public class TestActionManager {
   }
 
   private void populateActionDB(ActionDBAccessor db, String hostname) throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action manager test", "clusterHostInfo", "commandParamsStage", "hostParamsStage");
+    Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action manager test", "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
         RoleCommand.START,

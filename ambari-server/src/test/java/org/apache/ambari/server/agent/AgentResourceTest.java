@@ -29,6 +29,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.actionmanager.ActionDBAccessor;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
@@ -329,7 +330,8 @@ public class AgentResourceTest extends JerseyTest {
       install(new FactoryModuleBuilder().implement(RequestExecution.class,
         RequestExecutionImpl.class).build(RequestExecutionFactory.class));
       install(new FactoryModuleBuilder().build(StageFactory.class));
-      install(new FactoryModuleBuilder().build(HostRoleCommandFactory.class));
+
+      bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
       bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
       bind(AmbariEventPublisher.class).toInstance(EasyMock.createMock(AmbariEventPublisher.class));
       bind(StackManagerFactory.class).toInstance(

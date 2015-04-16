@@ -23,10 +23,12 @@ import static org.mockito.Mockito.when;
 
 import java.util.List;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -46,10 +48,17 @@ public class TestStagePlanner {
 
   private Injector injector;
 
+  @Inject
+  StageUtils stageUtils;
+
+  @Inject
+  RoleGraphFactory roleGraphFactory;
+
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
   }
 
   @After
@@ -65,7 +74,7 @@ public class TestStagePlanner {
 
     rco.initialize(cluster);
 
-    RoleGraph rg = new RoleGraph(rco);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
     String hostname = "dummy";
     Stage stage = StageUtils.getATestStage(1, 1, hostname, "", "");
     rg.build(stage);
@@ -84,7 +93,7 @@ public class TestStagePlanner {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     rco.initialize(cluster);
-    RoleGraph rg = new RoleGraph(rco);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host2", Role.HBASE_MASTER,
@@ -110,7 +119,7 @@ public class TestStagePlanner {
     ClusterImpl cluster = mock(ClusterImpl.class);
     when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP-2.0.6"));
     rco.initialize(cluster);
-    RoleGraph rg = new RoleGraph(rco);
+    RoleGraph rg = roleGraphFactory.createNew(rco);
     long now = System.currentTimeMillis();
     Stage stage = StageUtils.getATestStage(1, 1, "host1", "", "");
     stage.addHostRoleExecutionCommand("host11", Role.SECONDARY_NAMENODE,

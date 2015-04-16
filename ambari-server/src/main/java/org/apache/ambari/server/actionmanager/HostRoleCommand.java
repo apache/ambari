@@ -17,10 +17,13 @@
  */
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.dao.ExecutionCommandDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
@@ -40,7 +43,7 @@ public class HostRoleCommand {
   private long taskId = -1;
   private long stageId = -1;
   private long requestId = -1;
-  private String hostName;
+  private HostEntity hostEntity;
   private HostRoleStatus status = HostRoleStatus.PENDING;
   private String stdout = "";
   private String stderr = "";
@@ -57,28 +60,58 @@ public class HostRoleCommand {
   private String commandDetail;
   private String customCommandName;
   private ExecutionCommandWrapper executionCommandWrapper;
+
+  @Inject
   private ExecutionCommandDAO executionCommandDAO;
 
-  public HostRoleCommand(String host, Role role,
-                         ServiceComponentHostEvent event, RoleCommand command) {
-    this(host, role, event, command, false);
+  @Inject
+  private HostDAO hostDAO;
+
+  /**
+   * Simple constructor, should be created using the Factory class.
+   * @param hostName Host name
+   * @param role Action to run
+   * @param event Event on the host and component
+   * @param command Type of command
+   * @param hostDAO {@link org.apache.ambari.server.orm.dao.HostDAO} instance being injected
+   */
+  @AssistedInject
+  public HostRoleCommand(String hostName, Role role,
+                         ServiceComponentHostEvent event, RoleCommand command, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+    this(hostName, role, event, command, false, hostDAO, executionCommandDAO);
   }
 
-  public HostRoleCommand(String host, Role role,
-                         ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed) {
-    this.hostName = host;
+  /**
+   * Simple constructor, should be created using the Factory class.
+   * @param hostName Host name
+   * @param role Action to run
+   * @param event Event on the host and component
+   * @param command Type of command
+   * @param retryAllowed Whether the command can be repeated
+   * @param hostDAO {@link org.apache.ambari.server.orm.dao.HostDAO} instance being injected
+   */
+  @AssistedInject
+  public HostRoleCommand(String hostName, Role role,
+                         ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+    this.hostDAO = hostDAO;
+    this.executionCommandDAO = executionCommandDAO;
+
     this.role = role;
     this.event = new ServiceComponentHostEventWrapper(event);
     this.roleCommand = command;
     this.retryAllowed = retryAllowed;
+    this.hostEntity = this.hostDAO.findByName(hostName);
   }
 
   @AssistedInject
-  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, Injector injector) {
+  public HostRoleCommand(@Assisted HostRoleCommandEntity hostRoleCommandEntity, HostDAO hostDAO, ExecutionCommandDAO executionCommandDAO) {
+    this.hostDAO = hostDAO;
+    this.executionCommandDAO = executionCommandDAO;
+
     taskId = hostRoleCommandEntity.getTaskId();
     stageId = hostRoleCommandEntity.getStage().getStageId();
     requestId = hostRoleCommandEntity.getStage().getRequestId();
-    this.hostName = hostRoleCommandEntity.getHostName();
+    this.hostEntity = hostRoleCommandEntity.getHostEntity();
     role = hostRoleCommandEntity.getRole();
     status = hostRoleCommandEntity.getStatus();
     stdout = hostRoleCommandEntity.getStdOut() != null ? new String(hostRoleCommandEntity.getStdOut()) : "";
@@ -96,14 +129,11 @@ public class HostRoleCommand {
     event = new ServiceComponentHostEventWrapper(hostRoleCommandEntity.getEvent());
     commandDetail = hostRoleCommandEntity.getCommandDetail();
     customCommandName = hostRoleCommandEntity.getCustomCommandName();
-    //make use of lazy loading
-
-    executionCommandDAO = injector.getInstance(ExecutionCommandDAO.class);
   }
 
   HostRoleCommandEntity constructNewPersistenceEntity() {
     HostRoleCommandEntity hostRoleCommandEntity = new HostRoleCommandEntity();
-    hostRoleCommandEntity.setHostName(hostName);
+    hostRoleCommandEntity.setHostEntity(hostEntity);
     hostRoleCommandEntity.setRole(role);
     hostRoleCommandEntity.setStatus(status);
     hostRoleCommandEntity.setStdError(stderr.getBytes());
@@ -145,7 +175,7 @@ public class HostRoleCommand {
   }
 
   public String getHostName() {
-    return hostName;
+    return hostEntity != null ? hostEntity.getHostName() : null;
   }
 
   public Role getRole() {

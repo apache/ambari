@@ -75,9 +75,9 @@ public class HostRoleCommandEntity {
   @Basic
   private Long stageId;
 
-  @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
+  @Column(name = "host_id", insertable = false, updatable = false, nullable = false)
   @Basic
-  private String hostName;
+  private Long hostId;
 
   @Column(name = "role")
   private String role;
@@ -161,8 +161,8 @@ public class HostRoleCommandEntity {
   private StageEntity stage;
 
   @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.REFRESH})
-  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false)
-  private HostEntity host;
+  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
+  private HostEntity hostEntity;
 
   public Long getTaskId() {
     return taskId;
@@ -189,11 +189,7 @@ public class HostRoleCommandEntity {
   }
 
   public String getHostName() {
-    return hostName;
-  }
-
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+    return hostEntity != null ? hostEntity.getHostName() : null;
   }
 
   public Role getRole() {
@@ -360,7 +356,7 @@ public class HostRoleCommandEntity {
     if (exitcode != null ? !exitcode.equals(that.exitcode) : that.exitcode != null) {
       return false;
     }
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) {
+    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) {
       return false;
     }
     if (lastAttemptTime != null ? !lastAttemptTime.equals(that.lastAttemptTime) : that.lastAttemptTime != null) {
@@ -411,7 +407,7 @@ public class HostRoleCommandEntity {
     int result = taskId != null ? taskId.hashCode() : 0;
     result = 31 * result + (requestId != null ? requestId.hashCode() : 0);
     result = 31 * result + (stageId != null ? stageId.hashCode() : 0);
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (role != null ? role.hashCode() : 0);
     result = 31 * result + (event != null ? event.hashCode() : 0);
     result = 31 * result + (exitcode != null ? exitcode.hashCode() : 0);
@@ -444,11 +440,11 @@ public class HostRoleCommandEntity {
     this.stage = stage;
   }
 
-  public HostEntity getHost() {
-    return host;
+  public HostEntity getHostEntity() {
+    return hostEntity;
   }
 
-  public void setHost(HostEntity host) {
-    this.host = host;
+  public void setHostEntity(HostEntity hostEntity) {
+    this.hostEntity = hostEntity;
   }
 }

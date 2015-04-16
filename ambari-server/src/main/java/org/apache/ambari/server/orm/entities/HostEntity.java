@@ -142,7 +142,7 @@ public class HostEntity implements Comparable<HostEntity> {
   @OneToOne(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private HostStateEntity hostStateEntity;
 
-  @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE)
+  @OneToMany(mappedBy = "hostEntity", cascade = CascadeType.REMOVE)
   private Collection<HostRoleCommandEntity> hostRoleCommandEntities;
 
   public Long getHostId() {

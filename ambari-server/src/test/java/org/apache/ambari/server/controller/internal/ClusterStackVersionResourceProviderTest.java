@@ -1,4 +1,4 @@
-/**
+ /**
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -28,6 +28,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -49,8 +51,17 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -62,6 +73,7 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.cluster.ClusterImpl;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -79,6 +91,10 @@ public class ClusterStackVersionResourceProviderTest {
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
   private RepositoryVersionDAO repositoryVersionDAOMock;
+  private ResourceTypeDAO resourceTypeDAO;
+  private StackDAO stackDAO;
+  private ClusterDAO clusterDAO;
+  private HostDAO hostDAO;
   private ConfigHelper configHelper;
 
   private String operatingSystemsJson = "[\n" +
@@ -110,6 +126,10 @@ public class ClusterStackVersionResourceProviderTest {
     injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+    stackDAO = injector.getInstance(StackDAO.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
+    hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After
@@ -227,14 +247,50 @@ public class ClusterStackVersionResourceProviderTest {
   @Test
   public void testUpdateResources() throws Exception {
     Resource.Type type = Resource.Type.ClusterStackVersion;
+    String clusterName = "Cluster100";
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
+    cluster.setClusterName(clusterName);
     StackId stackId = new StackId("HDP", "2.0.1");
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    Assert.assertNotNull(stackEntity);
+
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterName(clusterName);
+    clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
+    clusterDAO.create(clusterEntity);
 
     final Host host1 = createNiceMock("host1", Host.class);
     final Host host2 = createNiceMock("host2", Host.class);
+
+    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    HostEntity hostEntity1 = new HostEntity();
+    HostEntity hostEntity2 = new HostEntity();
+    hostEntity1.setHostName("host1");
+    hostEntity2.setHostName("host2");
+    hostEntities.add(hostEntity1);
+    hostEntities.add(hostEntity2);
+    hostEntity1.setClusterEntities(Arrays.asList(clusterEntity));
+    hostEntity2.setClusterEntities(Arrays.asList(clusterEntity));
+    hostDAO.create(hostEntity1);
+    hostDAO.create(hostEntity2);
+
+    clusterEntity.setHostEntities(hostEntities);
+    clusterDAO.merge(clusterEntity);
+
     expect(host1.getHostName()).andReturn("host1").anyTimes();
     expect(host1.getOsFamily()).andReturn("redhat6").anyTimes();
     expect(host2.getHostName()).andReturn("host2").anyTimes();
@@ -319,7 +375,7 @@ public class ClusterStackVersionResourceProviderTest {
     Map<String, Object> properties = new LinkedHashMap<String, Object>();
 
     // add properties to the request map
-    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, "Cluster100");
+    properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, clusterName);
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_STATE_PROPERTY_ID, "CURRENT");
     properties.put(ClusterStackVersionResourceProvider.CLUSTER_STACK_VERSION_REPOSITORY_VERSION_PROPERTY_ID, "HDP-2.2.2.0-2561");
 

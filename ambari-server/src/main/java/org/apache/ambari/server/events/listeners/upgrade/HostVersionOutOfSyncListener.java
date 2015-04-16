@@ -31,6 +31,7 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -154,9 +155,9 @@ public class HostVersionOutOfSyncListener {
       for (ClusterVersionEntity clusterVersion : allClusterVersions) {
         if (clusterVersion.getState() != RepositoryVersionState.CURRENT) { // Current version is taken care of automatically
           String hostName = event.getHostName();
-          HostVersionEntity missingHostVersion = new HostVersionEntity(hostName,
+          HostEntity hostEntity = hostDAO.get().findByName(hostName);
+          HostVersionEntity missingHostVersion = new HostVersionEntity(hostEntity,
                   clusterVersion.getRepositoryVersion(), RepositoryVersionState.OUT_OF_SYNC);
-          missingHostVersion.setHostEntity(hostDAO.get().findByName(hostName));
           hostVersionDAO.get().create(missingHostVersion);
           changedRepositoryVersions.add(clusterVersion.getRepositoryVersion().getVersion());
         }

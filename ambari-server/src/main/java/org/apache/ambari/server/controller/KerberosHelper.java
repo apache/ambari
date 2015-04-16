@@ -19,6 +19,7 @@
 package org.apache.ambari.server.controller;
 
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -68,6 +69,7 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosRealmException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.UpdateKerberosConfigsServerAction;
 import org.apache.ambari.server.stageplanner.RoleGraph;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -155,6 +157,9 @@ public class KerberosHelper {
   private StageFactory stageFactory;
 
   @Inject
+  private RoleGraphFactory roleGraphFactory;
+
+  @Inject
   private Clusters clusters;
 
   @Inject
@@ -180,7 +185,6 @@ public class KerberosHelper {
    * Currently not available via injection.
    */
   private static ClusterController clusterController = null;
-
 
   /**
    * Toggles Kerberos security to enable it or remove it depending on the state of the cluster.
@@ -2097,7 +2101,7 @@ public class KerberosHelper {
           "Create Principals",
           1200);
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
@@ -2120,7 +2124,7 @@ public class KerberosHelper {
           "Destroy Principals",
           1200);
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
@@ -2143,7 +2147,7 @@ public class KerberosHelper {
           "Create Keytabs",
           1200);
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
@@ -2182,7 +2186,7 @@ public class KerberosHelper {
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, false);
       }
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
@@ -2247,7 +2251,7 @@ public class KerberosHelper {
         customCommandExecutionHelper.addExecutionCommandsToStage(actionExecContext, stage, requestParams, false);
       }
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
@@ -2270,7 +2274,7 @@ public class KerberosHelper {
           "Update Service Configurations",
           1200);
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
@@ -2298,7 +2302,7 @@ public class KerberosHelper {
           commandParameters,
           "Finalize Operations", 300);
 
-      RoleGraph roleGraph = new RoleGraph(roleCommandOrder);
+      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }

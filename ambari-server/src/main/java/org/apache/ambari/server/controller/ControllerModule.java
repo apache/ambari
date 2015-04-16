@@ -55,6 +55,7 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.actionmanager.StageFactoryImpl;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -75,6 +76,8 @@ import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.SecurityHelperImpl;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -359,6 +362,10 @@ public class ControllerModule extends AbstractModule {
     return jpaPersistModule;
   }
 
+  /**
+   * Bind classes to their Factories, which can be built on-the-fly.
+   * Often, will also have to edit AgentResourceTest.java
+   */
   private void installFactories() {
     install(new FactoryModuleBuilder().implement(
         Cluster.class, ClusterImpl.class).build(ClusterFactory.class));
@@ -389,10 +396,11 @@ public class ControllerModule extends AbstractModule {
     install(new FactoryModuleBuilder().implement(RequestExecution.class,
         RequestExecutionImpl.class).build(RequestExecutionFactory.class));
 
-    install(new FactoryModuleBuilder().build(StageFactory.class));
+    bind(StageFactory.class).to(StageFactoryImpl.class);
+    bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
     install(new FactoryModuleBuilder().build(RequestFactory.class));
     install(new FactoryModuleBuilder().build(StackManagerFactory.class));
-
+    
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
   }

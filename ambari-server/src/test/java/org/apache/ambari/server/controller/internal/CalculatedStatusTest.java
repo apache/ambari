@@ -27,11 +27,18 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.junit.Before;
@@ -43,6 +50,11 @@ import org.junit.Test;
 @SuppressWarnings("unchecked")
 public class CalculatedStatusTest {
 
+  private Injector m_injector;
+
+  @Inject
+  HostRoleCommandFactory hostRoleCommandFactory;
+
   private static long taskId = 0L;
   private static long stageId = 0L;
 
@@ -50,6 +62,10 @@ public class CalculatedStatusTest {
 
   @Before()
   public void setup() throws Exception {
+    m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    m_injector.getInstance(GuiceJpaInitializer.class);
+    m_injector.injectMembers(this);
+
     s_field = HostRoleCommand.class.getDeclaredField("taskId");
     s_field.setAccessible(true);
   }
@@ -442,7 +458,6 @@ public class CalculatedStatusTest {
     // create 5th stage that is a repeat of an earlier one
     HostRoleCommandEntity entity = new HostRoleCommandEntity();
     entity.setTaskId(taskId++);
-    entity.setHostName("h2");
     entity.setStatus(HostRoleStatus.PENDING);
     stages.addAll(getStages(Collections.singleton(entity)));
 
@@ -460,7 +475,6 @@ public class CalculatedStatusTest {
       HostRoleStatus status = statuses[i];
       HostRoleCommandEntity entity = new HostRoleCommandEntity();
       entity.setTaskId(taskId++);
-      entity.setHostName("h" + i);
       entity.setStatus(status);
 
       entities.add(entity);
@@ -501,12 +515,12 @@ public class CalculatedStatusTest {
     private final List<HostRoleCommand> hostRoleCommands = new LinkedList<HostRoleCommand>();
 
     private TestStage() {
-      super(1L, "", "", 1L, "", "", "", "");
+      super(1L, "", "", 1L, "", "", "", "", hostRoleCommandFactory);
     }
 
     void setHostRoleCommands(Collection<HostRoleCommandEntity> tasks) {
       for (HostRoleCommandEntity task : tasks) {
-        TestCommand command = new TestCommand(task.getHostName(), taskId++);
+        HostRoleCommand command = HostRoleCommandHelper.createWithTaskId(task.getHostName(), taskId++, hostRoleCommandFactory);
         command.setStatus(task.getStatus());
         hostRoleCommands.add(command);
       }
@@ -518,16 +532,16 @@ public class CalculatedStatusTest {
     }
   }
 
-  private class TestCommand extends HostRoleCommand {
+  private static class HostRoleCommandHelper  {
 
-    public TestCommand(String host, long taskId) {
-      super(host, Role.AMBARI_SERVER_ACTION, null, RoleCommand.START);
+    public static HostRoleCommand createWithTaskId(String hostName, long taskId, HostRoleCommandFactory hostRoleCommandFactory1) {
+      HostRoleCommand hrc = hostRoleCommandFactory1.create(hostName, Role.AMBARI_SERVER_ACTION, null, RoleCommand.START);
       try {
-        s_field.set(this, Long.valueOf(taskId));
+        s_field.set(hrc, Long.valueOf(taskId));
       } catch (Exception e) {
         e.printStackTrace();
       }
+      return hrc;
     }
-
   }
 }

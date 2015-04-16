@@ -193,7 +193,7 @@ public class RequestDAOTest {
       commandEntity.setRoleCommand(RoleCommand.INSTALL);
       commandEntity.setStatus(status);
       commandEntity.setRole(Role.DATANODE);
-      commandEntity.setHost(he);
+      commandEntity.setHostEntity(he);
       commandEntity.setStage(stageEntity);
       hostRoleCommandDAO.create(commandEntity);
 

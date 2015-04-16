@@ -789,7 +789,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   private void makeServerSideStage(UpgradeContext context, RequestStageContainer request,
                                    UpgradeItemEntity entity, ServerSideActionTask task,
-                                   boolean skippable, boolean allowRtery) throws AmbariException {
+                                   boolean skippable, boolean allowRetry) throws AmbariException {
 
     Cluster cluster = context.getCluster();
 
@@ -894,7 +894,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         itemDetail,
         null,
         Integer.valueOf(1200),
-        allowRtery);
+        allowRetry);
 
     request.addStages(Collections.singletonList(stage));
   }

@@ -49,7 +49,7 @@ import com.google.inject.persist.PersistService;
  * {@link org.apache.ambari.server.orm.dao.HostVersionDAO} unit tests.
  */
 public class HostVersionDAOTest {
-
+  
   private static Injector injector;
   private ResourceTypeDAO resourceTypeDAO;
   private ClusterDAO clusterDAO;
@@ -133,7 +133,7 @@ public class HostVersionDAOTest {
     hostEntities.add(host1);
     hostEntities.add(host2);
     hostEntities.add(host3);
-
+    
     // Both sides of relation should be set when modifying in runtime
     host1.setClusterEntities(Arrays.asList(clusterEntity));
     host2.setClusterEntities(Arrays.asList(clusterEntity));
@@ -145,14 +145,11 @@ public class HostVersionDAOTest {
 
     clusterEntity.setHostEntities(hostEntities);
     clusterDAO.merge(clusterEntity);
-
+    
     // Create the Host Versions
-    HostVersionEntity hostVersionEntity1 = new HostVersionEntity(host1.getHostName(), clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.CURRENT);
-    HostVersionEntity hostVersionEntity2 = new HostVersionEntity(host2.getHostName(), clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.INSTALLED);
-    HostVersionEntity hostVersionEntity3 = new HostVersionEntity(host3.getHostName(), clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.INSTALLED);
-    hostVersionEntity1.setHostEntity(host1);
-    hostVersionEntity2.setHostEntity(host2);
-    hostVersionEntity3.setHostEntity(host3);
+    HostVersionEntity hostVersionEntity1 = new HostVersionEntity(host1, clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.CURRENT);
+    HostVersionEntity hostVersionEntity2 = new HostVersionEntity(host2, clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.INSTALLED);
+    HostVersionEntity hostVersionEntity3 = new HostVersionEntity(host3, clusterVersionEntity.getRepositoryVersion(), RepositoryVersionState.INSTALLED);
 
     hostVersionDAO.create(hostVersionEntity1);
     hostVersionDAO.create(hostVersionEntity2);
@@ -184,8 +181,7 @@ public class HostVersionDAOTest {
 
     // For each of the hosts, add a host version
     for (HostEntity host : hostEntities) {
-      HostVersionEntity hostVersionEntity = new HostVersionEntity(host.getHostName(), helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.1-996"), RepositoryVersionState.INSTALLED);
-      hostVersionEntity.setHostEntity(host);
+      HostVersionEntity hostVersionEntity = new HostVersionEntity(host, helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.1-996"), RepositoryVersionState.INSTALLED);
       hostVersionDAO.create(hostVersionEntity);
     }
 
@@ -202,8 +198,7 @@ public class HostVersionDAOTest {
         desiredState = RepositoryVersionState.UPGRADE_FAILED;
       }
 
-      HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntities[i].getHostName(), helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), desiredState);
-      hostVersionEntity.setHostEntity(hostEntities[i]);
+      HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntities[i], helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), desiredState);
       hostVersionDAO.create(hostVersionEntity);
     }
   }
@@ -233,7 +228,7 @@ public class HostVersionDAOTest {
   }
 
   /**
-   * Test the {@link HostVersionDAO#findByClusterStackAndVersion(String, String, String)} method.
+   * Test the {@link HostVersionDAO#findByClusterStackAndVersion(String, org.apache.ambari.server.state.StackId, String)} method.
    */
   @Test
   public void testFindByClusterStackAndVersion() {
@@ -289,15 +284,19 @@ public class HostVersionDAOTest {
    */
   @Test
   public void testFindByClusterStackVersionAndHost() {
-    HostVersionEntity hostVersionEntity1 = new HostVersionEntity("test_host1", helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-995"), RepositoryVersionState.CURRENT);
+    HostEntity host1 = hostDAO.findByName("test_host1");
+    HostEntity host2 = hostDAO.findByName("test_host2");
+    HostEntity host3 = hostDAO.findByName("test_host3");
+
+    HostVersionEntity hostVersionEntity1 = new HostVersionEntity(host1,
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-995"), RepositoryVersionState.CURRENT);
     hostVersionEntity1.setId(1L);
-    hostVersionEntity1.setHostEntity(hostDAO.findByName("test_host1"));
-    HostVersionEntity hostVersionEntity2 = new HostVersionEntity("test_host2", helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-995"), RepositoryVersionState.INSTALLED);
+    HostVersionEntity hostVersionEntity2 = new HostVersionEntity(host2,
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-995"), RepositoryVersionState.INSTALLED);
     hostVersionEntity2.setId(2L);
-    hostVersionEntity2.setHostEntity(hostDAO.findByName("test_host2"));
-    HostVersionEntity hostVersionEntity3 = new HostVersionEntity("test_host3", helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-995"), RepositoryVersionState.INSTALLED);
+    HostVersionEntity hostVersionEntity3 = new HostVersionEntity(host3,
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.0.0-995"), RepositoryVersionState.INSTALLED);
     hostVersionEntity3.setId(3L);
-    hostVersionEntity3.setHostEntity(hostDAO.findByName("test_host3"));
 
     Assert.assertEquals(hostVersionEntity1, hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, "2.2.0.0-995", "test_host1"));
     Assert.assertEquals(hostVersionEntity2, hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, "2.2.0.0-995", "test_host2"));
@@ -312,9 +311,12 @@ public class HostVersionDAOTest {
     addMoreVersions();
 
     // Expected
-    HostVersionEntity hostVersionEntity1LastExpected = new HostVersionEntity("test_host1", helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), RepositoryVersionState.INSTALLED);
-    HostVersionEntity hostVersionEntity2LastExpected = new HostVersionEntity("test_host2", helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), RepositoryVersionState.UPGRADING);
-    HostVersionEntity hostVersionEntity3LastExpected = new HostVersionEntity("test_host3", helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), RepositoryVersionState.UPGRADE_FAILED);
+    HostVersionEntity hostVersionEntity1LastExpected = new HostVersionEntity(host1,
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), RepositoryVersionState.INSTALLED);
+    HostVersionEntity hostVersionEntity2LastExpected = new HostVersionEntity(host2,
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), RepositoryVersionState.UPGRADING);
+    HostVersionEntity hostVersionEntity3LastExpected = new HostVersionEntity(host3,
+        helper.getOrCreateRepositoryVersion(HDP_22_STACK, "2.2.1.0-500"), RepositoryVersionState.UPGRADE_FAILED);
 
     // Actual
     HostVersionEntity hostVersionEntity1LastActual = hostVersionDAO.findByClusterStackVersionAndHost("test_cluster1", HDP_22_STACK, "2.2.1.0-500", "test_host1");

@@ -263,18 +263,17 @@ public class OrmTestHelper {
     HostRoleCommandEntity commandEntity3 = new HostRoleCommandEntity();
     HostEntity host1 = hostDAO.findByName("test_host1");
     HostEntity host2 = hostDAO.findByName("test_host2");
-    commandEntity.setHost(host1);
+    commandEntity.setHostEntity(host1);
     host1.getHostRoleCommandEntities().add(commandEntity);
-    commandEntity.setHostName("test_host1");
     commandEntity.setRoleCommand(RoleCommand.INSTALL);
     commandEntity.setStatus(HostRoleStatus.QUEUED);
     commandEntity.setRole(Role.DATANODE);
-    commandEntity2.setHost(host2);
+    commandEntity2.setHostEntity(host2);
     host2.getHostRoleCommandEntities().add(commandEntity2);
     commandEntity2.setRoleCommand(RoleCommand.EXECUTE);
     commandEntity2.setRole(Role.NAMENODE);
     commandEntity2.setStatus(HostRoleStatus.COMPLETED);
-    commandEntity3.setHost(host1);
+    commandEntity3.setHostEntity(host1);
     host1.getHostRoleCommandEntities().add(commandEntity3);
     commandEntity3.setRoleCommand(RoleCommand.START);
     commandEntity3.setRole(Role.SECONDARY_NAMENODE);
@@ -614,8 +613,7 @@ public class OrmTestHelper {
   public HostVersionEntity createHostVersion(String hostName, RepositoryVersionEntity repositoryVersionEntity,
                                              RepositoryVersionState repositoryVersionState) {
     HostEntity hostEntity = hostDAO.findByName(hostName);
-    HostVersionEntity hostVersionEntity = new HostVersionEntity(hostName, repositoryVersionEntity, repositoryVersionState);
-    hostVersionEntity.setHostEntity(hostEntity);
+    HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity, repositoryVersionEntity, repositoryVersionState);
     hostVersionDAO.create(hostVersionEntity);
     return hostVersionEntity;
   }

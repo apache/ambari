@@ -111,6 +111,7 @@ import org.apache.ambari.server.security.ldap.LdapSyncDto;
 import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.stageplanner.RoleGraph;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.CommandScriptDefinition;
@@ -210,6 +211,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private Configuration configs;
   @Inject
   private AbstractRootServiceResponseFactory rootServiceResponseFactory;
+  @Inject
+  private RoleGraphFactory roleGraphFactory;
   @Inject
   private ConfigGroupFactory configGroupFactory;
   @Inject
@@ -2230,7 +2233,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       }
 
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
-      RoleGraph rg = new RoleGraph(rco);
+      RoleGraph rg = roleGraphFactory.createNew(rco);
 
       rg.build(stage);
       requestStages.addStages(rg.getStages());
@@ -3093,9 +3096,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     RoleGraph rg;
     if (null != cluster) {
       RoleCommandOrder rco = getRoleCommandOrder(cluster);
-      rg = new RoleGraph(rco);
+      rg = roleGraphFactory.createNew(rco);
     } else {
-      rg = new RoleGraph();
+      rg = roleGraphFactory.createNew();
     }
 
     rg.build(stage);
@@ -3764,6 +3767,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   @Override
   public ConfigGroupFactory getConfigGroupFactory() {
     return configGroupFactory;
+  }
+
+  @Override
+  public RoleGraphFactory getRoleGraphFactory() {
+    return roleGraphFactory;
   }
 
   @Override

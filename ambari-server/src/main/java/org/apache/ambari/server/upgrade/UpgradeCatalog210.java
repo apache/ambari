@@ -33,6 +33,7 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
 import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.DaoUtils;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
@@ -83,6 +84,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final DBColumnInfo CURRENT_STACK_ID_COLUMN = new DBColumnInfo(CURRENT_STACK_ID_COLUMN_NAME, Long.class, null, null, true);
   private static final DBColumnInfo STACK_ID_COLUMN = new DBColumnInfo(STACK_ID_COLUMN_NAME, Long.class, null, null, true);
 
+  @Inject
+  DaoUtils daoUtils;
+  
   /**
    * {@inheritDoc}
    */
@@ -123,6 +127,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   public UpgradeCatalog210(Injector injector) {
     super(injector);
     this.injector = injector;
+
+    daoUtils = injector.getInstance(DaoUtils.class);
   }
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
@@ -153,6 +159,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    */
   private void executeHostsDDLUpdates() throws AmbariException, SQLException {
     Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+
+    String randomHostName = null;
+    if (dbAccessor.tableHasData(HOST_ROLE_COMMAND_TABLE)) {
+      randomHostName = getRandomHostName();
+      if (StringUtils.isBlank(randomHostName)) {
+        throw new AmbariException("UpgradeCatalog210 could not retrieve a random host_name from the hosts table while running executeHostsDDLUpdates.");
+      }
+    }
 
     dbAccessor.addColumn(HOSTS_TABLE, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
 
@@ -232,7 +246,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT " + constraintName);
       }
     } else {
-      dbAccessor.dropConstraint(HOSTS_TABLE, "hosts_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " DROP CONSTRAINT hosts_pkey");
     }
     dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " ADD CONSTRAINT PK_hosts_id PRIMARY KEY (host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + HOSTS_TABLE + " ADD CONSTRAINT UQ_hosts_host_name UNIQUE (host_name)");
@@ -240,10 +254,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // TODO, for now, these still point to the host_name and will be fixed one table at a time to point to the host id.
     // Re-add the FKs
-    dbAccessor.addFKConstraint(HOST_VERSION_TABLE, "FK_host_version_host_name",
-        "host_name", HOSTS_TABLE, "host_name", false);
-    dbAccessor.addFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_name",
-        "host_name", HOSTS_TABLE, "host_name", false);
     dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_name",
         "host_name", HOSTS_TABLE, "host_name", false);
     dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_hname",
@@ -258,11 +268,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         CLUSTER_HOST_MAPPING_TABLE,
         HOST_COMPONENT_STATE_TABLE,
         HOST_COMPONENT_DESIRED_STATE_TABLE,
-        HOST_STATE_TABLE
+        HOST_ROLE_COMMAND_TABLE,
+        HOST_STATE_TABLE,
+        HOST_VERSION_TABLE
     };
+
     for (String tableName : tablesToAddHostID) {
       dbAccessor.addColumn(tableName, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
       dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = t.host_name) WHERE t.host_id IS NULL AND t.host_name IS NOT NULL");
+
+      // For legacy reasons, the hostrolecommand table will contain "none" for some records where the host_name was not important.
+      // These records were populated during Finalize in Rolling Upgrade, so they must be updated to use a valid host_name.
+      if (tableName == HOST_ROLE_COMMAND_TABLE && StringUtils.isNotBlank(randomHostName)) {
+        dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = '" + randomHostName + "') WHERE t.host_id IS NULL AND t.host_name = 'none'");
+      }
 
       if (databaseType == Configuration.DatabaseType.DERBY) {
         // This is a workaround for UpgradeTest.java unit test
@@ -302,11 +321,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         }
       }
     } else {
-
-      dbAccessor.dropConstraint(CLUSTER_HOST_MAPPING_TABLE, "clusterhostmapping_pkey");
-      dbAccessor.dropConstraint(HOST_COMPONENT_STATE_TABLE, "hostcomponentstate_pkey");
-      dbAccessor.dropConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "hostcomponentdesiredstate_pkey");
-      dbAccessor.dropConstraint(HOST_STATE_TABLE, "hoststate_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE + " DROP CONSTRAINT clusterhostmapping_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE + " DROP CONSTRAINT hostcomponentstate_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE + " DROP CONSTRAINT hostcomponentdesiredstate_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE + " DROP CONSTRAINT hoststate_pkey");
       // TODO, include other tables.
     }
     dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE +
@@ -323,7 +341,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.dropColumn(CLUSTER_HOST_MAPPING_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_COMPONENT_DESIRED_STATE_TABLE, "host_name");
+    dbAccessor.dropColumn(HOST_ROLE_COMMAND_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_STATE_TABLE, "host_name");
+    dbAccessor.dropColumn(HOST_VERSION_TABLE, "host_name");
     // TODO, include other tables.
 
     // view columns for cluster association
@@ -565,9 +585,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         while (resultSet.next()) {
           hostId++;
           final String hostName = resultSet.getString(1);
-          Long currHostID = resultSet.getLong(2); // in case of a retry, may not be null
 
-          if (currHostID == null && StringUtils.isNotBlank(hostName)) {
+          if (StringUtils.isNotBlank(hostName)) {
             dbAccessor.executeQuery("UPDATE " + HOSTS_TABLE + " SET host_id = " + hostId +
                 " WHERE host_name = '" + hostName + "'");
           }
@@ -577,6 +596,24 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       }
     }
     return hostId;
+  }
+
+  private String getRandomHostName() throws SQLException {
+    String randomHostName = null;
+    ResultSet resultSet = null;
+    try {
+      resultSet = dbAccessor.executeSelect("SELECT host_name FROM hosts ORDER BY host_name ASC");
+      if (resultSet != null && resultSet.next()) {
+        randomHostName = resultSet.getString(1);
+      }
+    } catch (Exception e) {
+      LOG.error("Failed to retrieve random host name. Exception: " + e.getMessage());
+    } finally {
+      if (resultSet != null) {
+        resultSet.close();
+      }
+    }
+    return randomHostName;
   }
 
   /**

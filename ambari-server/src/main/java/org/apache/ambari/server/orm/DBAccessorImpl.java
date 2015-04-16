@@ -204,11 +204,20 @@ public class DBAccessorImpl implements DBAccessor {
   public boolean tableHasData(String tableName) throws SQLException {
     String query = "SELECT count(*) from " + tableName;
     Statement statement = getConnection().createStatement();
-    ResultSet rs = statement.executeQuery(query);
     boolean retVal = false;
-    if (rs != null) {
-      if (rs.next()) {
-        return rs.getInt(1) > 0;
+    ResultSet rs = null;
+    try {
+       rs = statement.executeQuery(query);
+      if (rs != null) {
+        if (rs.next()) {
+          return rs.getInt(1) > 0;
+        }
+      }
+    } catch (Exception e) {
+      LOG.error("Unable to check if table " + tableName + " has any data. Exception: " + e.getMessage());
+    } finally {
+      if (rs != null) {
+        rs.close();
       }
     }
     return retVal;

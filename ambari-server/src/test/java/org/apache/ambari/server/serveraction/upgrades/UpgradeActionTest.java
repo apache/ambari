@@ -25,8 +25,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.agent.ExecutionCommand;
@@ -70,11 +72,37 @@ public class UpgradeActionTest {
 
   private Injector m_injector;
 
+  @Inject
+  OrmTestHelper helper;
+
+  @Inject
+  RepositoryVersionDAO repoVersionDAO;
+
+  @Inject
+  ClusterVersionDAO clusterVersionDAO;
+
+  @Inject
+  HostVersionDAO hostVersionDAO;
+
+  @Inject
+  HostDAO hostDAO;
+
+  @Inject
+  HostRoleCommandFactory hostRoleCommandFactory;
+
+
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
 
+    helper = m_injector.getInstance(OrmTestHelper.class);
+
+    repoVersionDAO = m_injector.getInstance(RepositoryVersionDAO.class);
+    clusterVersionDAO = m_injector.getInstance(ClusterVersionDAO.class);
+    hostVersionDAO = m_injector.getInstance(HostVersionDAO.class);
+    hostDAO = m_injector.getInstance(HostDAO.class);
+    hostRoleCommandFactory = m_injector.getInstance(HostRoleCommandFactory.class);
   }
 
   @After
@@ -103,39 +131,27 @@ public class UpgradeActionTest {
     host.setHostAttributes(hostAttributes);
     host.persist();
 
-
-    OrmTestHelper helper = m_injector.getInstance(OrmTestHelper.class);
-
     helper.getOrCreateRepositoryVersion(stackId, DOWNGRADE_VERSION);
     helper.getOrCreateRepositoryVersion(stackId, UPGRADE_VERSION);
-
-    RepositoryVersionDAO repoVersionDao = m_injector.getInstance(RepositoryVersionDAO.class);
-    HostVersionDAO hostVersionDao = m_injector.getInstance(HostVersionDAO.class);
 
     c.createClusterVersion(stackId, DOWNGRADE_VERSION, "admin",
         RepositoryVersionState.UPGRADING);
     c.createClusterVersion(stackId, UPGRADE_VERSION, "admin",
         RepositoryVersionState.INSTALLING);
 
-    c.transitionClusterVersion(stackId, DOWNGRADE_VERSION,
-        RepositoryVersionState.CURRENT);
-    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
-        RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
-        RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(stackId, DOWNGRADE_VERSION, RepositoryVersionState.CURRENT);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION, RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION, RepositoryVersionState.UPGRADING);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
         RepositoryVersionState.CURRENT);
 
-    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
-
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
-    entity.setHostName(hostName);
-    entity.setRepositoryVersion(repoVersionDao.findByStackAndVersion(stackId,
-        UPGRADE_VERSION));
+    entity.setRepositoryVersion(
+        repoVersionDAO.findByStackAndVersion(stackId, UPGRADE_VERSION));
     entity.setState(RepositoryVersionState.UPGRADING);
-    hostVersionDao.create(entity);
+    hostVersionDAO.create(entity);
   }
 
   private void makeUpgradeCluster() throws Exception {
@@ -166,35 +182,24 @@ public class UpgradeActionTest {
     host.setHostAttributes(hostAttributes);
     host.persist();
 
-    OrmTestHelper helper = m_injector.getInstance(OrmTestHelper.class);
-    RepositoryVersionDAO repositoryVersionDAO = m_injector.getInstance (RepositoryVersionDAO.class);
-
     String urlInfo = "[{'repositories':[" +
         "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.1.1'}" +
         "], 'OperatingSystems/os_type':'redhat6'}]";
 
     helper.getOrCreateRepositoryVersion(stackId, DOWNGRADE_VERSION);
-
-    repositoryVersionDAO.create(stackEntity, UPGRADE_VERSION,
+    repoVersionDAO.create(stackEntity, UPGRADE_VERSION,
         String.valueOf(System.currentTimeMillis()), "pack",
           urlInfo);
-
-    RepositoryVersionDAO repoVersionDao = m_injector.getInstance(RepositoryVersionDAO.class);
-    HostVersionDAO hostVersionDao = m_injector.getInstance(HostVersionDAO.class);
 
     c.createClusterVersion(stackId, DOWNGRADE_VERSION, "admin",
         RepositoryVersionState.UPGRADING);
     c.createClusterVersion(stackId, UPGRADE_VERSION, "admin",
         RepositoryVersionState.INSTALLING);
 
-    c.transitionClusterVersion(stackId, DOWNGRADE_VERSION,
-        RepositoryVersionState.CURRENT);
-    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
-        RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
-        RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
-        RepositoryVersionState.UPGRADED);
+    c.transitionClusterVersion(stackId, DOWNGRADE_VERSION, RepositoryVersionState.CURRENT);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION, RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION, RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION, RepositoryVersionState.UPGRADED);
     c.setCurrentStackVersion(stackId);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
@@ -204,11 +209,10 @@ public class UpgradeActionTest {
 
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
-    entity.setHostName(hostName);
-    entity.setRepositoryVersion(repoVersionDao.findByStackAndVersion(stackId,
-        UPGRADE_VERSION));
+    entity.setRepositoryVersion(
+        repoVersionDAO.findByStackAndVersion(stackId, UPGRADE_VERSION));
     entity.setState(RepositoryVersionState.UPGRADED);
-    hostVersionDao.create(entity);
+    hostVersionDAO.create(entity);
   }
 
 
@@ -224,7 +228,7 @@ public class UpgradeActionTest {
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
 
-    HostRoleCommand hostRoleCommand = new HostRoleCommand(null, null, null, null);
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
     FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);
@@ -235,9 +239,8 @@ public class UpgradeActionTest {
     assertNotNull(report);
     assertEquals(HostRoleStatus.COMPLETED.name(), report.getStatus());
 
-    HostVersionDAO hostVersionDao = m_injector.getInstance(HostVersionDAO.class);
 
-    for (HostVersionEntity entity : hostVersionDao.findByClusterAndHost("c1", "h1")) {
+    for (HostVersionEntity entity : hostVersionDAO.findByClusterAndHost("c1", "h1")) {
       if (entity.getRepositoryVersion().getVersion().equals(DOWNGRADE_VERSION)) {
         assertEquals(RepositoryVersionState.CURRENT, entity.getState());
       } else if (entity.getRepositoryVersion().getVersion().equals(UPGRADE_VERSION)) {
@@ -245,8 +248,7 @@ public class UpgradeActionTest {
       }
     }
 
-    ClusterVersionDAO clusterVersionDao = m_injector.getInstance(ClusterVersionDAO.class);
-    for (ClusterVersionEntity entity : clusterVersionDao.findByCluster("c1")) {
+    for (ClusterVersionEntity entity : clusterVersionDAO.findByCluster("c1")) {
       if (entity.getRepositoryVersion().getVersion().equals(DOWNGRADE_VERSION)) {
         assertEquals(RepositoryVersionState.CURRENT, entity.getState());
       } else if (entity.getRepositoryVersion().getVersion().equals(UPGRADE_VERSION)) {
@@ -267,7 +269,7 @@ public class UpgradeActionTest {
     executionCommand.setCommandParams(commandParams);
     executionCommand.setClusterName("c1");
 
-    HostRoleCommand hostRoleCommand = new HostRoleCommand(null, null, null, null);
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
     hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
 
     FinalizeUpgradeAction action = m_injector.getInstance(FinalizeUpgradeAction.class);

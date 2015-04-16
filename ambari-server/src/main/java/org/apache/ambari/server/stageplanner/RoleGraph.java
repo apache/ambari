@@ -22,8 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -32,15 +35,23 @@ public class RoleGraph {
 
   private static Log LOG = LogFactory.getLog(RoleGraph.class);
 
+  
   Map<String, RoleGraphNode> graph = null;
   private RoleCommandOrder roleDependencies;
   private Stage initialStage = null;
   private boolean sameHostOptimization = true;
 
-  public RoleGraph() {
+  @Inject
+  private StageFactory stageFactory;
+
+  @Inject
+  public RoleGraph(StageFactory stageFactory) {
+    this.stageFactory = stageFactory;
   }
-  
-  public RoleGraph(RoleCommandOrder rd) {
+
+  @Inject
+  public RoleGraph(RoleCommandOrder rd, StageFactory stageFactory) {
+    this(stageFactory);
     this.roleDependencies = rd;
   }
 
@@ -136,7 +147,7 @@ public class RoleGraph {
   private Stage getStageFromGraphNodes(Stage origStage,
       List<RoleGraphNode> stageGraphNodes) {
 
-    Stage newStage = new Stage(origStage.getRequestId(),
+    Stage newStage = stageFactory.createNew(origStage.getRequestId(),
         origStage.getLogDir(), origStage.getClusterName(),
         origStage.getClusterId(),
         origStage.getRequestContext(), origStage.getClusterHostInfo(),

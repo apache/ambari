@@ -18,15 +18,7 @@
 
 package org.apache.ambari.server.controller;
 
-import static org.easymock.EasyMock.anyLong;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.getCurrentArguments;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -73,6 +65,8 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFactory;
 import org.apache.ambari.server.stack.StackManagerFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
+import org.apache.ambari.server.stageplanner.RoleGraphFactoryImpl;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -177,6 +171,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         bind(ActionManager.class).toInstance(createNiceMock(ActionManager.class));
         bind(RequestFactory.class).toInstance(createNiceMock(RequestFactory.class));
         bind(StageFactory.class).toInstance(createNiceMock(StageFactory.class));
+        bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
         bind(Clusters.class).toInstance(createNiceMock(ClustersImpl.class));
         bind(ConfigHelper.class).toInstance(createNiceMock(ConfigHelper.class));
         bind(KerberosOperationHandlerFactory.class).toInstance(kerberosOperationHandlerFactory);
@@ -336,6 +331,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testExecuteCustomOperationsInvalidOperation() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     final Cluster cluster = createNiceMock(Cluster.class);
 
     try {
@@ -349,6 +345,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test(expected = AmbariException.class)
   public void testRegenerateKeytabsInvalidValue() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     final Cluster cluster = createNiceMock(Cluster.class);
 
     kerberosHelper.executeCustomOperations(cluster,
@@ -1294,6 +1291,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testIsClusterKerberosEnabled_false() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     Cluster cluster = createStrictMock(Cluster.class);
 
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE);
@@ -1306,6 +1304,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testIsClusterKerberosEnabled_true() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     Cluster cluster = createStrictMock(Cluster.class);
 
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS);
@@ -1318,6 +1317,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testGetManageIdentitiesDirective_NotSet() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     assertEquals(null, kerberosHelper.getManageIdentitiesDirective(null));
     assertEquals(null, kerberosHelper.getManageIdentitiesDirective(Collections.<String, String>emptyMap()));
 
@@ -1344,6 +1344,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testGetManageIdentitiesDirective_True() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     assertEquals(Boolean.TRUE, kerberosHelper.getManageIdentitiesDirective(Collections.singletonMap(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "true")));
     assertEquals(Boolean.TRUE, kerberosHelper.getManageIdentitiesDirective(Collections.singletonMap(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "not_false")));
 
@@ -1361,6 +1362,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test
   public void testGetManageIdentitiesDirective_False() throws Exception {
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
     assertEquals(Boolean.FALSE, kerberosHelper.getManageIdentitiesDirective(Collections.singletonMap(KerberosHelper.DIRECTIVE_MANAGE_KERBEROS_IDENTITIES, "false")));
 
     assertEquals(Boolean.FALSE, kerberosHelper.getManageIdentitiesDirective(

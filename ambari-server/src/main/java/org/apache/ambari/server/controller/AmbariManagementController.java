@@ -28,6 +28,7 @@ import org.apache.ambari.server.metadata.RoleCommandOrder;
 import org.apache.ambari.server.scheduler.ExecutionScheduleManager;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
 import org.apache.ambari.server.security.ldap.LdapSyncDto;
+import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -521,6 +522,13 @@ public interface AmbariManagementController {
    * @return the config group factory
    */
   public ConfigGroupFactory getConfigGroupFactory();
+
+  /**
+   * Get the role graph factory for this management controller.
+   *
+   * @return the role graph factory
+   */
+  public RoleGraphFactory getRoleGraphFactory();
 
   /**
     * Get the action manager for this management controller.

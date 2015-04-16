@@ -18,8 +18,38 @@
 
 package org.apache.ambari.server.actionmanager;
 
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.state.ServiceComponentHostEvent;
 
 public interface HostRoleCommandFactory {
+
+  /**
+   * Constructor via factory.
+   * @param hostName Host name
+   * @param role Action to run
+   * @param event Event on the host and component
+   * @param command Type of command
+   * @return An instance constructed where retryAllowed defaults to false
+   */
+  HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event, RoleCommand command);
+
+  /**
+   * Constructor via factory.
+   * @param hostName Host name
+   * @param role Action to run
+   * @param event Event on the host and component
+   * @param command Type of command
+   * @param retryAllowed Whether the command can be repeated
+   * @return An instance of a HostRoleCommand.
+   */
+  HostRoleCommand create(String hostName, Role role, ServiceComponentHostEvent event, RoleCommand command, boolean retryAllowed);
+
+  /**
+   * Constructor via factory
+   * @param hostRoleCommandEntity Object to copy fields from.
+   * @return An instance constructed from the input object.
+   */
   HostRoleCommand createExisting(HostRoleCommandEntity hostRoleCommandEntity);
 }

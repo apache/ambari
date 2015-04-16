@@ -33,6 +33,7 @@ import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
@@ -55,10 +56,13 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
@@ -143,6 +147,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
 
+  @Inject
+  private static HostRoleCommandFactory hostRoleCommandFactory;
+
   private static Gson gson = StageUtils.getGson();
 
   @Inject
@@ -150,6 +157,9 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
 
   @Inject
   private static StageFactory stageFactory;
+
+  @Inject
+  private static ClusterDAO clusterDAO;
 
   @Inject
   private static RequestFactory requestFactory;
@@ -497,6 +507,19 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
           String.format("Invalid desired state %s. Should be either CURRENT or INSTALLED",
                   newStateStr));
       }
+
+      // Get a host name to populate the hostrolecommand table's hostEntity.
+      ClusterEntity cluster = clusterDAO.findByName(clName);
+      String defaultHostName = null;
+      List<HostEntity> hosts = new ArrayList(cluster.getHostEntities());
+      if (hosts != null && !hosts.isEmpty()) {
+        Collections.sort(hosts);
+        defaultHostName = hosts.get(0).getHostName();
+      }
+      if (defaultHostName == null) {
+        throw new AmbariException("Could not find at least one host to set the command for");
+      }
+
       args.put(FinalizeUpgradeAction.VERSION_KEY, desiredRepoVersion);
       args.put(FinalizeUpgradeAction.CLUSTER_NAME_KEY, clName);
 
@@ -504,7 +527,8 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       command.setCommandParams(args);
       command.setClusterName(clName);
       finalizeUpgradeAction.setExecutionCommand(command);
-      HostRoleCommand hostRoleCommand = new HostRoleCommand("none",
+      
+      HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(defaultHostName,
               Role.AMBARI_SERVER_ACTION, null, null);
       finalizeUpgradeAction.setHostRoleCommand(hostRoleCommand);
 

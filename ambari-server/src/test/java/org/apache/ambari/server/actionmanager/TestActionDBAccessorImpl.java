@@ -94,6 +94,10 @@ public class TestActionDBAccessorImpl {
   @Inject
   private HostRoleCommandDAO hostRoleCommandDAO;
 
+  @Inject
+  private StageFactory stageFactory;
+
+
   @Before
   public void setup() throws AmbariException {
     InMemoryDefaultTestModule defaultTestModule = new InMemoryDefaultTestModule();
@@ -506,7 +510,7 @@ public class TestActionDBAccessorImpl {
 
   @Test
   public void testAbortRequest() throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+    Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
       "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
 
@@ -593,7 +597,7 @@ public class TestActionDBAccessorImpl {
 
   @Test
   public void testGet1000TasksFromOracleDB() throws Exception {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+    Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
       "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     for (int i = 1000; i < 2002; i++) {
@@ -655,7 +659,7 @@ public class TestActionDBAccessorImpl {
   }
 
   private Stage createStubStage(String hostname, long requestId, long stageId) {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+    Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
       "clusterHostInfo", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.HBASE_MASTER,
@@ -673,7 +677,7 @@ public class TestActionDBAccessorImpl {
 
   private void populateActionDBWithCustomAction(ActionDBAccessor db, String hostname,
                                 long requestId, long stageId) throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+    Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
       "", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addHostRoleExecutionCommand(hostname, Role.valueOf(actionName),
@@ -693,7 +697,7 @@ public class TestActionDBAccessorImpl {
 
   private void populateActionDBWithServerAction(ActionDBAccessor db, String hostname,
                                                 long requestId, long stageId) throws AmbariException {
-    Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
+    Stage s = stageFactory.createNew(requestId, "/a/b", "cluster1", 1L, "action db accessor test",
         "", "commandParamsStage", "hostParamsStage");
     s.setStageId(stageId);
     s.addServerActionCommand(serverActionName, Role.AMBARI_SERVER_ACTION, RoleCommand.ACTIONEXECUTE, clusterName, null, null, "command details", null, 300, false);

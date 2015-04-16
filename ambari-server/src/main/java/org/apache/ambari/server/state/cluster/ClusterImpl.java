@@ -1044,8 +1044,7 @@ public class ClusterImpl implements Cluster {
           if (!intersection.contains(hostname)) {
             // According to the business logic, we don't create objects in a CURRENT state.
             HostEntity hostEntity = hostDAO.findByName(hostname);
-            HostVersionEntity hostVersionEntity = new HostVersionEntity(hostname, currentClusterVersion.getRepositoryVersion(), desiredState);
-            hostVersionEntity.setHostEntity(hostEntity);
+            HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity, currentClusterVersion.getRepositoryVersion(), desiredState);
             hostVersionDAO.create(hostVersionEntity);
           } else {
             HostVersionEntity hostVersionEntity = existingHostToHostVersionEntity.get(hostname);
@@ -1122,10 +1121,9 @@ public class ClusterImpl implements Cluster {
         if (hostsMissingRepoVersion.contains(hostname)) {
           // Create new host stack version
           HostEntity hostEntity = hostDAO.findByName(hostname);
-          HostVersionEntity hostVersionEntity = new HostVersionEntity(hostname,
+          HostVersionEntity hostVersionEntity = new HostVersionEntity(hostEntity,
               sourceClusterVersion.getRepositoryVersion(),
               RepositoryVersionState.INSTALLING);
-          hostVersionEntity.setHostEntity(hostEntity);
           hostVersionDAO.create(hostVersionEntity);
         } else {
           // Update existing host stack version
@@ -1347,8 +1345,7 @@ public class ClusterImpl implements Cluster {
     try {
       // Create one if it doesn't already exist. It will be possible to make further transitions below.
       if (hostVersionEntity == null) {
-        hostVersionEntity = new HostVersionEntity(host.getHostName(), repositoryVersion, RepositoryVersionState.UPGRADING);
-        hostVersionEntity.setHostEntity(host);
+        hostVersionEntity = new HostVersionEntity(host, repositoryVersion, RepositoryVersionState.UPGRADING);
         hostVersionDAO.create(hostVersionEntity);
       }
 
@@ -1565,11 +1562,7 @@ public class ClusterImpl implements Cluster {
             }
             if (null == target) {
               // If no matching version was found, create one with the desired state
-              HostVersionEntity hve = new HostVersionEntity();
-              hve.setHostEntity(he);
-              hve.setHostName(he.getHostName());
-              hve.setRepositoryVersion(existingClusterVersion.getRepositoryVersion());
-              hve.setState(state);
+              HostVersionEntity hve = new HostVersionEntity(he, existingClusterVersion.getRepositoryVersion(), state);
               hostVersionDAO.create(hve);
             }
           }

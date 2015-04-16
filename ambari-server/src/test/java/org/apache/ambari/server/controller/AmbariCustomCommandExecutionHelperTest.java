@@ -63,8 +63,7 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 @RunWith(MockitoJUnitRunner.class)
-public class
-    AmbariCustomCommandExecutionHelperTest {
+public class AmbariCustomCommandExecutionHelperTest {
   private Injector injector;
   private AmbariManagementController controller;
   private AmbariMetaInfo ambariMetaInfo;
@@ -97,10 +96,6 @@ public class
   public void teardown() {
     injector.getInstance(PersistService.class).stop();
   }
-
-
-  
-
 
   @SuppressWarnings("serial")
   @Test

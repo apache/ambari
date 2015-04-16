@@ -1621,8 +1621,7 @@ public class ClusterTest {
         v2);
     for(String hostName : clusters.getHostsForCluster(clusterName).keySet()) {
       HostEntity host = hostDAO.findByName(hostName);
-      HostVersionEntity hve = new HostVersionEntity(hostName, rv2, RepositoryVersionState.INSTALLED);
-      hve.setHostEntity(host);
+      HostVersionEntity hve = new HostVersionEntity(host, rv2, RepositoryVersionState.INSTALLED);
       hostVersionDAO.create(hve);
     }
     cluster.createClusterVersion(stackId, v2, "admin",

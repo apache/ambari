@@ -19,10 +19,12 @@ package org.apache.ambari.server.utils;
 
 import com.google.common.base.Joiner;
 import com.google.gson.Gson;
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.controller.ActionExecutionContext;
 import org.apache.ambari.server.state.Cluster;
@@ -75,6 +77,14 @@ public class StageUtils {
   private static Map<String, String> decommissionedToClusterInfoKeyMap =
       new HashMap<String, String>();
   private volatile static Gson gson;
+
+  @Inject
+  private static StageFactory stageFactory;
+
+  @Inject
+  public StageUtils(StageFactory stageFactory) {
+    StageUtils.stageFactory = stageFactory;
+  }
 
   private static String server_hostname;
   static {
@@ -166,9 +176,9 @@ public class StageUtils {
   }
 
   //For testing only
+  @Inject
   public static Stage getATestStage(long requestId, long stageId, String hostname, String clusterHostInfo, String commandParamsStage, String hostParamsStage) {
-
-    Stage s = new Stage(requestId, "/tmp", "cluster1", 1L, "context", clusterHostInfo, commandParamsStage, hostParamsStage);
+    Stage s = stageFactory.createNew(requestId, "/tmp", "cluster1", 1L, "context", clusterHostInfo, commandParamsStage, hostParamsStage);
     s.setStageId(stageId);
     long now = System.currentTimeMillis();
     s.addHostRoleExecutionCommand(hostname, Role.NAMENODE, RoleCommand.INSTALL,

@@ -18,12 +18,18 @@
 
 package org.apache.ambari.server.actionmanager;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.serveraction.upgrades.ConfigureAction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -41,10 +47,21 @@ public class StageTest {
       + SERVER_HOST_NAME + "], slave_hosts=["
       + SERVER_HOST_NAME + "]}";
 
+  Injector injector;
+
+  @Inject
+  StageFactory stageFactory;
+
+  @Before
+  public void setup() throws Exception {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
+  }
 
   @Test
   public void testAddServerActionCommand_userName() throws Exception {
-    final Stage stage = new Stage((long) 1, "/tmp", "cluster1", (long) 978, "context", CLUSTER_HOST_INFO,
+    final Stage stage = stageFactory.createNew((long) 1, "/tmp", "cluster1", (long) 978, "context", CLUSTER_HOST_INFO,
         "{\"host_param\":\"param_value\"}", "{\"stage_param\":\"param_value\"}");
 
     stage.addServerActionCommand(ConfigureAction.class.getName(),

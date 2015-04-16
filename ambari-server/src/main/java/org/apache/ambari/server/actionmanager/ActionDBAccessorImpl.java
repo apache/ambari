@@ -268,7 +268,7 @@ public class ActionDBAccessorImpl implements ActionDBAccessor {
           LOG.error(msg);
           throw new AmbariException(msg);
         }
-        hostRoleCommandEntity.setHost(hostEntity);
+        hostRoleCommandEntity.setHostEntity(hostEntity);
         hostRoleCommandDAO.create(hostRoleCommandEntity);
 
         assert hostRoleCommandEntity.getTaskId() != null;

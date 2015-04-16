@@ -19,10 +19,16 @@ package org.apache.ambari.server.actionmanager;
 
 import static org.junit.Assert.*;
 
+import com.google.inject.Guice;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.utils.StageUtils;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Map;
@@ -31,6 +37,21 @@ import java.util.TreeMap;
 public class TestStage {
 
   private static final String CLUSTER_HOST_INFO = "cluster_host_info";
+
+  Injector injector;
+
+  @Inject
+  StageFactory stageFactory;
+
+  @Inject
+  StageUtils stageUtils;
+
+  @Before
+  public void setup() throws Exception {
+    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector.getInstance(GuiceJpaInitializer.class);
+    injector.injectMembers(this);
+  }
 
   @Test
   public void testTaskTimeout() {
@@ -49,11 +70,8 @@ public class TestStage {
 
   @Test
   public void testGetRequestContext() {
-
-    Stage stage = new Stage(1, "/logDir", "c1", 1L, "My Context", CLUSTER_HOST_INFO, "", "");
+    Stage stage = stageFactory.createNew(1, "/logDir", "c1", 1L, "My Context", CLUSTER_HOST_INFO, "", "");
     assertEquals("My Context", stage.getRequestContext());
     assertEquals(CLUSTER_HOST_INFO, stage.getClusterHostInfo());
   }
-
-
 }

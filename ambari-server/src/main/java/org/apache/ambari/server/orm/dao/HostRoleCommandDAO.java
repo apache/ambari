@@ -167,7 +167,7 @@ public class HostRoleCommandDAO {
   public List<Long> findTaskIdsByHostRoleAndStatus(String hostname, String role, HostRoleStatus status) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT task.taskId FROM HostRoleCommandEntity task " +
-            "WHERE task.hostName=?1 AND task.role=?2 AND task.status=?3 " +
+            "WHERE task.hostEntity.hostName=?1 AND task.role=?2 AND task.status=?3 " +
             "ORDER BY task.taskId", Long.class
     );
 
@@ -188,9 +188,9 @@ public class HostRoleCommandDAO {
   public List<HostRoleCommandEntity> findSortedCommandsByStageAndHost(StageEntity stageEntity, HostEntity hostEntity) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
         "FROM HostRoleCommandEntity hostRoleCommand " +
-        "WHERE hostRoleCommand.stage=?1 AND hostRoleCommand.host=?2 " +
+        "WHERE hostRoleCommand.stage=?1 AND hostRoleCommand.hostEntity.hostName=?2 " +
         "ORDER BY hostRoleCommand.taskId", HostRoleCommandEntity.class);
-    return daoUtils.selectList(query, stageEntity, hostEntity);
+    return daoUtils.selectList(query, stageEntity, hostEntity.getHostName());
   }
 
   @RequiresSession
@@ -198,7 +198,7 @@ public class HostRoleCommandDAO {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT hostRoleCommand " +
         "FROM HostRoleCommandEntity hostRoleCommand " +
         "WHERE hostRoleCommand.stage=?1 " +
-        "ORDER BY hostRoleCommand.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
+        "ORDER BY hostRoleCommand.hostEntity.hostName, hostRoleCommand.taskId", HostRoleCommandEntity.class);
     List<HostRoleCommandEntity> commandEntities = daoUtils.selectList(query, stageEntity);
 
     Map<String, List<HostRoleCommandEntity>> hostCommands = new HashMap<String, List<HostRoleCommandEntity>>();
@@ -229,7 +229,7 @@ public class HostRoleCommandDAO {
   public List<HostRoleCommandEntity> findByHostRole(String hostName, long requestId, long stageId, String role) {
     TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +
-        "WHERE command.hostName=?1 AND command.requestId=?2 " +
+        "WHERE command.hostEntity.hostName=?1 AND command.requestId=?2 " +
         "AND command.stageId=?3 AND command.role=?4 " +
         "ORDER BY command.taskId", HostRoleCommandEntity.class);
 

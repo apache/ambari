@@ -118,8 +118,6 @@ public class UpgradeTest {
     testUpgradedSchema();
 
     dropDatabase();
-
-
   }
 
   private void dropDatabase() throws ClassNotFoundException, SQLException {
@@ -171,11 +169,8 @@ public class UpgradeTest {
     injector.getInstance(ViewDAO.class).findAll();
     injector.getInstance(ViewInstanceDAO.class).findAll();
 
-
     //TODO extend checks if needed
     injector.getInstance(PersistService.class).stop();
-
-
   }
 
   private void performUpgrade(String targetVersion) throws Exception {
@@ -212,7 +207,6 @@ public class UpgradeTest {
     LOG.info("Upgrade successful.");
 
     schemaUpgradeHelper.stopPersistenceService();
-
   }
 
   private String getLastVersion() throws Exception {
@@ -236,7 +230,6 @@ public class UpgradeTest {
     fileName = this.getClass().getClassLoader().getResource(fileName).getFile();
     DBAccessor dbAccessor = injector.getInstance(DBAccessor.class);
     dbAccessor.executeScript(fileName);
-
   }
 
   @Parameterized.Parameters
@@ -247,6 +240,4 @@ public class UpgradeTest {
     }
     return data;
   }
-
-
 }

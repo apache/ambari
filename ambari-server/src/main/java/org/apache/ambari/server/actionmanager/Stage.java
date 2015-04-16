@@ -28,6 +28,7 @@ import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
@@ -80,6 +81,15 @@ public class Stage {
   private Map<String, List<ExecutionCommandWrapper>> commandsToSend =
       new TreeMap<String, List<ExecutionCommandWrapper>>();
 
+  @Inject
+  private HostRoleCommandFactory hostRoleCommandFactory;
+
+  @Inject
+  private HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private ActionDBAccessor dbAccessor;
+
   @AssistedInject
   public Stage(@Assisted long requestId,
       @Assisted("logDir") String logDir,
@@ -88,7 +98,8 @@ public class Stage {
       @Assisted("requestContext") @Nullable String requestContext,
       @Assisted("clusterHostInfo") String clusterHostInfo,
       @Assisted("commandParamsStage") String commandParamsStage,
-      @Assisted("hostParamsStage") String hostParamsStage) {
+      @Assisted("hostParamsStage") String hostParamsStage,
+      HostRoleCommandFactory hostRoleCommandFactory) {
     this.wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
@@ -99,11 +110,15 @@ public class Stage {
     this.commandParamsStage = commandParamsStage;
     this.hostParamsStage = hostParamsStage;
     this.skippable = false;
+    this.hostRoleCommandFactory = hostRoleCommandFactory;
   }
 
   @AssistedInject
   public Stage(@Assisted StageEntity stageEntity, HostRoleCommandDAO hostRoleCommandDAO,
-      ActionDBAccessor dbAccessor, Clusters clusters) {
+               ActionDBAccessor dbAccessor, Clusters clusters, HostRoleCommandFactory hostRoleCommandFactory) {
+    this.hostRoleCommandFactory = hostRoleCommandFactory;
+    this.hostRoleCommandDAO = hostRoleCommandDAO;
+    this.dbAccessor = dbAccessor;
 
     requestId = stageEntity.getRequestId();
     stageId = stageEntity.getStageId();
@@ -125,19 +140,16 @@ public class Stage {
     commandParamsStage = stageEntity.getCommandParamsStage();
     hostParamsStage = stageEntity.getHostParamsStage();
 
-
     List<Long> taskIds = hostRoleCommandDAO.findTaskIdsByStage(requestId, stageId);
     Collection<HostRoleCommand> commands = dbAccessor.getTasks(taskIds);
 
     for (HostRoleCommand command : commands) {
       String hostname = command.getHostName();
       if (!hostRoleCommands.containsKey(hostname)) {
-//        commandsToSend.put(hostname, new ArrayList<ExecutionCommandWrapper>());
         hostRoleCommands.put(hostname, new LinkedHashMap<String, HostRoleCommand>());
       }
 
       hostRoleCommands.get(hostname).put(command.getRole().toString(), command);
-//      commandsToSend.get(hostname).add(command.getExecutionCommandWrapper());
     }
 
     for (RoleSuccessCriteriaEntity successCriteriaEntity : stageEntity.getRoleSuccessCriterias()) {
@@ -257,7 +269,7 @@ public class Stage {
       RoleCommand command, ServiceComponentHostEvent event, boolean retryAllowed){
 
     //used on stage creation only, no need to check if wrappers loaded
-    HostRoleCommand hrc = new HostRoleCommand(hostName, role, event, command, retryAllowed);
+    HostRoleCommand hrc = hostRoleCommandFactory.create(hostName, role, event, command, retryAllowed);
     ExecutionCommand cmd = new ExecutionCommand();
     ExecutionCommandWrapper wrapper = new ExecutionCommandWrapper(cmd);
     hrc.setExecutionCommandWrapper(wrapper);
