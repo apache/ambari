@@ -145,11 +145,20 @@ public class WidgetResourceProviderTest {
     Assert.assertEquals("displ_name", r.getPropertyValue(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID));
     Assert.assertEquals("widget name", r.getPropertyValue(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID));
     Object metrics = r.getPropertyValue(WidgetResourceProvider.WIDGET_METRICS_PROPERTY_ID);
-    Assert.assertTrue(metrics instanceof List);
-    Assert.assertEquals(2, ((List) metrics).size());
-    Object values = r.getPropertyValue(WidgetResourceProvider.WIDGET_VALUES_PROPERTY_ID);
-    Assert.assertTrue(values instanceof List);
-    Assert.assertEquals(1, ((List) values).size());
+    Assert.assertEquals("[{\"widget_id\":\"metrics/jvm/HeapMemoryUsed\"," +
+            "\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"," +
+            "\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\"," +
+            "\"name\":\"java.lang:type\\u003dMemory.HeapMemoryUsage[used]\",\"category\":\"\"}," +
+            "{\"widget_id\":\"metrics/jvm/HeapMemoryMax\"," +
+            "\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"," +
+            "\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\"," +
+            "\"name\":\"java.lang:type\\u003dMemory.HeapMemoryUsage[max]\"," +
+            "\"category\":\"\"}]", r.getPropertyValue(WidgetResourceProvider.WIDGET_METRICS_PROPERTY_ID));
+    Assert.assertEquals("[{\"name\":\"NameNode Heap\"," +
+            "\"value\":\"${java.lang:type\\u003dMemory.HeapMemoryUsage[used] / " +
+            "java.lang:type\\u003dMemory.HeapMemoryUsage[max]}\"}]",
+            r.getPropertyValue(WidgetResourceProvider.WIDGET_VALUES_PROPERTY_ID));
+    Assert.assertEquals("{\"name\":\"value\"}", r.getPropertyValue(WidgetResourceProvider.WIDGET_PROPERTIES_PROPERTY_ID));
   }
 
 
@@ -433,12 +442,13 @@ public class WidgetResourceProviderTest {
     widgetEntity.setDescription("Description");
     widgetEntity.setMetrics("[{\"widget_id\":\"metrics/jvm/HeapMemoryUsed\"," +
             "\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"," +
-            "\"service_name\":\"HDFS\",\"component_na\n" +
-            "me\":\"NAMENODE\",\"name\":\"java.lang:type\\u003dMemory.HeapMemoryUsage[used]\",\"category\":\"\"}," +
-            "{\"widget_id\":\"metrics/jvm/HeapMemoryMax\",\"host_component_criteria\":\"host_compone\n" +
-            "nts/metrics/dfs/FSNamesystem/HAState\\u003dactive\",\"service_name\":\"HDFS\"," +
-            "\"component_name\":\"NAMENODE\",\"name\":\"java.lang:type\\u003dMemory.HeapMemoryUsage[max]\"," +
-            "\"category\":\n\"\"}]");
+            "\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\"," +
+            "\"name\":\"java.lang:type\\u003dMemory.HeapMemoryUsage[used]\",\"category\":\"\"}," +
+            "{\"widget_id\":\"metrics/jvm/HeapMemoryMax\"," +
+            "\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"," +
+            "\"service_name\":\"HDFS\",\"component_name\":\"NAMENODE\"," +
+            "\"name\":\"java.lang:type\\u003dMemory.HeapMemoryUsage[max]\"," +
+            "\"category\":\"\"}]");
     widgetEntity.setWidgetValues("[{\"name\":\"NameNode Heap\"," +
             "\"value\":\"${java.lang:type\\u003dMemory.HeapMemoryUsage[used] / " +
             "java.lang:type\\u003dMemory.HeapMemoryUsage[max]}\"}]");

@@ -230,14 +230,14 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
       resource.setProperty(WIDGET_ID_PROPERTY_ID, entity.getId());
       resource.setProperty(WIDGET_WIDGET_NAME_PROPERTY_ID, entity.getWidgetName());
       resource.setProperty(WIDGET_WIDGET_TYPE_PROPERTY_ID, entity.getWidgetType());
-      setResourceProperty(resource, WIDGET_METRICS_PROPERTY_ID, gson.fromJson(entity.getMetrics(), ArrayList.class), requestedIds);
+      setResourceProperty(resource, WIDGET_METRICS_PROPERTY_ID, entity.getMetrics(), requestedIds);
       setResourceProperty(resource, WIDGET_TIME_CREATED_PROPERTY_ID, entity.getTimeCreated(), requestedIds);
       resource.setProperty(WIDGET_AUTHOR_PROPERTY_ID, entity.getAuthor());
       setResourceProperty(resource, WIDGET_DESCRIPTION_PROPERTY_ID, entity.getDescription(), requestedIds);
       resource.setProperty(WIDGET_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName());
       resource.setProperty(WIDGET_SCOPE_PROPERTY_ID, entity.getScope());
-      setResourceProperty(resource, WIDGET_VALUES_PROPERTY_ID, gson.fromJson(entity.getWidgetValues(), ArrayList.class), requestedIds);
-      setResourceProperty(resource, WIDGET_PROPERTIES_PROPERTY_ID, gson.fromJson(entity.getProperties(), Map.class), requestedIds);
+      setResourceProperty(resource, WIDGET_VALUES_PROPERTY_ID, entity.getWidgetValues(), requestedIds);
+      setResourceProperty(resource, WIDGET_PROPERTIES_PROPERTY_ID, entity.getProperties(), requestedIds);
 
       String clusterName = null;
       try {
