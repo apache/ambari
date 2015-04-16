@@ -267,6 +267,7 @@ App.UpgradeVersionBoxView = Em.View.extend({
     var displayName = this.get('content.displayName');
     var hosts = this.get('content').get(status['property']);
     var self = this;
+    hosts.sort();
     if (hosts.length) {
       return App.ModalPopup.show({
         bodyClass: Ember.View.extend({
