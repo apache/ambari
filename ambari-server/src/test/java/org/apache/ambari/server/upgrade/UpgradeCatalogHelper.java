@@ -34,6 +34,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.State;
 
@@ -51,11 +52,11 @@ public class UpgradeCatalogHelper {
    *
    * @param injector
    * @param clusterName
-   * @param desiredStackVersion
+   * @param desiredStackEntity
    * @return
    */
   protected ClusterEntity createCluster(Injector injector, String clusterName,
-      String desiredStackVersion) {
+      StackEntity desiredStackEntity) {
     ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
 
     // create an admin resource to represent this cluster
@@ -74,9 +75,10 @@ public class UpgradeCatalogHelper {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterId(1L);
     clusterEntity.setClusterName(clusterName);
-    clusterEntity.setDesiredStackVersion(desiredStackVersion);
+    clusterEntity.setDesiredStack(desiredStackEntity);
     clusterEntity.setProvisioningState(State.INIT);
     clusterEntity.setResource(resourceEntity);
+
     clusterDAO.create(clusterEntity);
     return clusterEntity;
   }
@@ -107,19 +109,19 @@ public class UpgradeCatalogHelper {
    * @param injector
    * @param clusterEntity
    * @param serviceName
-   * @param desiredStackVersion
+   * @param desiredStackEntity
    * @return
    */
   protected ClusterServiceEntity addService(Injector injector,
       ClusterEntity clusterEntity, String serviceName,
-      String desiredStackVersion) {
+      StackEntity desiredStackEntity) {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
     ClusterServiceEntity clusterServiceEntity = createService(injector,
         clusterEntity, serviceName);
 
     ServiceDesiredStateEntity serviceDesiredStateEntity = new ServiceDesiredStateEntity();
-    serviceDesiredStateEntity.setDesiredStackVersion(desiredStackVersion);
+    serviceDesiredStateEntity.setDesiredStack(desiredStackEntity);
     serviceDesiredStateEntity.setClusterId(1L);
     serviceDesiredStateEntity.setServiceName(serviceName);
     serviceDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
@@ -161,17 +163,17 @@ public class UpgradeCatalogHelper {
    * @param clusterServiceEntity
    * @param hostEntity
    * @param componentName
-   * @param desiredStackVersion
+   * @param desiredStackEntity
    */
   @Transactional
   protected void addComponent(Injector injector, ClusterEntity clusterEntity,
       ClusterServiceEntity clusterServiceEntity, HostEntity hostEntity,
-      String componentName, String desiredStackVersion) {
+      String componentName, StackEntity desiredStackEntity) {
     ServiceComponentDesiredStateEntity componentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName(componentName);
     componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
-    componentDesiredStateEntity.setDesiredStackVersion(desiredStackVersion);
+    componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setClusterId(clusterServiceEntity.getClusterId());
 
@@ -183,6 +185,7 @@ public class UpgradeCatalogHelper {
     hostComponentDesiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
+    hostComponentDesiredStateEntity.setDesiredStack(desiredStackEntity);
     hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
 
     HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
@@ -190,8 +193,9 @@ public class UpgradeCatalogHelper {
     hostComponentStateEntity.setComponentName(componentName);
     hostComponentStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());
-    hostComponentStateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
+    hostComponentStateEntity.setCurrentStack(clusterEntity.getDesiredStack());
     hostComponentStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
+    hostComponentStateEntity.setCurrentStack(desiredStackEntity);
 
     componentDesiredStateEntity.setHostComponentStateEntities(Collections.singletonList(hostComponentStateEntity));
     componentDesiredStateEntity.setHostComponentDesiredStateEntities(Collections.singletonList(hostComponentDesiredStateEntity));

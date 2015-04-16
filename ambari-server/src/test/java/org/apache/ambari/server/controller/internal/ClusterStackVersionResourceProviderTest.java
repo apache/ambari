@@ -178,7 +178,9 @@ public class ClusterStackVersionResourceProviderTest {
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
 
-    expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(String.class),
+    expect(
+        repositoryVersionDAOMock.findByStackAndVersion(
+            anyObject(StackId.class),
             anyObject(String.class))).andReturn(repoVersion);
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();

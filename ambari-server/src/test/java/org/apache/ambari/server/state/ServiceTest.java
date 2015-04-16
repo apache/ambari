@@ -63,9 +63,8 @@ public class ServiceTest {
         ServiceComponentFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     clusterName = "foo";
-    clusters.addCluster(clusterName);
+    clusters.addCluster(clusterName, new StackId("HDP-0.1"));
     cluster = clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     Assert.assertNotNull(cluster);
   }
 
@@ -104,8 +103,8 @@ public class ServiceTest {
     Service service = cluster.getService(serviceName);
     Assert.assertNotNull(service);
 
-    service.setDesiredStackVersion(new StackId("HDP-1.1.0"));
-    Assert.assertEquals("HDP-1.1.0",
+    service.setDesiredStackVersion(new StackId("HDP-1.2.0"));
+    Assert.assertEquals("HDP-1.2.0",
         service.getDesiredStackVersion().getStackId());
 
     service.setDesiredState(State.INSTALLING);
@@ -210,7 +209,7 @@ public class ServiceTest {
     Assert.assertEquals(s.getDesiredState().toString(),
         r.getDesiredState());
 
-    service.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+    service.setDesiredStackVersion(new StackId("HDP-1.2.0"));
     service.setDesiredState(State.INSTALLING);
     r = s.convertToResponse();
     Assert.assertEquals(s.getName(), r.getServiceName());

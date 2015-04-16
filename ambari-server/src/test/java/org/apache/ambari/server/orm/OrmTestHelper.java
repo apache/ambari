@@ -37,6 +37,7 @@ import javax.persistence.EntityManager;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.dao.AlertDefinitionDAO;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -47,6 +48,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -64,6 +66,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -119,6 +122,9 @@ public class OrmTestHelper {
   @Inject
   public HostDAO hostDAO;
 
+  @Inject
+  private StackDAO stackDAO;
+
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
   }
@@ -128,6 +134,7 @@ public class OrmTestHelper {
    */
   @Transactional
   public void createDefaultData() {
+    StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
     ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
     resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
@@ -140,6 +147,7 @@ public class OrmTestHelper {
     clusterEntity.setClusterName("test_cluster1");
     clusterEntity.setResource(resourceEntity);
     clusterEntity.setClusterInfo("test_cluster_info1");
+    clusterEntity.setDesiredStack(stackEntity);
 
     HostEntity host1 = new HostEntity();
     HostEntity host2 = new HostEntity();
@@ -306,6 +314,9 @@ public class OrmTestHelper {
    */
   @Transactional
   public Long createCluster(String clusterName) {
+    // required to populate the database with stacks
+    injector.getInstance(AmbariMetaInfo.class);
+
     ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
 
     ResourceTypeEntity resourceTypeEntity =  new ResourceTypeEntity();
@@ -317,11 +328,16 @@ public class OrmTestHelper {
     resourceEntity.setResourceType(resourceTypeEntity);
 
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+
+    StackEntity stackEntity = stackDAO.find("HDP", "2.0.6");
+    assertNotNull(stackEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(clusterName);
     clusterEntity.setClusterInfo("test_cluster_info1");
     clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
 
     clusterDAO.create(clusterEntity);
 
@@ -335,7 +351,9 @@ public class OrmTestHelper {
       ServiceFactory serviceFactory, ServiceComponentFactory componentFactory,
       ServiceComponentHostFactory schFactory, String hostName) throws Exception {
     String clusterName = "cluster-" + System.currentTimeMillis();
-    clusters.addCluster(clusterName);
+    StackId stackId = new StackId("HDP", "2.0.6");
+
+    clusters.addCluster(clusterName, stackId);
     Cluster cluster = clusters.getCluster(clusterName);
     cluster = initializeClusterWithStack(cluster);
 
@@ -350,8 +368,8 @@ public class OrmTestHelper {
   public Cluster initializeClusterWithStack(Cluster cluster) throws Exception {
     StackId stackId = new StackId("HDP", "2.0.6");
     cluster.setDesiredStackVersion(stackId);
-    getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(),
+    getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId,
         stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
     return cluster;
   }
@@ -569,11 +587,21 @@ public class OrmTestHelper {
    * @param version stack version
    * @return repository version
    */
-  public RepositoryVersionEntity getOrCreateRepositoryVersion(String stack, String version) {
-    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stack, version);
+  public RepositoryVersionEntity getOrCreateRepositoryVersion(StackId stackId,
+      String version) {
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    assertNotNull(stackEntity);
+
+    RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+        stackId, version);
+
     if (repositoryVersion == null) {
       try {
-        repositoryVersion = repositoryVersionDAO.create(stack, version, String.valueOf(System.currentTimeMillis()), "pack", "");
+        repositoryVersion = repositoryVersionDAO.create(stackEntity, version,
+            String.valueOf(System.currentTimeMillis()), "pack", "");
       } catch (Exception ex) {
       }
     }

@@ -40,6 +40,8 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.easymock.EasyMock;
@@ -65,22 +67,33 @@ public class CompatibleRepositoryVersionResourceProviderTest {
     final AmbariMetaInfo ambariMetaInfo = EasyMock.createMock(AmbariMetaInfo.class);
     final ClusterVersionDAO clusterVersionDAO = EasyMock.createMock(ClusterVersionDAO.class);
 
+    StackEntity hdp11Stack = new StackEntity();
+    hdp11Stack.setStackName("HDP");
+    hdp11Stack.setStackVersion("1.1");
+
     RepositoryVersionEntity entity1 = new RepositoryVersionEntity();
     entity1.setDisplayName("name1");
     entity1.setOperatingSystems(jsonStringRedhat6);
-    entity1.setStack("HDP-1.1");
+    entity1.setStack(hdp11Stack);
     entity1.setVersion("1.1.1.1");
+
+    StackEntity hdp22Stack = new StackEntity();
+    hdp22Stack.setStackName("HDP");
+    hdp22Stack.setStackVersion("2.2");
 
     RepositoryVersionEntity entity2 = new RepositoryVersionEntity();
     entity2.setDisplayName("name2");
     entity2.setOperatingSystems(jsonStringRedhat6);
-    entity2.setStack("HDP-2.2");
+    entity2.setStack(hdp22Stack);
     entity2.setVersion("2.2.2.2");
 
     final RepositoryVersionDAO repoVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
 
-    expect(repoVersionDAO.findByStack("HDP-1.1")).andReturn(Collections.singletonList(entity1)).atLeastOnce();
-    expect(repoVersionDAO.findByStack("HDP-2.2")).andReturn(Collections.singletonList(entity2)).atLeastOnce();
+    StackId stackId11 = new StackId("HDP", "1.1");
+    StackId stackId22 = new StackId("HDP", "2.2");
+
+    expect(repoVersionDAO.findByStack(stackId11)).andReturn(Collections.singletonList(entity1)).atLeastOnce();
+    expect(repoVersionDAO.findByStack(stackId22)).andReturn(Collections.singletonList(entity2)).atLeastOnce();
     replay(repoVersionDAO);
 
     final StackInfo stack1 = new StackInfo() {

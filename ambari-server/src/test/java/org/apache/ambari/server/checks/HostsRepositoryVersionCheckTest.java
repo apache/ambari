@@ -25,6 +25,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -96,17 +97,42 @@ public class HostsRepositoryVersionCheckTest {
     hosts.put("host2", host2);
     hosts.put("host3", host3);
     Mockito.when(clusters.getHostsForCluster("cluster")).thenReturn(hosts);
-    Mockito.when(repositoryVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(null);
+
+    Mockito.when(
+        repositoryVersionDAO.findByStackAndVersion(Mockito.any(StackId.class),
+            Mockito.anyString())).thenReturn(null);
+
+    Mockito.when(
+        repositoryVersionDAO.findByStackAndVersion(
+            Mockito.any(StackEntity.class), Mockito.anyString())).thenReturn(
+        null);
 
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     hostsRepositoryVersionCheck.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.0.6");
+
     final RepositoryVersionEntity repositoryVersion = new RepositoryVersionEntity();
-    Mockito.when(repositoryVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString())).thenReturn(repositoryVersion);
+    repositoryVersion.setStack(stackEntity);
+
+    Mockito.when(
+        repositoryVersionDAO.findByStackAndVersion(Mockito.any(StackId.class),
+            Mockito.anyString())).thenReturn(repositoryVersion);
+
+    Mockito.when(
+        repositoryVersionDAO.findByStackAndVersion(
+            Mockito.any(StackEntity.class), Mockito.anyString())).thenReturn(
+        repositoryVersion);
+
     final HostVersionEntity hostVersion = new HostVersionEntity();
     hostVersion.setState(RepositoryVersionState.INSTALLED);
-    Mockito.when(hostVersionDAO.findByClusterStackVersionAndHost(Mockito.anyString(), Mockito.anyString(), Mockito.anyString(), Mockito.anyString())).thenReturn(hostVersion);
+    Mockito.when(
+        hostVersionDAO.findByClusterStackVersionAndHost(Mockito.anyString(),
+            Mockito.any(StackId.class), Mockito.anyString(),
+            Mockito.anyString())).thenReturn(hostVersion);
 
     check = new PrerequisiteCheck(null, null);
     hostsRepositoryVersionCheck.perform(check, new PrereqCheckRequest("cluster"));

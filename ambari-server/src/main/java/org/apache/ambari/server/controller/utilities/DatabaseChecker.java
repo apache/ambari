@@ -18,9 +18,9 @@
 
 package org.apache.ambari.server.controller.utilities;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
+import java.util.Collection;
+import java.util.List;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -39,8 +39,8 @@ import org.apache.ambari.server.utils.VersionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.List;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
 
 public class DatabaseChecker {
 
@@ -62,8 +62,7 @@ public class DatabaseChecker {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     List<ClusterEntity> clusters = clusterDAO.findAll();
     for (ClusterEntity clusterEntity: clusters) {
-      String desiredStackVersion = clusterEntity.getDesiredStackVersion();
-      StackId stackId = new Gson().fromJson(desiredStackVersion, StackId.class);
+      StackId stackId = new StackId(clusterEntity.getDesiredStack());
 
       Collection<ClusterServiceEntity> serviceEntities =
         clusterEntity.getClusterServiceEntities();

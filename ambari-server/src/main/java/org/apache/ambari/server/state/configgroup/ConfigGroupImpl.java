@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.state.configgroup;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import com.google.inject.persist.Transactional;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
@@ -46,13 +48,13 @@ import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.Host;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
+import com.google.inject.persist.Transactional;
 
 public class ConfigGroupImpl implements ConfigGroup {
   private static final Logger LOG = LoggerFactory.getLogger(ConfigGroupImpl.class);
@@ -105,9 +107,9 @@ public class ConfigGroupImpl implements ConfigGroup {
     }
 
     if (configs != null) {
-      this.configurations = configs;
+      configurations = configs;
     } else {
-      this.configurations = new HashMap<String, Config>();
+      configurations = new HashMap<String, Config>();
     }
   }
 
@@ -119,8 +121,8 @@ public class ConfigGroupImpl implements ConfigGroup {
     this.cluster = cluster;
 
     this.configGroupEntity = configGroupEntity;
-    this.configurations = new HashMap<String, Config>();
-    this.hosts = new HashMap<String, Host>();
+    configurations = new HashMap<String, Config>();
+    hosts = new HashMap<String, Host>();
 
     // Populate configs
     for (ConfigGroupConfigMappingEntity configMappingEntity : configGroupEntity
@@ -130,7 +132,7 @@ public class ConfigGroupImpl implements ConfigGroup {
         configMappingEntity.getVersionTag());
 
       if (config != null) {
-        this.configurations.put(config.getType(), config);
+        configurations.put(config.getType(), config);
       } else {
         LOG.warn("Unable to find config mapping for config group"
           + ", clusterName = " + cluster.getClusterName()
@@ -146,7 +148,7 @@ public class ConfigGroupImpl implements ConfigGroup {
       try {
         Host host = clusters.getHost(hostMappingEntity.getHostname());
         if (host != null) {
-          this.hosts.put(host.getHostName(), host);
+          hosts.put(host.getHostName(), host);
         }
       } catch (AmbariException e) {
         String msg = "Host seems to be deleted but Config group mapping still " +
@@ -178,7 +180,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   public void setName(String name) {
     readWriteLock.writeLock().lock();
     try {
-      this.configGroupEntity.setGroupName(name);
+      configGroupEntity.setGroupName(name);
     } finally {
       readWriteLock.writeLock().unlock();
     }
@@ -204,7 +206,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   public void setTag(String tag) {
     readWriteLock.writeLock().lock();
     try {
-      this.configGroupEntity.setTag(tag);
+      configGroupEntity.setTag(tag);
     } finally {
       readWriteLock.writeLock().unlock();
     }
@@ -225,7 +227,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   public void setDescription(String description) {
     readWriteLock.writeLock().lock();
     try {
-      this.configGroupEntity.setDescription(description);
+      configGroupEntity.setDescription(description);
     } finally {
       readWriteLock.writeLock().unlock();
     }
@@ -276,7 +278,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   public void setConfigurations(Map<String, Config> configs) {
     readWriteLock.writeLock().lock();
     try {
-      this.configurations = configs;
+      configurations = configs;
     } finally {
       readWriteLock.writeLock().unlock();
     }
@@ -405,6 +407,7 @@ public class ConfigGroupImpl implements ConfigGroup {
           clusterConfigEntity = new ClusterConfigEntity();
           clusterConfigEntity.setClusterId(clusterEntity.getClusterId());
           clusterConfigEntity.setClusterEntity(clusterEntity);
+          clusterConfigEntity.setStack(clusterEntity.getDesiredStack());
           clusterConfigEntity.setType(config.getType());
           clusterConfigEntity.setVersion(config.getVersion());
           clusterConfigEntity.setTag(config.getTag());
@@ -545,6 +548,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     }
   }
 
+  @Override
   @Transactional
   public void refresh() {
     readWriteLock.writeLock().lock();
@@ -565,7 +569,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   public String getServiceName() {
     readWriteLock.readLock().lock();
     try {
-      return this.configGroupEntity.getServiceName();
+      return configGroupEntity.getServiceName();
     } finally {
       readWriteLock.readLock().unlock();
     }
@@ -576,7 +580,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   public void setServiceName(String serviceName) {
     readWriteLock.writeLock().lock();
     try {
-      this.configGroupEntity.setServiceName(serviceName);
+      configGroupEntity.setServiceName(serviceName);
     } finally {
       readWriteLock.writeLock().unlock();
     }

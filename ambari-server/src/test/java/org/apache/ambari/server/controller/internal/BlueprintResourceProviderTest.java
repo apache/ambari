@@ -71,18 +71,21 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -104,12 +107,23 @@ public class BlueprintResourceProviderTest {
 
   private final static BlueprintResourceProvider provider = createProvider();
   private final static BlueprintDAO dao = createStrictMock(BlueprintDAO.class);
+  private final static StackDAO stackDAO = createNiceMock(StackDAO.class);
   private final static Gson gson = new Gson();
   private final static AmbariMetaInfo metaInfo = createMock(AmbariMetaInfo.class);
 
   @BeforeClass
   public static void initClass() {
-    BlueprintResourceProvider.init(dao, gson, metaInfo);
+    BlueprintResourceProvider.init(dao, stackDAO, gson, metaInfo);
+
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("test-stack-name");
+    stackEntity.setStackVersion("test-stack-version");
+
+    expect(
+        stackDAO.find(EasyMock.anyObject(String.class),
+            EasyMock.anyObject(String.class))).andReturn(stackEntity).anyTimes();
+
+    replay(stackDAO);
   }
 
   @Before
@@ -1167,8 +1181,10 @@ public class BlueprintResourceProviderTest {
 
   private void validateEntity(BlueprintEntity entity, boolean containsConfig) {
     assertEquals(BLUEPRINT_NAME, entity.getBlueprintName());
-    assertEquals("test-stack-name", entity.getStackName());
-    assertEquals("test-stack-version", entity.getStackVersion());
+
+    StackEntity stackEntity = entity.getStack();
+    assertEquals("test-stack-name", stackEntity.getStackName());
+    assertEquals("test-stack-version", stackEntity.getStackVersion());
 
     Collection<HostGroupEntity> hostGroupEntities = entity.getHostGroups();
 
@@ -1289,15 +1305,20 @@ public class BlueprintResourceProviderTest {
   private static BlueprintResourceProvider createProvider() {
     return new BlueprintResourceProvider(
         PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
-        null);
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint), null);
   }
 
   private BlueprintEntity createEntity(Map<String, Object> properties) {
     BlueprintEntity entity = new BlueprintEntity();
     entity.setBlueprintName((String) properties.get(BlueprintResourceProvider.BLUEPRINT_NAME_PROPERTY_ID));
-    entity.setStackName((String) properties.get(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID));
-    entity.setStackVersion((String) properties.get(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID));
+
+    String stackName = (String) properties.get(BlueprintResourceProvider.STACK_NAME_PROPERTY_ID);
+    String stackVersion = (String) properties.get(BlueprintResourceProvider.STACK_VERSION_PROPERTY_ID);
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName(stackName);
+    stackEntity.setStackVersion(stackVersion);
+
+    entity.setStack(stackEntity);
 
     Set<Map<String, Object>> hostGroupProperties = (Set<Map<String, Object>>) properties.get(
         BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);

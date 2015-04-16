@@ -592,10 +592,12 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    r.setStackVersion("HDP-1.0.1");
+    r.setStackVersion("HDP-1.2.0");
     r.setProvisioningState(State.INSTALLING.name());
     try {
       controller.createCluster(r);
+      controller.updateClusters(Collections.singleton(r), null);
+
      fail("Expected create cluster for invalid request - invalid provisioning state");
     } catch (Exception e) {
       // Expected
@@ -671,10 +673,8 @@ public class AmbariManagementControllerTest {
       Assert.assertTrue(checkExceptionType(e, ParentObjectNotFoundException.class));
     }
 
-    clusters.addCluster("foo");
-    clusters.addCluster("bar");
-    clusters.getCluster("foo").setDesiredStackVersion(new StackId("HDP-0.1"));
-    clusters.getCluster("bar").setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.addCluster("foo", new StackId("HDP-0.1"));
+    clusters.addCluster("bar", new StackId("HDP-0.1"));
 
     try {
       set1.clear();
@@ -779,8 +779,7 @@ public class AmbariManagementControllerTest {
   @Test
   public void testCreateServicesMultiple() throws AmbariException {
     Set<ServiceRequest> set1 = new HashSet<ServiceRequest>();
-    clusters.addCluster("foo");
-    clusters.getCluster("foo").setDesiredStackVersion(new StackId("HDP-0.1"));
+    clusters.addCluster("foo", new StackId("HDP-0.1"));
 
     ServiceRequest valid1 = new ServiceRequest("foo", "HDFS", null);
     ServiceRequest valid2 = new ServiceRequest("foo", "MAPREDUCE", null);
@@ -902,9 +901,8 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster("c1");
-    clusters.addCluster("c2");
-
+    clusters.addCluster("c1", new StackId("HDP-0.1"));
+    clusters.addCluster("c2", new StackId("HDP-0.1"));
 
     try {
       set1.clear();
@@ -920,8 +918,9 @@ public class AmbariManagementControllerTest {
     Cluster c1 = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-0.1");
     c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
     c1.addService(s1);
@@ -1042,14 +1041,15 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testCreateServiceComponentMultiple() throws AmbariException {
-    clusters.addCluster("c1");
-    clusters.addCluster("c2");
+    clusters.addCluster("c1", new StackId("HDP-0.2"));
+    clusters.addCluster("c2", new StackId("HDP-0.2"));
 
     Cluster c1 = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-0.2");
-    c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
@@ -1308,32 +1308,35 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster("foo");
-    clusters.addCluster("c1");
-    clusters.addCluster("c2");
+    clusters.addCluster("foo", new StackId("HDP-0.2"));
+    clusters.addCluster("c1", new StackId("HDP-0.2"));
+    clusters.addCluster("c2", new StackId("HDP-0.2"));
     Cluster foo = clusters.getCluster("foo");
     Cluster c1 = clusters.getCluster("c1");
     Cluster c2 = clusters.getCluster("c2");
 
     StackId stackId = new StackId("HDP-0.2");
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
 
     foo.setDesiredStackVersion(stackId);
     foo.setCurrentStackVersion(stackId);
-    foo.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    foo.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    foo.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    foo.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
     stackId = new StackId("HDP-0.2");
     c1.setDesiredStackVersion(stackId);
     c1.setCurrentStackVersion(stackId);
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    c1.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    c1.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
     stackId = new StackId("HDP-0.2");
     c2.setDesiredStackVersion(stackId);
     c2.setCurrentStackVersion(stackId);
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    c2.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    c2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    c2.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
     try {
       set1.clear();
@@ -1536,13 +1539,14 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster("foo");
+    clusters.addCluster("foo", new StackId("HDP-0.1"));
     Cluster c = clusters.getCluster("foo");
     StackId stackId = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackId);
     c.setCurrentStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     HostResourceProviderTest.createHosts(controller, requests);
 
@@ -1559,13 +1563,14 @@ public class AmbariManagementControllerTest {
     clusters.addHost("h1");
     clusters.addHost("h2");
     clusters.addHost("h3");
-    clusters.addCluster("c1");
+    clusters.addCluster("c1", new StackId("HDP-0.1"));
     Cluster c = clusters.getCluster("c1");
     StackId stackID = new StackId("HDP-0.1");
     c.setDesiredStackVersion(stackID);
     c.setCurrentStackVersion(stackID);
-    helper.getOrCreateRepositoryVersion(stackID.getStackName(), stackID.getStackVersion());
-    c.createClusterVersion(stackID.getStackName(), stackID.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackID, stackID.getStackVersion());
+    c.createClusterVersion(stackID, stackID.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     setOsFamily(clusters.getHost("h2"), "redhat", "5.9");
@@ -1625,7 +1630,7 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    clusters.addCluster("c1");
+    clusters.addCluster("c1", new StackId("HDP-0.1"));
 
     try {
       set1.clear();
@@ -1904,14 +1909,15 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testGetClusters() throws AmbariException {
-    clusters.addCluster("c1");
+    clusters.addCluster("c1", new StackId("HDP-0.1"));
 
     Cluster c1 = clusters.getCluster("c1");
 
     StackId stackId = new StackId("HDP-0.1");
     c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     ClusterRequest r = new ClusterRequest(null, null, null, null);
     Set<ClusterResponse> resp = controller.getClusters(Collections.singleton(r));
@@ -1927,19 +1933,15 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testGetClustersWithFilters() throws AmbariException {
-    clusters.addCluster("c1");
-    clusters.addCluster("c2");
-    clusters.addCluster("c3");
-    clusters.addCluster("c4");
+    clusters.addCluster("c1", new StackId("HDP-0.1"));
+    clusters.addCluster("c2", new StackId("HDP-0.1"));
+    clusters.addCluster("c3", new StackId("HDP-1.2.0"));
+    clusters.addCluster("c4", new StackId("HDP-0.1"));
 
     Cluster c1 = clusters.getCluster("c1");
     Cluster c2 = clusters.getCluster("c2");
     Cluster c3 = clusters.getCluster("c3");
     Cluster c4 = clusters.getCluster("c4");
-
-    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
-    c2.setDesiredStackVersion(new StackId("HDP-0.1"));
-    c3.setDesiredStackVersion(new StackId("HDP-1.1.0"));
 
     ClusterRequest r = new ClusterRequest(null, null, null, null);
     Set<ClusterResponse> resp = controller.getClusters(Collections.singleton(r));
@@ -1953,20 +1955,17 @@ public class AmbariManagementControllerTest {
 
     r = new ClusterRequest(null, null, "HDP-0.1", null);
     resp = controller.getClusters(Collections.singleton(r));
-    Assert.assertEquals(2, resp.size());
+    Assert.assertEquals(3, resp.size());
 
     r = new ClusterRequest(null, null, "", null);
     resp = controller.getClusters(Collections.singleton(r));
-    Assert.assertEquals(1, resp.size());
-    Assert.assertEquals(c4.getClusterId(),
-        resp.iterator().next().getClusterId().longValue());
+    Assert.assertEquals(0, resp.size());
   }
 
   @Test
   public void testGetServices() throws AmbariException {
-    clusters.addCluster("c1");
+    clusters.addCluster("c1", new StackId("HDP-0.1"));
     Cluster c1 = clusters.getCluster("c1");
-    c1.setDesiredStackVersion(new StackId("HDP-0.1"));
     Service s1 = serviceFactory.createNew(c1, "HDFS");
 
     c1.addService(s1);
@@ -1993,8 +1992,8 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testGetServicesWithFilters() throws AmbariException {
-    clusters.addCluster("c1");
-    clusters.addCluster("c2");
+    clusters.addCluster("c1", new StackId("HDP-0.2"));
+    clusters.addCluster("c2", new StackId("HDP-0.2"));
     Cluster c1 = clusters.getCluster("c1");
     Cluster c2 = clusters.getCluster("c2");
     c1.setDesiredStackVersion(new StackId("HDP-0.2"));
@@ -2072,7 +2071,7 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testGetServiceComponents() throws AmbariException {
-    clusters.addCluster("c1");
+    clusters.addCluster("c1", new StackId("HDP-0.2"));
     Cluster c1 = clusters.getCluster("c1");
     c1.setDesiredStackVersion(new StackId("HDP-0.2"));
     Service s1 = serviceFactory.createNew(c1, "HDFS");
@@ -2106,12 +2105,10 @@ public class AmbariManagementControllerTest {
 
   @Test
   public void testGetServiceComponentsWithFilters() throws AmbariException {
-    clusters.addCluster("c1");
-    clusters.addCluster("c2");
+    clusters.addCluster("c1", new StackId("HDP-0.2"));
+    clusters.addCluster("c2", new StackId("HDP-0.2"));
     Cluster c1 = clusters.getCluster("c1");
     Cluster c2 = clusters.getCluster("c2");
-    c1.setDesiredStackVersion(new StackId("HDP-0.2"));
-    c2.setDesiredStackVersion(new StackId("HDP-0.2"));
 
     Service s1 = serviceFactory.createNew(c1, "HDFS");
     Service s2 = serviceFactory.createNew(c1, "MAPREDUCE");
@@ -2255,7 +2252,7 @@ public class AmbariManagementControllerTest {
     sc1.addServiceComponentHost(sch1);
     sch1.setDesiredState(State.INSTALLED);
     sch1.setState(State.INSTALLING);
-    sch1.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+    sch1.setDesiredStackVersion(new StackId("HDP-1.2.0"));
     sch1.setStackVersion(new StackId("HDP-0.1"));
 
     sch1.persist();
@@ -7314,7 +7311,7 @@ public class AmbariManagementControllerTest {
       Assert.assertTrue(e.getMessage().contains("Illegal request to upgrade to"));
     }
 
-    StackId unsupportedStackId = new StackId("HDP-0.0.1");
+    StackId unsupportedStackId = new StackId("HDP-2.2.0");
     c.setDesiredStackVersion(unsupportedStackId);
     c.setCurrentStackVersion(unsupportedStackId);
     c.refresh();
@@ -7763,12 +7760,13 @@ public class AmbariManagementControllerTest {
     final String hostName1 = "h1";
     final String context = "Test invocation";
 
-    clusters.addCluster(clusterName);
-    Cluster c = clusters.getCluster(clusterName);
     StackId stackID = new StackId("HDP-0.1");
-    c.setDesiredStackVersion(stackID);
-    helper.getOrCreateRepositoryVersion(stackID.getStackName(), stackID.getStackVersion());
-    c.createClusterVersion(stackID.getStackName(), stackID.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    clusters.addCluster(clusterName, stackID);
+    Cluster c = clusters.getCluster(clusterName);
+
+    helper.getOrCreateRepositoryVersion(stackID, stackID.getStackVersion());
+    c.createClusterVersion(stackID, stackID.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     clusters.addHost(hostName1);
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     clusters.getHost(hostName1).persist();

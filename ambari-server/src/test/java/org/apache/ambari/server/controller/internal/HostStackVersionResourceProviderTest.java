@@ -181,12 +181,17 @@ public class HostStackVersionResourceProviderTest {
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
 
-    expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(String.class),
+    expect(
+        repositoryVersionDAOMock.findByStackAndVersion(
+            anyObject(StackId.class),
             anyObject(String.class))).andReturn(repoVersion);
 
+    expect(
+        hostVersionDAOMock.findByClusterStackVersionAndHost(
+            anyObject(String.class), anyObject(StackId.class),
+            anyObject(String.class), anyObject(String.class))).andReturn(
+        hostVersionEntityMock);
 
-    expect(hostVersionDAOMock.findByClusterStackVersionAndHost(anyObject(String.class),
-            anyObject(String.class), anyObject(String.class), anyObject(String.class))).andReturn(hostVersionEntityMock);
     expect(hostVersionEntityMock.getState()).andReturn(RepositoryVersionState.INSTALL_FAILED).anyTimes();
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
@@ -284,12 +289,17 @@ public class HostStackVersionResourceProviderTest {
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
 
-    expect(repositoryVersionDAOMock.findByStackAndVersion(anyObject(String.class),
+    expect(
+        repositoryVersionDAOMock.findByStackAndVersion(
+            anyObject(StackId.class),
             anyObject(String.class))).andReturn(repoVersion);
 
+    expect(
+        hostVersionDAOMock.findByClusterStackVersionAndHost(
+            anyObject(String.class), anyObject(StackId.class),
+            anyObject(String.class), anyObject(String.class))).andReturn(
+        hostVersionEntityMock);
 
-    expect(hostVersionDAOMock.findByClusterStackVersionAndHost(anyObject(String.class),
-            anyObject(String.class), anyObject(String.class), anyObject(String.class))).andReturn(hostVersionEntityMock);
     expect(hostVersionEntityMock.getState()).andReturn(RepositoryVersionState.OUT_OF_SYNC).anyTimes();
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();

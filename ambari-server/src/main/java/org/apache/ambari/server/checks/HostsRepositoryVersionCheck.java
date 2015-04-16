@@ -23,6 +23,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -59,14 +60,24 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     for (Map.Entry<String, Host> hostEntry : clusterHosts.entrySet()) {
       final Host host = hostEntry.getValue();
       if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.OFF) {
-        final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(stackId.getStackId(), request.getRepositoryVersion());
+        final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(
+            stackId, request.getRepositoryVersion());
         if (repositoryVersion == null) {
           prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
           prerequisiteCheck.setFailReason(getFailReason(KEY_NO_REPO_VERSION, prerequisiteCheck, request));
           prerequisiteCheck.getFailedOn().addAll(clusterHosts.keySet());
           return;
         }
-        final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(clusterName, repositoryVersion.getStack(), repositoryVersion.getVersion(), host.getHostName());
+
+        StackEntity repositoryStackEntity = repositoryVersion.getStack();
+        StackId repositoryStackId = new StackId(
+            repositoryStackEntity.getStackName(),
+            repositoryStackEntity.getStackVersion());
+
+        final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(
+            clusterName, repositoryStackId, repositoryVersion.getVersion(),
+            host.getHostName());
+
         if (hostVersion == null || hostVersion.getState() != RepositoryVersionState.INSTALLED) {
           prerequisiteCheck.getFailedOn().add(host.getHostName());
         }

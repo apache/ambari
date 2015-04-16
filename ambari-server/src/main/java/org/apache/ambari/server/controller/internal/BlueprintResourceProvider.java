@@ -18,11 +18,19 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
-import com.google.inject.Inject;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -36,29 +44,24 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
 
 
 /**
  * Resource Provider for Blueprint resources.
  */
+@StaticallyInject
 public class BlueprintResourceProvider extends BaseBlueprintProcessor {
 
   // ----- Property ID constants ---------------------------------------------
@@ -117,17 +120,20 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   /**
    * Static initialization.
    *
-   * @param dao       blueprint data access object
-   * @param gson      json serializer
-   * @param metaInfo  stack related information
+   * @param dao
+   *          blueprint data access object
+   * @param gson
+   *          json serializer
+   * @param metaInfo
+   *          stack related information
    */
-  @Inject
-  public static void init(BlueprintDAO dao, Gson gson, AmbariMetaInfo metaInfo) {
-    blueprintDAO   = dao;
+  public static void init(BlueprintDAO dao, StackDAO stacks, Gson gson,
+      AmbariMetaInfo metaInfo) {
+    blueprintDAO = dao;
+    stackDAO = stacks;
     jsonSerializer = gson;
-    stackInfo      = metaInfo;
+    stackInfo = metaInfo;
   }
-
 
   // ----- ResourceProvider ------------------------------------------------
 
@@ -241,10 +247,11 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
    * @return a new resource instance for the given blueprint entity
    */
   protected Resource toResource(BlueprintEntity entity, Set<String> requestedIds) {
+    StackEntity stackEntity = entity.getStack();
     Resource resource = new ResourceImpl(Resource.Type.Blueprint);
     setResourceProperty(resource, BLUEPRINT_NAME_PROPERTY_ID, entity.getBlueprintName(), requestedIds);
-    setResourceProperty(resource, STACK_NAME_PROPERTY_ID, entity.getStackName(), requestedIds);
-    setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, entity.getStackVersion(), requestedIds);
+    setResourceProperty(resource, STACK_NAME_PROPERTY_ID, stackEntity.getStackName(), requestedIds);
+    setResourceProperty(resource, STACK_VERSION_PROPERTY_ID, stackEntity.getStackVersion(), requestedIds);
 
     List<Map<String, Object>> listGroupProps = new ArrayList<Map<String, Object>>();
     Collection<HostGroupEntity> hostGroups = entity.getHostGroups();
@@ -285,10 +292,13 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
       throw new IllegalArgumentException("Blueprint name must be provided");
     }
 
+    String stackName = (String) properties.get(STACK_NAME_PROPERTY_ID);
+    String stackVersion = (String) properties.get(STACK_VERSION_PROPERTY_ID);
+    StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
+
     BlueprintEntity blueprint = new BlueprintEntity();
     blueprint.setBlueprintName(name);
-    blueprint.setStackName((String) properties.get(STACK_NAME_PROPERTY_ID));
-    blueprint.setStackVersion((String) properties.get(STACK_VERSION_PROPERTY_ID));
+    blueprint.setStack(stackEntity);
 
     createHostGroupEntities(blueprint,
         (HashSet<HashMap<String, Object>>) properties.get(HOST_GROUP_PROPERTY_ID));
@@ -314,8 +324,11 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
     }
 
     Collection<HostGroupEntity> entities = new ArrayList<HostGroupEntity>();
+
+    StackEntity stackEntity = blueprint.getStack();
+
     Collection<String> stackComponentNames = getAllStackComponents(
-        blueprint.getStackName(), blueprint.getStackVersion());
+        stackEntity.getStackName(), stackEntity.getStackVersion());
 
     for (HashMap<String, Object> hostGroupProperties : setHostGroups) {
       HostGroupEntity hostGroup = new HostGroupEntity();
@@ -350,7 +363,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   @SuppressWarnings("unchecked")
   private void createComponentEntities(HostGroupEntity group, HashSet<HashMap<String, String>> setComponents,
                                        Collection<String> componentNames) {
-    
+
     Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
     String groupName = group.getName();
     group.setComponents(components);
@@ -638,7 +651,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   /**
    * New blueprint configuration format where configs are a map from 'properties' and
    * 'properties_attributes' to a map of strings.
-   * 
+   *
    * @since 1.7.0
    */
   protected static class BlueprintConfigPopulationStrategyV2 extends BlueprintConfigPopulationStrategy {

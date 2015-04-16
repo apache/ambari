@@ -52,10 +52,12 @@ import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.StageDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
@@ -96,8 +98,9 @@ public class UpgradeResourceProviderTest {
   private Injector injector;
   private Clusters clusters;
   private OrmTestHelper helper;
-  AmbariManagementController amc;
+  private AmbariManagementController amc;
   private ConfigHelper configHelper;
+  private StackDAO stackDAO;
 
   @Before
   public void before() throws Exception {
@@ -125,6 +128,7 @@ public class UpgradeResourceProviderTest {
     field.setAccessible(true);
     field.set(null, amc);
 
+    stackDAO = injector.getInstance(StackDAO.class);
     upgradeDao = injector.getInstance(UpgradeDAO.class);
     repoVersionDao = injector.getInstance(RepositoryVersionDAO.class);
 
@@ -132,10 +136,12 @@ public class UpgradeResourceProviderTest {
     replay(publisher);
     ViewRegistry.initInstance(new ViewRegistry(publisher));
 
+    StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
+
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 1");
     repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack("HDP-2.1.1");
+    repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setUpgradePackage("upgrade_test");
     repoVersionEntity.setVersion("2.2.2.1");
     repoVersionDao.create(repoVersionEntity);
@@ -143,20 +149,21 @@ public class UpgradeResourceProviderTest {
     repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 2");
     repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack("HDP-2.1.1");
+    repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setUpgradePackage("upgrade_test");
     repoVersionEntity.setVersion("2.2.2.2");
     repoVersionDao.create(repoVersionEntity);
 
 
     clusters = injector.getInstance(Clusters.class);
-    clusters.addCluster("c1");
-    Cluster cluster = clusters.getCluster("c1");
+
     StackId stackId = new StackId("HDP-2.1.1");
-    cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    cluster.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    clusters.addCluster("c1", stackId);
+    Cluster cluster = clusters.getCluster("c1");
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    cluster.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
 
     clusters.addHost("h1");
     Host host = clusters.getHost("h1");
@@ -215,7 +222,7 @@ public class UpgradeResourceProviderTest {
     List<StageEntity> stageEntities = stageDAO.findByRequestId(entity.getRequestId());
     Gson gson = new Gson();
     for (StageEntity se : stageEntities) {
-      Map<String, String> map = (Map<String, String>) gson.fromJson(se.getCommandParamsStage(), Map.class);
+      Map<String, String> map = gson.fromJson(se.getCommandParamsStage(), Map.class);
       assertTrue(map.containsKey("upgrade_direction"));
       assertEquals("upgrade", map.get("upgrade_direction"));
     }
@@ -498,10 +505,11 @@ public class UpgradeResourceProviderTest {
   public void testDirectionUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
+    StackEntity stackEntity = stackDAO.find("HDP", "2.1.1");
     RepositoryVersionEntity repoVersionEntity = new RepositoryVersionEntity();
     repoVersionEntity.setDisplayName("My New Version 3");
     repoVersionEntity.setOperatingSystems("");
-    repoVersionEntity.setStack("HDP-2.1.1");
+    repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setUpgradePackage("upgrade_direction");
     repoVersionEntity.setVersion("2.2.2.3");
     repoVersionDao.create(repoVersionEntity);

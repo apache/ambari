@@ -424,7 +424,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     RepositoryVersionEntity versionEntity = s_repoVersionDAO.findByStackAndVersion(
-        stack.getStackId(), repoVersion);
+        stack, repoVersion);
 
     if (null == versionEntity) {
       throw new AmbariException(String.format("Version %s for stack %s was not found",

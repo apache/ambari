@@ -31,20 +31,107 @@ GO
 ------create the database------
 
 ------create tables and grant privileges to db user---------
-CREATE TABLE clusters (cluster_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, cluster_info VARCHAR(255) NOT NULL, cluster_name VARCHAR(100) NOT NULL UNIQUE, provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT', security_type VARCHAR(32) NOT NULL DEFAULT 'NONE', desired_cluster_state VARCHAR(255) NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (cluster_id));
-CREATE TABLE clusterconfig (config_id BIGINT NOT NULL, version_tag VARCHAR(255) NOT NULL, version BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, config_data VARCHAR(MAX) NOT NULL, config_attributes VARCHAR(MAX), create_timestamp BIGINT NOT NULL, PRIMARY KEY CLUSTERED (config_id));
-CREATE TABLE serviceconfig (service_config_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, service_name VARCHAR(255) NOT NULL, version BIGINT NOT NULL, create_timestamp BIGINT NOT NULL, user_name VARCHAR(255) NOT NULL DEFAULT '_db', group_id BIGINT, note VARCHAR(MAX), PRIMARY KEY CLUSTERED (service_config_id));
-CREATE TABLE serviceconfighosts (service_config_id BIGINT NOT NULL, hostname VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (service_config_id, hostname));
-CREATE TABLE serviceconfigmapping (service_config_id BIGINT NOT NULL, config_id BIGINT NOT NULL, PRIMARY KEY CLUSTERED (service_config_id, config_id));
-CREATE TABLE clusterconfigmapping (cluster_id BIGINT NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY CLUSTERED (cluster_id, type_name, create_timestamp));
-CREATE TABLE clusterservices (service_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, service_enabled INTEGER NOT NULL, PRIMARY KEY CLUSTERED (service_name, cluster_id));
-CREATE TABLE clusterstate (cluster_id BIGINT NOT NULL, current_cluster_state VARCHAR(255) NOT NULL, current_stack_version VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (cluster_id));
-CREATE TABLE cluster_version (id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, repo_version_id BIGINT NOT NULL, state VARCHAR(255) NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, user_name VARCHAR(255), PRIMARY KEY (id));
+CREATE TABLE stack(
+  stack_id BIGINT NOT NULL,
+  stack_name VARCHAR(255) NOT NULL,
+  stack_version VARCHAR(255) NOT NULL,
+  PRIMARY KEY (stack_id),
+  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
+);
+
+CREATE TABLE clusters (
+  cluster_id BIGINT NOT NULL,
+  resource_id BIGINT NOT NULL,
+  cluster_info VARCHAR(255) NOT NULL,
+  cluster_name VARCHAR(100) NOT NULL UNIQUE,
+  provisioning_state VARCHAR(255) NOT NULL DEFAULT 'INIT',
+  security_type VARCHAR(32) NOT NULL DEFAULT 'NONE',
+  desired_cluster_state VARCHAR(255) NOT NULL,
+  desired_stack_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (cluster_id),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id)
+  );
+
+CREATE TABLE clusterconfig (
+  config_id BIGINT NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  config_data VARCHAR(MAX) NOT NULL,
+  config_attributes VARCHAR(MAX),
+  create_timestamp BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (config_id),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
+  );
+
+CREATE TABLE serviceconfig (
+  service_config_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  version BIGINT NOT NULL,
+  create_timestamp BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  group_id BIGINT,
+  note VARCHAR(MAX),
+  PRIMARY KEY CLUSTERED (service_config_id),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
+  );
+
+CREATE TABLE serviceconfighosts (
+  service_config_id BIGINT NOT NULL,
+  hostname VARCHAR(255) NOT NULL,
+  PRIMARY KEY CLUSTERED (service_config_id, hostname)
+  );
+
+CREATE TABLE serviceconfigmapping (
+  service_config_id BIGINT NOT NULL,
+  config_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (service_config_id, config_id)
+  );
+
+CREATE TABLE clusterconfigmapping (
+  cluster_id BIGINT NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  create_timestamp BIGINT NOT NULL,
+  selected INT NOT NULL DEFAULT 0,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  PRIMARY KEY CLUSTERED (cluster_id, type_name, create_timestamp )
+  );
+
+CREATE TABLE clusterservices (
+  service_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  service_enabled INT NOT NULL,
+  PRIMARY KEY CLUSTERED (service_name, cluster_id)
+  );
+
+CREATE TABLE clusterstate (
+  cluster_id BIGINT NOT NULL,
+  current_cluster_state VARCHAR(255) NOT NULL,
+  current_stack_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (cluster_id),
+  FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id)
+  );
+
+CREATE TABLE cluster_version (
+  id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  repo_version_id BIGINT NOT NULL,
+  STATE VARCHAR(255) NOT NULL,
+  start_time BIGINT NOT NULL,
+  end_time BIGINT,
+  user_name VARCHAR(255),
+  PRIMARY KEY (id)
+  );
 
 CREATE TABLE hostcomponentdesiredstate (
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
-  desired_stack_version VARCHAR(255) NOT NULL,
+  desired_stack_id BIGINT NOT NULL,
   desired_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
@@ -52,19 +139,21 @@ CREATE TABLE hostcomponentdesiredstate (
   maintenance_state VARCHAR(32) NOT NULL,
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   restart_required BIT NOT NULL DEFAULT 0,
-  PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name));
+  PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE hostcomponentstate (
   cluster_id BIGINT NOT NULL,
   component_name VARCHAR(255) NOT NULL,
   version VARCHAR(32) NOT NULL DEFAULT 'UNKNOWN',
-  current_stack_version VARCHAR(255) NOT NULL,
+  current_stack_id BIGINT NOT NULL,
   current_state VARCHAR(255) NOT NULL,
   host_id BIGINT NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   upgrade_state VARCHAR(32) NOT NULL DEFAULT 'NONE',
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
-  PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name));
+  PRIMARY KEY CLUSTERED (cluster_id, component_name, host_id, service_name),
+  FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE hosts (
   host_id BIGINT NOT NULL,
@@ -95,55 +184,480 @@ CREATE TABLE hoststate (
   maintenance_state VARCHAR(512),
   PRIMARY KEY CLUSTERED (host_id));
 
-CREATE TABLE servicecomponentdesiredstate (component_name VARCHAR(255) NOT NULL, cluster_id BIGINT NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, PRIMARY KEY CLUSTERED (component_name, cluster_id, service_name));
-CREATE TABLE servicedesiredstate (cluster_id BIGINT NOT NULL, desired_host_role_mapping INTEGER NOT NULL, desired_stack_version VARCHAR(255) NOT NULL, desired_state VARCHAR(255) NOT NULL, service_name VARCHAR(255) NOT NULL, maintenance_state VARCHAR(32) NOT NULL, security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED', PRIMARY KEY CLUSTERED (cluster_id, service_name));
-CREATE TABLE users (user_id INTEGER, principal_id BIGINT NOT NULL, ldap_user INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL, create_time DATETIME DEFAULT GETDATE(), user_password VARCHAR(255), active INTEGER NOT NULL DEFAULT 1, PRIMARY KEY CLUSTERED (user_id), UNIQUE (ldap_user, user_name));
-CREATE TABLE groups (group_id INTEGER, principal_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, ldap_group INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (group_id));
-CREATE TABLE members (member_id INTEGER, group_id INTEGER NOT NULL, user_id INTEGER NOT NULL, PRIMARY KEY (member_id));
-CREATE TABLE execution_command (command VARBINARY(8000), task_id BIGINT NOT NULL, PRIMARY KEY CLUSTERED (task_id));
-CREATE TABLE host_role_command (task_id BIGINT NOT NULL, attempt_count SMALLINT NOT NULL, retry_allowed SMALLINT DEFAULT 0 NOT NULL, event VARCHAR(MAX) NOT NULL, exitcode INTEGER NOT NULL, host_name VARCHAR(255) NOT NULL, last_attempt_time BIGINT NOT NULL, request_id BIGINT NOT NULL, role VARCHAR(255), stage_id BIGINT NOT NULL, start_time BIGINT NOT NULL, end_time BIGINT, status VARCHAR(255), std_error VARBINARY(max), std_out VARBINARY(max), output_log VARCHAR(255) NULL, error_log VARCHAR(255) NULL, structured_out VARBINARY(max), role_command VARCHAR(255), command_detail VARCHAR(255), custom_command_name VARCHAR(255), PRIMARY KEY CLUSTERED (task_id));
-CREATE TABLE role_success_criteria (role VARCHAR(255) NOT NULL, request_id BIGINT NOT NULL, stage_id BIGINT NOT NULL, success_factor FLOAT NOT NULL, PRIMARY KEY CLUSTERED (role, request_id, stage_id));
-CREATE TABLE stage (stage_id BIGINT NOT NULL, request_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, skippable SMALLINT DEFAULT 0 NOT NULL, log_info VARCHAR(255) NOT NULL, request_context VARCHAR(255), cluster_host_info VARBINARY(8000) NOT NULL, command_params VARBINARY(8000), host_params VARBINARY(8000), PRIMARY KEY CLUSTERED (stage_id, request_id));
-CREATE TABLE request (request_id BIGINT NOT NULL, cluster_id BIGINT, command_name VARCHAR(255), create_time BIGINT NOT NULL, end_time BIGINT NOT NULL, exclusive_execution BIT NOT NULL DEFAULT 0, inputs VARBINARY(8000), request_context VARCHAR(255), request_type VARCHAR(255), request_schedule_id BIGINT, start_time BIGINT NOT NULL, status VARCHAR(255), PRIMARY KEY CLUSTERED (request_id));
-CREATE TABLE requestresourcefilter (filter_id BIGINT NOT NULL, request_id BIGINT NOT NULL, service_name VARCHAR(255), component_name VARCHAR(255), hosts VARBINARY(8000), PRIMARY KEY CLUSTERED (filter_id));
-CREATE TABLE requestoperationlevel (operation_level_id BIGINT NOT NULL, request_id BIGINT NOT NULL, level_name VARCHAR(255), cluster_name VARCHAR(255), service_name VARCHAR(255), host_component_name VARCHAR(255), host_name VARCHAR(255), PRIMARY KEY CLUSTERED (operation_level_id));
+CREATE TABLE servicecomponentdesiredstate (
+  component_name VARCHAR(255) NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  desired_stack_id BIGINT NOT NULL,
+  desired_state VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY CLUSTERED (component_name, cluster_id, service_name),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  );
 
+CREATE TABLE servicedesiredstate (
+  cluster_id BIGINT NOT NULL,
+  desired_host_role_mapping INTEGER NOT NULL,
+  desired_stack_id BIGINT NOT NULL,
+  desired_state VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255) NOT NULL,
+  maintenance_state VARCHAR(32) NOT NULL,
+  security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
+  PRIMARY KEY CLUSTERED (cluster_id,service_name),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  );
+
+CREATE TABLE users (
+  user_id INTEGER,
+  principal_id BIGINT NOT NULL,
+  ldap_user INTEGER NOT NULL DEFAULT 0,
+  user_name VARCHAR(255) NOT NULL,
+  create_time DATETIME DEFAULT GETDATE(),
+  user_password VARCHAR(255),
+  active INTEGER NOT NULL DEFAULT 1,
+  PRIMARY KEY CLUSTERED (user_id),
+  UNIQUE (
+    ldap_user,
+    user_name
+    )
+  );
+
+CREATE TABLE groups (
+  group_id INTEGER,
+  principal_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  ldap_group INTEGER NOT NULL DEFAULT 0,
+  PRIMARY KEY (group_id)
+  );
+
+CREATE TABLE members (
+  member_id INTEGER,
+  group_id INTEGER NOT NULL,
+  user_id INTEGER NOT NULL,
+  PRIMARY KEY (member_id)
+  );
+
+CREATE TABLE execution_command (
+  command VARBINARY(8000),
+  task_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (task_id)
+  );
+
+CREATE TABLE host_role_command (
+  task_id BIGINT NOT NULL,
+  attempt_count SMALLINT NOT NULL,
+  retry_allowed SMALLINT DEFAULT 0 NOT NULL,
+  event VARCHAR(MAX) NOT NULL,
+  exitcode INTEGER NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  last_attempt_time BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  ROLE VARCHAR(255),
+  stage_id BIGINT NOT NULL,
+  start_time BIGINT NOT NULL,
+  end_time BIGINT,
+  status VARCHAR(255),
+  std_error VARBINARY(max),
+  std_out VARBINARY(max),
+  output_log VARCHAR(255) NULL,
+  error_log VARCHAR(255) NULL,
+  structured_out VARBINARY(max),
+  role_command VARCHAR(255),
+  command_detail VARCHAR(255),
+  custom_command_name VARCHAR(255),
+  PRIMARY KEY CLUSTERED (task_id)
+  );
+
+CREATE TABLE role_success_criteria (
+  ROLE VARCHAR(255) NOT NULL,
+  request_id BIGINT NOT NULL,
+  stage_id BIGINT NOT NULL,
+  success_factor FLOAT NOT NULL,
+  PRIMARY KEY CLUSTERED (
+    ROLE,
+    request_id,
+    stage_id
+    )
+  );
+
+CREATE TABLE stage (
+  stage_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  skippable SMALLINT DEFAULT 0 NOT NULL,
+  log_info VARCHAR(255) NOT NULL,
+  request_context VARCHAR(255),
+  cluster_host_info VARBINARY(8000) NOT NULL,
+  command_params VARBINARY(8000),
+  host_params VARBINARY(8000),
+  PRIMARY KEY CLUSTERED (
+    stage_id,
+    request_id
+    )
+  );
+
+CREATE TABLE request (
+  request_id BIGINT NOT NULL,
+  cluster_id BIGINT,
+  command_name VARCHAR(255),
+  create_time BIGINT NOT NULL,
+  end_time BIGINT NOT NULL,
+  exclusive_execution BIT NOT NULL DEFAULT 0,
+  inputs VARBINARY(8000),
+  request_context VARCHAR(255),
+  request_type VARCHAR(255),
+  request_schedule_id BIGINT,
+  start_time BIGINT NOT NULL,
+  status VARCHAR(255),
+  PRIMARY KEY CLUSTERED (request_id)
+  );
+
+CREATE TABLE requestresourcefilter (
+  filter_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  service_name VARCHAR(255),
+  component_name VARCHAR(255),
+  hosts VARBINARY(8000),
+  PRIMARY KEY CLUSTERED (filter_id)
+  );
+
+CREATE TABLE requestoperationlevel (
+  operation_level_id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  level_name VARCHAR(255),
+  cluster_name VARCHAR(255),
+  service_name VARCHAR(255),
+  host_component_name VARCHAR(255),
+  host_name VARCHAR(255),
+  PRIMARY KEY CLUSTERED (operation_level_id)
+  );
+  
 CREATE TABLE ClusterHostMapping (
   cluster_id BIGINT NOT NULL,
   host_id BIGINT NOT NULL,
   PRIMARY KEY CLUSTERED (cluster_id, host_id));
 
-CREATE TABLE key_value_store ([key] VARCHAR(255), [value] VARCHAR(MAX), PRIMARY KEY CLUSTERED ([key]));
-CREATE TABLE hostconfigmapping (cluster_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, service_name VARCHAR(255), create_timestamp BIGINT NOT NULL, selected INTEGER NOT NULL DEFAULT 0, user_name VARCHAR(255) NOT NULL DEFAULT '_db', PRIMARY KEY CLUSTERED (cluster_id, host_name, type_name, create_timestamp));
-CREATE TABLE metainfo ([metainfo_key] VARCHAR(255), [metainfo_value] VARCHAR(255), PRIMARY KEY CLUSTERED ([metainfo_key]));
-CREATE TABLE ambari_sequences (sequence_name VARCHAR(255) PRIMARY KEY, [sequence_value] BIGINT NOT NULL);
-CREATE TABLE configgroup (group_id BIGINT, cluster_id BIGINT NOT NULL, group_name VARCHAR(255) NOT NULL, tag VARCHAR(1024) NOT NULL, description VARCHAR(1024), create_timestamp BIGINT NOT NULL, service_name VARCHAR(255), PRIMARY KEY(group_id));
-CREATE TABLE confgroupclusterconfigmapping (config_group_id BIGINT NOT NULL, cluster_id BIGINT NOT NULL, config_type VARCHAR(255) NOT NULL, version_tag VARCHAR(255) NOT NULL, user_name VARCHAR(255) DEFAULT '_db', create_timestamp BIGINT NOT NULL, PRIMARY KEY(config_group_id, cluster_id, config_type));
-CREATE TABLE configgrouphostmapping (config_group_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, PRIMARY KEY(config_group_id, host_name));
-CREATE TABLE requestschedule (schedule_id bigint, cluster_id bigint NOT NULL, description varchar(255), status varchar(255), batch_separation_seconds smallint, batch_toleration_limit smallint, create_user varchar(255), create_timestamp bigint, update_user varchar(255), update_timestamp bigint, minutes varchar(10), hours varchar(10), days_of_month varchar(10), month varchar(10), day_of_week varchar(10), yearToSchedule varchar(10), startTime varchar(50), endTime varchar(50), last_execution_status varchar(255), PRIMARY KEY(schedule_id));
-CREATE TABLE requestschedulebatchrequest (schedule_id bigint, batch_id bigint, request_id bigint, request_type varchar(255), request_uri varchar(1024), request_body VARBINARY(8000), request_status varchar(255), return_code smallint, return_message text, PRIMARY KEY(schedule_id, batch_id));
-CREATE TABLE blueprint (blueprint_name VARCHAR(255) NOT NULL, stack_name VARCHAR(255) NOT NULL, stack_version VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name));
-CREATE TABLE hostgroup (blueprint_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, cardinality VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name, name));
-CREATE TABLE hostgroup_component (blueprint_name VARCHAR(255) NOT NULL, hostgroup_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, PRIMARY KEY(blueprint_name, hostgroup_name, name));
-CREATE TABLE blueprint_configuration (blueprint_name varchar(255) NOT NULL, type_name varchar(255) NOT NULL, config_data text NOT NULL, config_attributes VARCHAR(8000), PRIMARY KEY(blueprint_name, type_name));
-CREATE TABLE hostgroup_configuration (blueprint_name VARCHAR(255) NOT NULL, hostgroup_name VARCHAR(255) NOT NULL, type_name VARCHAR(255) NOT NULL, config_data TEXT NOT NULL, config_attributes TEXT, PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
-CREATE TABLE viewmain (view_name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(2048), version VARCHAR(255), resource_type_id INTEGER NOT NULL, icon VARCHAR(255), icon64 VARCHAR(255), archive VARCHAR(255), mask VARCHAR(255), system_view BIT NOT NULL DEFAULT 0, PRIMARY KEY(view_name));
-CREATE TABLE viewinstancedata (view_instance_id BIGINT, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, user_name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_instance_id, name, user_name));
-CREATE TABLE viewinstance (view_instance_id BIGINT, resource_id BIGINT NOT NULL, view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, label VARCHAR(255), description VARCHAR(2048), visible CHAR(1), icon VARCHAR(255), icon64 VARCHAR(255), xml_driven CHAR(1), cluster_handle VARCHAR(255), PRIMARY KEY(view_instance_id));
-CREATE TABLE viewinstanceproperty (view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, value VARCHAR(2000) NOT NULL, PRIMARY KEY(view_name, view_instance_name, name));
-CREATE TABLE viewparameter (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, description VARCHAR(2048), label VARCHAR(255), placeholder VARCHAR(255), default_value VARCHAR(2000), cluster_config VARCHAR(255), required CHAR(1), masked CHAR(1), PRIMARY KEY(view_name, name));
-CREATE TABLE viewresource (view_name VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL, plural_name VARCHAR(255), id_property VARCHAR(255), subResource_names VARCHAR(255), provider VARCHAR(255), service VARCHAR(255), resource VARCHAR(255), PRIMARY KEY(view_name, name));
-CREATE TABLE viewentity (id BIGINT NOT NULL, view_name VARCHAR(255) NOT NULL, view_instance_name VARCHAR(255) NOT NULL, class_name VARCHAR(255) NOT NULL, id_property VARCHAR(255), PRIMARY KEY(id));
-CREATE TABLE adminresourcetype (resource_type_id INTEGER NOT NULL, resource_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(resource_type_id));
-CREATE TABLE adminresource (resource_id BIGINT NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(resource_id));
-CREATE TABLE adminprincipaltype (principal_type_id INTEGER NOT NULL, principal_type_name VARCHAR(255) NOT NULL, PRIMARY KEY(principal_type_id));
-CREATE TABLE adminprincipal (principal_id BIGINT NOT NULL, principal_type_id INTEGER NOT NULL, PRIMARY KEY(principal_id));
-CREATE TABLE adminpermission (permission_id BIGINT NOT NULL, permission_name VARCHAR(255) NOT NULL, resource_type_id INTEGER NOT NULL, PRIMARY KEY(permission_id));
-CREATE TABLE adminprivilege (privilege_id BIGINT, permission_id BIGINT NOT NULL, resource_id BIGINT NOT NULL, principal_id BIGINT NOT NULL, PRIMARY KEY(privilege_id));
-CREATE TABLE host_version (id BIGINT NOT NULL, repo_version_id BIGINT NOT NULL, host_name VARCHAR(255) NOT NULL, state VARCHAR(32) NOT NULL, PRIMARY KEY (id));
-CREATE TABLE repo_version (repo_version_id BIGINT NOT NULL, stack VARCHAR(255) NOT NULL, version VARCHAR(255) NOT NULL, display_name VARCHAR(128) NOT NULL, upgrade_package VARCHAR(255) NOT NULL, repositories VARCHAR(MAX) NOT NULL, PRIMARY KEY(repo_version_id));
-CREATE TABLE artifact (artifact_name VARCHAR(255) NOT NULL, artifact_data TEXT NOT NULL, foreign_keys VARCHAR(255) NOT NULL, PRIMARY KEY (artifact_name, foreign_keys));
+CREATE TABLE key_value_store (
+  [key] VARCHAR(255),
+  [value] VARCHAR(MAX),
+  PRIMARY KEY CLUSTERED ([key])
+  );
 
+CREATE TABLE hostconfigmapping (
+  cluster_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  service_name VARCHAR(255),
+  create_timestamp BIGINT NOT NULL,
+  selected INTEGER NOT NULL DEFAULT 0,
+  user_name VARCHAR(255) NOT NULL DEFAULT '_db',
+  PRIMARY KEY CLUSTERED (
+    cluster_id,
+    host_name,
+    type_name,
+    create_timestamp
+    )
+  );
+
+CREATE TABLE metainfo (
+  [metainfo_key] VARCHAR(255),
+  [metainfo_value] VARCHAR(255),
+  PRIMARY KEY CLUSTERED ([metainfo_key])
+  );
+
+CREATE TABLE ambari_sequences (
+  sequence_name VARCHAR(255) PRIMARY KEY,
+  [sequence_value] BIGINT NOT NULL
+  );
+
+CREATE TABLE configgroup (
+  group_id BIGINT,
+  cluster_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  tag VARCHAR(1024) NOT NULL,
+  description VARCHAR(1024),
+  create_timestamp BIGINT NOT NULL,
+  service_name VARCHAR(255),
+  PRIMARY KEY (group_id)
+  );
+
+CREATE TABLE confgroupclusterconfigmapping (
+  config_group_id BIGINT NOT NULL,
+  cluster_id BIGINT NOT NULL,
+  config_type VARCHAR(255) NOT NULL,
+  version_tag VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) DEFAULT '_db',
+  create_timestamp BIGINT NOT NULL,
+  PRIMARY KEY (
+    config_group_id,
+    cluster_id,
+    config_type
+    )
+  );
+
+CREATE TABLE configgrouphostmapping (
+  config_group_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (
+    config_group_id,
+    host_name
+    )
+  );
+
+CREATE TABLE requestschedule (
+  schedule_id BIGINT,
+  cluster_id BIGINT NOT NULL,
+  description VARCHAR(255),
+  STATUS VARCHAR(255),
+  batch_separation_seconds SMALLINT,
+  batch_toleration_limit SMALLINT,
+  create_user VARCHAR(255),
+  create_timestamp BIGINT,
+  update_user VARCHAR(255),
+  update_timestamp BIGINT,
+  minutes VARCHAR(10),
+  hours VARCHAR(10),
+  days_of_month VARCHAR(10),
+  month VARCHAR(10),
+  day_of_week VARCHAR(10),
+  yearToSchedule VARCHAR(10),
+  startTime VARCHAR(50),
+  endTime VARCHAR(50),
+  last_execution_status VARCHAR(255),
+  PRIMARY KEY (schedule_id)
+  );
+
+CREATE TABLE requestschedulebatchrequest (
+  schedule_id BIGINT,
+  batch_id BIGINT,
+  request_id BIGINT,
+  request_type VARCHAR(255),
+  request_uri VARCHAR(1024),
+  request_body VARBINARY(8000),
+  request_status VARCHAR(255),
+  return_code SMALLINT,
+  return_message TEXT,
+  PRIMARY KEY (
+    schedule_id,
+    batch_id
+    )
+  );
+
+CREATE TABLE blueprint (
+  blueprint_name VARCHAR(255) NOT NULL,
+  stack_id BIGINT NOT NULL,
+  PRIMARY KEY (blueprint_name),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  );
+
+CREATE TABLE hostgroup (
+  blueprint_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  cardinality VARCHAR(255) NOT NULL,
+  PRIMARY KEY (
+    blueprint_name,
+    NAME
+    )
+  );
+
+CREATE TABLE hostgroup_component (
+  blueprint_name VARCHAR(255) NOT NULL,
+  hostgroup_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  PRIMARY KEY (
+    blueprint_name,
+    hostgroup_name,
+    NAME
+    )
+  );
+
+CREATE TABLE blueprint_configuration (
+  blueprint_name VARCHAR(255) NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data TEXT NOT NULL,
+  config_attributes VARCHAR(8000),
+  PRIMARY KEY (
+    blueprint_name,
+    type_name
+    )
+  );
+
+CREATE TABLE hostgroup_configuration (
+  blueprint_name VARCHAR(255) NOT NULL,
+  hostgroup_name VARCHAR(255) NOT NULL,
+  type_name VARCHAR(255) NOT NULL,
+  config_data TEXT NOT NULL,
+  config_attributes TEXT,
+  PRIMARY KEY (
+    blueprint_name,
+    hostgroup_name,
+    type_name
+    )
+  );
+
+CREATE TABLE viewmain (
+  view_name VARCHAR(255) NOT NULL,
+  label VARCHAR(255),
+  description VARCHAR(2048),
+  version VARCHAR(255),
+  resource_type_id INTEGER NOT NULL,
+  icon VARCHAR(255),
+  icon64 VARCHAR(255),
+  archive VARCHAR(255),
+  mask VARCHAR(255),
+  system_view BIT NOT NULL DEFAULT 0,
+  PRIMARY KEY (view_name)
+  );
+
+CREATE TABLE viewinstancedata (
+  view_instance_id BIGINT,
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) NOT NULL,
+  value VARCHAR(2000) NOT NULL,
+  PRIMARY KEY (
+    view_instance_id,
+    NAME,
+    user_name
+    )
+  );
+
+CREATE TABLE viewinstance (
+  view_instance_id BIGINT,
+  resource_id BIGINT NOT NULL,
+  view_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  label VARCHAR(255),
+  description VARCHAR(2048),
+  visible CHAR(1),
+  icon VARCHAR(255),
+  icon64 VARCHAR(255),
+  xml_driven CHAR(1),
+  cluster_handle VARCHAR(255),
+  PRIMARY KEY (view_instance_id)
+  );
+
+CREATE TABLE viewinstanceproperty (
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  value VARCHAR(2000) NOT NULL,
+  PRIMARY KEY (
+    view_name,
+    view_instance_name,
+    NAME
+    )
+  );
+
+CREATE TABLE viewparameter (
+  view_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  description VARCHAR(2048),
+  label VARCHAR(255),
+  placeholder VARCHAR(255),
+  default_value VARCHAR(2000),
+  cluster_config VARCHAR(255),
+  required CHAR(1),
+  masked CHAR(1),
+  PRIMARY KEY (
+    view_name,
+    NAME
+    )
+  );
+
+CREATE TABLE viewresource (
+  view_name VARCHAR(255) NOT NULL,
+  NAME VARCHAR(255) NOT NULL,
+  plural_name VARCHAR(255),
+  id_property VARCHAR(255),
+  subResource_names VARCHAR(255),
+  provider VARCHAR(255),
+  service VARCHAR(255),
+  resource VARCHAR(255),
+  PRIMARY KEY (
+    view_name,
+    NAME
+    )
+  );
+
+CREATE TABLE viewentity (
+  id BIGINT NOT NULL,
+  view_name VARCHAR(255) NOT NULL,
+  view_instance_name VARCHAR(255) NOT NULL,
+  class_name VARCHAR(255) NOT NULL,
+  id_property VARCHAR(255),
+  PRIMARY KEY (id)
+  );
+
+CREATE TABLE adminresourcetype (
+  resource_type_id INTEGER NOT NULL,
+  resource_type_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (resource_type_id)
+  );
+
+CREATE TABLE adminresource (
+  resource_id BIGINT NOT NULL,
+  resource_type_id INTEGER NOT NULL,
+  PRIMARY KEY (resource_id)
+  );
+
+CREATE TABLE adminprincipaltype (
+  principal_type_id INTEGER NOT NULL,
+  principal_type_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (principal_type_id)
+  );
+
+CREATE TABLE adminprincipal (
+  principal_id BIGINT NOT NULL,
+  principal_type_id INTEGER NOT NULL,
+  PRIMARY KEY (principal_id)
+  );
+
+CREATE TABLE adminpermission (
+  permission_id BIGINT NOT NULL,
+  permission_name VARCHAR(255) NOT NULL,
+  resource_type_id INTEGER NOT NULL,
+  PRIMARY KEY (permission_id)
+  );
+
+CREATE TABLE adminprivilege (
+  privilege_id BIGINT,
+  permission_id BIGINT NOT NULL,
+  resource_id BIGINT NOT NULL,
+  principal_id BIGINT NOT NULL,
+  PRIMARY KEY (privilege_id)
+  );
+
+CREATE TABLE host_version (
+  id BIGINT NOT NULL,
+  repo_version_id BIGINT NOT NULL,
+  host_name VARCHAR(255) NOT NULL,
+  STATE VARCHAR(32) NOT NULL,
+  PRIMARY KEY (id)
+  );
+
+CREATE TABLE repo_version (
+  repo_version_id BIGINT NOT NULL,
+  stack_id BIGINT NOT NULL,
+  version VARCHAR(255) NOT NULL,
+  display_name VARCHAR(128) NOT NULL,
+  upgrade_package VARCHAR(255) NOT NULL,
+  repositories VARCHAR(MAX) NOT NULL,
+  PRIMARY KEY (repo_version_id),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
+  );
+
+CREATE TABLE artifact (
+  artifact_name VARCHAR(255) NOT NULL,
+  artifact_data TEXT NOT NULL,
+  foreign_keys VARCHAR(255) NOT NULL,
+  PRIMARY KEY (
+    artifact_name,
+    foreign_keys
+    )
+  );
+  
 -- altering tables by creating unique constraints----------
 --------altering tables to add constraints----------
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
@@ -157,7 +671,7 @@ ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_ins
 ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
-ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
+ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack_id, version);
 
 -- altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
@@ -394,14 +908,6 @@ CREATE TABLE upgrade_item (
   item_text VARCHAR(1024),
   PRIMARY KEY (upgrade_item_id),
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
-);
-
-CREATE TABLE stack(
-  stack_id BIGINT NOT NULL,
-  stack_name VARCHAR(255) NOT NULL,
-  stack_version VARCHAR(255) NOT NULL,
-  PRIMARY KEY (stack_id),
-  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
 );
 
 ---------inserting some data-----------

@@ -18,8 +18,24 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import javax.persistence.*;
 import java.util.Collection;
+
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
+import javax.persistence.ManyToMany;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.TableGenerator;
+import javax.persistence.UniqueConstraint;
 
 @Entity
 @Table(name = "clusterconfig",
@@ -73,6 +89,13 @@ public class ClusterConfigEntity {
   @ManyToMany(mappedBy = "clusterConfigEntities")
   private Collection<ServiceConfigEntity> serviceConfigEntities;
 
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity stack;
+
   public Long getConfigId() {
     return configId;
   }
@@ -118,7 +141,7 @@ public class ClusterConfigEntity {
   }
 
   public void setData(String data) {
-    this.configJson = data;
+    configJson = data;
   }
 
   public long getTimestamp() {
@@ -134,22 +157,56 @@ public class ClusterConfigEntity {
   }
 
   public void setAttributes(String attributes) {
-    this.configAttributesJson = attributes;
+    configAttributesJson = attributes;
+  }
+
+  /**
+   * Gets the cluster configuration's stack.
+   *
+   * @return the stack.
+   */
+  public StackEntity getStack() {
+    return stack;
+  }
+
+  /**
+   * Sets the cluster configuration's stack.
+   *
+   * @param stack
+   *          the stack to set for the cluster config (not {@code null}).
+   */
+  public void setStack(StackEntity stack) {
+    this.stack = stack;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ClusterConfigEntity that = (ClusterConfigEntity) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (configJson != null ? !configJson.equals(that.configJson) : that.configJson != null)
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
       return false;
+    }
+
+    if (configJson != null ? !configJson.equals(that.configJson) : that.configJson != null) {
+      return false;
+    }
+
     if (configAttributesJson != null ? !configAttributesJson
-      .equals(that.configAttributesJson) : that.configAttributesJson != null)
+      .equals(that.configAttributesJson) : that.configAttributesJson != null) {
       return false;
+    }
+
+    if (stack != null ? !stack.equals(that.stack) : that.stack != null) {
+      return false;
+    }
 
     return true;
   }
@@ -159,6 +216,7 @@ public class ClusterConfigEntity {
     int result = clusterId != null ? clusterId.intValue() : 0;
     result = 31 * result + (configJson != null ? configJson.hashCode() : 0);
     result = 31 * result + (configAttributesJson != null ? configAttributesJson.hashCode() : 0);
+    result = 31 * result + (stack != null ? stack.hashCode() : 0);
     return result;
   }
 

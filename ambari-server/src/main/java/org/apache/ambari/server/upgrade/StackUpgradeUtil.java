@@ -28,6 +28,7 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -35,46 +36,31 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 
 public class StackUpgradeUtil {
   @Inject
-  private Gson gson;
-  @Inject
   private Injector injector;
-
-  private String getStackIdString(String originalStackId, String stackName,
-                                  String stackVersion) {
-    if (stackVersion == null) {
-      stackVersion = gson.fromJson(originalStackId, StackId.class).getStackVersion();
-    }
-
-    return String.format(
-      "{\"stackName\":\"%s\",\"stackVersion\":\"%s\"}",
-      stackName,
-      stackVersion
-    );
-  }
 
   @Transactional
   public void updateStackDetails(String stackName, String stackVersion) {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
     List<Long> clusterIds = new ArrayList<Long>();
+
+    StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
 
     List<ClusterEntity> clusterEntities = clusterDAO.findAll();
     if (clusterEntities != null && !clusterEntities.isEmpty()) {
       for (ClusterEntity entity : clusterEntities) {
         clusterIds.add(entity.getClusterId());
-        String stackIdString = entity.getDesiredStackVersion();
-        entity.setDesiredStackVersion(getStackIdString(stackIdString,
-          stackName, stackVersion));
+        entity.setDesiredStack(stackEntity);
         clusterDAO.merge(entity);
       }
     }
@@ -83,9 +69,7 @@ public class StackUpgradeUtil {
 
     for (Long clusterId : clusterIds) {
       ClusterStateEntity clusterStateEntity = clusterStateDAO.findByPK(clusterId);
-      String currentStackVersion = clusterStateEntity.getCurrentStackVersion();
-      clusterStateEntity.setCurrentStackVersion(getStackIdString
-        (currentStackVersion, stackName, stackVersion));
+      clusterStateEntity.setCurrentStack(stackEntity);
       clusterStateDAO.merge(clusterStateEntity);
     }
 
@@ -95,9 +79,7 @@ public class StackUpgradeUtil {
 
     if (hcEntities != null) {
       for (HostComponentStateEntity hc : hcEntities) {
-        String currentStackVersion = hc.getCurrentStackVersion();
-        hc.setCurrentStackVersion(getStackIdString(currentStackVersion,
-          stackName, stackVersion));
+        hc.setCurrentStack(stackEntity);
         hostComponentStateDAO.merge(hc);
       }
     }
@@ -109,9 +91,7 @@ public class StackUpgradeUtil {
 
     if (hcdEntities != null) {
       for (HostComponentDesiredStateEntity hcd : hcdEntities) {
-        String desiredStackVersion = hcd.getDesiredStackVersion();
-        hcd.setDesiredStackVersion(getStackIdString(desiredStackVersion,
-          stackName, stackVersion));
+        hcd.setDesiredStack(stackEntity);
         hostComponentDesiredStateDAO.merge(hcd);
       }
     }
@@ -124,9 +104,7 @@ public class StackUpgradeUtil {
 
     if (scdEntities != null) {
       for (ServiceComponentDesiredStateEntity scd : scdEntities) {
-        String desiredStackVersion = scd.getDesiredStackVersion();
-        scd.setDesiredStackVersion(getStackIdString(desiredStackVersion,
-          stackName, stackVersion));
+        scd.setDesiredStack(stackEntity);
         serviceComponentDesiredStateDAO.merge(scd);
       }
     }
@@ -137,14 +115,10 @@ public class StackUpgradeUtil {
 
     if (sdEntities != null) {
       for (ServiceDesiredStateEntity sd : sdEntities) {
-        String desiredStackVersion = sd.getDesiredStackVersion();
-        sd.setDesiredStackVersion(getStackIdString(desiredStackVersion,
-          stackName, stackVersion));
+        sd.setDesiredStack(stackEntity);
         serviceDesiredStateDAO.merge(sd);
       }
     }
-
-
   }
 
   /**
@@ -159,31 +133,32 @@ public class StackUpgradeUtil {
 
     if (null == repoUrl ||
         repoUrl.isEmpty() ||
-        !repoUrl.startsWith("http"))
+        !repoUrl.startsWith("http")) {
       return;
-    
-    String[] oses = new String[0]; 
-    
+    }
+
+    String[] oses = new String[0];
+
     if (null != repoUrlOs) {
       oses = repoUrlOs.split(",");
     }
-    
+
     AmbariMetaInfo ami = injector.getInstance(AmbariMetaInfo.class);
     MetainfoDAO metaDao = injector.getInstance(MetainfoDAO.class);
     OsFamily os_family = injector.getInstance(OsFamily.class);
-    
+
     String stackRepoId = stackName + "-" + stackVersion;
-    
+
     if (0 == oses.length) {
       // do them all
       for (OperatingSystemInfo osi : ami.getOperatingSystems(stackName, stackVersion)) {
         ami.updateRepoBaseURL(stackName, stackVersion, osi.getOsType(),
             stackRepoId, repoUrl);
       }
-      
+
     } else {
       for (String os : oses) {
-        
+
         String family = os_family.find(os);
         if (null != family) {
           String key = ami.generateRepoMetaKey(stackName, stackVersion, os,
@@ -191,7 +166,7 @@ public class StackUpgradeUtil {
 
           String familyKey = ami.generateRepoMetaKey(stackName, stackVersion, family,
               stackRepoId, AmbariMetaInfo.REPOSITORY_XML_PROPERTY_BASEURL);
-          
+
           // need to use (for example) redhat6 if the os is centos6
           MetainfoEntity entity = metaDao.findByKey(key);
           if (null == entity) {
@@ -203,7 +178,7 @@ public class StackUpgradeUtil {
             entity.setMetainfoValue(repoUrl);
             metaDao.merge(entity);
           }
-          
+
           entity = metaDao.findByKey(familyKey);
           if (null == entity) {
             entity = new MetainfoEntity();
@@ -214,7 +189,7 @@ public class StackUpgradeUtil {
             entity.setMetainfoValue(repoUrl);
             metaDao.merge(entity);
           }
-        }        
+        }
       }
     }
   }

@@ -21,6 +21,14 @@
 -- Please do not remove lines that are related to this change and are being staged.
 
 ------create tables---------
+CREATE TABLE stack(
+  stack_id NUMBER(19) NOT NULL,
+  stack_name VARCHAR2(255) NOT NULL,
+  stack_version VARCHAR2(255) NOT NULL,
+  PRIMARY KEY (stack_id),
+  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
+);
+
 CREATE TABLE clusters (
   cluster_id NUMBER(19) NOT NULL,
   resource_id NUMBER(19) NOT NULL,
@@ -29,8 +37,9 @@ CREATE TABLE clusters (
   provisioning_state VARCHAR2(255) DEFAULT 'INIT' NOT NULL,
   security_type VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   desired_cluster_state VARCHAR2(255) NULL,
-  desired_stack_version VARCHAR2(255) NULL,
-  PRIMARY KEY (cluster_id));
+  desired_stack_id NUMBER(19) NOT NULL,
+  PRIMARY KEY (cluster_id),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE clusterconfig (
   config_id NUMBER(19) NOT NULL,
@@ -38,10 +47,12 @@ CREATE TABLE clusterconfig (
   version NUMBER(19) NOT NULL,
   type_name VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
+  stack_id NUMBER(19) NOT NULL,
   config_data CLOB NOT NULL,
   config_attributes CLOB,
   create_timestamp NUMBER(19) NOT NULL,
-  PRIMARY KEY (config_id));
+  PRIMARY KEY (config_id),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE serviceconfig (
   service_config_id NUMBER(19) NOT NULL,
@@ -49,10 +60,12 @@ CREATE TABLE serviceconfig (
   service_name VARCHAR(255) NOT NULL,
   version NUMBER(19) NOT NULL,
   create_timestamp NUMBER(19) NOT NULL,
+  stack_id NUMBER(19) NOT NULL,
   user_name VARCHAR(255) DEFAULT '_db' NOT NULL,
   group_id NUMBER(19),
   note CLOB,
-  PRIMARY KEY (service_config_id));
+  PRIMARY KEY (service_config_id),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE serviceconfighosts (
   service_config_id NUMBER(19) NOT NULL,
@@ -73,8 +86,9 @@ CREATE TABLE clusterservices (
 CREATE TABLE clusterstate (
   cluster_id NUMBER(19) NOT NULL,
   current_cluster_state VARCHAR2(255) NULL,
-  current_stack_version VARCHAR2(255) NULL,
-  PRIMARY KEY (cluster_id));
+  current_stack_id NUMBER(19) NULL,
+  PRIMARY KEY (cluster_id),
+  FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE cluster_version (
   id NUMBER(19) NULL,
@@ -89,7 +103,7 @@ CREATE TABLE cluster_version (
 CREATE TABLE hostcomponentdesiredstate (
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
-  desired_stack_version VARCHAR2(255) NULL,
+  desired_stack_id NUMBER(19) NULL,
   desired_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
@@ -97,19 +111,21 @@ CREATE TABLE hostcomponentdesiredstate (
   maintenance_state VARCHAR2(32) NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
   restart_required NUMBER(1) DEFAULT 0 NOT NULL,
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name));
+  PRIMARY KEY (cluster_id, component_name, host_id, service_name),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE hostcomponentstate (
   cluster_id NUMBER(19) NOT NULL,
   component_name VARCHAR2(255) NOT NULL,
   version VARCHAR2(32) DEFAULT 'UNKNOWN' NOT NULL,
-  current_stack_version VARCHAR2(255) NOT NULL,
+  current_stack_id NUMBER(19) NOT NULL,
   current_state VARCHAR2(255) NOT NULL,
   host_id NUMBER(19) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   upgrade_state VARCHAR2(32) DEFAULT 'NONE' NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
-  PRIMARY KEY (cluster_id, component_name, host_id, service_name));
+  PRIMARY KEY (cluster_id, component_name, host_id, service_name),
+  FOREIGN KEY (current_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE hosts (
   host_id NUMBER(19) NOT NULL,
@@ -151,20 +167,22 @@ CREATE TABLE host_version (
 CREATE TABLE servicecomponentdesiredstate (
   component_name VARCHAR2(255) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
-  desired_stack_version VARCHAR2(255) NULL,
+  desired_stack_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
-  PRIMARY KEY (component_name, cluster_id, service_name));
+  PRIMARY KEY (component_name, cluster_id, service_name),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE servicedesiredstate (
   cluster_id NUMBER(19) NOT NULL,
   desired_host_role_mapping NUMBER(10) NOT NULL,
-  desired_stack_version VARCHAR2(255) NULL,
+  desired_stack_id NUMBER(19) NOT NULL,
   desired_state VARCHAR2(255) NOT NULL,
   service_name VARCHAR2(255) NOT NULL,
   maintenance_state VARCHAR2(32) NOT NULL,
   security_state VARCHAR2(32) DEFAULT 'UNSECURED' NOT NULL,
-  PRIMARY KEY (cluster_id, service_name));
+  PRIMARY KEY (cluster_id, service_name),
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE users (
   user_id NUMBER(10) NOT NULL,
@@ -377,9 +395,9 @@ CREATE TABLE requestschedulebatchrequest (
 
 CREATE TABLE blueprint (
   blueprint_name VARCHAR2(255) NOT NULL,
-  stack_name VARCHAR2(255) NOT NULL,
-  stack_version VARCHAR2(255) NOT NULL,
-  PRIMARY KEY(blueprint_name));
+  stack_id NUMBER(19) NOT NULL,
+  PRIMARY KEY(blueprint_name),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
 
 CREATE TABLE hostgroup (
   blueprint_name VARCHAR2(255) NOT NULL,
@@ -515,12 +533,13 @@ CREATE TABLE adminprivilege (
 
 CREATE TABLE repo_version (
   repo_version_id NUMBER(19) NOT NULL,
-  stack VARCHAR2(255) NOT NULL,
+  stack_id NUMBER(19) NOT NULL,
   version VARCHAR2(255) NOT NULL,
   display_name VARCHAR2(128) NOT NULL,
   upgrade_package VARCHAR2(255) NOT NULL,
   repositories CLOB NOT NULL,
-  PRIMARY KEY(repo_version_id)
+  PRIMARY KEY(repo_version_id),
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
 );
 
 CREATE TABLE widget (
@@ -575,7 +594,7 @@ ALTER TABLE viewinstance ADD CONSTRAINT UQ_viewinstance_name_id UNIQUE (view_ins
 ALTER TABLE serviceconfig ADD CONSTRAINT UQ_scv_service_version UNIQUE (cluster_id, service_name, version);
 ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id);
 ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name);
-ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version);
+ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack_id, version);
 
 --------altering tables by creating foreign keys----------
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
@@ -814,14 +833,6 @@ CREATE TABLE upgrade_item (
   item_text VARCHAR2(1024),
   PRIMARY KEY (upgrade_item_id),
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
-);
-
-CREATE TABLE stack(
-  stack_id NUMBER(19) NOT NULL,
-  stack_name VARCHAR2(255) NOT NULL,
-  stack_version VARCHAR2(255) NOT NULL,
-  PRIMARY KEY (stack_id),
-  CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
 );
 
 ---------inserting some data-----------

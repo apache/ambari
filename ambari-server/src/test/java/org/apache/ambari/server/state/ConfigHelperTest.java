@@ -94,9 +94,8 @@ public class ConfigHelperTest {
       managementController = injector.getInstance(AmbariManagementController.class);
 
       clusterName = "c1";
-      clusters.addCluster(clusterName);
+      clusters.addCluster(clusterName, new StackId("HDP-2.0.6"));
       cluster = clusters.getCluster(clusterName);
-      cluster.setDesiredStackVersion(new StackId("HDP-2.0.6"));
       Assert.assertNotNull(cluster);
       clusters.addHost("h1");
       clusters.addHost("h2");

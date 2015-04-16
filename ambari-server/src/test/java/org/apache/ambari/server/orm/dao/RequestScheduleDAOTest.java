@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.List;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -30,12 +31,15 @@ import org.apache.ambari.server.orm.entities.RequestScheduleBatchRequestEntity;
 import org.apache.ambari.server.orm.entities.RequestScheduleEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.scheduler.BatchRequest;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class RequestScheduleDAOTest {
   private Injector injector;
@@ -52,6 +56,9 @@ public class RequestScheduleDAOTest {
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+
+    // required to load stacks into the DB
+    injector.getInstance(AmbariMetaInfo.class);
 
     clusterDAO = injector.getInstance(ClusterDAO.class);
     hostDAO = injector.getInstance(HostDAO.class);
@@ -77,12 +84,18 @@ public class RequestScheduleDAOTest {
       resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
+
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
+
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setResourceType(resourceTypeEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("c1");
     clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
+
     clusterDAO.create(clusterEntity);
 
     scheduleEntity.setClusterEntity(clusterEntity);

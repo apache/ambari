@@ -30,6 +30,7 @@ import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
 import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -726,11 +727,15 @@ public class BaseBlueprintProcessorTest {
     configEntity.setConfigData("{\"dfs.nameservices\":\"mycluster\",\"key4\":\"value4\"}");
     configEntity.setType("hdfs-site");
 
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.0.6");
+
     BlueprintEntity testEntity =
       new BlueprintEntity();
+
     testEntity.setBlueprintName("test-blueprint");
-    testEntity.setStackName("HDP");
-    testEntity.setStackVersion("2.0.6");
+    testEntity.setStack(stackEntity);
     testEntity.setHostGroups(Collections.singleton(hostGroupEntity));
     testEntity.setConfigurations(Collections.singleton(configEntity));
 
@@ -829,13 +834,15 @@ public class BaseBlueprintProcessorTest {
     hostGroupEntity.setComponents(Collections.singleton(hostGroupComponentEntity));
     hostGroupEntity.setConfigurations(Collections.<HostGroupConfigEntity>emptyList());
 
-
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.0.6");
 
     BlueprintEntity testEntity =
       new BlueprintEntity();
+
     testEntity.setBlueprintName("test-blueprint");
-    testEntity.setStackName("HDP");
-    testEntity.setStackVersion("2.0.6");
+    testEntity.setStack(stackEntity);
     testEntity.setHostGroups(Collections.singleton(hostGroupEntity));
     testEntity.setConfigurations(Collections.<BlueprintConfigEntity>emptyList());
 

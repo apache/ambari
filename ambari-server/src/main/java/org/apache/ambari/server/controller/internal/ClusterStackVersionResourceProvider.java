@@ -27,10 +27,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
-import com.google.inject.Injector;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.StaticallyInject;
@@ -66,6 +63,7 @@ import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -78,6 +76,7 @@ import org.apache.ambari.server.utils.StageUtils;
 
 import com.google.gson.Gson;
 import com.google.inject.Inject;
+import com.google.inject.Injector;
 import com.google.inject.Provider;
 
 /**
@@ -211,12 +210,18 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       for (RepositoryVersionState state: RepositoryVersionState.values()) {
         hostStates.put(state.name(), new ArrayList<String>());
       }
-      for (HostVersionEntity hostVersionEntity: hostVersionDAO.findByClusterStackAndVersion(entity.getClusterEntity().getClusterName(),
-          entity.getRepositoryVersion().getStack(), entity.getRepositoryVersion().getVersion())) {
+
+      StackEntity repoVersionStackEntity = entity.getRepositoryVersion().getStack();
+      StackId repoVersionStackId = new StackId(repoVersionStackEntity);
+
+      for (HostVersionEntity hostVersionEntity : hostVersionDAO.findByClusterStackAndVersion(
+          entity.getClusterEntity().getClusterName(), repoVersionStackId,
+          entity.getRepositoryVersion().getVersion())) {
         hostStates.get(hostVersionEntity.getState().name()).add(hostVersionEntity.getHostName());
       }
       StackId stackId = new StackId(entity.getRepositoryVersion().getStack());
-      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getRepositoryVersion().getVersion());
+      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(
+          stackId, entity.getRepositoryVersion().getVersion());
 
       setResourceProperty(resource, CLUSTER_STACK_VERSION_CLUSTER_NAME_PROPERTY_ID, entity.getClusterEntity().getClusterName(), requestedIds);
       setResourceProperty(resource, CLUSTER_STACK_VERSION_HOST_STATES_PROPERTY_ID, hostStates, requestedIds);
@@ -281,12 +286,12 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       throw new NoSuchParentResourceException(e.getMessage(), e);
     }
 
-    final String stackId;
+    final StackId stackId;
     if (propertyMap.containsKey(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID) &&
             propertyMap.containsKey(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID)) {
       stackName = (String) propertyMap.get(CLUSTER_STACK_VERSION_STACK_PROPERTY_ID);
       stackVersion = (String) propertyMap.get(CLUSTER_STACK_VERSION_VERSION_PROPERTY_ID);
-      stackId = new StackId(stackName, stackVersion).getStackId();
+      stackId = new StackId(stackName, stackVersion);
       if (! ami.isSupportedStack(stackName, stackVersion)) {
         throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
                 stackId));
@@ -295,10 +300,11 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       StackId currentStackVersion = cluster.getCurrentStackVersion();
       stackName = currentStackVersion.getStackName();
       stackVersion = currentStackVersion.getStackVersion();
-      stackId = currentStackVersion.getStackId();
+      stackId = currentStackVersion;
     }
 
-    RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(stackId, desiredRepoVersion);
+    RepositoryVersionEntity repoVersionEnt = repositoryVersionDAO.findByStackAndVersion(
+        stackId, desiredRepoVersion);
     if (repoVersionEnt == null) {
       throw new IllegalArgumentException(String.format(
               "Repo version %s is not available for stack %s",
@@ -365,7 +371,7 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
       final String repoList = gson.toJson(repoInfo);
 
       Map<String, String> params = new HashMap<String, String>() {{
-        put("stack_id", stackId);
+        put("stack_id", stackId.getStackId());
         put("repository_version", desiredRepoVersion);
         put("base_urls", repoList);
         put("package_list", packageList);
@@ -389,22 +395,28 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     try {
-      ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+      ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(
+          clName, stackId, desiredRepoVersion);
       if (existingCSVer == null) {
-        try {  // Create/persist new cluster stack version
-          cluster.createClusterVersion(stackId, desiredRepoVersion, managementController.getAuthName(), RepositoryVersionState.INSTALLING);
-          existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(clName, stackId, desiredRepoVersion);
+        try {
+          // Create/persist new cluster stack version
+          cluster.createClusterVersion(stackId,
+              desiredRepoVersion, managementController.getAuthName(),
+              RepositoryVersionState.INSTALLING);
+          existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(
+              clName, stackId, desiredRepoVersion);
         } catch (AmbariException e) {
           throw new SystemException(
                   String.format(
                           "Can not create cluster stack version %s for cluster %s",
-                          desiredRepoVersion, clName),
-                  e);
+              desiredRepoVersion, clName), e);
         }
       } else {
         // Move CSV into INSTALLING state (retry installation)
-        cluster.transitionClusterVersion(stackId, desiredRepoVersion, RepositoryVersionState.INSTALLING);
+        cluster.transitionClusterVersion(stackId,
+            desiredRepoVersion, RepositoryVersionState.INSTALLING);
       }
+
       // Will also initialize all Host Versions in an INSTALLING state.
       cluster.inferHostVersions(existingCSVer);
 

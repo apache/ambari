@@ -29,6 +29,7 @@ import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -44,14 +45,18 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 /**
  * Tests AMBARI-9738 which produced a deadlock during read and writes between
@@ -88,16 +93,19 @@ public class ClustersDeadlockTest {
 
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
+
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    clusters.addCluster(CLUSTER_NAME);
 
     StackId stackId = new StackId("HDP-0.1");
+    clusters.addCluster(CLUSTER_NAME, stackId);
+
     cluster = clusters.getCluster(CLUSTER_NAME);
-    cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     // install HDFS
     installService("HDFS");
@@ -114,7 +122,7 @@ public class ClustersDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 35000)
+  @Test(timeout = 40000)
   public void testDeadlockWhileMappingHosts() throws Exception {
     List<Thread> threads = new ArrayList<Thread>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
@@ -143,7 +151,7 @@ public class ClustersDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 35000)
+  @Test(timeout = 40000)
   public void testDeadlockWhileMappingHostsWithExistingServices()
       throws Exception {
     List<Thread> threads = new ArrayList<Thread>();
@@ -169,7 +177,7 @@ public class ClustersDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 35000)
+  @Test(timeout = 40000)
   public void testDeadlockWhileUnmappingHosts() throws Exception {
     List<Thread> threads = new ArrayList<Thread>();
     for (int i = 0; i < NUMBER_OF_THREADS; i++) {
@@ -362,5 +370,21 @@ public class ClustersDeadlockTest {
 
     sch.persist();
     return sch;
+  }
+
+  /**
+  *
+  */
+  private class MockModule implements Module {
+    /**
+    *
+    */
+    @Override
+    public void configure(Binder binder) {
+      // this listener gets in the way of actually testing the concurrency
+      // between the threads; it slows them down too much, so mock it out
+      binder.bind(HostVersionOutOfSyncListener.class).toInstance(
+          EasyMock.createNiceMock(HostVersionOutOfSyncListener.class));
+    }
   }
 }

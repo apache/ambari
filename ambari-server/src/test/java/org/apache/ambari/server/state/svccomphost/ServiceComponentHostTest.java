@@ -109,15 +109,16 @@ public class ServiceComponentHostTest {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    clusters.addCluster("C1");
+    StackId stackId = new StackId("HDP-0.1");
+    clusters.addCluster("C1", stackId);
     clusters.addHost("h1");
     setOsFamily(clusters.getHost("h1"), "redhat", "5.9");
     clusters.getHost("h1").persist();
-    StackId stackId = new StackId("HDP-0.1");
+
     Cluster c1 = clusters.getCluster("C1");
-    c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     clusters.mapHostToCluster("h1","C1");
   }
 
@@ -190,7 +191,7 @@ public class ServiceComponentHostTest {
     Assert.assertFalse(
         impl.getDesiredStackVersion().getStackId().isEmpty());
 
-    Assert.assertTrue(impl.getStackVersion().getStackId().isEmpty());
+    Assert.assertFalse(impl.getStackVersion().getStackId().isEmpty());
 
     return impl;
   }
@@ -263,7 +264,6 @@ public class ServiceComponentHostTest {
     boolean checkStack = false;
     if (startEventType == ServiceComponentHostEventType.HOST_SVCCOMP_INSTALL) {
       checkStack = true;
-      impl.setStackVersion(null);
     }
 
     Assert.assertEquals(startState,
@@ -515,14 +515,14 @@ public class ServiceComponentHostTest {
         createNewServiceComponentHost("HDFS", "NAMENODE", "h1", false);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLING);
-    sch.setStackVersion(new StackId("HDP-1.0.0"));
-    sch.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+    sch.setStackVersion(new StackId("HDP-1.2.0"));
+    sch.setDesiredStackVersion(new StackId("HDP-1.2.0"));
 
     Assert.assertEquals(State.INSTALLING, sch.getState());
     Assert.assertEquals(State.INSTALLED, sch.getDesiredState());
-    Assert.assertEquals("HDP-1.0.0",
+    Assert.assertEquals("HDP-1.2.0",
         sch.getStackVersion().getStackId());
-    Assert.assertEquals("HDP-1.1.0",
+    Assert.assertEquals("HDP-1.2.0",
         sch.getDesiredStackVersion().getStackId());
   }
 
@@ -532,8 +532,8 @@ public class ServiceComponentHostTest {
         createNewServiceComponentHost("HDFS", "NAMENODE", "h1", false);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLING);
-    sch.setStackVersion(new StackId("HDP-1.0.0"));
-    sch.setDesiredStackVersion(new StackId("HDP-1.1.0"));
+    sch.setStackVersion(new StackId("HDP-1.2.0"));
+    sch.setDesiredStackVersion(new StackId("HDP-1.2.0"));
 
     Cluster cluster = clusters.getCluster("C1");
 
@@ -567,7 +567,7 @@ public class ServiceComponentHostTest {
         createNewServiceComponentHost("HDFS", "DATANODE", "h1", false);
     sch.setDesiredState(State.INSTALLED);
     sch.setState(State.INSTALLING);
-    sch.setStackVersion(new StackId("HDP-1.0.0"));
+    sch.setStackVersion(new StackId("HDP-1.2.0"));
     ServiceComponentHostResponse r =
         sch.convertToResponse();
     Assert.assertEquals("HDFS", r.getServiceName());
@@ -576,7 +576,7 @@ public class ServiceComponentHostTest {
     Assert.assertEquals("C1", r.getClusterName());
     Assert.assertEquals(State.INSTALLED.toString(), r.getDesiredState());
     Assert.assertEquals(State.INSTALLING.toString(), r.getLiveState());
-    Assert.assertEquals("HDP-1.0.0", r.getStackVersion());
+    Assert.assertEquals("HDP-1.2.0", r.getStackVersion());
 
     Assert.assertFalse(r.isStaleConfig());
 
@@ -715,16 +715,17 @@ public class ServiceComponentHostTest {
     String stackVersion="HDP-2.0.6";
     String clusterName = "c2";
     String hostName = "h3";
+    StackId stackId = new StackId(stackVersion);
 
-    clusters.addCluster(clusterName);
+    clusters.addCluster(clusterName, stackId);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
     Cluster c2 = clusters.getCluster(clusterName);
-    StackId stackId = new StackId(stackVersion);
-    c2.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     clusters.mapHostToCluster(hostName, clusterName);
 
     Cluster cluster = clusters.getCluster(clusterName);
@@ -942,15 +943,17 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     String hostName = "h3";
 
-    clusters.addCluster(clusterName);
+    StackId stackId = new StackId(stackVersion);
+
+    clusters.addCluster(clusterName, stackId);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
     Cluster c2 = clusters.getCluster(clusterName);
-    StackId stackId = new StackId(stackVersion);
-    c2.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     clusters.mapHostToCluster(hostName, clusterName);
 
@@ -1076,15 +1079,17 @@ public class ServiceComponentHostTest {
     String clusterName = "c2";
     String hostName = "h3";
 
-    clusters.addCluster(clusterName);
+    StackId stackId = new StackId(stackVersion);
+
+    clusters.addCluster(clusterName, stackId);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
     Cluster c2 = clusters.getCluster(clusterName);
-    StackId stackId = new StackId(stackVersion);
-    c2.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     clusters.mapHostToCluster(hostName, clusterName);
     HostEntity hostEntity = hostDAO.findByName(hostName);
     Assert.assertNotNull(hostEntity);
@@ -1119,8 +1124,9 @@ public class ServiceComponentHostTest {
     String stackVersion="HDP-2.0.6";
     String clusterName = "c2";
     String hostName = "h3";
+    StackId stackId = new StackId(stackVersion);
 
-    clusters.addCluster(clusterName);
+    clusters.addCluster(clusterName, stackId);
     clusters.addHost(hostName);
     setOsFamily(clusters.getHost(hostName), "redhat", "5.9");
     clusters.getHost(hostName).persist();
@@ -1128,10 +1134,11 @@ public class ServiceComponentHostTest {
     Assert.assertNotNull(hostEntity);
 
     Cluster c2 = clusters.getCluster(clusterName);
-    StackId stackId = new StackId(stackVersion);
+
     c2.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     clusters.mapHostToCluster(hostName, clusterName);
 
     Cluster cluster = clusters.getCluster(clusterName);

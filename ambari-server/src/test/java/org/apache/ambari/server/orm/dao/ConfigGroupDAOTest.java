@@ -17,11 +17,15 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
@@ -33,13 +37,14 @@ import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class ConfigGroupDAOTest {
   private Injector injector;
@@ -49,12 +54,17 @@ public class ConfigGroupDAOTest {
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
   private HostDAO hostDAO;
   private ResourceTypeDAO resourceTypeDAO;
+  private StackDAO stackDAO;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
+    // required to populate the database with stacks
+    injector.getInstance(AmbariMetaInfo.class);
+
+    stackDAO = injector.getInstance(StackDAO.class);
     clusterDAO = injector.getInstance(ClusterDAO.class);
     configGroupDAO = injector.getInstance(ConfigGroupDAO.class);
     configGroupConfigMappingDAO = injector.getInstance
@@ -83,12 +93,17 @@ public class ConfigGroupDAOTest {
       resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
+
+    StackEntity stackEntity = stackDAO.find("HDP", "0.1");
+
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setResourceType(resourceTypeEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(clusterName);
     clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
+
     clusterDAO.create(clusterEntity);
 
     configGroupEntity.setClusterEntity(clusterEntity);
@@ -104,6 +119,7 @@ public class ConfigGroupDAOTest {
         ArrayList<ConfigGroupHostMappingEntity>();
 
       for (HostEntity host : hosts) {
+        host.setClusterEntities(Arrays.asList(clusterEntity));
         hostDAO.create(host);
 
         ConfigGroupHostMappingEntity hostMappingEntity = new
@@ -213,9 +229,9 @@ public class ConfigGroupDAOTest {
       .findByHost("h1");
 
     Assert.assertNotNull(hostMappingEntities);
-    
+
     for (ConfigGroupHostMapping hostMappingEntity : hostMappingEntities) {
-    
+
       Assert.assertEquals("h1", hostMappingEntity.getHostname());
       Assert.assertEquals("centOS", hostMappingEntity.getHost().getOsType());
     }
@@ -223,11 +239,14 @@ public class ConfigGroupDAOTest {
 
   @Test
   public void testFindConfigsByGroup() throws Exception {
+    StackEntity stackEntity = stackDAO.find("HDP", "0.1");
+
     ClusterConfigEntity configEntity = new ClusterConfigEntity();
     configEntity.setType("core-site");
     configEntity.setTag("version1");
     configEntity.setData("someData");
     configEntity.setAttributes("someAttributes");
+    configEntity.setStack(stackEntity);
 
     List<ClusterConfigEntity> configEntities = new
       ArrayList<ClusterConfigEntity>();

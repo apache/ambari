@@ -78,15 +78,15 @@ public class HostVersionOutOfSyncListenerTest {
     helper = injector.getInstance(OrmTestHelper.class);
     hostVersionDAO = injector.getInstance(HostVersionDAO.class);
     serviceComponentHostFactory = injector.getInstance(ServiceComponentHostFactory.class);
-    clusters.addCluster("c1");
+
+    StackId stackId = new StackId(this.stackId);
+    clusters.addCluster("c1", stackId);
     c1 = clusters.getCluster("c1");
     addHost("h1");
 
-    StackId stackId = new StackId(this.stackId);
-    c1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    c1.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    c1.transitionClusterVersion(stackId, stackId.getStackVersion(), RepositoryVersionState.CURRENT);
     clusters.mapHostToCluster("h1", "c1");
   }
 
@@ -116,9 +116,9 @@ public class HostVersionOutOfSyncListenerTest {
 
 
     StackId stackId = new StackId(this.stackId);
-    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId.getStackId(),
+    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,
             INSTALLED_VERSION);
-    c1.createClusterVersion(stackId.getStackId(), INSTALLED_VERSION, "admin", RepositoryVersionState.INSTALLING);
+    c1.createClusterVersion(stackId, INSTALLED_VERSION, "admin", RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
     c1.recalculateAllClusterVersionStates();
     checkStackVersionState(stackId.getStackId(), INSTALLED_VERSION, RepositoryVersionState.INSTALLING);
@@ -182,9 +182,8 @@ public class HostVersionOutOfSyncListenerTest {
     h1.setState(HostState.HEALTHY);
 
     StackId stackId = new StackId(this.stackId);
-    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId.getStackId(),
-            "1.0-1000");
-    c1.createClusterVersion(stackId.getStackId(), "1.0-1000", "admin", RepositoryVersionState.INSTALLING);
+    RepositoryVersionEntity repositoryVersionEntity = helper.getOrCreateRepositoryVersion(stackId,"1.0-1000");
+    c1.createClusterVersion(stackId, "1.0-1000", "admin", RepositoryVersionState.INSTALLING);
     c1.setCurrentStackVersion(stackId);
     c1.recalculateAllClusterVersionStates();
     checkStackVersionState(stackId.getStackId(), "1.0-1000", RepositoryVersionState.INSTALLING);

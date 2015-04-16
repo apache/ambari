@@ -45,7 +45,6 @@ import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 
 import com.google.common.collect.Sets;
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -86,9 +85,6 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
   };
 
   @Inject
-  private static Gson s_gson;
-
-  @Inject
   private static RepositoryVersionDAO s_repositoryVersionDAO;
 
   @Inject
@@ -119,14 +115,15 @@ public class CompatibleRepositoryVersionResourceProvider extends ReadOnlyResourc
       final StackId stackId = getStackInformationFromUrl(propertyMap);
 
       if (propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
-        requestedEntities.addAll(s_repositoryVersionDAO.findByStack(stackId.getStackId()));
+        requestedEntities.addAll(s_repositoryVersionDAO.findByStack(stackId));
 
         Map<String, UpgradePack> packs = s_ambariMetaInfo.get().getUpgradePacks(
             stackId.getStackName(), stackId.getStackVersion());
 
         for (UpgradePack up : packs.values()) {
           if (null != up.getTargetStack()) {
-            requestedEntities.addAll(s_repositoryVersionDAO.findByStack(up.getTargetStack()));
+            StackId targetStackId = new StackId(up.getTargetStack());
+            requestedEntities.addAll(s_repositoryVersionDAO.findByStack(targetStackId));
           }
         }
 

@@ -17,45 +17,46 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
+import java.util.List;
+import java.util.Map;
+
 import junit.framework.Assert;
+
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupConfigMappingEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupEntity;
-import org.apache.ambari.server.orm.entities.ConfigGroupHostMappingEntity;
-import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class ServiceConfigDAOTest {
   private Injector injector;
   private ServiceConfigDAO serviceConfigDAO;
   private ClusterDAO clusterDAO;
   private ResourceTypeDAO resourceTypeDAO;
-
+  private StackDAO stackDAO;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
 
+    // required to load stack information into the DB
+    injector.getInstance(AmbariMetaInfo.class);
+
     clusterDAO = injector.getInstance(ClusterDAO.class);
+    stackDAO = injector.getInstance(StackDAO.class);
     serviceConfigDAO = injector.getInstance(ServiceConfigDAO.class);
     resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
   }
@@ -78,6 +79,9 @@ public class ServiceConfigDAOTest {
       resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
+
+    StackEntity stackEntity = stackDAO.find("HDP", "0.1");
+
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setResourceType(resourceTypeEntity);
 
@@ -86,6 +90,8 @@ public class ServiceConfigDAOTest {
       clusterEntity = new ClusterEntity();
       clusterEntity.setClusterName("c1");
       clusterEntity.setResource(resourceEntity);
+      clusterEntity.setDesiredStack(stackEntity);
+
       clusterDAO.create(clusterEntity);
     }
 
@@ -98,6 +104,7 @@ public class ServiceConfigDAOTest {
     serviceConfigEntity.setCreateTimestamp(createTimestamp);
     serviceConfigEntity.setClusterConfigEntities(clusterConfigEntities);
     serviceConfigEntity.setClusterEntity(clusterEntity);
+    serviceConfigEntity.setStack(clusterEntity.getDesiredStack());
 
     serviceConfigDAO.create(serviceConfigEntity);
 

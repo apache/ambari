@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.utils.VersionUtils;
 
 public class StackId implements Comparable<StackId> {
@@ -28,8 +29,8 @@ public class StackId implements Comparable<StackId> {
   private String stackVersion;
 
   public StackId() {
-    this.stackName = "";
-    this.stackVersion = "";
+    stackName = "";
+    stackVersion = "";
   }
 
   public StackId(String stackId) {
@@ -37,12 +38,16 @@ public class StackId implements Comparable<StackId> {
   }
 
   public StackId(StackInfo stackInfo) {
-    this.stackName = stackInfo.getName();
-    this.stackVersion = stackInfo.getVersion();
+    stackName = stackInfo.getName();
+    stackVersion = stackInfo.getVersion();
   }
 
   public StackId(String stackName, String stackVersion) {
     this(stackName + NAME_SEPARATOR + stackVersion);
+  }
+
+  public StackId(StackEntity stackEntity) {
+    this(stackEntity.getStackName(), stackEntity.getStackVersion());
   }
 
   /**
@@ -115,6 +120,7 @@ public class StackId implements Comparable<StackId> {
     return returnValue;
   }
 
+  @Override
   public String toString() {
     return getStackId();
   }

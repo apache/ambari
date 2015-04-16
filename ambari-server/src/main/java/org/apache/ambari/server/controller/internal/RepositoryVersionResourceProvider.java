@@ -42,10 +42,12 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
@@ -119,6 +121,12 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
   private RepositoryVersionHelper repositoryVersionHelper;
 
   /**
+   * Data access object used for lookup up stacks.
+   */
+  @Inject
+  private StackDAO stackDAO;
+
+  /**
    * Create a new resource provider.
    *
    */
@@ -181,7 +189,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
       final StackId stackId = getStackInformationFromUrl(propertyMap);
 
       if (propertyMaps.size() == 1 && propertyMap.get(REPOSITORY_VERSION_ID_PROPERTY_ID) == null) {
-        requestedEntities.addAll(repositoryVersionDAO.findByStack(stackId.getStackId()));
+        requestedEntities.addAll(repositoryVersionDAO.findByStack(stackId));
       } else {
         final Long id;
         try {
@@ -235,8 +243,12 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
           }
 
           if (StringUtils.isNotBlank(ObjectUtils.toString(propertyMap.get(REPOSITORY_VERSION_UPGRADE_PACK_PROPERTY_ID)))) {
-            final List<ClusterVersionEntity> clusterVersionEntities =
-                clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
+            StackEntity stackEntity = entity.getStack();
+            String stackName = stackEntity.getStackName();
+            String stackVersion = stackEntity.getStackVersion();
+
+            final List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByStackAndVersion(
+                stackName, stackVersion, entity.getVersion());
 
             if (!clusterVersionEntities.isEmpty()) {
               final ClusterVersionEntity firstClusterVersion = clusterVersionEntities.get(0);
@@ -292,8 +304,12 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
         throw new NoSuchResourceException("There is no repository version with id " + id);
       }
 
-      final List<ClusterVersionEntity> clusterVersionEntities =
-          clusterVersionDAO.findByStackAndVersion(entity.getStack(), entity.getVersion());
+      StackEntity stackEntity = entity.getStack();
+      String stackName = stackEntity.getStackName();
+      String stackVersion = stackEntity.getStackVersion();
+
+      final List<ClusterVersionEntity> clusterVersionEntities = clusterVersionDAO.findByStackAndVersion(
+          stackName, stackVersion, entity.getVersion());
 
       final List<RepositoryVersionState> forbiddenToDeleteStates = Lists.newArrayList(
           RepositoryVersionState.CURRENT,
@@ -343,7 +359,7 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
 
     // List of all repo urls that are already added at stack
     Set<String> existingRepoUrls = new HashSet<String>();
-    List<RepositoryVersionEntity> existingRepoVersions = repositoryVersionDAO.findByStack(requiredStack.getStackId());
+    List<RepositoryVersionEntity> existingRepoVersions = repositoryVersionDAO.findByStack(requiredStack);
     for (RepositoryVersionEntity existingRepoVersion : existingRepoVersions) {
       for (OperatingSystemEntity operatingSystemEntity : existingRepoVersion.getOperatingSystems()) {
         for (RepositoryEntity repositoryEntity : operatingSystemEntity.getRepositories()) {
@@ -393,8 +409,12 @@ public class RepositoryVersionResourceProvider extends AbstractResourceProvider 
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     final String stackName = properties.get(REPOSITORY_VERSION_STACK_NAME_PROPERTY_ID).toString();
     final String stackVersion = properties.get(REPOSITORY_VERSION_STACK_VERSION_PROPERTY_ID).toString();
+
+    StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
+
     entity.setDisplayName(properties.get(REPOSITORY_VERSION_DISPLAY_NAME_PROPERTY_ID).toString());
-    entity.setStack(new StackId(stackName, stackVersion).getStackId());
+    entity.setStack(stackEntity);
+
     entity.setVersion(properties.get(REPOSITORY_VERSION_REPOSITORY_VERSION_PROPERTY_ID).toString());
     final Object operatingSystems = properties.get(SUBRESOURCE_OPERATING_SYSTEMS_PROPERTY_ID);
     final String operatingSystemsJson = gson.toJson(operatingSystems);

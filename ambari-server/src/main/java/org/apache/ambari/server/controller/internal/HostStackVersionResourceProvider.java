@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,14 +28,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.gson.Gson;
-import com.google.inject.Provider;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.Stage;
 import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.ActionExecutionContext;
@@ -45,17 +45,16 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
-import com.google.inject.Inject;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Host;
@@ -66,7 +65,9 @@ import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Resource provider for host stack versions resources.
@@ -213,7 +214,8 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     for (HostVersionEntity entity: requestedEntities) {
       StackId stackId = new StackId(entity.getRepositoryVersion().getStack());
 
-      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), entity.getRepositoryVersion().getVersion());
+      RepositoryVersionEntity repoVerEntity = repositoryVersionDAO.findByStackAndVersion(
+          stackId, entity.getRepositoryVersion().getVersion());
 
       final Resource resource = new ResourceImpl(Resource.Type.HostStackVersion);
 
@@ -282,7 +284,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
 
     stackName = (String) propertyMap.get(HOST_STACK_VERSION_STACK_PROPERTY_ID);
     stackVersion = (String) propertyMap.get(HOST_STACK_VERSION_VERSION_PROPERTY_ID);
-    final String stackId = new StackId(stackName, stackVersion).getStackId();
+    final StackId stackId = new StackId(stackName, stackVersion);
     if (!ami.isSupportedStack(stackName, stackVersion)) {
       throw new NoSuchParentResourceException(String.format("Stack %s is not supported",
               stackId));
@@ -312,7 +314,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     // Select all clusters that contain the desired repo version
     Set<Cluster> selectedClusters = new HashSet<Cluster>();
     for (Cluster cluster : clusterSet) {
-      if(cluster.getCurrentStackVersion().getStackId().equals(stackId)) {
+      if (cluster.getCurrentStackVersion().equals(stackId)) {
         selectedClusters.add(cluster);
       }
     }
@@ -385,7 +387,7 @@ public class HostStackVersionResourceProvider extends AbstractControllerResource
     final String repoList = gson.toJson(repoInfo);
 
     Map<String, String> params = new HashMap<String, String>(){{
-      put("stack_id", stackId);
+      put("stack_id", stackId.getStackId());
       put("repository_version", desiredRepoVersion);
       put("base_urls", repoList);
       put("package_list", packageList);

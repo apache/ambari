@@ -18,12 +18,18 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.Basic;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.OneToOne;
+
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
-import org.apache.commons.lang.StringUtils;
-
-import javax.persistence.*;
 
 @javax.persistence.IdClass(ServiceDesiredStateEntityPK.class)
 @javax.persistence.Table(name = "servicedesiredstate")
@@ -46,14 +52,17 @@ public class ServiceDesiredStateEntity {
   @Basic
   private int desiredHostRoleMapping = 0;
 
-  @Column(name = "desired_stack_version", insertable = true, updatable = true)
-  @Basic
-  private String desiredStackVersion = "";
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "desired_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity desiredStack;
 
   @Column(name = "maintenance_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private MaintenanceState maintenanceState = MaintenanceState.OFF;
-  
+
   @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
   @Enumerated(value = EnumType.STRING)
   private SecurityState securityState = SecurityState.UNSECURED;
@@ -98,18 +107,18 @@ public class ServiceDesiredStateEntity {
     this.desiredHostRoleMapping = desiredHostRoleMapping;
   }
 
-  public String getDesiredStackVersion() {
-    return StringUtils.defaultString(desiredStackVersion);
+  public StackEntity getDesiredStack() {
+    return desiredStack;
   }
 
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public void setDesiredStack(StackEntity desiredStack) {
+    this.desiredStack = desiredStack;
   }
-  
+
   public MaintenanceState getMaintenanceState() {
     return maintenanceState;
-  }  
-  
+  }
+
   public void setMaintenanceState(MaintenanceState state) {
     maintenanceState = state;
   }
@@ -124,17 +133,35 @@ public class ServiceDesiredStateEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ServiceDesiredStateEntity that = (ServiceDesiredStateEntity) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) return false;
-    if (desiredHostRoleMapping != that.desiredHostRoleMapping) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
-    if (desiredStackVersion != null ? !desiredStackVersion.equals(that.desiredStackVersion) : that.desiredStackVersion != null)
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
       return false;
+    }
+
+    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
+      return false;
+    }
+
+    if (desiredHostRoleMapping != that.desiredHostRoleMapping) {
+      return false;
+    }
+
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
+      return false;
+    }
+
+    if (desiredStack != null ? !desiredStack.equals(that.desiredStack) : that.desiredStack != null) {
+      return false;
+    }
     return true;
   }
 
@@ -144,7 +171,7 @@ public class ServiceDesiredStateEntity {
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
     result = 31 * result + desiredHostRoleMapping;
-    result = 31 * result + (desiredStackVersion != null ? desiredStackVersion.hashCode() : 0);
+    result = 31 * result + (desiredStack != null ? desiredStack.hashCode() : 0);
     return result;
   }
 

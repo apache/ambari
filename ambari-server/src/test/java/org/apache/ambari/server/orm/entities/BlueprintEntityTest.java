@@ -18,12 +18,13 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import com.google.gson.Gson;
-
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.junit.Test;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -34,18 +35,28 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertTrue;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.gson.Gson;
 
 /**
  * BlueprintEntity unit tests
  */
 public class BlueprintEntityTest {
+
+  private StackEntity stackEntity = new StackEntity();
+
+  @Before
+  public void setup() {
+    stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("2.0.6");
+  }
+
   @Test
   public void testSetGetBlueprintName() {
     BlueprintEntity entity = new BlueprintEntity();
@@ -54,17 +65,10 @@ public class BlueprintEntityTest {
   }
 
   @Test
-  public void testSetGetStackName() {
+  public void testSetGetStack() {
     BlueprintEntity entity = new BlueprintEntity();
-    entity.setStackName("foo");
-    assertEquals("foo", entity.getStackName());
-  }
-
-  @Test
-  public void testSetGetStackVersion() {
-    BlueprintEntity entity = new BlueprintEntity();
-    entity.setStackVersion("1");
-    assertEquals("1", entity.getStackVersion());
+    entity.setStack(stackEntity);
+    assertEquals(stackEntity, entity.getStack());
   }
 
   @Test
@@ -104,8 +108,7 @@ public class BlueprintEntityTest {
     service.getProperties().addAll(serviceProperties);
 
     BlueprintEntity entity = new BlueprintEntity();
-    entity.setStackName("stackName");
-    entity.setStackVersion("version");
+    entity.setStack(stackEntity);
 
     Collection<BlueprintConfigEntity> configurations = new HashSet<BlueprintConfigEntity>();
     BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
@@ -137,8 +140,8 @@ public class BlueprintEntityTest {
     hostGroupEntities.add(hostGroupEntity);
     entity.setHostGroups(hostGroupEntities);
 
-    expect(metaInfo.getComponentToService("stackName", "version", "component1")).andReturn("service1");
-    expect(metaInfo.getService("stackName", "version", "service1")).andReturn(service);
+    expect(metaInfo.getComponentToService("HDP", "2.0.6", "component1")).andReturn("service1");
+    expect(metaInfo.getService("HDP", "2.0.6", "service1")).andReturn(service);
 
     replay(metaInfo);
 
@@ -169,8 +172,7 @@ public class BlueprintEntityTest {
     service.getProperties().addAll(serviceProperties);
 
     BlueprintEntity entity = new BlueprintEntity();
-    entity.setStackName("stackName");
-    entity.setStackVersion("version");
+    entity.setStack(stackEntity);
 
     entity.setConfigurations(Collections.<BlueprintConfigEntity>emptyList());
 
@@ -203,8 +205,8 @@ public class BlueprintEntityTest {
     hostGroupEntities.add(hostGroupEntity);
     entity.setHostGroups(hostGroupEntities);
 
-    expect(metaInfo.getComponentToService("stackName", "version", "component1")).andReturn("service1");
-    expect(metaInfo.getService("stackName", "version", "service1")).andReturn(service);
+    expect(metaInfo.getComponentToService("HDP", "2.0.6", "component1")).andReturn("service1");
+    expect(metaInfo.getService("HDP", "2.0.6", "service1")).andReturn(service);
 
     replay(metaInfo);
 
@@ -247,8 +249,7 @@ public class BlueprintEntityTest {
     service.getProperties().addAll(serviceProperties);
 
     BlueprintEntity entity = new BlueprintEntity();
-    entity.setStackName("stackName");
-    entity.setStackVersion("version");
+    entity.setStack(stackEntity);
 
     Collection<BlueprintConfigEntity> configurations = new HashSet<BlueprintConfigEntity>();
     BlueprintConfigEntity configEntity = new BlueprintConfigEntity();
@@ -280,8 +281,9 @@ public class BlueprintEntityTest {
     hostGroupEntities.add(hostGroupEntity);
     entity.setHostGroups(hostGroupEntities);
 
-    expect(metaInfo.getComponentToService("stackName", "version", "component1")).andReturn("service1");
-    expect(metaInfo.getService("stackName", "version", "service1")).andReturn(service);
+    expect(metaInfo.getComponentToService("HDP", "2.0.6", "component1")).andReturn(
+        "service1");
+    expect(metaInfo.getService("HDP", "2.0.6", "service1")).andReturn(service);
 
     replay(metaInfo);
 

@@ -89,7 +89,9 @@ public class EventsTest {
     m_schFactory = m_injector.getInstance(ServiceComponentHostFactory.class);
 
     m_clusterName = "foo";
-    m_clusters.addCluster(m_clusterName);
+    StackId stackId = new StackId("HDP", "2.0.6");
+
+    m_clusters.addCluster(m_clusterName, stackId);
     m_clusters.addHost(HOSTNAME);
 
     Host host = m_clusters.getHost(HOSTNAME);
@@ -102,10 +104,11 @@ public class EventsTest {
 
     m_cluster = m_clusters.getCluster(m_clusterName);
     Assert.assertNotNull(m_cluster);
-    StackId stackId = new StackId("HDP", "2.0.6");
+
     m_cluster.setDesiredStackVersion(stackId);
-    m_helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    m_cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    m_helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    m_cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
 
     m_clusters.mapHostToCluster(HOSTNAME, m_clusterName);
   }

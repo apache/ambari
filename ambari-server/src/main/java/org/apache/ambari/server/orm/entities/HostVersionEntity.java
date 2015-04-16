@@ -45,7 +45,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 @NamedQueries({
     @NamedQuery(name = "hostVersionByClusterAndStackAndVersion", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
-            "WHERE clusters.clusterName=:clusterName AND hostVersion.repositoryVersion.stack=:stack AND hostVersion.repositoryVersion.version=:version"),
+            "WHERE clusters.clusterName=:clusterName AND hostVersion.repositoryVersion.stack.stackName=:stackName AND hostVersion.repositoryVersion.stack.stackVersion=:stackVersion AND hostVersion.repositoryVersion.version=:version"),
 
     @NamedQuery(name = "hostVersionByClusterAndHostname", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
@@ -61,7 +61,7 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 
     @NamedQuery(name = "hostVersionByClusterStackVersionAndHostname", query =
         "SELECT hostVersion FROM HostVersionEntity hostVersion JOIN hostVersion.hostEntity host JOIN host.clusterEntities clusters " +
-            "WHERE clusters.clusterName=:clusterName AND hostVersion.repositoryVersion.stack=:stack AND hostVersion.repositoryVersion.version=:version AND " +
+            "WHERE clusters.clusterName=:clusterName AND hostVersion.repositoryVersion.stack.stackName=:stackName AND hostVersion.repositoryVersion.stack.stackVersion=:stackVersion AND hostVersion.repositoryVersion.version=:version AND " +
             "hostVersion.hostName=:hostName"),
 })
 public class HostVersionEntity {
@@ -106,9 +106,9 @@ public class HostVersionEntity {
    * This constructor is mainly used by the unit tests in order to construct an object without the id.
    */
   public HostVersionEntity(HostVersionEntity other) {
-    this.hostName = other.hostName;
-    this.repositoryVersion = other.repositoryVersion;
-    this.state = other.state;
+    hostName = other.hostName;
+    repositoryVersion = other.repositoryVersion;
+    state = other.state;
   }
 
   public Long getId() {
@@ -165,24 +165,48 @@ public class HostVersionEntity {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
 
     HostVersionEntity other = (HostVersionEntity) obj;
     if (hostEntity == null) {
-      if (other.hostEntity != null) return false;
-    } else if (!hostEntity.equals(other.hostEntity)) return false;
+      if (other.hostEntity != null) {
+        return false;
+      }
+    } else if (!hostEntity.equals(other.hostEntity)) {
+      return false;
+    }
     if (hostName == null) {
-      if (other.hostName != null) return false;
-    } else if (!hostName.equals(other.hostName)) return false;
+      if (other.hostName != null) {
+        return false;
+      }
+    } else if (!hostName.equals(other.hostName)) {
+      return false;
+    }
     if (id == null) {
-      if (other.id != null) return false;
-    } else if (!id.equals(other.id)) return false;
+      if (other.id != null) {
+        return false;
+      }
+    } else if (!id.equals(other.id)) {
+      return false;
+    }
     if (repositoryVersion == null) {
-      if (other.repositoryVersion != null) return false;
-    } else if (!repositoryVersion.equals(other.repositoryVersion)) return false;
-    if (state != other.state) return false;
+      if (other.repositoryVersion != null) {
+        return false;
+      }
+    } else if (!repositoryVersion.equals(other.repositoryVersion)) {
+      return false;
+    }
+    if (state != other.state) {
+      return false;
+    }
     return true;
   }
 

@@ -43,6 +43,7 @@ import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostComponentStateEntity;
@@ -51,6 +52,7 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ConfigHelper;
@@ -78,7 +80,6 @@ import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
@@ -101,8 +102,6 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private final Host host;
   private boolean persisted = false;
 
-  @Inject
-  Gson gson;
   @Inject
   HostComponentStateDAO hostComponentStateDAO;
   @Inject
@@ -134,6 +133,12 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
    */
   @Inject
   private AmbariEventPublisher eventPublisher;
+
+  /**
+   * Data access object for stack.
+   */
+  @Inject
+  private StackDAO stackDAO;
 
   // TODO : caching the JPA entities here causes issues if they become stale and get re-merged.
   private HostComponentStateEntity stateEntity;
@@ -702,6 +707,10 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       throw new RuntimeException(e);
     }
 
+    StackId stackId = serviceComponent.getDesiredStackVersion();
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
     stateEntity = new HostComponentStateEntity();
     stateEntity.setClusterId(serviceComponent.getClusterId());
     stateEntity.setComponentName(serviceComponent.getName());
@@ -710,7 +719,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     stateEntity.setHostEntity(hostEntity);
     stateEntity.setCurrentState(stateMachine.getCurrentState());
     stateEntity.setUpgradeState(UpgradeState.NONE);
-    stateEntity.setCurrentStackVersion(gson.toJson(new StackId()));
+    stateEntity.setCurrentStack(stackEntity);
 
     stateEntityPK = getHostComponentStateEntityPK(stateEntity);
 
@@ -720,8 +729,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
     desiredStateEntity.setServiceName(serviceComponent.getServiceName());
     desiredStateEntity.setHostEntity(hostEntity);
     desiredStateEntity.setDesiredState(State.INIT);
-    desiredStateEntity.setDesiredStackVersion(
-        gson.toJson(serviceComponent.getDesiredStackVersion()));
+    desiredStateEntity.setDesiredStack(stackEntity);
+
     if(!serviceComponent.isMasterComponent() && !serviceComponent.isClientComponent()) {
       desiredStateEntity.setAdminState(HostComponentAdminState.INSERVICE);
     } else {
@@ -1022,17 +1031,23 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
       if (schStateEntity == null) {
         return new StackId();
       }
-      return gson.fromJson(schStateEntity.getCurrentStackVersion(), StackId.class);
+
+      StackEntity currentStackEntity = schStateEntity.getCurrentStack();
+      return new StackId(currentStackEntity.getStackName(),
+          currentStackEntity.getStackVersion());
     } finally {
       readLock.unlock();
     }
   }
 
   @Override
-  public void setStackVersion(StackId stackVersion) {
+  public void setStackVersion(StackId stackId) {
     writeLock.lock();
     try {
-      getStateEntity().setCurrentStackVersion(gson.toJson(stackVersion));
+      StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+          stackId.getStackVersion());
+
+      getStateEntity().setCurrentStack(stackEntity);
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -1064,18 +1079,22 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   public StackId getDesiredStackVersion() {
     readLock.lock();
     try {
-      return gson.fromJson(getDesiredStateEntity().getDesiredStackVersion(),
-          StackId.class);
+      StackEntity desiredStackEntity = getDesiredStateEntity().getDesiredStack();
+      return new StackId(desiredStackEntity.getStackName(),
+          desiredStackEntity.getStackVersion());
     } finally {
       readLock.unlock();
     }
   }
 
   @Override
-  public void setDesiredStackVersion(StackId stackVersion) {
+  public void setDesiredStackVersion(StackId stackId) {
     writeLock.lock();
     try {
-      getDesiredStateEntity().setDesiredStackVersion(gson.toJson(stackVersion));
+      StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+          stackId.getStackVersion());
+
+      getDesiredStateEntity().setDesiredStack(stackEntity);
       saveIfPersisted();
     } finally {
       writeLock.unlock();
@@ -1478,7 +1497,14 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
   private RepositoryVersionEntity createRepositoryVersion(String version, final StackId stackId, final StackInfo stackInfo) throws AmbariException {
     // During an Ambari Upgrade from 1.7.0 -> 2.0.0, the Repo Version will not exist, so bootstrap it.
     LOG.info("Creating new repository version " + stackId.getStackName() + "-" + version);
-    return repositoryVersionDAO.create(stackId.getStackId(), version, stackId.getStackName() + "-" + version,
+
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    return repositoryVersionDAO.create(
+        stackEntity,
+        version,
+        stackId.getStackName() + "-" + version,
         repositoryVersionHelper.getUpgradePackageNameSafe(stackId.getStackName(), stackId.getStackVersion(), version),
         repositoryVersionHelper.serializeOperatingSystems(stackInfo.getRepositories()));
   }
@@ -1509,7 +1535,8 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
 
     writeLock.lock();
     try {
-      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(stackId.getStackId(), version);
+      RepositoryVersionEntity repositoryVersion = repositoryVersionDAO.findByStackAndVersion(
+          stackId, version);
       if (repositoryVersion == null) {
         repositoryVersion = createRepositoryVersion(version, stackId, stackInfo);
       }

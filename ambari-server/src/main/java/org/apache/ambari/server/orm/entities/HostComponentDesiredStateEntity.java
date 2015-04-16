@@ -29,10 +29,11 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 
 @javax.persistence.IdClass(HostComponentDesiredStateEntityPK.class)
@@ -66,9 +67,12 @@ public class HostComponentDesiredStateEntity {
   @Enumerated(value = EnumType.STRING)
   private SecurityState securityState = SecurityState.UNSECURED;
 
-  @Basic
-  @Column(name = "desired_stack_version", insertable = true, updatable = true)
-  private String desiredStackVersion = "";
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "desired_stack_id", unique = false, nullable = false)
+  private StackEntity desiredStack;
 
   @Enumerated(value = EnumType.STRING)
   @Column(name = "admin_state", nullable = true, insertable = true, updatable = true)
@@ -84,7 +88,7 @@ public class HostComponentDesiredStateEntity {
   @ManyToOne
   @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
   private HostEntity hostEntity;
-  
+
   @Enumerated(value = EnumType.STRING)
   @Column(name="maintenance_state", nullable = false, insertable = true, updatable = true)
   private MaintenanceState maintenanceState = MaintenanceState.OFF;
@@ -137,45 +141,65 @@ public class HostComponentDesiredStateEntity {
     this.securityState = securityState;
   }
 
-  public String getDesiredStackVersion() {
-    return defaultString(desiredStackVersion);
+  public StackEntity getDesiredStack() {
+    return desiredStack;
   }
 
-  public void setDesiredStackVersion(String desiredStackVersion) {
-    this.desiredStackVersion = desiredStackVersion;
+  public void setDesiredStack(StackEntity desiredStack) {
+    this.desiredStack = desiredStack;
   }
-
 
   public HostComponentAdminState getAdminState() {
     return adminState;
   }
 
   public void setAdminState(HostComponentAdminState attribute) {
-    this.adminState = attribute;
+    adminState = attribute;
   }
-  
+
   public MaintenanceState getMaintenanceState() {
     return maintenanceState;
   }
-  
+
   public void setMaintenanceState(MaintenanceState state) {
     maintenanceState = state;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     HostComponentDesiredStateEntity that = (HostComponentDesiredStateEntity) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (desiredStackVersion != null ? !desiredStackVersion.equals(that.desiredStackVersion) : that.desiredStackVersion != null)
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
       return false;
-    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) return false;
-    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
+    }
+
+    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) {
+      return false;
+    }
+
+    if (desiredStack != null ? !desiredStack.equals(that.desiredStack)
+        : that.desiredStack != null) {
+      return false;
+    }
+
+    if (desiredState != null ? !desiredState.equals(that.desiredState) : that.desiredState != null) {
+      return false;
+    }
+
+    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) {
+      return false;
+    }
+
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
+      return false;
+    }
 
     return true;
   }
@@ -186,7 +210,7 @@ public class HostComponentDesiredStateEntity {
     result = 31 * result + (hostEntity != null ? hostEntity.hashCode() : 0);
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (desiredState != null ? desiredState.hashCode() : 0);
-    result = 31 * result + (desiredStackVersion != null ? desiredStackVersion.hashCode() : 0);
+    result = 31 * result + (desiredStack != null ? desiredStack.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     return result;
   }

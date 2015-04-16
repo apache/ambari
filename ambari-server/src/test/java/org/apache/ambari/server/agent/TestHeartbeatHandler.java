@@ -763,7 +763,10 @@ public class TestHeartbeatHandler {
     injector.injectMembers(this);
     clusters.addHost(DummyHostname1);
     clusters.getHost(DummyHostname1).persist();
-    clusters.addCluster(DummyCluster);
+
+    StackId dummyStackId = new StackId(DummyStackId);
+    clusters.addCluster(DummyCluster, dummyStackId);
+
     ActionDBAccessor db = injector.getInstance(ActionDBAccessorImpl.class);
     ActionManager am = new ActionManager(5000, 1200000, new ActionQueue(), clusters, db,
         new HostsMap((String) null), unitOfWork, injector.getInstance(RequestFactory.class), null, null);
@@ -1536,14 +1539,14 @@ public class TestHeartbeatHandler {
         getServiceComponent(HDFS_CLIENT).getServiceComponentHost(DummyHostname1);
 
     StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack122 = new StackId("HDP-1.2.2");
+    StackId stack120 = new StackId("HDP-1.2.0");
 
     serviceComponentHost1.setState(State.INSTALLED);
     serviceComponentHost2.setState(State.STARTED);
     serviceComponentHost3.setState(State.STARTED);
     serviceComponentHost1.setStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack122);
-    serviceComponentHost3.setStackVersion(stack122);
+    serviceComponentHost2.setStackVersion(stack120);
+    serviceComponentHost3.setStackVersion(stack120);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -1578,7 +1581,7 @@ public class TestHeartbeatHandler {
     assertEquals("Matching value " + serviceComponentHost1.getStackVersion(),
         stack130, serviceComponentHost1.getStackVersion());
     assertEquals("Matching value " + serviceComponentHost2.getStackVersion(),
-        stack122, serviceComponentHost2.getStackVersion());
+        stack120, serviceComponentHost2.getStackVersion());
     assertEquals("Matching value " + serviceComponentHost3.getStackVersion(),
         stack130, serviceComponentHost3.getStackVersion());
     assertTrue(hb.getAgentEnv().getHostHealth().getServerTimeStampAtReporting() >= hb.getTimestamp());
@@ -1611,14 +1614,14 @@ public class TestHeartbeatHandler {
             getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
     StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack122 = new StackId("HDP-1.2.2");
+    StackId stack120 = new StackId("HDP-1.2.0");
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
-    serviceComponentHost1.setStackVersion(stack122);
+    serviceComponentHost1.setStackVersion(stack120);
     serviceComponentHost1.setDesiredStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack122);
+    serviceComponentHost2.setStackVersion(stack120);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -1671,7 +1674,7 @@ public class TestHeartbeatHandler {
             serviceComponentHost1.getDesiredStackVersion(),
             stack130, serviceComponentHost1.getStackVersion());
     assertEquals("Stack version for SCH should not change ",
-            stack122, serviceComponentHost2.getStackVersion());
+            stack120, serviceComponentHost2.getStackVersion());
   }
 
   @Test
@@ -1701,14 +1704,14 @@ public class TestHeartbeatHandler {
             getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
     StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack122 = new StackId("HDP-1.2.2");
+    StackId stack120 = new StackId("HDP-1.2.0");
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
-    serviceComponentHost1.setStackVersion(stack122);
+    serviceComponentHost1.setStackVersion(stack120);
     serviceComponentHost1.setDesiredStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack122);
+    serviceComponentHost2.setStackVersion(stack120);
 
     HeartBeat hb = new HeartBeat();
     hb.setTimestamp(System.currentTimeMillis());
@@ -1793,14 +1796,14 @@ public class TestHeartbeatHandler {
             getServiceComponent(NAMENODE).getServiceComponentHost(DummyHostname1);
 
     StackId stack130 = new StackId("HDP-1.3.0");
-    StackId stack122 = new StackId("HDP-1.2.2");
+    StackId stack120 = new StackId("HDP-1.2.0");
 
     serviceComponentHost1.setState(State.UPGRADING);
     serviceComponentHost2.setState(State.INSTALLING);
 
-    serviceComponentHost1.setStackVersion(stack122);
+    serviceComponentHost1.setStackVersion(stack120);
     serviceComponentHost1.setDesiredStackVersion(stack130);
-    serviceComponentHost2.setStackVersion(stack122);
+    serviceComponentHost2.setStackVersion(stack120);
 
     Stage s = new Stage(requestId, "/a/b", "cluster1", 1L, "action manager test",
       "clusterHostInfo", "commandParamsStage", "hostParamsStage");
@@ -1885,7 +1888,7 @@ public class TestHeartbeatHandler {
     assertEquals("State of SCH should change after fail report",
             State.INSTALL_FAILED, serviceComponentHost2.getState());
     assertEquals("Stack version of SCH should not change after fail report",
-            stack122, serviceComponentHost1.getStackVersion());
+            stack120, serviceComponentHost1.getStackVersion());
     assertEquals("Stack version of SCH should not change after fail report",
             stack130, serviceComponentHost1.getDesiredStackVersion());
     assertEquals("Stack version of SCH should not change after fail report",
@@ -2344,14 +2347,17 @@ public class TestHeartbeatHandler {
     clusters.getHost(DummyHostname1).setHostAttributes(hostAttributes);
 
     clusters.getHost(DummyHostname1).persist();
-    clusters.addCluster(DummyCluster);
+
+    StackId stackId = new StackId(DummyStackId);
+    clusters.addCluster(DummyCluster, stackId);
 
     Cluster cluster = clusters.getCluster(DummyCluster);
-    StackId stackId = new StackId(DummyStackId);
+
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackId(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackId(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     return cluster;
   }
 
@@ -2607,17 +2613,18 @@ public class TestHeartbeatHandler {
     hb.setHostname(DummyHostname1);
     hb.setComponentStatus(new ArrayList<ComponentStatus>());
 
+    StackId stackId = new StackId("HDP", "0.1");
 
     RepositoryVersionDAO dao = injector.getInstance(RepositoryVersionDAO.class);
-    RepositoryVersionEntity entity = dao.findByStackAndVersion("HDP-0.1", "0.1");
+    RepositoryVersionEntity entity = dao.findByStackAndVersion(stackId, "0.1");
     Assert.assertNotNull(entity);
 
     handler.handleHeartBeat(hb);
 
-    entity = dao.findByStackAndVersion("HDP-0.1", "0.1");
+    entity = dao.findByStackAndVersion(stackId, "0.1");
     Assert.assertNull(entity);
 
-    entity = dao.findByStackAndVersion("HDP-0.1", "2.2.1.0-2222");
+    entity = dao.findByStackAndVersion(stackId, "2.2.1.0-2222");
     Assert.assertNotNull(entity);
   }
 

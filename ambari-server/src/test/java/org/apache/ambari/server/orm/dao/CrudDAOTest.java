@@ -18,9 +18,12 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -41,18 +44,31 @@ public class CrudDAOTest {
   private int uniqueCounter = 0;
   private static final long FIRST_ID = 1L;
 
+  private static final StackId HDP_206 = new StackId("HDP", "2.0.6");
+
+  private StackDAO stackDAO;
+
   @Before
   public void before() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    stackDAO = injector.getInstance(StackDAO.class);
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     injector.getInstance(GuiceJpaInitializer.class);
+
+    // required to populate stacks into the database
+    injector.getInstance(AmbariMetaInfo.class);
   }
 
   private void createSingleRecord() {
+    StackEntity stackEntity = stackDAO.find(HDP_206.getStackName(),
+        HDP_206.getStackVersion());
+
+    Assert.assertNotNull(stackEntity);
+
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("display name" + uniqueCounter);
     entity.setOperatingSystems("repositories");
-    entity.setStack("stack" + uniqueCounter);
+    entity.setStack(stackEntity);
     entity.setUpgradePackage("upgrade package");
     entity.setVersion("version");
     repositoryVersionDAO.create(entity);

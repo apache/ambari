@@ -39,13 +39,16 @@ public class ClusterStateEntity {
   @Column(name = "current_cluster_state", insertable = true, updatable = true)
   private String currentClusterState = "";
 
-  @Basic
-  @Column(name = "current_stack_version", insertable = true, updatable = true)
-  private String currentStackVersion = "";
-
   @OneToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
+
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "current_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity currentStack;
 
   public Long getClusterId() {
     return clusterId;
@@ -63,26 +66,38 @@ public class ClusterStateEntity {
     this.currentClusterState = currentClusterState;
   }
 
-  public String getCurrentStackVersion() {
-    return defaultString(currentStackVersion);
+  public StackEntity getCurrentStack() {
+    return currentStack;
   }
 
-  public void setCurrentStackVersion(String currentStackVersion) {
-    this.currentStackVersion = currentStackVersion;
+  public void setCurrentStack(StackEntity currentStack) {
+    this.currentStack = currentStack;
   }
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ClusterStateEntity that = (ClusterStateEntity) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
+      return false;
+    }
+
     if (currentClusterState != null
-        ? !currentClusterState.equals(that.currentClusterState) : that.currentClusterState != null) return false;
-    if (currentStackVersion != null
-        ? !currentStackVersion.equals(that.currentStackVersion) : that.currentStackVersion != null) return false;
+        ? !currentClusterState.equals(that.currentClusterState) : that.currentClusterState != null) {
+      return false;
+    }
+
+    if (currentStack != null ? !currentStack.equals(that.currentStack)
+        : that.currentStack != null) {
+      return false;
+    }
 
     return true;
   }

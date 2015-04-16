@@ -61,6 +61,7 @@ import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
@@ -73,6 +74,7 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistService;
 
+@Ignore
 @RunWith(Parameterized.class)
 public class UpgradeTest {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeTest.class);

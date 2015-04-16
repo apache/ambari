@@ -32,6 +32,7 @@ import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -119,8 +120,9 @@ public class DistributeRepositoriesActionListener {
             // !!! getInstalledRepositoryVersion() from the agent is the one
             // entered in the UI.  getActualVersion() is computed.
 
+            StackId stackId = new StackId(structuredOutput.getStackId());
             RepositoryVersionEntity version = repoVersionDAO.findByStackAndVersion(
-                structuredOutput.getStackId(), structuredOutput.getInstalledRepositoryVersion());
+                stackId, structuredOutput.getInstalledRepositoryVersion());
 
             if (null != version) {
               LOG.info("Repository version {} was found, but {} is the actual value",
@@ -132,8 +134,9 @@ public class DistributeRepositoriesActionListener {
               repositoryVersion = structuredOutput.getActualVersion();
             } else {
               // !!! extra check that the actual version is correct
-              version = repoVersionDAO.findByStackAndVersion(
-                  structuredOutput.getStackId(), structuredOutput.getActualVersion());
+              stackId = new StackId(structuredOutput.getStackId());
+              version = repoVersionDAO.findByStackAndVersion(stackId,
+                  structuredOutput.getActualVersion());
 
               LOG.debug("Repository version {} was not found, check for {}.  Found={}",
                   structuredOutput.getInstalledRepositoryVersion(),

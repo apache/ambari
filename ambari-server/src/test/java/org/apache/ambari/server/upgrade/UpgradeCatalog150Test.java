@@ -22,11 +22,13 @@ import javax.persistence.EntityManager;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.KeyValueDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
@@ -35,7 +37,9 @@ import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -48,15 +52,28 @@ public class UpgradeCatalog150Test {
   private Injector injector;
   private final String CLUSTER_NAME = "c1";
   private final String HOST_NAME = "h1";
-  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"1.3.4\"}";
+
+  public static final StackId DESIRED_STACK = new StackId("HDP", "1.3.4");
 
   private UpgradeCatalogHelper upgradeCatalogHelper;
+  private StackEntity desiredStackEntity;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     upgradeCatalogHelper = injector.getInstance(UpgradeCatalogHelper.class);
+
+    // inject AmbariMetaInfo to ensure that stacks get populated in the DB
+    injector.getInstance(AmbariMetaInfo.class);
+
+    // load the stack entity
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+
+    desiredStackEntity = stackDAO.find(DESIRED_STACK.getStackName(),
+        DESIRED_STACK.getStackVersion());
+
+    Assert.assertNotNull(desiredStackEntity);
   }
 
   @After
@@ -87,9 +104,9 @@ public class UpgradeCatalog150Test {
   @Test
   public void testAddHistoryServer() throws AmbariException {
     final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
-        injector, CLUSTER_NAME, DESIRED_STACK_VERSION);
+        injector, CLUSTER_NAME, desiredStackEntity);
     final ClusterServiceEntity clusterServiceEntityMR = upgradeCatalogHelper.addService(
-        injector, clusterEntity, "MAPREDUCE", DESIRED_STACK_VERSION);
+        injector, clusterEntity, "MAPREDUCE", desiredStackEntity);
     final HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
         clusterEntity, HOST_NAME);
 
@@ -98,7 +115,7 @@ public class UpgradeCatalog150Test {
       public void run() {
         upgradeCatalogHelper.addComponent(injector, clusterEntity,
             clusterServiceEntityMR, hostEntity, "JOBTRACKER",
-            DESIRED_STACK_VERSION);
+            desiredStackEntity);
       }
     });
 
@@ -109,7 +126,7 @@ public class UpgradeCatalog150Test {
   @Test
   public void testProcessDecommissionedDatanodes() throws Exception {
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
-        CLUSTER_NAME, DESIRED_STACK_VERSION);
+        CLUSTER_NAME, desiredStackEntity);
     ClusterServiceEntity clusterServiceEntity = upgradeCatalogHelper.createService(
         injector, clusterEntity, "HDFS");
     HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
@@ -121,6 +138,7 @@ public class UpgradeCatalog150Test {
     componentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     componentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
     componentDesiredStateEntity.setComponentName("DATANODE");
+    componentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
     //componentDesiredStateDAO.create(componentDesiredStateEntity);
 
@@ -136,6 +154,7 @@ public class UpgradeCatalog150Test {
     hostComponentDesiredStateEntity.setServiceName(clusterServiceEntity.getServiceName());
     hostComponentDesiredStateEntity.setServiceComponentDesiredStateEntity(componentDesiredStateEntity);
     hostComponentDesiredStateEntity.setHostEntity(hostEntity);
+    hostComponentDesiredStateEntity.setDesiredStack(desiredStackEntity);
 
     hostComponentDesiredStateDAO.create(hostComponentDesiredStateEntity);
 
@@ -157,6 +176,9 @@ public class UpgradeCatalog150Test {
     configEntity.setTag("1394147791230");
     configEntity.setData("{\"datanodes\":\"" + HOST_NAME + "\"}");
     configEntity.setTimestamp(System.currentTimeMillis());
+    configEntity.setStack(desiredStackEntity);
+    configEntity.setStack(clusterEntity.getDesiredStack());
+
     clusterDAO.createConfig(configEntity);
 
     UpgradeCatalog150 upgradeCatalog150 = injector.getInstance(UpgradeCatalog150.class);
@@ -179,10 +201,10 @@ public class UpgradeCatalog150Test {
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
 
     ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(injector,
-        CLUSTER_NAME, DESIRED_STACK_VERSION);
+        CLUSTER_NAME, desiredStackEntity);
 
     ClusterServiceEntity clusterServiceEntityMR = upgradeCatalogHelper.addService(
-        injector, clusterEntity, "HDFS", DESIRED_STACK_VERSION);
+        injector, clusterEntity, "HDFS", desiredStackEntity);
 
     Long clusterId = clusterEntity.getClusterId();
 

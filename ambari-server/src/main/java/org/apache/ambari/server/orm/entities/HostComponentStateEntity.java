@@ -18,13 +18,24 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
+import javax.persistence.IdClass;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+
 import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.UpgradeState;
-
-import javax.persistence.*;
-
-import static org.apache.commons.lang.StringUtils.defaultString;
 
 @IdClass(HostComponentStateEntityPK.class)
 @Table(name = "hostcomponentstate")
@@ -67,9 +78,12 @@ public class HostComponentStateEntity {
   @Column(name = "security_state", nullable = false, insertable = true, updatable = true)
   private SecurityState securityState = SecurityState.UNSECURED;
 
-  @Basic
-  @Column(name = "current_stack_version", nullable = false, insertable = true, updatable = true)
-  private String currentStackVersion;
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "current_stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity currentStack;
 
   @ManyToOne(cascade = CascadeType.PERSIST)
   @JoinColumns({
@@ -99,7 +113,7 @@ public class HostComponentStateEntity {
   }
 
   public String getHostName() {
-    return this.hostEntity.getHostName();
+    return hostEntity.getHostName();
   }
 
   public Long getHostId() {
@@ -138,12 +152,12 @@ public class HostComponentStateEntity {
     this.upgradeState = upgradeState;
   }
 
-  public String getCurrentStackVersion() {
-    return currentStackVersion;
+  public StackEntity getCurrentStack() {
+    return currentStack;
   }
 
-  public void setCurrentStackVersion(String currentStackVersion) {
-    this.currentStackVersion = currentStackVersion;
+  public void setCurrentStack(StackEntity currentStack) {
+    this.currentStack = currentStack;
   }
 
   public String getVersion() {
@@ -156,20 +170,40 @@ public class HostComponentStateEntity {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     HostComponentStateEntity that = (HostComponentStateEntity) o;
 
-    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) return false;
-    if (currentStackVersion != null ? !currentStackVersion.equals(that.currentStackVersion) : that.currentStackVersion != null)
+    if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) {
       return false;
-    if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) return false;
-    if (upgradeState != null ? !upgradeState.equals(that.upgradeState) : that.upgradeState != null) return false;
-    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) return false;
-    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
-    if (version != null ? !version.equals(that.version) : that.version != null) return false;
+    }
+    if (componentName != null ? !componentName.equals(that.componentName) : that.componentName != null) {
+      return false;
+    }
+    if (currentStack != null ? !currentStack.equals(that.currentStack)
+        : that.currentStack != null) {
+      return false;
+    }
+    if (currentState != null ? !currentState.equals(that.currentState) : that.currentState != null) {
+      return false;
+    }
+    if (upgradeState != null ? !upgradeState.equals(that.upgradeState) : that.upgradeState != null) {
+      return false;
+    }
+    if (hostEntity != null ? !hostEntity.equals(that.hostEntity) : that.hostEntity != null) {
+      return false;
+    }
+    if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) {
+      return false;
+    }
+    if (version != null ? !version.equals(that.version) : that.version != null) {
+      return false;
+    }
 
     return true;
   }
@@ -181,7 +215,7 @@ public class HostComponentStateEntity {
     result = 31 * result + (componentName != null ? componentName.hashCode() : 0);
     result = 31 * result + (currentState != null ? currentState.hashCode() : 0);
     result = 31 * result + (upgradeState != null ? upgradeState.hashCode() : 0);
-    result = 31 * result + (currentStackVersion != null ? currentStackVersion.hashCode() : 0);
+    result = 31 * result + (currentStack != null ? currentStack.hashCode() : 0);
     result = 31 * result + (serviceName != null ? serviceName.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
     return result;

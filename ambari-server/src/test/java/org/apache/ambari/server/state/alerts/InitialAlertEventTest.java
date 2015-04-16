@@ -91,9 +91,8 @@ public class InitialAlertEventTest {
     m_alertsDao = m_injector.getInstance(AlertsDAO.class);
 
     m_clusterName = "c1";
-    m_clusters.addCluster(m_clusterName);
+    m_clusters.addCluster(m_clusterName, new StackId("HDP", "2.0.6"));
     m_cluster = m_clusters.getCluster(m_clusterName);
-    m_cluster.setDesiredStackVersion(new StackId("HDP", "2.0.6"));
     Assert.assertNotNull(m_cluster);
 
     // install HDFS to get 6 definitions

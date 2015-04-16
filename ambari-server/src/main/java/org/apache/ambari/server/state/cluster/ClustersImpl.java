@@ -49,6 +49,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -57,6 +58,7 @@ import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.security.SecurityHelper;
 import org.apache.ambari.server.security.authorization.AmbariGrantedAuthority;
 import org.apache.ambari.server.state.AgentVersion;
@@ -74,7 +76,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.GrantedAuthority;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -118,9 +119,13 @@ public class ClustersImpl implements Clusters {
   @Inject
   AmbariMetaInfo ambariMetaInfo;
   @Inject
-  Gson gson;
-  @Inject
   private SecurityHelper securityHelper;
+
+  /**
+   * Data access object for stacks.
+   */
+  @Inject
+  private StackDAO stackDAO;
 
   /**
    * Used to publish events relating to cluster CRUD operations.
@@ -178,9 +183,11 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void addCluster(String clusterName)
+  public void addCluster(String clusterName, StackId stackId)
       throws AmbariException {
     checkLoaded();
+
+    Cluster cluster = null;
 
     w.lock();
     try {
@@ -201,11 +208,14 @@ public class ClustersImpl implements Clusters {
       ResourceEntity resourceEntity = new ResourceEntity();
       resourceEntity.setResourceType(resourceTypeEntity);
 
+      StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+          stackId.getStackVersion());
+
       // retrieve new cluster id
       // add cluster id -> cluster mapping into clustersById
       ClusterEntity clusterEntity = new ClusterEntity();
       clusterEntity.setClusterName(clusterName);
-      clusterEntity.setDesiredStackVersion(gson.toJson(new StackId()));
+      clusterEntity.setDesiredStack(stackEntity);
       clusterEntity.setResource(resourceEntity);
 
       try {
@@ -216,13 +226,15 @@ public class ClustersImpl implements Clusters {
         throw new AmbariException("Unable to create cluster " + clusterName, e);
       }
 
-      Cluster cluster = clusterFactory.create(clusterEntity);
+      cluster = clusterFactory.create(clusterEntity);
       clusters.put(clusterName, cluster);
       clustersById.put(cluster.getClusterId(), cluster);
       clusterHostMap.put(clusterName, new HashSet<Host>());
     } finally {
       w.unlock();
     }
+
+    cluster.setCurrentStackVersion(stackId);
   }
 
   @Override
@@ -261,16 +273,21 @@ public class ClustersImpl implements Clusters {
     }
 
     checkLoaded();
+
+    Cluster cluster = null;
+
     r.lock();
     try {
       if (!clusters.containsKey(clusterName)) {
         throw new ClusterNotFoundException(clusterName);
       }
-      Cluster cluster = clusters.get(clusterName);
-      cluster.setCurrentStackVersion(stackId);
+
+      cluster = clusters.get(clusterName);
     } finally {
       r.unlock();
     }
+
+    cluster.setCurrentStackVersion(stackId);
   }
 
   @Override

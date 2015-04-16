@@ -24,6 +24,8 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Singleton;
 
@@ -56,14 +58,49 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   /**
    * Retrieves repository version by stack.
    *
+   * @param stackId
+   *          stackId
+   * @param version
+   *          version
+   * @return null if there is no suitable repository version
+   */
+  public RepositoryVersionEntity findByStackAndVersion(StackId stackId,
+      String version) {
+    return findByStackAndVersion(stackId.getStackName(),
+        stackId.getStackVersion(), version);
+  }
+
+  /**
+   * Retrieves repository version by stack.
+   *
    * @param stack stack
    * @param version version
    * @return null if there is no suitable repository version
    */
+  public RepositoryVersionEntity findByStackAndVersion(StackEntity stackEntity,
+      String version) {
+    return findByStackAndVersion(stackEntity.getStackName(),
+        stackEntity.getStackVersion(), version);
+  }
+
+  /**
+   * Retrieves repository version by stack.
+   *
+   * @param stackName
+   *          stack name
+   * @param stackVersion
+   *          stack version
+   * @param version
+   *          version
+   * @return null if there is no suitable repository version
+   */
   @RequiresSession
-  public RepositoryVersionEntity findByStackAndVersion(String stack, String version) {
-    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery("repositoryVersionByStackVersion", RepositoryVersionEntity.class);
-    query.setParameter("stack", stack);
+  private RepositoryVersionEntity findByStackAndVersion(String stackName,
+      String stackVersion, String version) {
+    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery(
+        "repositoryVersionByStackVersion", RepositoryVersionEntity.class);
+    query.setParameter("stackName", stackName);
+    query.setParameter("stackVersion", stackVersion);
     query.setParameter("version", version);
     return daoUtils.selectSingle(query);
   }
@@ -71,13 +108,15 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   /**
    * Retrieves repository version by stack.
    *
-   * @param stack stack with major version (like HDP-2.2)
+   * @param stack
+   *          stack with major version (like HDP-2.2)
    * @return null if there is no suitable repository version
    */
   @RequiresSession
-  public List<RepositoryVersionEntity> findByStack(String stack) {
+  public List<RepositoryVersionEntity> findByStack(StackId stackId) {
     final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery("repositoryVersionByStack", RepositoryVersionEntity.class);
-    query.setParameter("stack", stack);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
     return daoUtils.selectList(query);
   }
 
@@ -91,23 +130,31 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @return Returns the object created if successful, and throws an exception otherwise.
    * @throws AmbariException
    */
-  public RepositoryVersionEntity create(String stack, String version, String displayName, String upgradePack, String operatingSystems) throws AmbariException {
-    if (stack == null || stack.isEmpty() || version == null || version.isEmpty() || displayName == null || displayName.isEmpty()) {
+  public RepositoryVersionEntity create(StackEntity stackEntity,
+      String version, String displayName, String upgradePack,
+      String operatingSystems) throws AmbariException {
+
+    if (stackEntity == null || version == null || version.isEmpty()
+        || displayName == null || displayName.isEmpty()) {
       throw new AmbariException("At least one of the required properties is null or empty");
     }
 
-    RepositoryVersionEntity existingByDisplayName = this.findByDisplayName(displayName);
+    RepositoryVersionEntity existingByDisplayName = findByDisplayName(displayName);
 
     if (existingByDisplayName != null) {
       throw new AmbariException("Repository version with display name '" + displayName + "' already exists");
     }
 
-    RepositoryVersionEntity existingByStackAndVersion = this.findByStackAndVersion(stack, version);
+    RepositoryVersionEntity existingByStackAndVersion = findByStackAndVersion(
+        stackEntity, version);
+
     if (existingByStackAndVersion != null) {
-      throw new AmbariException("Repository version for stack " + stack + " and version " + version + " already exists");
+      throw new AmbariException("Repository version for stack " + stackEntity
+          + " and version " + version + " already exists");
     }
 
-    RepositoryVersionEntity newEntity = new RepositoryVersionEntity(stack, version, displayName, upgradePack, operatingSystems);
+    RepositoryVersionEntity newEntity = new RepositoryVersionEntity(
+        stackEntity, version, displayName, upgradePack, operatingSystems);
     this.create(newEntity);
     return newEntity;
   }

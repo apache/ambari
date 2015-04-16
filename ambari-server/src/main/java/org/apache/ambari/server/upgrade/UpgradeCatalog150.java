@@ -64,6 +64,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.KeyValueEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
@@ -544,7 +545,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
           if (clusterStateDAO.findByPK(clusterEntity.getClusterId()) == null) {
             ClusterStateEntity clusterStateEntity = new ClusterStateEntity();
             clusterStateEntity.setClusterEntity(clusterEntity);
-            clusterStateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
+            clusterStateEntity.setCurrentStack(clusterEntity.getDesiredStack());
 
             clusterStateDAO.create(clusterStateEntity);
 
@@ -635,7 +636,7 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
 
       final ServiceComponentDesiredStateEntity serviceComponentDesiredStateEntity = new ServiceComponentDesiredStateEntity();
       serviceComponentDesiredStateEntity.setComponentName("HISTORYSERVER");
-      serviceComponentDesiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
+      serviceComponentDesiredStateEntity.setDesiredStack(clusterEntity.getDesiredStack());
       serviceComponentDesiredStateEntity.setDesiredState(jtServiceComponentDesiredState);
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
       serviceComponentDesiredStateEntity.setHostComponentDesiredStateEntities(new ArrayList<HostComponentDesiredStateEntity>());
@@ -648,11 +649,11 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
       final HostComponentStateEntity stateEntity = new HostComponentStateEntity();
       stateEntity.setHostEntity(host);
       stateEntity.setCurrentState(jtCurrState);
-      stateEntity.setCurrentStackVersion(clusterEntity.getDesiredStackVersion());
+      stateEntity.setCurrentStack(clusterEntity.getDesiredStack());
 
       final HostComponentDesiredStateEntity desiredStateEntity = new HostComponentDesiredStateEntity();
       desiredStateEntity.setDesiredState(jtHostComponentDesiredState);
-      desiredStateEntity.setDesiredStackVersion(clusterEntity.getDesiredStackVersion());
+      desiredStateEntity.setDesiredStack(clusterEntity.getDesiredStack());
 
       persistComponentEntities(stateEntity, desiredStateEntity, serviceComponentDesiredStateEntity);
     }
@@ -698,13 +699,9 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     List <ClusterEntity> clusterEntities = clusterDAO.findAll();
     for (final ClusterEntity clusterEntity : clusterEntities) {
       Long clusterId = clusterEntity.getClusterId();
-      String desiredStackVersion = clusterEntity.getDesiredStackVersion();
-
-      Map<String, String> clusterInfo =
-        gson.<Map<String, String>>fromJson(desiredStackVersion, Map.class);
-
-      String stackName = clusterInfo.get("stackName");
-      String stackVersion = clusterInfo.get("stackVersion");
+      StackEntity stackEntity = clusterEntity.getDesiredStack();
+      String stackName = stackEntity.getStackName();
+      String stackVersion = stackEntity.getStackVersion();
 
       List<ClusterServiceEntity> clusterServiceEntities = clusterServiceDAO.findAll();
       for (final ClusterServiceEntity clusterServiceEntity : clusterServiceEntities) {
@@ -740,6 +737,8 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
                   configEntity.setVersion(1L);
                   configEntity.setTimestamp(System.currentTimeMillis());
                   configEntity.setClusterEntity(clusterEntity);
+                  configEntity.setStack(stackEntity);
+
                   LOG.debug("Creating new " + configType + " config...");
                   clusterDAO.createConfig(configEntity);
 

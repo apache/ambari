@@ -58,6 +58,7 @@ import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.HostComponentDesiredStateDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.ServiceComponentDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.HostComponentDesiredStateEntity;
@@ -67,6 +68,7 @@ import org.apache.ambari.server.orm.entities.HostComponentStateEntityPK;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -99,7 +101,8 @@ import com.google.inject.persist.PersistService;
 public class UpgradeCatalog200Test {
   private final String CLUSTER_NAME = "c1";
   private final String HOST_NAME = "h1";
-  private final String DESIRED_STACK_VERSION = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.0.6\"}";
+
+  private final StackId DESIRED_STACK = new StackId("HDP", "2.0.6");
 
   private Injector injector;
   private Provider<EntityManager> entityManagerProvider = createStrictMock(Provider.class);
@@ -536,19 +539,27 @@ public class UpgradeCatalog200Test {
     HostComponentDesiredStateDAO hostComponentDesiredStateDAO = injector.getInstance(HostComponentDesiredStateDAO.class);
     HostComponentStateDAO hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     ClusterServiceDAO clusterServiceDao = injector.getInstance(ClusterServiceDAO.class);
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+
+    // inject AmbariMetaInfo to ensure that stacks get populated in the DB
+    injector.getInstance(AmbariMetaInfo.class);
+
+    StackEntity stackEntity = stackDAO.find(DESIRED_STACK.getStackName(),
+        DESIRED_STACK.getStackVersion());
+
+    assertNotNull(stackEntity);
 
     final ClusterEntity clusterEntity = upgradeCatalogHelper.createCluster(
-        injector, CLUSTER_NAME, DESIRED_STACK_VERSION);
+        injector, CLUSTER_NAME, stackEntity);
 
     final ClusterServiceEntity clusterServiceEntityNagios = upgradeCatalogHelper.addService(
-        injector, clusterEntity, "NAGIOS", DESIRED_STACK_VERSION);
+        injector, clusterEntity, "NAGIOS", stackEntity);
 
     final HostEntity hostEntity = upgradeCatalogHelper.createHost(injector,
         clusterEntity, HOST_NAME);
 
     upgradeCatalogHelper.addComponent(injector, clusterEntity,
-        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER",
-        DESIRED_STACK_VERSION);
+        clusterServiceEntityNagios, hostEntity, "NAGIOS_SERVER", stackEntity);
 
     ServiceComponentDesiredStateEntityPK pkNagiosServer = new ServiceComponentDesiredStateEntityPK();
     pkNagiosServer.setComponentName("NAGIOS_SERVER");

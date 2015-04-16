@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
+import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
@@ -43,15 +44,19 @@ import org.apache.ambari.server.state.ServiceComponentHostFactory;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
+import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
+import com.google.inject.Module;
 import com.google.inject.persist.PersistService;
+import com.google.inject.util.Modules;
 
 /**
  * Tests AMBARI-9368 and AMBARI-9761 which produced a deadlock during read and
@@ -100,14 +105,15 @@ public class ClusterDeadlockTest {
    */
   @Before
   public void setup() throws Exception {
-    injector = Guice.createInjector(new InMemoryDefaultTestModule());
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
+
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
-    clusters.addCluster("c1");
+    clusters.addCluster("c1", stackId);
     cluster = clusters.getCluster("c1");
-    cluster.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(),
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId,
         stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
 
     // 100 hosts
@@ -199,7 +205,7 @@ public class ClusterDeadlockTest {
    *
    * @throws Exception
    */
-  @Test(timeout = 60000)
+  @Test(timeout = 75000)
   public void testDeadlockWhileRestartingComponents() throws Exception {
     // for each host, install both components
     List<ServiceComponentHost> serviceComponentHosts = new ArrayList<ServiceComponentHost>();
@@ -508,5 +514,21 @@ public class ClusterDeadlockTest {
     }
 
     return serviceComponent;
+  }
+
+  /**
+  *
+  */
+  private class MockModule implements Module {
+    /**
+    *
+    */
+    @Override
+    public void configure(Binder binder) {
+      // this listener gets in the way of actually testing the concurrency
+      // between the threads; it slows them down too much, so mock it out
+      binder.bind(HostVersionOutOfSyncListener.class).toInstance(
+          EasyMock.createNiceMock(HostVersionOutOfSyncListener.class));
+    }
   }
 }

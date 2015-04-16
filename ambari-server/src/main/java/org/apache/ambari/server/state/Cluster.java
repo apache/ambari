@@ -187,25 +187,37 @@ public interface Cluster {
   public void recalculateAllClusterVersionStates() throws AmbariException;
 
   /**
-   * Create a cluster version for the given stack and version, whose initial state must either
-   * be either {@link RepositoryVersionState#UPGRADING} (if no other cluster version exists) or
-   * {@link RepositoryVersionState#INSTALLING} (if at exactly one CURRENT cluster version already exists).
-   * @param stack Stack name
-   * @param version Stack version
-   * @param userName User performing the operation
-   * @param state Initial state
+   * Create a cluster version for the given stack and version, whose initial
+   * state must either be either {@link RepositoryVersionState#UPGRADING} (if no
+   * other cluster version exists) or {@link RepositoryVersionState#INSTALLING}
+   * (if at exactly one CURRENT cluster version already exists).
+   *
+   * @param stackId
+   *          Stack ID
+   * @param version
+   *          Stack version
+   * @param userName
+   *          User performing the operation
+   * @param state
+   *          Initial state
    * @throws AmbariException
    */
-  public void createClusterVersion(String stack, String version, String userName, RepositoryVersionState state) throws AmbariException;
+  public void createClusterVersion(StackId stackId, String version,
+      String userName, RepositoryVersionState state) throws AmbariException;
 
   /**
    * Transition an existing cluster version from one state to another.
-   * @param stack Stack name
-   * @param version Stack version
-   * @param state Desired state
+   * 
+   * @param stackId
+   *          Stack ID
+   * @param version
+   *          Stack version
+   * @param state
+   *          Desired state
    * @throws AmbariException
    */
-  public void transitionClusterVersion(String stack, String version, RepositoryVersionState state) throws AmbariException;
+  public void transitionClusterVersion(StackId stackId, String version,
+      RepositoryVersionState state) throws AmbariException;
 
   /**
    * Gets whether the cluster is still initializing or has finished with its

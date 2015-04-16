@@ -21,7 +21,6 @@ package org.apache.ambari.server.controller;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.apache.ambari.server.state.SecurityState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
@@ -55,7 +54,7 @@ public class ClusterRequestTest {
     r1.setClusterId(++clusterId);
     r1.setHostNames(hostNames);
     r1.setClusterName("foo1");
-    r1.setStackVersion("HDP-1.0.2");
+    r1.setStackVersion("HDP-1.2.0");
     r1.setProvisioningState(State.INSTALLED.name());
     r1.setSecurityType(SecurityType.KERBEROS);
 
@@ -65,7 +64,7 @@ public class ClusterRequestTest {
     Assert.assertEquals("foo1", r1.getClusterName());
     Assert.assertEquals(State.INSTALLED.name(), r1.getProvisioningState());
     Assert.assertEquals(SecurityType.KERBEROS, r1.getSecurityType());
-    Assert.assertEquals("HDP-1.0.2", r1.getStackVersion());
+    Assert.assertEquals("HDP-1.2.0", r1.getStackVersion());
     Assert.assertArrayEquals(hostNames.toArray(), r1.getHostNames().toArray());
   }
 

@@ -34,15 +34,16 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
 import org.apache.ambari.server.orm.dao.ServiceDesiredStateDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.ProvisionException;
@@ -67,8 +68,6 @@ public class ServiceImpl implements Service {
   private final boolean isClientOnlyService;
 
   @Inject
-  Gson gson;
-  @Inject
   private ClusterServiceDAO clusterServiceDAO;
   @Inject
   private ServiceDesiredStateDAO serviceDesiredStateDAO;
@@ -78,6 +77,12 @@ public class ServiceImpl implements Service {
   private ServiceComponentFactory serviceComponentFactory;
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
+  /**
+   * Data access object for retrieving stack instances.
+   */
+  @Inject
+  private StackDAO stackDAO;
 
   /**
    * Used to publish events relating to service CRUD operations.
@@ -338,15 +343,19 @@ public class ServiceImpl implements Service {
   public StackId getDesiredStackVersion() {
     readWriteLock.readLock().lock();
     try {
-      return gson.fromJson(serviceDesiredStateEntity.getDesiredStackVersion(),
-          StackId.class);
+      StackEntity desiredStackEntity = serviceDesiredStateEntity.getDesiredStack();
+      if( null != desiredStackEntity ) {
+        return new StackId(desiredStackEntity);
+      } else {
+        return null;
+      }
     } finally {
       readWriteLock.readLock().unlock();
     }
   }
 
   @Override
-  public void setDesiredStackVersion(StackId stackVersion) {
+  public void setDesiredStackVersion(StackId stack) {
     readWriteLock.writeLock().lock();
     try {
       if (LOG.isDebugEnabled()) {
@@ -354,9 +363,11 @@ public class ServiceImpl implements Service {
             + cluster.getClusterName() + ", clusterId="
             + cluster.getClusterId() + ", serviceName=" + getName()
             + ", oldDesiredStackVersion=" + getDesiredStackVersion()
-            + ", newDesiredStackVersion=" + stackVersion);
+            + ", newDesiredStackVersion=" + stack);
       }
-      serviceDesiredStateEntity.setDesiredStackVersion(gson.toJson(stackVersion));
+
+      StackEntity stackEntity = stackDAO.find(stack.getStackName(), stack.getStackVersion());
+      serviceDesiredStateEntity.setDesiredStack(stackEntity);
       saveIfPersisted();
     } finally {
       readWriteLock.writeLock().unlock();

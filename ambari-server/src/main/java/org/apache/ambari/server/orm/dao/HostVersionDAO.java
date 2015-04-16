@@ -18,21 +18,22 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
-import org.apache.ambari.server.state.RepositoryVersionState;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.NonUniqueResultException;
 import javax.persistence.TypedQuery;
 
-import java.util.List;
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link org.apache.ambari.server.orm.dao.HostVersionDAO} class manages the {@link org.apache.ambari.server.orm.entities.HostVersionEntity}
@@ -59,18 +60,24 @@ public class HostVersionDAO {
   }
 
   /**
-   * Retrieve all of the host versions for the given cluster name, stack name, and stack version.
+   * Retrieve all of the host versions for the given cluster name, stack name,
+   * and stack version.
    *
-   * @param clusterName Cluster name
-   * @param stack Stack name (e.g., HDP)
-   * @param version Stack version (e.g., 2.2.0.1-995)
+   * @param clusterName
+   *          Cluster name
+   * @param stackId
+   *          Stack (e.g., HDP-2.2)
+   * @param version
+   *          Stack version (e.g., 2.2.0.1-995)
    * @return Return all of the host versions that match the criteria.
    */
   @RequiresSession
-  public List<HostVersionEntity> findByClusterStackAndVersion(String clusterName, String stack, String version) {
+  public List<HostVersionEntity> findByClusterStackAndVersion(
+      String clusterName, StackId stackId, String version) {
     final TypedQuery<HostVersionEntity> query = entityManagerProvider.get().createNamedQuery("hostVersionByClusterAndStackAndVersion", HostVersionEntity.class);
     query.setParameter("clusterName", clusterName);
-    query.setParameter("stack", stack);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
     query.setParameter("version", version);
 
     return daoUtils.selectList(query);
@@ -153,20 +160,28 @@ public class HostVersionDAO {
   }
 
   /**
-   * Retrieve the single host version for the given cluster, stack name, stack version, and host name.
+   * Retrieve the single host version for the given cluster, stack name, stack
+   * version, and host name.
    *
-   * @param clusterName Cluster name
-   * @param stack Stack name (e.g., HDP-2.2)
-   * @param version Stack version (e.g., 2.2.0.1-995)
-   * @param hostName FQDN of host
+   * @param clusterName
+   *          Cluster name
+   * @param stackId
+   *          Stack ID (e.g., HDP-2.2)
+   * @param version
+   *          Stack version (e.g., 2.2.0.1-995)
+   * @param hostName
+   *          FQDN of host
    * @return Returns the single host version that matches the criteria.
    */
   @RequiresSession
-  public HostVersionEntity findByClusterStackVersionAndHost(String clusterName, String stack, String version, String hostName) {
+  public HostVersionEntity findByClusterStackVersionAndHost(String clusterName,
+      StackId stackId, String version, String hostName) {
+
     final TypedQuery<HostVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("hostVersionByClusterStackVersionAndHostname", HostVersionEntity.class);
     query.setParameter("clusterName", clusterName);
-    query.setParameter("stack", stack);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
     query.setParameter("version", version);
     query.setParameter("hostName", hostName);
 

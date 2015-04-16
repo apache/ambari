@@ -18,23 +18,44 @@
 
 package org.apache.ambari.server.orm;
 
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.persist.PersistService;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
-import org.junit.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import javax.persistence.EntityManager;
-import javax.persistence.RollbackException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+
+import javax.persistence.EntityManager;
+import javax.persistence.RollbackException;
+
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.RequestDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.dao.StageDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.orm.entities.StageEntity;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.persist.PersistService;
 
 public class TestOrmImpl extends Assert {
   private static final Logger log = LoggerFactory.getLogger(TestOrmImpl.class);
@@ -45,6 +66,10 @@ public class TestOrmImpl extends Assert {
   public void setup() {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+
+    // required to load stack information into the DB
+    injector.getInstance(AmbariMetaInfo.class);
+
     injector.getInstance(OrmTestHelper.class).createDefaultData();
   }
 
@@ -60,6 +85,7 @@ public class TestOrmImpl extends Assert {
   public void testEmptyPersistentCollection() {
     String testClusterName = "test_cluster2";
 
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
     ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
 
     // create an admin resource to represent this cluster
@@ -70,12 +96,16 @@ public class TestOrmImpl extends Assert {
       resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
+
+    StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setResourceType(resourceTypeEntity);
 
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName(testClusterName);
     clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
+
     ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     clusterDAO.create(clusterEntity);
     clusterEntity = clusterDAO.findByName(clusterEntity.getClusterName());
@@ -163,7 +193,7 @@ public class TestOrmImpl extends Assert {
 
     ClusterServiceEntity clusterServiceEntity = clusterServiceDAO.findByClusterAndServiceNames(clusterName, serviceName);
     clusterServiceDAO.remove(clusterServiceEntity);
-    
+
     Assert.assertNull(
         clusterServiceDAO.findByClusterAndServiceNames(clusterName,
             serviceName));
@@ -255,8 +285,11 @@ public class TestOrmImpl extends Assert {
 
   @Test
   public void testConcurrentModification() throws InterruptedException {
+    final StackDAO stackDAO = injector.getInstance(StackDAO.class);
     final ClusterDAO clusterDAO = injector.getInstance(ClusterDAO.class);
     final ResourceTypeDAO resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+
+    final StackEntity stackEntity = stackDAO.find("HDP", "2.2.0");
 
     // create an admin resource to represent this cluster
     ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
@@ -272,12 +305,12 @@ public class TestOrmImpl extends Assert {
     ClusterEntity clusterEntity = new ClusterEntity();
     clusterEntity.setClusterName("cluster1");
     clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
+
     clusterDAO.create(clusterEntity);
-//    assertFalse(ambariJpaPersistService.isWorking());
 
     clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
     assertEquals("cluster1", clusterEntity.getClusterName());
-//    assertFalse(ambariJpaPersistService.isWorking());
 
     Thread thread = new Thread(){
       @Override
@@ -285,27 +318,34 @@ public class TestOrmImpl extends Assert {
         ClusterEntity clusterEntity1 = clusterDAO.findByName("cluster1");
         clusterEntity1.setClusterName("anotherName");
         clusterDAO.merge(clusterEntity1);
-//        assertFalse(ambariJpaPersistService.isWorking());
+
+        clusterEntity1 = clusterDAO.findById(clusterEntity1.getClusterId());
+        assertEquals("anotherName", clusterEntity1.getClusterName());
+
+        injector.getInstance(EntityManager.class).clear();
       }
     };
 
     thread.start();
     thread.join();
 
+    injector.getInstance(EntityManager.class).clear();
+
     clusterEntity = clusterDAO.findById(clusterEntity.getClusterId());
-//    assertFalse(ambariJpaPersistService.isWorking());
     assertEquals("anotherName", clusterEntity.getClusterName());
 
     thread = new Thread(){
       @Override
       public void run() {
         clusterDAO.removeByName("anotherName");
+        injector.getInstance(EntityManager.class).clear();
       }
     };
 
     thread.start();
     thread.join();
 
+    injector.getInstance(EntityManager.class).clear();
     assertNull(clusterDAO.findById(clusterEntity.getClusterId()));
 
     List<ClusterEntity> result = clusterDAO.findAll();
@@ -320,6 +360,7 @@ public class TestOrmImpl extends Assert {
         ClusterEntity temp = new ClusterEntity();
         temp.setClusterName("temp_cluster");
         temp.setResource(resourceEntity);
+        temp.setDesiredStack(stackEntity);
         clusterDAO.create(temp);
       }
     };
@@ -338,6 +379,7 @@ public class TestOrmImpl extends Assert {
         ClusterEntity temp = new ClusterEntity();
         temp.setClusterName("temp_cluster2");
         temp.setResource(resourceEntity);
+        temp.setDesiredStack(stackEntity);
         clusterDAO.create(temp);
       }
     };

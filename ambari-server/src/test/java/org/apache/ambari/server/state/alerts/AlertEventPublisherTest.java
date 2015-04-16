@@ -93,9 +93,8 @@ public class AlertEventPublisherTest {
     aggregateMapping = injector.getInstance(AggregateDefinitionMapping.class);
 
     clusterName = "foo";
-    clusters.addCluster(clusterName);
+    clusters.addCluster(clusterName, new StackId("HDP", "2.0.6"));
     cluster = clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP", "2.0.6"));
     Assert.assertNotNull(cluster);
   }
 

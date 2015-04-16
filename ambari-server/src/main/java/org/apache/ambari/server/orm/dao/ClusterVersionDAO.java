@@ -26,6 +26,7 @@ import javax.persistence.TypedQuery;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Singleton;
 
@@ -47,33 +48,46 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
   /**
    * Retrieve all of the cluster versions for the given stack and version.
    *
-   * @param stack Stack id (e.g., HDP-2.2)
-   * @param version Repository version (e.g., 2.2.0.1-995)
+   * @param stackName
+   *          the stack name (for example "HDP")
+   * @param stackVersion
+   *          the stack version (for example "2.2")
+   * @param version
+   *          Repository version (e.g., 2.2.0.1-995)
    * @return Return a list of cluster versions that match the stack and version.
    */
   @RequiresSession
-  public List<ClusterVersionEntity> findByStackAndVersion(String stack, String version) {
+  public List<ClusterVersionEntity> findByStackAndVersion(String stackName,
+      String stackVersion, String version) {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get().createNamedQuery("clusterVersionByStackVersion", ClusterVersionEntity.class);
-    query.setParameter("stack", stack);
+    query.setParameter("stackName", stackName);
+    query.setParameter("stackVersion", stackVersion);
     query.setParameter("version", version);
 
     return daoUtils.selectList(query);
   }
 
   /**
-   * Get the cluster version for the given cluster name, stack name, and stack version.
+   * Get the cluster version for the given cluster name, stack name, and stack
+   * version.
    *
-   * @param clusterName Cluster name
-   * @param stack Stack id (e.g., HDP-2.2)
-   * @param version Repository version (e.g., 2.2.0.1-995)
-   * @return Return all of the cluster versions associated with the given cluster.
+   * @param clusterName
+   *          Cluster name
+   * @param stackId
+   *          Stack id (e.g., HDP-2.2)
+   * @param version
+   *          Repository version (e.g., 2.2.0.1-995)
+   * @return Return all of the cluster versions associated with the given
+   *         cluster.
    */
   @RequiresSession
-  public ClusterVersionEntity findByClusterAndStackAndVersion(String  clusterName, String stack, String version) {
+  public ClusterVersionEntity findByClusterAndStackAndVersion(
+      String clusterName, StackId stackId, String version) {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("clusterVersionByClusterAndStackAndVersion", ClusterVersionEntity.class);
     query.setParameter("clusterName", clusterName);
-    query.setParameter("stack", stack);
+    query.setParameter("stackName", stackId.getStackName());
+    query.setParameter("stackVersion", stackId.getStackVersion());
     query.setParameter("version", version);
 
     return daoUtils.selectSingle(query);
@@ -86,7 +100,7 @@ public class ClusterVersionDAO extends CrudDAO<ClusterVersionEntity, Long>{
    * @return Return all of the cluster versions associated with the given cluster.
    */
   @RequiresSession
-  public List<ClusterVersionEntity> findByCluster(String  clusterName) {
+  public List<ClusterVersionEntity> findByCluster(String clusterName) {
     final TypedQuery<ClusterVersionEntity> query = entityManagerProvider.get()
         .createNamedQuery("clusterVersionByCluster", ClusterVersionEntity.class);
     query.setParameter("clusterName", clusterName);

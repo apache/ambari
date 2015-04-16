@@ -116,12 +116,14 @@ public class ClustersTest {
   @Test
   public void testAddAndGetCluster() throws AmbariException {
 
+    StackId stackId = new StackId("HDP-2.1.1");
+
     String c1 = "foo";
     String c2 = "foo";
-    clusters.addCluster(c1);
+    clusters.addCluster(c1, stackId);
 
     try {
-      clusters.addCluster(c1);
+      clusters.addCluster(c1, stackId);
       fail("Exception should be thrown on invalid add");
     }
     catch (AmbariException e) {
@@ -129,7 +131,7 @@ public class ClustersTest {
     }
 
     try {
-      clusters.addCluster(c2);
+      clusters.addCluster(c2, stackId);
       fail("Exception should be thrown on invalid add");
     }
     catch (AmbariException e) {
@@ -137,7 +139,7 @@ public class ClustersTest {
     }
 
     c2 = "foo2";
-    clusters.addCluster(c2);
+    clusters.addCluster(c2, stackId);
 
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
@@ -218,21 +220,27 @@ public class ClustersTest {
       // Expected
     }
 
-    clusters.addCluster(c1);
-    clusters.addCluster(c2);
+    StackId stackId = new StackId("HDP-0.1");
+
+    clusters.addCluster(c1, stackId);
+    clusters.addCluster(c2, stackId);
 
     Cluster cluster1 = clusters.getCluster(c1);
     Cluster cluster2 = clusters.getCluster(c2);
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
-    StackId stackId = new StackId("HDP-0.1");
+
     cluster1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    cluster1.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
-    cluster2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    cluster2.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
 
     try {
       clusters.mapHostToCluster(h1, c1);
@@ -307,20 +315,26 @@ public class ClustersTest {
     String h1 = "h1";
     String h2 = "h2";
     String h3 = "h3";
-    clusters.addCluster(c1);
-    clusters.addCluster(c2);
+
+    StackId stackId = new StackId("HDP-0.1");
+
+    clusters.addCluster(c1, stackId);
+    clusters.addCluster(c2, stackId);
     Cluster cluster1 = clusters.getCluster(c1);
     Cluster cluster2 = clusters.getCluster(c2);
     Assert.assertNotNull(clusters.getCluster(c1));
     Assert.assertNotNull(clusters.getCluster(c2));
-    StackId stackId = new StackId("HDP-0.1");
-    cluster1.setDesiredStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    cluster1.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    cluster1.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
     cluster2.setDesiredStackVersion(stackId);
-    cluster2.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    cluster2.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    cluster2.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    cluster2.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
     clusters.addHost(h1);
     clusters.addHost(h2);
     clusters.addHost(h3);
@@ -344,15 +358,18 @@ public class ClustersTest {
     final String h1 = "h1";
     final String h2 = "h2";
 
-    clusters.addCluster(c1);
+    StackId stackId = new StackId("HDP-0.1");
+    clusters.addCluster(c1, stackId);
 
     Cluster cluster = clusters.getCluster(c1);
-    StackId stackId = new StackId("HDP-0.1");
+
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    cluster.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
-    cluster.transitionClusterVersion(stackId.getStackName(), stackId.getStackVersion(), RepositoryVersionState.CURRENT);
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    cluster.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+    cluster.transitionClusterVersion(stackId, stackId.getStackVersion(),
+        RepositoryVersionState.CURRENT);
 
     final Config config1 = injector.getInstance(ConfigFactory.class).createNew(cluster, "t1",
         new HashMap<String, String>() {{
@@ -479,14 +496,18 @@ public class ClustersTest {
       Assert.assertTrue(e.getMessage().contains("Cluster not found"));
     }
 
-    clusters.addCluster(c1);
+    clusters.addCluster(c1, stackId);
     clusters.setCurrentStackVersion(c1, stackId);
 
     Assert.assertNotNull(clusters.getCluster(c1));
     ClusterStateEntity entity = injector.getInstance(ClusterStateDAO.class).findByPK(clusters.getCluster(c1).getClusterId());
     Assert.assertNotNull(entity);
-    Assert.assertTrue(entity.getCurrentStackVersion().contains(stackId.getStackName()) &&
-        entity.getCurrentStackVersion().contains(stackId.getStackVersion()));
+
+    Assert.assertTrue(entity.getCurrentStack().getStackName().equals(
+        stackId.getStackName())
+        && entity.getCurrentStack().getStackVersion().equals(
+            stackId.getStackVersion()));
+
     Assert.assertTrue(clusters.getCluster(c1).getCurrentStackVersion().getStackName().equals(stackId.getStackName()));
     Assert.assertTrue(
         clusters.getCluster(c1).getCurrentStackVersion().getStackVersion().equals(stackId.getStackVersion()));

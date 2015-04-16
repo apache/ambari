@@ -18,26 +18,29 @@
 
 package org.apache.ambari.server.orm.entities;
 
-import com.google.gson.Gson;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-
-import javax.persistence.Basic;
-import javax.persistence.CascadeType;
-import javax.persistence.Column;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.NamedQuery;
-import javax.persistence.OneToMany;
-import javax.persistence.Table;
-import javax.persistence.Transient;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.state.ServiceInfo;
+
+import com.google.gson.Gson;
 
 /**
  * Entity representing a Blueprint.
@@ -53,13 +56,13 @@ public class BlueprintEntity {
       updatable = false, unique = true, length = 100)
   private String blueprintName;
 
-  @Column(name = "stack_name", nullable = false, insertable = true, updatable = false)
-  @Basic
-  private String stackName;
 
-  @Column(name = "stack_version", nullable = false, insertable = true, updatable = false)
-  @Basic
-  private String stackVersion;
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = false)
+  private StackEntity stack;
 
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<HostGroupEntity> hostGroups;
@@ -90,39 +93,22 @@ public class BlueprintEntity {
   }
 
   /**
-   * Get the stack name.
+   * Gets the blueprint's stack.
    *
-   * @return the stack name
+   * @return the stack.
    */
-  public String getStackName() {
-    return stackName;
+  public StackEntity getStack() {
+    return stack;
   }
 
   /**
-   * Set the stack name.
+   * Sets the blueprint's stack.
    *
-   * @param stackName  the stack name
+   * @param stack
+   *          the stack to set for the blueprint (not {@code null}).
    */
-  public void setStackName(String stackName) {
-    this.stackName = stackName;
-  }
-
-  /**
-   * Get the stack version.
-   *
-   * @return the stack version
-   */
-  public String getStackVersion() {
-    return stackVersion;
-  }
-
-  /**
-   * Set the stack version.
-   *
-   * @param stackVersion the stack version
-   */
-  public void setStackVersion(String stackVersion) {
-    this.stackVersion = stackVersion;
+  public void setStack(StackEntity stack) {
+    this.stack = stack;
   }
 
   /**
@@ -175,8 +161,9 @@ public class BlueprintEntity {
   public Map<String, Map<String, Collection<String>>> validateConfigurations(
       AmbariMetaInfo stackInfo, boolean validatePasswords) {
 
-    String stackName = getStackName();
-    String stackVersion = getStackVersion();
+    StackEntity stack = getStack();
+    String stackName = stack.getStackName();
+    String stackVersion = stack.getStackVersion();
 
     Map<String, Map<String, Collection<String>>> missingProperties =
         new HashMap<String, Map<String, Collection<String>>>();

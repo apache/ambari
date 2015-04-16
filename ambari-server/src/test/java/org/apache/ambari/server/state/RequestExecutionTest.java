@@ -65,9 +65,8 @@ public class RequestExecutionTest {
     requestScheduleDAO = injector.getInstance(RequestScheduleDAO.class);
 
     clusterName = "foo";
-    clusters.addCluster(clusterName);
+    clusters.addCluster(clusterName, new StackId("HDP-0.1"));
     cluster = clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     Assert.assertNotNull(cluster);
     clusters.addHost("h1");
     clusters.addHost("h2");

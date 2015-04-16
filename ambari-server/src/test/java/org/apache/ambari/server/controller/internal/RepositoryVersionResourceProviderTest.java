@@ -41,8 +41,10 @@ import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.OperatingSystemInfo;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackInfo;
@@ -149,7 +151,10 @@ public class RepositoryVersionResourceProviderTest {
       }
     });
 
-    Mockito.when(clusterVersionDAO.findByStackAndVersion(Mockito.anyString(), Mockito.anyString())).thenAnswer(new Answer<List<ClusterVersionEntity>>() {
+    Mockito.when(
+        clusterVersionDAO.findByStackAndVersion(Mockito.anyString(),
+            Mockito.anyString(), Mockito.anyString())).thenAnswer(
+        new Answer<List<ClusterVersionEntity>>() {
 
       @Override
       public List<ClusterVersionEntity> answer(InvocationOnMock invocation)
@@ -174,6 +179,14 @@ public class RepositoryVersionResourceProviderTest {
     });
 
     injector.getInstance(GuiceJpaInitializer.class);
+
+    // because AmbariMetaInfo is mocked, the stacks are never inserted into
+    // the database, so insert HDP-1.1 manually
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = new StackEntity();
+    stackEntity.setStackName("HDP");
+    stackEntity.setStackVersion("1.1");
+    stackDAO.create(stackEntity);
   }
 
   @Test
@@ -203,12 +216,16 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testGetResources() throws Exception {
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find("HDP", "1.1");
+    Assert.assertNotNull(stackEntity);
+
     final ResourceProvider provider = injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
     final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
     entity.setOperatingSystems(jsonStringRedhat6);
-    entity.setStack("HDP-1.1");
+    entity.setStack(stackEntity);
     entity.setVersion("1.1.1.1");
 
     final Request getRequest = PropertyHelper.getReadRequest(RepositoryVersionResourceProvider.REPOSITORY_VERSION_ID_PROPERTY_ID,
@@ -225,11 +242,15 @@ public class RepositoryVersionResourceProviderTest {
 
   @Test
   public void testValidateRepositoryVersion() throws Exception {
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find("HDP", "1.1");
+    Assert.assertNotNull(stackEntity);
+
     final RepositoryVersionResourceProvider provider = (RepositoryVersionResourceProvider) injector.getInstance(ResourceProviderFactory.class).getRepositoryVersionResourceProvider();
 
     final RepositoryVersionEntity entity = new RepositoryVersionEntity();
     entity.setDisplayName("name");
-    entity.setStack("HDP-1.1");
+    entity.setStack(stackEntity);
     entity.setUpgradePackage("pack1");
     entity.setVersion("1.1");
     entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
@@ -267,7 +288,9 @@ public class RepositoryVersionResourceProviderTest {
     } catch (Exception ex) {
     }
 
-    entity.setStack("BIGTOP");
+    StackEntity bigtop = new StackEntity();
+    stackEntity.setStackName("BIGTOP");
+    entity.setStack(bigtop);
     try {
       provider.validateRepositoryVersion(entity);
       Assert.fail("Should throw exception");
@@ -276,7 +299,7 @@ public class RepositoryVersionResourceProviderTest {
 
     final RepositoryVersionDAO repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     entity.setDisplayName("name");
-    entity.setStack("HDP-1.1");
+    entity.setStack(stackEntity);
     entity.setUpgradePackage("pack1");
     entity.setVersion("1.1");
     entity.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");
@@ -285,7 +308,7 @@ public class RepositoryVersionResourceProviderTest {
     final RepositoryVersionEntity entity2 = new RepositoryVersionEntity();
     entity2.setId(2l);
     entity2.setDisplayName("name2");
-    entity2.setStack("HDP-1.1");
+    entity2.setStack(stackEntity);
     entity2.setUpgradePackage("pack1");
     entity2.setVersion("1.2");
     entity2.setOperatingSystems("[{\"OperatingSystems/os_type\":\"redhat6\",\"repositories\":[{\"Repositories/repo_id\":\"1\",\"Repositories/repo_name\":\"1\",\"Repositories/base_url\":\"http://example.com/repo1\"}]}]");

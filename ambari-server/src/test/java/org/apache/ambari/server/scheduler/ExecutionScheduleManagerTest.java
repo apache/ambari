@@ -117,9 +117,8 @@ public class ExecutionScheduleManagerTest {
     requestExecutionFactory = injector.getInstance(RequestExecutionFactory.class);
 
     clusterName = "c1";
-    clusters.addCluster(clusterName);
+    clusters.addCluster(clusterName, new StackId("HDP-0.1"));
     cluster = clusters.getCluster(clusterName);
-    cluster.setDesiredStackVersion(new StackId("HDP-0.1"));
     Assert.assertNotNull(cluster);
     assertThat(executionScheduler, instanceOf(TestExecutionScheduler.class));
 

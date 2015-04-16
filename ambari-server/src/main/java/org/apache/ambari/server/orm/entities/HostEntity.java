@@ -18,6 +18,11 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import static org.apache.commons.lang.StringUtils.defaultString;
+
+import java.util.Collection;
+import java.util.Collections;
+
 import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,10 +40,6 @@ import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.TableGenerator;
-import java.util.Collection;
-import java.util.Collections;
-
-import static org.apache.commons.lang.StringUtils.defaultString;
 
 @javax.persistence.Table(name = "hosts")
 @Entity
@@ -138,7 +139,7 @@ public class HostEntity implements Comparable<HostEntity> {
   )
   private Collection<ClusterEntity> clusterEntities;
 
-  @OneToOne(mappedBy = "hostEntity", cascade = CascadeType.REMOVE)
+  @OneToOne(mappedBy = "hostEntity", cascade = {CascadeType.REMOVE, CascadeType.PERSIST})
   private HostStateEntity hostStateEntity;
 
   @OneToMany(mappedBy = "host", cascade = CascadeType.REMOVE)
@@ -199,7 +200,7 @@ public class HostEntity implements Comparable<HostEntity> {
   public void setCpuCount(Integer cpuCount) {
     this.cpuCount = cpuCount;
   }
-  
+
   public Integer getPhCpuCount() {
     return phCpuCount;
   }
@@ -207,7 +208,7 @@ public class HostEntity implements Comparable<HostEntity> {
   public void setPhCpuCount(Integer phCpuCount) {
     this.phCpuCount = phCpuCount;
   }
-  
+
   public String getCpuInfo() {
     return defaultString(cpuInfo);
   }
@@ -274,22 +275,26 @@ public class HostEntity implements Comparable<HostEntity> {
 
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     HostEntity that = (HostEntity) o;
 
-    return this.hostId == that.hostId && this.hostName.equals(that.hostName);
+    return hostId == that.hostId && hostName.equals(that.hostName);
   }
 
   @Override
   public int hashCode() {
-    return hostId.hashCode();
+    return (null == hostId ? 0 : hostId.hashCode());
   }
 
   @Override
   public int compareTo(HostEntity other) {
-    return this.hostName.compareTo(other.hostName);
+    return hostName.compareTo(other.hostName);
   }
 
   /**
@@ -382,7 +387,7 @@ public class HostEntity implements Comparable<HostEntity> {
     return hostVersionEntities;
   }
 
-  public void setHostVersionEntities(Collection<HostVersionEntity> hostVersionEntities) { 
+  public void setHostVersionEntities(Collection<HostVersionEntity> hostVersionEntities) {
     this.hostVersionEntities = hostVersionEntities;
   }
 }

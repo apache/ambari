@@ -18,8 +18,9 @@
 
 package org.apache.ambari.server.orm.entities;
 
+import java.util.List;
+
 import javax.persistence.Basic;
-import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -31,11 +32,9 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.persistence.ManyToOne;
-import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.TableGenerator;
-import java.util.Collection;
-import java.util.List;
 
 @Entity
 @Table(name = "serviceconfig")
@@ -96,6 +95,13 @@ public class ServiceConfigEntity {
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
 
+  /**
+   * Unidirectional one-to-one association to {@link StackEntity}
+   */
+  @OneToOne
+  @JoinColumn(name = "stack_id", unique = false, nullable = false, insertable = true, updatable = true)
+  private StackEntity stack;
+
   public Long getServiceConfigId() {
     return serviceConfigId;
   }
@@ -125,7 +131,7 @@ public class ServiceConfigEntity {
   }
 
   public void setCreateTimestamp(Long create_timestamp) {
-    this.createTimestamp = create_timestamp;
+    createTimestamp = create_timestamp;
   }
 
   public List<ClusterConfigEntity> getClusterConfigEntities() {
@@ -182,5 +188,24 @@ public class ServiceConfigEntity {
 
   public void setHostNames(List<String> hostNames) {
     this.hostNames = hostNames;
+  }
+
+  /**
+   * Gets the service configuration's stack.
+   *
+   * @return the stack.
+   */
+  public StackEntity getStack() {
+    return stack;
+  }
+
+  /**
+   * Sets the service configuration's stack.
+   *
+   * @param stack
+   *          the stack to set for the service configuration (not {@code null}).
+   */
+  public void setStack(StackEntity stack) {
+    this.stack = stack;
   }
 }

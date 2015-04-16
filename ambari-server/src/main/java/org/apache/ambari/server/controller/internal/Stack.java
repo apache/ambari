@@ -34,6 +34,7 @@ import org.apache.ambari.server.controller.StackServiceComponentRequest;
 import org.apache.ambari.server.controller.StackServiceComponentResponse;
 import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 
@@ -138,6 +139,22 @@ class Stack {
     public void setAttributes(Map<String, String> attributes) {
       this.attributes = attributes;
     }
+  }
+
+  /**
+   * Constructor.
+   *
+   * @param stack
+   *          the stack (not {@code null}).
+   * @param ambariManagementController
+   *          the management controller (not {@code null}).
+   * @throws AmbariException
+   */
+  public Stack(StackEntity stack,
+      AmbariManagementController ambariManagementController)
+      throws AmbariException {
+    this(stack.getStackName(), stack.getStackVersion(),
+        ambariManagementController);
   }
 
   /**

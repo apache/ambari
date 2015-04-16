@@ -87,6 +87,7 @@ import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceComponentDesiredStateEntityPK;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntityPK;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UserEntity;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
@@ -94,6 +95,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.alert.Scope;
 import org.apache.ambari.server.utils.StageUtils;
@@ -128,12 +130,14 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   public static final String JOBS_VIEW_INSTANCE_NAME = "JOBS_1";
   public static final String SHOW_JOBS_FOR_NON_ADMIN_KEY = "showJobsForNonAdmin";
   public static final String JOBS_VIEW_INSTANCE_LABEL = "Jobs";
-  public static final String CLUSTER_STATE_STACK_HDP_2_1 = "{\"stackName\":\"HDP\",\"stackVersion\":\"2.1\"}";
   public static final String YARN_TIMELINE_SERVICE_WEBAPP_ADDRESS_PROPERTY = "yarn.timeline-service.webapp.address";
   public static final String YARN_RESOURCEMANAGER_WEBAPP_ADDRESS_PROPERTY = "yarn.resourcemanager.webapp.address";
   public static final String YARN_SITE = "yarn-site";
   public static final String YARN_ATS_URL_PROPERTY = "yarn.ats.url";
   public static final String YARN_RESOURCEMANAGER_URL_PROPERTY = "yarn.resourcemanager.url";
+
+  public static final StackId CLUSTER_STATE_STACK_HDP_2_1 = new StackId("HDP",
+      "2.1");
 
   //SourceVersion is only for book-keeping purpos
   @Override
@@ -759,7 +763,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
       serviceComponentDesiredStateEntity.setServiceName(serviceName);
       serviceComponentDesiredStateEntity.setComponentName(serviceComponentDesiredStateEntityToDelete.getComponentName());
       serviceComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
-      serviceComponentDesiredStateEntity.setDesiredStackVersion(serviceComponentDesiredStateEntityToDelete.getDesiredStackVersion());
+      serviceComponentDesiredStateEntity.setDesiredStack(serviceComponentDesiredStateEntityToDelete.getDesiredStack());
       serviceComponentDesiredStateEntity.setDesiredState(serviceComponentDesiredStateEntityToDelete.getDesiredState());
       serviceComponentDesiredStateEntity.setClusterServiceEntity(clusterServiceEntity);
 
@@ -771,7 +775,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         HostComponentDesiredStateEntity hostComponentDesiredStateEntity = new HostComponentDesiredStateEntity();
         hostComponentDesiredStateEntity.setClusterId(clusterEntity.getClusterId());
         hostComponentDesiredStateEntity.setComponentName(hcDesiredStateEntityToBeDeleted.getComponentName());
-        hostComponentDesiredStateEntity.setDesiredStackVersion(hcDesiredStateEntityToBeDeleted.getDesiredStackVersion());
+        hostComponentDesiredStateEntity.setDesiredStack(hcDesiredStateEntityToBeDeleted.getDesiredStack());
         hostComponentDesiredStateEntity.setDesiredState(hcDesiredStateEntityToBeDeleted.getDesiredState());
         hostComponentDesiredStateEntity.setHostEntity(hcDesiredStateEntityToBeDeleted.getHostEntity());
         hostComponentDesiredStateEntity.setAdminState(hcDesiredStateEntityToBeDeleted.getAdminState());
@@ -793,7 +797,7 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         HostComponentStateEntity hostComponentStateEntity = new HostComponentStateEntity();
         hostComponentStateEntity.setClusterId(clusterEntity.getClusterId());
         hostComponentStateEntity.setComponentName(hcStateToBeDeleted.getComponentName());
-        hostComponentStateEntity.setCurrentStackVersion(hcStateToBeDeleted.getCurrentStackVersion());
+        hostComponentStateEntity.setCurrentStack(hcStateToBeDeleted.getCurrentStack());
         hostComponentStateEntity.setCurrentState(hcStateToBeDeleted.getCurrentState());
         hostComponentStateEntity.setHostEntity(hcStateToBeDeleted.getHostEntity());
         hostComponentStateEntity.setServiceName(serviceName);
@@ -827,6 +831,8 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     for (ConfigGroupConfigMappingEntity entity : configGroupsWithGlobalConfigs) {
       String configData = entity.getClusterConfigEntity().getData();
+      StackEntity stackEntity = entity.getClusterConfigEntity().getStack();
+
       Map<String, String> properties = StageUtils.getGson().fromJson(configData, type);
       Cluster cluster = ambariManagementController.getClusters().getClusterById(entity.getClusterId());
       HashMap<String, HashMap<String, String>> configs = new HashMap<String, HashMap<String, String>>();
@@ -866,8 +872,9 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
         clusterConfigEntity.setTag(tag);
         clusterConfigEntity.setTimestamp(new Date().getTime());
         clusterConfigEntity.setData(StageUtils.getGson().toJson(config.getValue()));
-        clusterDAO.createConfig(clusterConfigEntity);
+        clusterConfigEntity.setStack(stackEntity);
 
+        clusterDAO.createConfig(clusterConfigEntity);
 
         ConfigGroupConfigMappingEntity configGroupConfigMappingEntity = new ConfigGroupConfigMappingEntity();
         configGroupConfigMappingEntity.setTimestamp(System.currentTimeMillis());
@@ -1400,8 +1407,14 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     List<ClusterEntity> clusters = clusterDAO.findAll();
     if (!clusters.isEmpty()) {
       ClusterEntity currentCluster = clusters.get(0);
-      String currentStackVersion = currentCluster.getClusterStateEntity().getCurrentStackVersion();
-      if (CLUSTER_STATE_STACK_HDP_2_1.equals(currentStackVersion)) {
+      StackEntity currentStack = currentCluster.getClusterStateEntity().getCurrentStack();
+
+      boolean isStackHdp21 = CLUSTER_STATE_STACK_HDP_2_1.getStackName().equals(
+          currentStack.getStackName())
+          && CLUSTER_STATE_STACK_HDP_2_1.getStackVersion().equals(
+              currentStack.getStackVersion());
+
+      if (isStackHdp21) {
         ViewRegistry.initInstance(viewRegistry);
         viewRegistry.readViewArchives(VIEW_NAME_REG_EXP);
         ViewEntity jobsView = viewDAO.findByCommonName(JOBS_VIEW_NAME);

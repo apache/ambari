@@ -48,15 +48,14 @@ import org.apache.ambari.server.state.RepositoryVersionState;
 @NamedQueries({
     @NamedQuery(name = "clusterVersionByClusterAndStackAndVersion", query =
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
-        "WHERE cluster.clusterName=:clusterName AND clusterVersion.repositoryVersion.stack=:stack AND clusterVersion.repositoryVersion.version=:version"),
+        "WHERE cluster.clusterName=:clusterName AND clusterVersion.repositoryVersion.stack.stackName=:stackName AND clusterVersion.repositoryVersion.stack.stackVersion=:stackVersion AND clusterVersion.repositoryVersion.version=:version"),
     @NamedQuery(name = "clusterVersionByClusterAndState", query =
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
         "WHERE cluster.clusterName=:clusterName AND clusterVersion.state=:state"),
     @NamedQuery(name = "clusterVersionByCluster", query =
         "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion JOIN clusterVersion.clusterEntity cluster " +
         "WHERE cluster.clusterName=:clusterName"),
-    @NamedQuery(name = "clusterVersionByStackVersion",
-        query = "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion WHERE clusterVersion.repositoryVersion.stack=:stack AND clusterVersion.repositoryVersion.version=:version"),
+    @NamedQuery(name = "clusterVersionByStackVersion", query = "SELECT clusterVersion FROM ClusterVersionEntity clusterVersion WHERE clusterVersion.repositoryVersion.stack.stackName=:stackName AND clusterVersion.repositoryVersion.stack.stackVersion=:stackVersion AND clusterVersion.repositoryVersion.version=:version"),
 })
 public class ClusterVersionEntity {
 
@@ -107,9 +106,9 @@ public class ClusterVersionEntity {
    * @param userName User who performed the action
    */
   public ClusterVersionEntity(ClusterEntity cluster, RepositoryVersionEntity repositoryVersion, RepositoryVersionState state, long startTime, String userName) {
-    this.clusterId = cluster.getClusterId();
+    clusterId = cluster.getClusterId();
     this.repositoryVersion = repositoryVersion;
-    this.clusterEntity = cluster;
+    clusterEntity = cluster;
     this.state = state;
     this.startTime = startTime;
     this.userName = userName;
@@ -192,13 +191,13 @@ public class ClusterVersionEntity {
 
     ClusterVersionEntity that = (ClusterVersionEntity) o;
 
-    if (this.id != that.id
-        || this.clusterId != that.clusterId
-        || !this.repositoryVersion.equals(that.repositoryVersion)
-        || !this.state.equals(that.state)
-        || !this.startTime.equals(that.startTime)
-        || !this.endTime.equals(that.endTime)
-        || !this.userName.equals(that.userName)) {
+    if (id != that.id
+        || clusterId != that.clusterId
+        || !repositoryVersion.equals(that.repositoryVersion)
+        || !state.equals(that.state)
+        || !startTime.equals(that.startTime)
+        || !endTime.equals(that.endTime)
+        || !userName.equals(that.userName)) {
       return false;
     }
 

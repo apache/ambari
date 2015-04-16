@@ -536,16 +536,17 @@ public class UpgradeHelperTest {
 
     String clusterName = "c1";
 
-    clusters.addCluster(clusterName);
-
+    StackId stackId = new StackId("HDP-2.1.1");
+    clusters.addCluster(clusterName, stackId);
     Cluster c = clusters.getCluster(clusterName);
-    c.setDesiredStackVersion(new StackId("HDP-2.1.1"));
 
-    helper.getOrCreateRepositoryVersion(c.getDesiredStackVersion().getStackName(),
+    helper.getOrCreateRepositoryVersion(stackId,
         c.getDesiredStackVersion().getStackVersion());
 
-    c.createClusterVersion(c.getDesiredStackVersion().getStackName(),
-        c.getDesiredStackVersion().getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(stackId,
+        c.getDesiredStackVersion().getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
+
     for (int i = 0; i < 4; i++) {
       String hostName = "h" + (i+1);
       clusters.addHost(hostName);

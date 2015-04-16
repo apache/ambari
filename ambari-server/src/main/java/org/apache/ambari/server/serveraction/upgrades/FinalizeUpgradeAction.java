@@ -51,9 +51,9 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang.text.StrBuilder;
 
 import com.google.inject.Inject;
-import org.apache.commons.lang.text.StrBuilder;
 
 /**
  * Action that represents finalizing the Upgrade by completing any database changes.
@@ -122,8 +122,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
       Cluster cluster = clusters.getCluster(clusterName);
 
-      StackId stack = cluster.getCurrentStackVersion();
-      String stackId = stack.getStackId();
+      StackId stackId = cluster.getCurrentStackVersion();
       ClusterVersionEntity upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
           stackId, version);
 
@@ -153,7 +152,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
             // It is possible that the host version has a state of INSTALLED and it never changed if the host only has
             // components that do not advertise a version.
             HostEntity host = hostVersion.getHostEntity();
-            ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(ambariMetaInfo, host, stack);
+            ServiceComponentHostSummary hostSummary = new ServiceComponentHostSummary(
+                ambariMetaInfo, host, stackId);
             if (hostSummary.haveAllComponentsFinishedAdvertisingVersion()){
               isStateCorrect = true;
               atLeastOneHostInInstalledState = true;
@@ -179,11 +179,12 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         throw new AmbariException(message);
       }
 
-      checkHostComponentVesions(cluster, version, stack);
+      checkHostComponentVesions(cluster, version, stackId);
 
       // May need to first transition to UPGRADED
       if (atLeastOneHostInInstalledState) {
-        cluster.transitionClusterVersion(stackId, version, RepositoryVersionState.UPGRADED);
+        cluster.transitionClusterVersion(stackId, version,
+            RepositoryVersionState.UPGRADED);
         upgradingClusterVersion = clusterVersionDAO.findByClusterAndStackAndVersion(clusterName,
             stackId, version);
       }
@@ -210,7 +211,8 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       cluster.mapHostVersions(hostsToUpdate, upgradingClusterVersion, RepositoryVersionState.CURRENT);
 
       outSB.append(String.format("Will finalize the version for cluster %s.\n", clusterName));
-      cluster.transitionClusterVersion(stackId, version, RepositoryVersionState.CURRENT);
+      cluster.transitionClusterVersion(stackId, version,
+          RepositoryVersionState.CURRENT);
 
       outSB.append("Upgrade was successful!\n");
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outSB.toString(), errSB.toString());
@@ -278,7 +280,7 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       Set<String> badHosts = new HashSet<String>();
       for (String badVersion : badVersions) {
         List<HostVersionEntity> hostVersions = hostVersionDAO.findByClusterStackAndVersion(
-            clusterName, stackId.getStackId(), badVersion);
+            clusterName, stackId, badVersion);
 
         for (HostVersionEntity hostVersion : hostVersions) {
           badHosts.add(hostVersion.getHostName());

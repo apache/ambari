@@ -359,11 +359,13 @@ public class HostTest {
   public void testHostDesiredConfig() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
 
-    clusters.addCluster("c1");
-    Cluster c1 = clusters.getCluster("c1");
     StackId stackId = new StackId("HDP-0.1");
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+    clusters.addCluster("c1", stackId);
+    Cluster c1 = clusters.getCluster("c1");
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     Assert.assertEquals("c1", c1.getClusterName());
     Assert.assertEquals(1, c1.getClusterId());
     clusters.addHost("h1");
@@ -420,7 +422,8 @@ public class HostTest {
   public void testHostMaintenance() throws Exception {
     AmbariMetaInfo metaInfo = injector.getInstance(AmbariMetaInfo.class);
 
-    clusters.addCluster("c1");
+    StackId stackId = new StackId("HDP-0.1");
+    clusters.addCluster("c1", stackId);
     Cluster c1 = clusters.getCluster("c1");
     Assert.assertEquals("c1", c1.getClusterName());
     Assert.assertEquals(1, c1.getClusterId());
@@ -435,9 +438,10 @@ public class HostTest {
     host.setHostAttributes(hostAttributes);
 
     host.persist();
-    StackId stackId = new StackId("HDP-0.1");
-    helper.getOrCreateRepositoryVersion(stackId.getStackName(), stackId.getStackVersion());
-    c1.createClusterVersion(stackId.getStackName(), stackId.getStackVersion(), "admin", RepositoryVersionState.UPGRADING);
+
+    helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
+    c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
+        RepositoryVersionState.UPGRADING);
     c1.setDesiredStackVersion(stackId);
     clusters.mapHostToCluster("h1", "c1");
 

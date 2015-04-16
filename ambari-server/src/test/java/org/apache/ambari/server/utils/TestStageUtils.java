@@ -202,8 +202,8 @@ public class TestStageUtils {
         null,
         8673);
 
-    fsm.addCluster("c1");
-    fsm.getCluster("c1").setDesiredStackVersion(new StackId(STACK_ID));
+    StackId stackId = new StackId(STACK_ID);
+    fsm.addCluster("c1", stackId);
 
     int index = 0;
 

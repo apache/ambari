@@ -39,8 +39,10 @@ import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Host;
@@ -84,13 +86,11 @@ public class UpgradeActionTest {
     String clusterName = "c1";
     String hostName = "h1";
 
-    Clusters clusters = m_injector.getInstance(Clusters.class);
-    clusters.addCluster(clusterName);
-
     StackId stackId = new StackId("HDP-2.1.1");
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    clusters.addCluster(clusterName, stackId);
 
     Cluster c = clusters.getCluster(clusterName);
-    c.setDesiredStackVersion(stackId);
 
     // add a host component
     clusters.addHost(hostName);
@@ -106,20 +106,23 @@ public class UpgradeActionTest {
 
     OrmTestHelper helper = m_injector.getInstance(OrmTestHelper.class);
 
-    helper.getOrCreateRepositoryVersion(stackId.getStackId(), DOWNGRADE_VERSION);
-    helper.getOrCreateRepositoryVersion(stackId.getStackId(), UPGRADE_VERSION);
+    helper.getOrCreateRepositoryVersion(stackId, DOWNGRADE_VERSION);
+    helper.getOrCreateRepositoryVersion(stackId, UPGRADE_VERSION);
 
     RepositoryVersionDAO repoVersionDao = m_injector.getInstance(RepositoryVersionDAO.class);
     HostVersionDAO hostVersionDao = m_injector.getInstance(HostVersionDAO.class);
 
-    c.createClusterVersion(stackId.getStackId(), DOWNGRADE_VERSION, "admin",
+    c.createClusterVersion(stackId, DOWNGRADE_VERSION, "admin",
         RepositoryVersionState.UPGRADING);
-    c.createClusterVersion(stackId.getStackId(), UPGRADE_VERSION, "admin",
+    c.createClusterVersion(stackId, UPGRADE_VERSION, "admin",
         RepositoryVersionState.INSTALLING);
 
-    c.transitionClusterVersion(stackId.getStackId(), DOWNGRADE_VERSION, RepositoryVersionState.CURRENT);
-    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(stackId, DOWNGRADE_VERSION,
+        RepositoryVersionState.CURRENT);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
+        RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
+        RepositoryVersionState.UPGRADING);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
         RepositoryVersionState.CURRENT);
@@ -129,8 +132,8 @@ public class UpgradeActionTest {
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
     entity.setHostName(hostName);
-    entity.setRepositoryVersion(
-        repoVersionDao.findByStackAndVersion(stackId.getStackId(), UPGRADE_VERSION));
+    entity.setRepositoryVersion(repoVersionDao.findByStackAndVersion(stackId,
+        UPGRADE_VERSION));
     entity.setState(RepositoryVersionState.UPGRADING);
     hostVersionDao.create(entity);
   }
@@ -139,10 +142,15 @@ public class UpgradeActionTest {
     String clusterName = "c1";
     String hostName = "h1";
 
-    Clusters clusters = m_injector.getInstance(Clusters.class);
-    clusters.addCluster(clusterName);
-
     StackId stackId = new StackId("HDP-2.1.1");
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    clusters.addCluster(clusterName, stackId);
+
+    StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    assertNotNull(stackEntity);
 
     Cluster c = clusters.getCluster(clusterName);
     c.setDesiredStackVersion(stackId);
@@ -165,24 +173,28 @@ public class UpgradeActionTest {
         "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.1.1'}" +
         "], 'OperatingSystems/os_type':'redhat6'}]";
 
-    helper.getOrCreateRepositoryVersion(stackId.getStackId(), DOWNGRADE_VERSION);
-//    helper.getOrCreateRepositoryVersion(stackId.getStackId(), UPGRADE_VERSION);
-    repositoryVersionDAO.create(
-        stackId.getStackId (), UPGRADE_VERSION, String.valueOf(System.currentTimeMillis()), "pack",
+    helper.getOrCreateRepositoryVersion(stackId, DOWNGRADE_VERSION);
+
+    repositoryVersionDAO.create(stackEntity, UPGRADE_VERSION,
+        String.valueOf(System.currentTimeMillis()), "pack",
           urlInfo);
 
     RepositoryVersionDAO repoVersionDao = m_injector.getInstance(RepositoryVersionDAO.class);
     HostVersionDAO hostVersionDao = m_injector.getInstance(HostVersionDAO.class);
 
-    c.createClusterVersion(stackId.getStackId(), DOWNGRADE_VERSION, "admin",
+    c.createClusterVersion(stackId, DOWNGRADE_VERSION, "admin",
         RepositoryVersionState.UPGRADING);
-    c.createClusterVersion(stackId.getStackId(), UPGRADE_VERSION, "admin",
+    c.createClusterVersion(stackId, UPGRADE_VERSION, "admin",
         RepositoryVersionState.INSTALLING);
 
-    c.transitionClusterVersion(stackId.getStackId(), DOWNGRADE_VERSION, RepositoryVersionState.CURRENT);
-    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(stackId.getStackId(), UPGRADE_VERSION, RepositoryVersionState.UPGRADED);
+    c.transitionClusterVersion(stackId, DOWNGRADE_VERSION,
+        RepositoryVersionState.CURRENT);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
+        RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
+        RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(stackId, UPGRADE_VERSION,
+        RepositoryVersionState.UPGRADED);
     c.setCurrentStackVersion(stackId);
 
     c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
@@ -193,8 +205,8 @@ public class UpgradeActionTest {
     HostVersionEntity entity = new HostVersionEntity();
     entity.setHostEntity(hostDAO.findByName(hostName));
     entity.setHostName(hostName);
-    entity.setRepositoryVersion(
-        repoVersionDao.findByStackAndVersion(stackId.getStackId(), UPGRADE_VERSION));
+    entity.setRepositoryVersion(repoVersionDao.findByStackAndVersion(stackId,
+        UPGRADE_VERSION));
     entity.setState(RepositoryVersionState.UPGRADED);
     hostVersionDao.create(entity);
   }

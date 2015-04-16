@@ -28,6 +28,7 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.internal.CalculatedStatus;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
@@ -54,15 +55,16 @@ import com.google.inject.persist.PersistService;
 public class RequestDAOTest {
   private Injector injector;
   private ClusterDAO clusterDAO;
-  StageDAO stageDAO;
-  HostRoleCommandDAO hostRoleCommandDAO;
-  HostDAO hostDAO;
-  RequestDAO requestDAO;
+  private StageDAO stageDAO;
+  private HostRoleCommandDAO hostRoleCommandDAO;
+  private HostDAO hostDAO;
+  private RequestDAO requestDAO;
 
   @Before
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    injector.getInstance(AmbariMetaInfo.class);
 
     clusterDAO = injector.getInstance(ClusterDAO.class);
     stageDAO = injector.getInstance(StageDAO.class);

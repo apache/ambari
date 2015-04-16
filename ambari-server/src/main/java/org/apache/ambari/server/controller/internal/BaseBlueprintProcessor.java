@@ -18,7 +18,12 @@
 
 package org.apache.ambari.server.controller.internal;
 
-import com.google.gson.Gson;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StackAccessException;
@@ -31,6 +36,7 @@ import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
@@ -40,12 +46,7 @@ import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DependencyInfo;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import com.google.gson.Gson;
 
 /**
  * Base blueprint processing resource provider.
@@ -60,10 +61,15 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   protected static BlueprintDAO blueprintDAO;
 
   /**
+   * Data access object used to lookup value stacks parsed from the resources.
+   */
+  protected static StackDAO stackDAO;
+
+  /**
    * Stack related information.
    */
   protected static AmbariMetaInfo stackInfo;
-  
+
   protected static ConfigHelper configHelper;
 
 
@@ -121,11 +127,11 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
   protected Stack parseStack(BlueprintEntity blueprint) throws SystemException {
     Stack stack;
     try {
-      stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion(), getManagementController());
+      stack = new Stack(blueprint.getStack(), getManagementController());
     } catch (StackAccessException e) {
-      throw new IllegalArgumentException("Invalid stack information provided for cluster.  " +
-          "stack name: " + blueprint.getStackName() +
-          " stack version: " + blueprint.getStackVersion());
+      throw new IllegalArgumentException(
+          "Invalid stack information provided for cluster. "
+              + blueprint.getStack());
     } catch (AmbariException e) {
       throw new SystemException("Unable to obtain stack information.", e);
     }
@@ -146,7 +152,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
    * @throws IllegalArgumentException when validation fails
    */
   protected BlueprintEntity validateTopology(BlueprintEntity blueprint) throws AmbariException {
-    Stack stack = new Stack(blueprint.getStackName(), blueprint.getStackVersion(), getManagementController());
+    Stack stack = new Stack(blueprint.getStack(), getManagementController());
     Map<String, HostGroupImpl> hostGroupMap = parseBlueprintHostGroups(blueprint, stack);
     Collection<HostGroupImpl> hostGroups = hostGroupMap.values();
     Map<String, Map<String, String>> clusterConfig = processBlueprintConfigurations(blueprint, null);
@@ -595,12 +601,12 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
 
     @Override
     public Collection<String> getComponents() {
-      return this.components;
+      return components;
     }
 
     @Override
     public Collection<String> getHostInfo() {
-      return this.hosts;
+      return hosts;
     }
 
     /**
@@ -609,7 +615,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      * @param fqdn  fully qualified domain name of the host being added
      */
     public void addHostInfo(String fqdn) {
-      this.hosts.add(fqdn);
+      hosts.add(fqdn);
     }
 
     /**
@@ -661,6 +667,7 @@ public abstract class BaseBlueprintProcessor extends AbstractControllerResourceP
      *
      * @return map of configuration type to a map of properties
      */
+    @Override
     public Map<String, Map<String, String>> getConfigurationProperties() {
       return configurations;
     }
