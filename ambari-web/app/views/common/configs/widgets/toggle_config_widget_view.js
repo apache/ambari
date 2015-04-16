@@ -44,23 +44,23 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
 
   /**
    * Update config value using <code>switcherValue</code>.
-   * switcherValue is boolean, but config value should be a string 'true'|'false'.
+   * switcherValue is boolean, but config value should be a string.
    *
    * @method updateConfigValue
    */
   updateConfigValue: function () {
-    this.set('config.value', '' + this.get('switcherValue'));
+    this.set('config.value', this.get('config.stackConfigProperty.valueAttributes.entries')[this.get('switcherValue') ? 0 : 1].value);
   },
 
   /**
    * Get value for <code>switcherValue</code> (boolean) using <code>config.value</code> (string).
    *
    * @param configValue
-   * @returns {boolean} true for 'true', false for 'false'
+   * @returns {boolean}
    * @method getNewSwitcherValue
    */
   getNewSwitcherValue: function (configValue) {
-    return 'true' === configValue;
+    return this.get('config.stackConfigProperty.valueAttributes.entries')[0].value === '' + configValue;
   },
 
   didInsertElement: function () {
@@ -71,8 +71,22 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
       this.toggleWidgetState();
       this.initPopover();
     }.bind(this), 10);
-    this.addObserver('switcherValue', this.updateConfigValue);
+    this.addObserver('switcherValue', this, this.updateConfigValue);
     this._super();
+  },
+
+  /**
+   * Value may be changed after recommendations are received
+   * So, switcher should be updated too
+   *
+   * @method setValue
+   */
+  setValue: function (configValue) {
+    var value = this.getNewSwitcherValue(configValue);
+    if (this.get('switcherValue') !== value) {
+      this.get('switcher').bootstrapSwitch('toggleState', value);
+      this.set('switcherValue', value);
+    }
   },
 
   /**
@@ -83,6 +97,7 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   initSwitcher: function () {
     var labels = this.get('config.stackConfigProperty.valueAttributes.entries'),
       self = this;
+    Em.assert('toggle for `' + this.get('config.name') + '` should contain two entries', labels.length === 2);
     if (this.$()) {
       var switcher = this.$("input").bootstrapSwitch({
         onText: labels[0].label,

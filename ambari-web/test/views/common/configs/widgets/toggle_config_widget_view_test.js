@@ -27,13 +27,16 @@ describe('App.ToggleConfigWidgetView', function () {
       initPopover: Em.K,
       config: Em.Object.create({
         name: 'a.b.c',
-        value: 'true',
-        defaultValue: 'true',
+        value: 'active',
+        defaultValue: 'active',
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
             "type": "value-list",
-            "entries": ["true", "false"],
-            "entry_labels": ["Active", "Inactive"],
+            "entries":
+              [
+                {value: "active", label: "Active"},
+                {value: "inactive", label: "Inactive"}
+              ],
             "entries_editable": "false",
             "selection_cardinality": 1
           }
@@ -51,8 +54,8 @@ describe('App.ToggleConfigWidgetView', function () {
   describe('#getNewSwitcherValue', function () {
 
     it('should represent string value to boolean', function () {
-      expect(this.view.getNewSwitcherValue('false')).to.be.false;
-      expect(this.view.getNewSwitcherValue('true')).to.be.true;
+      expect(this.view.getNewSwitcherValue('inactive')).to.be.false;
+      expect(this.view.getNewSwitcherValue('active')).to.be.true;
     });
 
   });
@@ -61,9 +64,9 @@ describe('App.ToggleConfigWidgetView', function () {
 
     it('should represent boolean value to string', function () {
       this.view.set('switcherValue', false);
-      expect(this.view.get('config.value')).to.equal('false');
+      expect(this.view.get('config.value')).to.equal('inactive');
       this.view.set('switcherValue', true);
-      expect(this.view.get('config.value')).to.equal('true');
+      expect(this.view.get('config.value')).to.equal('active');
     });
 
   });
