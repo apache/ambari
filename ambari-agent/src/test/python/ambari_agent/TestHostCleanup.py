@@ -67,9 +67,9 @@ pkg_list = sqoop.noarch,hadoop-libhdfs.x86_64,rrdtool.x86_64,ganglia-gmond.x86_6
 [metadata]
 created = 2013-07-02 20:39:22.162757"""
 
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from only_for_platform import only_for_platform, not_for_platform, PLATFORM_WINDOWS, PLATFORM_LINUX
 
-@only_for_platform(PLATFORM_LINUX)
+@not_for_platform(PLATFORM_WINDOWS)
 class TestHostCleanup(TestCase):
 
   def setUp(self):

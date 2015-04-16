@@ -27,10 +27,10 @@ from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_commons import shell
 from ambari_commons.shell import shellRunner
 from sys import platform as _platform
-from only_for_platform import only_for_platform, PLATFORM_LINUX
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 import subprocess, time
 
-@only_for_platform(PLATFORM_LINUX)
+@not_for_platform(PLATFORM_WINDOWS)
 class TestShell(unittest.TestCase):
 
 

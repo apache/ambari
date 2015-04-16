@@ -25,8 +25,9 @@ import unittest
 from mock.mock import patch, MagicMock
 from ambari_agent import ProcessHelper
 
-from only_for_platform import only_for_platform, PLATFORM_LINUX
-@only_for_platform(PLATFORM_LINUX)
+from only_for_platform import not_for_platform, PLATFORM_WINDOWS
+
+@not_for_platform(PLATFORM_WINDOWS)
 class TestProcessHelper(unittest.TestCase):
 
   @patch.object(ProcessHelper, "getTempFiles")
