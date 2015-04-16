@@ -404,6 +404,12 @@ if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
 elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
   ranger_jdbc_jar_name = "ojdbc6.jar"
   ranger_jdbc_symlink_name = "oracle-jdbc-driver.jar"
+elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'postgres':
+  ranger_jdbc_jar_name = "postgresql.jar"
+  ranger_jdbc_symlink_name = "postgres-jdbc-driver.jar"
+elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'sqlserver':
+  ranger_jdbc_jar_name = "sqljdbc4.jar"
+  ranger_jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
 ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
 

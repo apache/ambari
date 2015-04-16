@@ -191,6 +191,12 @@ if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
 elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
+elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'postgres':
+  jdbc_jar_name = "postgresql.jar"
+  jdbc_symlink_name = "postgres-jdbc-driver.jar"
+elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'sqlserver':
+  jdbc_jar_name = "sqljdbc4.jar"
+  jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
