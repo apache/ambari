@@ -86,6 +86,16 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     return step ? parseFunction(step) : this.get('unitType') === 'int' ? 1 : 0.1;
   }.property('config.stackConfigProperty.valueAttributes.increment_step'),
 
+
+  /**
+   * Default value of config property transformed according widget format
+   * @returns {Number}
+   */
+  widgetDefaultValue: function() {
+    var parseFunction = this.get('mirrorValueParseFunction');
+    return parseFunction(this.widgetValueByConfigAttributes(this.get('config.defaultValue')));
+  }.property('config.defaultValue'),
+
   /**
    * unit type of widget
    * @type {String}
@@ -327,7 +337,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   restoreValue: function () {
     this._super();
-    this.get('slider').setValue();
+    this.get('slider').setValue(this.get('widgetDefaultValue'));
   },
 
   /**
