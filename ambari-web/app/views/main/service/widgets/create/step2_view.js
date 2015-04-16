@@ -20,14 +20,6 @@ App.WidgetWizardStep2View = Em.View.extend({
 
   templateName: require('templates/main/service/widgets/create/step2'),
 
-  EXPRESSION_PREFIX: 'Expression',
-
-  /**
-   * content of template of Template widget
-   * @type {string}
-   */
-  templateValue: '',
-
   /**
    * calculate template by widget type
    */
@@ -49,109 +41,11 @@ App.WidgetWizardStep2View = Em.View.extend({
     }
   }.property('controller.content.widgetType'),
 
-  /**
-   * @type {Array}
-   */
-  expressions: [],
-
-  /**
-   * used only for GRAPH widget
-   * @type {Array}
-   */
-  dataSets: [],
-
-  /**
-   * @type {boolean}
-   */
-  isSubmitDisabled: function() {
-    if (this.get('controller.widgetPropertiesViews').someProperty('isValid', false)) {
-      return true;
-    }
-    switch (this.get('controller.content.widgetType')) {
-      case "NUMBER":
-      case "GAUGE":
-        return this.get('expressions')[0] &&
-          (this.get('expressions')[0].get('editMode') ||
-          this.get('expressions')[0].get('data.length') === 0);
-      case "GRAPH":
-        return this.get('dataSets.length') > 0 &&
-          (this.get('dataSets').someProperty('expression.editMode') ||
-          this.get('dataSets').someProperty('expression.data.length', 0));
-      case "TEMPLATE":
-        return !this.get('templateValue') ||
-          this.get('expressions.length') > 0 &&
-          (this.get('expressions').someProperty('editMode') ||
-          this.get('expressions').someProperty('data.length', 0));
-    }
-    return false;
-  }.property('controller.widgetProperties.@each.isValid',
-             'expressions.@each.editMode',
-             'dataSets.@each.expression'),
-
-  /**
-   * Add data set
-   * @param {object|null} event
-   * @param {boolean} isDefault
-   */
-  addDataSet: function(event, isDefault) {
-    var id = (isDefault) ? 1 :(Math.max.apply(this, this.get('dataSets').mapProperty('id')) + 1);
-
-    this.get('dataSets').pushObject(Em.Object.create({
-      id: id,
-      label: '',
-      isRemovable: !isDefault,
-      expression: Em.Object.create({
-        data: [],
-        editMode: false
-      })
-    }));
-  },
-
-  /**
-   * Remove data set
-   * @param {object} event
-   */
-  removeDataSet: function(event) {
-    this.get('dataSets').removeObject(event.context);
-  },
-
-  /**
-   * Add expression
-   * @param {object|null} event
-   * @param {boolean} isDefault
-   */
-  addExpression: function(event, isDefault) {
-    var id = (isDefault) ? 1 :(Math.max.apply(this, this.get('expressions').mapProperty('id')) + 1);
-
-    this.get('expressions').pushObject(Em.Object.create({
-      id: id,
-      isRemovable: !isDefault,
-      data: [],
-      alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
-      editMode: false
-    }));
-  },
-
-  /**
-   * Remove expression
-   * @param {object} event
-   */
-  removeExpression: function(event) {
-    this.get('expressions').removeObject(event.context);
-  },
-
-  updatePreview: function() {
-    this.get('controller').updateExpressions(this);
-  }.observes('templateValue', 'dataSets.@each.label'),
-
   didInsertElement: function () {
     var controller = this.get('controller');
+    controller.initWidgetData();
     controller.renderProperties();
-    this.get('expressions').clear();
-    this.get('dataSets').clear();
-    this.addExpression(null, true);
-    this.addDataSet(null, true);
-    controller.updateExpressions(this);
+    controller.updateExpressions();
   }
 });
 

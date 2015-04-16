@@ -148,7 +148,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
     }
 
     this.set('isInvalid', isInvalid);
-    if (!isInvalid) this.get('parentView').updatePreview();
+    if (!isInvalid) this.get('controller').updateExpressions();
   }.observes('expression.data.length'),
 
   /**
@@ -201,6 +201,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
          * @default null
          */
         selectedComponent: null,
+
+        showMore: Em.K,
 
         selectComponents: function (event) {
           var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))

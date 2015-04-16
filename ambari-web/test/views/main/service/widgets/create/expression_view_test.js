@@ -24,8 +24,8 @@ describe('App.WidgetWizardExpressionView', function () {
     expression: {
       data: []
     },
-    parentView: Em.Object.create({
-      updatePreview: Em.K
+    controller: Em.Object.create({
+      updateExpressions: Em.K
     })
   });
 

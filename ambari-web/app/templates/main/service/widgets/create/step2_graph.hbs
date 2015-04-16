@@ -24,7 +24,7 @@
   </div>
 </div>
 
-{{#each dataSet in view.dataSets}}
+{{#each dataSet in dataSets}}
   <fieldset>
     <legend>{{t common.dataSet}}&nbsp;{{dataSet.id}}</legend>
     <h5>
@@ -33,13 +33,13 @@
     <h5>{{t common.expression}}:</h5>
     {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
     {{#if dataSet.isRemovable}}
-      <a {{action removeDataSet dataSet target="view"}} class="remove-link"><i class="icon-trash"></i></a>
+      <a {{action removeDataSet dataSet target="controller"}} class="remove-link"><i class="icon-trash"></i></a>
     {{/if}}
   </fieldset>
 {{/each}}
 
 <div class="align-right">
-  <a href="#" {{action addDataSet target="view"}}>
+  <a href="#" {{action addDataSet target="controller"}}>
     <i class="icon-plus"></i>
     {{t widget.create.wizard.step2.addDataset}}
   </a>

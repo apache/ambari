@@ -21,11 +21,7 @@ var App = require('app');
 App.WidgetWizardStep2Controller = Em.Controller.extend({
   name: "widgetWizardStep2Controller",
 
-  /**
-   * views of properties
-   * @type {Array}
-   */
-  widgetPropertiesViews: [],
+  EXPRESSION_PREFIX: 'Expression',
 
   /**
    * actual values of properties in API format
@@ -42,6 +38,29 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @type {Array}
    */
   widgetMetrics: [],
+
+  /**
+   * @type {Array}
+   */
+  expressions: [],
+
+  /**
+   * used only for GRAPH widget
+   * @type {Array}
+   */
+  dataSets: [],
+
+  /**
+   * content of template of Template widget
+   * @type {string}
+   */
+  templateValue: '',
+
+  /**
+   * views of properties
+   * @type {Array}
+   */
+  widgetPropertiesViews: [],
 
   propertiesMap: {
     "warning_threshold": {
@@ -82,20 +101,123 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   }.property('content.allMetrics'),
 
   /**
+   * @type {boolean}
+   */
+  isSubmitDisabled: function() {
+    if (this.get('widgetPropertiesViews').someProperty('isValid', false)) {
+      return true;
+    }
+    switch (this.get('content.widgetType')) {
+      case "NUMBER":
+      case "GAUGE":
+        return this.get('expressions')[0] &&
+          (this.get('expressions')[0].get('editMode') ||
+          this.get('expressions')[0].get('data.length') === 0);
+      case "GRAPH":
+        return this.get('dataSets.length') > 0 &&
+          (this.get('dataSets').someProperty('expression.editMode') ||
+          this.get('dataSets').someProperty('expression.data.length', 0));
+      case "TEMPLATE":
+        return !this.get('templateValue') ||
+          this.get('expressions.length') > 0 &&
+          (this.get('expressions').someProperty('editMode') ||
+          this.get('expressions').someProperty('data.length', 0));
+    }
+    return false;
+  }.property('widgetPropertiesViews.@each.isValid',
+    'expressions.@each.editMode',
+    'dataSets.@each.expression'),
+
+  /**
+   * Add data set
+   * @param {object|null} event
+   * @param {boolean} isDefault
+   */
+  addDataSet: function(event, isDefault) {
+    var id = (isDefault) ? 1 :(Math.max.apply(this, this.get('dataSets').mapProperty('id')) + 1);
+
+    this.get('dataSets').pushObject(Em.Object.create({
+      id: id,
+      label: '',
+      isRemovable: !isDefault,
+      expression: {
+        data: [],
+        editMode: false
+      }
+    }));
+  },
+
+  /**
+   * Remove data set
+   * @param {object} event
+   */
+  removeDataSet: function(event) {
+    this.get('dataSets').removeObject(event.context);
+  },
+
+  /**
+   * Add expression
+   * @param {object|null} event
+   * @param {boolean} isDefault
+   */
+  addExpression: function(event, isDefault) {
+    var id = (isDefault) ? 1 :(Math.max.apply(this, this.get('expressions').mapProperty('id')) + 1);
+
+    this.get('expressions').pushObject(Em.Object.create({
+      id: id,
+      isRemovable: !isDefault,
+      data: [],
+      alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
+      editMode: false
+    }));
+  },
+
+  /**
+   * Remove expression
+   * @param {object} event
+   */
+  removeExpression: function(event) {
+    this.get('expressions').removeObject(event.context);
+  },
+
+  /**
+   * initialize data
+   * widget should have at least one expression or dataSet
+   */
+  initWidgetData: function() {
+    this.set('widgetProperties', this.get('content.widgetProperties'));
+    this.set('widgetValues', this.get('content.widgetValues'));
+    this.set('widgetMetrics', this.get('content.widgetMetrics'));
+    this.set('expressions', this.get('content.expressions').map(function (item) {
+      return Em.Object.create(item);
+    }, this));
+    this.set('dataSets', this.get('content.dataSets').map(function (item) {
+      return Em.Object.create(item);
+    }, this));
+    this.set('templateValue', this.get('content.templateValue'));
+    if (this.get('expressions.length') === 0) {
+      this.addExpression(null, true);
+    }
+    if (this.get('dataSets.length') === 0) {
+      this.addDataSet(null, true);
+    }
+  },
+
+  /**
    * update preview widget with latest expression data
    * @param {Em.View} view
    */
-  updateExpressions: function (view) {
+  updateExpressions: function () {
     var widgetType = this.get('content.widgetType');
     var expressionData = {
       values: [],
       metrics: []
     };
-    if (view.get('expressions').length > 0 && view.get('dataSets').length > 0) {
+    if (this.get('expressions').length > 0 && this.get('dataSets').length > 0) {
       switch (widgetType) {
         case 'GAUGE':
         case 'NUMBER':
-          expressionData = this.parseExpression(view.get('expressions')[0]);
+          expressionData = this.parseExpression(this.get('expressions')[0]);
           expressionData.values = [
             {
               value: expressionData.value
@@ -103,16 +225,16 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
           ];
           break;
         case 'TEMPLATE':
-          expressionData = this.parseTemplateExpression(view);
+          expressionData = this.parseTemplateExpression(this);
           break;
         case 'GRAPH':
-          expressionData = this.parseGraphDataset(view);
+          expressionData = this.parseGraphDataset(this);
           break;
       }
     }
     this.set('widgetValues', expressionData.values);
     this.set('widgetMetrics', expressionData.metrics);
-  },
+  }.observes('templateValue', 'dataSets.@each.label'),
 
   /**
    * parse Graph data set
@@ -247,8 +369,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   renderGaugeProperties: function () {
     return [
       App.WidgetProperties.Thresholds.PercentageThreshold.create({
-        smallValue: '0.7',
-        bigValue: '0.9',
+        smallValue: this.get('widgetProperties.warning_threshold') || '0.7',
+        bigValue: this.get('widgetProperties.error_threshold') || '0.9',
         isRequired: true
       })
     ];
@@ -262,12 +384,12 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   renderNumberProperties: function () {
     return [
       App.WidgetProperties.Threshold.create({
-        smallValue: '10',
-        bigValue: '20',
+        smallValue: this.get('widgetProperties.warning_threshold') || '10',
+        bigValue: this.get('widgetProperties.error_threshold') || '20',
         isRequired: false
       }),
       App.WidgetProperties.Unit.create({
-        value: 'MB',
+        value: this.get('widgetProperties.display_unit') || 'MB',
         isRequired: false
       })
     ];
@@ -281,7 +403,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   renderTemplateProperties: function (widgetProperties) {
     return [
       App.WidgetProperties.Unit.create({
-        value: 'MB',
+        value: this.get('widgetProperties.display_unit') || 'MB',
         isRequired: false
       })
     ];
@@ -295,15 +417,15 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   renderGraphProperties: function (widgetProperties) {
     return [
       App.WidgetProperties.GraphType.create({
-        value: 'LINE',
+        value: this.get('widgetProperties.graph_type') || 'LINE',
         isRequired: true
       }),
       App.WidgetProperties.TimeRange.create({
-        value: 'Last 1 hour',
+        value: this.get('widgetProperties.time_range') || 'Last 1 hour',
         isRequired: true
       }),
       App.WidgetProperties.Unit.create({
-        value: 'MB',
+        value: this.get('widgetProperties.display_unit') || 'MB',
         isRequired: false
       })
     ];

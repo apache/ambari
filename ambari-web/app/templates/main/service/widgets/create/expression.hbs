@@ -45,7 +45,7 @@
 {{else}}
   <a {{action startEdit target="view"}} class="edit-link"><i class="icon-edit"></i></a>
   {{#if view.expression.isRemovable}}
-    <a {{action removeExpression view.expression target="view.parentView"}} class="remove-link"><i class="icon-trash"></i></a>
+    <a {{action removeExpression view.expression target="controller"}} class="remove-link"><i class="icon-trash"></i></a>
   {{/if}}
   {{#if view.expression.data.length}}
     <div class="metric-field">

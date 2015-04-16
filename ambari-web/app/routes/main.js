@@ -564,7 +564,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
   addServiceWidget: function (router, context) {
     if (context) {
       var widgetController = router.get('widgetWizardController');
-      widgetController.saveWidgetService(context.get('serviceName'));
+      widgetController.save('widgetService', context.get('serviceName'));
     }
     router.transitionTo('addWidget');
   },

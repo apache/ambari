@@ -81,10 +81,44 @@ App.WidgetWizardController = App.WizardController.extend({
      * }]
      */
     widgetValues: [],
+    expressions: [],
+    dataSets: [],
+    templateValue: null,
     widgetName: null,
     widgetDescription: null,
     widgetScope: null
   }),
+
+  loadMap: {
+    '1': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('widgetService');
+          this.load('widgetType');
+        }
+      }
+    ],
+    '2': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('widgetProperties', true);
+          this.load('widgetValues', true);
+          this.load('widgetMetrics', true);
+          this.load('expressions', true);
+          this.load('dataSets', true);
+          this.load('templateValue', true);
+        }
+      },
+      {
+        type: 'async',
+        callback: function () {
+          return this.loadAllMetrics();
+        }
+      }
+    ]
+  },
 
   /**
    * set current step
@@ -97,12 +131,7 @@ App.WidgetWizardController = App.WizardController.extend({
     if (App.get('testMode') || skipStateSave) {
       return;
     }
-    App.clusterStatus.setClusterStatus({
-      clusterName: this.get('content.cluster.name'),
-      clusterState: 'WIDGET_DEPLOY',
-      wizardControllerName: 'widgetWizardController',
-      localdb: App.db.data
-    });
+    this.saveClusterStatus('WIDGET_DEPLOY');
   },
 
   setStepsEnable: function () {
@@ -119,32 +148,32 @@ App.WidgetWizardController = App.WizardController.extend({
 
   /**
    * save status of the cluster.
-   * @param clusterStatus object with status,requestId fields.
+   * @param {object} clusterStatus
    */
   saveClusterStatus: function (clusterStatus) {
-    var oldStatus = this.toObject(this.get('content.cluster'));
-    clusterStatus = jQuery.extend(oldStatus, clusterStatus);
-    if (clusterStatus.requestId) {
-      clusterStatus.requestId.forEach(function (requestId) {
-        if (clusterStatus.oldRequestsId.indexOf(requestId) === -1) {
-          clusterStatus.oldRequestsId.push(requestId)
-        }
+    App.clusterStatus.setClusterStatus({
+      clusterState: clusterStatus,
+      wizardControllerName: 'widgetWizardController',
+      localdb: App.db.data
+    });
+  },
+
+  /**
+   * save wizard properties to controller and localStorage
+   * @param {string} name
+   * @param value
+   */
+  save: function (name, value) {
+    this.set('content.' + name, value);
+    if (Array.isArray(value)) {
+      value = value.map(function (item) {
+        return this.toObject(item);
       }, this);
+    } else if (typeof value === 'object') {
+      value = this.toObject(value);
     }
-    this.set('content.cluster', clusterStatus);
-    this.save('cluster');
-  },
-
-  loadWidgetService: function () {
-    this.set('content.widgetService', this.getDBProperty('widgetService'));
-  },
-
-  loadWidgetType: function () {
-    this.set('content.widgetType', this.getDBProperty('widgetType'));
-  },
-
-  loadWidgetProperties: function () {
-    this.set('content.widgetProperties', this.getDBProperty('widgetProperties'));
+    this.setDBProperty(name, value);
+    console.log(this.get('name') + ": saved " + name, value);
   },
 
   /**
@@ -217,73 +246,7 @@ App.WidgetWizardController = App.WizardController.extend({
         }
       }
     }
-    this.saveAllMetrics(result);
-  },
-
-  loadWidgetValues: function () {
-    this.set('content.widgetValues', this.getDBProperty('widgetValues'));
-  },
-
-  loadWidgetMetrics: function () {
-    this.set('content.widgetMetrics', this.getDBProperty('widgetMetrics'));
-  },
-
-  saveWidgetService: function (widgetService) {
-    this.setDBProperty('widgetService', widgetService);
-    this.set('content.widgetService', widgetService);
-  },
-
-  saveWidgetType: function (widgetType) {
-    this.setDBProperty('widgetType', widgetType);
-    this.set('content.widgetType', widgetType);
-  },
-
-  saveWidgetProperties: function (widgetProperties) {
-    this.setDBProperty('widgetProperties', widgetProperties);
-    this.set('content.widgetProperties', widgetProperties);
-  },
-
-  saveAllMetrics: function (allMetrics) {
-    this.setDBProperty('allMetrics', allMetrics);
-    this.set('content.allMetrics', allMetrics);
-  },
-
-  saveWidgetMetrics: function (widgetMetrics) {
-    this.setDBProperty('widgetMetrics', widgetMetrics);
-    this.set('content.widgetMetrics', widgetMetrics);
-  },
-
-  saveWidgetValues: function (widgetValues) {
-    this.setDBProperty('widgetValues', widgetValues);
-    this.set('content.widgetValues', widgetValues);
-  },
-
-  loadMap: {
-    '1': [
-      {
-        type: 'sync',
-        callback: function () {
-          this.loadWidgetService();
-          this.loadWidgetType();
-        }
-      }
-    ],
-    '2': [
-      {
-        type: 'sync',
-        callback: function () {
-          this.loadWidgetProperties();
-          this.loadWidgetValues();
-          this.loadWidgetMetrics();
-        }
-      },
-      {
-        type: 'async',
-        callback: function () {
-          return this.loadAllMetrics();
-        }
-      }
-    ]
+    this.save('allMetrics', result);
   },
 
   /**
@@ -307,7 +270,7 @@ App.WidgetWizardController = App.WizardController.extend({
    */
   finish: function () {
     this.setCurrentStep('1', false, true);
-    this.saveWidgetType('');
+    this.save('widgetType', '');
     this.resetDbNamespace();
     App.get('router.updateController').updateAll();
   }

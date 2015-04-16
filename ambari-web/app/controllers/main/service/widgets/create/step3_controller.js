@@ -81,6 +81,8 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetValues', this.get('content.widgetValues'));
     this.set('widgetMetrics', this.get('content.widgetMetrics'));
     this.set('widgetAuthor', App.router.get('loginName'));
+    this.set('widgetName', '');
+    this.set('widgetDescription', '');
   },
 
   //TODO: Following computed propert needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled

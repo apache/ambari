@@ -23,7 +23,7 @@
 </div>
 
 <div class="template">
-  {{view Ember.TextArea valueBinding="view.templateValue"}}
+  {{view Ember.TextArea valueBinding="templateValue"}}
 </div>
 
 <div class="alert alert-info">
@@ -33,13 +33,13 @@
   </div>
 </div>
 
-{{#each expression in view.expressions}}
-  <h5>{{view.EXPRESSION_PREFIX}}{{expression.id}}</h5>
+{{#each expression in expressions}}
+  <h5>{{EXPRESSION_PREFIX}}{{expression.id}}</h5>
   {{view App.WidgetWizardExpressionView expressionBinding="expression"}}
 {{/each}}
 
 <div class="align-right">
-  <a href="#" {{action addExpression target="view"}}>
+  <a href="#" {{action addExpression target="controller"}}>
     <i class="icon-plus"></i>
     {{t widget.create.wizard.step2.addExpression}}
   </a>

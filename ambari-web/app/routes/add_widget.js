@@ -97,11 +97,14 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var widgetWizardController = router.get('widgetWizardController');
       var widgetStep1controller = router.get('widgetWizardStep1Controller');
-      widgetWizardController.saveWidgetType(widgetStep1controller.get('widgetType'));
-      widgetWizardController.setDBProperty('widgetProperties', []);
+      widgetWizardController.save('widgetType', widgetStep1controller.get('widgetType'));
+      widgetWizardController.setDBProperty('widgetProperties', {});
       widgetWizardController.setDBProperty('widgetMetrics', []);
       widgetWizardController.setDBProperty('allMetrics', []);
       widgetWizardController.setDBProperty('widgetValues', []);
+      widgetWizardController.setDBProperty('expressions', []);
+      widgetWizardController.setDBProperty('dataSets', []);
+      widgetWizardController.setDBProperty('templateValue', '');
       router.transitionTo('step2');
     }
   }),
@@ -125,9 +128,12 @@ module.exports = App.WizardRoute.extend({
     next: function (router) {
       var widgetWizardController = router.get('widgetWizardController');
       var widgetStep2controller = router.get('widgetWizardStep2Controller');
-      widgetWizardController.saveWidgetProperties(widgetStep2controller.get('widgetProperties'));
-      widgetWizardController.saveWidgetMetrics(widgetStep2controller.get('widgetMetrics'));
-      widgetWizardController.saveWidgetValues(widgetStep2controller.get('widgetValues'));
+      widgetWizardController.save('widgetProperties', widgetStep2controller.get('widgetProperties'));
+      widgetWizardController.save('widgetMetrics', widgetStep2controller.get('widgetMetrics'));
+      widgetWizardController.save('widgetValues', widgetStep2controller.get('widgetValues'));
+      widgetWizardController.save('expressions', widgetStep2controller.get('expressions'));
+      widgetWizardController.save('dataSets', widgetStep2controller.get('dataSets'));
+      widgetWizardController.save('templateValue', widgetStep2controller.get('templateValue'));
       widgetWizardController.setDBProperty('widgetName', null);
       widgetWizardController.setDBProperty('widgetDescription', null);
       widgetWizardController.setDBProperty('widgetScope', null);
