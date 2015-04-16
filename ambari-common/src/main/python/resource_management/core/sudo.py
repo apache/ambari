@@ -65,7 +65,7 @@ def rmtree(path):
   shell.checked_call(["rm","-rf", path], sudo=True)
   
 # fp.write replacement
-def create_file(filename, content, encoding='utf-8'):
+def create_file(filename, content, encoding=None):
   """
   if content is None, create empty file
   """
@@ -83,7 +83,7 @@ def create_file(filename, content, encoding='utf-8'):
   chmod(filename, 0644)
     
 # fp.read replacement
-def read_file(filename, encoding='utf-8'):
+def read_file(filename, encoding=None):
   tmpf = tempfile.NamedTemporaryFile()
   shell.checked_call(["cp", "-f", filename, tmpf.name], sudo=True)
   
