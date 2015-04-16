@@ -865,7 +865,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive_exec_orc_storage_strategy': 'SPEED',
           'hive_security_authorization': 'None',
           'hive_timeline_logging_enabled': 'true',
-          'hive_txn_acid': 'false'
+          'hive_txn_acid': 'Off'
         }
       },
       'hive-site': {
