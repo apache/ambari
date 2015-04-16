@@ -2421,6 +2421,11 @@ var urls = {
     mock: '/data/widget_layouts/HBASE/stack_layout.json'
   },
 
+  'widget.layout.get': {
+    real: '/clusters/{clusterName}/widget_layouts?WidgetLayoutInfo/layout_name={layoutName}',
+    mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
+  },
+
   'widgets.layout.userDefined.get': {
     real: '/users/{loginName}/widget_layouts?section_name={sectionName}',
     mock: '/data/widget_layouts/HBASE/empty_user_layout.json'
@@ -2453,12 +2458,12 @@ var urls = {
   },
 
   'widgets.serviceComponent.metrics.get': {
-    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={widgetIds}',
+    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?fields={metricPaths}',
     mock: '/data/metrics/{serviceName}/Append_num_ops_&_Delete_num_ops.json'
   },
 
   'widgets.hostComponent.metrics.get': {
-    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{hostComponentCriteria}&fields={widgetIds}',
+    real: '/clusters/{clusterName}/services/{serviceName}/components/{componentName}?{hostComponentCriteria}&fields={metricPaths}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 

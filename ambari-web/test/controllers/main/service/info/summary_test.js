@@ -227,77 +227,39 @@ describe('App.MainServiceInfoSummaryController', function () {
 
   });
 
-  describe("#loadWidgets()", function () {
+  describe("#loadActiveWidgetLayout() for Enhanced Dashboard", function () {
     before(function () {
-      controller = App.MainServiceInfoSummaryController.create();
       sinon.stub(App.ajax, 'send');
     });
     after(function () {
       App.ajax.send.restore();
     });
     it("make GET call", function () {
-      controller.loadWidgets();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widgets.layout.userDefined.get');
+      var controller = App.MainServiceInfoSummaryController.create({
+        isServiceWithEnhancedWidgets: true,
+        content: Em.Object.create({serviceName: 'HDFS'})
+      });
+      controller.loadActiveWidgetLayout();
+      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widget.layout.get');
     });
   });
 
-  describe("#loadWidgetsSuccessCallback()", function () {
+  describe("#loadActiveWidgetLayoutSuccessCallback()", function () {
     beforeEach(function () {
-      controller = App.MainServiceInfoSummaryController.create();
-      sinon.stub(App.widgetMapper, 'map');
-      sinon.stub(controller, 'loadStackWidgetsLayout');
+      sinon.stub( App.widgetLayoutMapper, 'map');
     });
     afterEach(function () {
-      App.widgetMapper.map.restore();
-      controller.loadStackWidgetsLayout.restore();
+      App.widgetLayoutMapper.map.restore();
     });
-    it("empty data", function () {
-      controller.loadWidgetsSuccessCallback({items: []});
-      expect(controller.loadStackWidgetsLayout.calledOnce).to.be.true;
+    it("isWidgetLayoutsLoaded should be set to true", function () {
+      var controller = App.MainServiceInfoSummaryController.create({
+        isServiceWithEnhancedWidgets: true,
+        content: Em.Object.create({serviceName: 'HDFS'})
+      });
+      controller.loadActiveWidgetLayoutSuccessCallback({items:[true]});
+      expect(controller.get('isWidgetsLoaded')).to.be.true;
     });
-    it("filled data", function () {
-      controller.loadWidgetsSuccessCallback({items: ['1']});
-      expect(App.widgetMapper.map.calledWith('1')).to.be.true;
-    });
+
   });
 
-  describe("#loadStackWidgetsLayout()", function () {
-    before(function () {
-      controller = App.MainServiceInfoSummaryController.create();
-      sinon.stub(App.ajax, 'send');
-    });
-    after(function () {
-      App.ajax.send.restore();
-    });
-    it("make GET call", function () {
-      controller.loadStackWidgetsLayout();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widgets.layout.stackDefined.get');
-    });
-  });
-
-  describe("#loadStackWidgetsLayoutSuccessCallback()", function () {
-    before(function () {
-      controller = App.MainServiceInfoSummaryController.create();
-      sinon.stub(App.widgetMapper, 'map');
-    });
-    after(function () {
-      App.widgetMapper.map.restore();
-    });
-    it("make GET call", function () {
-      var data = {
-        artifact_data: {
-          layouts: [
-            {
-              section_name: 'S1_SUMMARY'
-            }
-          ]
-        }
-      };
-      controller.set('content', Em.Object.create({serviceName: 'S1'}));
-      controller.loadStackWidgetsLayoutSuccessCallback(data);
-      expect(App.widgetMapper.map.calledWith({
-        section_name: 'S1_SUMMARY'
-      })).to.be.true;
-    });
-  });
 });

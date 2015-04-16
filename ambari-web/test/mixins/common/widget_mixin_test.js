@@ -95,26 +95,26 @@ describe('App.WidgetMixin', function() {
       var data = [
         {
           "name": "regionserver.Server.percentFilesLocal",
-          "widget_id": "metrics/hbase/regionserver/percentFilesLocal",
+          "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
           "service_name": "HBASE",
           "component_name": "HBASE_REGIONSERVER"
         },
         {
           "name": "regionserver.Server.percentFilesLocal2",
-          "widget_id": "w2",
+          "metric_path": "w2",
           "service_name": "HBASE",
           "component_name": "HBASE_REGIONSERVER"
         },
         {
           "name": "regionserver.Server.percentFilesLocal",
-          "widget_id": "metrics/hbase/regionserver/percentFilesLocal",
+          "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
           "service_name": "HBASE",
           "component_name": "HBASE_REGIONSERVER",
           "host_component_criteria": 'c1'
         },
         {
           "name": "regionserver.Server.percentFilesLocal",
-          "widget_id": "metrics/hbase/regionserver/percentFilesLocal",
+          "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
           "service_name": "HDFS",
           "component_name": "DATANODE",
           "host_component_criteria": 'c1'
@@ -122,11 +122,11 @@ describe('App.WidgetMixin', function() {
       ];
 
       expect(mixinObject.getRequestData(data)).to.eql({
-        "HBASE_HBASE_REGIONSERVER_undefined": {
+        "HBASE_HBASE_REGIONSERVER": {
           "name": "regionserver.Server.percentFilesLocal",
           "service_name": "HBASE",
           "component_name": "HBASE_REGIONSERVER",
-          "widget_ids": [
+          "metric_paths": [
             "metrics/hbase/regionserver/percentFilesLocal",
             "w2"
           ]
@@ -136,7 +136,7 @@ describe('App.WidgetMixin', function() {
           "service_name": "HBASE",
           "component_name": "HBASE_REGIONSERVER",
           "host_component_criteria": "c1",
-          "widget_ids": [
+          "metric_paths": [
             "metrics/hbase/regionserver/percentFilesLocal"
           ]
         },
@@ -145,7 +145,7 @@ describe('App.WidgetMixin', function() {
           "service_name": "HDFS",
           "component_name": "DATANODE",
           "host_component_criteria": "c1",
-          "widget_ids": [
+          "metric_paths": [
             "metrics/hbase/regionserver/percentFilesLocal"
           ]
         }
@@ -165,7 +165,7 @@ describe('App.WidgetMixin', function() {
       var request = {
         service_name: 'S1',
         component_name: 'C1',
-        widget_ids: ['w1', 'w2']
+        metric_paths: ['w1', 'w2']
       };
       mixinObject.getServiceComponentMetrics(request);
       expect(App.ajax.send.getCall(0).args[0]).to.eql({
@@ -174,14 +174,14 @@ describe('App.WidgetMixin', function() {
         data: {
           serviceName: 'S1',
           componentName: 'C1',
-          widgetIds: 'w1,w2'
+          metricPaths: 'w1,w2'
         },
-        success: 'getServiceComponentMetricsSuccessCallback'
+        success: 'getMetricsSuccessCallback'
       })
     });
   });
 
-  describe("#getServiceComponentMetricsSuccessCallback()", function () {
+  describe("#getMetricsSuccessCallback()", function () {
     var mixinObject = mixinClass.create();
     it("", function () {
       var data = {
@@ -197,11 +197,11 @@ describe('App.WidgetMixin', function() {
       };
       mixinObject.set('content.metrics', [
         {
-          widget_id: 'metrics/hbase/ipc/IPC/numOpenConnections'
+          metric_path: 'metrics/hbase/ipc/IPC/numOpenConnections'
         }
       ]);
-      mixinObject.getServiceComponentMetricsSuccessCallback(data);
-      expect(mixinObject.get('metrics').findProperty('widget_id', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
+      mixinObject.getMetricsSuccessCallback(data);
+      expect(mixinObject.get('metrics').findProperty('metric_path', 'metrics/hbase/ipc/IPC/numOpenConnections').data).to.equal(11.5);
     });
   });
 
@@ -217,7 +217,7 @@ describe('App.WidgetMixin', function() {
       var request = {
         service_name: 'S1',
         component_name: 'C1',
-        widget_ids: ['w1', 'w2'],
+        metric_paths: ['w1', 'w2'],
         host_component_criteria: 'c1'
       };
       mixinObject.getHostComponentMetrics(request);
@@ -227,10 +227,10 @@ describe('App.WidgetMixin', function() {
         data: {
           serviceName: 'S1',
           componentName: 'C1',
-          widgetIds: 'w1,w2',
+          metricPaths: 'w1,w2',
           hostComponentCriteria: 'host_components/HostRoles/c1'
         },
-        success: 'getHostComponentMetricsSuccessCallback'
+        success: 'getMetricsSuccessCallback'
       })
     });
   });

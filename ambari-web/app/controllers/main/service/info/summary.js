@@ -43,8 +43,25 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   /**
    * UI section name
    */
-  sectionName: function() {
+  sectionName: function () {
     return this.get('content.serviceName') + "_SUMMARY";
+  }.property('content.serviceName'),
+
+  /**
+   * UI default layout name
+   */
+  defaultLayoutName: function () {
+    return "default_" + this.get('content.serviceName').toLowerCase() + "_dashboard";
+  }.property('content.serviceName'),
+
+  /**
+   * Does Service has widget descriptor defined in the stack
+   * @type {boolean}
+   */
+  isServiceWithEnhancedWidgets: function () {
+    var serviceName = this.get('content.serviceName');
+    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+    return stackService.get('isServiceWithWidgets') && App.supports.customizedWidgets;
   }.property('content.serviceName'),
 
   /**
@@ -252,7 +269,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     return App.ModalPopup.show({
       header: Em.I18n.t('services.service.summary.alerts.popup.header').format(service.get('displayName')),
       autoHeight: false,
-      classNames: [ 'forty-percent-width-modal' ],
+      classNames: ['forty-percent-width-modal'],
       bodyClass: Em.View.extend({
         templateName: require('templates/main/service/info/service_alert_popup'),
         classNames: ['service-alerts'],
@@ -317,16 +334,28 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   isMineWidgetsLoaded: false,
 
   /**
+   *  @Type {App.WidgetLayout}
+   */
+  activeWidgetLayout: {},
+
+
+  /**
    * @type {Em.A}
    */
-  widgets: function() {
-    return App.Widget.find().filterProperty('sectionName', this.get('content.serviceName') + '_SUMMARY');
+  widgets: function () {
+    if (this.get('isWidgetsLoaded')) {
+      if (this.get('activeWidgetLayout.widgets')) {
+        return this.get('activeWidgetLayout.widgets').toArray();
+      } else {
+        return  [];
+      }
+    }
   }.property('isWidgetsLoaded'),
 
   /**
    * @type {Em.A}
    */
-  widgetLayouts: function() {
+  widgetLayouts: function () {
     return App.WidgetLayout.find();
   }.property('isWidgetLayoutsLoaded'),
 
@@ -334,7 +363,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * load widget layouts across all users in CLUSTER scope
    * @returns {$.ajax}
    */
-  loadWidgetLayouts: function() {
+  loadWidgetLayouts: function () {
     this.set('isWidgetLayoutsLoaded', false);
     return App.ajax.send({
       name: 'widgets.layouts.get',
@@ -346,7 +375,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     });
   },
 
-  loadWidgetLayoutsSuccessCallback: function(data) {
+  loadWidgetLayoutsSuccessCallback: function (data) {
     App.widgetLayoutMapper.map(data);
     this.set('isWidgetLayoutsLoaded', true);
   },
@@ -355,29 +384,35 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * load widgets defined by user
    * @returns {$.ajax}
    */
-  loadWidgets: function () {
+  loadActiveWidgetLayout: function () {
+    this.set('activeWidgetLayout', {});
     this.set('isWidgetsLoaded', false);
-    return App.ajax.send({
-      name: 'widgets.layout.userDefined.get',
-      sender: this,
-      data: {
-        loginName: App.router.get('loginName'),
-        sectionName: this.get('sectionName')
-      },
-      success: 'loadWidgetsSuccessCallback'
-    });
+    if (this.get('isServiceWithEnhancedWidgets')) {
+      return App.ajax.send({
+        name: 'widget.layout.get',
+        sender: this,
+        data: {
+          layoutName: this.get('defaultLayoutName'),
+          serviceName: this.get('content.serviceName')
+        },
+        success: 'loadActiveWidgetLayoutSuccessCallback'
+      });
+    } else {
+      this.set('isWidgetsLoaded', true);
+    }
   },
+
 
   /**
    * success callback of <code>loadWidgets()</code>
    * @param {object|null} data
    */
-  loadWidgetsSuccessCallback: function (data) {
+  loadActiveWidgetLayoutSuccessCallback: function (data) {
+    console.log("*******: " + data.items[0] );
     if (data.items[0]) {
-      App.widgetMapper.map(data.items[0], this.get('content.serviceName'));
+      App.widgetLayoutMapper.map(data.items[0]);
+      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('defaultLayoutName')));
       this.set('isWidgetsLoaded', true);
-    } else {
-      this.loadStackWidgetsLayout();
     }
   },
 
@@ -474,37 +509,12 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   /**
-   * load widgets defined by stack
-   * @returns {$.ajax}
-   */
-  loadStackWidgetsLayout: function () {
-    return App.ajax.send({
-      name: 'widgets.layout.stackDefined.get',
-      sender: this,
-      data: {
-        stackVersionURL: App.get('stackVersionURL'),
-        serviceName: this.get('content.serviceName')
-      },
-      success: 'loadStackWidgetsLayoutSuccessCallback'
-    });
-  },
-
-  /**
-   * success callback of <code>loadStackWidgetsLayout()</code>
-   * @param {object|null} data
-   */
-  loadStackWidgetsLayoutSuccessCallback: function (data) {
-    App.widgetMapper.map(data.artifact_data.layouts.findProperty('section_name', this.get('sectionName')), this.get('content.serviceName'));
-    this.set('isWidgetsLoaded', true);
-  },
-
-  /**
    * add widgets, on click handler for "Add"
    */
   addWidget: function (event) {
     var widget = event.context;
     var widgetName = widget.widgetName;
-    widget.set('added',!widget.added);
+    widget.set('added', !widget.added);
     // add current widget to current layout
 
   },
@@ -515,7 +525,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   hideWidget: function (event) {
     var widget = event.context;
     var widgetName = widget.widgetName;
-    widget.set('added',!widget.added);
+    widget.set('added', !widget.added);
     // hide current widget from current layout
 
   },
@@ -659,10 +669,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
          * displaying content filtered by service name and status.
          */
         filteredContent: function () {
-          var activeService = this.get('activeService')? this.get('activeService'): this.get('controller.content.serviceName');
+          var activeService = this.get('activeService') ? this.get('activeService') : this.get('controller.content.serviceName');
           var result = [];
-          this.get('content').forEach(function(widget) {
-            if (widget.get('serviceName').indexOf(activeService) >= 0){
+          this.get('content').forEach(function (widget) {
+            if (widget.get('serviceName').indexOf(activeService) >= 0) {
               result.pushObject(widget);
             }
           });
@@ -689,7 +699,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
           isActive: function () {
             return this.get('item') == this.get('parentView.activeTab');
           }.property('item', 'parentView.activeTab'),
-          elementId: Ember.computed(function(){
+          elementId: Ember.computed(function () {
             var label = Em.get(this, 'templateData.keywords.category.label');
             return label ? 'widget-browser-view-tab-' + label.toLowerCase().replace(/\s/g, '-') : "";
           }),
@@ -717,7 +727,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
               value: service.get('serviceName'),
               label: service.get('displayName'),
               isActive: function () {
-                var activeService = view.get('activeService')? view.get('activeService'): view.get('controller.content.serviceName');
+                var activeService = view.get('activeService') ? view.get('activeService') : view.get('controller.content.serviceName');
                 return this.get('value') == activeService;
               }.property('value', 'view.activeService')
             })

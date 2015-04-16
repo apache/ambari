@@ -24,13 +24,13 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  EXPRESSION_REGEX: /\$\{([\w\.\+\-\*\/\(\)\:\=\[\]]*)\}/g,
+  EXPRESSION_REGEX: /\$\{([\w\s\.\,\+\-\*\/\(\)\:\=\[\]]*)\}/g,
 
   /**
    * @type {RegExp}
    * @const
    */
-  MATH_EXPRESSION_REGEX: /^[\d\+\-\*\/\(\)\.]+$/,
+  MATH_EXPRESSION_REGEX: /^[\d\s\+\-\*\/\(\)\.]+$/,
 
   /**
    * @type {RegExp}
@@ -59,36 +59,15 @@ App.WidgetMixin = Ember.Mixin.create({
     this.loadMetrics();
   },
 
-  /**
-   * draw widget
-   */
-  drawWidget: function () {
-    if (this.get('isLoaded')) {
-      this.calculateValues();
-      this.set('value', this.get('content.values')[0] && this.get('content.values')[0].computedValue);
-    }
-  },
-
-  /**
-   * callback on metrics loaded
-   */
-  onMetricsLoaded: function () {
-    var self = this;
-    this.set('isLoaded', true);
-    this.drawWidget();
-    setTimeout(function() {
-      self.loadMetrics();
-    }, App.contentUpdateInterval);
-  },
 
   /**
    * load metrics
    */
   loadMetrics: function () {
     var requestData = this.getRequestData(this.get('content.metrics')),
-        request,
-        requestCounter = 0,
-        self = this;
+      request,
+      requestCounter = 0,
+      self = this;
 
     for (var i in requestData) {
       request = requestData[i];
@@ -106,6 +85,125 @@ App.WidgetMixin = Ember.Mixin.create({
       }
     }
   },
+
+  /**
+   * get data formatted for request
+   * @param {Array} metrics
+   */
+  getRequestData: function (metrics) {
+    var requestsData = {};
+
+    metrics.forEach(function (metric, index) {
+      var key;
+      if (metric.host_component_criteria) {
+        key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
+      } else {
+        key = metric.service_name + '_' + metric.component_name;
+      }
+      var requestMetric = $.extend({}, metric);
+
+      if (requestsData[key]) {
+        requestsData[key]["metric_paths"].push(requestMetric["metric_path"]);
+      } else {
+        requestMetric["metric_paths"] = [requestMetric["metric_path"]];
+        delete requestMetric["metric_path"];
+        requestsData[key] = requestMetric;
+      }
+    }, this);
+    return requestsData;
+  },
+
+  /**
+   * make GET call to server in order to fetch service-component metrics
+   * @param {object} request
+   * @returns {$.ajax}
+   */
+  getServiceComponentMetrics: function (request) {
+    return App.ajax.send({
+      name: 'widgets.serviceComponent.metrics.get',
+      sender: this,
+      data: {
+        serviceName: request.service_name,
+        componentName: request.component_name,
+        metricPaths: request.metric_paths.join(',')
+      },
+      success: 'getMetricsSuccessCallback'
+    });
+  },
+
+  /**
+   * make GET call to server in order to fetch host-component metrics
+   * @param {object} request
+   * @returns {$.ajax}
+   */
+  getHostComponentMetrics: function (request) {
+    return App.ajax.send({
+      name: 'widgets.hostComponent.metrics.get',
+      sender: this,
+      data: {
+        serviceName: request.service_name,
+        componentName: request.component_name,
+        metricPaths: request.metric_paths.join(','),
+        hostComponentCriteria: 'host_components/HostRoles/' + request.host_component_criteria
+      },
+      success: 'getMetricsSuccessCallback'
+    });
+  },
+
+  /**
+   * callback on getting aggregated metrics and host component metrics
+   * @param data
+   */
+  getMetricsSuccessCallback: function (data) {
+    var metrics = [];
+
+    this.get('content.metrics').forEach(function (_metric) {
+      if (!Em.isNone(Em.get(data, _metric.metric_path.replace(/\//g, '.')))) {
+        _metric.data = Em.get(data, _metric.metric_path.replace(/\//g, '.'));
+        this.get('metrics').pushObject(_metric);
+      }
+    }, this);
+  },
+
+
+  /**
+   * callback on metrics loaded
+   */
+  onMetricsLoaded: function () {
+    var self = this;
+    this.set('isLoaded', true);
+    this.drawWidget();
+    setTimeout(function() {
+      self.loadMetrics();
+    }, App.contentUpdateInterval);
+  },
+
+
+  /**
+   * draw widget
+   */
+  drawWidget: function () {
+    if (this.get('isLoaded')) {
+      this.calculateValues();
+      this.set('value', this.get('content.values')[0] && this.get('content.values')[0].computedValue);
+    }
+  },
+
+  /**
+   * calculate series datasets for graph widgets
+   */
+  calculateValues: function () {
+    var metrics = this.get('metrics');
+    var displayUnit = this.get('content.properties.display_unit');
+
+    this.get('content.values').forEach(function (value) {
+      var computeExpression = this.computeExpression(this.extractExpressions(value), metrics);
+      value.computedValue = value.value.replace(this.get('EXPRESSION_REGEX'), function (match) {
+        return (!Em.isNone(computeExpression[match])) ? computeExpression[match] + (displayUnit || "") : Em.I18n.t('common.na');
+      });
+    }, this);
+  },
+
 
   /**
    * extract expressions
@@ -127,20 +225,6 @@ App.WidgetMixin = Ember.Mixin.create({
     return expressions;
   },
 
-  /**
-   * calculate series datasets for graph widgets
-   */
-  calculateValues: function () {
-    var metrics = this.get('metrics');
-    var displayUnit = this.get('content.properties.display_unit');
-
-    this.get('content.values').forEach(function (value) {
-      var computeExpression = this.computeExpression(this.extractExpressions(value), metrics);
-      value.computedValue = value.value.replace(this.get('EXPRESSION_REGEX'), function (match) {
-        return (!Em.isNone(computeExpression[match])) ? computeExpression[match] + (displayUnit || "") : Em.I18n.t('common.na');
-      });
-    }, this);
-  },
 
   /**
    * compute expression
@@ -174,80 +258,6 @@ App.WidgetMixin = Ember.Mixin.create({
       result['${' + _expression + '}'] = (validExpression) ? Number(window.eval(beforeCompute)).toString() : value;
     }, this);
     return result;
-  },
-
-  /**
-   * get data formatted for request
-   * @param {Array} metrics
-   */
-  getRequestData: function (metrics) {
-    var requestsData = {};
-
-    metrics.forEach(function (metric) {
-      var key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
-      var requestMetric = $.extend({}, metric);
-
-      if (requestsData[key]) {
-        requestsData[key]["widget_ids"].push(requestMetric["widget_id"]);
-      } else {
-        requestMetric["widget_ids"] = [requestMetric["widget_id"]];
-        delete requestMetric["widget_id"];
-        requestsData[key] = requestMetric;
-      }
-    }, this);
-    return requestsData;
-  },
-
-  /**
-   * make GET call to server in order to fetch service-component metrics
-   * @param {object} request
-   * @returns {$.ajax}
-   */
-  getServiceComponentMetrics: function (request) {
-    return App.ajax.send({
-      name: 'widgets.serviceComponent.metrics.get',
-      sender: this,
-      data: {
-        serviceName: request.service_name,
-        componentName: request.component_name,
-        widgetIds: request.widget_ids.join(',')
-      },
-      success: 'getServiceComponentMetricsSuccessCallback'
-    });
-  },
-
-  getServiceComponentMetricsSuccessCallback: function (data, opt, params) {
-    var metrics = [];
-
-    this.get('content.metrics').forEach(function (_metric) {
-      if (!Em.isNone(Em.get(data, _metric.widget_id.replace(/\//g, '.')))) {
-        _metric.data = Em.get(data, _metric.widget_id.replace(/\//g, '.'));
-        this.get('metrics').pushObject(_metric);
-      }
-    }, this);
-  },
-
-  /**
-   * make GET call to server in order to fetch host-component metrics
-   * @param {object} request
-   * @returns {$.ajax}
-   */
-  getHostComponentMetrics: function (request) {
-    return App.ajax.send({
-      name: 'widgets.hostComponent.metrics.get',
-      sender: this,
-      data: {
-        serviceName: request.service_name,
-        componentName: request.component_name,
-        widgetIds: request.widget_ids.join(','),
-        hostComponentCriteria: 'host_components/HostRoles/' + request.host_component_criteria
-      },
-      success: 'getHostComponentMetricsSuccessCallback'
-    });
-  },
-
-  getHostComponentMetricsSuccessCallback: function () {
-    //TODO push data to metrics after response structure approved
   },
 
   /*

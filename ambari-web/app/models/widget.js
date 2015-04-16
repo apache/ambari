@@ -32,17 +32,17 @@ App.Widget = DS.Model.extend({
    */
   widgetType: DS.attr('string'),
   displayName: DS.attr('string'),
+  description: DS.attr('string'),
   serviceName: DS.attr('string'),
-  componentName: DS.attr('string'),
   timeCreated: DS.attr('number'),
   sectionName: DS.attr('string'),
   author: DS.attr('string'),
+  scope: DS.attr('string'),
   properties: DS.attr('object'),
   expression: DS.attr('array'),
   metrics: DS.attr('array'),
   values: DS.attr('array'),
-  isVisible: DS.attr('boolean'),
-
+  isVisible: DS.attr('boolean', {defaultValue: true}),
   /**
    * @type {number}
    * @default 0
@@ -69,6 +69,8 @@ App.Widget = DS.Model.extend({
   }.property('widgetType')
 });
 
+App.Widget.FIXTURES = [];
+
 App.WidgetType = DS.Model.extend({
   name: DS.attr('string'),
   displayName: DS.attr('string'),
@@ -76,8 +78,6 @@ App.WidgetType = DS.Model.extend({
   properties: DS.attr('array')
 });
 
-
-App.Widget.FIXTURES = [];
 
 App.WidgetType.FIXTURES = [
   {

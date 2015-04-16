@@ -380,7 +380,33 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
    * list of static actions of widget
    * @type {Array}
    */
-  staticWidgetActions: [
+  staticGeneralWidgetActions: [
+    Em.Object.create({
+      label: Em.I18n.t('dashboard.widgets.actions.browse'),
+      class: 'icon-th',
+      action: 'goToWidgetsBrowser',
+      isAction: true
+    })
+  ],
+
+  /**
+   *list of static actions of widget accessible to Admin/Operator privelege
+   * @type {Array}
+   */
+
+  staticAdminPrivelegeWidgetActions: [
+    Em.Object.create({
+      label: Em.I18n.t('dashboard.widgets.create'),
+      class: 'icon-plus',
+      action: 'createWidget',
+      isAction: true
+    })
+  ],
+
+  /**
+   * List of static actions related to widget layout
+   */
+  staticWidgetLayoutActions: [
     Em.Object.create({
       label: Em.I18n.t('dashboard.widgets.layout.save'),
       class: 'icon-download-alt',
@@ -392,18 +418,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       class: 'icon-file',
       isAction: true,
       layouts: App.WidgetLayout.find()
-    }),
-    Em.Object.create({
-      label: Em.I18n.t('dashboard.widgets.create'),
-      class: 'icon-plus',
-      action: 'createWidget',
-      isAction: true
-    }),
-    Em.Object.create({
-      label: Em.I18n.t('dashboard.widgets.actions.browse'),
-      class: 'icon-th',
-      action: 'goToWidgetsBrowser',
-      isAction: true
     })
   ],
 
@@ -412,7 +426,13 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
    */
   widgetActions: function() {
     var options = [];
-    options.pushObjects(this.get('staticWidgetActions'));
+    if (App.isAccessible('MANAGER')) {
+      if (App.supports.customizedWidgetLayout) {
+        options.pushObjects(this.get('staticWidgetLayoutActions'));
+      }
+      options.pushObjects(this.get('staticAdminPrivelegeWidgetActions'));
+    }
+    options.pushObjects(this.get('staticGeneralWidgetActions'));
     return options;
   }.property(''),
 
@@ -531,10 +551,8 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
 
     if (App.get('supports.customizedWidgets')) {
-      var serviceName = this.get('controller.content.serviceName');
-      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-      if (stackService.get('isServiceWithWidgets')) {
-        this.get('controller').loadWidgets();
+        this.get('controller').loadActiveWidgetLayout();
+      if (App.supports.customizedWidgetLayout) {
         this.get('controller').loadWidgetLayouts();
       }
     }

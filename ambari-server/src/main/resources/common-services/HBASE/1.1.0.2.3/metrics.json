@@ -770,6 +770,11 @@
               "pointInTime": false,
               "temporal": true
             },
+            "metrics/hbase/regionserver/Server/ScanNext_num_ops": {
+              "metric": "regionserver.Server.ScanNext_num_ops",
+              "pointInTime": false,
+              "temporal": true
+            },
             "metrics/hbase/regionserver/Server/Append_num_ops": {
               "metric": "regionserver.Server.Append_num_ops",
               "pointInTime": false,
@@ -785,29 +790,39 @@
               "pointInTime": false,
               "temporal": true
             },
+            "metrics/hbase/regionserver/Server/Increment_num_ops": {
+              "metric": "regionserver.Server.Increment_num_ops",
+              "pointInTime": false,
+              "temporal": true
+            },
             "metrics/hbase/regionserver/Server/Get_95th_percentile": {
               "metric": "regionserver.Server.Get_95th_percentile",
-              "pointInTime": false,
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/hbase/regionserver/Server/ScanNext_95th_percentile": {
+              "metric": "regionserver.Server.ScanNext_95th_percentile",
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Mutate_95th_percentile": {
               "metric": "regionserver.Server.Mutate_95th_percentile",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Increment_95th_percentile": {
               "metric": "regionserver.Server.Increment_95th_percentile",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Append_95th_percentile": {
               "metric": "regionserver.Server.Append_95th_percentile",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Delete_95th_percentile": {
               "metric": "regionserver.Server.Delete_95th_percentile",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/percentFilesLocal": {
@@ -1822,7 +1837,7 @@
             },
             "metrics/hbase/regionserver/percentFilesLocal": {
               "metric": "regionserver.Server.percentFilesLocal",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/fsWriteLatency_avg_time": {

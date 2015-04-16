@@ -178,8 +178,8 @@ describe('App.stackServiceMapper', function () {
         stackName: "HDP",
         isInstalled: false,
         isInstallable: true,
+        isServiceWithWidgets: false,
         serviceCheckSupported: true,
-        isServiceWithWidgets: true,
         requiredServices: ["ZOOKEEPER"]
       },
       componentResult = {

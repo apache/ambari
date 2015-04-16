@@ -14,7 +14,7 @@
           "metrics": [
             {
               "name": "regionserver.Server.Get_num_ops",
-              "metric_path": "metrics/jvm/gcCount",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
@@ -52,7 +52,7 @@
           "values": [
             {
               "name": "Read Requests",
-              "value": "${regionserver.Server.Get_num_ops + regionserver.Server.ScanNext_num_ops}"
+              "value": "${regionserver.Server.Get_num_ops}"
             },
             {
               "name": "Write Requests",
@@ -77,18 +77,12 @@
               "metric_path": "metrics/hbase/regionserver/Server/Get_95th_percentile",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
-            },
-            {
-              "name": "regionserver.Server.ScanNext_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile",
-              "service_name": "HBASE",
-              "component_name": "HBASE_REGIONSERVER"
             }
           ],
           "values": [
             {
               "name": "95% Read Latency",
-              "value": "${regionserver.Server.Get_95th_percentile + regionserver.Server.ScanNext_95th_percentile}"
+              "value": "${regionserver.Server.Get_95th_percentile}"
             }
           ],
           "properties": {

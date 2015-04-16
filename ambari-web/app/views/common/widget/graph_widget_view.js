@@ -56,19 +56,20 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   calculateValues: function () {
     var metrics = this.get('metrics');
     var seriesData = [];
+     if (this.get('content.values')) {
+       this.get('content.values').forEach(function (value) {
+         var expression = this.extractExpressions(value)[0];
+         var computedExpressions;
 
-    this.get('content.values').forEach(function (value) {
-      var expression =  this.extractExpressions(value)[0];
-      var computedExpressions;
-
-      if (expression) {
-        computedExpressions = this.computeExpression(expression, metrics);
-        seriesData.push({
-          name: value.name,
-          data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
-        });
-      }
-    }, this);
+         if (expression) {
+           computedExpressions = this.computeExpression(expression, metrics);
+           seriesData.push({
+             name: value.name,
+             data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
+           });
+         }
+       }, this);
+     }
     return seriesData;
   },
 
@@ -124,9 +125,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       data: {
         serviceName: request.service_name,
         componentName: request.component_name,
-        widgetIds: this.addTimeProperties(request.widget_ids).join(',')
+        metricPaths: this.addTimeProperties(request.metric_paths).join(',')
       },
-      success: 'getServiceComponentMetricsSuccessCallback'
+      success: 'getMetricsSuccessCallback'
     });
   },
 
@@ -142,10 +143,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       data: {
         serviceName: request.service_name,
         componentName: request.component_name,
-        widgetIds: this.addTimeProperties(request.widget_ids).join(','),
+        metricPaths: this.addTimeProperties(request.metric_paths).join(','),
         hostComponentCriteria: 'host_components/HostRoles/' + request.host_component_criteria
       },
-      success: 'getHostComponentMetricsSuccessCallback'
+      success: 'getMetricsSuccessCallback'
     });
   },
 

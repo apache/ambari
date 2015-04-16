@@ -90,7 +90,7 @@
                 {{/each}}
               </ul>
             </div>
-            {{#if App.supports.customizedWidgets}}
+            {{#if isServiceWithEnhancedWidgets}}
               <div class="btn-group pull-right actions">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                   {{t common.actions}} &nbsp;<span class="caret"></span>
@@ -122,7 +122,7 @@
             {{/if}}
           </div>
           <div>
-            {{#if App.supports.customizedWidgets}}
+            {{#if isServiceWithEnhancedWidgets}}
               <div id="widget_layout" class="row-fluid">
                 {{#each widget in controller.widgets}}
                   <div class="widget span2p4" {{bindAttr id="widget.id"}}>
