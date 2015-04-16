@@ -16,6 +16,7 @@
  * limitations under the License.
  */
 
+var misc = require('utils/misc');
 var App = require('app');
 
 App.WizardRoute = Em.Route.extend({
@@ -210,7 +211,7 @@ App.Router = Em.Router.extend({
     var controller = this.get('loginController');
     var loginName = controller.get('loginName').toLowerCase();
     controller.set('loginName', loginName);
-    var hash = window.btoa(loginName + ":" + controller.get('password'));
+    var hash = misc.utf8ToB64(loginName + ":" + controller.get('password'));
     var usr = '';
 
     if (App.get('testMode')) {
@@ -243,7 +244,7 @@ App.Router = Em.Router.extend({
   loginSuccessCallback: function(data, opt, params) {
     console.log('login success');
     App.usersMapper.map({"items": [data]});
-    this.setUserLoggedIn(params.loginName);
+    this.setUserLoggedIn(decodeURIComponent(params.loginName));
     App.router.get('mainViewsController').loadAmbariViews();
     App.ajax.send({
       name: 'router.login.clusters',
@@ -391,7 +392,7 @@ App.Router = Em.Router.extend({
 
   logOff: function (context) {
     $('title').text(Em.I18n.t('app.name'));
-    var hash = window.btoa(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
+    var hash = misc.utf8ToB64(this.get('loginController.loginName') + ":" + this.get('loginController.password'));
 
     App.router.get('mainController').stopPolling();
     // App.db.cleanUp() must be called before router.clearAllSteps().
