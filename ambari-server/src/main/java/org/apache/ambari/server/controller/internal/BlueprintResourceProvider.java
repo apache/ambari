@@ -30,7 +30,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -61,7 +60,6 @@ import com.google.gson.Gson;
 /**
  * Resource Provider for Blueprint resources.
  */
-@StaticallyInject
 public class BlueprintResourceProvider extends BaseBlueprintProcessor {
 
   // ----- Property ID constants ---------------------------------------------

@@ -47,6 +47,7 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
@@ -67,6 +68,7 @@ import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -601,6 +603,9 @@ public class AmbariServer {
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
+    BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class),
+        injector.getInstance(StackDAO.class),
+        injector.getInstance(Gson.class), ambariMetaInfo);
     StackDependencyResourceProvider.init(ambariMetaInfo);
     ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
 
