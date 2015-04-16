@@ -90,11 +90,11 @@ export METASTORE_PORT={{hive_metastore_port}}
       <type>value-list</type>
       <entries>
         <entry>
-          <value>On</value>
+          <value>on</value>
           <label>On</label>
         </entry>
         <entry>
-          <value>Off</value>
+          <value>off</value>
           <label>Off</label>
         </entry>
       </entries>

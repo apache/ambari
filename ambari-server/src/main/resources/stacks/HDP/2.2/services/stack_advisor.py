@@ -197,6 +197,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     container_size = "512"
 
+    if not "yarn-site" in configurations:
+      self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+
     if "yarn-site" in configurations and \
       "yarn.scheduler.minimum-allocation-mb" in configurations["yarn-site"]["properties"]:
       container_size = configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]
