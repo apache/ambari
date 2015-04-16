@@ -269,7 +269,10 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticks: ticks,
       tooltip: 'always',
       ticks_labels: ticksLabels,
-      step: this.get('mirrorStep')
+      step: this.get('mirrorStep'),
+      formatter: function(val) {
+        return val + self.get('unitLabel');
+      }
     });
 
     slider.on('change', function (obj) {

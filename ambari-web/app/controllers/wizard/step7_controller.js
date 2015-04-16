@@ -1081,7 +1081,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty);
     var group = this.get('selectedService.configGroups').findProperty('name', this.get('selectedConfigGroup.name'));
     newSCP.set('group', group);
-    newSCP.set('value', '');
+    newSCP.set('value', serviceConfigProperty.get('widget') ? serviceConfigProperty.get('value') : '');
     newSCP.set('isOriginalSCP', false); // indicated this is overridden value,
     newSCP.set('parentSCP', serviceConfigProperty);
     newSCP.set('isEditable', true);

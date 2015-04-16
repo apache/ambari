@@ -20,7 +20,7 @@ var App = require('app');
 
 App.RadioButtonConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/radio_button_config'),
-  classNames: ['widget', 'radio-button-widget'],
+  classNames: ['widget-config', 'radio-button-widget'],
 
   /**
    * Content for radio buttons has following structure:

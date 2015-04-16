@@ -22,8 +22,6 @@
   {{/if}}
   <div {{bindAttr class="view.isOriginalSCP:original-widget :ui-slider-wrapper"}}>
     <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
-    {{#if view.isOriginalSCP}}
-      {{template "templates/common/configs/widgets/controls"}}
-    {{/if}}
+    {{template "templates/common/configs/widgets/controls"}}
   </div>
 </div>

@@ -133,8 +133,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   undoAllowed: function () {
     var config = this.get('config');
     if (!config) return false;
+    if (!this.get('isOriginalSCP') || this.get('disabled')) return false;
     return !config.get('cantBeUndone') && config.get('isNotDefaultValue');
-  }.property('config.cantBeUndone', 'config.isNotDefaultValue'),
+  }.property('config.cantBeUndone', 'config.isNotDefaultValue', 'isOriginalSCP', 'disabled'),
 
   showFinalConfig: function () {
     var config = this.get('config');
@@ -176,5 +177,15 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * for now used in slider widget
    * @abstract
    */
-  setValue: Em.K
+  setValue: Em.K,
+
+  /**
+   * Config group bound property. Needed for correct render process in template.
+   *
+   * @returns {App.ConfigGroup|Boolean}
+   */
+  configGroup: function() {
+    return !this.get('config.group') || this.get('config.group.isDefault') ? false : this.get('config.group');
+  }.property('config.group.name')
+
 });

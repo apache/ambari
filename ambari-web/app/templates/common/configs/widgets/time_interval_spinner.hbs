@@ -19,7 +19,7 @@
 {{#if view.isOriginalSCP}}
   <p class="widget-config-label">{{view.configLabel}}</p>
 {{/if}}
-<div {{bindAttr class="view.isOriginalSCP:original-widget"}}>
+<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget"}}>
   {{#each spinnerContent in view.content}}
     {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
   {{/each}}

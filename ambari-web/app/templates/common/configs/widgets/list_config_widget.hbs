@@ -20,15 +20,8 @@
   {{#if view.isOriginalSCP}}
     <p class="widget-config-label">{{view.configLabel}}</p>
   {{/if}}
-  <div class="btn-group">
+  <div class="pull-left btn-group">
     <a class="btn dropdown-toggle" data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
-    {{#if view.valueIsChanged}}
-      <div class="undo-button">
-        <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
-          <i class="icon-undo"></i>
-        </a>
-      </div>
-    {{/if}}
     <ul class="dropdown-menu">
       {{#each option in view.options}}
         <li>
@@ -41,4 +34,5 @@
       {{/each}}
     </ul>
   </div>
-{{template "templates/common/configs/widgets/controls"}}
+  {{template "templates/common/configs/widgets/controls"}}
+</div>

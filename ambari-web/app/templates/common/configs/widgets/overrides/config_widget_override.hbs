@@ -19,48 +19,9 @@
 {{! Here serviceConfigBinding should ideally be serviceConfigPropertyBinding }}
   <div {{bindAttr class="overriddenSCP.errorMessage:error: :control-group :overrideField"}}>
     {{view view.serviceConfigProperty.widget configBinding="overriddenSCP" isPopoverEnabled="false"}}
-    <div {{bindAttr class=":widget-config-controls view.parentView.isHover:show:not-show"}}>
-      {{#if overriddenSCP.supportsFinal}}
-        <a href="#" data-toggle="tooltip"
-          {{bindAttr class=":widget-action :widget-action-final overriddenSCP.isFinal:active overriddenSCP.hideFinalIcon:hidden" disabled="overriddenSCP.isNotEditable"}}
-          {{action "toggleFinalFlag" overriddenSCP target="view"}}
-          {{translateAttr data-original-title="services.service.config.final"}}>
-          <i class="icon-lock"></i>
-        </a>
-      {{/if}}
-      {{#if view.isDefaultGroupSelected}}
-        {{#if overriddenSCP.group}}
-          <a href="#" data-toggle="tooltip" {{bindAttr data-original-title="overriddenSCP.group.switchGroupTextFull" }}
-             class="action" {{action selectConfigGroup overriddenSCP.group target="controller"}}>
-            {{overriddenSCP.group.switchGroupTextShort}}
-          </a>
-        {{/if}}
-      {{else}}
-        {{#if overriddenSCP.isEditable}}
-          {{#if isNotDefaultValue}}
-            <a class="btn btn-small" href="#" data-toggle="tooltip"
-              {{action "doRestoreDefaultValue" overriddenSCP target="view"}}
-              {{translateAttr data-original-title="common.undo"}}>
-              <i class="icon-undo"></i>
-            </a>
-          {{/if}}
-          {{#isAccessible ADMIN}}
-            <a class="widget-action widget-action-remove" href="#" data-toggle="tooltip"
-              {{action "removeOverride" overriddenSCP target="view"}}
-              {{translateAttr data-original-title="common.remove"}}>
-              <i class="icon-minus-sign"></i>
-            </a>
-            <div class="clearfix"></div>
-          {{/isAccessible}}
-        {{else}}
-          <a class="action">{{overriddenSCP.group.switchGroupTextShort}}</a> <i class="icon-spinner"></i>
-        {{/if}}
-      {{/if}}
-    </div>
     {{#if overriddenSCP.isEditable}}
       {{#if overriddenSCP.errorMessage}}
-        <div class="clearfix"></div>
-        <span class="help-inline">{{overriddenSCP.errorMessage}}</span>
+        <p class="text-error">{{overriddenSCP.errorMessage}}</p>
       {{/if}}
     {{/if}}
   </div>

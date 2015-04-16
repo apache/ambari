@@ -15,11 +15,12 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+
 {{#if view.canEdit}}
   <div class="widget-config-controls">
     {{#if view.config.supportsFinal}}
       <a href="#" data-toggle="tooltip"
-        {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:not-show" disabled="view.config.isNotEditable"}}
+        {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:hide" disabled="view.config.isNotEditable"}}
         {{action "toggleFinalFlag" view.config target="view"}}
         {{translateAttr data-original-title="services.service.config.final"}}>
         <i class="icon-lock"></i>
@@ -27,7 +28,7 @@
     {{/if}}
     {{#if view.overrideAllowed}}
       {{#isAccessible ADMIN}}
-        <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:not-show"}}>
+        <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:hide"}}>
           <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
             {{action "createOverrideProperty" view.config target="view.parentView"}}
             {{translateAttr data-original-title="common.override"}}>
@@ -36,11 +37,35 @@
         </div>
       {{/isAccessible}}
     {{/if}}
-    {{#if view.isOriginalSCP}}
-      {{view App.RestoreConfigView visibleBinding="view.undoAllowed"}}
+    {{#unless view.isOriginalSCP}}
+      {{#isAccessible ADMIN}}
+        <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#" data-toggle="tooltip"
+          {{action "removeOverride" view.config target="view.parentView"}}
+          {{translateAttr data-original-title="common.remove"}}>
+          <i class="icon-minus-sign"></i>
+        </a>
+      {{/isAccessible}}
+    {{/unless}}
+    {{#if view.config.isNotDefaultValue}}
+      {{#if view.undoAllowed}}
+        <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
+          <i class="icon-undo"></i>
+        </a>
+      {{/if}}
     {{/if}}
   </div>
+  <div class="clearfix"></div>
 {{/if}}
+
+{{#if controller.selectedConfigGroup.isDefault}}
+  {{#if view.configGroup}}
+    <a href="#" data-toggle="tooltip" {{bindAttr data-original-title="view.configGroup.switchGroupTextFull" }}
+       class="action" {{action selectConfigGroup view.configGroup target="controller"}}>
+      {{view.configGroup.switchGroupTextShort}}
+    </a>
+  {{/if}}
+{{/if}}
+
 {{#if view.isComparison}}
   <div class="widget-config-controls">
   {{#if controller.selectedConfigGroup.isDefault}}
@@ -55,6 +80,8 @@
   {{/if}}
   </div>
 {{/if}}
+
+
 {{#if view.isOriginalSCP}}
   {{view App.ConfigWidgetOverrideView
   serviceConfigPropertyBinding="view.config"

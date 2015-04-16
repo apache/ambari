@@ -41,12 +41,20 @@ describe('App.ConfigWidgetView', function () {
           cantBeUndone: false,
           isNotDefaultValue: false
         },
+        view: {
+          disabled: false,
+          isOriginalSCP: false
+        },
         e: false
       },
       {
         cfg: {
           cantBeUndone: true,
           isNotDefaultValue: false
+        },
+        view: {
+          disabled: false,
+          isOriginalSCP: false
         },
         e: false
       },
@@ -55,6 +63,10 @@ describe('App.ConfigWidgetView', function () {
           cantBeUndone: false,
           isNotDefaultValue: true
         },
+        view: {
+          disabled: false,
+          isOriginalSCP: true
+        },
         e: true
       },
       {
@@ -62,11 +74,16 @@ describe('App.ConfigWidgetView', function () {
           cantBeUndone: true,
           isNotDefaultValue: true
         },
+        view: {
+          disabled: true,
+          isOriginalSCP: false
+        },
         e: false
       }
     ]).forEach(function (test, index) {
         it('test #' + index, function () {
           view.get('config').setProperties(test.cfg);
+          view.setProperties(test.view);
           expect(view.get('undoAllowed')).to.equal(test.e);
         });
       });
