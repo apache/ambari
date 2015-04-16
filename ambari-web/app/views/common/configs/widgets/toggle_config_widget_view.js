@@ -34,6 +34,14 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   switcher: null,
 
   /**
+   * Minimum required handle width for toggle widget in pixels.
+   * @type {Number}
+   */
+  minHandleWidth: 30,
+
+  /**
+
+  /**
    * Value used in the checkbox.
    * <code>config.value</code> can't be used because it's string.
    *
@@ -102,8 +110,9 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
       var switcher = this.$("input").bootstrapSwitch({
         onText: labels[0].label,
         offText: labels[1].label,
-        offColor: 'danger',
-        handleWidth: 85,
+        offColor: 'default',
+        onColor: 'success',
+        handleWidth: self.getHandleWidth(labels.mapProperty('label.length')),
         onSwitchChange: function (event, state) {
           self.set('switcherValue', state);
           self.get('controller').removeCurrentFromDependentList(self.get('config'));
@@ -113,6 +122,18 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
       this.set('switcher', switcher);
     }
   },
+
+  /**
+   * Calculate handle width by longest label.
+   *
+   * @param {String[]} labels
+   * @returns {Number}
+   */
+  getHandleWidth: function(labels) {
+    var labelWidth = Math.max.apply(null, labels) * 8;
+    return labelWidth < this.get('minHandleWidth') ? this.get('minHandleWidth') : labelWidth;
+  },
+
 
   /**
    * Restore default config value and toggle switcher.

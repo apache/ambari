@@ -48,7 +48,7 @@
     {{/unless}}
     {{#if view.config.isNotDefaultValue}}
       {{#if view.undoAllowed}}
-        <a class="btn btn-small" href="#" {{action "restoreValue" target="view"}}>
+        <a class="widget-action widget-action-undo" href="#" {{action "restoreValue" target="view"}}>
           <i class="icon-undo"></i>
         </a>
       {{/if}}

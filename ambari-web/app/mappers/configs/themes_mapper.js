@@ -67,6 +67,7 @@ App.themesMapper = App.QuickDataMapper.create({
     }, this);
 
     App.store.loadMany(this.get("tabModel"), tabs);
+    App.store.commit();
   },
 
   /**
