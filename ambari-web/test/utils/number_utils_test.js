@@ -233,8 +233,8 @@ describe('utils/number_utils', function() {
         str: "1",
         min: 2,
         max: 0,
-        m: 'try to validate `1` with max = 0 and min = 2 should return ' + Em.I18n.t('number.validate.lessThanMinumum').format(2),
-        e: Em.I18n.t('number.validate.lessThanMinumum').format(2)
+        m: 'try to validate `1` with max = 0 and min = 2 should return ' + Em.I18n.t('number.validate.lessThanMinimum').format(2),
+        e: Em.I18n.t('number.validate.lessThanMinimum').format(2)
       }
     ];
 

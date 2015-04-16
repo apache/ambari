@@ -66,6 +66,10 @@
   {{/if}}
 {{/if}}
 
+{{#if view.config.errorMessage}}
+  <p class="text-error">{{view.config.errorMessage}}</p>
+{{/if}}
+
 {{#if view.isComparison}}
   <div class="widget-config-controls">
   {{#if controller.selectedConfigGroup.isDefault}}

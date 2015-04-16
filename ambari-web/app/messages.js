@@ -2552,7 +2552,7 @@ Em.I18n.translations = {
 
   'number.validate.empty': 'cannot be empty',
   'number.validate.notValidNumber': 'not a valid number',
-  'number.validate.lessThanMinumum': 'value less than {0}',
+  'number.validate.lessThanMinimum': 'value less than {0}',
   'number.validate.moreThanMaximum': 'value greater than {0}',
 
   'common.combobox.placeholder': 'Filter...',

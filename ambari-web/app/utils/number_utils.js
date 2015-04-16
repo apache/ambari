@@ -77,7 +77,7 @@ module.exports = {
           return Em.I18n.t('number.validate.notValidNumber');
         }
         if (!isNaN(min) && number < min) {
-          return Em.I18n.t('number.validate.lessThanMinumum').format(min);
+          return Em.I18n.t('number.validate.lessThanMinimum').format(min);
         }
         if (!isNaN(max) && number > max) {
           return Em.I18n.t('number.validate.moreThanMaximum').format(max);

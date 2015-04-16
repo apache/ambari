@@ -155,8 +155,9 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
 
   valueObserverCallback: function() {
     this.checkModified();
-    this.checkErrors();
     this.setConfigValue();
+    this.checkErrors();
+    this.sendRequestRorDependentConfigs(this.get('config'));
   },
 
   /**
@@ -173,9 +174,9 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   checkErrors: function() {
     var convertedValue = this.configValueByWidget(this.get('content'));
-    var errorMessage = false;
+    var errorMessage = '';
     if (convertedValue < parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'))) {
-      errorMessage = Em.I18n.t('number.validate.lessThanMinumum').format(this.dateToText(this.get('minValue')));
+      errorMessage = Em.I18n.t('number.validate.lessThanMinimum').format(this.dateToText(this.get('minValue')));
     }
     else if (convertedValue > parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'))) {
       errorMessage = Em.I18n.t('number.validate.moreThanMaximum').format(this.dateToText(this.get('maxValue')));
@@ -184,7 +185,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
       isValid: !errorMessage,
       errorMessage: errorMessage
     });
-    this.get('config').set('errorMessage', errorMessage);
+    this.set('config.errorMessage', errorMessage);
   },
 
   /**
@@ -192,9 +193,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * @method setConfigValue
    */
   setConfigValue: function() {
-    this.set('config.value', this.configValueByWidget(this.get('content')));
+    this.set('config.value', '' + this.configValueByWidget(this.get('content')));
     this.get('controller').removeCurrentFromDependentList(this.get('config'));
-    this.sendRequestRorDependentConfigs(this.get('config'));
   },
 
   /**
