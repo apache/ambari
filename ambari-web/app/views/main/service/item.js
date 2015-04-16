@@ -96,7 +96,7 @@ App.MainServiceItemView = Em.View.extend({
   isMaintenanceSet: false,
 
   observeMaintenance: function() {
-    if (!this.get('isMaintenanceSet')) {
+    if (!this.get('isMaintenanceSet') && this.get('controller.isServicesInfoLoaded')) {
       this.observeMaintenanceOnce();
     }
     Em.run.once(this, 'clearIsMaintenanceSet');
@@ -257,12 +257,14 @@ App.MainServiceItemView = Em.View.extend({
     this.addObserver('controller.isStopDisabled', this, 'observeMaintenance');
     this.addObserver('controller.isClientsOnlyService', this, 'observeMaintenance');
     this.addObserver('controller.content.isRestartRequired', this, 'observeMaintenance');
+    this.addObserver('controller.isServicesInfoLoaded', this, 'observeMaintenance');
   },
 
   willDestroyElement: function() {
     this.removeObserver('controller.isStopDisabled', this, 'observeMaintenance');
     this.removeObserver('controller.isClientsOnlyService', this, 'observeMaintenance');
     this.removeObserver('controller.content.isRestartRequired', this, 'observeMaintenance');
+    this.removeObserver('controller.isServicesInfoLoaded', this, 'observeMaintenance');
   },
   service:function () {
     var svc = this.get('controller.content');

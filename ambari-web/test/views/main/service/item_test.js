@@ -66,6 +66,56 @@ describe('App.MainServiceItemView', function () {
 
   describe('#observeMaintenance', function () {
 
+    var cases = [
+      {
+        isMaintenanceSet: true,
+        isServicesInfoLoaded: true,
+        observeMaintenanceOnceCallCount: 0,
+        title: 'actions array set, services info loaded'
+      },
+      {
+        isMaintenanceSet: true,
+        isServicesInfoLoaded: false,
+        observeMaintenanceOnceCallCount: 0,
+        title: 'actions array set, services info not loaded'
+      },
+      {
+        isMaintenanceSet: false,
+        isServicesInfoLoaded: true,
+        observeMaintenanceOnceCallCount: 1,
+        title: 'actions array not set, services info loaded'
+      },
+      {
+        isMaintenanceSet: false,
+        isServicesInfoLoaded: false,
+        observeMaintenanceOnceCallCount: 0,
+        title: 'actions array not set, services info not loaded'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(view, 'observeMaintenanceOnce', Em.K);
+    });
+
+    afterEach(function () {
+      view.observeMaintenanceOnce.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.setProperties({
+          'isMaintenanceSet': item.isMaintenanceSet,
+          'controller.isServicesInfoLoaded': item.isServicesInfoLoaded
+        });
+        view.observeMaintenance();
+        expect(view.observeMaintenanceOnce.callCount).to.equal(item.observeMaintenanceOnceCallCount);
+      });
+    });
+
+  });
+
+  describe('#observeMaintenanceOnce', function () {
+
     var mastersExcludedCommands = {
         NAMENODE: ["DECOMMISSION", "REBALANCEHDFS"],
         RESOURCEMANAGER: ["DECOMMISSION", "REFRESHQUEUES"],

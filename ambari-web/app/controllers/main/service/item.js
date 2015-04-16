@@ -45,6 +45,8 @@ App.MainServiceItemController = Em.Controller.extend({
     }
   },
 
+  isServicesInfoLoaded: false,
+
   initHosts: function() {
     if (App.get('components.masters').length !== 0) {
       var self = this;

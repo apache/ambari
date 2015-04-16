@@ -407,6 +407,7 @@ App.UpdateController = Em.Controller.extend({
     };
     App.HttpClient.get(servicesUrl, App.serviceMetricsMapper, {
       complete: function () {
+        App.set('router.mainServiceItemController.isServicesInfoLoaded', App.get('router.clusterController.isLoaded'));
         callback();
       }
     });

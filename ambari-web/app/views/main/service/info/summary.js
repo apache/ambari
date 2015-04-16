@@ -526,10 +526,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     return gangliaUrl;
   }.property('App.router.clusterController.gangliaUrl', 'service.serviceName'),
 
-  willInsertElement: function () {
-    App.router.get('updateController').updateServiceMetric(Em.K);
-  },
-
   didInsertElement: function () {
     var svcName = this.get('service.serviceName');
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
