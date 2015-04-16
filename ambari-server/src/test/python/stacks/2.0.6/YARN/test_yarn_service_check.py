@@ -21,6 +21,7 @@ import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("sys.executable", new = '/usr/bin/python2.6')
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
