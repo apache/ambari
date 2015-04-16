@@ -270,12 +270,9 @@ App.Router = Em.Router.extend({
     } else {
       controller.postLogin(false, false, null);
     }
-
   },
 
   loginGetClustersSuccessCallback: function (clustersData, opt, params) {
-    var adminViewUrl = '/views/ADMIN_VIEW/2.0.0/INSTANCE/#/';
-    //TODO: Replace hard coded value with query. Same in templates/application.hbs
     var loginController = this.get('loginController');
     var loginData = params.loginData;
     var privileges = loginData.privileges || [];
@@ -289,8 +286,12 @@ App.Router = Em.Router.extend({
           router.setClusterInstalled(clustersData);
           transitionToApp = true;
         } else {
-          window.location = adminViewUrl;
-          return;
+          App.ajax.send({
+            name: 'ambari.service.load_server_version',
+            sender: this,
+            success: 'adminViewInfoSuccessCallback',
+            error: 'adminViewInfoErrorCallback'
+          });
         }
       } else {
         if (clustersData.items.length) {
@@ -324,6 +325,16 @@ App.Router = Em.Router.extend({
         router.transitionTo('main.views.index');
         loginController.postLogin(true,true);
       }
+  },
+
+  adminViewInfoSuccessCallback: function(data) {
+    if (data && data.RootServiceComponents && data.RootServiceComponents.component_version) {
+      window.location.replace('/views/ADMIN_VIEW/'+data.RootServiceComponents.component_version+'/INSTANCE/#/');
+    }
+  },
+
+  adminViewInfoErrorCallback: function (req) {
+    console.log("Get admin view version error: " + req.statusCode);
   },
 
   loginGetClustersErrorCallback: function (req) {
@@ -504,7 +515,12 @@ App.Router = Em.Router.extend({
             router.transitionTo('login');
           });
         } else {
-            window.location.replace('/views/ADMIN_VIEW/2.0.0/INSTANCE/#/');
+          App.ajax.send({
+            name: 'ambari.service.load_server_version',
+            sender: router,
+            success: 'adminViewInfoSuccessCallback',
+            error: 'adminViewInfoErrorCallback'
+          });
         }
       }
     }),
