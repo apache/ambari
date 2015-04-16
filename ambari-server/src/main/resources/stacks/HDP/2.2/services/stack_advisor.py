@@ -151,7 +151,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHiveSiteProperty("hive.compactor.initiator.on", "true")
       putHiveSiteProperty("hive.compactor.worker.threads", "1")
       putHiveSiteProperty("hive.enforce.bucketing", "true")
-      putHiveSiteProperty("hive.exec.dynamic.partition.mode", "nostrict")
+      putHiveSiteProperty("hive.exec.dynamic.partition.mode", "nonstrict")
     else:
       putHiveSiteProperty("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager")
       putHiveSiteProperty("hive.support.concurrency", "false")
