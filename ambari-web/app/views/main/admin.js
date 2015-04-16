@@ -34,19 +34,11 @@ App.MainAdminView = Em.View.extend({
       label: Em.I18n.t('common.serviceAccounts')
     });
     if (!App.get('isHadoopWindowsStack')) {
-      if (App.get('supports.automatedKerberos')) {
-        items.push({
-          name: 'kerberos',
-          url: 'adminKerberos.index',
-          label: Em.I18n.t('common.kerberos')
-        });
-      } else {
-        items.push({
-          name: 'security',
-          url: 'adminSecurity.index',
-          label: Em.I18n.t('common.security')
-        });
-      }
+      items.push({
+        name: 'kerberos',
+        url: 'adminKerberos.index',
+        label: Em.I18n.t('common.kerberos')
+      });
     }
     return items;
   }.property(''),

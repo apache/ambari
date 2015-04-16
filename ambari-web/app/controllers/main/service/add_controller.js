@@ -21,8 +21,8 @@ var App = require('app');
 App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
 
   name: 'addServiceController',
-  // @TODO: remove after Kerberos Automation supports
-  totalSteps: App.supports.automatedKerberos ? 8 : 7,
+
+  totalSteps: 8,
 
   /**
    * Used for hiding back button in wizard
@@ -585,11 +585,9 @@ App.AddServiceController = App.WizardController.extend(App.AddSecurityConfigs, {
   },
 
   checkSecurityStatus: function() {
-    if (App.supports.automatedKerberos) {
-      if (!App.router.get('mainAdminKerberosController.securityEnabled')) {
-        this.set('skipConfigureIdentitiesStep', true);
-        this.get('isStepDisabled').findProperty('step', 5).set('value', true);
-      }
+    if (!App.router.get('mainAdminKerberosController.securityEnabled')) {
+      this.set('skipConfigureIdentitiesStep', true);
+      this.get('isStepDisabled').findProperty('step', 5).set('value', true);
     }
   }
 

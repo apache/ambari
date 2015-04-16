@@ -223,11 +223,9 @@ module.exports = App.WizardRoute.extend({
       var wizardStep7Controller = router.get('wizardStep7Controller');
       addServiceController.saveServiceConfigProperties(wizardStep7Controller);
       addServiceController.saveServiceConfigGroups(wizardStep7Controller, true);
-      if (App.supports.automatedKerberos) {
-        if (router.get('mainAdminKerberosController.securityEnabled')) {
-          router.transitionTo('step5');
-          return;
-        }
+      if (router.get('mainAdminKerberosController.securityEnabled')) {
+        router.transitionTo('step5');
+        return;
       }
       router.transitionTo('step6');
     }
@@ -266,7 +264,7 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      if (App.supports.automatedKerberos && router.get('mainAdminKerberosController.securityEnabled')) {
+      if (router.get('mainAdminKerberosController.securityEnabled')) {
         router.get('kerberosWizardStep2Controller').createKerberosAdminSession(router.get('kerberosWizardStep4Controller.stepConfigs')[0].get('configs'));
       }
       router.transitionTo('step6');
@@ -274,11 +272,11 @@ module.exports = App.WizardRoute.extend({
   }),
 
   step6: Em.Route.extend({
-    route: App.supports.automatedKerberos ? '/step6' : '/step5',
+    route: '/step6',
     connectOutlets: function (router, context) {
       console.log('in addService.step5:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep(App.supports.automatedKerberos ? '6' : '5');
+      controller.setCurrentStep('6');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
           var wizardStep8Controller = router.get('wizardStep8Controller');
@@ -289,7 +287,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: function(router){
       var controller = router.get('addServiceController');
-      if (App.supports.automatedKerberos && router.get('mainAdminKerberosController.securityEnabled')) {
+      if (router.get('mainAdminKerberosController.securityEnabled')) {
         router.transitionTo('step5');
         return;
       }
@@ -322,17 +320,17 @@ module.exports = App.WizardRoute.extend({
   }),
 
   step7: Em.Route.extend({
-    route: App.supports.automatedKerberos ? '/step7' : '/step6',
+    route: '/step7',
     connectOutlets: function (router, context) {
       console.log('in addService.step6:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep(App.supports.automatedKerberos ? '7' : '6');
+      controller.setCurrentStep('7');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
           var wizardStep9Controller = router.get('wizardStep9Controller');
           wizardStep9Controller.set('wizardController', controller);
           if (!App.get('testMode')) {              //if test mode is ON don't disable prior steps link.
-            controller.setLowerStepsDisable(App.supports.automatedKerberos ? 7 : 6);
+            controller.setLowerStepsDisable(7);
           }
           controller.connectOutlet('wizardStep9', controller.get('content'));
         });
@@ -371,14 +369,14 @@ module.exports = App.WizardRoute.extend({
   }),
 
   step8: Em.Route.extend({
-    route: App.supports.automatedKerberos ? '/step8' : '/step7',
+    route: '/step8',
     connectOutlets: function (router, context) {
       console.log('in addService.step7:connectOutlets');
       var controller = router.get('addServiceController');
-      controller.setCurrentStep(App.supports.automatedKerberos ? '8' : '7');
+      controller.setCurrentStep('8');
       controller.dataLoading().done(function () {
         controller.loadAllPriorSteps().done(function () {
-          controller.setLowerStepsDisable(App.supports.automatedKerberos ? 8 : 7);
+          controller.setLowerStepsDisable(8);
           controller.connectOutlet('wizardStep10', controller.get('content'));
         });
       });

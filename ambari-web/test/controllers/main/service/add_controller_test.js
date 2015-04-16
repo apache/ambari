@@ -423,4 +423,48 @@ describe('App.AddServiceController', function() {
     }, this);
   });
 
+  describe('#checkSecurityStatus', function () {
+
+    var cases = [
+      {
+        securityEnabled: true,
+        skipConfigureIdentitiesStep: false,
+        isStep5Disabled: false,
+        title: 'security enabled'
+      },
+      {
+        securityEnabled: false,
+        skipConfigureIdentitiesStep: true,
+        isStep5Disabled: true,
+        title: 'security disabled'
+      }
+    ];
+
+    beforeEach(function () {
+      addServiceController.setProperties({
+        skipConfigureIdentitiesStep: false,
+        isStepDisabled: [
+          Em.Object.create({
+            step: 5,
+            value: false
+          })
+        ]
+      });
+    });
+
+    afterEach(function () {
+      App.router.get.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(App.router, 'get').withArgs('mainAdminKerberosController.securityEnabled').returns(item.securityEnabled);
+        addServiceController.checkSecurityStatus();
+        expect(addServiceController.get('skipConfigureIdentitiesStep')).to.equal(item.skipConfigureIdentitiesStep);
+        expect(addServiceController.get('isStepDisabled').findProperty('step', 5).get('value')).to.equal(item.isStep5Disabled);
+      });
+    });
+
+  });
+
 });
