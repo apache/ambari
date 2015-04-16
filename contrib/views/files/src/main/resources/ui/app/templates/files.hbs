@@ -25,17 +25,17 @@
     {{!-- UPLOADER --}}
     <div {{bind-attr class="isUploading::hide :pull-right" }}>
       <button {{action 'upload' 'close'}} type="button" class="close" aria-hidden="true">&times;</button>
-      {{file-uploader path=path uploader=uploader class=" upload-area pull-right" alert='showAlert'}}
+      {{file-uploader path=path uploader=uploader store=controller.store dirStatus=content.meta class="upload-area pull-right" alert='showAlert'}}
     </div>
 
     <div {{bind-attr class="isUploading:hide: :pull-right :uploadwrap" }}>
-      <button type="button" {{action 'upload' 'open'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right"}}>
+      <button type="button" {{action 'upload' 'open'}} {{bind-attr class=":btn :btn-default :btn-sm :pull-right content.meta.writeAccess::disabled"}}>
         <i class="fa fa-upload"></i> Upload
       </button>
     </div>
 
     {{!-- MKDIR --}}
-    {{mkdir-input create="mkdir" path=path}}
+    {{mkdir-input create="mkdir" path=path canCreate=content.meta.writeAccess}}
 
     </div>
   </div>

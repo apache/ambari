@@ -47,23 +47,14 @@ App.FileUploaderComponent = Ember.Component.extend({
     });
   },
   actions:{
-    upload:function (files) {
-      var uploader = this.get('uploader');
-      var uploadBtn = Ladda.create(this.uploadButton.get('element'));
-      var reset = function () {
-        uploadBtn.stop();
-        this.send('clear');
-      };
-      if (!uploader.get('isUploading')) {
-        var path = this.get('path');
-        if (!Ember.isEmpty(this.get('files'))) {
-          var file = this.get('files')[0];
-          uploadBtn.start();
-          uploader.on('progress',function (e) {
-            uploadBtn.setProgress(e.percent/100);
-          });
-          uploader.upload(file,{path:path}).finally(Em.run.bind(this,reset));
-        }
+    upload:function () {
+      if (this.get('dirStatus.writeAccess')) {
+        this.uploadFile();
+      } else {
+        this.set('isError',true);
+        Em.run.later(this,function () {
+          this.set('isError',false);
+        },500);
       }
     },
     clear:function () {
@@ -78,11 +69,30 @@ App.FileUploaderComponent = Ember.Component.extend({
   isFiles:function () {
     return !this.get('files.length');
   }.property('files'),
+  uploadFile:function () {
+    var path = this.get('path');
+    var uploader = this.get('uploader');
+    var uploadBtn = Ladda.create(this.uploadButton.get('element'));
+    var reset = function () {
+      uploadBtn.stop();
+      this.send('clear');
+    };
+    if (!uploader.get('isUploading')) {
+      if (!Ember.isEmpty(this.get('files'))) {
+        var file = this.get('files')[0];
+        uploadBtn.start();
+        uploader.on('progress',function (e) {
+          uploadBtn.setProgress(e.percent/100);
+        });
+        uploader.upload(file,{path:path}).finally(Em.run.bind(this,reset));
+      }
+    }
+  },
   uploadButton: Em.View.createWithMixins(Ember.TargetActionSupport, {
     tagName:'button',
     target: Ember.computed.alias('controller'),
-    classNames:['btn btn-success ladda-button'],
-    classNameBindings:['isFiles:hide'],
+    classNames:['btn','ladda-button'],
+    classNameBindings:['isFiles:hide','target.isError:btn-danger:btn-success'],
     attributeBindings: ["data-style","data-size"],
     action:'upload',
     click: function() {

@@ -126,9 +126,8 @@ App.FilesController = Ember.ArrayController.extend({
     var adapter = controller.store.adapterFor('file');
     var url = adapter.buildURL('upload');
     this.uploader.set('url',url);
-    this.uploader.on('didUpload', function(e) {
-
-      controller.store.pushPayload('file',{file:e});
+    this.uploader.on('didUpload', function (payload) {
+      controller.store.pushPayload('file', {'file': payload });
     });
     this._super();
   },
@@ -148,8 +147,7 @@ App.FilesController = Ember.ArrayController.extend({
     return (this.movingFile)?[this.path,this.movingFile.name].join('/').replace('//','/')===this.movingFile.path:false;
   }.property('movingFile','path'),
   currentDir:function () {
-    var splitpath = this.get('path').split('/');
-    return splitpath.get(splitpath.length-1) || '/';
+    return this.get('path').split('/').get('lastObject') || '/';
   }.property('path'),
   selectedOne:Ember.computed.equal('selectedFiles.length', 1),
   isSelected:Ember.computed.gt('selectedFiles.length', 0),

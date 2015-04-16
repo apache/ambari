@@ -18,6 +18,15 @@
 
 var App = require('app');
 
+function _shake (element) {
+  var l = 5;
+  for ( var i = 0; i < 4; i++ ) {
+    element.animate( (l>0) ? {'margin-left':(l=-l)+'px','padding-left':0}:{'padding-left':+(l=-l)+'px','margin-left':0}, 50, function (el) {
+      element.css({'padding-left':0,'margin-left':0});
+    });
+  }
+}
+
 App.ToggleContextComponent = Em.Component.extend({
   didInsertElement:function () {
     var fileRow = this.$().parents('tr'),
@@ -46,12 +55,28 @@ App.ToggleContextComponent = Em.Component.extend({
   },
   openOnClick:function (e) {
     if($(e.target).is('td') || $(e.target).hasClass('allow-open')){
-      this.get('targetObject').send('open');
+      if (this.get('targetObject.content.readAccess')) {
+        this.get('targetObject').send('open');
+      } else {
+        _shake(this.$().parents('.file-row').find('.file-name span').first());
+      }
     }
   },
   willClearRender:function () {
     var fileRow = this.$().parents('tr');
     fileRow.off('click');
     fileRow.data('context').destroy();
+  }
+});
+
+App.FileShakerComponent = Em.Component.extend({
+  action:'',
+  isValid:false,
+  click:function () {
+    if (this.get('isValid')) {
+      this.sendAction('action');
+    } else {
+      _shake(this.$());
+    }
   }
 });

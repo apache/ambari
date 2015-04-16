@@ -56,7 +56,7 @@ function _listdir(adapter, store, type, query, recordArray) {
       label = "";
 
   return Ember.RSVP.Promise.cast(promise, label).then(function(adapterPayload) {
-    var payload = serializer.extractArray(store, type, adapterPayload);
+    var payload = serializer.extract(store, type, adapterPayload, null, 'findAll');
 
     Ember.assert("The response from a findQuery must be an Array, not " + Ember.inspect(payload), Ember.typeOf(payload) === 'array');
 
@@ -284,10 +284,6 @@ App.ApplicationStore = DS.Store.extend({
 
 App.FileSerializer = DS.RESTSerializer.extend({
   primaryKey:'path',
-  extractArray: function(store, type, payload, id, requestType) {
-    payload = {'files': payload};
-    return this._super(store, type, payload, id, requestType);
-  },
   extractSingle: function(store, type, payload, id, requestType) {
     payload = {'files': payload};
     return this._super(store, type, payload, id, requestType);

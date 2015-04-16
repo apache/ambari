@@ -26,13 +26,15 @@
   <td>
     {{#rename-input fileBinding='content' confirm='rename' isRenaming=isRenaming}}
       <div class="file-name allow-open">
+      {{#file-shaker action="open" isValid=content.readAccess}}
         <span>
-          <a {{action 'open'}}>
+          <a>
             <strong>
               {{content.name}}
             </strong>
           </a>
         </span>
+      {{/file-shaker}}
         <span class="help-block mod-time allow-open">
           <small class='allow-open'>
             Updated {{showDate modificationTime 'YYYY-MM-DD HH:mm'}}
