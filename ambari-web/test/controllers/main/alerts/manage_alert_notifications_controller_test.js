@@ -645,18 +645,39 @@ describe('App.ManageAlertNotificationsController', function () {
 
       });
 
-      describe('#clearValidationErrors', function () {
+      describe('#methodObserver', function () {
 
         var cases = [
-          {
-            method: 'EMAIL',
-            errors: ['portError', 'hostError']
-          },
-          {
-            method: 'SNMP',
-            errors: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError']
-          }
-        ];
+            {
+              method: 'EMAIL',
+              errors: ['portError', 'hostError'],
+              validators: ['emailToValidation', 'emailFromValidation', 'smtpPortValidation', 'retypePasswordValidation']
+            },
+            {
+              method: 'SNMP',
+              errors: ['emailToError', 'emailFromError', 'smtpPortError', 'passwordError'],
+              validators: ['portValidation', 'hostsValidation']
+            }
+          ],
+          validators = [];
+
+        before(function () {
+          cases.forEach(function (item) {
+            validators.pushObjects(item.validators);
+          });
+        });
+
+        beforeEach(function () {
+          validators.forEach(function (item) {
+            sinon.stub(view, item, Em.K);
+          });
+        });
+
+        afterEach(function () {
+          validators.forEach(function (item) {
+            view.get(item).restore();
+          });
+        });
 
         cases.forEach(function (item) {
           it(item.method, function () {
@@ -666,6 +687,9 @@ describe('App.ManageAlertNotificationsController', function () {
             view.set('controller.inputFields.method.value', item.method);
             item.errors.forEach(function (errorName) {
               expect(view.get(errorName)).to.be.false;
+            });
+            validators.forEach(function (validatorName) {
+              expect(view.get(validatorName).calledOnce).to.equal(item.validators.contains(validatorName));
             });
           });
         });
