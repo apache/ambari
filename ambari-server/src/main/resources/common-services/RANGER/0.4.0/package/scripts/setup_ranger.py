@@ -89,9 +89,9 @@ def check_db_connnection():
   elif params.db_flavor.lower() == 'oracle':
     cmd = format('{sql_command_invoker} {db_root_user}/{db_root_password}@{db_host} AS SYSDBA')
   elif params.db_flavor.lower() == 'postgres':
-    cmd_str = 'true'
+    cmd = 'true'
   elif params.db_flavor.lower() == 'sqlserver':
-    cmd_str = 'true'
+    cmd = 'true'
 
   try:
     Execute(cmd)
