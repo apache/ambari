@@ -36,20 +36,13 @@ class TestServiceCheck(RMFTestCase):
                           hdp_stack_version = self.STACK_VERSION,
                           target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
-                          content = StaticFile('validateYarnComponentStatus.py'),
-                          mode = 0755,
-    )
-    self.assertResourceCalled('Execute', '/usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
+    self.assertResourceCalled('Execute', 'yarn org.apache.hadoop.yarn.applications.distributedshell.Client '
+                                         '-shell_command ls -jar /usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar',
                           logoutput = True,
                           path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                           tries = 3,
                           user = 'ambari-qa',
                           try_sleep = 5,
-    )
-    self.assertResourceCalled('Execute', 'yarn --config /etc/hadoop/conf node -list',
-                              path = ["/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"],
-                              user = 'ambari-qa',
     )
     self.assertNoMoreResources()
 
@@ -61,19 +54,13 @@ class TestServiceCheck(RMFTestCase):
                           hdp_stack_version = self.STACK_VERSION,
                           target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('File', '/tmp/validateYarnComponentStatus.py',
-                          content = StaticFile('validateYarnComponentStatus.py'),
-                          mode = 0755,
-    )
-    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; /usr/bin/python2.6 /tmp/validateYarnComponentStatus.py rm -p c6402.ambari.apache.org:8088 -s False',
+    self.assertResourceCalled('Execute', '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab '
+                                         'ambari-qa@EXAMPLE.COM; yarn org.apache.hadoop.yarn.applications.distributedshell.Client '
+                                         '-shell_command ls -jar /usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar',
                           logoutput = True,
                           path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                           tries = 3,
                           user = 'ambari-qa',
                           try_sleep = 5,
-    )
-    self.assertResourceCalled('Execute', 'yarn --config /etc/hadoop/conf node -list',
-                          path = ["/bin:/usr/bin:/usr/lib/hadoop-yarn/bin"],
-                          user = 'ambari-qa',
     )
     self.assertNoMoreResources()
