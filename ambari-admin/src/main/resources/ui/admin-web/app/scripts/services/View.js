@@ -159,26 +159,39 @@ angular.module('ambariAdminConsole')
   };
 
   View.createInstance = function(instanceInfo) {
-    var deferred = $q.defer();
-    var properties = {};
+    var deferred = $q.defer(),
+      properties = {},
+      settings = {},
+      data = {
+        instance_name: instanceInfo.instance_name,
+        label: instanceInfo.label,
+        visible: instanceInfo.visible,
+        icon_path: instanceInfo.icon_path,
+        icon64_path: instanceInfo.icon64_path,
+        description: instanceInfo.description
+      };
 
     angular.forEach(instanceInfo.properties, function(property) {
-      properties[property.name] = property.value
+      if(property.clusterConfig) {
+        properties[property.name] = property.value
+      }else {
+        settings[property.name] = property.value
+      }
     });
+
+    data.properties = settings;
+
+    if(instanceInfo.isLocalCluster) {
+      data.cluster_handle = instanceInfo.clusterName;
+    } else {
+      angular.extend(data.properties, properties);
+    }
 
     $http({
       method: 'POST',
       url: Settings.baseUrl + '/views/' + instanceInfo.view_name +'/versions/'+instanceInfo.version + '/instances/'+instanceInfo.instance_name,
       data:{
-        'ViewInstanceInfo' : {
-          instance_name: instanceInfo.instance_name,
-          label: instanceInfo.label,
-          visible: instanceInfo.visible,
-          icon_path: instanceInfo.icon_path,
-          icon64_path: instanceInfo.icon64_path,
-          properties: properties,
-          description: instanceInfo.description
-        }
+        'ViewInstanceInfo' : data
       }
     })
     .success(function(data) {

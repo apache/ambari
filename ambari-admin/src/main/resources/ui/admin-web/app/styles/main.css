@@ -127,7 +127,7 @@
   display: block;
   color: #888;
   text-align: center;
-  padding: 10px 0px;
+  padding: 10px 0;
   cursor: default;
 }
 
@@ -239,7 +239,7 @@
   margin-left: 20px;
   margin-right: 10px;
   border: none;
-  border-radius: 0px;
+  border-radius: 0;
 }
 .mainpage .panel-body #main-operations-boxes .thumbnail .title,
 .mainpage .panel-body #main-operations-boxes .thumbnail .description,
@@ -533,7 +533,7 @@ a.gotoinstance{
   padding-left: 33px;
   padding-top: 8px;
   padding-bottom: 8px;
-  margin: 0px;
+  margin: 0;
 }
 .left-navbar .panel-body li.active a{
   background: #666;
@@ -657,7 +657,7 @@ table.no-border tr td{
 }
 
 .property-form label{
-  width: 214px;
+  width: 254px;
   word-wrap: break-word;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1178,7 +1178,6 @@ button.btn.btn-xs{
   border-radius: 50%;
   vertical-align: middle;
   position: relative;
-  border-radius: 50%;
 }
 
 .viewstatus.pending:before, .viewstatus.pending:after{
@@ -1319,4 +1318,23 @@ accordion .panel-group .panel{
 }
 .verison-label-row .label {
   font-size: 100%;
+}
+
+.panel-body .sub-group {
+    margin-left: 10px;
+}
+.clusters-name-dropdown {
+  margin-top: 7px;
+  margin-left: 16px;
+  width: 200px;
+}
+.cluster-configurable-form {
+  width: 350px;
+  margin-top: 15px;
+  margin-bottom: 15px;
+  padding: 0 15px;
+}
+.edit-view-custom-wrap {
+  padding-top: 0;
+  margin-top: -28px;
 }

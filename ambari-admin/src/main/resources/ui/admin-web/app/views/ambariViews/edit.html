@@ -37,21 +37,21 @@
   <div class="panel-body">
     <form class="form-horizontal" name="settingsForm" novalidate>
       <div class="form-group">
-        <label for="" class="col-sm-2 control-label">View Name</label>
-        <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.view_name}}"></div>
+        <label for="" class="col-sm-3 control-label">View Name</label>
+        <div class="col-sm-9"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.view_name}}"></div>
       </div>
       <div class="form-group">
-        <label for="" class="col-sm-2 control-label">View Version</label>
-        <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.version}}"></div>
+        <label for="" class="col-sm-3 control-label">View Version</label>
+        <div class="col-sm-9"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.version}}"></div>
       </div>
       <fieldset ng-disabled="editSettingsDisabled">
         <div class="form-group">
-          <label for="" class="col-sm-2 control-label">Instance Name</label>
-          <div class="col-sm-10"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.instance_name}}"></div>
+          <label for="" class="col-sm-3 control-label">Instance Name</label>
+          <div class="col-sm-9"><input disabled="disabled" type="text" class="form-control instancename-input" placeholder="Display Name" value="{{instance.ViewInstanceInfo.instance_name}}"></div>
         </div>
         <div class="form-group" ng-class="{'has-error' : (settingsForm.displayName.$error.required || settingsForm.displayName.$error.pattern) && !editSettingsDisabled}">
-          <label for="" class="col-sm-2 control-label">Display Name</label>
-          <div class="col-sm-10">
+          <label for="" class="col-sm-3 control-label">Display Name</label>
+          <div class="col-sm-9">
             <input type="text" class="form-control instancename-input" placeholder="Display Name" name="displayName" required ng-model="settings.label" ng-pattern="/^([a-zA-Z0-9._\s]+)$/">
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.displayName.$error.required  && !editSettingsDisabled'>
               This field is required.
@@ -62,16 +62,33 @@
           </div>
         </div>
         <div class="form-group" ng-class="{'has-error' : settingsForm.description.$error.required  && !editSettingsDisabled}">
-          <label for="" class="control-label col-sm-2">Description</label>
-          <div class="col-sm-10">
+          <label for="" class="control-label col-sm-3">Description</label>
+          <div class="col-sm-9">
             <input type="text" class="form-control" ng-model="settings.description" name="description" placeholder="Instance Description" required>
             <div class="alert alert-danger no-margin-bottom top-margin" ng-show='settingsForm.description.$error.required  && !editSettingsDisabled'>
               This field is required.
             </div>
           </div>
         </div>
+        <div class="form-group" ng-repeat="property in configurationMeta | filter:{clusterConfig:false}" ng-class="{'has-error' : (!editSettingsDisabled && ((property.required && settingsForm[property.name].$error.required && !editSettingsDisabled) || settingsForm[property.name].validationError))}">
+          <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.label || property.displayName}}{{property.required ? '*' : ''}}</label>
+          <div ng-switch="property.type">
+            <div class="col-sm-9 checkbox" ng-switch-when="boolean">
+              <input type="checkbox" class="propertie-input" ng-disabled="editSettingsDisabled" name="{{property.name}}" ng-model="configuration[property.name]" ng-true-value="true" ng-false-value="false" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter">
+            </div>
+            <div class="col-sm-9" ng-switch-default>
+              <input type="{{property.masked ? 'password' : 'text'}}" class="form-control propertie-input" ng-required="property.required" ng-change="settingsForm[property.name].validationError=''" ng-disabled="editSettingsDisabled" name="{{property.name}}" ng-model="configuration[property.name]" popover="{{property.description}}" popover-title="{{property.name}}" popover-trigger="mouseenter" placeholder="{{property.placeholder}}">
+              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && settingsForm[property.name].$error.required && !editSettingsDisabled'>
+                This field is required.
+              </div>
+              <div class="alert alert-danger no-margin-bottom top-margin" ng-show='property.required && settingsForm[property.name].validationError && !editSettingsDisabled'>
+                {{propertiesForm[property.name].validationMessage}}
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="form-group">
-          <div class="col-sm-offset-2 col-sm-10">
+          <div class="col-sm-offset-3 col-sm-10">
             <div class="checkbox">
               <label>
                 <input type="checkbox" ng-model="settings.visible" ng-class="instancevisibility-input"> Visible
@@ -125,18 +142,34 @@
   </div>
 </div>
 
-<div class="panel panel-default">
+<div class="panel panel-default" ng-hide="isConfigurationEmpty">
   <div class="panel-heading clearfix">
-    <h3 class="panel-title pull-left">Properties</h3>
+    <h3 class="panel-title pull-left">Cluster Configuration</h3>
     <div class="pull-right" ng-switch="instance.ViewInstanceInfo.static">
       <a href ng-switch-when="false" ng-hide="isConfigurationEmpty" ng-click="togglePropertiesEditing()" ng-show="editConfigurationDisabled" class="properties-toggle"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
       <a href ng-switch-when="true" ng-hide="isConfigurationEmpty"  class="properties-toggle disabled"> <span class="glyphicon glyphicon-pencil"></span> Edit</a>
     </div>
   </div>
-  <div class="panel-body">
+  <div class="panel-body property-form cluster-configurable-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
+    <div class="checkbox">
+      <label>
+        <input type="radio" ng-model="$parent.isLocalCluster" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noClusterAvailible" ng-value="true" class="visibilityCheckbox"> Local Ambari Managed Cluster
+      </label>
+    </div>
+    <div class="form-group sub-group">
+      <select ng-model="cluster" ng-disabled="!$parent.isLocalCluster || editConfigurationDisabled" ng-change="onClusterChange()" class="clusters-name-dropdown form-control"  ng-options="o as o for o in clusters"></select>
+    </div>
+    <p>&nbsp</p>
+    <div class="checkbox">
+      <label>
+        <input type="radio" ng-model="$parent.isLocalCluster" ng-disabled="editConfigurationDisabled" ng-value="false" class="visibilityCheckbox"> Custom
+      </label>
+    </div>
+  </div>
+  <div class="panel-body edit-view-custom-wrap">
     <form name="propertiesForm" class="form-horizontal property-form" ng-hide="isConfigurationEmpty" novalidate>
       <fieldset>
-        <div class="form-group" ng-repeat="property in configurationMeta" ng-class="{'has-error' : (!editConfigurationDisabled && ((property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled) || propertiesForm[property.name].validationError))}">
+        <div class="form-group sub-group" ng-repeat="property in configurationMeta | filter:{clusterConfig:true}" ng-class="{'has-error' : (!editConfigurationDisabled && ((property.required && propertiesForm[property.name].$error.required && !editConfigurationDisabled) || propertiesForm[property.name].validationError))}">
           <label for="" class="control-label col-sm-3" ng-class="{'not-required': !property.required}">{{property.label || property.displayName}}{{property.required ? '*' : ''}}</label>
           <div ng-switch="property.type">
             <div class="col-sm-9 checkbox" ng-switch-when="boolean">
