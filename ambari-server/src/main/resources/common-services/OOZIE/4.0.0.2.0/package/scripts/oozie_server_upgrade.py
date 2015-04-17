@@ -30,6 +30,8 @@ from resource_management.libraries.functions import Direction
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import compare_versions
 from resource_management.libraries.functions import format_hdp_stack_version
+from resource_management.core.resources import File
+from resource_management.core.source import DownloadSource
 
 BACKUP_TEMP_DIR = "oozie-upgrade-backup"
 BACKUP_CONF_ARCHIVE = "oozie-conf-backup.tar"
@@ -100,7 +102,7 @@ def prepare_libext_directory():
   """
   Creates /usr/hdp/current/oozie/libext-customer and recursively sets
   777 permissions on it and its parents.
-  :return:
+  Also, downloads jdbc driver and provides other staff
   """
   import params
 
@@ -150,6 +152,24 @@ def prepare_libext_directory():
 
   Logger.info("Copying {0} to {1}".format(oozie_ext_zip_file, params.oozie_libext_customer_dir))
   shutil.copy2(oozie_ext_zip_file, params.oozie_libext_customer_dir)
+
+  # Redownload jdbc driver to a new current location
+  if params.jdbc_driver_name=="com.mysql.jdbc.Driver" or \
+                  params.jdbc_driver_name == "com.microsoft.sqlserver.jdbc.SQLServerDriver" or \
+                  params.jdbc_driver_name=="oracle.jdbc.driver.OracleDriver":
+    File(params.downloaded_custom_connector,
+         content = DownloadSource(params.driver_curl_source),
+    )
+
+    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.target),
+            #creates=params.target, TODO: uncomment after ranger_hive_plugin will not provide jdbc
+            path=["/bin", "/usr/bin/"],
+            sudo = True)
+
+    File ( params.target,
+           owner = params.oozie_user,
+           group = params.user_group
+    )
 
 
 def upgrade_oozie():
