@@ -214,6 +214,7 @@ CREATE TABLE users (
   create_time DATETIME DEFAULT GETDATE(),
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
+  active_widget_layouts VARCHAR(1024) DEFAULT NULL,
   PRIMARY KEY CLUSTERED (user_id),
   UNIQUE (
     ldap_user,
