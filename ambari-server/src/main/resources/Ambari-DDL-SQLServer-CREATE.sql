@@ -35,7 +35,7 @@ CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
   stack_name VARCHAR(255) NOT NULL,
   stack_version VARCHAR(255) NOT NULL,
-  PRIMARY KEY (stack_id),
+  PRIMARY KEY CLUSTERED (stack_id),
   CONSTRAINT unq_stack UNIQUE(stack_name,stack_version)
 );
 
@@ -125,7 +125,7 @@ CREATE TABLE cluster_version (
   start_time BIGINT NOT NULL,
   end_time BIGINT,
   user_name VARCHAR(255),
-  PRIMARY KEY (id)
+  PRIMARY KEY CLUSTERED (id)
   );
 
 CREATE TABLE hostcomponentdesiredstate (
@@ -227,14 +227,14 @@ CREATE TABLE groups (
   principal_id BIGINT NOT NULL,
   group_name VARCHAR(255) NOT NULL,
   ldap_group INTEGER NOT NULL DEFAULT 0,
-  PRIMARY KEY (group_id)
+  PRIMARY KEY CLUSTERED (group_id)
   );
 
 CREATE TABLE members (
   member_id INTEGER,
   group_id INTEGER NOT NULL,
   user_id INTEGER NOT NULL,
-  PRIMARY KEY (member_id)
+  PRIMARY KEY CLUSTERED (member_id)
   );
 
 CREATE TABLE execution_command (
@@ -379,7 +379,7 @@ CREATE TABLE configgroup (
   description VARCHAR(1024),
   create_timestamp BIGINT NOT NULL,
   service_name VARCHAR(255),
-  PRIMARY KEY (group_id)
+  PRIMARY KEY CLUSTERED (group_id)
   );
 
 CREATE TABLE confgroupclusterconfigmapping (
@@ -389,7 +389,7 @@ CREATE TABLE confgroupclusterconfigmapping (
   version_tag VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) DEFAULT '_db',
   create_timestamp BIGINT NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     config_group_id,
     cluster_id,
     config_type
@@ -399,7 +399,7 @@ CREATE TABLE confgroupclusterconfigmapping (
 CREATE TABLE configgrouphostmapping (
   config_group_id BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     config_group_id,
     host_name
     )
@@ -425,7 +425,7 @@ CREATE TABLE requestschedule (
   startTime VARCHAR(50),
   endTime VARCHAR(50),
   last_execution_status VARCHAR(255),
-  PRIMARY KEY (schedule_id)
+  PRIMARY KEY CLUSTERED (schedule_id)
   );
 
 CREATE TABLE requestschedulebatchrequest (
@@ -438,7 +438,7 @@ CREATE TABLE requestschedulebatchrequest (
   request_status VARCHAR(255),
   return_code SMALLINT,
   return_message TEXT,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     schedule_id,
     batch_id
     )
@@ -447,7 +447,7 @@ CREATE TABLE requestschedulebatchrequest (
 CREATE TABLE blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
   stack_id BIGINT NOT NULL,
-  PRIMARY KEY (blueprint_name),
+  PRIMARY KEY CLUSTERED (blueprint_name),
   FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
   );
 
@@ -455,7 +455,7 @@ CREATE TABLE hostgroup (
   blueprint_name VARCHAR(255) NOT NULL,
   NAME VARCHAR(255) NOT NULL,
   cardinality VARCHAR(255) NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     blueprint_name,
     NAME
     )
@@ -465,7 +465,7 @@ CREATE TABLE hostgroup_component (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
   NAME VARCHAR(255) NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     blueprint_name,
     hostgroup_name,
     NAME
@@ -477,7 +477,7 @@ CREATE TABLE blueprint_configuration (
   type_name VARCHAR(255) NOT NULL,
   config_data TEXT NOT NULL,
   config_attributes VARCHAR(8000),
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     blueprint_name,
     type_name
     )
@@ -489,7 +489,7 @@ CREATE TABLE hostgroup_configuration (
   type_name VARCHAR(255) NOT NULL,
   config_data TEXT NOT NULL,
   config_attributes TEXT,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     blueprint_name,
     hostgroup_name,
     type_name
@@ -507,7 +507,7 @@ CREATE TABLE viewmain (
   archive VARCHAR(255),
   mask VARCHAR(255),
   system_view BIT NOT NULL DEFAULT 0,
-  PRIMARY KEY (view_name)
+  PRIMARY KEY CLUSTERED (view_name)
   );
 
 CREATE TABLE viewinstancedata (
@@ -517,7 +517,7 @@ CREATE TABLE viewinstancedata (
   NAME VARCHAR(255) NOT NULL,
   user_name VARCHAR(255) NOT NULL,
   value VARCHAR(2000) NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     view_instance_id,
     NAME,
     user_name
@@ -536,7 +536,7 @@ CREATE TABLE viewinstance (
   icon64 VARCHAR(255),
   xml_driven CHAR(1),
   cluster_handle VARCHAR(255),
-  PRIMARY KEY (view_instance_id)
+  PRIMARY KEY CLUSTERED (view_instance_id)
   );
 
 CREATE TABLE viewinstanceproperty (
@@ -544,7 +544,7 @@ CREATE TABLE viewinstanceproperty (
   view_instance_name VARCHAR(255) NOT NULL,
   NAME VARCHAR(255) NOT NULL,
   value VARCHAR(2000) NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     view_name,
     view_instance_name,
     NAME
@@ -561,7 +561,7 @@ CREATE TABLE viewparameter (
   cluster_config VARCHAR(255),
   required CHAR(1),
   masked CHAR(1),
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     view_name,
     NAME
     )
@@ -576,7 +576,7 @@ CREATE TABLE viewresource (
   provider VARCHAR(255),
   service VARCHAR(255),
   resource VARCHAR(255),
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     view_name,
     NAME
     )
@@ -588,38 +588,38 @@ CREATE TABLE viewentity (
   view_instance_name VARCHAR(255) NOT NULL,
   class_name VARCHAR(255) NOT NULL,
   id_property VARCHAR(255),
-  PRIMARY KEY (id)
+  PRIMARY KEY CLUSTERED (id)
   );
 
 CREATE TABLE adminresourcetype (
   resource_type_id INTEGER NOT NULL,
   resource_type_name VARCHAR(255) NOT NULL,
-  PRIMARY KEY (resource_type_id)
+  PRIMARY KEY CLUSTERED (resource_type_id)
   );
 
 CREATE TABLE adminresource (
   resource_id BIGINT NOT NULL,
   resource_type_id INTEGER NOT NULL,
-  PRIMARY KEY (resource_id)
+  PRIMARY KEY CLUSTERED (resource_id)
   );
 
 CREATE TABLE adminprincipaltype (
   principal_type_id INTEGER NOT NULL,
   principal_type_name VARCHAR(255) NOT NULL,
-  PRIMARY KEY (principal_type_id)
+  PRIMARY KEY CLUSTERED (principal_type_id)
   );
 
 CREATE TABLE adminprincipal (
   principal_id BIGINT NOT NULL,
   principal_type_id INTEGER NOT NULL,
-  PRIMARY KEY (principal_id)
+  PRIMARY KEY CLUSTERED (principal_id)
   );
 
 CREATE TABLE adminpermission (
   permission_id BIGINT NOT NULL,
   permission_name VARCHAR(255) NOT NULL,
   resource_type_id INTEGER NOT NULL,
-  PRIMARY KEY (permission_id)
+  PRIMARY KEY CLUSTERED (permission_id)
   );
 
 CREATE TABLE adminprivilege (
@@ -627,7 +627,7 @@ CREATE TABLE adminprivilege (
   permission_id BIGINT NOT NULL,
   resource_id BIGINT NOT NULL,
   principal_id BIGINT NOT NULL,
-  PRIMARY KEY (privilege_id)
+  PRIMARY KEY CLUSTERED (privilege_id)
   );
 
 CREATE TABLE host_version (
@@ -635,7 +635,7 @@ CREATE TABLE host_version (
   repo_version_id BIGINT NOT NULL,
   host_name VARCHAR(255) NOT NULL,
   STATE VARCHAR(32) NOT NULL,
-  PRIMARY KEY (id)
+  PRIMARY KEY CLUSTERED (id)
   );
 
 CREATE TABLE repo_version (
@@ -645,7 +645,7 @@ CREATE TABLE repo_version (
   display_name VARCHAR(128) NOT NULL,
   upgrade_package VARCHAR(255) NOT NULL,
   repositories VARCHAR(MAX) NOT NULL,
-  PRIMARY KEY (repo_version_id),
+  PRIMARY KEY CLUSTERED (repo_version_id),
   FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
   );
 
@@ -653,12 +653,47 @@ CREATE TABLE artifact (
   artifact_name VARCHAR(255) NOT NULL,
   artifact_data TEXT NOT NULL,
   foreign_keys VARCHAR(255) NOT NULL,
-  PRIMARY KEY (
+  PRIMARY KEY CLUSTERED (
     artifact_name,
     foreign_keys
     )
   );
-  
+
+CREATE TABLE widget (
+  id BIGINT NOT NULL,
+  widget_name VARCHAR(255) NOT NULL,
+  widget_type VARCHAR(255) NOT NULL,
+  metrics TEXT,
+  time_created BIGINT NOT NULL,
+  author VARCHAR(255),
+  description VARCHAR(255),
+  display_name VARCHAR(255),
+  scope VARCHAR(255),
+  widget_values VARCHAR(4000),
+  properties VARCHAR(4000),
+  cluster_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE widget_layout (
+  id BIGINT NOT NULL,
+  layout_name VARCHAR(255) NOT NULL,
+  section_name VARCHAR(255) NOT NULL,
+  scope VARCHAR(255) NOT NULL,
+  user_name VARCHAR(255) NOT NULL,
+  display_name VARCHAR(255),
+  cluster_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE widget_layout_user_widget (
+  widget_layout_id BIGINT NOT NULL,
+  widget_id BIGINT NOT NULL,
+  widget_order smallint,
+  PRIMARY KEY CLUSTERED (widget_layout_id, widget_id)
+);
+
+
 -- altering tables by creating unique constraints----------
 --------altering tables to add constraints----------
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
@@ -738,21 +773,23 @@ ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id);
 ALTER TABLE serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
+ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
+ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (
   principal_name VARCHAR(255) NOT NULL,
   is_service SMALLINT NOT NULL DEFAULT 1,
   cached_keytab_path VARCHAR(255),
-  PRIMARY KEY(principal_name)
+  PRIMARY KEY CLUSTERED (principal_name)
 );
 
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
   host_name VARCHAR(255) NOT NULL,
   --host_id BIGINT NOT NULL,
-  PRIMARY KEY(principal_name, host_name)
-  --PRIMARY KEY(principal_name, host_id)
+  PRIMARY KEY CLUSTERED (principal_name, host_name)
+  --PRIMARY KEY CLUSTERED (principal_name, host_id)
 );
 
 ALTER TABLE kerberos_principal_host
@@ -781,7 +818,7 @@ CREATE TABLE alert_definition (
   alert_source TEXT NOT NULL,
   hash VARCHAR(64) NOT NULL,
   ignore_host SMALLINT DEFAULT 0 NOT NULL,
-  PRIMARY KEY (definition_id),
+  PRIMARY KEY CLUSTERED (definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   CONSTRAINT uni_alert_def_name UNIQUE(cluster_id,definition_name)
 );
@@ -798,7 +835,7 @@ CREATE TABLE alert_history (
   alert_label VARCHAR(1024),
   alert_state VARCHAR(255) NOT NULL,
   alert_text TEXT,
-  PRIMARY KEY (alert_id),
+  PRIMARY KEY CLUSTERED (alert_id),
   FOREIGN KEY (alert_definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id)
 );
@@ -811,7 +848,7 @@ CREATE TABLE alert_current (
   original_timestamp BIGINT NOT NULL,
   latest_timestamp BIGINT NOT NULL,
   latest_text TEXT,
-  PRIMARY KEY (alert_id),
+  PRIMARY KEY CLUSTERED (alert_id),
   FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
@@ -822,7 +859,7 @@ CREATE TABLE alert_group (
   group_name VARCHAR(255) NOT NULL,
   is_default SMALLINT NOT NULL DEFAULT 0,
   service_name VARCHAR(255),
-  PRIMARY KEY (group_id),
+  PRIMARY KEY CLUSTERED (group_id),
   CONSTRAINT uni_alert_group_name UNIQUE(cluster_id,group_name)
 );
 
@@ -833,7 +870,7 @@ CREATE TABLE alert_target (
   properties TEXT,
   description VARCHAR(1024),
   is_global SMALLINT NOT NULL DEFAULT 0,
-  PRIMARY KEY (target_id)
+  PRIMARY KEY CLUSTERED (target_id)
 );
 
 CREATE TABLE alert_target_states (
@@ -845,7 +882,7 @@ CREATE TABLE alert_target_states (
 CREATE TABLE alert_group_target (
   group_id BIGINT NOT NULL,
   target_id BIGINT NOT NULL,
-  PRIMARY KEY (group_id, target_id),
+  PRIMARY KEY CLUSTERED (group_id, target_id),
   FOREIGN KEY (group_id) REFERENCES alert_group(group_id),
   FOREIGN KEY (target_id) REFERENCES alert_target(target_id)
 );
@@ -853,7 +890,7 @@ CREATE TABLE alert_group_target (
 CREATE TABLE alert_grouping (
   definition_id BIGINT NOT NULL,
   group_id BIGINT NOT NULL,
-  PRIMARY KEY (group_id, definition_id),
+  PRIMARY KEY CLUSTERED (group_id, definition_id),
   FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (group_id) REFERENCES alert_group(group_id)
 );
@@ -864,7 +901,7 @@ CREATE TABLE alert_notice (
   history_id BIGINT NOT NULL,
   notify_state VARCHAR(255) NOT NULL,
   uuid VARCHAR(64) NOT NULL UNIQUE,
-  PRIMARY KEY (notification_id),
+  PRIMARY KEY CLUSTERED (notification_id),
   FOREIGN KEY (target_id) REFERENCES alert_target(target_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
 );
@@ -885,7 +922,7 @@ CREATE TABLE upgrade (
   from_version VARCHAR(255) DEFAULT '' NOT NULL,
   to_version VARCHAR(255) DEFAULT '' NOT NULL,
   direction VARCHAR(255) DEFAULT 'UPGRADE' NOT NULL,
-  PRIMARY KEY (upgrade_id),
+  PRIMARY KEY CLUSTERED (upgrade_id),
   FOREIGN KEY (cluster_id) REFERENCES clusters(cluster_id),
   FOREIGN KEY (request_id) REFERENCES request(request_id)
 );
@@ -895,7 +932,7 @@ CREATE TABLE upgrade_group (
   upgrade_id BIGINT NOT NULL,
   group_name VARCHAR(255) DEFAULT '' NOT NULL,
   group_title VARCHAR(1024) DEFAULT '' NOT NULL,
-  PRIMARY KEY (upgrade_group_id),
+  PRIMARY KEY CLUSTERED (upgrade_group_id),
   FOREIGN KEY (upgrade_id) REFERENCES upgrade(upgrade_id)
 );
 
@@ -907,7 +944,7 @@ CREATE TABLE upgrade_item (
   hosts TEXT,
   tasks TEXT,
   item_text VARCHAR(1024),
-  PRIMARY KEY (upgrade_item_id),
+  PRIMARY KEY CLUSTERED (upgrade_item_id),
   FOREIGN KEY (upgrade_group_id) REFERENCES upgrade_group(upgrade_group_id)
 );
 
@@ -918,13 +955,13 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'host_id_seq', 0
   UNION ALL
-  SELECT 'host_role_command_id_seq', 1
-  UNION ALL
   SELECT 'user_id_seq', 2
   UNION ALL
   SELECT 'group_id_seq', 1
   UNION ALL
   SELECT 'member_id_seq', 1
+  UNION ALL
+  SELECT 'host_role_command_id_seq', 1
   UNION ALL
   SELECT 'configgroup_id_seq', 1
   UNION ALL
@@ -935,8 +972,6 @@ BEGIN TRANSACTION
   SELECT 'viewentity_id_seq', 0
   UNION ALL
   SELECT 'operation_level_id_seq', 1
-  UNION ALL
-  SELECT 'cluster_version_id_seq', 0
   UNION ALL
   SELECT 'view_instance_id_seq', 1
   UNION ALL
@@ -952,10 +987,6 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'privilege_id_seq', 1
   UNION ALL
-  SELECT 'config_id_seq', 1
-  UNION ALL
-  SELECT 'service_config_id_seq', 1
-  UNION ALL
   SELECT 'alert_definition_id_seq', 0
   UNION ALL
   SELECT 'alert_group_id_seq', 0
@@ -968,15 +999,25 @@ BEGIN TRANSACTION
   UNION ALL
   SELECT 'alert_current_id_seq', 0
   UNION ALL
-  SELECT 'upgrade_id_seq', 0
+  SELECT 'config_id_seq', 1
   UNION ALL
-  SELECT 'upgrade_item_id_seq', 0
+  SELECT 'repo_version_id_seq', 0
   UNION ALL
-  SELECT 'upgrade_group_id_seq', 0
+  SELECT 'cluster_version_id_seq', 0
   UNION ALL
   SELECT 'host_version_id_seq', 0
   UNION ALL
-  SELECT 'repo_version_id_seq', 0
+  SELECT 'service_config_id_seq', 1
+  UNION ALL
+  SELECT 'upgrade_id_seq', 0
+  UNION ALL
+  SELECT 'upgrade_group_id_seq', 0
+  UNION ALL
+  SELECT 'widget_id_seq', 0
+  UNION ALL
+  SELECT 'widget_layout_id_seq', 0
+  UNION ALL
+  SELECT 'upgrade_item_id_seq', 0
   UNION ALL
   SELECT 'stack_id_seq', 0;
 
