@@ -330,6 +330,14 @@ describe("App.MainServiceInfoConfigsController", function () {
       mainServiceInfoConfigsController.doCancel();
       expect(Em.run.once.calledWith(mainServiceInfoConfigsController, "onConfigGroupChange")).to.equal(true);
     });
+
+    it("should clear dependent configs", function() {
+      mainServiceInfoConfigsController.set('groupsToSave', { HDFS: 'my cool group'});
+      mainServiceInfoConfigsController.set('_dependentConfigValues', Em.A([{name: 'prop_1'}]));
+      mainServiceInfoConfigsController.doCancel();
+      expect(App.isEmptyObject(mainServiceInfoConfigsController.get('groupsToSave'))).to.be.true;
+      expect(App.isEmptyObject(mainServiceInfoConfigsController.get('_dependentConfigValues'))).to.be.true;
+    });
   });
 
   describe("#getMasterComponentHostValue", function () {
