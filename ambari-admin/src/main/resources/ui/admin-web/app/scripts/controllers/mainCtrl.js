@@ -18,7 +18,7 @@
 'use strict';
 
 angular.module('ambariAdminConsole')
-.controller('MainCtrl',['$scope', '$window','Auth', 'Alert', '$modal', 'Cluster', 'Component', 'View', function($scope, $window, Auth, Alert, $modal, Cluster, Component, View) {
+.controller('MainCtrl',['$scope', '$window','Auth', 'Alert', '$modal', 'Cluster', 'View', function($scope, $window, Auth, Alert, $modal, Cluster, View) {
   $scope.signOut = function() {
     var data = JSON.parse(localStorage.ambari);
     delete data.app.authenticated;
@@ -31,19 +31,14 @@ angular.module('ambariAdminConsole')
   };
 
   $scope.about = function() {
-    Component.getAmbariServer().then(function(component) {
-      var modalInstance = $modal.open({
-        templateUrl:'views/modals/AboutModal.html',
-        controller: ['$scope', function($scope) {
-          $scope.component = component;
-          $scope.ok = function() {
-            modalInstance.close();
-          };
-        }]
-      });
-    }).catch(function() {
-      Alert.error('Cannot load component status');
-    });
+  	var modalInstance = $modal.open({
+  		templateUrl:'views/modals/AboutModal.html',
+  		controller: ['$scope', function($scope) {
+  			$scope.ok = function() {
+  				modalInstance.close();
+  			};
+  		}]
+  	});
   };
 
   $scope.currentUser = Auth.getCurrentUser();
