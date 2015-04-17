@@ -37,6 +37,16 @@ class KerberosServiceCheck(KerberosScript):
   def service_check(self, env):
     import params
 
+    # If Ambari IS managing Kerberos identities (kerberos-env/manage_identities = true), it is
+    # expected that a (smoke) test principal and its associated keytab file is available for use
+    # **  If not available, this service check will fail
+    # **  If available, this service check will execute
+    #
+    # If Ambari IS NOT managing Kerberos identities (kerberos-env/manage_identities = false), the
+    # smoke test principal and its associated keytab file may not be available
+    # **  If not available, this service check will execute
+    # **  If available, this service check will execute
+
     if ((params.smoke_test_principal is not None) and
           (params.smoke_test_keytab_file is not None) and
           os.path.isfile(params.smoke_test_keytab_file)):
@@ -54,9 +64,15 @@ class KerberosServiceCheck(KerberosScript):
       finally:
         if os.path.isfile(ccache_file_path): # Since kinit might fail to write to the cache file for various reasons, an existence check should be done before cleanup
           os.remove(ccache_file_path)
-    else:
+    elif params.manage_identities:
       err_msg = Logger.filter_text("Failed to execute kinit test due to principal or keytab not found or available")
       raise Fail(err_msg)
+    else:
+      # Ambari is not managing identities so if the smoke user does not exist, indicate why....
+      print "Skipping this service check since Ambari is not managing Kerberos identities and the smoke user " \
+            "credentials are not available. To execute this service check, the smoke user principal name " \
+            "and keytab file location must be set in the cluster_env and the smoke user's keytab file must" \
+            "exist in the configured location."
 
 if __name__ == "__main__":
   KerberosServiceCheck().execute()
