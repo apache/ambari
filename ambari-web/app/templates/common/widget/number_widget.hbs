@@ -18,7 +18,7 @@
 
 <div class="number-widget thumbnail">
   {{#if view.isLoaded}}
-    <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action hideWidget target="view"}}>
+    <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action hideWidget view.id target="view"}}>
       <i class="icon-remove-sign icon-large"></i>
     </a>
     <div class="caption title span9">{{view.content.displayName}}</div>

@@ -331,6 +331,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @type {boolean}
    */
   isAllSharedWidgetsLoaded: false,
+
+  /**
+   * @type {boolean}
+   */
   isMineWidgetsLoaded: false,
 
   /**

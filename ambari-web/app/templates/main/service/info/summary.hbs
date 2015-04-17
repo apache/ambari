@@ -126,7 +126,7 @@
               <div id="widget_layout" class="row-fluid">
                 {{#each widget in controller.widgets}}
                   <div class="widget span2p4" {{bindAttr id="widget.id"}}>
-                    {{view widget.viewClass contentBinding="widget"}}
+                    {{view widget.viewClass contentBinding="widget" idBinding="widget.id"}}
                   </div>
                 {{/each}}
                 <div class="span2p4">

@@ -316,20 +316,26 @@ App.WidgetMixin = Ember.Mixin.create({
   /*
    * make call when clicking on "remove icon" on widget
    */
-  hideWidget: function () {
-
+  hideWidget: function (event) {
+    this.get('controller').hideWidget(
+      {
+        context: Em.Object.create({
+          id: event.context
+        })
+      }
+    );
   },
   /*
    * make call when clicking on "clone icon" on widget
    */
-  cloneWidget: function () {
+  cloneWidget: function (event) {
 
   },
 
   /*
    * make call when clicking on "edit icon" on widget
    */
-  editWidget: function () {
+  editWidget: function (event) {
 
   }
 
