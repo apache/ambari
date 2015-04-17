@@ -75,9 +75,14 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @type {Object[]};
    */
   preDefinedSiteProperties: function () {
-    var file = App.get('isHadoop22Stack') ? require('data/HDP2.2/site_properties') : require('data/HDP2/site_properties');
-    return file.configProperties;
-  }.property('App.isHadoop22Stack'),
+    if (App.get('isHadoop23Stack')) {
+      return require('data/HDP2.3/site_properties').configProperties;
+    }
+    if (App.get('isHadoop22Stack')) {
+      return require('data/HDP2.2/site_properties').configProperties;
+    }
+    return require('data/HDP2/site_properties').configProperties;
+  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
 
   /**
    * find UI config with current name and fileName
