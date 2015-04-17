@@ -209,16 +209,16 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "Hadoop:service=DataNode,name=DataNode.CorruptBlocks",
+              "name": "Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks",
               "metric_path": "metrics/dfs/FSNamesystem/CorruptBlocks",
               "service_name": "HDFS",
-              "component_name": "DATANODE"
+              "component_name": "NAMENODE"
             }
           ],
           "values": [
             {
               "name": "Corrupted Blocks",
-              "value": "${Hadoop:service=DataNode,name=DataNode.CorruptBlocks}"
+              "value": "${Hadoop:service=NameNode,name=FSNamesystem.CorruptBlocks}"
             }
           ],
           "properties": {
@@ -234,7 +234,7 @@
               "name": "Hadoop:service=NameNode,name=FSNamesystem.UnderReplicatedBlocks",
               "metric_path": "metrics/dfs/FSNamesystem/UnderReplicatedBlocks",
               "service_name": "HDFS",
-              "component_name": "DATANODE"
+              "component_name": "NAMENODE"
             }
           ],
           "values": [

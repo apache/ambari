@@ -36,7 +36,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * @type {RegExp}
    * @const
    */
-  VALUE_NAME_REGEX: /[\w\.\:\=\[\]]+/g,
+  VALUE_NAME_REGEX: /[\w\.\,\:\=\[\]]+/g,
 
   /**
    * common metrics container
@@ -73,7 +73,7 @@ App.WidgetMixin = Ember.Mixin.create({
       request = requestData[i];
       requestCounter++;
       if (request.host_component_criteria) {
-        this.getHostComponentMetrics(request).complete(function () {
+        this.getHostComponentMetrics(request).always(function () {
           requestCounter--;
           if (requestCounter === 0) self.onMetricsLoaded();
         });
@@ -92,11 +92,11 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   getRequestData: function (metrics) {
     var requestsData = {};
-
     if (metrics) {
       metrics.forEach(function (metric, index) {
         var key;
         if (metric.host_component_criteria) {
+          this.tweakHostComponentCriteria(metric);
           key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
         } else {
           key = metric.service_name + '_' + metric.component_name;
@@ -113,6 +113,25 @@ App.WidgetMixin = Ember.Mixin.create({
       }, this);
     }
     return requestsData;
+  },
+
+  /**
+   * Tweak necessary host component criteria
+   * NameNode HA host component criteria is applicable only in HA mode
+   */
+  tweakHostComponentCriteria: function (metric) {
+    switch (metric.component_name) {
+      case 'NAMENODE':
+        if (metric.host_component_criteria === 'host_components/metrics/dfs/FSNamesystem/HAState=active') {
+          //if (metric.host_component_criteria)
+          var hdfs = App.HDFSService.find().objectAt(0);
+          var activeNNHostName = !hdfs.get('snameNode') && hdfs.get('activeNameNode');
+          if (!activeNNHostName) {
+            metric.host_component_criteria = 'host_components/HostRoles/component_name=NAMENODE';
+          }
+        }
+        break;
+    }
   },
 
   /**
@@ -134,21 +153,53 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
-   * make GET call to server in order to fetch host-component metrics
+   * make GET call to server in order to fetch service-component metrics
+   * @param {object} request
+   * @returns {$.Deferred}
+   */
+  getHostComponentMetrics: function (request) {
+    var dfd;
+    var self = this;
+    dfd = $.Deferred();
+    this.getHostComponentName(request).done(function (data) {
+      if (data) {
+        request.host_name = data.host_components[0].HostRoles.host_name;
+        App.ajax.send({
+          name: 'widgets.hostComponent.metrics.get',
+          sender: self,
+          data: {
+            componentName: request.component_name,
+            hostName: request.host_name,
+            metricPaths: request.metric_paths.join(',')
+          }
+        }).done(function(metricData) {
+          self.getMetricsSuccessCallback(metricData);
+          dfd.resolve();
+        }).fail(function(data){
+          dfd.reject();
+        });
+      }
+    }).fail(function(data){
+      dfd.reject();
+    });
+    return dfd.promise();
+  },
+
+  /**
+   * make GET call to server in order to fetch host-component names
    * @param {object} request
    * @returns {$.ajax}
    */
-  getHostComponentMetrics: function (request) {
+  getHostComponentName: function (request) {
     return App.ajax.send({
-      name: 'widgets.hostComponent.metrics.get',
+      name: 'widgets.hostComponent.get.hostName',
       sender: this,
       data: {
         serviceName: request.service_name,
         componentName: request.component_name,
         metricPaths: request.metric_paths.join(','),
-        hostComponentCriteria: 'host_components/HostRoles/' + request.host_component_criteria
-      },
-      success: 'getMetricsSuccessCallback'
+        hostComponentCriteria: request.host_component_criteria
+      }
     });
   },
 
@@ -175,7 +226,7 @@ App.WidgetMixin = Ember.Mixin.create({
     var self = this;
     this.set('isLoaded', true);
     this.drawWidget();
-    setTimeout(function() {
+    setTimeout(function () {
       self.loadMetrics();
     }, App.contentUpdateInterval);
   },

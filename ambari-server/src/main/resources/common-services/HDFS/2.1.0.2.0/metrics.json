@@ -622,7 +622,7 @@
             },
             "metrics/dfs/FSNamesystem/UnderReplicatedBlocks": {
               "metric": "dfs.FSNamesystem.UnderReplicatedBlocks",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/rpcdetailed/sendHeartbeat_avg_time": {

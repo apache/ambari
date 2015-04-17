@@ -25,7 +25,7 @@ describe('App.WidgetMixin', function() {
     var mixinObject = mixinClass.create();
     beforeEach(function () {
       this.mock = sinon.stub(mixinObject, 'getRequestData');
-      sinon.stub(mixinObject, 'getHostComponentMetrics').returns({complete: function(callback){
+      sinon.stub(mixinObject, 'getHostComponentMetrics').returns({always: function(callback){
         callback();
       }});
       sinon.stub(mixinObject, 'getServiceComponentMetrics').returns({complete: function(callback){
@@ -208,14 +208,31 @@ describe('App.WidgetMixin', function() {
   describe("#getHostComponentMetrics()", function () {
     var mixinObject = mixinClass.create();
     before(function () {
-      sinon.stub(App.ajax, 'send');
+      sinon.stub(App.ajax, 'send').returns({done: function(callback){
+        callback();
+        return this;
+      },fail: function(callback){
+        callback();
+        return this;
+      }});
+      sinon.stub(mixinObject, 'getHostComponentName').returns({done: function(callback){
+        var data = {host_components: [{HostRoles:{host_name:"c6401"}}]};
+        callback(data);
+        return this;
+      },fail: function(callback){
+        callback();
+        return this;
+      }});
+
+      sinon.stub(mixinObject, 'getMetricsSuccessCallback')
     });
     after(function () {
       App.ajax.send.restore();
+      mixinObject.getHostComponentName.restore();
+      mixinObject.getMetricsSuccessCallback.restore();
     });
     it("", function () {
       var request = {
-        service_name: 'S1',
         component_name: 'C1',
         metric_paths: ['w1', 'w2'],
         host_component_criteria: 'c1'
@@ -225,12 +242,10 @@ describe('App.WidgetMixin', function() {
         name: 'widgets.hostComponent.metrics.get',
         sender: mixinObject,
         data: {
-          serviceName: 'S1',
           componentName: 'C1',
-          metricPaths: 'w1,w2',
-          hostComponentCriteria: 'host_components/HostRoles/c1'
-        },
-        success: 'getMetricsSuccessCallback'
+          hostName: "c6401",
+          metricPaths: 'w1,w2'
+        }
       })
     });
   });

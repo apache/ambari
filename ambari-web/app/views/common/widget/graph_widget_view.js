@@ -56,20 +56,20 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   calculateValues: function () {
     var metrics = this.get('metrics');
     var seriesData = [];
-     if (this.get('content.values')) {
-       this.get('content.values').forEach(function (value) {
-         var expression = this.extractExpressions(value)[0];
-         var computedExpressions;
+    if (this.get('content.values')) {
+      this.get('content.values').forEach(function (value) {
+        var expression = this.extractExpressions(value)[0];
+        var computedExpressions;
 
-         if (expression) {
-           computedExpressions = this.computeExpression(expression, metrics);
-           seriesData.push({
-             name: value.name,
-             data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
-           });
-         }
-       }, this);
-     }
+        if (expression) {
+          computedExpressions = this.computeExpression(expression, metrics);
+          seriesData.push({
+            name: value.name,
+            data: computedExpressions[value.value.match(this.get('EXPRESSION_REGEX'))[0]]
+          });
+        }
+      }, this);
+    }
     return seriesData;
   },
 
@@ -137,17 +137,31 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
    * @returns {$.ajax}
    */
   getHostComponentMetrics: function (request) {
-    return App.ajax.send({
-      name: 'widgets.hostComponent.metrics.get',
-      sender: this,
-      data: {
-        serviceName: request.service_name,
-        componentName: request.component_name,
-        metricPaths: this.addTimeProperties(request.metric_paths).join(','),
-        hostComponentCriteria: 'host_components/HostRoles/' + request.host_component_criteria
-      },
-      success: 'getMetricsSuccessCallback'
+    var dfd;
+    var self = this;
+    dfd = $.Deferred();
+    this.getHostComponentName(request).done(function (data) {
+      if (data) {
+        request.host_name = data.host_components[0].HostRoles.host_name;
+        App.ajax.send({
+          name: 'widgets.hostComponent.metrics.get',
+          sender: self,
+          data: {
+            componentName: request.component_name,
+            hostName: request.host_name,
+            metricPaths: self.addTimeProperties(request.metric_paths).join(',')
+          }
+        }).done(function(metricData) {
+          self.getMetricsSuccessCallback(metricData);
+          dfd.resolve();
+        }).fail(function(data){
+          dfd.reject();
+        });
+      }
+    }).fail(function(data){
+      dfd.reject();
     });
+    return dfd.promise();
   },
 
   /**
@@ -197,7 +211,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     transformToSeries: function (seriesData) {
       var seriesArray = [];
 
-      seriesData.forEach(function(_series){
+      seriesData.forEach(function (_series) {
         seriesArray.push(this.transformData(_series.data, _series.name));
       }, this);
       return seriesArray;
