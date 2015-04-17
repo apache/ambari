@@ -191,7 +191,7 @@ CREATE TABLE servicecomponentdesiredstate (
   desired_state VARCHAR(255) NOT NULL,
   service_name VARCHAR(255) NOT NULL,
   PRIMARY KEY CLUSTERED (component_name, cluster_id, service_name),
-  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id)
   );
 
 CREATE TABLE servicedesiredstate (
@@ -203,7 +203,7 @@ CREATE TABLE servicedesiredstate (
   maintenance_state VARCHAR(32) NOT NULL,
   security_state VARCHAR(32) NOT NULL DEFAULT 'UNSECURED',
   PRIMARY KEY CLUSTERED (cluster_id,service_name),
-  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id));
+  FOREIGN KEY (desired_stack_id) REFERENCES stack(stack_id)
   );
 
 CREATE TABLE users (
@@ -214,6 +214,7 @@ CREATE TABLE users (
   create_time DATETIME DEFAULT GETDATE(),
   user_password VARCHAR(255),
   active INTEGER NOT NULL DEFAULT 1,
+  active_widget_layouts VARCHAR(1024) DEFAULT NULL,
   PRIMARY KEY CLUSTERED (user_id),
   UNIQUE (
     ldap_user,
@@ -447,7 +448,7 @@ CREATE TABLE blueprint (
   blueprint_name VARCHAR(255) NOT NULL,
   stack_id BIGINT NOT NULL,
   PRIMARY KEY (blueprint_name),
-  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
   );
 
 CREATE TABLE hostgroup (
