@@ -59,18 +59,18 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
-  public static final String WIDGET_ID_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "id");
-  public static final String WIDGET_CLUSTER_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "cluster_name");
-  public static final String WIDGET_WIDGET_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "widget_name");
-  public static final String WIDGET_DISPLAY_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "display_name");
-  public static final String WIDGET_WIDGET_TYPE_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "widget_type");
-  public static final String WIDGET_TIME_CREATED_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "time_created");
-  public static final String WIDGET_AUTHOR_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "author");
-  public static final String WIDGET_DESCRIPTION_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "description");
-  public static final String WIDGET_SCOPE_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "scope");
-  public static final String WIDGET_METRICS_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "metrics");
-  public static final String WIDGET_VALUES_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "values");
-  public static final String WIDGET_PROPERTIES_PROPERTY_ID                 = PropertyHelper.getPropertyId("Widgets", "properties");
+  public static final String WIDGET_ID_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "id");
+  public static final String WIDGET_CLUSTER_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "cluster_name");
+  public static final String WIDGET_WIDGET_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "widget_name");
+  public static final String WIDGET_DISPLAY_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "display_name");
+  public static final String WIDGET_WIDGET_TYPE_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "widget_type");
+  public static final String WIDGET_TIME_CREATED_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "time_created");
+  public static final String WIDGET_AUTHOR_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "author");
+  public static final String WIDGET_DESCRIPTION_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "description");
+  public static final String WIDGET_SCOPE_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "scope");
+  public static final String WIDGET_METRICS_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "metrics");
+  public static final String WIDGET_VALUES_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "values");
+  public static final String WIDGET_PROPERTIES_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "properties");
   public static enum SCOPE {
     CLUSTER,
     USER

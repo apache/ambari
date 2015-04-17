@@ -91,7 +91,7 @@ public class ActiveWidgetLayoutResourceProviderTest {
         ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID,
         ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID,
         ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID,
-        ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID);
+        ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
 
     AmbariManagementController amc = createMock(AmbariManagementController.class);
     Clusters clusters = createMock(Clusters.class);
@@ -124,7 +124,7 @@ public class ActiveWidgetLayoutResourceProviderTest {
     Assert.assertEquals("displ_name", r.getPropertyValue(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_DISPLAY_NAME_PROPERTY_ID));
     Assert.assertEquals("layout name0", r.getPropertyValue(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID));
 
-    Assert.assertEquals("[]", r.getPropertyValue(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_INFO_PROPERTY_ID).toString());
+    Assert.assertEquals("[]", r.getPropertyValue(ActiveWidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID).toString());
 
     verify(amc, clusters, cluster, widgetLayoutDAO, userEntity, userDAO);
   }

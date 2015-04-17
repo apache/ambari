@@ -63,17 +63,17 @@ public class ActiveWidgetLayoutResourceDefinition extends BaseResourceDefinition
       TreeNode<Resource> parent = resultNode.getParent();
 
       for (TreeNode<Resource> node : parent.getChildren()) {
-        if (node.getObject().getPropertiesMap().get("WidgetLayouts") != null) {
-          String layoutId = resultNode.getObject().getPropertyValue("WidgetLayouts/id").toString();
-          String clusterName = resultNode.getObject().getPropertyValue("WidgetLayouts/cluster_name").toString();
+        if (node.getObject().getPropertiesMap().get("WidgetLayoutInfo") != null) {
+          String layoutId = resultNode.getObject().getPropertyValue("WidgetLayoutInfo/id").toString();
+          String clusterName = resultNode.getObject().getPropertyValue("WidgetLayoutInfo/cluster_name").toString();
           String newHref = href.substring(0, href.indexOf("/users") + 1) +
                   "clusters/" + clusterName + "/widget_layouts/" + layoutId;
           resultNode.setProperty("href", newHref);
         }
-        if (node.getObject().getPropertiesMap().get("WidgetLayouts") != null &&
-                node.getObject().getPropertiesMap().get("WidgetLayouts").get("WidgetInfo") != null) {
+        if (node.getObject().getPropertiesMap().get("WidgetLayoutInfo") != null &&
+                node.getObject().getPropertiesMap().get("WidgetLayoutInfo").get("WidgetInfo") != null) {
 
-          ArrayList widgetsList = (ArrayList) node.getObject().getPropertiesMap().get("WidgetLayouts").get("WidgetInfo");
+          ArrayList widgetsList = (ArrayList) node.getObject().getPropertiesMap().get("WidgetLayoutInfo").get("WidgetInfo");
           for (Object widgetObject : widgetsList) {
             HashMap<String, Object> widgetMap = (HashMap) widgetObject;
             String widgetId = ((WidgetResponse) widgetMap.get("Widget")).getId().toString();
