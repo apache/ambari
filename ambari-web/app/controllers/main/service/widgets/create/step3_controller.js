@@ -88,5 +88,54 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   //TODO: Following computed propert needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
   isSubmitDisabled: function () {
     return !this.get('widgetName');
-  }.property('widgetName')
+  }.property('widgetName'),
+
+  /**
+   * collect all needed data to create new widget
+   * @returns {{WidgetInfo: {cluster_name: *, widget_name: *, display_name: *, widget_type: *, description: *, scope: string, metrics: *, values: *, properties: *}}}
+   */
+  collectWidgetData: function () {
+    return {
+      WidgetInfo: {
+        widget_name: this.get('widgetName'),
+        display_name: this.get('widgetName'),
+        widget_type: this.get('content.widgetType'),
+        description: this.get('widgetDescription'),
+        scope: this.get('widgetScope.name').toUpperCase(),
+        "metrics": this.get('widgetMetrics').map(function (metric) {
+          return {
+            "name": metric.name,
+            "service_name": metric.serviceName,
+            "component_name": metric.componentName
+          }
+        }),
+        values: this.get('widgetValues'),
+        properties: this.get('widgetProperties')
+      }
+    };
+  },
+
+  /**
+   * post widget definition to server
+   * @returns {$.ajax}
+   */
+  postWidgetDefinition: function () {
+    return App.ajax.send({
+      name: 'widgets.wizard.add',
+      sender: this,
+      data: {
+        data: this.collectWidgetData()
+      },
+      success: 'postWidgetDefinitionSuccessCallback'
+    });
+  },
+
+  postWidgetDefinitionSuccessCallback: function() {
+
+  },
+
+  complete: function () {
+    this.postWidgetDefinition();
+    App.router.send('complete');
+  }
 });

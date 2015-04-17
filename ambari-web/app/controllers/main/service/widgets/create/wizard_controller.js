@@ -212,7 +212,7 @@ App.WidgetWizardController = App.WizardController.extend({
       },
       callback: callback,
       success: 'loadAllMetricsFromServerCallback'
-    })
+    });
   },
 
   /**
@@ -224,12 +224,11 @@ App.WidgetWizardController = App.WizardController.extend({
     var metrics = {};
 
     if (json) {
-      var data = json.items[0].artifacts[0].artifact_data;
-
-      for (var serviceName in data) {
-        for (var componentName in data[serviceName]) {
-          for (var level in data[serviceName][componentName]) {
-            metrics = data[serviceName][componentName][level][0]['metrics']['default'];
+      json.items.forEach(function (service) {
+        var data = service.artifacts[0].artifact_data[service.StackServices.service_name];
+        for (var componentName in data) {
+          for (var level in data[componentName]) {
+            metrics = data[componentName][level][0]['metrics']['default'];
             for (var widgetId in metrics) {
               result.push({
                 widget_id: widgetId,
@@ -237,14 +236,14 @@ App.WidgetWizardController = App.WizardController.extend({
                 temporal: metrics[widgetId].temporal,
                 name: metrics[widgetId].name,
                 level: level.toUpperCase(),
-                type: data[serviceName][componentName][level][0]["type"].toUpperCase(),
+                type: data[componentName][level][0]["type"].toUpperCase(),
                 component_name: componentName,
-                service_name: serviceName
+                service_name: service.StackServices.service_name
               });
             }
           }
         }
-      }
+      }, this);
     }
     this.save('allMetrics', result);
   },

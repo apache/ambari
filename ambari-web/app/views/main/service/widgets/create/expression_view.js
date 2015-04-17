@@ -250,6 +250,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
           }, this);
 
           for (var serviceName in servicesMap) {
+            components = [];
             for (var componentId in servicesMap[serviceName].components) {
               components.push(Em.Object.create({
                 componentName: servicesMap[serviceName].components[componentId].component_name,
@@ -274,6 +275,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
             }
             result.push(Em.Object.create({
               serviceName: serviceName,
+              //in order to support accordion lists
+              href: '#' + serviceName,
               displayName: App.StackService.find(serviceName).get('displayName'),
               count: servicesMap[serviceName].count,
               components: components

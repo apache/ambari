@@ -27,15 +27,15 @@
       {{#each service in view.componentMap}}
         <li class="accordion-group keep-open">
           <div class="accordion-heading">
-            <a class="accordion-toggle" data-toggle="collapse" href="#collapseOne">
-              <i class="icon-caret-down"></i><i class="icon-caret-right"></i>{{service.displayName}}
+            <a class="accordion-toggle collapsed" data-toggle="collapse" {{bindAttr href="service.href"}}>
+              <i class="icon-caret-down"></i><i class="icon-caret-right"></i>{{service.displayName}}&nbsp;({{service.count}})
             </a>
           </div>
-          <div id="collapseOne" class="accordion-body collapse in">
+          <div {{bindAttr id="service.serviceName"}} class="accordion-body collapse">
             <ul class="accordion-inner">
               {{#each component in service.components}}
                 <li>
-                  <a href="#" {{action selectComponents component target="view"}}> {{component.displayName}}</a>
+                  <a href="#" {{action selectComponents component target="view"}}> {{component.displayName}}&nbsp;({{component.count}})</a>
                 </li>
               {{/each}}
             </ul>
@@ -45,7 +45,7 @@
       <li><a class="link" href="#" {{action showMore target="view"}}>{{t hostPopup.serviceInfo.showMore}}</a></li>
       <li class="row-fluid">
         <button class="btn span4 offset1">{{t common.cancel}}</button>
-        <button class="btn btn-primary span4">{{t common.apply}}</button>
+        <button class="btn btn-primary span4 apply-button">{{t common.apply}}</button>
       </li>
     </ul>
   </div>

@@ -157,10 +157,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     complete: function (router, context) {
-      var controller = router.get('widgetWizardStep3Controller');
-      if (!controller.get('isSubmitDisabled')) {
-        router.get('widgetWizardController.popup').onClose();
-      }
+      router.get('widgetWizardController.popup').onClose();
     }
   })
 });

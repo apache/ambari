@@ -2481,6 +2481,17 @@ var urls = {
   'widgets.wizard.metrics.get': {
     real: '{stackVersionURL}/services?artifacts/Artifacts/artifact_name=metrics_descriptor&StackServices/service_name.in({serviceNames})&fields=artifacts/*',
     mock: '/data/metrics/HBASE/definition.json'
+  },
+
+  'widgets.wizard.add': {
+    real: '/clusters/c1/widgets/',
+    mock: '',
+    'format': function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      };
+    }
   }
 };
 /**
