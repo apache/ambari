@@ -1970,6 +1970,15 @@ var hdp2properties = [
   },
   {
     "id": "puppet var",
+    "name": "install_packages",
+    "displayName": "Install OS-specific Kerberos client package(s)",
+    "displayType": "checkbox",
+    "serviceName": "KERBEROS",
+    "filename": "kerberos-env.xml",
+    "category": "Advanced kerberos-env"
+  },
+  {
+    "id": "puppet var",
     "name": "create_attributes_template",
     "displayName": "Attribute template",
     "serviceName": "KERBEROS",

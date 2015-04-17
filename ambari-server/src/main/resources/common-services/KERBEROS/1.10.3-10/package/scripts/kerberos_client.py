@@ -22,7 +22,12 @@ from resource_management.libraries.functions.security_commons import cached_kini
 
 class KerberosClient(KerberosScript):
   def install(self, env):
-    self.install_packages(env, ['krb5-server', 'krb5-libs', 'krb5-auth-dialog', 'krb5', 'krb5-kdc', 'krb5-admin-server'])
+    install_packages = default('/configurations/kerberos-env/install_packages', "true")
+    if install_packages:
+      self.install_packages(env, ['krb5-server', 'krb5-libs', 'krb5-auth-dialog', 'krb5', 'krb5-kdc', 'krb5-admin-server'])
+    else:
+      print "Kerberos client packages are not being installed, manual installation is required."
+
     self.configure(env)
 
 

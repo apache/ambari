@@ -38,6 +38,16 @@
     <value>true</value>
   </property>
 
+  <property>
+    <name>install_packages</name>
+    <description>
+      Indicates whether Ambari should install the Kerberos client package(s) or not. If not, it is
+      expected that Kerberos utility programs (such as kadmin, kinit, klist, and kdestroy) are
+      compatible with MIT Kerberos 5 version 1.10.3 in command line options and behaviors.
+    </description>
+    <value>true</value>
+  </property>
+
   <property require-input="true">
     <name>ldap_url</name>
     <description>
