@@ -118,7 +118,8 @@ class PortAlert(BaseAlert):
     if logger.isEnabledFor(logging.DEBUG):
       logger.debug("[Alert][{0}] Checking {1} on port {2}".format(
         self.get_name(), host, str(port)))
-    
+
+    s = None
     try:
       s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
       s.settimeout(self.critical_timeout)

@@ -433,7 +433,9 @@ class BaseAlert(object):
     Low level function to collect alert data.  The result is a tuple as:
     res[0] = the result code
     res[1] = the list of arguments supplied to the reporting text for the result code
-    """  
+    """
+    #TODO: After implementation uncomment /src/test/python/ambari_agent/TestMetricAlert.py:194
+    # and /src/test/python/ambari_agent/TestScriptAlert.py:52
     raise NotImplementedError
 
 

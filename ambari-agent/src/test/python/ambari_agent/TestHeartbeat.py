@@ -216,6 +216,7 @@ class TestHeartbeat(TestCase):
       "commandType" : "STATUS_COMMAND",
       "clusterName" : "c1",
       "componentName" : "DATANODE",
+      "role" : "DATANODE",
       'configurations':{'global' : {}}
     }
     actionQueue.put_status([statusCommand])
