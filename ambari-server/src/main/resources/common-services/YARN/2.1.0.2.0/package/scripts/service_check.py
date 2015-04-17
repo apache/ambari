@@ -19,7 +19,6 @@ Ambari Agent
 
 """
 
-from resource_management.libraries.functions.version import compare_versions
 from resource_management import *
 import sys
 from ambari_commons import OSConst
@@ -79,19 +78,29 @@ class ServiceCheckDefault(ServiceCheck):
     import params
     env.set_params(params)
 
-    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.2') >= 0:
-      path_to_distributed_shell_jar = "/usr/hdp/current/hadoop-yarn-client/hadoop-yarn-applications-distributedshell.jar"
-    else:
-      path_to_distributed_shell_jar = "/usr/lib/hadoop-yarn/hadoop-yarn-applications-distributedshell*.jar"
+    run_yarn_check_cmd = format("yarn --config {hadoop_conf_dir} node -list")
 
-    yarn_distrubuted_shell_check_cmd = format("yarn org.apache.hadoop.yarn.applications.distributedshell.Client "
-            "-shell_command ls -jar {path_to_distributed_shell_jar}")
+    component_type = 'rm'
+    if params.hadoop_ssl_enabled:
+      component_address = params.rm_webui_https_address
+    else:
+      component_address = params.rm_webui_address
+
+    validateStatusFileName = "validateYarnComponentStatus.py"
+    validateStatusFilePath = format("{tmp_dir}/{validateStatusFileName}")
+    python_executable = sys.executable
+    validateStatusCmd = format("{python_executable} {validateStatusFilePath} {component_type} -p {component_address} -s {hadoop_ssl_enabled}")
 
     if params.security_enabled:
       kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
-      smoke_cmd = format("{kinit_cmd} {yarn_distrubuted_shell_check_cmd}")
+      smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
     else:
-      smoke_cmd = yarn_distrubuted_shell_check_cmd
+      smoke_cmd = validateStatusCmd
+
+    File(validateStatusFilePath,
+         content=StaticFile(validateStatusFileName),
+         mode=0755
+    )
 
     Execute(smoke_cmd,
             tries=3,
@@ -99,6 +108,11 @@ class ServiceCheckDefault(ServiceCheck):
             path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
             user=params.smokeuser,
             logoutput=True
+    )
+
+    Execute(run_yarn_check_cmd,
+            path=params.execute_path,
+            user=params.smokeuser
     )
 
 
