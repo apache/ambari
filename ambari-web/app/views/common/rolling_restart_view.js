@@ -92,13 +92,18 @@ App.RollingRestartView = Em.View.extend({
    */
   errors : [],
   /**
+   * List of warnings in batch-request properties, do not disable submit button
+   * @type {Array}
+   */
+  warnings : [],
+  /**
    * Set initial values for batch-request properties
    */
   initialize : function() {
     if (this.get('batchSize') == -1 && this.get('interBatchWaitTimeSeconds') == -1 && this.get('tolerateSize') == -1) {
       var restartCount = this.get('restartHostComponents.length');
       var batchSize = 1;
-      if (restartCount > 10) {
+      if (restartCount > 10 && this.get('hostComponentName') !== 'DATANODE') {
         batchSize = Math.ceil(restartCount / 10);
       }
       var tolerateCount = batchSize;
@@ -115,16 +120,27 @@ App.RollingRestartView = Em.View.extend({
    */
   validate : function() {
     var displayName = this.get('hostComponentDisplayName');
+    var componentName = this.get('hostComponentName');
     var totalCount = this.get('restartHostComponents.length');
     var bs = this.get('batchSize');
     var ts = this.get('tolerateSize');
     var wait = this.get('interBatchWaitTimeSeconds');
     var errors = [];
+    var warnings = [];
+    var bsError, tsError, waitError;
     if (totalCount < 1) {
       errors.push(Em.I18n.t('rollingrestart.dialog.msg.noRestartHosts').format(displayName));
     } else {
-      var bsError = numberUtils.validateInteger(bs, 1, totalCount);
-      var tsError = numberUtils.validateInteger(ts, 0, totalCount);
+      if (componentName === 'DATANODE') {
+        // specific case for DataNodes batch size is more than 1
+        if (bs > 1) {
+          warnings.push(Em.I18n.t('rollingrestart.dialog.warn.datanode.batch.size'));
+        }
+        bsError = numberUtils.validateInteger(bs, 1, NaN);
+      } else {
+        bsError = numberUtils.validateInteger(bs, 1, totalCount);
+      }
+      tsError = numberUtils.validateInteger(ts, 0, totalCount);
       if (bsError != null) {
         errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.batchsize').format(bsError));
       }
@@ -132,11 +148,12 @@ App.RollingRestartView = Em.View.extend({
         errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.toleratesize').format(tsError));
       }
     }
-    var waitError = numberUtils.validateInteger(wait, 0, NaN);
+    waitError = numberUtils.validateInteger(wait, 0, NaN);
     if (waitError != null) {
       errors.push(Em.I18n.t('rollingrestart.dialog.err.invalid.waitTime').format(waitError));
     }
     this.set('errors', errors);
+    this.set('warnings', warnings);
   }.observes('batchSize', 'interBatchWaitTimeSeconds', 'tolerateSize', 'restartHostComponents', 'hostComponentDisplayName'),
 
   /**

@@ -71,10 +71,19 @@
     <div class="spinner"></div>
   {{/if}}
   {{#if view.errors}}
-    <div class="alert alert-warn">
+    <div class="alert alert-error">
       <ul>
       {{#each error in view.errors}}
         <li>{{error}}</li>
+      {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+  {{#if view.warnings}}
+    <div class="alert alert-warn">
+      <ul>
+      {{#each warning in view.warnings}}
+        <li>{{warning}}</li>
       {{/each}}
       </ul>
     </div>

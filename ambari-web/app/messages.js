@@ -2478,6 +2478,7 @@ Em.I18n.translations = {
   'rollingrestart.dialog.err.invalid.batchsize': 'Invalid restart batch size: {0}',
   'rollingrestart.dialog.err.invalid.waitTime': 'Invalid wait time between batches: {0}',
   'rollingrestart.dialog.err.invalid.toleratesize': 'Invalid failure toleration count: {0}',
+  'rollingrestart.dialog.warn.datanode.batch.size': 'Restarting more than one DataNode at a time is not recommended. Doing so can lead to data unavailability and/or possible loss of data being actively written to HFDS.',
   'rollingrestart.dialog.msg.serviceNotInMM':'Note: This will trigger alerts. To suppress alerts, turn on Maintenance Mode for {0} prior to triggering a rolling restart',
   'rollingrestart.dialog.msg.staleConfigsOnly': 'Only restart {0}s with stale configs',
   'rollingrestart.rest.context': 'Rolling Restart of {0}s - batch {1} of {2}',
