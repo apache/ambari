@@ -49,7 +49,7 @@ class ServiceCheckWindows(ServiceCheck):
 
     #temp_dir = os.path.abspath(os.path.join(params.hadoop_home, os.pardir)), "/tmp"
     temp_dir = os.path.join(os.path.dirname(params.hadoop_home), "temp")
-    validateStatusFileName = "validateYarnComponentStatus.py"
+    validateStatusFileName = "validateYarnComponentStatusWindows.py"
     validateStatusFilePath = os.path.join(temp_dir, validateStatusFileName)
     python_executable = sys.executable
     validateStatusCmd = "%s %s %s -p %s -s %s" % (python_executable, validateStatusFilePath, component_type, component_address, params.hadoop_ssl_enabled)

@@ -42,7 +42,7 @@ class MapReduce2ServiceCheckWindows(MapReduce2ServiceCheck):
     else:
       component_address = params.hs_webui_address
 
-    validateStatusFileName = "validateYarnComponentStatus.py"
+    validateStatusFileName = "validateYarnComponentStatusWindows.py"
     validateStatusFilePath = os.path.join(os.path.dirname(params.hadoop_home), "temp", validateStatusFileName)
     python_executable = sys.executable
     validateStatusCmd = "{0} {1} {2} -p {3} -s {4}".format(
