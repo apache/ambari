@@ -552,7 +552,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
 
     if (App.get('supports.customizedWidgets')) {
         this.get('controller').loadActiveWidgetLayout();
-      if (App.supports.customizedWidgetLayout) {
+      if (App.get('supports.customizedWidgetLayout')) {
         this.get('controller').loadWidgetLayouts();
       }
     }

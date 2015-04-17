@@ -247,16 +247,20 @@ describe('App.MainServiceInfoSummaryController', function () {
   describe("#loadActiveWidgetLayoutSuccessCallback()", function () {
     beforeEach(function () {
       sinon.stub( App.widgetLayoutMapper, 'map');
+      sinon.stub( App.widgetMapper, 'map');
     });
     afterEach(function () {
       App.widgetLayoutMapper.map.restore();
+      App.widgetMapper.map.restore();
     });
     it("isWidgetLayoutsLoaded should be set to true", function () {
       var controller = App.MainServiceInfoSummaryController.create({
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.loadActiveWidgetLayoutSuccessCallback({items:[true]});
+      controller.loadActiveWidgetLayoutSuccessCallback({items:[{
+        WidgetLayoutInfo: {}
+      }]});
       expect(controller.get('isWidgetsLoaded')).to.be.true;
     });
 

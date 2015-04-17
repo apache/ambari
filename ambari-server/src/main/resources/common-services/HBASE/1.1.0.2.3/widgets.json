@@ -92,7 +92,7 @@
             }
           ],
           "properties": {
-            "display_unit": "%"
+            "display_unit": ""
           }
         },
         {
@@ -134,7 +134,7 @@
             }
           ],
           "properties": {
-            "display_unit": "%"
+            "display_unit": ""
           }
         },
         {
@@ -171,14 +171,14 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "ipc.IPC.numOpenConnections",
-              "metric_path": "metrics/hbase/ipc/IPC/numOpenConnections",
+              "name": "ipc.IPC.numActiveHandler",
+              "metric_path": "metrics/hbase/ipc/IPC/numActiveHandler",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
               "name": "ipc.IPC.numCallsInGeneralQueue",
-              "metric_path": "metrics/hbase/ipc/IPC/numOpenConnections",
+              "metric_path": "metrics/hbase/ipc/IPC/numCallsInGeneralQueue",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }

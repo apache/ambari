@@ -31,7 +31,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
    * value in ms
    * @type {number}
    */
-  timeRange: 3600,
+  timeRange: 3600000,
 
   /**
    * value in ms
@@ -166,17 +166,17 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
 
   /**
    * add time properties
-   * @param {Array} widgetIds
+   * @param {Array} metricPaths
    * @returns {Array} result
    */
-  addTimeProperties: function (widgetIds) {
-    var startDate = App.dateTime();
-    var endDate = startDate + this.get('timeRange');
+  addTimeProperties: function (metricPaths) {
+    var toSeconds = Math.round(App.dateTime() / 1000);
+    var fromSeconds = toSeconds - (this.get('timeRange')/1000);
     var step = this.get('timeStep');
     var result = [];
 
-    widgetIds.forEach(function (ambariId) {
-      result.push(ambariId + '[' + startDate + ',' + endDate + ',' + step + ']');
+    metricPaths.forEach(function (metricPath) {
+      result.push(metricPath + '[' + fromSeconds + ',' + toSeconds + ',' + step + ']');
     }, this);
 
     return result;
@@ -198,7 +198,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
      * @type {string}
      */
     id: function () {
-      return this.get('parentView.content.id') + '_graph';
+      return 'widget_'+ this.get('parentView.content.id') + '_graph';
     }.property('parentView.content.id'),
 
     /**

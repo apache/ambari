@@ -24,7 +24,7 @@
               "widget_type": "GRAPH",
               "time_created": 1428990958952,
               "display_name": "RegionServer Reads and Writes",
-              "values": "[{\"name\":\"Read Requests\",\"value\":\"${regionserver.Server.Get_num_ops+regionserver.Server.ScanNext_num_ops}\"},{\"name\":\"Write Requests\",\"value\":\"${regionserver.Server.Append_num_ops+regionserver.Server.Delete_num_ops+regionserver.Server.Increment_num_ops+regionserver.Server.Mutate_num_ops}\"}]",
+              "values": "[{\"name\":\"Write Requests\",\"value\":\"${regionserver.Server.Append_num_ops}\"}]",
               "cluster_name": "c1"
             }
           },

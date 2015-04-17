@@ -31,6 +31,7 @@ App.Widget = DS.Model.extend({
    *  - TEMPLATE
    */
   widgetType: DS.attr('string'),
+  layout: DS.belongsTo('App.WidgetLayout'),
   displayName: DS.attr('string'),
   description: DS.attr('string'),
   serviceName: DS.attr('string'),

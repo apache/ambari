@@ -408,9 +408,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    * @param {object|null} data
    */
   loadActiveWidgetLayoutSuccessCallback: function (data) {
-    console.log("*******: " + data.items[0] );
     if (data.items[0]) {
-      App.widgetLayoutMapper.map(data.items[0]);
+      App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
+      App.widgetLayoutMapper.map(data);
       this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('defaultLayoutName')));
       this.set('isWidgetsLoaded', true);
     }

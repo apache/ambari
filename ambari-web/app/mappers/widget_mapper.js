@@ -21,6 +21,7 @@ App.widgetMapper = App.QuickDataMapper.create({
   model: App.Widget,
   config: {
     id: 'id',
+    layout_id: 'layout_id',
     widget_name: 'widget_name',
     default_order: 'default_order',
     widget_type: 'widget_type',
@@ -35,19 +36,20 @@ App.widgetMapper = App.QuickDataMapper.create({
     description: 'description',
     scope: 'scope'
   },
-  map: function (json, serviceName) {
-    //TODO add service name to user layout API response
+  map: function (json) {
     if (!this.get('model')) return;
 
-    if (json) {
+    if (json.widgets) {
       var result = [];
 
-      var sectionName = json.section_name;
-      json.widgetLayoutInfo.forEach(function (item, index) {
-        item.service_name = serviceName;
-        item.section_name = sectionName;
-        item.default_order = (index + 1);
-        result.push(this.parseIt(item, this.config));
+      json.widgets.forEach(function (item, index) {
+        item.WidgetInfo.section_name = json.section_name;
+        item.WidgetInfo.layout_id = json.id;
+        item.WidgetInfo.metrics = JSON.parse(item.WidgetInfo.metrics);
+        item.WidgetInfo.properties = JSON.parse(item.WidgetInfo.properties);
+        item.WidgetInfo.values = JSON.parse(item.WidgetInfo.values);
+        item.WidgetInfo.default_order = (index + 1);
+        result.push(this.parseIt(item.WidgetInfo, this.config));
       }, this);
 
       App.store.loadMany(this.get('model'), result);
