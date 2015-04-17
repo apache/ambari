@@ -1122,16 +1122,19 @@ class TestAmbariServer(TestCase):
   @patch("ambari_server.serverSetup.run_os_command")
   def test_create_custom_user(self, run_os_command_mock, print_warning_msg_mock,
                               print_info_msg_mock, get_validated_string_input_mock):
+    options = MagicMock()
+
     user = "dummy-user"
     get_validated_string_input_mock.return_value = user
 
-    userChecks = AmbariUserChecks()
+    userChecks = AmbariUserChecks(options)
 
     # Testing scenario: absent user
     run_os_command_mock.side_effect = [(0, "", "")]
     result = userChecks._create_custom_user()
     self.assertFalse(print_warning_msg_mock.called)
-    self.assertEquals(result, (0, user))
+    self.assertEquals(result, 0)
+    self.assertEquals(userChecks.user, user)
 
     print_info_msg_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
@@ -1141,7 +1144,8 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.side_effect = [(9, "", "")]
     result = userChecks._create_custom_user()
     self.assertTrue("User dummy-user already exists" in str(print_info_msg_mock.call_args_list[1][0]))
-    self.assertEquals(result, (0, user))
+    self.assertEquals(result, 0)
+    self.assertEquals(userChecks.user, user)
 
     print_info_msg_mock.reset_mock()
     print_warning_msg_mock.reset_mock()
@@ -1151,139 +1155,138 @@ class TestAmbariServer(TestCase):
     run_os_command_mock.side_effect = [(1, "", "")]
     result = userChecks._create_custom_user()
     self.assertTrue(print_warning_msg_mock.called)
-    self.assertEquals(result, (1, None))
+    self.assertEquals(result, 1)
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.get_YN_input")
-  @patch.object(AmbariUserChecksLinux, "_create_custom_user")
-  @patch.object(AmbariUserChecksWindows, "_create_custom_user")
-  @patch("ambari_server.serverSetup.write_property")
+  @patch("ambari_server.serverSetup.get_validated_string_input")
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
+  @patch("ambari_server.serverSetup.run_os_command")
   @patch("ambari_server.serverSetup.print_error_msg")
-  def test_check_ambari_user(self, print_error_msg_mock,
-                             adjust_directory_permissions_mock, write_property_mock,
-                             create_custom_user_mock, create_custom_user_2_mock, get_YN_input_mock, read_ambari_user_mock):
+  @patch("ambari_server.serverSetup.print_warning_msg")
+  @patch("ambari_server.serverSetup.print_info_msg")
+  def test_check_ambari_user(self, print_info_msg_mock, print_warning_msg_mock, print_error_msg_mock,
+                             run_os_command_mock, adjust_directory_permissions_mock,
+                             get_validated_string_input_mock, get_YN_input_mock, read_ambari_user_mock):
+
+    options = MagicMock()
+
+    run_os_command_mock.return_value = (0, "", "")
 
     # Scenario: user is already defined, user does not want to reconfigure it
     read_ambari_user_mock.return_value = "dummy-user"
     get_YN_input_mock.return_value = False
-    result = check_ambari_user()
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertFalse(write_property_mock.called)
-    self.assertFalse(create_custom_user_mock.called or create_custom_user_2_mock.called)
+    self.assertFalse(get_validated_string_input_mock.called)
+    self.assertFalse(run_os_command_mock.called)
     self.assertTrue(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 0)
+    self.assertEqual(result[0], 0)
 
     get_YN_input_mock.reset_mock()
-    write_property_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    run_os_command_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
-    create_custom_user_mock.reset_mock()
-    create_custom_user_2_mock.reset_mock()
 
     # Scenario: user is already defined, but user wants to reconfigure it
 
     read_ambari_user_mock.return_value = "dummy-user"
-    create_custom_user_2_mock.return_value = create_custom_user_mock.return_value = (0, "new-dummy-user")
+    get_validated_string_input_mock.return_value = "new-dummy-user"
     get_YN_input_mock.return_value = True
-    result = check_ambari_user()
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertTrue(write_property_mock.called)
-    self.assertTrue(write_property_mock.call_args[0][1] == "new-dummy-user")
-    self.assertTrue(create_custom_user_mock.called or create_custom_user_2_mock.called)
+    self.assertTrue(result[2] == "new-dummy-user")
+    self.assertTrue(get_validated_string_input_mock.called)
     self.assertTrue(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 0)
+    self.assertEqual(result[0], 0)
 
     get_YN_input_mock.reset_mock()
-    write_property_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    run_os_command_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
-    create_custom_user_mock.reset_mock()
-    create_custom_user_2_mock.reset_mock()
 
     # Negative scenario: user is already defined, but user wants
     # to reconfigure it, user creation failed
 
     read_ambari_user_mock.return_value = "dummy-user"
-    create_custom_user_2_mock.return_value = create_custom_user_mock.return_value = (1, None)
+    run_os_command_mock.return_value = (1, "", "")
     get_YN_input_mock.return_value = True
-    result = check_ambari_user()
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertTrue(create_custom_user_mock.called or create_custom_user_2_mock.called)
-    self.assertFalse(write_property_mock.called)
+    self.assertTrue(get_validated_string_input_mock.called)
+    self.assertTrue(run_os_command_mock.called)
     self.assertFalse(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 1)
+    self.assertEqual(result[0], 1)
 
     get_YN_input_mock.reset_mock()
-    create_custom_user_mock.reset_mock()
-    create_custom_user_2_mock.reset_mock()
-    write_property_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    run_os_command_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
 
     # Scenario: user is not defined (setup process)
     read_ambari_user_mock.return_value = None
     get_YN_input_mock.return_value = True
-    create_custom_user_2_mock.return_value = create_custom_user_mock.return_value = (0, "dummy-user")
-    result = check_ambari_user()
+    get_validated_string_input_mock.return_value = "dummy-user"
+    run_os_command_mock.return_value = (0, "", "")
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertTrue(create_custom_user_mock.called or create_custom_user_2_mock.called)
-    self.assertTrue(write_property_mock.called)
-    self.assertTrue(write_property_mock.call_args[0][1] == "dummy-user")
+    self.assertTrue(get_validated_string_input_mock.called)
+    self.assertTrue(run_os_command_mock.called)
+    self.assertTrue(result[2] == "dummy-user")
     self.assertTrue(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 0)
+    self.assertEqual(result[0], 0)
 
     get_YN_input_mock.reset_mock()
-    create_custom_user_mock.reset_mock()
-    create_custom_user_2_mock.reset_mock()
-    write_property_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    run_os_command_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
 
     # Scenario: user is not defined (setup process), user creation failed
 
     read_ambari_user_mock.return_value = None
     get_YN_input_mock.return_value = True
-    create_custom_user_2_mock.return_value = create_custom_user_mock.return_value = (1, None)
-    result = check_ambari_user()
+    run_os_command_mock.return_value = (1, "", "")
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertTrue(create_custom_user_mock.called or create_custom_user_2_mock.called)
-    self.assertFalse(write_property_mock.called)
+    self.assertTrue(get_validated_string_input_mock.called)
+    self.assertTrue(run_os_command_mock.called)
     self.assertFalse(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 1)
+    self.assertEqual(result[0], 1)
 
     get_YN_input_mock.reset_mock()
-    create_custom_user_mock.reset_mock()
-    create_custom_user_2_mock.reset_mock()
-    write_property_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    run_os_command_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
 
     # negative scenario: user is not defined (setup process), user creation failed
 
     read_ambari_user_mock.return_value = None
     get_YN_input_mock.return_value = True
-    create_custom_user_2_mock.return_value = create_custom_user_mock.return_value = (1, None)
-    result = check_ambari_user()
+    run_os_command_mock.return_value = (1, "", "")
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertTrue(create_custom_user_mock.called or create_custom_user_2_mock.called)
-    self.assertFalse(write_property_mock.called)
+    self.assertTrue(get_validated_string_input_mock.called)
+    self.assertTrue(run_os_command_mock.called)
     self.assertFalse(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 1)
+    self.assertEqual(result[0], 1)
 
     get_YN_input_mock.reset_mock()
-    create_custom_user_mock.reset_mock()
-    create_custom_user_2_mock.reset_mock()
-    write_property_mock.reset_mock()
+    get_validated_string_input_mock.reset_mock()
+    run_os_command_mock.reset_mock()
     adjust_directory_permissions_mock.reset_mock()
 
     # Scenario: user is not defined and left to be root
     read_ambari_user_mock.return_value = None
     get_YN_input_mock.return_value = False
-    result = check_ambari_user()
+    result = check_ambari_user(options)
     self.assertTrue(get_YN_input_mock.called)
-    self.assertFalse(create_custom_user_mock.called or create_custom_user_2_mock.called)
-    self.assertTrue(write_property_mock.called)
-    self.assertTrue(write_property_mock.call_args[0][1] == "root")
+    self.assertFalse(get_validated_string_input_mock.called)
+    self.assertFalse(run_os_command_mock.called)
+    self.assertTrue(result[2] == "root")
     self.assertTrue(adjust_directory_permissions_mock.called)
-    self.assertEqual(result, 0)
+    self.assertEqual(result[0], 0)
     pass
 
   @patch("ambari_server.serverConfiguration.search_file")
@@ -2866,10 +2869,11 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   @patch("ambari_server.serverSetup.proceedJDBCProperties")
   @patch("ambari_server.serverSetup.extract_views")
   @patch("ambari_server.serverSetup.adjust_directory_permissions")
+  @patch("ambari_server.serverSetup.service_setup")
   @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("ambari_server.serverSetup.expand_jce_zip_file")
-  def test_setup(self, expand_jce_zip_file_mock,
-                 read_ambari_user_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
+  def test_setup(self, expand_jce_zip_file_mock, read_ambari_user_mock,
+                 service_setup_mock, adjust_dirs_mock, extract_views_mock, proceedJDBCProperties_mock, is_root_mock,
                  disable_security_enhancements_mock, check_jdbc_drivers_mock, check_ambari_user_mock,
                  download_jdk_mock, configure_os_settings_mock, get_ambari_properties_mock,
                  get_YN_input_mock, gvsi_mock, gvsi_1_mock,
@@ -2969,7 +2973,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     # remote case
     is_root_mock.return_value = True
     disable_security_enhancements_mock.return_value = (0, "")
-    check_ambari_user_mock.return_value = 0
+    check_ambari_user_mock.return_value = (0, False, 'user', None)
     check_jdbc_drivers_mock.return_value = 0
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
@@ -4752,7 +4756,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     read_password_mock.return_value = "encrypted_bigdata"
     ensure_jdbc_driver_installed_mock.return_value = True
     check_jdbc_drivers_mock.return_value = 0
-    check_ambari_user_mock.return_value = 0
+    check_ambari_user_mock.return_value = (0, False, 'user', None)
     download_jdk_mock.return_value = 0
     configure_os_settings_mock.return_value = 0
     verify_setup_allowed_method.return_value = 0
@@ -6429,7 +6433,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     verify_setup_allowed_method.return_value = 0
     is_root_mock.return_value = True
     check_selinux_mock.return_value = 0
-    check_ambari_user_mock.return_value = 0
+    check_ambari_user_mock.return_value = (0, False, 'user', None)
     check_jdbc_drivers_mock.return_value = 0
     check_postgre_up_mock.return_value = "running", 0, "", ""
     #is_local_database_mock.return_value = True

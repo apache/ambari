@@ -27,7 +27,7 @@ import sys
 from ambari_commons.exceptions import FatalException
 from ambari_commons.firewall import Firewall
 from ambari_commons.inet_utils import force_download_file, download_progress
-from ambari_commons.logging_utils import get_silent, print_info_msg, print_warning_msg, print_error_msg
+from ambari_commons.logging_utils import get_silent, print_info_msg, print_warning_msg, print_error_msg, get_verbose
 from ambari_commons.os_check import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.os_utils import copy_files, run_os_command, is_root
@@ -38,7 +38,7 @@ from ambari_server.serverConfiguration import configDefaults, JDKRelease, \
   get_resources_location, get_value_from_properties, read_ambari_user, update_properties, validate_jdk, write_property, \
   JAVA_HOME, JAVA_HOME_PROPERTY, JCE_NAME_PROPERTY, JDBC_RCA_URL_PROPERTY, JDBC_URL_PROPERTY, \
   JDK_NAME_PROPERTY, JDK_RELEASES, NR_USER_PROPERTY, OS_FAMILY, OS_FAMILY_PROPERTY, OS_TYPE, OS_TYPE_PROPERTY, OS_VERSION, \
-  SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY
+  VIEWS_DIR_PROPERTY, JDBC_DATABASE_PROPERTY
 from ambari_server.serverUtils import is_server_runing
 from ambari_server.setupSecurity import adjust_directory_permissions
 from ambari_server.userInput import get_YN_input, get_validated_string_input
@@ -161,29 +161,34 @@ class AmbariUserChecks(object):
     self.NR_DEFAULT_USER = ""
     self.NR_USER_COMMENT = "Ambari user"
 
+    self.register_service = False
+    self.user = None
+    self.password = None
+
   def do_checks(self):
     try:
       user = read_ambari_user()
-      create_user = False
-      update_user_setting = False
-      if user is not None:
-        create_user = get_YN_input(self.NR_USER_CHANGE_PROMPT.format(user), False)
-        update_user_setting = create_user  # Only if we will create another user
-      else:  # user is not configured yet
-        update_user_setting = True  # Write configuration anyway
-        create_user = get_YN_input(self.NR_USER_CUSTOMIZE_PROMPT, False)
-        if not create_user:
-          user = self.NR_DEFAULT_USER
+      if not user:
+        user = self.NR_DEFAULT_USER
 
-      if create_user:
-        (retcode, user) = self._create_custom_user()
+      if self.user is not None:   #Command-line parameter is the default
+        update_user_setting = True
+        prompt_msg = self.NR_USER_CUSTOMIZE_PROMPT.format('y')
+      else:
+        update_user_setting = False
+        if user != self.NR_DEFAULT_USER:
+          prompt_msg = self.NR_USER_CHANGE_PROMPT.format(user, 'n')
+        else:
+          prompt_msg = self.NR_USER_CUSTOMIZE_PROMPT.format('n')
+        self.user = user if user else self.NR_DEFAULT_USER
+
+      self.register_service = get_YN_input(prompt_msg, update_user_setting)
+      if self.register_service:
+        retcode = self._create_custom_user()
         if retcode != 0:
           return retcode
 
-      if update_user_setting:
-        write_property(NR_USER_PROPERTY, user)
-
-      adjust_directory_permissions(user)
+      adjust_directory_permissions(self.user)
     except OSError as e:
       print_error_msg("Failed: %s" % str(e))
       return 4
@@ -197,62 +202,79 @@ class AmbariUserChecks(object):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class AmbariUserChecksWindows(AmbariUserChecks):
-  def __init__(self):
+  def __init__(self, options):
     super(AmbariUserChecksWindows, self).__init__()
 
-    self.NR_USER_CHANGE_PROMPT = "Ambari-server service is configured to run under user '{0}'. Change this setting [y/n] (n)? "
-    self.NR_USER_CUSTOMIZE_PROMPT = "Customize user account for ambari-server service [y/n] (n)? "
-    self.NR_DEFAULT_USER = "NT AUTHORITY\SYSTEM"
+    self.NR_USER_CHANGE_PROMPT = "Ambari-server service is configured to run under user '{0}'. Change this setting [y/n] ({1})? "
+    self.NR_USER_CUSTOMIZE_PROMPT = "Customize user account for ambari-server service [y/n] ({0})? "
+    self.NR_DEFAULT_USER = "NT AUTHORITY\\SYSTEM"
+    self.NR_SYSTEM_USERS = ["NT AUTHORITY\\SYSTEM", "NT AUTHORITY\\NetworkService", "NT AUTHORITY\\LocalService"]
+
+    self.username = options.svc_user
+    self.password = options.svc_password
 
   def _create_custom_user(self):
     user = get_validated_string_input(
-      "Enter user account for ambari-server service ({0}):".format(self.NR_DEFAULT_USER),
-      self.NR_DEFAULT_USER, None,
+      "Enter user account for ambari-server service ({0}):".format(self.username),
+      self.username, None,
       "Invalid username.",
       False
     )
-    if user == self.NR_DEFAULT_USER:
-      return 0, user
-    password = get_validated_string_input("Enter password for user {0}:".format(user), "", None, "Password", True, False)
+    if user in self.NR_SYSTEM_USERS:
+      self.username = user
+      return 0
 
     from ambari_commons.os_windows import UserHelper
 
     uh = UserHelper(user)
 
-    status, message = uh.create_user(password)
-    if status == UserHelper.USER_EXISTS:
-      print_info_msg("User {0} already exists, make sure that you typed correct password for user, "
-                     "skipping user creation".format(user))
+    if not uh.find_user():
+      if get_silent():
+        password = self.password
+      else:
+        password = get_validated_string_input("Enter password for user {0}:".format(user), "", None, "Password", True, False)
 
-    elif status == UserHelper.ACTION_FAILED:  # fail
-      print_warning_msg("Can't create user {0}. Failed with message {1}".format(user, message))
-      return UserHelper.ACTION_FAILED, None
+      status, message = uh.create_user(password)
+      if status == UserHelper.USER_EXISTS:
+        print_info_msg("User {0} already exists, make sure that you typed correct password for user, "
+                       "skipping user creation".format(user))
 
-    # setting SeServiceLogonRight to user
+      elif status == UserHelper.ACTION_FAILED:  # fail
+        print_warning_msg("Can't create user {0}. Failed with message {1}".format(user, message))
+        return UserHelper.ACTION_FAILED
 
+      self.password = password
+
+    # setting SeServiceLogonRight and SeBatchLogonRight to user
+    #This is unconditional
     status, message = uh.add_user_privilege('SeServiceLogonRight')
     if status == UserHelper.ACTION_FAILED:
       print_warning_msg("Can't add SeServiceLogonRight to user {0}. Failed with message {1}".format(user, message))
-      return UserHelper.ACTION_FAILED, None
+      return UserHelper.ACTION_FAILED
+
+    status, message = uh.add_user_privilege('SeBatchLogonRight')
+    if status == UserHelper.ACTION_FAILED:
+      print_warning_msg("Can't add SeBatchLogonRight to user {0}. Failed with message {1}".format(user, message))
+      return UserHelper.ACTION_FAILED
 
     print_info_msg("User configuration is done.")
     print_warning_msg("When using non SYSTEM user make sure that your user has read\write access to log directories and "
                       "all server directories. In case of integrated authentication for SQL Server make sure that your "
-                      "user is properly configured to use the ambari database.")
-    #storing username and password in os.environ temporary to pass them to service
-    if uh.domainName:
-      user = uh.domainName + '\\' + user
-    os.environ[SERVICE_USERNAME_KEY] = user
-    os.environ[SERVICE_PASSWORD_KEY] = password
-    return 0, user
+                      "user is properly configured to access the ambari database.")
+
+    if user.find('\\') == -1:
+      user = '.\\' + user
+
+    self.username = user
+    return 0
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
 class AmbariUserChecksLinux(AmbariUserChecks):
-  def __init__(self):
+  def __init__(self, options):
     super(AmbariUserChecksLinux, self).__init__()
 
-    self.NR_USER_CHANGE_PROMPT = "Ambari-server daemon is configured to run under user '{0}'. Change this setting [y/n] (n)? "
-    self.NR_USER_CUSTOMIZE_PROMPT = "Customize user account for ambari-server daemon [y/n] (n)? "
+    self.NR_USER_CHANGE_PROMPT = "Ambari-server daemon is configured to run under user '{0}'. Change this setting [y/n] ({1})? "
+    self.NR_USER_CUSTOMIZE_PROMPT = "Customize user account for ambari-server daemon [y/n] ({0})? "
     self.NR_DEFAULT_USER = "root"
 
     self.NR_USERADD_CMD = 'useradd -M --comment "{1}" ' \
@@ -261,7 +283,7 @@ class AmbariUserChecksLinux(AmbariUserChecks):
   def _create_custom_user(self):
     user = get_validated_string_input(
       "Enter user account for ambari-server daemon (root):",
-      "root",
+      self.user,
       "^[a-z_][a-z0-9_-]{1,31}$",
       "Invalid username.",
       False
@@ -277,13 +299,36 @@ class AmbariUserChecksLinux(AmbariUserChecks):
     elif retcode != 0:  # fail
       print_warning_msg("Can't create user {0}. Command {1} "
                         "finished with {2}: \n{3}".format(user, command, retcode, err))
-      return retcode, None
+      return retcode
 
     print_info_msg("User configuration is done.")
-    return 0, user
 
-def check_ambari_user():
-  return AmbariUserChecks().do_checks()
+    self.user = user
+
+    return 0
+
+def check_ambari_user(options):
+  uc = AmbariUserChecks(options)
+  retcode = uc.do_checks()
+  return retcode, uc.register_service, uc.user, uc.password
+
+
+#
+# Windows service setup
+#
+
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def service_setup(register_service, svc_user, svc_password):
+  from ambari_windows_service import svcsetup
+
+  result = svcsetup(register_service, svc_user, svc_password)
+  if result == 0:
+    write_property(NR_USER_PROPERTY, svc_user)
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def service_setup(register_service, svc_user, svc_password):
+  #Nothing else to do in Linux
+  write_property(NR_USER_PROPERTY, svc_user)
 
 
 #
@@ -971,7 +1016,7 @@ def setup(options):
     raise FatalException(retcode, err)
 
   #Create ambari user, if needed
-  retcode = check_ambari_user()
+  (retcode, register_service, svc_user, svc_password) = check_ambari_user(options)
   if not retcode == 0:
     err = 'Failed to create user. Exiting.'
     raise FatalException(retcode, err)
@@ -1012,8 +1057,9 @@ def setup(options):
     raise FatalException(retcode, err)
 
   # we've already done this, but new files were created so run it one time.
-  adjust_directory_permissions(read_ambari_user())
+  adjust_directory_permissions(svc_user)
 
+  service_setup(register_service, svc_user, svc_password)
 
 #
 # Setup the JCE policy for Ambari Server.

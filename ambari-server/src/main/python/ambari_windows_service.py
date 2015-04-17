@@ -27,8 +27,7 @@ from ambari_commons.logging_utils import set_silent, set_verbose, print_info_msg
 from ambari_commons.os_utils import remove_file
 from ambari_commons.os_windows import SvcStatusCallback
 from ambari_server.serverConfiguration import configDefaults, get_ambari_properties, get_value_from_properties, \
-  DEBUG_MODE_KEY, PID_NAME, SERVER_OUT_FILE_KEY, SERVICE_PASSWORD_KEY, SERVICE_USERNAME_KEY, SUSPEND_START_MODE_KEY, \
-  VERBOSE_OUTPUT_KEY
+  DEBUG_MODE_KEY, PID_NAME, SERVER_OUT_FILE_KEY, SUSPEND_START_MODE_KEY, VERBOSE_OUTPUT_KEY
 
 
 class AmbariServerService(AmbariService):
@@ -86,15 +85,15 @@ def ctrlHandler(ctrlType):
   AmbariServerService.DefCtrlCHandler()
   return True
 
-def svcsetup():
+def svcsetup(register_service, username=None, password=None):
   AmbariServerService.set_ctrl_c_handler(ctrlHandler)
 
   scriptFile, ext = os.path.splitext(__file__.replace('/', os.sep))
   classPath = scriptFile + "." + AmbariServerService.__name__
 
-  # we don't save password between 'setup' runs, so we can't run Install every time. We run 'setup' only if user and
-  # password provided or if service not installed
-  if (SERVICE_USERNAME_KEY in os.environ and SERVICE_PASSWORD_KEY in os.environ):
-    AmbariServerService.Install(classPath=classPath, username=os.environ[SERVICE_USERNAME_KEY], password=os.environ[SERVICE_PASSWORD_KEY])
-  elif AmbariServerService.QueryStatus() == "not installed":
-    AmbariServerService.Install(classPath)
+  # We don't save the password between 'setup' runs, so we can't run Install every time. We run Install only if the
+  # operator acknowledged changing the username or if the service is not yet installed
+  if (register_service or AmbariServerService.QueryStatus() == "not installed"):
+    return AmbariServerService.Install(classPath=classPath, username=username, password=password)
+  else:
+    return 0
