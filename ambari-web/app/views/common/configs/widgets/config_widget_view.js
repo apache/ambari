@@ -51,6 +51,27 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   canEdit: true,
 
   /**
+   * Tab where current widget placed
+   * Bound in the template
+   * @type {App.Tab}
+   */
+  tab: null,
+
+  /**
+   * Section where current widget placed
+   * Bound in the template
+   * @type {App.Section}
+   */
+  section: null,
+
+  /**
+   * Subsection where current widget placed
+   * Bound in the template
+   * @type {App.SubSection}
+   */
+  subSection: null,
+
+  /**
    * Alias to <code>config.isOriginalSCP</code>
    * Should be used in the templates
    * Don't use original <code>config.isOriginalSCP</code> in the widget-templates!!!

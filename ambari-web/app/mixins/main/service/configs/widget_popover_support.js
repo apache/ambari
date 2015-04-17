@@ -43,14 +43,21 @@ App.WidgetPopoverSupport = Em.Mixin.create({
    */
   popoverPlacement: function () {
     // popover to left if config is located at the right most sub-section of the right most section.
+    return this.get('isWidgetInTheRightColumn') ? 'left' : 'right';
+  }.property('isWidgetInTheRightColumn'),
+
+  /**
+   * Determines if widget is in the right column
+   * @type {boolean}
+   */
+  isWidgetInTheRightColumn: function () {
     var secCI = this.get('section.columnIndex');
     var secCS = this.get('section.columnSpan');
     var tabCols = this.get('tab.columns');
     var subsecCI = this.get('subSection.columnIndex');
     var subsecCS = this.get('subSection.columnSpan');
     var secCols = this.get('section.sectionColumns');
-
-    return ((secCI + secCS == tabCols) && (subsecCI + subsecCS == secCols))? 'left' : 'right';
+    return ((secCI + secCS == tabCols) && (subsecCI + subsecCS == secCols));
   }.property(),
 
   initPopover: function () {
