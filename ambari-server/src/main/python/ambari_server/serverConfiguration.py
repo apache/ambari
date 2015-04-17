@@ -126,6 +126,9 @@ JDBC_RCA_USE_INTEGRATED_AUTH_PROPERTY = "server.jdbc.rca.use.integrated.auth"
 
 ### # End Windows-specific # ###
 
+SERVICE_USERNAME_KEY = "TMP_AMBARI_USERNAME"
+SERVICE_PASSWORD_KEY = "TMP_AMBARI_PASSWORD"
+
 # resources repo configuration
 RESOURCES_DIR_PROPERTY = "resources.dir"
 

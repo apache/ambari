@@ -69,6 +69,12 @@ class UserActionRestart(UserAction):
     self.need_restart = self.fn(*self.args, **self.kwargs)
 
 
+def winsetup(options):
+  from ambari_windows_service import svcsetup
+
+  setup(options)
+  svcsetup()
+
 #
 # Starts the Ambari Server as a standalone process.
 # Ensures only one instance of the process is running.
@@ -263,13 +269,6 @@ def restore(args):
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def init_parser_options(parser):
-  parser.add_option('-k', '--service-user-name', dest="svc_user",
-                    default=None,
-                    help="User account under which the Ambari Server service will run")
-  parser.add_option('-x', '--service-user-password', dest="svc_password",
-                    default=None,
-                    help="Password for the Ambari Server service user account")
-
   parser.add_option('-f', '--init-script-file', dest="init_db_script_file",
                     default="resources" + os.sep + "Ambari-DDL-SQLServer-CREATE.sql",
                     help="File with database setup script")
@@ -303,7 +302,7 @@ def init_parser_options(parser):
                     help="Database user password")
   parser.add_option('--jdbc-driver', default=None, dest="jdbc_driver",
                     help="Specifies the path to the JDBC driver JAR file")
-  # -b and -i the remaining available short options
+  # -b, -i, -k and -x the remaining available short options
   # -h reserved for help
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
@@ -476,7 +475,7 @@ def fix_database_options(options, parser):
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
 def create_user_action_map(args, options):
   action_map = {
-    SETUP_ACTION: UserAction(setup, options),
+    SETUP_ACTION: UserAction(winsetup, options),
     START_ACTION: UserAction(svcstart),
     PSTART_ACTION: UserAction(start, options),
     STOP_ACTION: UserAction(stop),

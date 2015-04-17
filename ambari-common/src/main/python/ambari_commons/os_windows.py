@@ -629,7 +629,7 @@ class WinService(win32serviceutil.ServiceFramework):
       installArgs.append("--perfmondll=" + perfMonDll)
     installArgs.append("install")
 
-    return win32serviceutil.HandleCommandLine(cls, classPath, installArgs)
+    win32serviceutil.HandleCommandLine(cls, classPath, installArgs)
 
   @classmethod
   def Start(cls, waitSecs = 30):
@@ -739,16 +739,6 @@ class UserHelper(object):
       else:
         return UserHelper.ACTION_FAILED, e.strerror
     return UserHelper.ACTION_OK, "User created."
-
-  def find_user(self):
-    try:
-      user_info = win32net.NetUserGetInfo(self.dcName, self.userName, 0)
-    except pywintypes.error as e:
-      if e.winerror == 2221:
-        return False
-      else:
-        raise
-    return True
 
   def add_user_privilege(self, privilege):
     try:
