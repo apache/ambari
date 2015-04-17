@@ -391,4 +391,12 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     return "{ upgradeCatalog: sourceVersion = " + getSourceVersion() + ", " +
       "targetVersion = " + getTargetVersion() + " }";
   }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void onPostUpgrade() throws AmbariException, SQLException {
+    // NOOP
+  }
 }

@@ -18,49 +18,8 @@
 
 package org.apache.ambari.server.upgrade;
 
-import com.google.inject.AbstractModule;
-import com.google.inject.Binder;
-import com.google.inject.Guice;
-import com.google.inject.Injector;
-import com.google.inject.Module;
-import com.google.inject.Provider;
-import com.google.inject.persist.PersistService;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.configuration.Configuration;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.orm.DBAccessor;
-import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.GuiceJpaInitializer;
-import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.OperatingSystemInfo;
-import org.apache.ambari.server.state.RepositoryInfo;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.stack.OsFamily;
-import org.easymock.Capture;
-import org.easymock.EasyMockSupport;
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
-
-import javax.persistence.EntityManager;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-
-import static org.easymock.EasyMock.capture;
-
 import static junit.framework.Assert.assertEquals;
+import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMockBuilder;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.createStrictMock;
@@ -70,6 +29,41 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.verify;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.persistence.EntityManager;
+
+import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.orm.DBAccessor;
+import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
+import org.apache.ambari.server.orm.GuiceJpaInitializer;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.stack.OsFamily;
+import org.easymock.Capture;
+import org.junit.After;
+import org.junit.Assert;
+import org.junit.Before;
+import org.junit.Test;
+
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.Provider;
+import com.google.inject.persist.PersistService;
 
 /**
  * {@link org.apache.ambari.server.upgrade.UpgradeCatalog210} unit tests.
@@ -136,18 +130,24 @@ public class UpgradeCatalog210Test {
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml =
       AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
+
     Method initializeClusterAndServiceWidgets =
       UpgradeCatalog210.class.getDeclaredMethod("initializeClusterAndServiceWidgets");
+
+    Method executeStackDMLUpdates = UpgradeCatalog210.class.getDeclaredMethod("executeStackDMLUpdates");
 
     UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
       .addMockedMethod(addNewConfigurationsFromXml)
       .addMockedMethod(initializeClusterAndServiceWidgets)
-      .createMock();
+      .addMockedMethod( executeStackDMLUpdates) .createMock();
 
     upgradeCatalog210.addNewConfigurationsFromXml();
     expectLastCall().once();
 
     upgradeCatalog210.initializeClusterAndServiceWidgets();
+    expectLastCall().once();
+
+    upgradeCatalog210.executeStackDMLUpdates();
     expectLastCall().once();
 
     replay(upgradeCatalog210);

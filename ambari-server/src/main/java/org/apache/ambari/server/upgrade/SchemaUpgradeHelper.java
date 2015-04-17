@@ -235,6 +235,23 @@ public class SchemaUpgradeHelper {
     }
   }
 
+  public void executeOnPostUpgrade(List<UpgradeCatalog> upgradeCatalogs)
+      throws AmbariException {
+    LOG.info("Finalizing catalog upgrade.");
+
+    if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
+      for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
+        try {
+          upgradeCatalog.onPostUpgrade();
+          ;
+        } catch (Exception e) {
+          LOG.error("Upgrade failed. ", e);
+          throw new AmbariException(e.getMessage(), e);
+        }
+      }
+    }
+  }
+
   public void resetUIState() throws AmbariException {
     LOG.info("Resetting UI state.");
     try {
@@ -278,6 +295,8 @@ public class SchemaUpgradeHelper {
       schemaUpgradeHelper.startPersistenceService();
 
       schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
+
+      schemaUpgradeHelper.executeOnPostUpgrade(upgradeCatalogs);
 
       schemaUpgradeHelper.resetUIState();
 

@@ -150,11 +150,19 @@ public class StaleAlertRunnableTest {
   @Test
   public void testAllAlertsAreCurrent() {
     // create current alerts that are not stale
+    AlertDefinitionEntity definition1 = new AlertDefinitionEntity();
+    definition1.setClusterId(CLUSTER_ID);
+    definition1.setDefinitionName("foo-definition");
+    definition1.setServiceName("HDFS");
+    definition1.setComponentName("NAMENODE");
+    definition1.setEnabled(true);
+    definition1.setScheduleInterval(1);
+
     AlertCurrentEntity current1 = createNiceMock(AlertCurrentEntity.class);
     AlertHistoryEntity history1 = createNiceMock(AlertHistoryEntity.class);
 
     expect(current1.getAlertHistory()).andReturn(history1).atLeastOnce();
-    expect(history1.getAlertDefinition()).andReturn(m_definition).atLeastOnce();
+    expect(history1.getAlertDefinition()).andReturn(definition1).atLeastOnce();
 
     expect(current1.getMaintenanceState()).andReturn(MaintenanceState.OFF).atLeastOnce();
     expect(current1.getLatestTimestamp()).andReturn(System.currentTimeMillis()).atLeastOnce();
@@ -187,8 +195,7 @@ public class StaleAlertRunnableTest {
     assertEquals(AlertState.OK, alert.getState());
     assertEquals(DEFINITION_NAME, alert.getName());
 
-    verify(m_definition, m_cluster, m_clusters,
-        m_definitionDao);
+    verify(m_cluster, m_clusters, m_definitionDao);
   }
 
   /**
@@ -196,12 +203,21 @@ public class StaleAlertRunnableTest {
    */
   @Test
   public void testStaleAlert() {
+    // create current alerts that are not stale
+    AlertDefinitionEntity definition1 = new AlertDefinitionEntity();
+    definition1.setClusterId(CLUSTER_ID);
+    definition1.setDefinitionName("foo-definition");
+    definition1.setServiceName("HDFS");
+    definition1.setComponentName("NAMENODE");
+    definition1.setEnabled(true);
+    definition1.setScheduleInterval(1);
+
     // create current alerts that are stale
     AlertCurrentEntity current1 = createNiceMock(AlertCurrentEntity.class);
     AlertHistoryEntity history1 = createNiceMock(AlertHistoryEntity.class);
 
     expect(current1.getAlertHistory()).andReturn(history1).atLeastOnce();
-    expect(history1.getAlertDefinition()).andReturn(m_definition).atLeastOnce();
+    expect(history1.getAlertDefinition()).andReturn(definition1).atLeastOnce();
 
     // a really old timestampt to trigger the alert
     expect(current1.getMaintenanceState()).andReturn(MaintenanceState.OFF).atLeastOnce();
@@ -235,7 +251,7 @@ public class StaleAlertRunnableTest {
     assertEquals(AlertState.CRITICAL, alert.getState());
     assertEquals(DEFINITION_NAME, alert.getName());
 
-    verify(m_definition, m_cluster, m_clusters, m_definitionDao);
+    verify(m_cluster, m_clusters, m_definitionDao);
   }
 
   /**
@@ -243,6 +259,15 @@ public class StaleAlertRunnableTest {
    */
   @Test
   public void testStaleAlertInMaintenaceMode() {
+    // create current alerts that are not stale
+    AlertDefinitionEntity definition1 = new AlertDefinitionEntity();
+    definition1.setClusterId(CLUSTER_ID);
+    definition1.setDefinitionName("foo-definition");
+    definition1.setServiceName("HDFS");
+    definition1.setComponentName("NAMENODE");
+    definition1.setEnabled(true);
+    definition1.setScheduleInterval(1);
+
     // create current alerts where 1 is stale but in maintence mode
     AlertCurrentEntity current1 = createNiceMock(AlertCurrentEntity.class);
     AlertHistoryEntity history1 = createNiceMock(AlertHistoryEntity.class);
@@ -250,10 +275,10 @@ public class StaleAlertRunnableTest {
     AlertHistoryEntity history2 = createNiceMock(AlertHistoryEntity.class);
 
     expect(current1.getAlertHistory()).andReturn(history1).atLeastOnce();
-    expect(history1.getAlertDefinition()).andReturn(m_definition).atLeastOnce();
+    expect(history1.getAlertDefinition()).andReturn(definition1).atLeastOnce();
 
     expect(current2.getAlertHistory()).andReturn(history2).atLeastOnce();
-    expect(history2.getAlertDefinition()).andReturn(m_definition).atLeastOnce();
+    expect(history2.getAlertDefinition()).andReturn(definition1).atLeastOnce();
 
     // maintenance mode with a really old timestamp
     expect(current1.getMaintenanceState()).andReturn(MaintenanceState.ON).atLeastOnce();
@@ -292,7 +317,7 @@ public class StaleAlertRunnableTest {
     assertEquals(AlertState.OK, alert.getState());
     assertEquals(DEFINITION_NAME, alert.getName());
 
-    verify(m_definition, m_cluster, m_clusters, m_definitionDao);
+    verify(m_cluster, m_clusters, m_definitionDao);
   }
 
   /**

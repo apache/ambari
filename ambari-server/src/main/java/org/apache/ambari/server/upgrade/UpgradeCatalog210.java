@@ -20,24 +20,29 @@ package org.apache.ambari.server.upgrade;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.orm.DBAccessor.DBColumnInfo;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.dao.ClusterServiceDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
@@ -47,7 +52,6 @@ import com.google.inject.persist.Transactional;
  * Upgrade catalog for version 2.1.0.
  */
 public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
-
   private static final String CLUSTERS_TABLE = "clusters";
   private static final String HOSTS_TABLE = "hosts";
   private static final String HOST_COMPONENT_DESIRED_STATE_TABLE = "hostcomponentdesiredstate";
@@ -64,9 +68,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String WIDGET_LAYOUT_USER_WIDGET_TABLE = "widget_layout_user_widget";
   private static final String VIEW_INSTANCE_TABLE = "viewinstance";
   private static final String VIEW_PARAMETER_TABLE = "viewparameter";
-  private static final String STACK_TABLE_DEFINITION = "stack";
+  private static final String STACK_TABLE = "stack";
+  private static final String REPO_VERSION_TABLE = "repo_version";
 
   private static final String HOST_ID_COL = "host_id";
+
+  // constants for stack table changes
+  private static final String STACK_ID_COLUMN_NAME = "stack_id";
+  private static final String DESIRED_STACK_ID_COLUMN_NAME = "desired_stack_id";
+  private static final String CURRENT_STACK_ID_COLUMN_NAME = "current_stack_id";
+  private static final String DESIRED_STACK_VERSION_COLUMN_NAME = "desired_stack_version";
+  private static final String CURRENT_STACK_VERSION_COLUMN_NAME = "current_stack_version";
+  private static final DBColumnInfo DESIRED_STACK_ID_COLUMN = new DBColumnInfo(DESIRED_STACK_ID_COLUMN_NAME, Long.class, null, null, true);
+  private static final DBColumnInfo CURRENT_STACK_ID_COLUMN = new DBColumnInfo(CURRENT_STACK_ID_COLUMN_NAME, Long.class, null, null, true);
+  private static final DBColumnInfo STACK_ID_COLUMN = new DBColumnInfo(STACK_ID_COLUMN_NAME, Long.class, null, null, true);
 
   /**
    * {@inheritDoc}
@@ -87,6 +102,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   /**
    * {@inheritDoc}
    */
+  @Override
   public String[] getCompatibleVersions() {
     return new String[] {"*"};
   }
@@ -119,6 +135,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     executeHostsDDLUpdates();
     executeWidgetDDLUpdates();
     executeStackDDLUpdates();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void onPostUpgrade() throws AmbariException, SQLException {
+    cleanupStackUpdates();
   }
 
   /**
@@ -301,7 +325,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.dropColumn(HOST_COMPONENT_DESIRED_STATE_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_STATE_TABLE, "host_name");
     // TODO, include other tables.
-    
+
     // view columns for cluster association
     dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("cluster_handle", String.class, 255, null, true));
     dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
@@ -348,24 +372,155 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * Adds the stack table and constraints.
+   * Adds the stack table, FKs, and constraints.
    */
   private void executeStackDDLUpdates() throws AmbariException, SQLException {
-    // alert_definition
+    // stack table creation
     ArrayList<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("stack_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("stack_name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("stack_version", String.class, 255, null,
         false));
 
-    dbAccessor.createTable(STACK_TABLE_DEFINITION, columns, "stack_id");
+    dbAccessor.createTable(STACK_TABLE, columns, "stack_id");
 
-    dbAccessor.executeQuery("ALTER TABLE " + STACK_TABLE_DEFINITION
+    dbAccessor.executeQuery("ALTER TABLE " + STACK_TABLE
         + " ADD CONSTRAINT unq_stack UNIQUE (stack_name,stack_version)", false);
 
     dbAccessor.executeQuery(
         "INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('stack_id_seq', 0)",
         false);
+
+    // create the new stack ID columns NULLABLE for now since we need to insert
+    // data into them later on (we'll change them to NOT NULL after that)
+    dbAccessor.addColumn(CLUSTERS_TABLE, DESIRED_STACK_ID_COLUMN);
+    dbAccessor.addColumn("hostcomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
+    dbAccessor.addColumn("servicecomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
+    dbAccessor.addColumn("servicedesiredstate", DESIRED_STACK_ID_COLUMN);
+
+    dbAccessor.addFKConstraint(CLUSTERS_TABLE, "fk_clusters_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint("hostcomponentdesiredstate", "fk_hcds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint("servicecomponentdesiredstate", "fk_scds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint("servicedesiredstate", "fk_sds_desired_stack_id", DESIRED_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+
+    dbAccessor.addColumn("clusterstate", CURRENT_STACK_ID_COLUMN);
+    dbAccessor.addColumn("hostcomponentstate", CURRENT_STACK_ID_COLUMN);
+
+    dbAccessor.addFKConstraint("clusterstate", "fk_cs_current_stack_id", CURRENT_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint("hostcomponentstate", "fk_hcs_current_stack_id", CURRENT_STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+
+    dbAccessor.addColumn("clusterconfig", STACK_ID_COLUMN);
+    dbAccessor.addColumn("serviceconfig", STACK_ID_COLUMN);
+    dbAccessor.addColumn("blueprint", STACK_ID_COLUMN);
+    dbAccessor.addColumn(REPO_VERSION_TABLE, STACK_ID_COLUMN);
+
+    dbAccessor.addFKConstraint("clusterconfig", "fk_clusterconfig_stack_id", STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint("serviceconfig", "fk_serviceconfig_stack_id", STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint("blueprint", "fk_blueprint_stack_id", STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+    dbAccessor.addFKConstraint(REPO_VERSION_TABLE, "fk_repoversion_stack_id", STACK_ID_COLUMN_NAME, STACK_TABLE, STACK_ID_COLUMN_NAME, true);
+
+    // drop the unique constraint for the old column and add the new one
+    dbAccessor.dropConstraint(REPO_VERSION_TABLE, "uq_repo_version_stack_version");
+    dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT uq_repo_version_stack_id UNIQUE (stack_id, version)");
+  }
+
+  /**
+   * Adds the stack table and constraints.
+   */
+  protected void executeStackDMLUpdates() throws AmbariException, SQLException {
+    Gson gson = new Gson();
+
+    injector.getInstance(AmbariMetaInfo.class);
+
+    StackDAO stackDAO = injector.getInstance(StackDAO.class);
+    List<StackEntity> stacks = stackDAO.findAll();
+    Map<Long,String> entityToJsonMap = new HashMap<Long, String>();
+
+    // build a mapping of stack entity to old-school JSON
+    for( StackEntity stack : stacks ){
+      StackId stackId = new StackId(stack.getStackName(),
+          stack.getStackVersion());
+      String stackJson = gson.toJson(stackId);
+      entityToJsonMap.put(stack.getStackId(), stackJson);
+    }
+
+    // use a bulk update on all tables to populate the new FK columns
+    String UPDATE_TEMPLATE = "UPDATE {0} SET {1} = {2} WHERE {3} = ''{4}''";
+    String UPDATE_BLUEPRINT_TEMPLATE = "UPDATE blueprint SET stack_id = {0} WHERE stack_name = ''{1}'' AND stack_version = ''{2}''";
+
+    Set<Long> stackEntityIds = entityToJsonMap.keySet();
+    for (Long stackEntityId : stackEntityIds) {
+      StackEntity stackEntity = stackDAO.findById(stackEntityId);
+      String outdatedJson = entityToJsonMap.get(stackEntityId);
+
+      String clustersSQL = MessageFormat.format(UPDATE_TEMPLATE, "clusters",
+          DESIRED_STACK_ID_COLUMN_NAME, stackEntityId,
+          DESIRED_STACK_VERSION_COLUMN_NAME, outdatedJson);
+
+      String hostComponentDesiredStateSQL = MessageFormat.format(
+          UPDATE_TEMPLATE, "hostcomponentdesiredstate",
+          DESIRED_STACK_ID_COLUMN_NAME, stackEntityId,
+          DESIRED_STACK_VERSION_COLUMN_NAME, outdatedJson);
+
+      String serviceComponentDesiredStateSQL = MessageFormat.format(
+          UPDATE_TEMPLATE, "servicecomponentdesiredstate",
+          DESIRED_STACK_ID_COLUMN_NAME, stackEntityId,
+          DESIRED_STACK_VERSION_COLUMN_NAME, outdatedJson);
+
+      String serviceDesiredStateSQL = MessageFormat.format(UPDATE_TEMPLATE,
+          "servicedesiredstate",
+          DESIRED_STACK_ID_COLUMN_NAME, stackEntityId,
+          DESIRED_STACK_VERSION_COLUMN_NAME, outdatedJson);
+
+      String clusterStateSQL = MessageFormat.format(UPDATE_TEMPLATE,
+          "clusterstate", CURRENT_STACK_ID_COLUMN_NAME, stackEntityId,
+          CURRENT_STACK_VERSION_COLUMN_NAME, outdatedJson);
+
+      String hostComponentStateSQL = MessageFormat.format(UPDATE_TEMPLATE,
+          "hostcomponentstate", CURRENT_STACK_ID_COLUMN_NAME, stackEntityId,
+          CURRENT_STACK_VERSION_COLUMN_NAME, outdatedJson);
+
+      String blueprintSQL = MessageFormat.format(UPDATE_BLUEPRINT_TEMPLATE,
+          stackEntityId, stackEntity.getStackName(),
+          stackEntity.getStackVersion());
+
+      String repoVersionSQL = MessageFormat.format(UPDATE_TEMPLATE,
+          REPO_VERSION_TABLE, STACK_ID_COLUMN_NAME, stackEntityId, "stack",
+          outdatedJson);
+
+      dbAccessor.executeQuery(clustersSQL);
+      dbAccessor.executeQuery(hostComponentDesiredStateSQL);
+      dbAccessor.executeQuery(serviceComponentDesiredStateSQL);
+      dbAccessor.executeQuery(serviceDesiredStateSQL);
+      dbAccessor.executeQuery(clusterStateSQL);
+      dbAccessor.executeQuery(hostComponentStateSQL);
+      dbAccessor.executeQuery(blueprintSQL);
+      dbAccessor.executeQuery(repoVersionSQL);
+    }
+
+    // for the tables with no prior stack, set these based on the cluster's
+    // stack for each cluster defined
+    String INSERT_STACK_ID_TEMPLATE = "UPDATE {0} SET {1} = {2} WHERE cluster_id = {3}";
+    ResultSet resultSet = dbAccessor.executeSelect("SELECT * FROM clusters");
+    while (resultSet.next()) {
+      long clusterId = resultSet.getLong("cluster_id");
+      String stackJson = resultSet.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
+      StackId stackId = gson.fromJson(stackJson, StackId.class);
+
+      StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+          stackId.getStackVersion());
+
+      String clusterConfigSQL = MessageFormat.format(INSERT_STACK_ID_TEMPLATE,
+          "clusterconfig", STACK_ID_COLUMN_NAME, stackEntity.getStackId(),
+          clusterId);
+
+      String serviceConfigSQL = MessageFormat.format(INSERT_STACK_ID_TEMPLATE,
+          "serviceconfig", STACK_ID_COLUMN_NAME, stackEntity.getStackId(),
+          clusterId);
+
+      dbAccessor.executeQuery(clusterConfigSQL);
+      dbAccessor.executeQuery(serviceConfigSQL);
+    }
   }
 
   /**
@@ -462,7 +617,49 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
+
     // Initialize all default widgets and widget layouts
     initializeClusterAndServiceWidgets();
+
+    // populate new stack ID columns
+    executeStackDMLUpdates();
+  }
+
+  /**
+   * Adds non NULL constraints and drops outdated columns no longer needed after
+   * the column data migration.
+   */
+  private void cleanupStackUpdates() throws SQLException {
+    DESIRED_STACK_ID_COLUMN.setNullable(false);
+    CURRENT_STACK_ID_COLUMN.setNullable(false);
+    STACK_ID_COLUMN.setNullable(false);
+
+    // make all stack columns NOT NULL now that they are filled in
+    dbAccessor.alterColumn(CLUSTERS_TABLE, DESIRED_STACK_ID_COLUMN);
+    dbAccessor.alterColumn("hostcomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
+    dbAccessor.alterColumn("servicecomponentdesiredstate", DESIRED_STACK_ID_COLUMN);
+    dbAccessor.alterColumn("servicedesiredstate", DESIRED_STACK_ID_COLUMN);
+
+    dbAccessor.alterColumn("clusterstate", CURRENT_STACK_ID_COLUMN);
+    dbAccessor.alterColumn("hostcomponentstate", CURRENT_STACK_ID_COLUMN);
+
+    dbAccessor.alterColumn("clusterconfig", STACK_ID_COLUMN);
+    dbAccessor.alterColumn("serviceconfig", STACK_ID_COLUMN);
+    dbAccessor.alterColumn("blueprint", STACK_ID_COLUMN);
+    dbAccessor.alterColumn(REPO_VERSION_TABLE, STACK_ID_COLUMN);
+
+    // drop unused JSON columns
+    dbAccessor.dropColumn(CLUSTERS_TABLE, DESIRED_STACK_VERSION_COLUMN_NAME);
+    dbAccessor.dropColumn("hostcomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+    dbAccessor.dropColumn("servicecomponentdesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+    dbAccessor.dropColumn("servicedesiredstate", DESIRED_STACK_VERSION_COLUMN_NAME);
+
+    dbAccessor.dropColumn("clusterstate", CURRENT_STACK_VERSION_COLUMN_NAME);
+    dbAccessor.dropColumn("hostcomponentstate", CURRENT_STACK_VERSION_COLUMN_NAME);
+
+    dbAccessor.dropColumn("blueprint", "stack_name");
+    dbAccessor.dropColumn("blueprint", "stack_version");
+
+    dbAccessor.dropColumn(REPO_VERSION_TABLE, "stack");
   }
 }

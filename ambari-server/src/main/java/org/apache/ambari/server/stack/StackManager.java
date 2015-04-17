@@ -104,6 +104,8 @@ public class StackManager {
       ActionMetadata actionMetadata, StackDAO stackDao)
       throws AmbariException {
 
+    LOG.info("Initializing the stack manager...");
+
     validateStackDirectory(stackRoot);
     validateCommonServicesDirectory(commonServicesRoot);
 
@@ -125,6 +127,8 @@ public class StackManager {
       String stackVersion = stack.getVersion();
 
       if (stackDao.find(stackName, stackVersion) == null) {
+        LOG.info("Adding stack {}-{} to the database", stackName, stackVersion);
+
         StackEntity stackEntity = new StackEntity();
         stackEntity.setStackName(stackName);
         stackEntity.setStackVersion(stackVersion);
@@ -236,6 +240,9 @@ public class StackManager {
    */
   private void validateCommonServicesDirectory(File commonServicesRoot) throws AmbariException {
     if(commonServicesRoot != null) {
+      LOG.info("Validating common services directory {} ...",
+          commonServicesRoot);
+
       String commonServicesRootAbsolutePath = commonServicesRoot.getAbsolutePath();
       if (LOG.isDebugEnabled()) {
         LOG.debug("Loading common services information"
@@ -257,6 +264,8 @@ public class StackManager {
    * @throws AmbariException if the specified stack root directory is invalid
    */
   private void validateStackDirectory(File stackRoot) throws AmbariException {
+    LOG.info("Validating stack directory {} ...", stackRoot);
+
     String stackRootAbsPath = stackRoot.getAbsolutePath();
     if (LOG.isDebugEnabled()) {
       LOG.debug("Loading stack information"

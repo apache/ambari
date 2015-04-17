@@ -47,8 +47,10 @@ import com.google.inject.Provider;
 
 /**
  * The {@link StaleAlertRunnable} is used by the
- * {@link AmbariServerAlertService} to check agent heartbeats and fire alert
- * events when an agent host changes state.
+ * {@link AmbariServerAlertService} to check the last time that an alert was
+ * checked and determine if it seems to no longer be running. It will produce a
+ * single alert with {@link AlertState#CRITICAL} along with a textual
+ * description of the alerts that are stale.
  */
 public class StaleAlertRunnable implements Runnable {
 
@@ -151,6 +153,11 @@ public class StaleAlertRunnable implements Runnable {
 
           // skip alerts that have not run yet
           if (current.getLatestTimestamp() == 0) {
+            continue;
+          }
+
+          // skip this alert (who watches the watchers)
+          if (definition.getDefinitionName().equals(STALE_ALERT_DEFINITION_NAME)) {
             continue;
           }
 

@@ -100,7 +100,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
    */
   @Override
   public String[] getCompatibleVersions() {
-    return new String[] {"2.0.*"};
+    return new String[] { "2.0.*", "2.1.*" };
   }
 
   /**

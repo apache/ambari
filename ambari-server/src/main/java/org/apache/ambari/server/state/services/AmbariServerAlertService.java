@@ -46,6 +46,7 @@ import com.google.inject.Provider;
 
 /**
  * The {@link AmbariServerAlertService} is used to manage the dynamically loaded
+ * {@link Runnable}s which perform server-side alert checks.
  */
 @AmbariService
 public class AmbariServerAlertService extends AbstractScheduledService {
