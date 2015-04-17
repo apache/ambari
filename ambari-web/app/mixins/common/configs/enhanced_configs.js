@@ -274,7 +274,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         /** setting dependent serviceNames (without current serviceName) **/
         var dependentProperty = App.StackConfigProperty.find(dependent.name + "_" + tag);
         if (dependentProperty) {
-          if (!this.get('dependentServiceNames').contains(dependentProperty.get('serviceName')) && dependentProperty.get('serviceName') !== this.get('content.serviceName')) {
+          if (dependentProperty.get('serviceName') && !this.get('dependentServiceNames').contains(dependentProperty.get('serviceName')) && dependentProperty.get('serviceName') !== this.get('content.serviceName')) {
             this.get('dependentServiceNames').push(dependentProperty.get('serviceName'));
           }
           this._setDependentServicesAndFileNames(dependentProperty);
