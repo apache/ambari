@@ -21,6 +21,7 @@ package org.apache.ambari.view.hive.client;
 import static org.apache.hive.service.cli.thrift.TCLIServiceConstants.TYPE_NAMES;
 
 import org.apache.ambari.view.hive.utils.BadRequestFormattedException;
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.hive.service.cli.RowSet;
 import org.apache.hive.service.cli.RowSetFactory;
 import org.apache.hive.service.cli.thrift.*;
@@ -73,12 +74,12 @@ public class Cursor implements Iterator<Row>, Iterable<Row> {
         try {
           return client.FetchResults(fetchReq);
         } catch (TException e) {
-          throw new HiveClientException("Unable to fetch results", e);
+          throw new HiveClientException("H160 Unable to fetch results", e);
         }
 
       }
     }.call();
-    Utils.verifySuccess(fetchResp.getStatus(), "Unable to fetch results");
+    Utils.verifySuccess(fetchResp.getStatus(), "H170 Unable to fetch results");
     TRowSet results = fetchResp.getResults();
     fetched = RowSetFactory.create(results, connection.getProtocol());
     fetchedIterator = fetched.iterator();
@@ -90,7 +91,6 @@ public class Cursor implements Iterator<Row>, Iterable<Row> {
 
   public ArrayList<ColumnDescription> getSchema() throws HiveClientException {
     if (this.schema == null) {
-      // TODO: extract all HiveCall inline classes to separate files
       TGetResultSetMetadataResp fetchResp = new HiveCall<TGetResultSetMetadataResp>(connection) {
         @Override
         public TGetResultSetMetadataResp body() throws HiveClientException {
@@ -99,12 +99,12 @@ public class Cursor implements Iterator<Row>, Iterable<Row> {
           try {
             return client.GetResultSetMetadata(fetchReq);
           } catch (TException e) {
-            throw new HiveClientException("Unable to fetch results metadata", e);
+            throw new HiveClientException("H180 Unable to fetch results metadata", e);
           }
 
         }
       }.call();
-      Utils.verifySuccess(fetchResp.getStatus(), "Unable to fetch results metadata");
+      Utils.verifySuccess(fetchResp.getStatus(), "H190 Unable to fetch results metadata");
       TTableSchema schema = fetchResp.getSchema();
 
       List<TColumnDesc> thriftColumns = schema.getColumns();
@@ -168,7 +168,7 @@ public class Cursor implements Iterator<Row>, Iterable<Row> {
       try {
         fetchNextBlock();
       } catch (HiveClientException e) {
-        throw new HiveClientRuntimeException(e.getMessage(), e);
+        throw new HiveClientFormattedException(e);
       }
     }
   }
@@ -207,6 +207,16 @@ public class Cursor implements Iterator<Row>, Iterable<Row> {
       read ++;
     }
     return read;
+  }
+
+  public Row getHeadersRow() throws HiveClientException {
+    ArrayList<ColumnDescription> schema = getSchema();
+
+    Object[] row = new Object[schema.size()];
+    for (ColumnDescription columnDescription : schema) {
+      row[columnDescription.getPosition()-1] = columnDescription.getName();
+    }
+    return new Row(row, selectedColumns);
   }
 
   public int readRaw(ArrayList<Object[]> rows, int count) {

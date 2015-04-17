@@ -23,6 +23,7 @@ import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.hive.client.ColumnDescription;
 import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.client.Cursor;
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.commons.collections4.map.PassiveExpiringMap;
 
@@ -96,6 +97,8 @@ public class ResultsPaginationController {
       Cursor resultSet = null;
       try {
         resultSet = makeResultsSet.call();
+      } catch (HiveClientException ex) {
+        throw new HiveClientFormattedException(ex);
       } catch (Exception ex) {
         throw new ServiceFormattedException(ex.getMessage(), ex);
       }
@@ -127,6 +130,18 @@ public class ResultsPaginationController {
     resultsResponse.setHasNext(resultSet.hasNext());
 //      resultsResponse.setSize(resultSet.size());
     resultsResponse.setOffset(resultSet.getOffset());
+    resultsResponse.setHasResults(true);
+    return Response.ok(resultsResponse);
+  }
+
+  public static Response.ResponseBuilder emptyResponse() {
+    ResultsResponse resultsResponse = new ResultsResponse();
+    resultsResponse.setSchema(new ArrayList<ColumnDescription>());
+    resultsResponse.setRows(new ArrayList<Object[]>());
+    resultsResponse.setReadCount(0);
+    resultsResponse.setHasNext(false);
+    resultsResponse.setOffset(0);
+    resultsResponse.setHasResults(false);
     return Response.ok(resultsResponse);
   }
 
@@ -136,6 +151,7 @@ public class ResultsPaginationController {
     private int readCount;
     private boolean hasNext;
     private long offset;
+    private boolean hasResults;
 
     public void setSchema(ArrayList<ColumnDescription> schema) {
       this.schema = schema;
@@ -175,6 +191,14 @@ public class ResultsPaginationController {
 
     public void setOffset(long offset) {
       this.offset = offset;
+    }
+
+    public boolean getHasResults() {
+      return hasResults;
+    }
+
+    public void setHasResults(boolean hasResults) {
+      this.hasResults = hasResults;
     }
   }
 }

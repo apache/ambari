@@ -16,44 +16,51 @@
 * limitations under the License.
 }}
 
-{{#if showOverlay}}
-  <div class="settings-container fadeIn">
-    <h3> Settings
-      <button class="btn btn-success btn-xs" {{action 'add'}}><i class="fa fa-plus"></i> Add</button>
-    </h3>
+<div class="editor-overlay settings-container fadeIn">
+  <h3> Settings
+    <button class="btn btn-success btn-xs" {{action 'add'}}><i class="fa fa-plus"></i> Add</button>
+    {{#if currentSettings.settings}}
+      <button class="btn btn-danger btn-xs" {{action 'removeAll'}}><i class="fa fa-minus"></i> Remove All</button>
+    {{/if}}
 
-    {{#each setting in currentSettings.settings}}
-      <div class="setting col-md-6 col-sm-12">
-        <form>
-          <div class="form-group">
-            <div class="input-group">
-              <div class="input-group-addon">
-                {{typeahead-widget
-                    content=predefinedSettings
-                    optionLabelPath="name"
-                    optionValuePath="name"
-                    selection=setting.key
-                    create="addKey"
+
+    {{#if canInvalidateSession}}
+      <button class="btn btn-danger btn-xs pull-right" {{action 'invalidateSession'}}><i class="fa fa-times"></i> Invalidate Session</button>
+    {{/if}}
+  </h3>
+
+  {{#each setting in currentSettings.settings}}
+    <div class="setting col-md-6 col-sm-12">
+      <form>
+        <div class="form-group">
+          <div class="input-group">
+            <div class="input-group-addon">
+              {{typeahead-widget
+                  options=predefinedSettings
+                  excluded=selectedSettings
+                  optionLabelPath="name"
+                  optionValuePath="name"
+                  selection=setting.key
+                  create="addKey"
+              }}
+            </div>
+            <div {{bind-attr class=":input-group-addon setting.valid::has-error"}}>
+
+              {{#if setting.key.values}}
+                {{select-widget items=setting.key.values
+                                labelPath="value"
+                                selectedValue=setting.selection
+                                defaultLabelTranslation="placeholders.select.value"
                 }}
-              </div>
-              <div {{bind-attr class=":input-group-addon setting.valid::has-error"}}>
+              {{else}}
+                {{input class="input-sm form-control" placeholderTranslation="placeholders.select.value" value=setting.selection.value}}
+              {{/if}}
 
-                {{#if setting.key.values}}
-                  {{select-widget items=setting.key.values
-                                  labelPath="value"
-                                  selectedValue=setting.selection
-                                  defaultLabelTranslation="placeholders.select.value"
-                  }}
-                {{else}}
-                  {{input class="input-sm form-control" placeholderTranslation="placeholders.select.value" value=setting.selection.value}}
-                {{/if}}
-
-                <span class="fa fa-times-circle remove pull-right" {{action 'remove' setting}}></span>
-              </div>
+              <span class="fa fa-times-circle remove pull-right" {{action 'remove' setting}}></span>
             </div>
           </div>
-        </form>
-      </div>
-    {{/each}}
-  </div>
-{{/if}}
+        </div>
+      </form>
+    </div>
+  {{/each}}
+</div>

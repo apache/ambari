@@ -70,9 +70,4 @@ public class LocalKeyValueStorage extends KeyValueStorage {
     }
     return config;
   }
-
-  @Override
-  public <T extends Indexed> List<T> loadWhere(Class<T> model, String where) {
-    throw new NotImplementedException();
-  }
 }

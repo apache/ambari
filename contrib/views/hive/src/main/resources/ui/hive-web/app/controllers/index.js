@@ -42,9 +42,18 @@ export default Ember.Controller.extend({
   visualExplain: Ember.computed.alias('controllers.' + constants.namingConventions.visualExplain),
   tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
 
+  isQueryTabActive: function() {
+    return !this.get('tezUI.showOverlay') && !this.get('visualExplain.showOverlay') && !this.get('settings.showOverlay');
+  }.property('tezUI.showOverlay', 'visualExplain.showOverlay', 'settings.showOverlay'),
+
   shouldShowTez: function() {
     return this.get('model.dagId') && this.get('tezUI.isTezViewAvailable');
   }.property('model.dagId', 'tezUI.isTezViewAvailable'),
+
+  shouldShowVisualExplain: function () {
+    return this.get('openQueries.currentQuery.fileContent');
+  }.property('openQueries.currentQuery.fileContent'),
+
 
   canExecute: function () {
     var isModelRunning = this.get('model.isRunning');
@@ -84,11 +93,12 @@ export default Ember.Controller.extend({
     currentParams.setObjects(updatedParams);
   }.observes('openQueries.currentQuery.fileContent'),
 
-  _executeQuery: function (shouldExplain) {
+  _executeQuery: function (shouldExplain, shouldGetVisualExplain) {
     var queryId,
         query,
         finalQuery,
         job,
+        defer = Ember.RSVP.defer(),
         originalModel = this.get('model');
 
     job = this.store.createRecord(constants.namingConventions.job, {
@@ -110,13 +120,53 @@ export default Ember.Controller.extend({
 
     query = this.get('openQueries').getQueryForModel(originalModel);
 
-    finalQuery = this.buildQuery(query, shouldExplain);
+    query = this.buildQuery(query, shouldExplain, shouldGetVisualExplain);
+
+    // for now we won't support multiple queries
+    // buildQuery will return false it multiple queries
+    // are selected
+    if (!query) {
+      originalModel.set('isRunning', false);
+      defer.reject({
+        responseJSON: {
+          message: 'Running multiple queries is not supported.'
+        }
+      });
+
+      return defer.promise;
+    }
+
+    finalQuery = query;
     finalQuery = this.bindQueryParams(finalQuery);
     finalQuery = this.prependQuerySettings(finalQuery);
 
     job.set('forcedContent', finalQuery);
 
+    if (shouldGetVisualExplain) {
+      return this.getVisualExplainJson(job, originalModel);
+    }
+
     return this.saveQuery(job, originalModel);
+  },
+
+  getVisualExplainJson: function (job, originalModel) {
+    var self = this;
+    var defer = Ember.RSVP.defer();
+
+    job.save().then(function () {
+      self.get('results').getResultsJson(job).then(function (json) {
+        defer.resolve(json);
+        originalModel.set('isRunning', undefined);
+      }, function (err) {
+        defer.reject(err);
+        originalModel.set('isRunning', undefined);
+      });
+    }, function (err) {
+      defer.reject(err);
+        originalModel.set('isRunning', undefined);
+    });
+
+    return defer.promise;
   },
 
   saveQuery: function (job, originalModel) {
@@ -158,35 +208,41 @@ export default Ember.Controller.extend({
     return query;
   },
 
-  buildQuery: function (query, shouldExplain) {
+  buildQuery: function (query, shouldExplain, shouldGetVisualExplain) {
     var selections = this.get('openQueries.highlightedText'),
         isQuerySelected = selections && selections[0] !== "",
-        queryComponents = this.extractComponents(query.get('fileContent')),
+        queryContent = query ? query.get('fileContent') : '',
+        queryComponents = this.extractComponents(queryContent),
         finalQuery = '',
-        queries;
+        queries = null;
 
     if (isQuerySelected) {
-      queries = selections.map(function (s) {
-        return s.replace(";", "");
-      });
-    } else {
-      queries = queryComponents.queryString.split(';');
-      queries = queries.filter(Boolean);
+      queryComponents.queryString = selections.join('');
+    }
+
+    queries = queryComponents.queryString.split(';');
+    queries = queries.map(function(s) {
+      return s.trim();
+    });
+    queries = queries.filter(Boolean);
+
+    // return false if multiple queries are selected
+    // @FIXME: Remove this to support multiple queries
+    if (queries.length > 1) {
+      return false;
     }
 
     queries = queries.map(function (query) {
       if (shouldExplain) {
-        if (query.indexOf(constants.namingConventions.explainPrefix) === -1) {
+        query = query.replace(/explain|formatted/gi, '').trim();
+
+        if (shouldGetVisualExplain) {
+          return constants.namingConventions.explainFormattedPrefix + query;
+        } else {
           return constants.namingConventions.explainPrefix + query;
         }
-
-        return query;
       } else {
-        if (query.indexOf(constants.namingConventions.explainPrefix) > -1) {
-          return query.replace(constants.namingConventions.explainPrefix, '');
-        }
-
-        return query;
+        return query.replace(/explain|formatted/gi, '').trim();
       }
     });
 
@@ -199,6 +255,7 @@ export default Ember.Controller.extend({
     }
 
     finalQuery += queries.join(";");
+    finalQuery += ";";
     return finalQuery;
   },
 
@@ -278,6 +335,10 @@ export default Ember.Controller.extend({
     });
   }.observes('content'),
 
+  selectedDatabaseChanged: function() {
+    this.set('content.dataBase', this.get('databases.selectedDatabase.name'));
+  }.observes('databases.selectedDatabase'),
+
   csvUrl: function () {
     if (this.get('content.constructor.typeKey') !== constants.namingConventions.job) {
       return;
@@ -309,7 +370,7 @@ export default Ember.Controller.extend({
         items.push(
           Ember.Object.create({
             title: Ember.I18n.t('buttons.saveCsv'),
-            href: this.get('csvUrl')
+            action: 'downloadAsCSV'
           })
         );
       }
@@ -350,7 +411,7 @@ export default Ember.Controller.extend({
     }).then(function (response) {
       self.pollSaveToHDFS(response);
     }, function (response) {
-      self.send('addAlert', constants.alerts.error, response.message, "alerts.errors.save.results");
+      self.notify.error(response.responseJSON.message, response.responseJSON.trace);
     });
   },
 
@@ -367,7 +428,7 @@ export default Ember.Controller.extend({
           self.set('content.isRunning', false);
         }
       }, function (response) {
-        self.send('addAlert', constants.alerts.error, response.message, "alerts.errors.save.results");
+        self.notify.error(response.responseJSON.message, response.responseJSON.trace);
       });
     }, 2000);
   },
@@ -384,6 +445,25 @@ export default Ember.Controller.extend({
     saveToHDFS: function () {
       this.set('content.isRunning', true);
       this.saveToHDFS();
+    },
+
+    downloadAsCSV: function() {
+      var self = this,
+          defer = Ember.RSVP.defer();
+
+      this.send('openModal', 'modal-save', {
+        heading: "modals.download.csv",
+        text: this.get('content.title'),
+        defer: defer
+      });
+
+      defer.promise.then(function (text) {
+        // download file ...
+        var urlString = "%@/?fileName=%@.csv";
+        var url = self.get('csvUrl');
+        url = urlString.fmt(url, text);
+        window.open(url);
+      });
     },
 
     insertUdf: function (item) {
@@ -418,17 +498,16 @@ export default Ember.Controller.extend({
     addQuery: (function () {
       var idCounter = 0;
 
-      return function () {
+      return function (workSheetName) {
         var model = this.store.createRecord(constants.namingConventions.savedQuery, {
           dataBase: this.get('databases.selectedDatabase.name'),
-          title: 'New Query',
-          type: constants.namingConventions.savedQuery,
+          title: workSheetName ? workSheetName : Ember.I18n.t('titles.query.tab'),
           queryFile: '',
           id: 'fixture_' + idCounter
         });
 
-        if (idCounter) {
-          model.set('title', model.get('title') + ' (' + idCounter + ')')
+        if (idCounter && !workSheetName) {
+          model.set('title', model.get('title') + ' (' + idCounter + ')');
         }
 
         idCounter++;
@@ -438,26 +517,34 @@ export default Ember.Controller.extend({
     }()),
 
     saveQuery: function () {
+      //case 1. Save a new query from a new query tab -> route changes to new id
+      //case 2. Save a new query from an existing query tab -> route changes to new id
+      //case 3. Save a new query from a job tab -> route doesn't change
+      //case 4. Update an existing query tab. -> route doesn't change
+
       var self = this,
-          wasNew = this.get('model.isNew'),
           defer = Ember.RSVP.defer();
 
       this.set('model.dataBase', this.get('databases.selectedDatabase.name'));
 
-      this.send('openModal', 'modal-save', {
-        heading: "modals.save.heading",
+      this.send('openModal', 'modal-save-query', {
+        heading: 'modals.save.heading',
+        message: 'modals.save.overwrite',
         text: this.get('content.title'),
+        content: this.get('content'),
         defer: defer
       });
 
-      defer.promise.then(function (text) {
-        self.get('content').set('title', text);
-
-        self.get('openQueries').save(self.get('content')).then(function () {
-          if (wasNew) {
-            self.transitionToRoute(constants.namingConventions.subroutes.savedQuery, self.get('model.id'));
-          }
-        });
+      defer.promise.then(function (result) {
+        if (result.get('overwrite')) {
+          self.get('openQueries').save(self.get('content'), null, true, result.get('text'));
+        } else {
+          self.get('openQueries').save(self.get('content'), null, false, result.get('text')).then(function (newId) {
+            if (self.get('model.constructor.typeKey') !== constants.namingConventions.job) {
+              self.transitionToRoute(constants.namingConventions.subroutes.savedQuery, newId);
+            }
+          });
+        }
       });
     },
 
@@ -476,7 +563,8 @@ export default Ember.Controller.extend({
 
         self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
       }, function (err) {
-        self.send('addAlert', constants.alerts.error, err.responseText, "alerts.errors.save.query");
+        var errorBody = err.responseJSON.trace ? err.responseJSON.trace : false;
+        self.notify.error(err.responseJSON.message, errorBody);
       });
     },
 
@@ -488,11 +576,13 @@ export default Ember.Controller.extend({
 
         self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, job.get('id'));
       }, function (err) {
-        self.send('addAlert', constants.alerts.error, err.responseText, "alerts.errors.save.query");
+        this.notify.error(err.responseJSON.message, err.responseJSON.trace);
       });
     },
 
     toggleOverlay: function (targetController) {
+      var self = this;
+
       if (this.get('visualExplain.showOverlay') && targetController !== 'visualExplain') {
         this.set('visualExplain.showOverlay', false);
       } else if (this.get('tezUI.showOverlay') && targetController !== 'tezUI') {
@@ -501,12 +591,28 @@ export default Ember.Controller.extend({
         this.set('settings.showOverlay', false);
       }
 
+      if (!targetController) {
+        return;
+      }
+
       if (targetController !== 'settings') {
         //set content for visual explain and tez ui.
         this.set(targetController + '.content', this.get('content'));
       }
 
-      this.toggleProperty(targetController + '.showOverlay');
+      if (targetController === 'visualExplain' && !this.get(targetController + '.showOverlay')) {
+        this._executeQuery(true, true).then(function (json) {
+          //this condition should be changed once we change the way of retrieving this json
+          if (json['STAGE PLANS']['Stage-1']) {
+            self.set(targetController + '.json', json);
+            self.toggleProperty(targetController + '.showOverlay');
+          }
+        }, function (err) {
+          self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+        });
+      } else {
+        this.toggleProperty(targetController + '.showOverlay');
+      }
     }
   }
 });

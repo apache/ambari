@@ -16,29 +16,31 @@
 * limitations under the License.
 }}
 
-<div class="dropdown">
-  <a role="button" data-toggle="dropdown" class="btn btn-default btn-sm" data-target="#">
-    {{t "placeholders.select.udfs"}}
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dropdownMenu">
-    {{#each item in this}}
-      <li class="dropdown dropdown-submenu">
-        {{#if item.file}}
-          <a tabindex="-1">{{item.file.name}}</a>
-        {{else}}
-          <a tabindex="-1">{{tb-helper item.name}}</a>
-        {{/if}}
-        <ul class="dropdown-menu">
-          {{#each udf in item.udfs}}
-            <li>
-              {{#no-bubbling click="insertUdf" data=udf tagName="a"}}
-                {{udf.name}}
-              {{/no-bubbling}}
-            </li>
-          {{/each}}
-        </ul>
-      </li>
-    {{/each}}
-  </ul>
-</div>
+{{#if this.length}}
+  <div class="dropdown">
+    <a role="button" data-toggle="dropdown" class="btn btn-default btn-sm" data-target="#">
+      {{t "placeholders.select.udfs"}}
+      <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu pull-right" role="menu" aria-labelledby="dropdownMenu">
+      {{#each item in this}}
+        <li class="dropdown dropdown-submenu">
+          {{#if item.file}}
+            <a tabindex="-1">{{item.file.name}}</a>
+          {{else}}
+            <a tabindex="-1">{{tb-helper item.name}}</a>
+          {{/if}}
+          <ul class="dropdown-menu">
+            {{#each udf in item.udfs}}
+              <li>
+                {{#no-bubbling click="insertUdf" data=udf tagName="a"}}
+                  {{udf.name}}
+                {{/no-bubbling}}
+              </li>
+            {{/each}}
+          </ul>
+        </li>
+      {{/each}}
+    </ul>
+  </div>
+{{/if}}

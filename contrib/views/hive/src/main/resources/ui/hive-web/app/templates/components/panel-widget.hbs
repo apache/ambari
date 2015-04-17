@@ -16,7 +16,7 @@
 * limitations under the License.
 }}
 
-<div class="panel panel-default" {{bind-attr class=classNames}}>
+<div {{bind-attr class=":panel :panel-default classNames"}}>
   {{#if heading}}
     <div class="panel-heading">
       {{#if menuItems}}
@@ -34,6 +34,14 @@
               </ul>
           </div>
       {{/if}}
+
+      {{#if iconActions}}
+        {{#each iconAction in iconActions}}
+        <i {{action "sendMenuItemAction" iconAction.action}}
+          {{bind-attr class=":pull-right :panel-action-icon :fa iconAction.icon"}}></i>
+        {{/each}}
+      {{/if}}
+
       <strong>{{heading}}</strong>
       {{#if isLoading}}
         <div class="spinner small pull-right"></div>

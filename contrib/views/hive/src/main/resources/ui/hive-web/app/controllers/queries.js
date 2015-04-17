@@ -21,7 +21,11 @@ import FilterableMixin from 'hive/mixins/filterable';
 import constants from 'hive/utils/constants';
 
 export default Ember.ArrayController.extend(FilterableMixin, {
-  needs: [ constants.namingConventions.routes.history ],
+  needs: [ constants.namingConventions.routes.history,
+           constants.namingConventions.openQueries ],
+
+  history: Ember.computed.alias('controllers.' + constants.namingConventions.routes.history),
+  openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
 
   sortAscending: true,
   sortProperties: [],
@@ -68,9 +72,11 @@ export default Ember.ArrayController.extend(FilterableMixin, {
 
   actions: {
     executeAction: function (action, savedQuery) {
+      var self = this;
+
       switch (action) {
         case "buttons.history":
-          this.get('controllers.' + constants.namingConventions.routes.history).filterBy('queryId', savedQuery.get('id'), true);
+          this.get('history').filterBy('queryId', savedQuery.get('id'), true);
           this.transitionToRoute(constants.namingConventions.routes.history);
           break;
         case "buttons.delete":
@@ -85,6 +91,7 @@ export default Ember.ArrayController.extend(FilterableMixin, {
 
           defer.promise.then(function () {
             savedQuery.destroyRecord();
+            self.get('openQueries').updatedDeletedQueryTab(savedQuery);
           });
 
           break;

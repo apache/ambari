@@ -46,6 +46,9 @@
         zoom: 50%;
       }
     </style>
+
+    {{content-for 'head-footer'}}
+    {{content-for 'test-head-footer'}}
   </head>
   <body>
     <div id="qunit"></div>
@@ -60,5 +63,8 @@
     <script src="assets/blanket-loader.js"></script>
     <script src="testem.js"></script>
     <script src="assets/test-loader.js"></script>
+
+    {{content-for 'body-footer'}}
+    {{content-for 'test-body-footer'}}
   </body>
 </html>

@@ -17,9 +17,11 @@
 <view>
     <name>HIVE</name>
     <label>Hive</label>
-    <version>0.1.0</version>
+    <version>0.2.0</version>
 
     <min-ambari-version>1.7.*</min-ambari-version>
+
+    <validator-class>org.apache.ambari.view.hive.PropertyValidator</validator-class>
 
     <!-- HDFS Configs -->
     <parameter>
@@ -158,10 +160,6 @@
     </resource>
 
     <persistence>
-        <entity>
-            <class>org.apache.ambari.view.hive.persistence.DataStoreStorage$SmokeTestEntity</class>
-            <id-property>id</id-property>
-        </entity>
         <entity>
             <class>org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl</class>
             <id-property>id</id-property>

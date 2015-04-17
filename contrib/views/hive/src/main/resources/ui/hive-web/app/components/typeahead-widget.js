@@ -23,15 +23,60 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
   didInsertElement: function() {
     this._super();
 
-    if(!this.get('selection') && this.get('content.firstObject')) {
+    if (!this.get('selection') && this.get('content.firstObject')) {
       this.set('selection', this.get('content.firstObject'));
     }
 
     this.selectize.on('dropdown_close', Ember.$.proxy(this.onClose, this));
   },
 
+  removeExcludedObserver: function() {
+    var self    = this;
+    var options = this.get('content');
+
+    if (!options) {
+      options = this.removeExcluded(true);
+      this.set('content', options);
+    } else {
+      this.removeExcluded();
+    }
+  }.observes('excluded.@each.key').on('init'),
+
+  removeExcluded: function(shouldReturn) {
+    var self            = this;
+    var excluded        = this.get('excluded') || [];
+    var options         = this.get('options');
+    var selection       = this.get('selection');
+    var objectToModify  = this.get('content');
+    var objectsToRemove = [];
+    var objectsToAdd    = [];
+
+    if (!options) {
+      return;
+    }
+
+    if (shouldReturn) {
+      objectToModify = Ember.copy(options);
+    }
+
+    if (options) {
+      options.forEach(function(option, index) {
+        if (excluded.contains(option) && option !== selection) {
+          objectsToRemove.push(option);
+        } else if (!objectToModify.contains(option)) {
+          objectsToAdd.push(option);
+        }
+      });
+    }
+
+    objectToModify.removeObjects(objectsToRemove);
+    objectToModify.pushObjects(objectsToAdd);
+
+    return objectToModify;
+  },
+
   onClose: function() {
-    if(!this.get('selection') && this.get('prevSelection')) {
+    if (!this.get('selection') && this.get('prevSelection')) {
       this.set('selection', this.get('prevSelection'));
     }
   },

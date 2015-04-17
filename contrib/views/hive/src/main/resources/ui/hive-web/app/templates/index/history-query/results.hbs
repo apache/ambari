@@ -20,13 +20,13 @@
   <table class="table table-expandable">
     <thead>
       <tr>
-        {{#each column in results.schema}}
+        {{#each column in formattedResults.schema}}
           <th> {{column.name}} </th>
         {{/each}}
       </tr>
     </thead>
     <tbody>
-      {{#each row in results.rows}}
+      {{#each row in formattedResults.rows}}
         <tr>
           {{#each item in row}}
             <td>{{item}}</td>

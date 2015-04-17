@@ -18,7 +18,7 @@
 
 <div {{bind-attr class=":alert :alert-dismissible message.typeClass"}}>
   <button type="button" class="close" data-dismiss="alert" aria-hidden="true" {{action "remove"}}>&times;</button>
-  <strong>{{tb-helper message.title}}</strong>
+  <strong {{action 'toggleMessage'}}>{{tb-helper message.title}}</strong>
 
   {{#if message.isExpanded}}
     <div class="alert-message">

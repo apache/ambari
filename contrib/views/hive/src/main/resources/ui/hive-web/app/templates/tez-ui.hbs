@@ -23,6 +23,8 @@
     {{else}}
       {{#if error}}
         <div class="alert alert-danger" role="alert"><strong>{{tb-helper error}}</strong></div>
+      {{else}}
+        <div class="alert alert-danger" role="alert"><strong>{{tb-helper 'tez.errors.no.dag'}}</strong></div>
       {{/if}}
     {{/if}}
   {{/panel-widget}}

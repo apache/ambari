@@ -55,15 +55,6 @@ public interface Storage {
   /**
    * Load all objects of given bean class
    * @param model bean class
-   * @param where filtering strategy (where clause)
-   * @param <T> bean class
-   * @return list of filtered objects
-   */
-  <T extends Indexed> List<T> loadWhere(Class<T> model, String where);
-
-  /**
-   * Load all objects of given bean class
-   * @param model bean class
    * @param <T> bean class
    * @return list of all objects
    */

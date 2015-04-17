@@ -70,6 +70,26 @@ public class ATSParserTest {
   protected static class ATSRequestsDelegateStub implements ATSRequestsDelegate {
 
     @Override
+    public String hiveQueryIdDirectUrl(String entity) {
+      return null;
+    }
+
+    @Override
+    public String hiveQueryIdOperationIdUrl(String operationId) {
+      return null;
+    }
+
+    @Override
+    public String tezDagDirectUrl(String entity) {
+      return null;
+    }
+
+    @Override
+    public String tezDagNameUrl(String name) {
+      return null;
+    }
+
+    @Override
     public JSONObject hiveQueryIdList(String username) {
       return (JSONObject) JSONValue.parse(
           "{ \"entities\" : [ { \"domain\" : \"DEFAULT\",\n" +

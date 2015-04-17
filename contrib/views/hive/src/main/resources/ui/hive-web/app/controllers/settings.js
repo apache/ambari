@@ -27,8 +27,21 @@ export default Ember.ArrayController.extend({
 
   index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
+  sessionTag: Ember.computed.alias('index.model.sessionTag'),
+  sessionActive: Ember.computed.alias('index.model.sessionActive'),
+
+  canInvalidateSession: Ember.computed.and('sessionTag', 'sessionActive'),
 
   predefinedSettings: constants.hiveParameters,
+
+  selectedSettings: function() {
+    var predefined = this.get('predefinedSettings');
+    var current = this.get('currentSettings.settings');
+
+    return predefined.filter(function(setting) {
+      return current.findBy('key.name', setting.name);
+    });
+  }.property('currentSettings.settings.@each.key'),
 
   currentSettings: function () {
     var currentId = this.get('index.model.id');
@@ -150,9 +163,14 @@ export default Ember.ArrayController.extend({
         return;
       }
 
+      if (!predefined.validate) {
+        setting.set('valid', true);
+        return;
+      }
+
       setting.set('valid', false);
     });
-  }.observes('currentSettings.[]', 'currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
+  }.observes('currentSettings.[]', 'currentSettings.settings.[]', 'currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
 
   currentSettingsAreValid: function() {
     var currentSettings = this.get('currentSettings.settings');
@@ -160,6 +178,24 @@ export default Ember.ArrayController.extend({
 
     return invalid.length ? false : true;
   }.property('currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
+
+  loadSessionStatus: function() {
+    var model         = this.get('index.model');
+    var sessionActive = this.get('sessionActive');
+    var sessionTag    = this.get('sessionTag');
+    var adapter       = this.container.lookup('adapter:application');
+    var url           = adapter.buildURL() + '/jobs/sessions/' + sessionTag;
+
+    if (sessionTag && sessionActive === undefined) {
+      adapter.ajax(url, 'GET')
+        .then(function(response) {
+          model.set('sessionActive', response.session.actual);
+        })
+        .catch(function() {
+          model.set('sessionActive', false);
+        });
+    }
+  }.observes('index.model', 'index.model.status'),
 
   actions: {
     add: function () {
@@ -185,6 +221,31 @@ export default Ember.ArrayController.extend({
       });
 
       this.get('currentSettings.settings').findBy('key', null).set('key', newKey);
+    },
+
+    removeAll: function() {
+      var currentId = this.get('index.model.id'),
+          querySettings = this.findBy('id', currentId);
+
+      querySettings.set('settings', []);
+    },
+
+    invalidateSession: function() {
+      var self       = this;
+      var sessionTag = this.get('sessionTag');
+      var adapter    = this.container.lookup('adapter:application');
+      var url        = adapter.buildURL() + '/jobs/sessions/' + sessionTag;
+      var model = this.get('index.model');
+
+      // @TODO: Split this into then/catch once the BE is fixed
+      adapter.ajax(url, 'DELETE').catch(function(response) {
+        if ([200, 404].contains(response.status)) {
+          model.set('sessionActive', false);
+          self.notify.success('alerts.success.sessions.deleted');
+        } else {
+          self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+        }
+      });
     }
   }
 });

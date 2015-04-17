@@ -28,13 +28,22 @@ export default Ember.ObjectController.extend({
   reloadJobLogs: function (job) {
     var self = this,
         defer = Ember.RSVP.defer(),
-        handleError = function (err) {
-          self.send('addAlert', constants.namingConventions.alerts.error, err.responseText);
+        handleError = function (error) {
+          job.set('isRunning', false);
+
+          if (typeof error === "string") {
+            self.notify.error(error);
+          } else {
+            self.notify.error(error.responseJSON.message, error.responseJSON.trace);
+          }
           defer.reject();
         };
 
     job.reload().then(function () {
-      self.get('files').reload(job.get('logFile')).then(function (file) {
+      if (utils.insensitiveCompare(job.get('status'), constants.statuses.error)) {
+        handleError(job.get('statusMessage'));
+      } else {
+        self.get('files').reload(job.get('logFile')).then(function (file) {
         var fileContent = file.get('fileContent');
 
         if (fileContent) {
@@ -42,9 +51,10 @@ export default Ember.ObjectController.extend({
         }
 
         defer.resolve();
-      },function (err) {
-        handleError(err);
-      });
+        },function (err) {
+          handleError(err);
+        });
+      }
     }, function (err) {
       handleError(err);
     });

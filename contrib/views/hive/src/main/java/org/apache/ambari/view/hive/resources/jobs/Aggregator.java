@@ -23,6 +23,7 @@ import org.apache.ambari.view.hive.persistence.utils.Indexed;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.hive.resources.IResourceManager;
+import org.apache.ambari.view.hive.resources.files.FileService;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.HiveQueryId;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.TezDagId;
@@ -192,7 +193,7 @@ public class Aggregator {
     String query = atsHiveQuery.query;
     atsJob.setTitle(query.substring(0, (query.length() > 42)?42:query.length()));
 
-    atsJob.setQueryFile("fakefile://" + Base64.encodeBase64URLSafeString(query.getBytes()));  // fake queryFile
+    atsJob.setQueryFile(FileService.JSON_PATH_FILE + atsHiveQuery.url + "#otherinfo.QUERY!queryText");
     return atsJob;
   }
 

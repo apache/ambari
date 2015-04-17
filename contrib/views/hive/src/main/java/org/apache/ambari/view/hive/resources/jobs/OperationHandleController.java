@@ -23,7 +23,7 @@ import org.apache.ambari.view.hive.client.Cursor;
 import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.client.IConnectionFactory;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
-import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.hive.service.cli.thrift.TGetOperationStatusResp;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
 import org.slf4j.Logger;
@@ -51,49 +51,54 @@ public class OperationHandleController {
     this.operationHandle = storedOperationHandle;
   }
 
-  public String getOperationStatus() throws NoOperationStatusSetException, HiveClientException {
+  public OperationStatus getOperationStatus() throws NoOperationStatusSetException, HiveClientException {
     TGetOperationStatusResp statusResp = connectionsFabric.getHiveConnection().getOperationStatus(operationHandle);
+
     if (!statusResp.isSetOperationState()) {
-      throw new NoOperationStatusSetException("Operation state is not set");
+      throw new NoOperationStatusSetException();
     }
 
-    String status;
+    OperationStatus opStatus = new OperationStatus();
+    opStatus.sqlState = statusResp.getSqlState();
+    opStatus.message = statusResp.getErrorMessage();
+
     switch (statusResp.getOperationState()) {
       case INITIALIZED_STATE:
-        status = Job.JOB_STATE_INITIALIZED;
+        opStatus.status = Job.JOB_STATE_INITIALIZED;
         break;
       case RUNNING_STATE:
-        status = Job.JOB_STATE_RUNNING;
+        opStatus.status = Job.JOB_STATE_RUNNING;
         break;
       case FINISHED_STATE:
-        status = Job.JOB_STATE_FINISHED;
+        opStatus.status = Job.JOB_STATE_FINISHED;
         break;
       case CANCELED_STATE:
-        status = Job.JOB_STATE_CANCELED;
+        opStatus.status = Job.JOB_STATE_CANCELED;
         break;
       case CLOSED_STATE:
-        status = Job.JOB_STATE_CLOSED;
+        opStatus.status = Job.JOB_STATE_CLOSED;
         break;
       case ERROR_STATE:
-        status = Job.JOB_STATE_ERROR;
+        opStatus.status = Job.JOB_STATE_ERROR;
         break;
       case UKNOWN_STATE:
-        status = Job.JOB_STATE_UNKNOWN;
+        opStatus.status = Job.JOB_STATE_UNKNOWN;
         break;
       case PENDING_STATE:
-        status = Job.JOB_STATE_PENDING;
+        opStatus.status = Job.JOB_STATE_PENDING;
         break;
       default:
-        throw new NoOperationStatusSetException("Unknown status " + statusResp.getOperationState());
+        throw new NoOperationStatusSetException();
     }
-    return status;
+
+    return opStatus;
   }
 
   public void cancel() {
     try {
       connectionsFabric.getHiveConnection().cancelOperation(operationHandle);
     } catch (HiveClientException e) {
-      throw new ServiceFormattedException("Cancel failed: " + e.toString(), e);
+      throw new HiveClientFormattedException(e);
     }
   }
 
@@ -107,5 +112,15 @@ public class OperationHandleController {
 
   public Cursor getResults() {
     return connectionsFabric.getHiveConnection().getResults(operationHandle);
+  }
+
+  public boolean hasResults() {
+    return operationHandle.isHasResultSet();
+  }
+
+  public static class OperationStatus {
+    public String status;
+    public String sqlState;
+    public String message;
   }
 }

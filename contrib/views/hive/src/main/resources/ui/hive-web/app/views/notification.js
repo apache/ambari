@@ -18,30 +18,34 @@
 
 import Ember from 'ember';
 
-export default Ember.ArrayController.extend({
-  pushObject: function (object) {
-    object.typeClass = 'alert-' + object.type;
-    this._super(object);
-    this.removeLater(object);
-  },
+export default Ember.View.extend({
+  closeAfter         : 500000,
+  isHovering         : false,
+  templateName       : 'notification',
+  removeNotification : 'removeNotification',
 
-  removeLater: function (object) {
-    var self = this;
+  setup: function() {
+    this.set('typeClass', this.get('notification.type.typeClass'));
+    this.set('typeIcon', this.get('notification.type.typeIcon'));
+  }.on('init'),
 
-    Ember.run.later(function() {
-      if (!object.isExpanded) {
-        self.removeObject(object);
+  removeLater: function() {
+    Ember.run.later(this, function() {
+      if (this.get('isHovering')) {
+        this.removeLater();
+      } else if (this.element) {
+        this.send('close');
       }
-    }, 5000);
-  },
+    }, this.get('closeAfter'));
+  }.on('didInsertElement'),
+
+  mouseEnter: function() { this.set('isHovering', true);  },
+  mouseLeave: function() { this.set('isHovering', false); },
 
   actions: {
-    remove: function (message) {
-      this.removeObject(message);
-    },
-
-    removeLater: function (message) {
-      this.removeLater(message);
+    close: function() {
+      this.remove();
+      this.get('parentView').send('removeNotification', this.get('notification'));
     }
   }
 });

@@ -25,6 +25,6 @@ import org.apache.hive.service.cli.thrift.TStatusCode;
  */
 public class HiveErrorStatusException extends HiveClientException {
   public HiveErrorStatusException(TStatusCode statusCode, String comment) {
-    super(String.format("Failed with status %s: %s", statusCode, comment), null);
+    super(String.format("%s [%s]", comment, statusCode), null);
   }
 }

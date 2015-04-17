@@ -132,9 +132,4 @@ public class InstanceKeyValueStorage extends KeyValueStorage {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }
   }
-
-  @Override
-  public <T extends Indexed> List<T> loadWhere(Class<T> model, String where) {
-    throw new NotImplementedException();
-  }
 }

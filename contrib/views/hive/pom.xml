@@ -19,7 +19,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.apache.ambari.contrib.views</groupId>
   <artifactId>hive</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>0.2.0-SNAPSHOT</version>
   <name>Hive</name>
 
   <parent>
@@ -30,6 +30,11 @@
 
   <dependencies>
     <dependency>
+      <groupId>com.jayway.jsonpath</groupId>
+      <artifactId>json-path</artifactId>
+      <version>2.0.0</version>
+    </dependency>
+      <dependency>
       <groupId>com.google.inject</groupId>
       <artifactId>guice</artifactId>
     </dependency>
@@ -195,8 +200,8 @@
         <artifactId>frontend-maven-plugin</artifactId>
         <version>0.0.14</version>
         <configuration>
-          <nodeVersion>v0.10.32</nodeVersion>
-          <npmVersion>1.4.3</npmVersion>
+          <nodeVersion>v0.12.2</nodeVersion>
+          <npmVersion>1.4.8</npmVersion>
           <workingDirectory>src/main/resources/ui/hive-web/</workingDirectory>
         </configuration>
         <executions>

@@ -31,7 +31,7 @@ import java.util.Map;
 public class UDF implements Serializable, PersonalResource {
   private String name;
   private String classname;
-  private Integer fileResource;
+  private String fileResource;
 
   private String id;
   private String owner;
@@ -77,11 +77,11 @@ public class UDF implements Serializable, PersonalResource {
     this.classname = classname;
   }
 
-  public Integer getFileResource() {
+  public String getFileResource() {
     return fileResource;
   }
 
-  public void setFileResource(Integer fileResource) {
+  public void setFileResource(String fileResource) {
     this.fileResource = fileResource;
   }
 }

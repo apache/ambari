@@ -25,9 +25,13 @@ var app = new EmberApp({
     //valid values are `default`, `bootstrap2`, `bootstrap3` or false
     'theme': 'bootstrap3'
   },
+  vendorFiles: {
+    'handlebars.js': null
+  },
   hinting: false
 });
 
+app.import('bower_components/ember/ember-template-compiler.js');
 app.import('bower_components/bootstrap/dist/js/bootstrap.js');
 app.import('bower_components/bootstrap/dist/css/bootstrap.css');
 app.import('bower_components/bootstrap/dist/css/bootstrap.css.map', {
@@ -42,5 +46,6 @@ app.import('vendor/codemirror/sql-hint.js');
 app.import('vendor/codemirror/show-hint.js');
 app.import('vendor/codemirror/codemirror.css');
 app.import('vendor/codemirror/show-hint.css');
+app.import('vendor/dagre.min.js');
 
 module.exports = app.toTree();

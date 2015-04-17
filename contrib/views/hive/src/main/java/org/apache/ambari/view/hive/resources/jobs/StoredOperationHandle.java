@@ -80,7 +80,7 @@ public class StoredOperationHandle implements Indexed {
       identifier.setGuid(Hex.decodeHex(getGuid().toCharArray()));
       identifier.setSecret(Hex.decodeHex(getSecret().toCharArray()));
     } catch (DecoderException e) {
-      throw new ServiceFormattedException("Wrong identifer of OperationHandle is stored in DB");
+      throw new ServiceFormattedException("E060 Wrong identifier of OperationHandle is stored in DB");
     }
     handle.setOperationId(identifier);
     return handle;

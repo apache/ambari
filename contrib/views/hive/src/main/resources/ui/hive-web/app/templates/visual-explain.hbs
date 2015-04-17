@@ -18,5 +18,63 @@
 
 <div id="visual-explain">
   {{#panel-widget headingTranslation="titles.query.visualExplain"}}
+
+  {{#each edge in view.edges}}
+    <div class="edge">
+      <div class="edge-path" {{bind-attr style="edge.style"}}>
+        {{edge.type}}
+      </div>
+     {{!--  <div class="edge-arrow" ></div> --}}
+    </div>
+  {{/each}}
+
+  <div class="nodes">
+    {{#each group in view.verticesGroups}}
+      <div class="node-container">
+        {{#if group.contents}}
+          {{#each node in group.contents}}
+            <div {{bind-attr class="node.isTableNode:table-node node.isOutputNode:output-node :node" title="node.id"}}>
+              {{#if node.isTableNode}}
+                <p><strong>{{t 'labels.table'}}</strong></p>
+                {{node.label}}
+              {{else}}
+                {{#if node.isOutputNode}}
+                  {{node.label}}
+                {{else}}
+                  <div class="node-heading">
+                    <strong>{{node.label}}</strong>
+                  </div>
+                  <div class="node-content">
+                    {{#each section in node.contents}}
+                      <p>
+                        {{#popover-widget classNames="fa fa-info-circle" titleTranslation="popover.visualExplain.statistics" }}
+                          {{section.statistics}}
+                        {{/popover-widget}}
+                        <strong>
+                          {{section.index}}. {{section.title}}
+                        </strong>
+                        {{section.value}}
+                      </p>
+
+                      {{#each field in section.fields}}
+                        {{#if field.value}}
+                          <p>{{field.label}} {{field.value}}</p>
+                        {{/if}}
+                      {{/each}}
+                    {{/each}}
+                  </div>
+                {{/if}}
+              {{/if}}
+            </div>
+          {{/each}}
+        {{else}}
+          <div class="node" {{bind-attr title="group.label"}}>
+            {{group.label}}
+          </div>
+        {{/if}}
+      </div>
+    {{/each}}
+  </div>
+
   {{/panel-widget}}
 </div>

@@ -65,7 +65,7 @@ public class OperationHandleResourceManager extends SharedCRUDResourceManager<St
       try {
         update(handle, jobRelatedHandles.get(0).getId());
       } catch (ItemNotFound itemNotFound) {
-        throw new ServiceFormattedException("Error when updating operation handle: " + itemNotFound.toString(), itemNotFound);
+        throw new ServiceFormattedException("E050 Error when updating operation handle: " + itemNotFound.toString(), itemNotFound);
       }
     } else {
       create(handle);

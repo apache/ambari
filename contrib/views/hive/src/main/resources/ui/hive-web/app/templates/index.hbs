@@ -23,22 +23,22 @@
     </aside>
 
     <div class="col-md-9 col-xs-12 query-container">
-      {{render 'alerts'}}
 
       {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel"}}
         {{render 'open-queries'}}
 
         <div class="toolbox">
-          <button type="button" class="btn btn-sm btn-success execute-query"
-                  {{bind-attr class="canExecute::disabled"}}
+          <button type="button"
+                  {{bind-attr class=":btn :btn-sm :btn-success :execute-query canExecute::disabled"}}
                   {{action "executeQuery"}}>
             {{t "buttons.execute"}}
           </button>
-          <button type="button" class="btn btn-sm btn-default"
-                  {{bind-attr class="canExecute::disabled"}}
+          <button type="button"
+                  {{bind-attr class=":btn :btn-sm :btn-default canExecute::disabled"}}
                   {{action "explainQuery"}}>
             {{t "buttons.explain"}}
           </button>
+
           <button type="button" class="btn btn-sm btn-default save-query-as" {{action "saveQuery"}}>{{t "buttons.saveAs"}}</button>
 
           {{render 'insert-udfs'}}
@@ -76,13 +76,7 @@
     </div>
   </div>
 
-  {{#if tezUI.showOverlay}}
-    {{render 'tez-ui'}}
-  {{/if}}
-
-  {{#if visualExplain.showOverlay}}
-    {{render 'visual-explain'}}
-  {{/if}}
+  {{outlet 'overlay'}}
 
   <div class="query-menu">
     {{#popover-widget classNames="fa fa-info-circle queries-icon" titleTranslation="popover.queryEditorHelp.title" }}
@@ -93,10 +87,6 @@
       </ul>
     {{/popover-widget}}
 
-    <span {{bind-attr class="settings.showOverlay:active :fa :fa-gear :queries-icon"}} {{action 'toggleOverlay' 'settings'}}></span>
-
-    <span {{bind-attr class="visualExplain.showOverlay:active :fa :fa-bar-chart :queries-icon"}} {{action 'toggleOverlay' 'visualExplain'}}></span>
-
-    <span {{bind-attr class="tezUI.showOverlay:active shouldShowTez::hide :queries-icon :text-icon"}} {{action 'toggleOverlay' 'tezUI'}}>TEZ</span>
+    {{query-tabs}}
   </div>
 </div>

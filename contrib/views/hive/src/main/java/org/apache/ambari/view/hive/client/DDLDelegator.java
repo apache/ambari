@@ -129,7 +129,7 @@ public class DDLDelegator {
         try {
           return connection.getClient().GetColumns(req);
         } catch (TException e) {
-          throw new HiveClientException("Unable to get table columns", e);
+          throw new HiveClientException("H200 Unable to get table columns", e);
         }
       }
 

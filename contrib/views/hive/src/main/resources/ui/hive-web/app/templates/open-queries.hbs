@@ -17,7 +17,7 @@
 }}
 
 {{#tabs-widget tabs=queryTabs removeClicked="removeQueryTab" canRemove=true}}
-  {{render 'settings'}}
+  {{outlet 'overlay'}}
   {{query-editor tables=selectedTables query=currentQuery.fileContent editor=view.editor highlightedText=highlightedText
                  columnsNeeded="getColumnsForAutocomplete"}}
 {{/tabs-widget}}

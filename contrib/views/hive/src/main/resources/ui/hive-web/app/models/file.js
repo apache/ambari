@@ -21,6 +21,6 @@ import DS from 'ember-data';
 export default DS.Model.extend({
   fileContent: DS.attr(),
   hasNext: DS.attr(),
-  page: DS.attr,
+  page: DS.attr('number'),
   pageCount: DS.attr()
 });

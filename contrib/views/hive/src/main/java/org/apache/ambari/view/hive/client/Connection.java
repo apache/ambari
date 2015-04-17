@@ -82,7 +82,7 @@ public class Connection {
       transport.open();
       client = new TCLIService.Client(new TBinaryProtocol(transport));
     } catch (TTransportException e) {
-      throw new HiveClientException("Could not establish connecton to "
+      throw new HiveClientException("H020 Could not establish connecton to "
           + host + ":" + port + ": " + e.toString(), e);
     }
     LOG.info("Hive connection opened");
@@ -109,7 +109,7 @@ public class Connection {
             try {
               saslQOP = SaslQOP.fromString(authParams.get(Utils.HiveAuthenticationParams.AUTH_QOP));
             } catch (IllegalArgumentException e) {
-              throw new HiveClientException("Invalid " + Utils.HiveAuthenticationParams.AUTH_QOP +
+              throw new HiveClientException("H040 Invalid " + Utils.HiveAuthenticationParams.AUTH_QOP +
                   " parameter. " + e.getMessage(), e);
             }
           }
@@ -162,7 +162,7 @@ public class Connection {
         return HiveAuthFactory.getSocketTransport(host, port, 10000);
       }
     } catch (SaslException e) {
-      throw new HiveClientException("Could not create secure connection to "
+      throw new HiveClientException("H040 Could not create secure connection to "
           + host + ": " + e.getMessage(), e);
     }
     return transport;
@@ -181,7 +181,7 @@ public class Connection {
         tokenStr = ShimLoader.getHadoopShims().
             getTokenStrForm(HiveAuthFactory.HS2_CLIENT_TOKEN);
       } catch (IOException e) {
-        throw new HiveClientException("Error reading token ", e);
+        throw new HiveClientException("H050 Error reading token", e);
       }
     }
     return tokenStr;
@@ -205,12 +205,12 @@ public class Connection {
         try {
           return client.OpenSession(openReq);
         } catch (TException e) {
-          throw new HiveClientException("Unable to open Hive session", e);
+          throw new HiveClientException("H060 Unable to open Hive session", e);
         }
 
       }
     }.call();
-    Utils.verifySuccess(openResp.getStatus(), "Unable to open Hive session");
+    Utils.verifySuccess(openResp.getStatus(), "H070 Unable to open Hive session");
 
     if (protocol == null)
       protocol = openResp.getServerProtocolVersion();
@@ -231,7 +231,7 @@ public class Connection {
   public TSessionHandle getSessionByTag(String tag) throws HiveClientException {
     TSessionHandle sessionHandle = sessHandles.get(tag);
     if (sessionHandle == null) {
-      throw new HiveClientException("Session with provided tag not found", null);
+      throw new HiveClientException("E030 Session with provided tag not found", null);
     }
     return sessionHandle;
   }
@@ -244,15 +244,21 @@ public class Connection {
     }
   }
 
+  public void invalidateSessionByTag(String tag) throws HiveClientException {
+    TSessionHandle sessionHandle = getSessionByTag(tag);
+    closeSession(sessionHandle);
+    sessHandles.remove(tag);
+  }
+
   private synchronized void closeSession(TSessionHandle sessHandle) throws HiveClientException {
     if (sessHandle == null) return;
     TCloseSessionReq closeReq = new TCloseSessionReq(sessHandle);
     TCloseSessionResp closeResp = null;
     try {
       closeResp = client.CloseSession(closeReq);
-      Utils.verifySuccess(closeResp.getStatus(), "Unable to close Hive session");
+      Utils.verifySuccess(closeResp.getStatus(), "H080 Unable to close Hive session");
     } catch (TException e) {
-      throw new HiveClientException("Unable to close Hive session", e);
+      throw new HiveClientException("H090 Unable to close Hive session", e);
     }
     LOG.info("Hive session closed");
   }
@@ -314,18 +320,18 @@ public class Connection {
           try {
             return client.ExecuteStatement(execReq);
           } catch (TException e) {
-            throw new HiveClientException("Unable to submit statement " + cmd, e);
+            throw new HiveClientException("H100 Unable to submit statement " + cmd, e);
           }
 
         }
       }.call();
 
-      Utils.verifySuccess(execResp.getStatus(), "Unable to submit statement " + cmd);
+      Utils.verifySuccess(execResp.getStatus(), "H110 Unable to submit statement");
       //TODO: check if status have results
       handle = execResp.getOperationHandle();
     }
     if (handle == null) {
-      throw new HiveClientException("Empty command given", null);
+      throw new HiveClientException("H120 Empty command given", null);
     }
     return handle;
   }
@@ -373,19 +379,11 @@ public class Connection {
         try {
           return client.GetOperationStatus(statusReq);
         } catch (TException e) {
-          throw new HiveClientException("Unable to fetch operation status", e);
+          throw new HiveClientException("H130 Unable to fetch operation status", e);
         }
 
       }
     }.call();
-//    transportLock.lock();
-//    try {
-//      return client.GetOperationStatus(statusReq);
-//    } catch (TException e) {
-//      throw new HiveClientException("Unable to fetch operation status", e);
-//    } finally {
-//      transportLock.unlock();
-//    }
   }
 
   /**
@@ -400,11 +398,11 @@ public class Connection {
         try {
           return client.CancelOperation(cancelReq);
         } catch (TException e) {
-          throw new HiveClientException("Unable to cancel operation", null);
+          throw new HiveClientException("H140 Unable to cancel operation", null);
         }
       }
     }.call();
-    Utils.verifySuccess(cancelResp.getStatus(), "Unable to cancel operation");
+    Utils.verifySuccess(cancelResp.getStatus(), "H150 Unable to cancel operation");
   }
 
   public int getPort() {

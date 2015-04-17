@@ -43,9 +43,9 @@ public class HdfsUtil {
         stream.close();
       }
     } catch (IOException e) {
-      throw new ServiceFormattedException("Could not write file " + filePath, e);
+      throw new ServiceFormattedException("F070 Could not write file " + filePath, e);
     } catch (InterruptedException e) {
-      throw new ServiceFormattedException("Could not write file " + filePath, e);
+      throw new ServiceFormattedException("F070 Could not write file " + filePath, e);
     }
   }
 
@@ -74,9 +74,9 @@ public class HdfsUtil {
         triesCount += 1;
       } while (!isUnallocatedFilenameFound);
     } catch (IOException e) {
-      throw new ServiceFormattedException("Error in creation: " + e.toString(), e);
+      throw new ServiceFormattedException("F080 Error in creation " + fullPathAndFilename + "...", e);
     } catch (InterruptedException e) {
-      throw new ServiceFormattedException("Error in creation: " + e.toString(), e);
+      throw new ServiceFormattedException("F080 Error in creation " + fullPathAndFilename + "...", e);
     }
 
     return newFilePath;

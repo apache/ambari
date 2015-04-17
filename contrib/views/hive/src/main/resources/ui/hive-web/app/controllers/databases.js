@@ -30,13 +30,13 @@ export default Ember.ArrayController.extend({
   dbTables: Ember.computed.alias('controllers.' + constants.namingConventions.tables),
   dbColumns: Ember.computed.alias('controllers.' + constants.namingConventions.columns),
 
-  _handleTablesError: function (err) {
-    this.send('addAlert', constants.alerts.error, err.responseText, "alerts.errors.get.tables");
+  _handleTablesError: function (error) {
+    this.notify.error(error.responseJSON.message, error.responseJSON.trace);
     this.set('isLoading', false);
   },
 
-  _handleColumnsError: function (err) {
-    this.send('addAlert', constants.alerts.error, err.responseText, "alerts.errors.get.columns");
+  _handleColumnsError: function (error) {
+    this.notify.error(error.responseJSON.message, error.responseJSON.trace);
     this.set('isLoading', false);
   },
 
@@ -191,7 +191,52 @@ export default Ember.ArrayController.extend({
     return defer.promise;
   },
 
+  tableControls: Ember.A([
+    Ember.Object.create({
+      icon: 'fa-list',
+      action: 'loadSampleData',
+      tooltip: Ember.I18n.t('tooltips.loadSample')
+    })
+  ]),
+
+  panelIconActions: function () {
+    return [
+      Ember.Object.create({
+        icon: 'fa-refresh',
+        action: 'refreshDatabaseExplorer'
+      })
+    ];
+  }.property(),
+
   actions: {
+    refreshDatabaseExplorer: function() {
+      var self = this;
+      var selectedDatabase = this.get('selectedDatabase');
+
+      this.store.unloadAll('database');
+      this.store.fetchAll('database').then(function() {
+        var database = self.get('model').findBy('id', selectedDatabase.get('id'));
+        self.set('selectedDatabase', database);
+      }).catch(function(response) {
+        self.notify.error(response.responseJSON.message, response.responseJSON.trace);
+      });
+    },
+
+    loadSampleData: function(tableName, database) {
+      var self = this;
+      this.send('addQuery', Ember.I18n.t('titles.tableSample', { tableName: tableName }));
+
+      Ember.run.later(function() {
+        var query = constants.sampleDataQuery.fmt(tableName);
+
+        self.set('selectedDatabase', database);
+        self.get('openQueries.currentQuery')
+          .set('fileContent', query);
+
+        self.send('executeQuery');
+      });
+    },
+
     getTables: function (dbName) {
       var database = this.findBy('name', dbName),
           tables = database.tables,
@@ -257,6 +302,7 @@ export default Ember.ArrayController.extend({
           resultsTab = this.get('tabs').findBy('view', constants.namingConventions.databaseSearch),
           tableSearchResults = this.get('tableSearchResults');
 
+      this.set('tablesSearchTerm', searchTerm);
       resultsTab.set('visible', true);
       this.set('selectedTab', resultsTab);
       this.set('columnSearchTerm', '');

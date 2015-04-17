@@ -18,11 +18,11 @@
 
 <div class="databases">
   {{#each database in content}}
-    {{#collapsible-widget heading=database.name isExpanded=database.isExpanded iconClass="fa-database" expanded="getTables"}}
+    {{#collapsible-widget heading=database.name isExpanded=database.isExpanded iconClass="fa-database" expanded="getTables" toggledParam=database}}
       {{#if database.isExpanded}}
         <div class="tables">
           {{#each table in database.visibleTables}}
-            {{#collapsible-widget heading=table.name isExpanded=table.isExpanded toggledParam=database iconClass="fa-th" expanded="getColumns"}}
+            {{#collapsible-widget heading=table.name isExpanded=table.isExpanded toggledParam=database iconClass="fa-table" expanded="getColumns" controls=tableControls}}
               {{#if table.isExpanded}}
                 <div class="columns">
                   {{#each column in table.visibleColumns}}

@@ -28,11 +28,15 @@
 
     <link rel="stylesheet" href="assets/vendor.css">
     <link rel="stylesheet" href="assets/hive.css">
+
+    {{content-for 'head-footer'}}
   </head>
   <body>
     {{content-for 'body'}}
 
     <script src="assets/vendor.js"></script>
     <script src="assets/hive.js"></script>
+
+    {{content-for 'body-footer'}}
   </body>
 </html>

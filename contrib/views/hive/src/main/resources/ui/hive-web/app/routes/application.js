@@ -33,6 +33,8 @@ export default Ember.Route.extend({
   actions: {
     openModal: function (modalTemplate, options) {
       this.controllerFor(modalTemplate).setProperties({
+        content: options.content || {},
+        message: options.message,
         heading: options.heading,
         text: options.text,
         defer: options.defer
@@ -51,11 +53,16 @@ export default Ember.Route.extend({
       });
     },
 
-    addAlert: function (type, message, title) {
-      this.controllerFor(constants.namingConventions.alerts).pushObject({
-        type: type,
-        title: title,
-        content: message
+    openOverlay: function(overlay) {
+      return this.render(overlay.template, {
+        outlet: overlay.outlet,
+        into: overlay.into
+      });
+    },
+    closeOverlay: function(overlay) {
+      return this.disconnectOutlet({
+        outlet: overlay.outlet,
+        parentView: overlay.into
       });
     }
   }

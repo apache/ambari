@@ -29,7 +29,12 @@ moduleFor('controller:settings', 'SettingsController', {
     'controller:index/history-query/explain',
     'controller:columns',
     'controller:udfs',
-    'controller:index/history-query/logs'
+    'controller:index/history-query/logs',
+    'controller:visual-explain',
+    'controller:tez-ui',
+    'controller:tables',
+    'adapter:database',
+    'adapter:application'
   ]
 });
 
@@ -48,6 +53,7 @@ test('can add a setting', function() {
 test('hasSettings return true if there are settings', function() {
   var controller = this.subject();
 
+  controller.get('currentSettings');
   ok(!controller.hasSettings(null), 'No settings => return false');
 
   Ember.run(function() {
@@ -81,12 +87,21 @@ test('validate', function() {
     predefinedSettings: predefinedSettings
   });
 
+  controller.set('openQueries.update', function () {
+    var defer = Ember.RSVP.defer();
+    defer.resolve();
+
+    return defer.promise;
+  });
+
   var settings = [
     Ember.Object.create({key: { name: 'some.key' }, value: 'value'}),
     Ember.Object.create({key: { name: 'some.key' }, value: '123'})
   ];
 
   Ember.run(function() {
+    controller.set('index.model', Ember.Object.create({ id: 1 }));
+    controller.get('currentSettings');
     controller.setSettingForQuery(1, settings);
   });
 

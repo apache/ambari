@@ -44,5 +44,7 @@
     </div>
   </div>
 {{else}}
-  <h4>{{t "labels.noTablesMatches"}} "{{tablesSearchTerm}}"</h4>
+  <div class="alert alert-warning database-explorer-alert" role="alert">
+    {{t "labels.noTablesMatch"}} <strong>&quot;{{tablesSearchTerm}}&quot;</strong>
+  </div>
 {{/if}}

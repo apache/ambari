@@ -77,9 +77,9 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     try {
       query = paginator.readPage(0);  //warning - reading only 0 page restricts size of query to 1MB
     } catch (IOException e) {
-      throw new ServiceFormattedException("Error when reading file: " + e.toString(), e);
+      throw new ServiceFormattedException("F030 Error when reading file " + job.getQueryFile(), e);
     } catch (InterruptedException e) {
-      throw new ServiceFormattedException("Error when reading file: " + e.toString(), e);
+      throw new ServiceFormattedException("F030 Error when reading file " + job.getQueryFile(), e);
     }
     return query;
   }
@@ -109,12 +109,19 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
   }
 
   private TSessionHandle getSession() {
-    if (job.getSessionTag() != null) {
-      return hiveConnection.getSessionByTag(getJob().getSessionTag());
-    } else {
-      String tag = hiveConnection.openSession();
-      job.setSessionTag(tag);
+    try {
+      if (job.getSessionTag() != null)
+        return hiveConnection.getSessionByTag(getJob().getSessionTag());
+    } catch (HiveClientException ignore) {
+      LOG.debug("Stale sessionTag was provided, new session will be opened");
+    }
+
+    String tag = hiveConnection.openSession();
+    job.setSessionTag(tag);
+    try {
       return hiveConnection.getSessionByTag(tag);
+    } catch (HiveClientException e) {
+      throw new HiveClientFormattedException(e);
     }
   }
 
@@ -136,8 +143,10 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
     try {
 
       OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
-      String status = handle.getOperationStatus();
-      job.setStatus(status);
+      OperationHandleController.OperationStatus status = handle.getOperationStatus();
+      job.setStatus(status.status);
+      job.setStatusMessage(status.message);
+      job.setSqlState(status.sqlState);
       LOG.debug("Status of job#" + job.getId() + " is " + job.getStatus());
 
     } catch (NoOperationStatusSetException e) {
@@ -148,7 +157,7 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
       job.setStatus(Job.JOB_STATE_UNKNOWN);
 
     } catch (HiveClientException e) {
-      throw new ServiceFormattedException("Could not fetch job status " + job.getId(), e);
+      throw new HiveClientFormattedException(e);
 
     } catch (ItemNotFound itemNotFound) {
       LOG.debug("No TOperationHandle for job#" + job.getId() + ", can't update status");
@@ -210,6 +219,12 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
   public Cursor getResults() throws ItemNotFound {
     OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
     return handle.getResults();
+  }
+
+  @Override
+  public boolean hasResults() throws ItemNotFound {
+    OperationHandleController handle = opHandleControllerFactory.getHandleForJob(job);
+    return handle.hasResults();
   }
 
   @Override
@@ -311,9 +326,9 @@ public class JobControllerImpl implements JobController, ModifyNotificationDeleg
       }
 
     } catch (IOException e) {
-      throw new ServiceFormattedException("Error in creation: " + e.toString(), e);
+      throw new ServiceFormattedException("F040 Error when creating file " + jobQueryFilePath, e);
     } catch (InterruptedException e) {
-      throw new ServiceFormattedException("Error in creation: " + e.toString(), e);
+      throw new ServiceFormattedException("F040 Error when creating file " + jobQueryFilePath, e);
     }
     job.setQueryFile(jobQueryFilePath);
 

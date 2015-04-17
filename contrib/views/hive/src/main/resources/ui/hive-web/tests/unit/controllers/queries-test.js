@@ -20,7 +20,10 @@ import Ember from 'ember';
 import { moduleFor, test } from 'ember-qunit';
 
 moduleFor('controller:queries', 'QueriesController', {
-  needs: [ 'controller:history' ]
+  needs: [
+    'controller:history',
+    'controller:open-queries'
+  ]
 });
 
 test('controller is initialized', function() {

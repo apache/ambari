@@ -19,6 +19,7 @@
 package org.apache.ambari.view.hive.client;
 
 import org.apache.ambari.view.ViewContext;
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +42,7 @@ public class ConnectionFactory implements IConnectionFactory {
       return new Connection(getHiveHost(), Integer.valueOf(getHivePort()),
           getHiveAuthParams(), context.getUsername());
     } catch (HiveClientException e) {
-      throw new ServiceFormattedException("Couldn't open connection to Hive: " + e.toString(), e);
+      throw new HiveClientFormattedException(e);
     }
   }
 
@@ -62,8 +63,8 @@ public class ConnectionFactory implements IConnectionFactory {
     for(String param : auth.split(";")) {
       String[] keyvalue = param.split("=");
       if (keyvalue.length != 2) {
-        LOG.error("Can not parse authentication param " + param + " in " + auth);
-        continue;
+        //Should never happen because validator already checked this
+        throw new ServiceFormattedException("H010 Can not parse authentication param " + param + " in " + auth);
       }
       params.put(keyvalue[0], keyvalue[1]);
     }

@@ -35,6 +35,7 @@ public interface JobController {
   Job getJobPOJO();
 
   Cursor getResults() throws ItemNotFound;
+  boolean hasResults() throws ItemNotFound;
 
   void afterCreation();
 

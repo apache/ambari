@@ -25,10 +25,14 @@ import org.apache.ambari.view.hive.persistence.utils.Indexed;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
+import org.apache.commons.beanutils.BeanUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.WebApplicationException;
+import java.beans.Transient;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -52,14 +56,52 @@ public class DataStoreStorage implements Storage {
 
   @Override
   public synchronized void store(Class model, Indexed obj) {
+    assignId(model, obj);
+
+    Indexed newBean;
     try {
-      if (obj.getId() == null) {
-        String id = nextIdForEntity(context, model);
-        obj.setId(id);
-      }
-      context.getDataStore().store(obj);
+      newBean = (Indexed) BeanUtils.cloneBean(obj);
+    } catch (IllegalAccessException e) {
+      throw new ServiceFormattedException("S010 Data storage error", e);
+    } catch (InstantiationException e) {
+      throw new ServiceFormattedException("S010 Data storage error", e);
+    } catch (InvocationTargetException e) {
+      throw new ServiceFormattedException("S010 Data storage error", e);
+    } catch (NoSuchMethodException e) {
+      throw new ServiceFormattedException("S010 Data storage error", e);
+    }
+    preprocessEntity(newBean);
+
+    try {
+      context.getDataStore().store(newBean);
     } catch (PersistenceException e) {
-      throw new ServiceFormattedException("Error while saving object to DataStorage", e);
+      throw new ServiceFormattedException("S020 Data storage error", e);
+    }
+  }
+
+  public void assignId(Class model, Indexed obj) {
+    if (obj.getId() == null) {
+      String id = nextIdForEntity(context, model);
+      obj.setId(id);
+    }
+  }
+
+  private void preprocessEntity(Indexed obj) {
+    cleanTransientFields(obj);
+  }
+
+  private void cleanTransientFields(Indexed obj) {
+    for (Method m : obj.getClass().getMethods()) {
+      Transient aTransient = m.getAnnotation(Transient.class);
+      if (aTransient != null && m.getName().startsWith("set")) {
+        try {
+          m.invoke(obj, new Object[]{ null });
+        } catch (IllegalAccessException e) {
+          throw new ServiceFormattedException("S030 Data storage error", e);
+        } catch (InvocationTargetException e) {
+          throw new ServiceFormattedException("S030 Data storage error", e);
+        }
+      }
     }
   }
 
@@ -87,7 +129,7 @@ public class DataStoreStorage implements Storage {
         throw new ItemNotFound();
       }
     } catch (PersistenceException e) {
-      throw new ServiceFormattedException("Error while finding object in DataStorage", e);
+      throw new ServiceFormattedException("S040 Data storage error", e);
     }
   }
 
@@ -96,24 +138,13 @@ public class DataStoreStorage implements Storage {
     LinkedList<T> list = new LinkedList<T>();
     LOG.debug(String.format("Loading all %s-s", model.getName()));
     try {
-      //TODO: use WHERE statement instead of this ugly filter
       for(T item: context.getDataStore().findAll(model, filter.whereStatement())) {
         list.add(item);
       }
     } catch (PersistenceException e) {
-      throw new ServiceFormattedException("Error while finding all objects in DataStorage", e);
+      throw new ServiceFormattedException("S050 Data storage error", e);
     }
     return list;
-  }
-
-  @Override
-  public <T extends Indexed> List<T> loadWhere(Class<T> model, String where) {
-    LOG.debug(String.format("Loading all %s-s", model.getName()));
-    try {
-      return new ArrayList<T>(context.getDataStore().findAll(model, where));
-    } catch (PersistenceException e) {
-      throw new ServiceFormattedException("Error while finding objects in DataStorage; where = " + where, e);
-    }
   }
 
   @Override
@@ -128,7 +159,7 @@ public class DataStoreStorage implements Storage {
     try {
       context.getDataStore().remove(obj);
     } catch (PersistenceException e) {
-      throw new ServiceFormattedException("Error while removing object from DataStorage", e);
+      throw new ServiceFormattedException("S060 Data storage error", e);
     }
   }
 
@@ -137,48 +168,7 @@ public class DataStoreStorage implements Storage {
     try {
       return context.getDataStore().find(model, id) != null;
     } catch (PersistenceException e) {
-      throw new ServiceFormattedException("Error while finding object in DataStorage", e);
-    }
-  }
-
-  public static void storageSmokeTest(ViewContext context) {
-    try {
-      SmokeTestEntity entity = new SmokeTestEntity();
-      entity.setData("42");
-      DataStoreStorage storage = new DataStoreStorage(context);
-      storage.store(SmokeTestEntity.class, entity);
-
-      if (entity.getId() == null) throw new ServiceFormattedException("Ambari Views instance data DB doesn't work properly (auto increment id doesn't work)", null);
-      Object id = entity.getId();
-      SmokeTestEntity entity2 = storage.load(SmokeTestEntity.class, id);
-      boolean status = entity2.getData().compareTo("42") == 0;
-      storage.delete(SmokeTestEntity.class, id);
-      if (!status) throw new ServiceFormattedException("Ambari Views instance data DB doesn't work properly", null);
-    } catch (WebApplicationException ex) {
-      throw ex;
-    } catch (Exception ex) {
-      throw new ServiceFormattedException(ex.getMessage(), ex);
-    }
-  }
-
-  public static class SmokeTestEntity implements Indexed {
-    private String id = null;
-    private String data = null;
-
-    public String getId() {
-      return id;
-    }
-
-    public void setId(String id) {
-      this.id = id;
-    }
-
-    public String getData() {
-      return data;
-    }
-
-    public void setData(String data) {
-      this.data = data;
+      throw new ServiceFormattedException("S070 Data storage error", e);
     }
   }
 }

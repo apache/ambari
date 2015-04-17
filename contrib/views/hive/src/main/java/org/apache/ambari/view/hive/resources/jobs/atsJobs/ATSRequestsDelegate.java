@@ -21,6 +21,14 @@ package org.apache.ambari.view.hive.resources.jobs.atsJobs;
 import org.json.simple.JSONObject;
 
 public interface ATSRequestsDelegate {
+  String hiveQueryIdDirectUrl(String entity);
+
+  String hiveQueryIdOperationIdUrl(String operationId);
+
+  String tezDagDirectUrl(String entity);
+
+  String tezDagNameUrl(String name);
+
   JSONObject hiveQueryIdList(String username);
 
   JSONObject hiveQueryIdByOperationId(String operationId);

@@ -104,4 +104,12 @@ public interface Job extends Serializable,Indexed,PersonalResource {
   String getSessionTag();
 
   void setSessionTag(String sessionTag);
+
+  String getSqlState();
+
+  void setSqlState(String sqlState);
+
+  String getStatusMessage();
+
+  void setStatusMessage(String message);
 }

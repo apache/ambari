@@ -16,8 +16,8 @@
 * limitations under the License.
 }}
 
-<div id="alerts-container">
-  {{#each alert in this}}
-    {{alert-message-widget message=alert removeMessage="remove" removeLater="removeLater"}}
-  {{/each}}
+<div {{bind-attr class=":alert :notification view.typeClass"}}>
+  <button type="button" class="close" {{action "close" target="view"}}><span aria-hidden="true">&times;</span></button>
+  <i {{bind-attr class=":fa view.typeIcon"}}></i>
+  {{view.notification.message}}
 </div>

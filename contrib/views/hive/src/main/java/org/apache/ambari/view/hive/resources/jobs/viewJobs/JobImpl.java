@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive.resources.jobs.viewJobs;
 
 import org.apache.commons.beanutils.PropertyUtils;
 
+import java.beans.Transient;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Map;
 
@@ -32,10 +33,13 @@ public class JobImpl implements Job {
   private String statusDir = null;
   private Long dateSubmitted = 0L;
   private Long duration = 0L;
-  private String status = JOB_STATE_UNKNOWN;
   private String forcedContent = null;
   private String dataBase = null;
   private String queryId = null;
+
+  private String status = JOB_STATE_UNKNOWN;
+  private String statusMessage = null;
+  private String sqlState = null;
 
   private String applicationId;
   private String dagId;
@@ -148,11 +152,13 @@ public class JobImpl implements Job {
   }
 
   @Override
+  @Transient
   public String getForcedContent() {
     return forcedContent;
   }
 
   @Override
+  @Transient
   public void setForcedContent(String forcedContent) {
     this.forcedContent = forcedContent;
   }
@@ -245,5 +251,25 @@ public class JobImpl implements Job {
   @Override
   public void setSessionTag(String sessionTag) {
     this.sessionTag = sessionTag;
+  }
+
+  @Override
+  public String getStatusMessage() {
+    return statusMessage;
+  }
+
+  @Override
+  public void setStatusMessage(String statusMessage) {
+    this.statusMessage = statusMessage;
+  }
+
+  @Override
+  public String getSqlState() {
+    return sqlState;
+  }
+
+  @Override
+  public void setSqlState(String sqlState) {
+    this.sqlState = sqlState;
   }
 }

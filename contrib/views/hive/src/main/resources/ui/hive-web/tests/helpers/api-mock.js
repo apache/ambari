@@ -86,7 +86,7 @@ export default function() {
         "fileResources":[],
         "statusDir":"job1",
         "id":1,
-        "title":"New Query",
+        "title":"Worksheet",
         "duration":2,
         "forcedContent":"",
         "owner":"admin",

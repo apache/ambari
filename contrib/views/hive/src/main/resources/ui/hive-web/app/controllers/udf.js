@@ -50,8 +50,8 @@ export default Ember.ObjectController.extend({
           this.send('openModal',
                     'modal-delete',
                      {
-                        heading: Ember.I18n.translations.modals.delete.heading,
-                        text: Ember.I18n.translations.modals.delete.message,
+                        heading: 'modals.delete.heading',
+                        text: 'modals.delete.message',
                         defer: defer
                      });
 

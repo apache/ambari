@@ -43,6 +43,26 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   }
 
   @Override
+  public String hiveQueryIdDirectUrl(String entity) {
+    return atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID/" + entity;
+  }
+
+  @Override
+  public String hiveQueryIdOperationIdUrl(String operationId) {
+    return atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=operationid:" + operationId;
+  }
+
+  @Override
+  public String tezDagDirectUrl(String entity) {
+    return atsUrl + "/ws/v1/timeline/TEZ_DAG_ID/" + entity;
+  }
+
+  @Override
+  public String tezDagNameUrl(String name) {
+    return atsUrl + "/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:" + name;
+  }
+
+  @Override
   public JSONObject hiveQueryIdList(String username) {
     String hiveQueriesListUrl = atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=requestuser:" + username;
     String response = readFromWithDefault(hiveQueriesListUrl, "{ \"entities\" : [  ] }");
@@ -51,14 +71,14 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
 
   @Override
   public JSONObject hiveQueryIdByOperationId(String operationId) {
-    String hiveQueriesListUrl = atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=operationid:" + operationId;
+    String hiveQueriesListUrl = hiveQueryIdOperationIdUrl(operationId);
     String response = readFromWithDefault(hiveQueriesListUrl, "{ \"entities\" : [  ] }");
     return (JSONObject) JSONValue.parse(response);
   }
 
   @Override
   public JSONObject tezDagByName(String name) {
-    String tezDagUrl = atsUrl + "/ws/v1/timeline/TEZ_DAG_ID?primaryFilter=dagName:" + name;
+    String tezDagUrl = tezDagNameUrl(name);
     String response = readFromWithDefault(tezDagUrl, EMPTY_ENTITIES_JSON);
     return (JSONObject) JSONValue.parse(response);
   }

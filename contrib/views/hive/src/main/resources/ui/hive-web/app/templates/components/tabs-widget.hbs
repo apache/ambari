@@ -23,6 +23,7 @@
         {{#link-to tab.path tab.id tagName="li"}}
           <a>
             {{tab.name}}
+            {{#if tab.isDirty}}*{{/if}}
             {{#if view.removeEnabled}}
               <i class="fa fa-remove" {{action 'remove' tab}}></i>
             {{/if}}

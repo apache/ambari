@@ -124,7 +124,7 @@ abstract public class CRUDResourceManager<T extends Indexed> implements IResourc
     try {
       delete(object.getId());
     } catch (ItemNotFound itemNotFound) {
-      throw new ServiceFormattedException("Error in creation, during clean up: " + itemNotFound.toString(), itemNotFound);
+      throw new ServiceFormattedException("E040 Item not found", itemNotFound);
     }
     throw e;
   }

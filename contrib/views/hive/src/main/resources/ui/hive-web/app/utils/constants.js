@@ -55,6 +55,7 @@ export default Ember.Object.create({
     udfInsertPrefix: 'create temporary function ',
     fileInsertPrefix: 'add jar ',
     explainPrefix: 'EXPLAIN ',
+    explainFormattedPrefix: 'EXPLAIN FORMATTED ',
     insertUdfs: 'insert-udfs',
     job: 'job',
     jobs: 'jobs',
@@ -180,7 +181,7 @@ export default Ember.Object.create({
 
   //this can be replaced by a string.format implementation
   adapter: {
-    version: '0.0.1',
+    version: '0.2.0',
     instance: 'Hive',
     apiPrefix: '/api/v1/views/HIVE/versions/',
     instancePrefix: '/instances/',
@@ -189,5 +190,25 @@ export default Ember.Object.create({
 
   settings: {
     executionEngine: 'hive.execution.engine'
+  },
+  sampleDataQuery: 'SELECT * FROM %@ LIMIT 100;',
+
+  notify: {
+    ERROR:  {
+      typeClass : 'alert-danger',
+      typeIcon  : 'fa-exclamation-triangle'
+    },
+    WARN: {
+      typeClass : 'alert-warning',
+      typeIcon  : 'fa-times-circle'
+    },
+    SUCCESS: {
+      typeClass : 'alert-success',
+      typeIcon  : 'fa-check'
+    },
+    INFO: {
+      typeClass : 'alert-info',
+      typeIcon  : 'fa-info'
+    }
   }
 });

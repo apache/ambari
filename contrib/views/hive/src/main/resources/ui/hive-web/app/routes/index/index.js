@@ -23,14 +23,14 @@ export default Ember.Route.extend({
   beforeModel: function () {
     var model = this.controllerFor(constants.namingConventions.routes.index).get('model');
 
-    if (model) {
+    if (model && !model.get('isDeleted')) {
       if (model.get('constructor.typeKey') === constants.namingConventions.job) {
         this.transitionTo(constants.namingConventions.subroutes.historyQuery, model);
       } else {
         this.transitionTo(constants.namingConventions.subroutes.savedQuery, model);
       }
     } else {
-      this.controllerFor(constants.namingConventions.routes.index).send('addQuery');
+      this.controllerFor(constants.namingConventions.openQueries).navigateToLastTab();
     }
   }
 });

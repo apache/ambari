@@ -154,7 +154,7 @@ export default Ember.ArrayController.extend({
     return defer.promise;
   },
 
-  save: function (model, query) {
+  save: function (model, query, isUpdating, newTitle) {
     var tab = this.getTabForModel(model),
         self = this,
         wasNew,
@@ -168,6 +168,7 @@ export default Ember.ArrayController.extend({
 
     if (model.get('isNew')) {
       wasNew = true;
+      model.set('title', newTitle);
       model.set('id', null);
     }
 
@@ -175,15 +176,29 @@ export default Ember.ArrayController.extend({
     if (model.get('constructor.typeKey') === constants.namingConventions.job) {
       model = this.store.createRecord(constants.namingConventions.savedQuery, {
         dataBase: this.get('databases.selectedDatabase.name'),
-        title: model.get('title'),
+        title: newTitle,
         queryFile: model.get('queryFile'),
         owner: model.get('owner')
       });
+    } else {
+      tab.set('name', newTitle);
+    }
+
+    //if saving a new query from an existing one create a new record and save it
+    if (!isUpdating && !model.get('isNew') && model.get('constructor.typeKey') !== constants.namingConventions.job) {
+      model = this.store.createRecord(constants.namingConventions.savedQuery, {
+        dataBase: this.get('databases.selectedDatabase.name'),
+        title: newTitle,
+        owner: model.get('owner')
+      });
+
+      wasNew = true;
     }
 
     model.save().then(function (updatedModel) {
-      tab.set('name', updatedModel.get('title'));
       jobModel.set('queryId', updatedModel.get('id'));
+
+      tab.set('isDirty', false);
 
       var content = self.get('index').prependQuerySettings(query.get('fileContent'));
       //update query tab path with saved model id if its a new record
@@ -198,7 +213,7 @@ export default Ember.ArrayController.extend({
             self.pushObject(updatedFile);
             self.set('currentQuery', updatedFile);
 
-            defer.resolve();
+            defer.resolve(updatedModel.get('id'));
           }, function (err) {
             defer.reject(err);
           });
@@ -209,7 +224,7 @@ export default Ember.ArrayController.extend({
         query.set('fileContent', content);
         query.save().then(function () {
           self.toggleProperty('tabUpdated');
-          defer.resolve();
+          defer.resolve(updatedModel.get('id'));
         }, function (err) {
           defer.reject(err);
         });
@@ -259,34 +274,83 @@ export default Ember.ArrayController.extend({
          hasSettings;
   },
 
+  isDirty: function(model) {
+    var query = this.getQueryForModel(model);
+
+    if (model.get('isNew') && !query.get('fileContent')) {
+      return false;
+    }
+
+    if (query && query.get('isDirty')) {
+      return true;
+    }
+
+    return !!(!model.get('queryId') && model.get('isDirty'));
+
+
+  },
+
+  updatedDeletedQueryTab: function (model) {
+    var tab = this.getTabForModel(model);
+
+    if (tab) {
+      this.closeTab(tab);
+    }
+  },
+
+  dirtyObserver: function () {
+    var tab;
+    var model = this.get('index.model');
+
+    if (model) {
+      tab = this.getTabForModel(model);
+
+      if (tab) {
+        tab.set('isDirty', this.isDirty(model));
+      }
+    }
+  }.observes('currentQuery.isDirty', 'currentQuery.fileContent'),
+
+  closeTab: function (tab, goToNextTab) {
+    var remainingTabs = this.get('queryTabs').without(tab);
+
+    this.set('queryTabs', remainingTabs);
+
+    //remove cached results set
+    if (tab.type === constants.namingConventions.job) {
+      this.get('jobResults').clearCachedResultsSet(tab.id);
+      this.get('jobExplain').clearCachedExplainSet(tab.id);
+    }
+
+    if (goToNextTab) {
+      this.navigateToLastTab();
+    }
+  },
+
+  navigateToLastTab: function () {
+    var lastTab = this.get('queryTabs.lastObject');
+
+    if (lastTab) {
+      if (lastTab.type === constants.namingConventions.job) {
+        this.transitionToRoute(constants.namingConventions.subroutes.historyQuery, lastTab.id);
+      } else {
+        this.transitionToRoute(constants.namingConventions.subroutes.savedQuery, lastTab.id);
+      }
+    } else {
+      this.get('index').send('addQuery');
+    }
+  },
+
   actions: {
     removeQueryTab: function (tab) {
       var self = this,
-          defer,
-          remainingTabs = this.get('queryTabs').without(tab),
-          lastTab = remainingTabs.get('lastObject'),
-          closeTab = function () {
-            self.set('queryTabs', remainingTabs);
-
-            //remove cached results set
-            if (tab.type === constants.namingConventions.job) {
-              self.get('jobResults').clearCachedResultsSet(tab.id);
-              self.get('jobExplain').clearCachedExplainSet(tab.id);
-            }
-
-            if (lastTab.type === constants.namingConventions.job) {
-              self.transitionToRoute(constants.namingConventions.subroutes.historyQuery, lastTab.id);
-            } else {
-              self.transitionToRoute(constants.namingConventions.subroutes.savedQuery, lastTab.id);
-            }
-          };
+          defer;
 
       this.store.find(tab.type, tab.id).then(function (model) {
         var query = self.getQueryForModel(model);
 
-        if ((model.get('isNew') && !query.get('fileContent')) ||
-            (!model.get('isNew') && !query.get('isDirty'))) {
-          closeTab();
+        if (!self.isDirty(model)) {
+          self.closeTab(tab, true);
         } else {
           defer = Ember.RSVP.defer();
           self.send('openModal',
@@ -300,11 +364,11 @@ export default Ember.ArrayController.extend({
           defer.promise.then(function (text) {
             model.set('title', text);
             self.save(model, query).then(function () {
-              closeTab();
+              self.closeTab(tab, true);
             });
           }, function () {
             model.rollback();
-            closeTab();
+            self.closeTab(tab, true);
           });
         }
       });

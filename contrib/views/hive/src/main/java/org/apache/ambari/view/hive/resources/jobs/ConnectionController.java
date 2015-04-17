@@ -20,6 +20,7 @@ package org.apache.ambari.view.hive.resources.jobs;
 
 import org.apache.ambari.view.hive.client.Connection;
 import org.apache.ambari.view.hive.client.HiveClientException;
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.ambari.view.hive.utils.ServiceFormattedException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
@@ -35,12 +36,8 @@ public class ConnectionController {
     this.operationHandleControllerFactory = operationHandleControllerFactory;
   }
 
-  public TSessionHandle getSessionByTag(String tag) {
-    try {
-      return connection.getSessionByTag(tag);
-    } catch (HiveClientException e) {
-      throw new ServiceFormattedException(e.toString(), e);
-    }
+  public TSessionHandle getSessionByTag(String tag) throws HiveClientException {
+    return connection.getSessionByTag(tag);
   }
 
   public String openSession() {
@@ -48,7 +45,7 @@ public class ConnectionController {
       TSessionHandle sessionHandle = connection.openSession();
       return getTagBySession(sessionHandle);
     } catch (HiveClientException e) {
-      throw new ServiceFormattedException(e.toString(), e);
+      throw new HiveClientFormattedException(e);
     }
   }
 
@@ -60,7 +57,7 @@ public class ConnectionController {
     try {
       connection.executeSync(session, "use " + database + ";");
     } catch (HiveClientException e) {
-      throw new ServiceFormattedException(e.toString(), e);
+      throw new HiveClientFormattedException(e);
     }
   }
 
@@ -69,7 +66,7 @@ public class ConnectionController {
     try {
       operationHandle = connection.executeAsync(session, cmd);
     } catch (HiveClientException e) {
-      throw new ServiceFormattedException(e.toString(), e);
+      throw new HiveClientFormattedException(e);
     }
     return operationHandleControllerFactory.createControllerForHandle(operationHandle);
   }

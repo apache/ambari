@@ -16,11 +16,15 @@
  * limitations under the License.
  */
 
+@import 'vars';
 @import 'dropdown-submenu';
+@import 'mixins';
+@import 'notifications';
+@import 'query-tabs';
 
-$panel-background: #f5f5f5;
-$placeholder-color: #aaa;
-$border-color: #ddd;
+a {
+  word-wrap: break-word;
+}
 
 @-webkit-keyframes fadeIn {
   0% {opacity: 0;}
@@ -60,19 +64,16 @@ $border-color: #ddd;
   display: flex;
 }
 
+#visual-explain {
+  white-space: nowrap;
+}
+
 #visual-explain, #tez-ui {
   position: absolute;
   left: 0;
   width: 0;
   z-index: 99;
   background: white;
-}
-
-#alerts-container {
-  position: absolute;
-  left: 15px;
-  right: 15px;
-  z-index: 1100;
 }
 
 aside  hr {
@@ -181,19 +182,8 @@ dropdown .fa-remove {
 }
 
 .main-content {
+  width: 90%;
   flex-grow: 1;
-}
-
-.query-menu {
-  margin-top: 57px;
-
-  span, popover {
-    cursor: pointer;
-    overflow: hidden;
-    display: block;
-    border-bottom: 1px solid $border-color;
-    padding: 10px;
-  }
 }
 
 .queries-icon {
@@ -209,10 +199,22 @@ dropdown .fa-remove {
   }
 }
 
+.query-context-tab {
+  background: #f1f1f1;
+
+  &.active {
+    background: white;
+  }
+}
+
 .alert {
   margin-bottom: 5px;
   padding-bottom: 10px;
   padding-top: 10px;
+
+  strong {
+    text-decoration: underline;
+  }
 
   .alert-message {
     max-height: 250px;
@@ -317,22 +319,8 @@ body {
 }
 
 .settings-container {
-  width: 100%;
-  overflow-y: scroll;
-  height: calc(100% - 41px);
-  top: 41px;
-  left: 0;
-  background-color: #fff;
-  position: absolute;
-  padding: 0 15px;
-  z-index: 1000;
-
-  border: 1px solid $border-color;
-  -webkit-animation-duration: .5s;
-          animation-duration: .5s;
-  -webkit-animation-fill-mode: both;
-          animation-fill-mode: both;
 }
+
 .settings-container .close-settings {
   float: right;
   font-size: 18px;
@@ -376,4 +364,78 @@ tree-view ul li {
   width: 100%;
   height: 822px;
   border: none;
+}
+
+.edge {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 800;
+
+  .edge-path {
+    height: 2px;
+    background-color: #dedede;
+    position: absolute;
+  }
+
+  .edge-arrow {
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-right: 10px solid black;
+  }
+}
+
+.nodes {
+  width: 100%;
+  position: relative;
+
+  .node-container {
+    text-align: center;
+
+    .node {
+      border: 1px solid #bbb;
+      background: #fefefe;
+      font-size: 12px;
+      box-sizing: border-box;
+      text-align: left;
+      max-width: 200px;
+      margin: 0 25px 100px 0;
+      display: inline-block;
+      vertical-align: top;
+
+      @include box-shadow(1px, 1px, 15px, #888888);
+
+      &.table-node, &.output-node {
+        background-color: ghostwhite;
+        color: gray;
+        padding: 5px;
+        text-align: center;
+        min-width: 100px;
+        line-height: 8px;
+        vertical-align: bottom;
+        margin-bottom: 50px;
+      }
+
+      .node-heading {
+        padding: 5px;
+        text-align: center;
+        background-color: lightslategrey;
+        color: white;
+      }
+
+      .node-content {
+        max-height: 300px;
+        white-space: normal;
+        padding: 5px;
+        overflow-y: auto;
+        overflow-x: hidden;
+
+        .fa {
+          color: green;
+        }
+      }
+    }
+  }
 }

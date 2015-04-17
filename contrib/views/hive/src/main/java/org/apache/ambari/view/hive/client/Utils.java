@@ -26,7 +26,7 @@ public class Utils {
     if (status.getStatusCode() != TStatusCode.SUCCESS_STATUS &&
         status.getStatusCode() != TStatusCode.SUCCESS_WITH_INFO_STATUS) {
       String message = (status.getErrorMessage() != null) ? status.getErrorMessage() : "";
-      throw new HiveErrorStatusException(status.getStatusCode(), message + ": " + comment);
+      throw new HiveErrorStatusException(status.getStatusCode(), comment + ". " + message);
     }
   }
 

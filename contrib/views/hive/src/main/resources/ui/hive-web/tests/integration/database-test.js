@@ -58,7 +58,7 @@ test('Expanding a database will retrieve the first page of tables for that datab
     click(targetDB);
 
     andThen(function () {
-      equal(find('.fa-th').length, 3);
+      equal(find('.fa-table').length, 3);
     });
   });
 });
@@ -74,7 +74,7 @@ test('Expanding a table will retrieve the first page of columns for that table.'
     click(targetDB);
 
     andThen(function () {
-      var targetTable = find('.fa-th').first();
+      var targetTable = find('.fa-table').first();
 
       click(targetTable);
 

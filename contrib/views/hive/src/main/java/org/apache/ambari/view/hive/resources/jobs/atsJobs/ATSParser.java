@@ -91,6 +91,7 @@ public class ATSParser implements IATSParser {
     HiveQueryId parsedJob = new HiveQueryId();
 
     parsedJob.entity = (String) job.get("entity");
+    parsedJob.url = delegate.hiveQueryIdDirectUrl((String) job.get("entity"));
     parsedJob.starttime = ((Long) job.get("starttime")) / MillisInSecond;
 
     JSONObject primaryfilters = (JSONObject) job.get("primaryfilters");

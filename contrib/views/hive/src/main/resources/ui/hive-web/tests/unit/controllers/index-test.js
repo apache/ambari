@@ -26,7 +26,9 @@ moduleFor('controller:index', 'IndexController', {
           'controller:index/history-query/results',
           'controller:index/history-query/explain',
           'controller:settings',
-          'adapter:database', 'controller:tables', 'controller:columns']
+          'adapter:database', 'controller:tables', 'controller:columns',
+          'controller:visual-explain', 'controller:tez-ui'
+        ]
 });
 
 test('when initialized, controller sets the queryProcessTabs.', function () {
@@ -106,14 +108,19 @@ test('bindQueryParams replaces same param multiple times', function() {
 test('parseQueryParams sets queryParams when query changes', function() {
   expect(3);
 
-  var controller = this.subject();
 
-  var query = "select $what from $where";
+  var query = Ember.Object.create({
+    id: 1,
+    fileContent: "select $what from $where"
+  });
+
+  var controller = this.subject({
+    model: query
+  });
 
   Ember.run(function() {
-    controller.set('openQueries.currentQuery', {
-        'fileContent': query
-    });
+    controller.set('openQueries.queryTabs', [query]);
+    controller.set('openQueries.currentQuery', query);
   });
 
   equal(controller.get('queryParams.length'), 2, '2 queryParams parsed');

@@ -28,6 +28,11 @@ export default Ember.Component.extend({
       if (this.get('isExpanded')) {
         this.sendAction('expanded', this.get('heading'), this.get('toggledParam'));
       }
+    },
+
+    sendControlAction: function(action) {
+      this.set('controlAction', action);
+      this.sendAction('controlAction', this.get('heading'), this.get('toggledParam'));
     }
   }
 });

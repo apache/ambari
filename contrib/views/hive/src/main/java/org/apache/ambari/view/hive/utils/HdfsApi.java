@@ -253,7 +253,7 @@ public class HdfsApi {
       }
     });
     if (!result) {
-      throw new ServiceFormattedException("Can't copy source file from " + src + " to " + dest);
+      throw new ServiceFormattedException("F050 Can't copy source file from " + src + " to " + dest);
     }
   }
 
@@ -341,11 +341,11 @@ public class HdfsApi {
       api = new HdfsApi(defaultFS, getHdfsUsername(context), getHdfsAuthParams(context));
       LOG.info("HdfsApi connected OK");
     } catch (IOException e) {
-      String message = "HdfsApi IO error: " + e.getMessage();
+      String message = "F060 Couldn't open connection to HDFS";
       LOG.error(message);
       throw new ServiceFormattedException(message, e);
     } catch (InterruptedException e) {
-      String message = "HdfsApi Interrupted error: " + e.getMessage();
+      String message = "F060 Couldn't open connection to HDFS";
       LOG.error(message);
       throw new ServiceFormattedException(message, e);
     }

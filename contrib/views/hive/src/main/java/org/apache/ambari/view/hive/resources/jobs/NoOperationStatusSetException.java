@@ -19,8 +19,5 @@
 package org.apache.ambari.view.hive.resources.jobs;
 
 
-public class NoOperationStatusSetException extends Throwable {
-  public NoOperationStatusSetException(String s) {
-    super(s);
-  }
+public class NoOperationStatusSetException extends Exception {
 }

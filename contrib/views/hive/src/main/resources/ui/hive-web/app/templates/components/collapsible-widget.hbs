@@ -18,6 +18,11 @@
 
 <div>
   <a {{action "toggle"}} {{bind-attr class=":fa iconClass"}}> {{heading}}</a>
+  <div class="pull-right">
+    {{#each control in controls}}
+      <a {{action 'sendControlAction' control.action}} {{bind-attr class=":fa control.icon" title="control.tooltip"}}></a>
+    {{/each}}
+  </div>
 </div>
 {{#if isExpanded}}
   {{yield}}

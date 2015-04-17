@@ -33,19 +33,19 @@ test('isExpanded is toggled on click', function() {
   });
 
   Ember.run(function() {
-    component.click();
+    component.send('toggleMessage');
   });
 
   equal(component.get('message.isExpanded'), true, 'isExpanded is set to true');
 
   Ember.run(function() {
-    component.click();
+    component.send('toggleMessage');
   });
 
   equal(component.get('message.isExpanded'), false, 'isExpanded is set to false');
 });
 
-test('removeLater should be called on click', function() {
+test('removeLater should be called when the message is toggled', function() {
   expect(1);
 
   var message = Ember.Object.create({ isExpanded: false});
@@ -63,11 +63,11 @@ test('removeLater should be called on click', function() {
   });
 
   Ember.run(function() {
-    component.click();
+    component.send('toggleMessage');
   });
 
   Ember.run(function() {
-    component.click();
+    component.send('toggleMessage');
   });
 });
 

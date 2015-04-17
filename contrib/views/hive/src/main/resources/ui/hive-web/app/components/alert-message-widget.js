@@ -19,17 +19,17 @@
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-  click: function () {
-    this.toggleProperty('message.isExpanded');
-
-    if (!this.get('message.isExpanded')) {
-      this.sendAction('removeLater', this.get('message'));
-    }
-  },
-
   actions: {
     remove: function () {
       this.sendAction('removeMessage', this.get('message'));
+    },
+
+    toggleMessage: function() {
+      this.toggleProperty('message.isExpanded');
+
+      if (!this.get('message.isExpanded')) {
+        this.sendAction('removeLater', this.get('message'));
+      }
     }
   }
 });
