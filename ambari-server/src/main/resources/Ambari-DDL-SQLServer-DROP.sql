@@ -211,6 +211,12 @@ IF OBJECT_ID('adminprincipaltype', 'U') IS NOT NULL DROP TABLE adminprincipaltyp
 GO
 IF OBJECT_ID('repo_version', 'U') IS NOT NULL DROP TABLE repo_version
 GO
+IF OBJECT_ID('widget_layout_user_widget', 'U') IS NOT NULL DROP TABLE widget_layout_user_widget
+GO
+IF OBJECT_ID('widget_layout', 'U') IS NOT NULL DROP TABLE widget_layout
+GO
+IF OBJECT_ID('widget', 'U') IS NOT NULL DROP TABLE widget
+GO
 IF OBJECT_ID('artifact', 'U') IS NOT NULL DROP TABLE artifact
 GO
 IF OBJECT_ID('stack', 'U') IS NOT NULL DROP TABLE stack
