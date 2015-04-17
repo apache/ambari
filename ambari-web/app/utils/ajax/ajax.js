@@ -2426,6 +2426,17 @@ var urls = {
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
   },
 
+  'widget.layout.edit': {
+    real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
+    mock: '',
+    format: function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+
   'widgets.layout.userDefined.get': {
     real: '/users/{loginName}/widget_layouts?section_name={sectionName}',
     mock: '/data/widget_layouts/HBASE/empty_user_layout.json'

@@ -93,23 +93,25 @@ App.WidgetMixin = Ember.Mixin.create({
   getRequestData: function (metrics) {
     var requestsData = {};
 
-    metrics.forEach(function (metric, index) {
-      var key;
-      if (metric.host_component_criteria) {
-        key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
-      } else {
-        key = metric.service_name + '_' + metric.component_name;
-      }
-      var requestMetric = $.extend({}, metric);
+    if (metrics) {
+      metrics.forEach(function (metric, index) {
+        var key;
+        if (metric.host_component_criteria) {
+          key = metric.service_name + '_' + metric.component_name + '_' + metric.host_component_criteria;
+        } else {
+          key = metric.service_name + '_' + metric.component_name;
+        }
+        var requestMetric = $.extend({}, metric);
 
-      if (requestsData[key]) {
-        requestsData[key]["metric_paths"].push(requestMetric["metric_path"]);
-      } else {
-        requestMetric["metric_paths"] = [requestMetric["metric_path"]];
-        delete requestMetric["metric_path"];
-        requestsData[key] = requestMetric;
-      }
-    }, this);
+        if (requestsData[key]) {
+          requestsData[key]["metric_paths"].push(requestMetric["metric_path"]);
+        } else {
+          requestMetric["metric_paths"] = [requestMetric["metric_path"]];
+          delete requestMetric["metric_path"];
+          requestsData[key] = requestMetric;
+        }
+      }, this);
+    }
     return requestsData;
   },
 
