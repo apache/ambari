@@ -345,7 +345,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @method changeBoundaries
    */
   changeBoundaries: function() {
-    Em.run.once(this, 'changeBoundariesOnce');
+    if (this.get('config.stackConfigProperty.widget')) {
+      Em.run.once(this, 'changeBoundariesOnce');
+    }
   },
 
   /**
