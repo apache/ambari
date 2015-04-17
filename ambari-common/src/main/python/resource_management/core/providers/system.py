@@ -208,7 +208,7 @@ class LinkProvider(Provider):
         return
       if not sudo.path_lexists(path):
         raise Fail(
-          "%s trying to create a symlink with the same name as an existing file or directory" % self)
+          "%s trying to create a symlink with the same name as an existing file or directory" % self.resource)
       Logger.info("%s replacing old symlink to %s" % (self.resource, oldpath))
       sudo.unlink(path)
       
@@ -224,7 +224,7 @@ class LinkProvider(Provider):
       if not sudo.path_exists(self.resource.to):
         Logger.info("Warning: linking to nonexistent location %s" % self.resource.to)
         
-      Logger.info("Creating symbolic %s" % self.resource)
+      Logger.info("Creating symbolic %s to %s" % (self.resource, self.resource.to))
       sudo.symlink(self.resource.to, path)
 
   def action_delete(self):

@@ -35,12 +35,14 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
+  create_lib_snappy_symlinks = False
 else:
   mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
   hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
   hadoop_bin = "/usr/lib/hadoop/sbin"
   hadoop_home = '/usr'
+  create_lib_snappy_symlinks = True
 
 current_service = config['serviceName']
 hadoop_conf_dir = "/etc/hadoop/conf"

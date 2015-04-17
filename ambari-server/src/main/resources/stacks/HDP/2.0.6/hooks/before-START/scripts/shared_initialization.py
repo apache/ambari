@@ -160,7 +160,7 @@ def install_snappy():
   so_src_dir_x64 = format("{hadoop_home}/lib64")
   so_src_x86 = format("{so_src_dir_x86}/{snappy_so}")
   so_src_x64 = format("{so_src_dir_x64}/{snappy_so}")
-  if params.has_namenode:
+  if params.has_namenode and params.create_lib_snappy_symlinks:
     Directory([so_target_dir_x86, so_target_dir_x64],
               recursive=True,
     )    

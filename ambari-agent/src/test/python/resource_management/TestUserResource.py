@@ -17,7 +17,7 @@ limitations under the License.
 '''
 
 from unittest import TestCase
-from mock.mock import patch, MagicMock
+from mock.mock import patch, MagicMock, PropertyMock
 
 from resource_management.core import Environment, Fail
 from resource_management.core.system import System
@@ -170,11 +170,13 @@ class TestUserResource(TestCase):
     popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', "ambari-sudo.sh  PATH=/bin -H -E usermod -s /bin/bash -g 1 mapred"], shell=False, preexec_fn=None, stderr=-2, stdout=5, bufsize=1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     self.assertEqual(popen_mock.call_count, 1)
 
+  @patch('resource_management.core.providers.accounts.UserProvider.user_groups', new_callable=PropertyMock)
   @patch.object(subprocess, "Popen")
   @patch.object(pwd, "getpwnam")
-  def test_attribute_groups(self, getpwnam_mock, popen_mock):
+  def test_attribute_groups(self, getpwnam_mock, popen_mock, user_groups_mock):
     subproc_mock = MagicMock()
     subproc_mock.returncode = 0
+    user_groups_mock.return_value = ['hadoop']
     subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
     getpwnam_mock.return_value = 1

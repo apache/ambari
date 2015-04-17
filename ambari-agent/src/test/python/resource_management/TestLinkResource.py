@@ -62,7 +62,7 @@ class TestLinkResource(TestCase):
         
         self.fail("Must fail when directory or file with name /some_path exist")
       except Fail as e:
-        self.assertEqual("LinkProvider[Link['/some_path']] trying to create a symlink with the same name as an existing file or directory",
+        self.assertEqual("Link['/some_path'] trying to create a symlink with the same name as an existing file or directory",
                        str(e))
         
   @patch.object(sudo,  "path_lexists")
