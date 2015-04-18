@@ -442,18 +442,18 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     if (data.items[0] && data.items.length) {
       this.set("allSharedWidgets",
         data.items.filter(function (widget) {
-          return widget.Widgets.widget_type != "HEATMAP";
+          return widget.WidgetInfo.widget_type != "HEATMAP";
         }).map(function (widget) {
-          var widgetType = widget.Widgets.widget_type;
-          var widgetName = widget.Widgets.widget_name;
+          var widgetType = widget.WidgetInfo.widget_type;
+          var widgetName = widget.WidgetInfo.widget_name;
           return Em.Object.create({
-            id: widget.Widgets.id,
+            id: widget.WidgetInfo.id,
             widgetName: widgetName,
-            displayName: widget.Widgets.display_name,
-            description: widget.Widgets.description,
+            displayName: widget.WidgetInfo.display_name,
+            description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
-            serviceName: JSON.parse(widget.Widgets.metrics).mapProperty('service_name').uniq().join('-'),
+            serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
             added: addedWidgetsNames.contains(widgetName),
             isShared: true
           });
@@ -491,18 +491,18 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     if (data.items[0] && data.items.length) {
       this.set("mineWidgets",
         data.items.filter(function (widget) {
-          return widget.Widgets.widget_type != "HEATMAP";
+          return widget.WidgetInfo.widget_type != "HEATMAP";
         }).map(function (widget) {
-          var widgetType = widget.Widgets.widget_type;
-          var widgetName = widget.Widgets.widget_name;
+          var widgetType = widget.WidgetInfo.widget_type;
+          var widgetName = widget.WidgetInfo.widget_name;
           return Em.Object.create({
-            id: widget.Widgets.id,
+            id: widget.WidgetInfo.id,
             widgetName: widgetName,
-            displayName: widget.Widgets.display_name,
-            description: widget.Widgets.description,
+            displayName: widget.WidgetInfo.display_name,
+            description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
-            serviceName: JSON.parse(widget.Widgets.metrics).mapProperty('service_name').uniq().join('-'),
+            serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
             added: addedWidgetsNames.contains(widgetName),
             isShared: false
           });

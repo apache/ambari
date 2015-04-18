@@ -600,7 +600,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
           }), self.get('controller.widgets'));
           //TODO bind to actual layout instance
           var layout = self.get('controller.widgetLayouts').objectAt(0);
-
           self.get('controller').saveLayout(widgets, layout);
         },
         activate: function (event, ui) {

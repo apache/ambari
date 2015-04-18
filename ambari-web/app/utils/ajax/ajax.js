@@ -2407,12 +2407,12 @@ var urls = {
   },
 
   'widgets.all.shared.get': {
-    real: '/clusters/{clusterName}/widgets?Widgets/scope=CLUSTER&fields=*',
+    real: '/clusters/{clusterName}/widgets?WidgetInfo/scope=CLUSTER&fields=*',
     mock: '/data/widget_layouts/all_shared_widgets.json'
   },
 
   'widgets.all.mine.get': {
-    real: '/clusters/{clusterName}/widgets?Widgets/author={loginName}&fields=*',
+    real: '/clusters/{clusterName}/widgets?WidgetInfo/author={loginName}&fields=*',
     mock: '/data/widget_layouts/all_mine_widgets.json'
   },
 
