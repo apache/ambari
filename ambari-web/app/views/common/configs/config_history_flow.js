@@ -489,6 +489,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
         self.get('controller').set('serviceConfigVersionNote', this.get('serviceConfigNote'));
+        self.get('controller').set('serviceConfigNote', this.get('serviceConfigNote'))
         var newVersionToBeCreated = App.ServiceConfigVersion.find().filterProperty('serviceName', self.get('serviceName')).get('length') + 1;
         self.get('controller').set('preSelectedConfigVersion', Em.Object.create({
           version: newVersionToBeCreated,
