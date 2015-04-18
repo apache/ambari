@@ -57,32 +57,51 @@ public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     final Map<String, Host> clusterHosts = clustersProvider.get().getHostsForCluster(clusterName);
     final StackId stackId = cluster.getDesiredStackVersion();
-    for (Map.Entry<String, Host> hostEntry : clusterHosts.entrySet()) {
-      final Host host = hostEntry.getValue();
+
+    for (Host host : clusterHosts.values()) {
       if (host.getMaintenanceState(cluster.getClusterId()) == MaintenanceState.OFF) {
-        final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(
-            stackId, request.getRepositoryVersion());
-        if (repositoryVersion == null) {
-          prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
-          prerequisiteCheck.setFailReason(getFailReason(KEY_NO_REPO_VERSION, prerequisiteCheck, request));
-          prerequisiteCheck.getFailedOn().addAll(clusterHosts.keySet());
-          return;
-        }
 
-        StackEntity repositoryStackEntity = repositoryVersion.getStack();
-        StackId repositoryStackId = new StackId(
-            repositoryStackEntity.getStackName(),
-            repositoryStackEntity.getStackVersion());
+        if (null != request.getRepositoryVersion()) {
+          boolean found = false;
+          for (HostVersionEntity hve : hostVersionDaoProvider.get().findByHost(host.getHostName())) {
 
-        final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(
-            clusterName, repositoryStackId, repositoryVersion.getVersion(),
-            host.getHostName());
+            if (hve.getRepositoryVersion().getVersion().equals(request.getRepositoryVersion()) &&
+                hve.getState() == RepositoryVersionState.INSTALLED) {
+                found = true;
+                break;
+            }
+          }
 
-        if (hostVersion == null || hostVersion.getState() != RepositoryVersionState.INSTALLED) {
-          prerequisiteCheck.getFailedOn().add(host.getHostName());
+          if (!found) {
+            prerequisiteCheck.getFailedOn().add(host.getHostName());
+          }
+        } else {
+          final RepositoryVersionEntity repositoryVersion = repositoryVersionDaoProvider.get().findByStackAndVersion(
+              stackId, request.getRepositoryVersion());
+          if (repositoryVersion == null) {
+            prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+            prerequisiteCheck.setFailReason(getFailReason(KEY_NO_REPO_VERSION, prerequisiteCheck, request));
+            prerequisiteCheck.getFailedOn().addAll(clusterHosts.keySet());
+            return;
+          }
+
+          StackEntity repositoryStackEntity = repositoryVersion.getStack();
+          StackId repositoryStackId = new StackId(
+              repositoryStackEntity.getStackName(),
+              repositoryStackEntity.getStackVersion());
+
+          final HostVersionEntity hostVersion = hostVersionDaoProvider.get().findByClusterStackVersionAndHost(
+              clusterName, repositoryStackId, repositoryVersion.getVersion(),
+              host.getHostName());
+
+          if (hostVersion == null || hostVersion.getState() != RepositoryVersionState.INSTALLED) {
+            prerequisiteCheck.getFailedOn().add(host.getHostName());
+          }
+
         }
       }
     }
+
     if (!prerequisiteCheck.getFailedOn().isEmpty()) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));

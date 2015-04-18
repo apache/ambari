@@ -17,7 +17,8 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +27,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.checks.ConfigurationMergeCheck;
 import org.apache.ambari.server.checks.HostsHeartbeatCheck;
 import org.apache.ambari.server.checks.HostsMasterMaintenanceCheck;
 import org.apache.ambari.server.checks.HostsRepositoryVersionCheck;
@@ -51,6 +53,7 @@ import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.CheckHelper;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.common.collect.Sets;
 import com.google.inject.Inject;
 
 /**
@@ -92,49 +95,40 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   private static ServicesUpCheck servicesUpCheck;
   @Inject
   private static ServicesTezDistributedCacheCheck servicesTezDistributedCacheCheck;
+  @Inject
+  private static ConfigurationMergeCheck configMergeCheck;
 
   /**
    * List of the registered upgrade checks.  Make sure that if a check that
    * depends on the result of another check comes earlier in the list.
    * For example, MR2 and Tez distributed cache checks rely on NN-HA check passing.
    */
-  @SuppressWarnings("serial")
-  private final List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>() {
-    {
-      add(hostsMasterMaintenanceCheck);
-      add(hostsRepositoryVersionCheck);
-      add(servicesMaintenanceModeCheck);
-      add(servicesNamenodeHighAvailabilityCheck);
-      add(secondaryNamenodeDeletedCheck);
-      add(servicesYarnWorkPreservingCheck);
-      add(servicesDecommissionCheck);
-      add(servicesJobsDistributedCacheCheck);
-      add(heartbeatCheck);
-      add(servicesUpCheck);
-      add(servicesTezDistributedCacheCheck);
-    }
-  };
+  private List<AbstractCheckDescriptor> updateChecksRegistry = Arrays.asList(
+      hostsMasterMaintenanceCheck,
+      hostsRepositoryVersionCheck,
+      servicesMaintenanceModeCheck,
+      servicesNamenodeHighAvailabilityCheck,
+      secondaryNamenodeDeletedCheck,
+      servicesYarnWorkPreservingCheck,
+      servicesDecommissionCheck,
+      servicesJobsDistributedCacheCheck,
+      heartbeatCheck,
+      servicesUpCheck,
+      servicesTezDistributedCacheCheck,
+      configMergeCheck);
 
-  @SuppressWarnings("serial")
-  private static Set<String> pkPropertyIds = new HashSet<String>() {
-    {
-      add(UPGRADE_CHECK_ID_PROPERTY_ID);
-    }
-  };
+  private static Set<String> pkPropertyIds = Collections.singleton(UPGRADE_CHECK_ID_PROPERTY_ID);
 
-  @SuppressWarnings("serial")
-  public static Set<String> propertyIds = new HashSet<String>() {
-    {
-      add(UPGRADE_CHECK_ID_PROPERTY_ID);
-      add(UPGRADE_CHECK_CHECK_PROPERTY_ID);
-      add(UPGRADE_CHECK_STATUS_PROPERTY_ID);
-      add(UPGRADE_CHECK_REASON_PROPERTY_ID);
-      add(UPGRADE_CHECK_FAILED_ON_PROPERTY_ID);
-      add(UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID);
-      add(UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID);
-      add(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID);
-    }
-  };
+  public static Set<String> propertyIds = Sets.newHashSet(
+      UPGRADE_CHECK_ID_PROPERTY_ID,
+      UPGRADE_CHECK_CHECK_PROPERTY_ID,
+      UPGRADE_CHECK_STATUS_PROPERTY_ID,
+      UPGRADE_CHECK_REASON_PROPERTY_ID,
+      UPGRADE_CHECK_FAILED_ON_PROPERTY_ID,
+      UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID,
+      UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID,
+      UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID);
+
 
   @SuppressWarnings("serial")
   public static Map<Type, String> keyPropertyIds = new HashMap<Type, String>() {

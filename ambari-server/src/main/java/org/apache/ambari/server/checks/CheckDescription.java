@@ -121,6 +121,13 @@ public enum CheckDescription {
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
           "YARN should have work preserving restart enabled. The yarn-site.xml property yarn.resourcemanager.work-preserving-recovery.enabled property should be set to true.");
+      }}),
+
+  CONFIG_MERGE(PrereqCheckType.CLUSTER,
+      "Configuration Merge Check",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+          "The following config types will have values overwritten: %s");
       }});
 
   private PrereqCheckType m_type;

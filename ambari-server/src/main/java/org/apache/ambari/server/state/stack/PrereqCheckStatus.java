@@ -22,5 +22,6 @@ package org.apache.ambari.server.state.stack;
  */
 public enum PrereqCheckStatus {
   PASS,
+  WARNING,
   FAIL
 }

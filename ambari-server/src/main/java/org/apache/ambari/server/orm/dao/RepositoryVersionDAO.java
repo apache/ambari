@@ -108,6 +108,19 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
   /**
    * Retrieves repository version by stack.
    *
+   * @param version version
+   * @return null if there is no suitable repository version
+   */
+  @RequiresSession
+  public List<RepositoryVersionEntity> findByVersion(String version) {
+    final TypedQuery<RepositoryVersionEntity> query = entityManagerProvider.get().createNamedQuery("repositoryVersionByVersion", RepositoryVersionEntity.class);
+    query.setParameter("version", version);
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Retrieves repository version by stack.
+   *
    * @param stack
    *          stack with major version (like HDP-2.2)
    * @return null if there is no suitable repository version
