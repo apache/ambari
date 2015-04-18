@@ -244,23 +244,23 @@ if journalnode_address:
   
   
 if security_enabled:
-  _dn_principal_name = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
-  _dn_keytab = config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
-  _dn_principal_name = _dn_principal_name.replace('_HOST',hostname.lower())
+  dn_principal_name = config['configurations']['hdfs-site']['dfs.datanode.kerberos.principal']
+  dn_keytab = config['configurations']['hdfs-site']['dfs.datanode.keytab.file']
+  dn_principal_name = dn_principal_name.replace('_HOST',hostname.lower())
   
-  dn_kinit_cmd = format("{kinit_path_local} -kt {_dn_keytab} {_dn_principal_name};")
+  dn_kinit_cmd = format("{kinit_path_local} -kt {dn_keytab} {dn_principal_name};")
   
-  _nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
-  _nn_keytab = config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
-  _nn_principal_name = _nn_principal_name.replace('_HOST',hostname.lower())
+  nn_principal_name = config['configurations']['hdfs-site']['dfs.namenode.kerberos.principal']
+  nn_keytab = config['configurations']['hdfs-site']['dfs.namenode.keytab.file']
+  nn_principal_name = nn_principal_name.replace('_HOST',hostname.lower())
   
-  nn_kinit_cmd = format("{kinit_path_local} -kt {_nn_keytab} {_nn_principal_name};")
+  nn_kinit_cmd = format("{kinit_path_local} -kt {nn_keytab} {nn_principal_name};")
 
-  _jn_principal_name = default("/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None)
-  if _jn_principal_name:
-    _jn_principal_name = _jn_principal_name.replace('_HOST', hostname.lower())
-  _jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
-  jn_kinit_cmd = format("{kinit_path_local} -kt {_jn_keytab} {_jn_principal_name};")
+  jn_principal_name = default("/configurations/hdfs-site/dfs.journalnode.kerberos.principal", None)
+  if jn_principal_name:
+    jn_principal_name = jn_principal_name.replace('_HOST', hostname.lower())
+  jn_keytab = default("/configurations/hdfs-site/dfs.journalnode.keytab.file", None)
+  jn_kinit_cmd = format("{kinit_path_local} -kt {jn_keytab} {jn_principal_name};")
 else:
   dn_kinit_cmd = ""
   nn_kinit_cmd = ""
@@ -372,8 +372,8 @@ repo_config_username = default("/configurations/ranger-hdfs-plugin-properties/RE
 repo_config_password = default("/configurations/ranger-hdfs-plugin-properties/REPOSITORY_CONFIG_PASSWORD", "hadoop")
 
 if security_enabled:
-  _sn_principal_name = default("/configurations/hdfs-site/dfs.secondary.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
-  _sn_principal_name = _sn_principal_name.replace('_HOST',hostname.lower())
+  sn_principal_name = default("/configurations/hdfs-site/dfs.secondary.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
+  sn_principal_name = sn_principal_name.replace('_HOST',hostname.lower())
 
 admin_uname = default("/configurations/ranger-env/admin_username", "admin")
 admin_password = default("/configurations/ranger-env/admin_password", "admin")

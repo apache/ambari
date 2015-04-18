@@ -191,9 +191,9 @@ def hdfs_repo_properties():
   config_dict['commonNameForCertificate'] = params.common_name_for_certificate
 
   if params.security_enabled:
-    config_dict['dfs.datanode.kerberos.principal'] = params._dn_principal_name
-    config_dict['dfs.namenode.kerberos.principal'] = params._nn_principal_name
-    config_dict['dfs.secondary.namenode.kerberos.principal'] = params._sn_principal_name
+    config_dict['dfs.datanode.kerberos.principal'] = params.dn_principal_name
+    config_dict['dfs.namenode.kerberos.principal'] = params.nn_principal_name
+    config_dict['dfs.secondary.namenode.kerberos.principal'] = params.sn_principal_name
   else:
     config_dict['dfs.datanode.kerberos.principal'] = ''
     config_dict['dfs.namenode.kerberos.principal'] = ''
