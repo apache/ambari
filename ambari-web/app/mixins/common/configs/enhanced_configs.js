@@ -418,6 +418,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               if (value != configs[key].properties[propertyName]) {
                 Em.set(dependentProperty, 'value', value);
                 Em.set(dependentProperty, 'recommendedValue', configs[key].properties[propertyName]);
+                Em.set(dependentProperty, 'saveRecommended', true);
                 Em.set(dependentProperty, 'parentConfigs', dependentProperty.parentConfigs.concat(parentPropertiesNames).uniq());
               }
             } else {
