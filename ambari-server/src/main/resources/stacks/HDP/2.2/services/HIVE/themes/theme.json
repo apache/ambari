@@ -11,6 +11,8 @@
               "name": "settings",
               "display-name": "Settings",
               "layout": {
+                "tab-rows": 6,
+                "tab-columns": 3,
                 "sections": [
                   {
                     "name": "optimization",
@@ -20,18 +22,18 @@
                     "row-span": "3",
                     "column-span": "2",
                     "section-columns": "2",
-                    "section-rows": "3",
+                    "section-rows": "4",
                     "subsections": [
                       {
                         "name": "optimization-row1-col1",
                         "display-name": "Storage",
                         "row-index": "0",
                         "column-index": "0",
-                        "row-span": "1",
+                        "row-span": "2",
                         "column-span": "1"
                       },
                       {
-                        "name": "optimization-row1-col2",
+                        "name": "optimization-row1-col2-1",
                         "display-name": "",
                         "row-index": "0",
                         "column-index": "1",
@@ -39,9 +41,18 @@
                         "column-span": "1"
                       },
                       {
+                        "name": "optimization-row1-col2-2",
+                        "display-name": "",
+                        "row-index": "1",
+                        "column-index": "1",
+                        "row-span": "1",
+                        "column-span": "1",
+                        "border": true
+                      },
+                      {
                         "name": "optimization-row2-col1",
                         "display-name": "Optimization Vectorization",
-                        "row-index": "1",
+                        "row-index": "2",
                         "column-index": "0",
                         "row-span": "1",
                         "column-span": "1"
@@ -49,7 +60,7 @@
                       {
                         "name": "optimization-row2-col2",
                         "display-name": "",
-                        "row-index": "1",
+                        "row-index": "2",
                         "column-index": "1",
                         "row-span": "1",
                         "column-span": "1"
@@ -57,7 +68,7 @@
                       {
                         "name": "optimization-row3-col1",
                         "display-name": "Memory",
-                        "row-index": "2",
+                        "row-index": "3",
                         "column-index": "0",
                         "row-span": "1",
                         "column-span": "1"
@@ -65,7 +76,7 @@
                       {
                         "name": "optimization-row3-col2",
                         "display-name": "",
-                        "row-index": "2",
+                        "row-index": "3",
                         "column-index": "1",
                         "row-span": "1",
                         "column-span": "1"
@@ -83,8 +94,15 @@
                     "section-rows": "2",
                     "subsections": [
                       {
-                        "name": "acid-transactions-row1-col1",
+                        "name": "acid-transactions-row1-col1-1",
                         "row-index": "0",
+                        "column-index": "0",
+                        "row-span": "1",
+                        "column-span": "1"
+                      },
+                      {
+                        "name": "acid-transactions-row1-col1-2",
+                        "row-index": "1",
                         "column-index": "0",
                         "row-span": "1",
                         "column-span": "1"
@@ -99,7 +117,7 @@
                     "row-span": "3",
                     "column-span": "2",
                     "section-columns": "2",
-                    "section-rows": "3",
+                    "section-rows": "2",
                     "subsections": [
                       {
                         "name": "performance-row1-col1",
@@ -147,7 +165,7 @@
                         "name": "interactive-query-row1-col1",
                         "row-index": "0",
                         "column-index": "0",
-                        "row-span": "1",
+                        "row-span": "2",
                         "column-span": "1"
                       }
                     ]
@@ -166,7 +184,7 @@
                         "name": "security-row1-col1",
                         "row-index": "0",
                         "column-index": "0",
-                        "row-span": "1",
+                        "row-span": "2",
                         "column-span": "1"
                       }
                     ]
@@ -190,12 +208,12 @@
           "subsection-name": "optimization-row1-col1"
         },
         {
-          "config": "hive-env/hive_exec_orc_storage_strategy",
-          "subsection-name": "optimization-row1-col2"
+          "config": "hive-site/hive.exec.orc.default.compress",
+          "subsection-name": "optimization-row1-col2-1"
         },
         {
-          "config": "hive-site/hive.exec.orc.default.compress",
-          "subsection-name": "optimization-row1-col2"
+          "config": "hive-env/hive_exec_orc_storage_strategy",
+          "subsection-name": "optimization-row1-col2-2"
         },
         {
           "config": "hive-site/hive.optimize.index.filter",
@@ -207,11 +225,11 @@
         },
         {
           "config": "hive-site/hive.exec.orc.encoding.strategy",
-          "subsection-name": "optimization-row1-col2"
+          "subsection-name": "optimization-row1-col2-2"
         },
         {
           "config": "hive-site/hive.exec.orc.compression.strategy",
-          "subsection-name": "optimization-row1-col2"
+          "subsection-name": "optimization-row1-col2-2"
         },
         {
           "config": "hive-site/hive.vectorized.execution.enabled",
@@ -231,31 +249,31 @@
         },
         {
           "config": "hive-env/hive_txn_acid",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-1"
         },
         {
           "config": "hive-site/hive.txn.manager",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-1"
         },
         {
           "config": "hive-site/hive.support.concurrency",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-1"
         },
         {
           "config": "hive-site/hive.compactor.initiator.on",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-1"
         },
         {
           "config": "hive-site/hive.compactor.worker.threads",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-1"
         },
         {
           "config": "hive-site/hive.enforce.bucketing",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-2"
         },
         {
           "config": "hive-site/hive.exec.dynamic.partition.mode",
-          "subsection-name": "acid-transactions-row1-col1"
+          "subsection-name": "acid-transactions-row1-col1-2"
         },
         {
           "config": "hive-site/hive.execution.engine",

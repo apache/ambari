@@ -29,7 +29,30 @@ App.Section = DS.Model.extend({
   sectionColumns: DS.attr('number', {defaultValue: 1}),
   sectionRows: DS.attr('number', {defaultValue: 1}),
   subSections: DS.hasMany('App.SubSection'),
-  tab: DS.belongsTo('App.Tab')
+  tab: DS.belongsTo('App.Tab'),
+  isFirstRow: function () {
+    return this.get('rowIndex') == 0;
+  }.property(),
+
+  isMiddleRow: function () {
+    return this.get('rowIndex') != 0 && (this.get('rowIndex') + this.get('rowSpan') < this.get('tab.rows'));
+  }.property(),
+
+  isLastRow: function () {
+    return this.get('rowIndex') + this.get('rowSpan') == this.get('tab.rows');
+  }.property(),
+
+  isFirstColumn: function () {
+    return this.get('columnIndex') == 0;
+  }.property(),
+
+  isMiddleColumn: function () {
+    return this.get('columnIndex') != 0 && (this.get('columnIndex') + this.get('columnSpan') < this.get('tab.columns'));
+  }.property(),
+
+  isLastColumn: function () {
+    return this.get('columnIndex') + this.get('columnSpan') == this.get('tab.columns');
+  }.property()
 });
 
 

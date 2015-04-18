@@ -5623,10 +5623,10 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
       table-layout: fixed; // for width to be equally distributed
       margin: 0 -20px;
       .config-section {
-        padding: 10px;
+        height: 100%;
+        padding: 30px;
         border: 1px solid #aaa;
         vertical-align: top;
-
         h4 {
           font-size: 22px;
           font-weight: 400;
@@ -5636,19 +5636,27 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
           font-size: 18px;
           font-weight: 400;
         }
-
-        td:not(:first-of-type) {
-          border-left: 2px solid #ccc; // horizontal splitter
+        .vertical-splitter {
+          border-left: 2px solid #ccc; // vertical splitter
           padding-left: 20px;
         }
+
         .config-subsection-table {
           width: 100%;
-          height: 90%;
-          border-spacing: 5px;
+          height: 90%; // fallback option
+          height: ~"calc(100% - 30px)";
           border-collapse: separate;
           table-layout: fixed;
           .config-subsection {
             vertical-align: top;
+            &.no-horizontal-splitter {
+              border-bottom: none; // no horizontal splitter for subsection on the last row
+            }
+            border-bottom: 2px solid #ccc; // horizontal splitter
+
+            .directories {
+              min-width: 0px !important;
+            }
           }
         }
       }

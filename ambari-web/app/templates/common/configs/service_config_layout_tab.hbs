@@ -27,7 +27,7 @@
               {{#each subRow in section.subsectionRows}}
                 <tr>
                   {{#each subsection in subRow}}
-                    <td {{bindAttr class="subsection.isHiddenByFilter:invisible :config-subsection"}}>
+                    <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.isFirstColumn::vertical-splitter :config-subsection subsection.isLastRow:no-horizontal-splitter" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
                       <h5>{{subsection.displayName}}&nbsp;</h5>
                       {{#each config in subsection.configs}}
                         {{#if config.widget}}
