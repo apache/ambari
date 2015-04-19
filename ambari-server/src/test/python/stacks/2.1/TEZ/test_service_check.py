@@ -44,6 +44,17 @@ class TestFalconServer(RMFTestCase):
                               bin_dir = '/usr/bin',
                               principal = UnknownConfigurationMock(),
                               )
+    self.assertResourceCalled('HdfsDirectory', '/tmp',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0777,
+                              owner = 'hdfs',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
+                              )
     self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp/tezsmokeinput',
                               try_sleep = 5,
                               tries = 3,

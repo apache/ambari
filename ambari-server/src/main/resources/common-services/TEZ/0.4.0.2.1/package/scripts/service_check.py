@@ -59,6 +59,12 @@ class TezServiceCheckLinux(TezServiceCheck):
                    bin_dir = params.hadoop_bin_dir
     )
 
+    params.HdfsDirectory("/tmp",
+                         action="create",
+                         owner=params.hdfs_user,
+                         mode=0777
+    )
+
     ExecuteHadoop( create_input_dir_cmd,
                    tries = 3,
                    try_sleep = 5,
