@@ -51,6 +51,14 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   switcherValue: false,
 
   /**
+   * when value is changed by recommendations we don't need to send
+   * another request for recommendations.
+   *
+   * @type {boolean}
+   */
+  skipRequestForDependencies: false,
+
+  /**
    * Update config value using <code>switcherValue</code>.
    * switcherValue is boolean, but config value should be a string.
    *
@@ -92,7 +100,9 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   setValue: function (configValue) {
     var value = this.getNewSwitcherValue(configValue);
     if (this.get('switcherValue') !== value) {
+      this.set('skipRequestForDependencies', true);
       this.get('switcher').bootstrapSwitch('toggleState', value);
+      this.set('skipRequestForDependencies', false);
       this.set('switcherValue', value);
     }
   },
@@ -115,8 +125,10 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
         handleWidth: self.getHandleWidth(labels.mapProperty('label.length')),
         onSwitchChange: function (event, state) {
           self.set('switcherValue', state);
-          self.get('controller').removeCurrentFromDependentList(self.get('config'));
-          self.sendRequestRorDependentConfigs(self.get('config'));
+          if (!self.get('skipRequestForDependencies')) {
+            self.get('controller').removeCurrentFromDependentList(self.get('config'));
+            self.sendRequestRorDependentConfigs(self.get('config'));
+          }
         }
       });
       this.set('switcher', switcher);
@@ -144,8 +156,11 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   restoreValue: function () {
     this._super();
     var value = this.getNewSwitcherValue(this.get('config.value'));
+    this.set('skipRequestForDependencies', true);
     this.get('switcher').bootstrapSwitch('toggleState', value);
+    this.set('skipRequestForDependencies', false);
     this.set('switcherValue', value);
+    this.get('controller').removeCurrentFromDependentList(this.get('config'));
   },
 
   /**
