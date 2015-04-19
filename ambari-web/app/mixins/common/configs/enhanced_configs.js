@@ -440,26 +440,32 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             }
           }
         }
-
-        /**
-         * saving new attribute values
-         */
-        if (configs[key].property_attributes && configs[key].property_attributes[propertyName]) {
-
-          var stackProperty = App.StackConfigProperty.find(propertyName + '_' + key);
-          if (stackProperty && stackProperty.get('valueAttributes')) {
-            if (configs[key].property_attributes[propertyName].minimum) {
-              stackProperty.set('valueAttributes.minimum', configs[key].property_attributes[propertyName].minimum);
-            }
-            if (configs[key].property_attributes[propertyName].maximum) {
-              stackProperty.set('valueAttributes.maximum', configs[key].property_attributes[propertyName].maximum);
-            }
-            if (configs[key].property_attributes[propertyName].increment_step) {
-              stackProperty.set('valueAttributes.increment_step', configs[key].property_attributes[propertyName].increment_step);
-            }
-          }
-        }
       }
+      this._saveRecommendedAttributes(configs);
     }
+  },
+
+  /**
+   * Save property attributes recieved from recommendations. These attributes are minimum, maximum,
+   * increment_step. Attributes are stored in <code>App.StackConfigProperty</code> model.
+   *
+   * @param {Object[]} configs
+   */
+  _saveRecommendedAttributes: function(configs) {
+    Em.keys(configs).forEach(function(siteName) {
+      var properties = configs[siteName].property_attributes;
+      if (properties) {
+        Em.keys(properties).forEach(function(propertyName) {
+          var stackProperty = App.StackConfigProperty.find(propertyName + '_' + siteName);
+          if (stackProperty && properties) {
+            var attributes = properties[propertyName];
+            Em.keys(attributes || []).forEach(function(attributeName) {
+              Em.set(stackProperty.get('valueAttributes'), attributeName, attributes[attributeName]);
+            });
+          }
+        });
+      }
+    });
   }
+
 });
