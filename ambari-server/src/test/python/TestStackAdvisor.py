@@ -339,3 +339,39 @@ class TestStackAdvisorInitialization(TestCase):
       }
     }
     self.assertEquals(actualRecommendLayoutResponse, expectedRecommendLayoutResponse)
+
+    # Config groups support by default
+    services["config-groups"] = [{
+      "configurations": {
+      },
+      "hosts": [
+        'host2'
+      ]
+    }]
+
+    actualConfigGroupRecommendConfigResponse = \
+      default_stack_advisor.recommendConfigurations(services, hosts)
+    expectedConfigGroupRecommendConfigResponse = {
+      "Versions": {"stack_name": "HDP1", "stack_version": "2.0.6"},
+      "hosts": ["host1", "host2"],
+      "services": ['GANGLIA', 'HBASE', 'HDFS', 'PIG', 'TEZ', 'ZOOKEEPER'],
+      "recommendations": {
+        'config-groups': [
+          {
+            'configurations': {},
+            'dependent_configurations': {},
+            'hosts': [
+              'host2'
+            ]
+          }
+        ],
+        "blueprint": {
+          "configurations": {},
+          "host_groups": []
+        },
+        "blueprint_cluster_binding": {
+          "host_groups": []
+        }
+      }
+    }
+    self.assertEquals(actualConfigGroupRecommendConfigResponse, expectedConfigGroupRecommendConfigResponse)

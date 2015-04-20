@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.api.services.stackadvisor.recommendations;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -71,6 +73,10 @@ public class RecommendationResponse extends StackAdvisorResponse {
     @JsonProperty("blueprint_cluster_binding")
     private BlueprintClusterBinding blueprintClusterBinding;
 
+    @JsonProperty("config-groups")
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+    private Set<ConfigGroup> configGroups;
+
     public Blueprint getBlueprint() {
       return blueprint;
     }
@@ -85,6 +91,14 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setBlueprintClusterBinding(BlueprintClusterBinding blueprintClusterBinding) {
       this.blueprintClusterBinding = blueprintClusterBinding;
+    }
+
+    public Set<ConfigGroup> getConfigGroups() {
+      return configGroups;
+    }
+
+    public void setConfigGroups(Set<ConfigGroup> configGroups) {
+      this.configGroups = configGroups;
     }
   }
 
@@ -121,7 +135,7 @@ public class RecommendationResponse extends StackAdvisorResponse {
     private Map<String, ValueAttributesInfo> propertyAttributes;
 
     public BlueprintConfigurations() {
-      System.out.println(this);
+
     }
 
     public Map<String, String> getProperties() {
@@ -199,6 +213,50 @@ public class RecommendationResponse extends StackAdvisorResponse {
 
     public void setHosts(Set<Map<String, String>> hosts) {
       this.hosts = hosts;
+    }
+  }
+
+  public static class ConfigGroup {
+
+    @JsonProperty
+    private List<String> hosts;
+
+    @JsonProperty
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+    private Map<String, BlueprintConfigurations> configurations =
+      new HashMap<String, BlueprintConfigurations>();
+
+    @JsonProperty("dependent_configurations")
+    @JsonSerialize(include=JsonSerialize.Inclusion.NON_NULL)
+    private Map<String, BlueprintConfigurations> dependentConfigurations =
+      new HashMap<String, BlueprintConfigurations>();
+
+    public ConfigGroup() {
+
+    }
+
+    public List<String> getHosts() {
+      return hosts;
+    }
+
+    public void setHosts(List<String> hosts) {
+      this.hosts = hosts;
+    }
+
+    public Map<String, BlueprintConfigurations> getConfigurations() {
+      return configurations;
+    }
+
+    public void setConfigurations(Map<String, BlueprintConfigurations> configurations) {
+      this.configurations = configurations;
+    }
+
+    public Map<String, BlueprintConfigurations> getDependentConfigurations() {
+      return dependentConfigurations;
+    }
+
+    public void setDependentConfigurations(Map<String, BlueprintConfigurations> dependentConfigurations) {
+      this.dependentConfigurations = dependentConfigurations;
     }
   }
 
