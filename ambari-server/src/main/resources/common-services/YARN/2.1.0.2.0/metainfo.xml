@@ -240,6 +240,8 @@
         <config-type>core-site</config-type>
         <config-type>mapred-site</config-type>
         <config-type>mapred-env</config-type>
+        <config-type>ssl-client</config-type>
+        <config-type>ssl-server</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>

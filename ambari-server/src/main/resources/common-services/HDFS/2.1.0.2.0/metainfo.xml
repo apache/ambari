@@ -235,6 +235,8 @@
         <config-type>hadoop-policy</config-type>
         <config-type>hdfs-log4j</config-type>
         <config-type>ranger-hdfs-plugin-properties</config-type>
+        <config-type>ssl-client</config-type>
+        <config-type>ssl-server</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
     </service>

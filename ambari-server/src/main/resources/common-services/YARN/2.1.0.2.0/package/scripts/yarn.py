@@ -272,7 +272,23 @@ def yarn(name = None):
               owner=params.hdfs_user,
               group=params.user_group
     )
+  if "ssl-client" in params.config['configurations']:
+    XmlConfig("ssl-client.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['ssl-client'],
+              configuration_attributes=params.config['configuration_attributes']['ssl-client'],
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
 
+  if "ssl-server" in params.config['configurations']:
+    XmlConfig("ssl-server.xml",
+              conf_dir=params.hadoop_conf_dir,
+              configurations=params.config['configurations']['ssl-server'],
+              configuration_attributes=params.config['configuration_attributes']['ssl-server'],
+              owner=params.hdfs_user,
+              group=params.user_group
+    )
   if os.path.exists(os.path.join(params.hadoop_conf_dir, 'fair-scheduler.xml')):
     File(os.path.join(params.hadoop_conf_dir, 'fair-scheduler.xml'),
          owner=params.mapred_user,
