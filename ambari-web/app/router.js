@@ -312,7 +312,8 @@ App.Router = Em.Router.extend({
       }
       App.set('isPermissionDataLoaded', true);
       if (transitionToApp) {
-        if (!Em.isNone(router.get('preferedPath'))) {
+        if (!Em.isNone(router.get('preferedPath')) && 
+            router.get('preferedPath') != "#/login") {
           window.location = router.get('preferedPath');
           router.set('preferedPath', null);
         } else {
