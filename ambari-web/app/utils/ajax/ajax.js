@@ -2478,7 +2478,7 @@ var urls = {
   },
 
   'widgets.wizard.add': {
-    real: '/clusters/c1/widgets/',
+    real: '/clusters/{clusterName}/widgets/',
     mock: '',
     'format': function (data) {
       return {
