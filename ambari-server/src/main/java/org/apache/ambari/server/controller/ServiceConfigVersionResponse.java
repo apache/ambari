@@ -19,73 +19,105 @@
 package org.apache.ambari.server.controller;
 
 
+import java.util.List;
+
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
-import java.util.List;
-
 public class ServiceConfigVersionResponse {
-  private String clusterName;
-  private String serviceName;
-  private Long version;
-  private Long createTime;
-  private Long groupId;
-  private String groupName;
-  private String userName;
-  private String note;
-  private Boolean isCurrent = false;
-  private List<ConfigurationResponse> configurations;
-  private List<String> hosts;
+  @JsonProperty("cluster_name")
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private final String clusterName;
 
   @JsonProperty("service_name")
+  private final String serviceName;
+
+  @JsonProperty("service_config_version")
+  private final Long version;
+
+  @JsonProperty("createtime")
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private final Long createTime;
+
+  @JsonProperty("group_id")
+  private final Long groupId;
+
+  @JsonProperty("group_name")
+  private final String groupName;
+
+  @JsonProperty("user")
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private final String userName;
+
+  @JsonProperty("service_config_version_note")
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private final String note;
+
+  @JsonProperty("is_current")
+  private Boolean isCurrent = Boolean.FALSE;
+
+  @JsonProperty("is_cluster_compatible")
+  private final Boolean isCompatibleWithCurrentStack;
+
+  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
+  private List<ConfigurationResponse> configurations;
+
+  @JsonProperty("hosts")
+  private final List<String> hosts;
+
+  /**
+   * Constructor.
+   *
+   * @param clusterName
+   * @param serviceName
+   * @param version
+   * @param isCurrent
+   * @param isCompatibleWithCurrentStack
+   * @param configurations
+   */
+  public ServiceConfigVersionResponse(ServiceConfigEntity serviceConfigEntity,
+      String configGroupName) {
+    super();
+    ClusterEntity clusterEntity = serviceConfigEntity.getClusterEntity();
+
+    clusterName = clusterEntity.getClusterName();
+    serviceName = serviceConfigEntity.getServiceName();
+    version = serviceConfigEntity.getVersion();
+    userName = serviceConfigEntity.getUser();
+    createTime = serviceConfigEntity.getCreateTimestamp();
+    note = serviceConfigEntity.getNote();
+    groupId = serviceConfigEntity.getGroupId();
+    groupName = configGroupName;
+    hosts = serviceConfigEntity.getHostNames();
+
+    StackEntity serviceConfigStackEntity = serviceConfigEntity.getStack();
+    StackEntity clusterStackEntity = clusterEntity.getClusterStateEntity().getCurrentStack();
+
+    isCompatibleWithCurrentStack = clusterStackEntity.equals(serviceConfigStackEntity);
+  }
+
   public String getServiceName() {
     return serviceName;
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
-  }
-
-  @JsonProperty("service_config_version")
   public Long getVersion() {
     return version;
   }
 
-  public void setVersion(Long version) {
-    this.version = version;
-  }
-
-  @JsonProperty("createtime")
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   public Long getCreateTime() {
     return createTime;
   }
 
-  public void setCreateTime(Long createTime) {
-    this.createTime = createTime;
-  }
-
-  @JsonProperty("user")
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   public String getUserName() {
     return userName;
   }
-
-  public void setUserName(String userName) {
-    this.userName = userName;
-  }
-
-  @JsonProperty("cluster_name")
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   public String getClusterName() {
     return clusterName;
   }
 
-  public void setClusterName(String clusterName) {
-    this.clusterName = clusterName;
-  }
-
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   public List<ConfigurationResponse> getConfigurations() {
     return configurations;
   }
@@ -94,50 +126,38 @@ public class ServiceConfigVersionResponse {
     this.configurations = configurations;
   }
 
-  @JsonProperty("service_config_version_note")
-  @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   public String getNote() {
     return note;
-  }
-
-  public void setNote(String note) {
-    this.note = note;
   }
 
   public List<String> getHosts() {
     return hosts;
   }
 
-  @JsonProperty("hosts")
-  public void setHosts(List<String> hosts) {
-    this.hosts = hosts;
-  }
-
-  @JsonProperty("group_name")
   public String getGroupName() {
     return groupName;
   }
 
-  public void setGroupName(String groupName) {
-    this.groupName = groupName;
-  }
-
-  @JsonProperty("group_id")
   public Long getGroupId() {
     return groupId;
   }
 
-  public void setGroupId(Long groupId) {
-    this.groupId = groupId;
-  }
-
-  @JsonProperty("is_current")
   public Boolean getIsCurrent() {
     return isCurrent;
   }
 
   public void setIsCurrent(Boolean isCurrent) {
     this.isCurrent = isCurrent;
+  }
+
+  /**
+   * Gets whether this service configuration is compatible with the cluster's
+   * current stack version.
+   *
+   * @return {@code true} if compatible, {@code false} otherwise.
+   */
+  public Boolean isCompatibleWithCurrentStack() {
+    return isCompatibleWithCurrentStack;
   }
 }
 

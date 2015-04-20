@@ -18,6 +18,24 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertNull;
+import static junit.framework.Assert.assertTrue;
+import static org.easymock.EasyMock.capture;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.controller.ConfigurationResponse;
@@ -28,16 +46,10 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.StackId;
 import org.easymock.Capture;
 import org.junit.Assert;
 import org.junit.Test;
-
-import java.util.*;
-
-import static junit.framework.Assert.assertEquals;
-import static junit.framework.Assert.assertNull;
-import static junit.framework.Assert.assertTrue;
-import static org.easymock.EasyMock.*;
 
 /**
  * Tests for the configuration resource provider.
@@ -57,8 +69,6 @@ public class ConfigurationResourceProviderTest {
     replay(managementController, response);
 
     ConfigurationResourceProvider provider = new ConfigurationResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Configuration ),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Configuration),
         managementController);
 
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -106,8 +116,6 @@ public class ConfigurationResourceProviderTest {
     replay(managementController, response);
 
     ConfigurationResourceProvider provider = new ConfigurationResourceProvider(
-        PropertyHelper.getPropertyIds(Resource.Type.Configuration ),
-        PropertyHelper.getKeyPropertyIds(Resource.Type.Configuration),
         managementController);
 
     Set<Map<String, Object>> propertySet = new LinkedHashSet<Map<String, Object>>();
@@ -134,17 +142,23 @@ public class ConfigurationResourceProviderTest {
   @Test
   public void testGetResources() throws Exception {
     Resource.Type type = Resource.Type.Configuration;
+    StackId stackId = new StackId("HDP", "0.1");
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
 
     Set<ConfigurationResponse> allResponse = new HashSet<ConfigurationResponse>();
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", 1L, null, null));
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", 2L, null, null));
-    allResponse.add(new ConfigurationResponse("Cluster100", "type", "tag3", 3L, null, null));
+    allResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
+        "tag1", 1L, null, null));
+    allResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
+        "tag2", 2L, null, null));
+    allResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
+        "tag3", 3L, null, null));
 
     Set<ConfigurationResponse> orResponse = new HashSet<ConfigurationResponse>();
-    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag1", 1L, null, null));
-    orResponse.add(new ConfigurationResponse("Cluster100", "type", "tag2", 2L, null, null));
+    orResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
+        "tag1", 1L, null, null));
+    orResponse.add(new ConfigurationResponse("Cluster100", stackId, "type",
+        "tag2", 2L, null, null));
 
     Capture<Set<ConfigurationRequest>> configRequestCapture1 = new Capture<Set<ConfigurationRequest>>();
     Capture<Set<ConfigurationRequest>> configRequestCapture2 = new Capture<Set<ConfigurationRequest>>();
@@ -193,7 +207,11 @@ public class ConfigurationResourceProviderTest {
     for (Resource resource : resources) {
       String clusterName = (String) resource.getPropertyValue(
           ConfigurationResourceProvider.CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+
+      String stackIdProperty = (String) resource.getPropertyValue(ConfigurationResourceProvider.CONFIGURATION_STACK_ID_PROPERTY_ID);
+
       Assert.assertEquals("Cluster100", clusterName);
+      Assert.assertEquals(stackId.getStackId(), stackIdProperty);
       String tag = (String) resource.getPropertyValue(
           ConfigurationResourceProvider.CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
 

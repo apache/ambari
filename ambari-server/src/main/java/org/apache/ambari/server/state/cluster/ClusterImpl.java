@@ -1962,17 +1962,10 @@ public class ClusterImpl implements Cluster {
       configGroup==null?"-1":configGroup.getId(),
       serviceConfigEntity.getVersion());
 
-    ServiceConfigVersionResponse response = new ServiceConfigVersionResponse();
-    response.setUserName(user);
-    response.setClusterName(getClusterName());
-    response.setVersion(serviceConfigEntity.getVersion());
-    response.setServiceName(serviceConfigEntity.getServiceName());
-    response.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-    response.setUserName(serviceConfigEntity.getUser());
-    response.setNote(serviceConfigEntity.getNote());
-    response.setGroupId(serviceConfigEntity.getGroupId());
-    response.setHosts(serviceConfigEntity.getHostNames());
-    response.setGroupName(configGroup != null ? configGroup.getName() : null);
+    String configGroupName = configGroup != null ? configGroup.getName() : null;
+
+    ServiceConfigVersionResponse response = new ServiceConfigVersionResponse(
+        serviceConfigEntity, configGroupName);
 
     return response;
   }
@@ -2059,7 +2052,6 @@ public class ClusterImpl implements Cluster {
       for (ServiceConfigEntity serviceConfigEntity : serviceConfigDAO.getServiceConfigs(getClusterId())) {
         ServiceConfigVersionResponse serviceConfigVersionResponse = convertToServiceConfigVersionResponse(serviceConfigEntity);
 
-        serviceConfigVersionResponse.setHosts(serviceConfigEntity.getHostNames());
         serviceConfigVersionResponse.setConfigurations(new ArrayList<ConfigurationResponse>());
         serviceConfigVersionResponse.setIsCurrent(activeIds.contains(serviceConfigEntity.getServiceConfigId()));
 
@@ -2067,10 +2059,11 @@ public class ClusterImpl implements Cluster {
         for (ClusterConfigEntity clusterConfigEntity : clusterConfigEntities) {
           Config config = allConfigs.get(clusterConfigEntity.getType()).get(
               clusterConfigEntity.getTag());
+
           serviceConfigVersionResponse.getConfigurations().add(
-              new ConfigurationResponse(getClusterName(), config.getType(),
-                  config.getTag(), config.getVersion(), config.getProperties(),
-                  config.getPropertiesAttributes()));
+              new ConfigurationResponse(getClusterName(), config.getStackId(),
+                  config.getType(), config.getTag(), config.getVersion(),
+                  config.getProperties(), config.getPropertiesAttributes()));
         }
 
         serviceConfigVersionResponses.add(serviceConfigVersionResponse);
@@ -2128,33 +2121,26 @@ public class ClusterImpl implements Cluster {
 
   @RequiresSession
   ServiceConfigVersionResponse convertToServiceConfigVersionResponse(ServiceConfigEntity serviceConfigEntity) {
-    ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse();
-
-    serviceConfigVersionResponse.setClusterName(getClusterName());
-    serviceConfigVersionResponse.setServiceName(serviceConfigEntity.getServiceName());
-    serviceConfigVersionResponse.setVersion(serviceConfigEntity.getVersion());
-    serviceConfigVersionResponse.setCreateTime(serviceConfigEntity.getCreateTimestamp());
-    serviceConfigVersionResponse.setUserName(serviceConfigEntity.getUser());
-    serviceConfigVersionResponse.setNote(serviceConfigEntity.getNote());
-
     Long groupId = serviceConfigEntity.getGroupId();
 
+    String groupName;
     if (groupId != null) {
-      serviceConfigVersionResponse.setGroupId(groupId);
       ConfigGroup configGroup = null;
       if (clusterConfigGroups != null) {
         configGroup = clusterConfigGroups.get(groupId);
       }
 
       if (configGroup != null) {
-        serviceConfigVersionResponse.setGroupName(configGroup.getName());
+        groupName = configGroup.getName();
       } else {
-        serviceConfigVersionResponse.setGroupName("deleted");
+        groupName = "deleted";
       }
     } else {
-      serviceConfigVersionResponse.setGroupId(-1L); // -1 if no group
-      serviceConfigVersionResponse.setGroupName("default");
+      groupName = "default";
     }
+
+    ServiceConfigVersionResponse serviceConfigVersionResponse = new ServiceConfigVersionResponse(
+        serviceConfigEntity, groupName);
 
     return serviceConfigVersionResponse;
   }

@@ -40,6 +40,7 @@ public class ConfigImpl implements Config {
   public static final String GENERATED_TAG_PREFIX = "generatedTag_";
 
   private Cluster cluster;
+  private StackId stackId;
   private String type;
   private String tag;
   private Long version;
@@ -59,6 +60,7 @@ public class ConfigImpl implements Config {
   public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties,
       @Assisted Map<String, Map<String, String>> propertiesAttributes, Injector injector) {
     this.cluster = cluster;
+    stackId = cluster.getCurrentStackVersion();
     this.type = type;
     this.properties = properties;
     this.propertiesAttributes = propertiesAttributes;
@@ -69,6 +71,7 @@ public class ConfigImpl implements Config {
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity, Injector injector) {
     this.cluster = cluster;
+    stackId = cluster.getCurrentStackVersion();
     type = entity.getType();
     tag = entity.getTag();
     version = entity.getVersion();
@@ -81,6 +84,14 @@ public class ConfigImpl implements Config {
    */
   public ConfigImpl(String type) {
     this.type = type;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public StackId getStackId() {
+    return stackId;
   }
 
   @Override
@@ -163,10 +174,9 @@ public class ConfigImpl implements Config {
     }
   }
 
-  @Transactional
   @Override
+  @Transactional
   public synchronized void persist() {
-
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
     ClusterConfigEntity entity = new ClusterConfigEntity();
@@ -182,14 +192,11 @@ public class ConfigImpl implements Config {
     if (null != getPropertiesAttributes()) {
       entity.setAttributes(gson.toJson(getPropertiesAttributes()));
     }
+
     clusterDAO.createConfig(entity);
 
     clusterEntity.getClusterConfigEntities().add(entity);
     clusterDAO.merge(clusterEntity);
     cluster.refresh();
-
   }
-
-
-
 }

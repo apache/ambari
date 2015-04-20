@@ -37,6 +37,13 @@ public interface Config {
   public String getTag();
 
   /**
+   * Gets the stack that this configuration belongs to.
+   *
+   * @return the stack (not {@code null).
+   */
+  public StackId getStackId();
+
+  /**
    *
    * @return version of config by type
    */
@@ -93,7 +100,7 @@ public interface Config {
    * @param properties Property keys to be deleted
    */
   public void deleteProperties(List<String> properties);
-  
+
   /**
    * Persist the configuration.
    */

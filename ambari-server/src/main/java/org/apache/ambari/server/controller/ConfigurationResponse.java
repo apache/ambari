@@ -20,6 +20,9 @@ package org.apache.ambari.server.controller;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.StackId;
+
 /**
  * This class encapsulates a configuration update request.
  * The configuration properties are grouped at service level. It is assumed that
@@ -28,6 +31,8 @@ import java.util.Map;
 public class ConfigurationResponse {
 
   private final String clusterName;
+
+  private final StackId stackId;
 
   private final String type;
 
@@ -41,13 +46,12 @@ public class ConfigurationResponse {
 
   private Map<String, Map<String, String>> configAttributes;
 
-  public ConfigurationResponse(String clusterName,
-                               String type, String versionTag,
-                               Long version,
-                               Map<String, String> configs,
-                               Map<String, Map<String, String>> configAttributes) {
-    super();
+  public ConfigurationResponse(String clusterName, StackId stackId,
+      String type, String versionTag, Long version,
+      Map<String, String> configs,
+      Map<String, Map<String, String>> configAttributes) {
     this.clusterName = clusterName;
+    this.stackId = stackId;
     this.configs = configs;
     this.type = type;
     this.versionTag = versionTag;
@@ -56,6 +60,17 @@ public class ConfigurationResponse {
     this.configAttributes = configAttributes;
   }
 
+  /**
+   * Constructor.
+   *
+   * @param clusterName
+   * @param config
+   */
+  public ConfigurationResponse(String clusterName, Config config) {
+    this(clusterName, config.getStackId(), config.getType(), config.getTag(),
+        config.getVersion(), config.getProperties(),
+        config.getPropertiesAttributes());
+  }
 
   /**
    * @return the versionTag
@@ -115,16 +130,41 @@ public class ConfigurationResponse {
     this.version = version;
   }
 
+  /**
+   * Gets the Stack ID that this configuration is scoped for.
+   *
+   * @return
+   */
+  public StackId getStackId() {
+    return stackId;
+  }
+
   @Override
   public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
     ConfigurationResponse that = (ConfigurationResponse) o;
 
-    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) return false;
-    if (type != null ? !type.equals(that.type) : that.type != null) return false;
-    if (version != null ? !version.equals(that.version) : that.version != null) return false;
+    if (clusterName != null ? !clusterName.equals(that.clusterName) : that.clusterName != null) {
+      return false;
+    }
+
+    if (stackId != null ? !stackId.equals(that.stackId) : that.stackId != null) {
+      return false;
+    }
+
+    if (type != null ? !type.equals(that.type) : that.type != null) {
+      return false;
+    }
+
+    if (version != null ? !version.equals(that.version) : that.version != null) {
+      return false;
+    }
 
     return true;
   }
@@ -132,6 +172,7 @@ public class ConfigurationResponse {
   @Override
   public int hashCode() {
     int result = clusterName != null ? clusterName.hashCode() : 0;
+    result = 31 * result + (stackId != null ? stackId.hashCode() : 0);
     result = 31 * result + (type != null ? type.hashCode() : 0);
     result = 31 * result + (version != null ? version.hashCode() : 0);
     return result;

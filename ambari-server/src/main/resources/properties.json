@@ -83,24 +83,6 @@
         "HostRoles/service_name",
         "_"
     ],
-    "Configuration":[
-        "Config/tag",
-        "Config/type",
-        "Config/cluster_name",
-        "Config/version"
-    ],
-    "ServiceConfigVersion":[
-        "ServiceConfigVersion/cluster_name",
-        "ServiceConfigVersion/service_name",
-        "ServiceConfigVersion/group_id",
-        "ServiceConfigVersion/group_name",
-        "ServiceConfigVersion/hosts",
-        "ServiceConfigVersion/service_config_version",
-        "ServiceConfigVersion/is_current",
-        "ServiceConfigVersion/createtime",
-        "ServiceConfigVersion/user",
-        "ServiceConfigVersion/service_config_version_note"
-    ],
     "ConfigGroup": [
         "ConfigGroup/id",
         "ConfigGroup/cluster_name",

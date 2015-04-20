@@ -100,9 +100,9 @@ public abstract class AbstractControllerResourceProvider extends AbstractResourc
       case HostComponent:
         return resourceProviderFactory.getHostComponentResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Configuration:
-        return new ConfigurationResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ConfigurationResourceProvider(managementController);
       case ServiceConfigVersion:
-        return new ServiceConfigVersionResourceProvider(propertyIds, keyPropertyIds, managementController);
+        return new ServiceConfigVersionResourceProvider(managementController);
       case Action:
         return new ActionResourceProvider(propertyIds, keyPropertyIds, managementController);
       case Request:

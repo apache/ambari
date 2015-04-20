@@ -153,7 +153,7 @@ public class JMXHostProviderTest {
       State.INIT);
 
     String host1 = "h1";
-    clusters.addHost(host1);  
+    clusters.addHost(host1);
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
@@ -179,20 +179,20 @@ public class JMXHostProviderTest {
       host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName3,
       host2, null);
-    
+
     // Create configs
     if (version1) {
       Map<String, String> configs = new HashMap<String, String>();
       configs.put(NAMENODE_PORT_V1, "localhost:${ambari.dfs.datanode.http.port}");
       configs.put(DATANODE_PORT, "localhost:70075");
       configs.put("ambari.dfs.datanode.http.port", "70070");
-      
+
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
         "hdfs-site", "version1", configs, null);
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
-      
+
     } else {
       Map<String, String> configs = new HashMap<String, String>();
       configs.put(NAMENODE_PORT_V2, "localhost:70071");
@@ -200,7 +200,7 @@ public class JMXHostProviderTest {
 
       ConfigurationRequest cr = new ConfigurationRequest(clusterName,
         "hdfs-site", "version2", configs, null);
-      
+
       ClusterRequest crequest = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
       crequest.setDesiredConfig(Collections.singletonList(cr));
       controller.updateClusters(Collections.singleton(crequest), new HashMap<String,String>());
@@ -314,7 +314,7 @@ public class JMXHostProviderTest {
     Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
     Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
   }
-  
+
   @Test
   public void testJMXPortMapInitAtServiceLevelVersion2() throws
     NoSuchParentResourceException,
@@ -333,7 +333,7 @@ public class JMXHostProviderTest {
     Assert.assertEquals(null, providerModule.getPort("c1", "JOBTRACKER"));
     Assert.assertEquals(null, providerModule.getPort("c1", "TASKTRACKER"));
     Assert.assertEquals(null, providerModule.getPort("c1", "HBASE_MASTER"));
-  }  
+  }
 
   @Test
   public void testJMXPortMapInitAtClusterLevel() throws
@@ -451,10 +451,8 @@ public class JMXHostProviderTest {
       .Type.HostComponent), PropertyHelper.getKeyPropertyIds(Resource.Type
       .HostComponent), controller, injector);
 
-    ResourceProvider configResourceProvider = new
-      ConfigurationResourceProvider(PropertyHelper.getPropertyIds(Resource
-      .Type.Configuration), PropertyHelper.getKeyPropertyIds(Resource.Type
-      .Configuration), controller);
+    ResourceProvider configResourceProvider = new ConfigurationResourceProvider(
+        controller);
 
     @Override
     protected ResourceProvider createResourceProvider(Resource.Type type) {
@@ -470,6 +468,6 @@ public class JMXHostProviderTest {
       }
       return null;
     }
-    
+
   }
 }

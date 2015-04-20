@@ -26,7 +26,6 @@ import junit.framework.Assert;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -130,16 +129,6 @@ public class RequestImplTest {
     Assert.assertTrue(validPropertyIds.contains("ServiceComponents/display_name"));
     Assert.assertTrue(validPropertyIds.contains("ServiceComponents/description"));
     Assert.assertTrue(validPropertyIds.contains("params/run_smoke_test"));
-
-
-    request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Configuration));
-    validPropertyIds = request.getPropertyIds();
-
-    //Configuration resource properties
-    Assert.assertFalse(validPropertyIds.contains("Config/unsupported_property_id"));
-    Assert.assertTrue(validPropertyIds.contains("Config/tag"));
-    Assert.assertTrue(validPropertyIds.contains("Config/type"));
-    Assert.assertTrue(validPropertyIds.contains("Config/cluster_name"));
 
     request = PropertyHelper.getReadRequest(PropertyHelper.getPropertyIds(Resource.Type.Action));
     validPropertyIds = request.getPropertyIds();

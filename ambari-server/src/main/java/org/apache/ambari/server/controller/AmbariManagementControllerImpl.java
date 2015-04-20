@@ -706,8 +706,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     Config config = createConfig(cluster, request.getType(), request.getProperties(),
         request.getVersionTag(), propertiesAttributes);
 
-    return new ConfigurationResponse(cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
-        config.getProperties(), config.getPropertiesAttributes());
+    return new ConfigurationResponse(cluster.getClusterName(), config);
   }
 
   private void handleGlobalsBackwardsCompability(ConfigurationRequest request,
@@ -1151,8 +1150,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           request.getVersionTag());
       if (null != config) {
         ConfigurationResponse response = new ConfigurationResponse(
-            cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
-            config.getProperties(), config.getPropertiesAttributes());
+            cluster.getClusterName(), config);
         responses.add(response);
       }
     }
@@ -1166,7 +1164,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           for (Entry<String, Config> entry : configs.entrySet()) {
             Config config = entry.getValue();
             ConfigurationResponse response = new ConfigurationResponse(
-                cluster.getClusterName(), request.getType(),
+                cluster.getClusterName(), config.getStackId(),
+                request.getType(),
                 config.getTag(), entry.getValue().getVersion(),
                 includeProps ? config.getProperties() : new HashMap<String, String>(),
                 includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>());
@@ -1179,7 +1178,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
         for (Config config : all) {
           ConfigurationResponse response = new ConfigurationResponse(
-              cluster.getClusterName(), config.getType(), config.getTag(), config.getVersion(),
+              cluster.getClusterName(), config.getStackId(), config.getType(),
+              config.getTag(), config.getVersion(),
               includeProps ? config.getProperties() : new HashMap<String, String>(),
               includeProps ? config.getPropertiesAttributes() : new HashMap<String, Map<String,String>>());
 

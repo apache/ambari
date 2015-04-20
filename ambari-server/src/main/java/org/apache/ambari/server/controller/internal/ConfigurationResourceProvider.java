@@ -18,6 +18,14 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.regex.Pattern;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -33,34 +41,47 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
-import java.util.Map.Entry;
-import java.util.regex.Pattern;
-
 /**
  * Resource provider for configuration resources.
  */
 public class ConfigurationResourceProvider extends
-  AbstractControllerResourceProvider {
+    AbstractControllerResourceProvider {
 
-  private static Pattern propertiesAttributesPattern = Pattern.compile("^" + PROPERTIES_ATTRIBUTES_REGEX);
+  private static final Pattern PROPERTIES_ATTRIBUTES_PATTERN = Pattern.compile("^"
+      + PROPERTIES_ATTRIBUTES_REGEX);
 
   // ----- Property ID constants ---------------------------------------------
-
-  // Configurations (values are part of query strings and body post, so they don't have defined categories)
   protected static final String CONFIGURATION_CLUSTER_NAME_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "cluster_name");
-  // TODO : should these be Config/type and Config/tag to be consistent?
-  public static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID  =
-    PropertyHelper.getPropertyId(null, "type");
-  public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID   =
-    PropertyHelper.getPropertyId(null, "tag");
-  public static final String CONFIGURATION_CONFIG_VERSION_PROPERTY_ID   =
-    PropertyHelper.getPropertyId(null, "version");
+  protected static final String CONFIGURATION_STACK_ID_PROPERTY_ID = PropertyHelper.getPropertyId("Config", "stack_id");
 
+  // !!! values are part of query strings and body post, so they
+  // don't have defined categories (like Config)
+  public static final String CONFIGURATION_CONFIG_TYPE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "type");
+  public static final String CONFIGURATION_CONFIG_TAG_PROPERTY_ID = PropertyHelper.getPropertyId(null, "tag");
+  public static final String CONFIGURATION_CONFIG_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId(null, "version");
+
+  /**
+   * The property ids for a configuration resource.
+   */
+  private static final Set<String> PROPERTY_IDS = new HashSet<String>();
+
+  /**
+   * The key property ids for a configuration resource.
+   */
+  private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
+
+  static {
+    // properties
+    PROPERTY_IDS.add(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_STACK_ID_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_CONFIG_TAG_PROPERTY_ID);
+    PROPERTY_IDS.add(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID);
+
+    // keys
+    KEY_PROPERTY_IDS.put(Resource.Type.Configuration,CONFIGURATION_CONFIG_TYPE_PROPERTY_ID);
+    KEY_PROPERTY_IDS.put(Resource.Type.Cluster,CONFIGURATION_CLUSTER_NAME_PROPERTY_ID);
+  }
 
   /**
    * The primary key property ids for the configuration resource type.
@@ -76,15 +97,11 @@ public class ConfigurationResourceProvider extends
   /**
    * Constructor
    *
-   * @param propertyIds           the property ids supported by this provider
-   * @param keyPropertyIds        the key properties for this provider
    * @param managementController  the associated management controller
    */
-  ConfigurationResourceProvider(Set<String> propertyIds,
-                                Map<Resource.Type, String> keyPropertyIds,
-                                AmbariManagementController managementController) {
+  ConfigurationResourceProvider(AmbariManagementController managementController) {
 
-    super(propertyIds, keyPropertyIds, managementController);
+    super(PROPERTY_IDS, KEY_PROPERTY_IDS, managementController);
   }
 
 
@@ -110,7 +127,9 @@ public class ConfigurationResourceProvider extends
         if (propertyCategory != null && propertyCategory.equals("properties") && null != entry.getValue()) {
           configMap.put(PropertyHelper.getPropertyName(entry.getKey()), entry.getValue().toString());
         }
-        if (propertyCategory != null && propertiesAttributesPattern.matcher(propertyCategory).matches() && null != entry.getValue()) {
+        if (propertyCategory != null
+            && PROPERTIES_ATTRIBUTES_PATTERN.matcher(propertyCategory).matches()
+            && null != entry.getValue()) {
           if (null == configAttributesMap) {
             configAttributesMap = new HashMap<String, Map<String,String>>();
           }
@@ -157,8 +176,12 @@ public class ConfigurationResourceProvider extends
 
     Set<Resource> resources = new HashSet<Resource>();
     for (ConfigurationResponse response : responses) {
+      // don't use the StackId object here; we just want the stack ID string
+      String stackId = response.getStackId().getStackId();
+
       Resource resource = new ResourceImpl(Resource.Type.Configuration);
       resource.setProperty(CONFIGURATION_CLUSTER_NAME_PROPERTY_ID, response.getClusterName());
+      resource.setProperty(CONFIGURATION_STACK_ID_PROPERTY_ID, stackId);
       resource.setProperty(CONFIGURATION_CONFIG_TYPE_PROPERTY_ID, response.getType());
       resource.setProperty(CONFIGURATION_CONFIG_TAG_PROPERTY_ID, response.getVersionTag());
       resource.setProperty(CONFIGURATION_CONFIG_VERSION_PROPERTY_ID, response.getVersion());
@@ -220,7 +243,9 @@ public class ConfigurationResourceProvider extends
 
         String propertyCategory = PropertyHelper.getPropertyCategory(propertyId);
 
-        if (propertyCategory == null || !(propertyCategory.equals("properties") || propertiesAttributesPattern.matcher(propertyCategory).matches())) {
+        if (propertyCategory == null
+            || !(propertyCategory.equals("properties") || PROPERTIES_ATTRIBUTES_PATTERN.matcher(
+                propertyCategory).matches())) {
           unsupportedProperties.add(propertyId);
         }
       }
