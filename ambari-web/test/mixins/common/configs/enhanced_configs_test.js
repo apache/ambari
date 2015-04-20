@@ -37,7 +37,7 @@ describe('App.EnhancedConfigsMixin', function() {
         saveRecommendedDefault: false,
         propertyName: 'p1',
         fileName: 'f1',
-        value: 'v2'
+        value: 'v1'
       });
     });
   });

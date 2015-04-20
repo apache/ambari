@@ -194,7 +194,6 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   setConfigValue: function() {
     this.set('config.value', '' + this.configValueByWidget(this.get('content')));
-    this.get('controller').removeCurrentFromDependentList(this.get('config'));
   },
 
   /**

@@ -157,12 +157,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @method removeCurrentFromDependentList
    */
   removeCurrentFromDependentList: function (config) {
-    var current = this.get('_dependentConfigValues').filterProperty('propertyName', config.get('name')).findProperty('fileName', App.config.getConfigTagFromFileName(config.get('filename')));
+    var current = this.get('_dependentConfigValues').find(function(dependentConfig) {
+      return Em.get(dependentConfig, 'propertyName') == config.get('name') && Em.get(dependentConfig, 'fileName') == App.config.getConfigTagFromFileName(config.get('filename'))
+    });
     if (current) {
       Em.setProperties(current, {
           'saveRecommended': false,
-          'saveRecommendedDefault': false,
-          'value': config.get('value')
+          'saveRecommendedDefault': false
         });
     }
   },
@@ -409,27 +410,30 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       for (var propertyName in configs[key].properties) {
         /**  if property exists and has value **/
         var cp = configProperties.findProperty('name', propertyName);
-        var value = cp && cp.get('value');
+        var defaultValue = cp && cp.get('defaultValue');
 
-        if (!Em.isNone(value)) {
-          if (!updateOnlyBoundaries) { //on first initial request we don't need to change values
+        if (!Em.isNone(defaultValue)) {
+          if (!updateOnlyBoundaries && Em.isArray(parentConfigs) && parentConfigs.length) { //on first initial request we don't need to change values
             var dependentProperty = this.get('_dependentConfigValues').findProperty('propertyName', propertyName);
             if (dependentProperty) {
-              if (value != configs[key].properties[propertyName]) {
-                Em.set(dependentProperty, 'value', value);
+              if (defaultValue != configs[key].properties[propertyName]) {
                 Em.set(dependentProperty, 'recommendedValue', configs[key].properties[propertyName]);
                 Em.set(dependentProperty, 'saveRecommended', true);
                 Em.set(dependentProperty, 'parentConfigs', dependentProperty.parentConfigs.concat(parentPropertiesNames).uniq());
+              } else if (defaultValue === configs[key].properties[propertyName]) {
+                /** if recommended value same as default we shouldn't show it in popup **/
+                cp.set('value', defaultValue);
+                this.get('_dependentConfigValues').removeObject(dependentProperty);
               }
             } else {
-              if (value != configs[key].properties[propertyName]) {
+              if (defaultValue != configs[key].properties[propertyName] && !parentConfigs.mapProperty('name').contains(propertyName)) {
                 this.get('_dependentConfigValues').pushObject({
                   saveRecommended: true,
                   saveRecommendedDefault: true,
                   fileName: key,
                   propertyName: propertyName,
                   configGroup: group ? group.get('name') : service.get('displayName') + " Default",
-                  value: value,
+                  value: defaultValue,
                   parentConfigs: parentPropertiesNames,
                   serviceName: serviceName,
                   allowChangeGroup: serviceName != this.get('content.serviceName') && !this.get('selectedConfigGroup.isDefault'),

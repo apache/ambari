@@ -126,7 +126,6 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
         onSwitchChange: function (event, state) {
           self.set('switcherValue', state);
           if (!self.get('skipRequestForDependencies')) {
-            self.get('controller').removeCurrentFromDependentList(self.get('config'));
             self.sendRequestRorDependentConfigs(self.get('config'));
           }
         }
@@ -160,7 +159,6 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
     this.get('switcher').bootstrapSwitch('toggleState', value);
     this.set('skipRequestForDependencies', false);
     this.set('switcherValue', value);
-    this.get('controller').removeCurrentFromDependentList(this.get('config'));
   },
 
   /**

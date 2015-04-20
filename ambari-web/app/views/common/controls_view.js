@@ -76,18 +76,24 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * and in case there was changes shows popup with info about changed configs
    *
    * @param {App.ServiceConfigProperty} config
+   * @param {function} complete
    * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
     if (App.get('supports.enhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
+      var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.StackConfigProperty.find(name + '_' + type);
       if (p && p.get('propertyDependedBy.length') > 0) {
-        return this.get('controller').getRecommendationsForDependencies([{
+        return controller.getRecommendationsForDependencies([{
           "type": type,
           "name": name
-        }]);
+        }], false, function() {
+          controller.removeCurrentFromDependentList(config);
+        });
+      } else {
+        controller.removeCurrentFromDependentList(config);
       }
     }
 

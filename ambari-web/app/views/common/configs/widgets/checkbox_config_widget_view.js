@@ -47,7 +47,6 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
     focusIn: function() {},
     toggleValue: function() {
       this._super();
-      this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig'));
       this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     }.observes('checked')
   }),
