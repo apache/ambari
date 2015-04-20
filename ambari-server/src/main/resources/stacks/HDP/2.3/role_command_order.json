@@ -3,6 +3,8 @@
   "_comment" : "blockedRole-blockedCommand: [blockerRole1-blockerCommand1, blockerRole2-blockerCommand2, ...]",
   "general_deps" : {
     "_comment" : "dependencies for all cases",
-    "MAHOUT_SERVICE_CHECK-SERVICE_CHECK": ["NODEMANAGER-START", "RESOURCEMANAGER-START"]
+    "MAHOUT_SERVICE_CHECK-SERVICE_CHECK": ["NODEMANAGER-START", "RESOURCEMANAGER-START"],
+    "RANGER_KMS_SERVER-START" : ["RANGER_ADMIN-START"],
+    "RANGER_KMS_SERVICE_CHECK-SERVICE_CHECK" : ["RANGER_KMS_SERVER-START"]
   }
 }
