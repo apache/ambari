@@ -47,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.PersistService;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -85,6 +86,7 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostUpgradeEve
 import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
@@ -132,6 +134,12 @@ public class TestActionScheduler {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
     injector.injectMembers(this);
+  }
+
+  @After
+  public void teardown() {
+    injector.getInstance(PersistService.class).stop();
+    injector = null;
   }
 
   /**
@@ -261,6 +269,10 @@ public class TestActionScheduler {
     when(fsm.getHost(anyString())).thenReturn(host);
     when(host.getState()).thenReturn(HostState.HEALTHY);
     when(host.getHostName()).thenReturn(hostname);
+
+    HostEntity hostEntity = new HostEntity();
+    hostEntity.setHostName(hostname);
+    hostDAO.create(hostEntity);
 
     List<Stage> stages = new ArrayList<Stage>();
     final Stage s = StageUtils.getATestStage(1, 977, hostname, CLUSTER_HOST_INFO,
@@ -1246,7 +1258,6 @@ public class TestActionScheduler {
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
 
-
     String host1 = "host1";
     String host2 = "host2";
     Host host = mock(Host.class);
@@ -1259,6 +1270,13 @@ public class TestActionScheduler {
     when(fsm.getHost(anyString())).thenReturn(host);
     when(host.getState()).thenReturn(HostState.HEALTHY);
     when(host.getHostName()).thenReturn(host1);
+
+    HostEntity hostEntity1 = new HostEntity();
+    HostEntity hostEntity2 = new HostEntity();
+    hostEntity1.setHostName(host1);
+    hostEntity2.setHostName(host2);
+    hostDAO.create(hostEntity1);
+    hostDAO.create(hostEntity2);
 
     final List<Stage> stages = new ArrayList<Stage>();
 
@@ -1779,6 +1797,10 @@ public class TestActionScheduler {
     hosts.put(hostname1, sch1);
     when(scomp.getServiceComponentHosts()).thenReturn(hosts);
 
+    HostEntity hostEntity = new HostEntity();
+    hostEntity.setHostName(hostname1);
+    hostDAO.create(hostEntity);
+
     UnitOfWork unitOfWork = mock(UnitOfWork.class);
     when(fsm.getCluster(anyString())).thenReturn(oneClusterMock);
     when(oneClusterMock.getService(anyString())).thenReturn(serviceObj);
@@ -1954,6 +1976,10 @@ public class TestActionScheduler {
     when(serviceObj.getServiceComponent(anyString())).thenReturn(scomp);
     when(scomp.getServiceComponentHost(anyString())).thenReturn(sch);
     when(serviceObj.getCluster()).thenReturn(oneClusterMock);
+
+    HostEntity hostEntity = new HostEntity();
+    hostEntity.setHostName(hostname);
+    hostDAO.create(hostEntity);
 
     HashMap<String, ServiceComponentHost> hosts =
             new HashMap<String, ServiceComponentHost>();
