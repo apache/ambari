@@ -26,6 +26,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.ws.rs.WebApplicationException;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.Response.Status;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorException;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
@@ -52,9 +56,6 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
   protected static final String HOSTS_PROPERTY_ID = "hosts";
   protected static final String SERVICES_PROPERTY_ID = "services";
   protected static final String RECOMMEND_PROPERTY_ID = "recommend";
-
-  protected static final String CONFIG_GROUPS_PROPERTY_ID = PropertyHelper
-      .getPropertyId("recommendations", "config-groups");
 
   protected static final String BLUEPRINT_CONFIGURATIONS_PROPERTY_ID = PropertyHelper
       .getPropertyId("recommendations/blueprint", "configurations");
@@ -91,10 +92,10 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
     try {
       response = saHelper.recommend(recommendationRequest);
     } catch (StackAdvisorRequestException e) {
-      LOG.warn("Error occured during recommendation", e);
+      LOG.warn("Error occured during recommnedation", e);
       throw new IllegalArgumentException(e.getMessage(), e);
     } catch (StackAdvisorException e) {
-      LOG.warn("Error occured during recommendation", e);
+      LOG.warn("Error occured during recommnedation", e);
       throw new SystemException(e.getMessage(), e);
     }
 
@@ -111,8 +112,6 @@ public class RecommendationResourceProvider extends StackAdvisorResourceProvider
         setResourceProperty(resource, HOSTS_PROPERTY_ID, response.getHosts(), getPropertyIds());
         setResourceProperty(resource, SERVICES_PROPERTY_ID, response.getServices(),
             getPropertyIds());
-        setResourceProperty(resource, CONFIG_GROUPS_PROPERTY_ID,
-          response.getRecommendations().getConfigGroups(), getPropertyIds());
         setResourceProperty(resource, BLUEPRINT_CONFIGURATIONS_PROPERTY_ID, response
             .getRecommendations().getBlueprint().getConfigurations(), getPropertyIds());
 

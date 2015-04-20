@@ -26,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.commons.lang.StringUtils;
 
@@ -45,7 +44,6 @@ public class StackAdvisorRequest {
   private Map<String, Set<String>> hostGroupBindings = new HashMap<String, Set<String>>();
   private Map<String, Map<String, Map<String, String>>> configurations = new HashMap<String, Map<String, Map<String, String>>>();
   private List<PropertyDependencyInfo> changedConfigurations = new LinkedList<PropertyDependencyInfo>();
-  private Set<RecommendationResponse.ConfigGroup> configGroups;
 
   public String getStackName() {
     return stackName;
@@ -97,14 +95,6 @@ public class StackAdvisorRequest {
 
   public void setChangedConfigurations(List<PropertyDependencyInfo> changedConfigurations) {
     this.changedConfigurations = changedConfigurations;
-  }
-
-  public Set<RecommendationResponse.ConfigGroup> getConfigGroups() {
-    return configGroups;
-  }
-
-  public void setConfigGroups(Set<RecommendationResponse.ConfigGroup> configGroups) {
-    this.configGroups = configGroups;
   }
 
   private StackAdvisorRequest(String stackName, String stackVersion) {
@@ -164,12 +154,6 @@ public class StackAdvisorRequest {
     public StackAdvisorRequestBuilder withChangedConfigurations(
       List<PropertyDependencyInfo> changedConfigurations) {
       this.instance.changedConfigurations = changedConfigurations;
-      return this;
-    }
-
-    public StackAdvisorRequestBuilder withConfigGroups(
-      Set<RecommendationResponse.ConfigGroup> configGroups) {
-      this.instance.configGroups = configGroups;
       return this;
     }
 

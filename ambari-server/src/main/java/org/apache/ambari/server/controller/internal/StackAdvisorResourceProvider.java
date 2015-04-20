@@ -34,7 +34,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorHelper;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestBuilder;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest.StackAdvisorRequestType;
-import org.apache.ambari.server.api.services.stackadvisor.recommendations.RecommendationResponse;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource.Type;
@@ -68,10 +67,6 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
   private static final String BINDING_HOST_GROUPS_NAME_PROPERTY = "name";
   private static final String BINDING_HOST_GROUPS_HOSTS_PROPERTY = "hosts";
   private static final String BINDING_HOST_GROUPS_HOSTS_NAME_PROPERTY = "fqdn";
-
-  private static final String CONFIG_GROUPS_PROPERTY = "recommendations/config_groups";
-  private static final String CONFIG_GROUPS_CONFIGURATIONS_PROPERTY = "configurations";
-  private static final String CONFIG_GROUPS_HOSTS_PROPERTY = "hosts";
 
   protected static StackAdvisorHelper saHelper;
 
@@ -113,14 +108,12 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
         requestType == StackAdvisorRequestType.CONFIGURATION_DEPENDENCIES ?
           calculateChangedConfigurations(request) : Collections.<PropertyDependencyInfo>emptyList();
 
-      Set<RecommendationResponse.ConfigGroup> configGroups = calculateConfigGroups(request);
       return StackAdvisorRequestBuilder.
         forStack(stackName, stackVersion).ofType(requestType).forHosts(hosts).
         forServices(services).forHostComponents(hgComponentsMap).
         forHostsGroupBindings(hgHostsMap).
         withComponentHostsMap(componentHostsMap).
         withConfigurations(configurations).
-        withConfigGroups(configGroups).
         withChangedConfigurations(changedConfigurations).build();
     } catch (Exception e) {
       LOG.warn("Error occured during preparation of stack advisor request", e);
@@ -203,40 +196,6 @@ public abstract class StackAdvisorResourceProvider extends ReadOnlyResourceProvi
     }
 
     return configs;
-  }
-
-  protected Set<RecommendationResponse.ConfigGroup> calculateConfigGroups(Request request) {
-
-    Set<RecommendationResponse.ConfigGroup> configGroups =
-      new HashSet<RecommendationResponse.ConfigGroup>();
-
-    Set<HashMap<String, Object>> configGroupsProperties =
-      (HashSet<HashMap<String, Object>>) getRequestProperty(request, CONFIG_GROUPS_PROPERTY);
-    if (configGroupsProperties != null) {
-      for (HashMap<String, Object> props : configGroupsProperties) {
-        RecommendationResponse.ConfigGroup configGroup = new RecommendationResponse.ConfigGroup();
-        configGroup.setHosts((List<String>) props.get(CONFIG_GROUPS_HOSTS_PROPERTY));
-
-        for (Map<String, String> property : (Set<Map<String, String>>) props.get(CONFIG_GROUPS_CONFIGURATIONS_PROPERTY)) {
-          for (Map.Entry<String, String> entry : property.entrySet()) {
-            String[] propertyPath = entry.getKey().split("/"); // length == 3
-            String siteName = propertyPath[0];
-            String propertyName = propertyPath[2];
-
-            if (!configGroup.getConfigurations().containsKey(siteName)) {
-              RecommendationResponse.BlueprintConfigurations configurations =
-                new RecommendationResponse.BlueprintConfigurations();
-              configGroup.getConfigurations().put(siteName, configurations);
-              configGroup.getConfigurations().get(siteName).setProperties(new HashMap<String, String>());
-            }
-            configGroup.getConfigurations().get(siteName).getProperties().put(propertyName, entry.getValue());
-          }
-        }
-        configGroups.add(configGroup);
-      }
-    }
-
-    return configGroups;
   }
 
   protected static final String CONFIGURATIONS_PROPERTY_ID = "recommendations/blueprint/configurations/";
