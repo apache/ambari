@@ -97,7 +97,8 @@ App.QuickDataMapper = App.ServerDataMapper.extend({
               result[i].push(this.parseIt(_data[index], config[i]));
             }
           }
-          if(_type == 'array'){
+          // As for 'widgets', just show the original order
+          if(_type == 'array' && i != 'widgets'){
             result[i] = result[i].sort();
           }
         }

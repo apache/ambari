@@ -2447,17 +2447,6 @@ var urls = {
     mock: '/data/widget_layouts/HBASE/layouts.json'
   },
 
-  'widgets.layout.save': {
-    real: '/clusters/{clusterName}/widget_layouts/{layout_name}',
-    mock: '',
-    format: function (data) {
-      return {
-        type: 'PUT',
-        data: JSON.stringify(data.data)
-      }
-    }
-  },
-
   'widget.action.delete': {
     real: '/clusters/{clusterName}/widgets/{id}',
     mock: '',

@@ -645,25 +645,32 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   /**
-   * save layout
+   * save layout after re-order widgets
    * return {$.ajax}
    */
-  saveLayout: function (widgets, layout) {
+  saveReorderedLayout: function (widgets) {
+    var activeLayout = this.get('activeWidgetLayout');
     var data = {
-      "layout_name": layout.get('layoutName'),
-      "section_name": layout.get('sectionName'),
-      "scope": layout.get('scope'),
-      "widgetLayoutInfo": widgets.map(function (widget) {
-        return {
-          "widget_name": widget.get('widgetName'),
-          "id": widget.get('widgetId')
-        }
-      })
+      "WidgetLayoutInfo": {
+        "display_name": activeLayout.get("displayName"),
+        "id": activeLayout.get("id"),
+        "layout_name": activeLayout.get("layoutName"),
+        "scope": activeLayout.get("scope"),
+        "section_name": activeLayout.get("sectionName"),
+        "widgets": widgets.map(function (widget) {
+          return {
+            "id": widget.get('id')
+          }
+        })
+      }
     };
     return App.ajax.send({
-      name: 'widgets.layout.save',
+      name: 'widget.layout.edit',
       sender: this,
-      data: data
+      data: {
+        layoutId: activeLayout.get("id"),
+        data: data
+      }
     });
   },
 

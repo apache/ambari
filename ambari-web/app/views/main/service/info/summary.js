@@ -598,9 +598,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
           var widgets = misc.sortByOrder($("#widget_layout .widget").map(function () {
             return this.id;
           }), self.get('controller.widgets'));
-          //TODO bind to actual layout instance
-          var layout = self.get('controller.widgetLayouts').objectAt(0);
-          self.get('controller').saveLayout(widgets, layout);
+          self.get('controller').saveReorderedLayout(widgets);
         },
         activate: function (event, ui) {
           self.set('isMoving', true);
