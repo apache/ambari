@@ -1361,6 +1361,72 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHbaseEnvConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
+  def test_recommendHbaseSiteConfigurations(self):
+    servicesList = ["HBASE"]
+    configurations = {}
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "cpu_count" : 6,
+            "total_mem" : 50331648,
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ]
+          }
+        }
+      ]
+    }
+    services = {
+      "services" : [
+      ],
+      "configurations": {
+        "hbase-env": {
+          "properties": {
+            "phoenix_sql_enabled": "true"
+          }
+        }
+      }
+    }
+    expected = {
+      "hbase-site": {
+        "properties": {
+          "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
+          "hbase.bucketcache.size": "",
+          "hbase.bucketcache.percentage.in.combinedcache": "",
+          "hbase.regionserver.global.memstore.upperLimit": "0.4",
+          "hbase.bucketcache.ioengine": ""
+        }
+      },
+      "hbase-env": {
+        "properties": {
+          "hbase_master_heapsize": "8192",
+          "hbase_regionserver_heapsize": "8192",
+          "hbase_max_direct_memory_size": ""
+        }
+      }
+    }
+
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
+    self.assertEquals(clusterData['hbaseRam'], 8)
+
+    # Test when phoenix_sql_enabled = true
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+    # Test when phoenix_sql_enabled = false
+    services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
+    expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+
   def test_recommendHDFSConfigurations(self):
     configurations = {
       'ranger-hdfs-plugin-properties':{

@@ -272,6 +272,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
 
+    if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
+      if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
+        putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec')
+      else:
+        putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
+
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
       rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']

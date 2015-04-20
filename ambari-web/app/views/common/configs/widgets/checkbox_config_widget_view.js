@@ -44,7 +44,12 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
   configView: App.ServiceConfigCheckbox.extend({
     serviceConfigBinding: 'parentView.config',
     // @TODO maybe find use case of this method for widget
-    focusIn: function() {}
+    focusIn: function() {},
+    toggleValue: function() {
+      this._super();
+      this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig'));
+      this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
+    }.observes('checked')
   }),
 
   /**

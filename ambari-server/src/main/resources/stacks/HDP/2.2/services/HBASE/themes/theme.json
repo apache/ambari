@@ -228,7 +228,7 @@
           "subsection-name": "subsection-hbase-security-col1"
         },
         {
-          "config": "hbase-site/hbase.regionserver.wal.codec",
+          "config": "hbase-env/phoenix_sql_enabled",
           "subsection-name": "subsection-hbase-phoenix-col1"
         },
         {
@@ -406,9 +406,9 @@
         }
       },
       {
-        "config":"hbase-site/hbase.regionserver.wal.codec",
+        "config":"hbase-env/phoenix_sql_enabled",
         "widget":{
-          "type":"combo"
+          "type":"checkbox"
         }
       },
       {
