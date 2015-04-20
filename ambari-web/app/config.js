@@ -73,7 +73,7 @@ App.supports = {
   opsDuringRollingUpgrade: false,
   customizedWidgets: false,
   customizedWidgetLayout: false,
-  enhancedConfigs: false
+  enhancedConfigs: true
 };
 
 if (App.enableExperimental) {

@@ -1686,3 +1686,4 @@ class TestHDP22StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
     self.assertEquals(res, res_expected)
+

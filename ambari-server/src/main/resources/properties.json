@@ -390,7 +390,8 @@
         "recommendations/blueprint_cluster_binding",
         "recommendations/blueprint_cluster_binding/host_groups",
         "recommendations/blueprint_cluster_binding/host_groups/name",
-        "recommendations/blueprint_cluster_binding/host_groups/hosts"
+        "recommendations/blueprint_cluster_binding/host_groups/hosts",
+        "recommendations/config_groups"
     ],
     "Validation":[
         "Validation/id",

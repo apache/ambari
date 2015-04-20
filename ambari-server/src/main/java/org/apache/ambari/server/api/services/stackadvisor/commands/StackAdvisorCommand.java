@@ -44,7 +44,6 @@ import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRequest;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorResponse;
 import org.apache.ambari.server.api.services.stackadvisor.StackAdvisorRunner;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.logging.Log;
@@ -81,6 +80,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + "&services/StackServices/service_name.in(%s)";
   private static final String SERVICES_PROPERTY = "services";
   private static final String SERVICES_COMPONENTS_PROPERTY = "components";
+  private static final String CONFIG_GROUPS_PROPERTY = "config-groups";
   private static final String COMPONENT_INFO_PROPERTY = "StackServiceComponents";
   private static final String COMPONENT_NAME_PROPERTY = "component_name";
   private static final String COMPONENT_HOSTNAMES_PROPERTY = "hostnames";
@@ -146,6 +146,7 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       populateStackHierarchy(root);
       populateComponentHostsMap(root, request.getComponentHostsMap());
       populateConfigurations(root, request);
+      populateConfigGroups(root, request);
       data.servicesJSON = mapper.writeValueAsString(root);
     } catch (Exception e) {
       // should not happen
@@ -179,6 +180,15 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
 
     JsonNode changedConfigs = mapper.valueToTree(request.getChangedConfigurations());
     root.put(CHANGED_CONFIGURATIONS_PROPERTY, changedConfigs);
+  }
+
+  private void populateConfigGroups(ObjectNode root,
+                                    StackAdvisorRequest request) {
+    if (request.getConfigGroups() != null &&
+      !request.getConfigGroups().isEmpty()) {
+      JsonNode configGroups = mapper.valueToTree(request.getConfigGroups());
+      root.put(CONFIG_GROUPS_PROPERTY, configGroups);
+    }
   }
 
   protected void populateStackHierarchy(ObjectNode root) {
