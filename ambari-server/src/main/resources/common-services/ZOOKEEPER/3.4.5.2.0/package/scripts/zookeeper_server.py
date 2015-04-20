@@ -45,10 +45,10 @@ class ZookeeperServer(Script):
     self.install_packages(env)
     self.configure(env)
 
-  def configure(self, env):
+  def configure(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    zookeeper(type='server')
+    zookeeper(type='server', rolling_restart=rolling_restart)
 
   def pre_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade pre-restart")
@@ -61,7 +61,7 @@ class ZookeeperServer(Script):
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    self.configure(env)
+    self.configure(env, rolling_restart=rolling_restart)
     zookeeper_service(action = 'start')
 
   def post_rolling_restart(self, env):
@@ -90,6 +90,7 @@ class ZookeeperServer(Script):
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
+    self.configure(env, rolling_restart=rolling_restart)
     zookeeper_service(action = 'stop')
 
   def status(self, env):
