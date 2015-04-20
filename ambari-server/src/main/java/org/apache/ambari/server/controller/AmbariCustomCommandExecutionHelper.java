@@ -64,6 +64,7 @@ import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.OperatingSystemEntity;
 import org.apache.ambari.server.orm.entities.RepositoryEntity;
@@ -80,6 +81,7 @@ import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
+import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -146,6 +148,8 @@ public class AmbariCustomCommandExecutionHelper {
   private MaintenanceStateHelper maintenanceStateHelper;
   @Inject
   private OsFamily os_family;
+  @Inject
+  private ClusterVersionDAO clusterVersionDAO;
 
   protected static final String SERVICE_CHECK_COMMAND_NAME = "SERVICE_CHECK";
   protected static final String START_COMMAND_NAME = "START";
@@ -1086,6 +1090,17 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
     hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     hostLevelParams.putAll(managementController.getRcaParameters());
+    ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
+    if (clusterVersionEntity == null) {
+      List<ClusterVersionEntity> clusterVersionEntityList = clusterVersionDAO
+              .findByClusterAndState(cluster.getClusterName(), RepositoryVersionState.UPGRADING);
+      if (!clusterVersionEntityList.isEmpty()) {
+        clusterVersionEntity = clusterVersionEntityList.iterator().next();
+      }
+    }
+    if (clusterVersionEntity != null) {
+      hostLevelParams.put("current_version", clusterVersionEntity.getRepositoryVersion().getVersion());
+    }
 
     return hostLevelParams;
   }

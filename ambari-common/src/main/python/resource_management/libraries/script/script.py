@@ -382,7 +382,7 @@ class Script(object):
     """
     pass
 
-  def configure(self, env):
+  def configure(self, env, rolling_restart=False):
     """
     To be overridden by subclasses
     """

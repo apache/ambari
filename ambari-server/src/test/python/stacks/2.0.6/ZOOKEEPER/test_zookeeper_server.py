@@ -62,6 +62,7 @@ class TestZookeeperServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    self.assert_configure_default()
     self.assertResourceCalled('Execute', 'source /etc/zookeeper/conf/zookeeper-env.sh ; env ZOOCFGDIR=/etc/zookeeper/conf ZOOCFG=zoo.cfg /usr/lib/zookeeper/bin/zkServer.sh stop',
       user = 'zookeeper',
     )
@@ -106,6 +107,7 @@ class TestZookeeperServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    self.assert_configure_secured()
     self.assertResourceCalled('Execute', 'source /etc/zookeeper/conf/zookeeper-env.sh ; env ZOOCFGDIR=/etc/zookeeper/conf ZOOCFG=zoo.cfg /usr/lib/zookeeper/bin/zkServer.sh stop',
                   user = 'zookeeper',
     )

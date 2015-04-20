@@ -26,7 +26,7 @@ from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def zookeeper(type = None):
+def zookeeper(type = None, rolling_restart = False):
   import params
 
   Directory(params.config_dir,
@@ -71,6 +71,9 @@ def zookeeper(type = None):
          mode = 0644,
          content = myid
     )
+    # This path may be missing after Ambari upgrade. We need to create it.
+    if (not rolling_restart) and (not os.path.exists("/usr/hdp/current/zookeeper-server")) and params.current_version:
+      Execute(format("hdp-select set zookeeper-server {current_version}"))
 
   if (params.log4j_props != None):
     File(os.path.join(params.config_dir, "log4j.properties"),

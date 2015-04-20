@@ -41,20 +41,21 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 
 class ZookeeperServer(Script):
 
-  def configure(self, env):
+  def configure(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    zookeeper(type='server')
+    zookeeper(type='server', rolling_restart=rolling_restart)
 
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    self.configure(env)
+    self.configure(env, rolling_restart=rolling_restart)
     zookeeper_service(action = 'start')
 
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
+    self.configure(env, rolling_restart=rolling_restart)
     zookeeper_service(action = 'stop')
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
