@@ -607,6 +607,7 @@ describe('App.config', function () {
     var result;
 
     before(function() {
+      sinon.stub(App.config, 'parseValue', function(value) {return value});
       setups.setupStackVersion(this, 'HDP-2.2');
       loadServiceModelsData(['HDFS', 'STORM']);
       App.config.loadAdvancedConfigSuccess(modelSetup.advancedConfigs, { url: '/serviceName/configurations'}, {
@@ -629,6 +630,7 @@ describe('App.config', function () {
     });
 
     after(function() {
+      App.config.parseValue.restore();
       setups.restoreStackVersion(this);
       removeServiceModelData(['HDFS', 'STORM']);
     });

@@ -307,11 +307,11 @@ App.config = Em.Object.create({
         if (!configsPropertyDef) {
           configsPropertyDef = advancedConfig;
         }
-
+        var value = this.parseValue(properties[index], configsPropertyDef, advancedConfig);
         var serviceConfigObj = App.ServiceConfig.create({
           name: index,
-          value: properties[index],
-          defaultValue: properties[index],
+          value: value,
+          defaultValue: value,
           filename: filename,
           isUserProperty: !advancedConfig,
           isVisible: !!service,
@@ -369,6 +369,30 @@ App.config = Em.Object.create({
       mappingConfigs: mappingConfigs
     }
   },
+
+  /**
+   * additional parsing when value is int of float
+   * ex: if value is "0.40" result will be "0.4"
+   * @param value
+   * @param predefinedConfig
+   * @param advancedConfig
+   * @returns {String}
+   */
+  parseValue: function(value, predefinedConfig, advancedConfig) {
+    var type = predefinedConfig ? Em.get(predefinedConfig, 'displayType') :
+      advancedConfig && Em.get(advancedConfig, 'valueAttributes.type');
+    switch (type) {
+      case 'int':
+        var res = parseInt(value);
+        return Number.isNaN(res) ? "" : res.toString();
+      case 'float':
+        var res = parseFloat(value);
+        return Number.isNaN(res) ? "" : res.toString();
+      default:
+        return value;
+    }
+  },
+
 
   tweakConfigVisibility: function (config, allSiteConfigs) {
     var kdcType = allSiteConfigs['kdc_type'];
