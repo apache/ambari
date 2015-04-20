@@ -325,10 +325,66 @@ App.WidgetMixin = Ember.Mixin.create({
       }
     );
   },
+
   /*
    * make call when clicking on "clone icon" on widget
    */
   cloneWidget: function (event) {
+    var self = this;
+    return App.showConfirmationPopup(
+      function() {
+        self.postWidgetDefinition();
+      },
+      Em.I18n.t('widget.clone.body').format(self.get('content.displayName')),
+      null,
+      null,
+      Em.I18n.t('common.clone')
+    );
+  },
+
+  /**
+   * collect all needed data to create new widget
+   * @returns {{WidgetInfo: {widget_name: *, display_name: *, widget_type: *, description: *, scope: *, metrics: *, values: *, properties: *}}}
+   */
+  collectWidgetData: function () {
+    return {
+      WidgetInfo: {
+        widget_name: this.get('content.widgetName'),
+        display_name: this.get('content.displayName'),
+        widget_type: this.get('content.widgetType'),
+        description: this.get('content.widgetDescription'),
+        scope: this.get('content.scope'),
+        "metrics": this.get('content.metrics').map(function (metric) {
+          return {
+            "name": metric.name,
+            "service_name": metric.serviceName,
+            "component_name": metric.componentName,
+            "metric_path": metric.metric_path,
+            "category": metric.category
+          }
+        }),
+        values: this.get('content.values'),
+        properties: this.get('content.properties')
+      }
+    };
+  },
+
+  /**
+   * post widget definition to server
+   * @returns {$.ajax}
+   */
+  postWidgetDefinition: function () {
+    return App.ajax.send({
+      name: 'widgets.wizard.add',
+      sender: this,
+      data: {
+        data: this.collectWidgetData()
+      },
+      success: 'postWidgetDefinitionSuccessCallback'
+    });
+  },
+
+  postWidgetDefinitionSuccessCallback: function() {
 
   },
 

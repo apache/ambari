@@ -263,6 +263,7 @@ Em.I18n.translations = {
   'common.label': 'Label',
   'common.preview': 'Preview',
   'common.scope': 'Scope',
+  'common.clone': 'Clone',
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",
@@ -2513,6 +2514,8 @@ Em.I18n.translations = {
   'widget.create.wizard.step2.noMetricFound': 'No metric found',
   'widget.create.wizard.step3.widgetName': 'Widget Name',
   'widget.create.wizard.step3.header': 'Name and Description',
+
+  'widget.clone.body': 'Are you sure you want to clone current widget {0}?',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ New Metric',

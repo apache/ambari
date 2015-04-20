@@ -311,5 +311,46 @@ describe('App.WidgetMixin', function() {
     });
   });
 
-});
+  describe("#cloneWidget()", function() {
+    var mixinObject = mixinClass.create();
 
+    before(function () {
+      sinon.spy(App, 'showConfirmationPopup');
+      sinon.stub(mixinObject, 'postWidgetDefinition', Em.K);
+    });
+    after(function () {
+      App.showConfirmationPopup.restore();
+      mixinObject.postWidgetDefinition.restore();
+    });
+    it("", function() {
+      var popup = mixinObject.cloneWidget();
+      expect(App.showConfirmationPopup.calledOnce).to.be.true;
+      popup.onPrimary();
+      expect(mixinObject.postWidgetDefinition.calledOnce).to.be.true;
+    });
+  });
+
+  describe("#postWidgetDefinition()", function() {
+    var mixinObject = mixinClass.create();
+
+    before(function () {
+      sinon.spy(App.ajax, 'send');
+      sinon.stub(mixinObject, 'collectWidgetData').returns({});
+    });
+    after(function () {
+      App.ajax.send.restore();
+      mixinObject.collectWidgetData.restore();
+    });
+    it("", function() {
+      mixinObject.postWidgetDefinition();
+      expect(App.ajax.send.getCall(0).args[0]).to.eql({
+        name: 'widgets.wizard.add',
+        sender: mixinObject,
+        data: {
+          data: {}
+        },
+        success: 'postWidgetDefinitionSuccessCallback'
+      });
+    });
+  });
+});
