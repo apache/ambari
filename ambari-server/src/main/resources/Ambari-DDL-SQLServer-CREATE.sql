@@ -633,7 +633,7 @@ CREATE TABLE adminprivilege (
 CREATE TABLE host_version (
   id BIGINT NOT NULL,
   repo_version_id BIGINT NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
+  host_id BIGINT NOT NULL,
   STATE VARCHAR(32) NOT NULL,
   PRIMARY KEY CLUSTERED (id)
   );
