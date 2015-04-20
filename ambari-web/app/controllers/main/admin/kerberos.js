@@ -60,7 +60,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   },
 
   /**
-   * Show confirmation popup and after confirmation send request to regenerate keytabs
+   * Show confirmation popup for regenerate keytabs
    * @method regenerateKeytabs
    * @return {App.ModalPopup}
    */
@@ -83,7 +83,37 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
       onPrimary: function () {
         this._super();
-        self.regenerateKeytabsRequest(this.get('regenerateKeytabsOnlyForMissing'));
+        return self.restartServicesAfterRegenerate(this.get('regenerateKeytabsOnlyForMissing'));
+      }
+    });
+  },
+
+  /**
+   * Show confirmation popup for restarting all services and after confirmation regenerate keytabs
+   *
+   * @param regenerateKeytabsOnlyForMissing {Boolean}
+   * @returns {*}
+   */
+  restartServicesAfterRegenerate: function (regenerateKeytabsOnlyForMissing) {
+    var self = this;
+
+    return App.ModalPopup.show({
+
+      /**
+       * True - automatically restart services, false - user will have to restart required services manually
+       * @type {boolean}
+       */
+      restartComponents: false,
+
+      header: Em.I18n.t('admin.kerberos.button.regenerateKeytabs'),
+
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/admin/kerberos/restart_services_after_regenerate_body')
+      }),
+
+      onPrimary: function () {
+        this._super();
+        self.regenerateKeytabsRequest(regenerateKeytabsOnlyForMissing, this.get('restartComponents'));
       }
     });
   },
@@ -91,14 +121,18 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   /**
    * Send request to regenerate keytabs
    * @param {boolean} missingOnly determines type of regeneration - missing|all
+   * @param {boolean} withAutoRestart determines if the system should automatically restart all services or not after regeneration
    * @returns {$.ajax}
    */
-  regenerateKeytabsRequest: function (missingOnly) {
+  regenerateKeytabsRequest: function (missingOnly, withAutoRestart) {
+    missingOnly = missingOnly || false;
+
     return App.ajax.send({
       name: "admin.kerberos_security.regenerate_keytabs",
       sender: this,
       data: {
-        type: missingOnly ? 'missing' : 'all'
+        type: missingOnly ? 'missing' : 'all',
+        withAutoRestart: withAutoRestart || false
       },
       success: "regenerateKeytabsSuccess"
     });
@@ -107,14 +141,36 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   /**
    * Success callback of <code>regenerateKeytabs</code>
    * show background operations popup if appropriate option is set
+   *
+   * @param data
+   * @param opt
+   * @param params
+   * @param request
    */
-  regenerateKeytabsSuccess: function () {
+  regenerateKeytabsSuccess: function (data, opt, params, request) {
+    var self = this;
     App.router.get('applicationController').dataLoading().done(function (initValue) {
       if (initValue) {
         App.router.get('backgroundOperationsController').showPopup();
       }
+      self.set('needsRestartAfterRegenerate', params.withAutoRestart);
     });
   },
+
+  /**
+   * Do request to server for restarting all services
+   * @method restartAllServices
+   * @return {$.ajax}
+   */
+  restartAllServices: function () {
+    if (!App.router.get('backgroundOperationsController.allOperationsCount')) {
+      if (this.get('needsRestartAfterRegenerate')) {
+        this.set('needsRestartAfterRegenerate', false);
+        App.router.get('mainServiceController').restartAllServices();
+      }
+    }
+  }.observes('controllers.backgroundOperationsController.allOperationsCount'),
+
 
   getUpdatedSecurityStatus: function () {
     this.getSecurityStatus();
@@ -202,7 +258,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
           self.loadClusterDescriptorConfigs().then(function() {
             dfd.resolve();
           }, function() {
-            // if kerberos descriptor doesn't exist in cluster artifacts we have to kerberize cluster. 
+            // if kerberos descriptor doesn't exist in cluster artifacts we have to kerberize cluster.
             // Show `Enable kerberos` button and set unsecure status.
             self.set('securityEnabled', false);
             dfd.resolve();
@@ -249,12 +305,12 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     this.get('stepConfigs').clear();
     this._super(properties);
   },
-  
+
   /**
    * Override <code>App.KerberosWizardStep4Controller</code>
-   * 
+   *
    * @param {App.ServiceConfigProperty[]} configs
-   * @returns {App.ServiceConfigProperty[]} 
+   * @returns {App.ServiceConfigProperty[]}
    */
   prepareConfigProperties: function(configs) {
     var configProperties = configs.slice(0);

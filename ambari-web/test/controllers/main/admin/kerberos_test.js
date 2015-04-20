@@ -116,32 +116,66 @@ describe('App.MainAdminKerberosController', function() {
     beforeEach(function () {
       sinon.spy(App.ModalPopup, "show");
       sinon.stub(App.ajax, 'send', Em.K);
+      sinon.spy(controller, 'restartServicesAfterRegenerate');
+      sinon.spy(controller, 'restartAllServices');
     });
     afterEach(function () {
       App.ModalPopup.show.restore();
       App.ajax.send.restore();
+      controller.restartServicesAfterRegenerate.restore();
+      controller.restartAllServices.restore();
     });
 
-    it('confirm popup should be displayed', function () {
+    it('both confirmation popups should be displayed', function () {
       var popup = controller.regenerateKeytabs();
       expect(App.ModalPopup.show.calledOnce).to.be.true;
       popup.onPrimary();
-      expect(App.ajax.send.calledOnce).to.be.true;
+      expect(controller.restartServicesAfterRegenerate.calledOnce).to.be.true;
+      expect(App.ModalPopup.show.calledTwice).to.be.true;
     });
 
     it('user checked regeneration only for missing host/components', function () {
       var popup = controller.regenerateKeytabs();
       popup.set('regenerateKeytabsOnlyForMissing', true);
-      popup.onPrimary();
+
+      var popup2 = popup.onPrimary();
+      popup2.set('restartComponents', true)
+      popup2.onPrimary();
+
       expect(App.ajax.send.args[0][0].data.type).to.equal('missing');
     });
 
     it('user didn\'t check regeneration only for missing host/components', function () {
       var popup = controller.regenerateKeytabs();
-      popup.onPrimary();
+      popup.set('regenerateKeytabsOnlyForMissing', false);
+
+      var popup2 = popup.onPrimary();
+      popup2.set('restartComponents', true)
+      popup2.onPrimary();
+
       expect(App.ajax.send.args[0][0].data.type).to.equal('all');
     });
 
-  });
+    it('user checked restart services automatically', function () {
+      var popup = controller.regenerateKeytabs();
+      popup.set('regenerateKeytabsOnlyForMissing', true);
 
+      var popup2 = popup.onPrimary();
+      popup2.set('restartComponents', true)
+      popup2.onPrimary();
+
+      expect(App.ajax.send.args[0][0].data.withAutoRestart).to.be.true;
+    });
+
+    it('user didn\'t check restart services automatically', function () {
+      var popup = controller.regenerateKeytabs();
+      popup.set('regenerateKeytabsOnlyForMissing', true);
+
+      var popup2 = popup.onPrimary();
+      popup2.set('restartComponents', false)
+      popup2.onPrimary();
+
+      expect(App.ajax.send.args[0][0].data.withAutoRestart).to.be.false;
+    });
+  });
 });

@@ -207,7 +207,7 @@ App.BackgroundOperationsController = Em.Controller.extend({
     var currentRequestIds = [];
     var countIssued = this.get('operationsCount');
     var countGot = data.itemTotal;
-   
+
     data.items.forEach(function (request) {
       if (this.isUpgradeRequest(request)) {
         if (!App.get('upgradeIsRunning') && !App.get('testMode')) {

@@ -153,6 +153,82 @@ App.MainServiceController = Em.ArrayController.extend({
   },
 
   /**
+   * Restart all services - stops all services, then starts them back
+   */
+  restartAllServices: function () {
+    this.silentStopAllServices();
+  },
+
+  /**
+   * Silent stop all services - without user confirmation
+   * @returns {$.ajax}
+   */
+  silentStopAllServices: function () {
+    return App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: {
+        context: App.BackgroundOperationsController.CommandContexts.STOP_ALL_SERVICES,
+        ServiceInfo: {
+          state: 'INSTALLED'
+        }
+      },
+      success: 'silentStopSuccess'
+    });
+  },
+
+  /**
+   * Success callback for silent stop
+   */
+  silentStopSuccess: function () {
+    var self = this;
+
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+
+      Ember.run.later(function () {
+        self.set('shouldStart', true);
+      }, App.bgOperationsUpdateInterval);
+    });
+  },
+
+  /**
+   * Silent start all services - without user confirmation
+   */
+  silentStartAllServices: function () {
+    if (!App.router.get('backgroundOperationsController').get('allOperationsCount')) {
+      if (this.get('shouldStart')) {
+        this.set('shouldStart', false);
+        return App.ajax.send({
+          name: 'common.services.update',
+          sender: this,
+          data: {
+            context: App.BackgroundOperationsController.CommandContexts.START_ALL_SERVICES,
+            ServiceInfo: {
+              state: 'STARTED'
+            }
+          },
+          success: 'silentCallSuccessCallback'
+        });
+      }
+    }
+  }.observes('shouldStart', 'controllers.backgroundOperationsController.allOperationsCount'),
+
+  /**
+   * Success callback for silent start
+   */
+  silentCallSuccessCallback: function () {
+    // load data (if we need to show this background operations popup) from persist
+    App.router.get('applicationController').dataLoading().done(function (initValue) {
+      if (initValue) {
+        App.router.get('backgroundOperationsController').showPopup();
+      }
+    });
+  },
+
+  /**
    * Success-callback for all-services request
    * @param {object} data
    * @param {object} xhr
