@@ -100,7 +100,7 @@
       <minimum>0</minimum>
       <maximum>5120</maximum>
       <unit>MB</unit>
-      <increment-step>250</increment-step>
+      <increment-step>256</increment-step>
     </value-attributes>
     <depends-on>
       <property>

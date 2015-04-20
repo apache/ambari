@@ -253,26 +253,32 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     ticks.forEach(function (tick, index) {
       ticksLabels.push(index % 2 === 0 ? tick + ' ' + self.get('unitLabel') : '');
     });
-    // process additional tick for default value if it not defined in previous computation
-    if (!ticks.contains(defaultValue)) {
-      // push default value
-      ticks.push(defaultValue);
-      // and resort array
-      ticks = ticks.sort(function(a,b) { return a-b; });
-      defaultValueId = ticks.indexOf(defaultValue);
-      // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
-      defaultValueMirroredId = ticks.length - defaultValueId;
-      // push empty label for default value tick
-      ticksLabels.insertAt(defaultValueId, '');
-      // push empty to mirrored position
-      ticksLabels.insertAt(defaultValueMirroredId, '');
-      // for saving correct sliding need to add value to mirrored position which is average between previous
-      // and next value
-      ticks.insertAt(defaultValueMirroredId, (ticks[defaultValueMirroredId] + ticks[defaultValueMirroredId - 1])/2);
-      // get new index for default value
-      defaultValueId = ticks.indexOf(defaultValue);
-    } else {
-      defaultValueId = ticks.indexOf(defaultValue);
+
+    // default-value marker should be added only if defaultValue is in range [min, max]
+    if (defaultValue <= this.get('maxMirrorValue') && defaultValue >= this.get('minMirrorValue')) {
+      // process additional tick for default value if it not defined in previous computation
+      if (!ticks.contains(defaultValue)) {
+        // push default value
+        ticks.push(defaultValue);
+        // and resort array
+        ticks = ticks.sort(function (a, b) {
+          return a - b;
+        });
+        defaultValueId = ticks.indexOf(defaultValue);
+        // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
+        defaultValueMirroredId = ticks.length - defaultValueId;
+        // push empty label for default value tick
+        ticksLabels.insertAt(defaultValueId, '');
+        // push empty to mirrored position
+        ticksLabels.insertAt(defaultValueMirroredId, '');
+        // for saving correct sliding need to add value to mirrored position which is average between previous
+        // and next value
+        ticks.insertAt(defaultValueMirroredId, (ticks[defaultValueMirroredId] + ticks[defaultValueMirroredId - 1]) / 2);
+        // get new index for default value
+        defaultValueId = ticks.indexOf(defaultValue);
+      } else {
+        defaultValueId = ticks.indexOf(defaultValue);
+      }
     }
     var slider = new Slider(this.$('input.slider-input')[0], {
       value: this.get('mirrorValue'),
