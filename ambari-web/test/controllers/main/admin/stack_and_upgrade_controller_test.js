@@ -39,7 +39,7 @@ describe('App.MainAdminStackAndUpgradeController', function() {
       this.mock.withArgs('apiPrefix').returns('apiPrefix');
       this.mock.withArgs('stackVersionURL').returns('stackVersionURL');
       controller.propertyDidChange('realRepoUrl');
-      expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*');
+      expect(controller.get('realRepoUrl')).to.equal('apiPrefixstackVersionURL/compatible_repository_versions?fields=*,operating_systems/*,operating_systems/repositories/*');
     });
   });
 

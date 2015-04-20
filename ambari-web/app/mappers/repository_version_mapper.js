@@ -22,19 +22,22 @@ App.repoVersionMapper = App.QuickDataMapper.create({
   modelOperatingSystems: App.OS,
   modelRepositories: App.Repository,
 
-  modelRepoVersion: {
-    id: 'RepositoryVersions.id',
-    stack_version_id: 'RepositoryVersions.stackVersionId',
-    display_name: 'RepositoryVersions.display_name',
-    repository_version: 'RepositoryVersions.repository_version',
-    upgrade_pack: 'RepositoryVersions.upgrade_pack',
-    stack_version_type: 'RepositoryVersions.stack_name',
-    stack_version_number: 'RepositoryVersions.stack_version',
-    operating_systems_key: 'operating_systems',
-    operating_systems_type: 'array',
-    operating_systems: {
-      item: 'id'
-    }
+  modelRepoVersion: function (isCurrentStackOnly) {
+    var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
+    return {
+      id: repoVersionsKey + '.id',
+      stack_version_id: repoVersionsKey + '.stackVersionId',
+      display_name: repoVersionsKey + '.display_name',
+      repository_version: repoVersionsKey + '.repository_version',
+      upgrade_pack: repoVersionsKey + '.upgrade_pack',
+      stack_version_type: repoVersionsKey + '.stack_name',
+      stack_version_number: repoVersionsKey + '.stack_version',
+      operating_systems_key: 'operating_systems',
+      operating_systems_type: 'array',
+      operating_systems: {
+        item: 'id'
+      }
+    };
   },
 
   modelOS: {
@@ -64,7 +67,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     stack_version : 'Repositories.stack_version'
   },
 
-  map: function (json, loadAll) {
+  map: function (json, loadAll, isCurrentStackOnly) {
     var modelRepoVersions = this.get('modelRepoVersions');
     var modelOperatingSystems = this.get('modelOperatingSystems');
     var modelRepositories = this.get('modelRepositories');
@@ -73,14 +76,16 @@ App.repoVersionMapper = App.QuickDataMapper.create({
     var resultOS = [];
     var resultRepo = [];
 
+    var repoVersionsKey = isCurrentStackOnly ? 'RepositoryVersions' : 'CompatibleRepositoryVersions';
+
     if (json && json.items) {
       json.items.forEach(function (item) {
-        if (loadAll || (item.RepositoryVersions && !App.StackVersion.find().someProperty('repositoryVersion.id', item.RepositoryVersions.id))) {
+        if (loadAll || (item[repoVersionsKey] && !App.StackVersion.find().someProperty('repositoryVersion.id', item[repoVersionsKey].id))) {
           var repo = item;
           var osArray = [];
           if (item.operating_systems) {
             item.operating_systems.forEach(function (os) {
-              os.id = item.RepositoryVersions.repository_version + os.OperatingSystems.os_type;
+              os.id = item[repoVersionsKey].repository_version + os.OperatingSystems.os_type;
               os.repository_version_id = repo.id;
               var repoArray = [];
               if (Em.get(os, 'repositories')) {
@@ -97,7 +102,7 @@ App.repoVersionMapper = App.QuickDataMapper.create({
             }, this);
           }
           repo.operating_systems = osArray;
-          resultRepoVersion.push(this.parseIt(repo, this.get('modelRepoVersion')));
+          resultRepoVersion.push(this.parseIt(repo, this.modelRepoVersion(isCurrentStackOnly)));
         }
       }, this);
     }
