@@ -37,6 +37,7 @@ import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
@@ -206,9 +207,12 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   @Test
   public void testDigestDispatch() throws Exception {
     MockEmailDispatcher dispatcher = new MockEmailDispatcher();
+    List<AlertNoticeEntity> notices = getSingleMockNotice(dispatcher.getType());
+    AlertNoticeEntity notice = notices.get(0);
 
-    EasyMock.expect(m_dao.findPendingNotices()).andReturn(getSingleEmailMockNotice()).once();
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
     EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(dispatcher).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).atLeastOnce();
 
     EasyMock.replay(m_dao, m_dispatchFactory);
 
@@ -239,7 +243,11 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   public void testSingleDispatch() throws Exception {
     MockSnmpDispatcher dispatcher = new MockSnmpDispatcher();
 
+    List<AlertNoticeEntity> notices = getSingleMockNotice(dispatcher.getType());
+    AlertNoticeEntity notice = notices.get(0);
+
     EasyMock.expect(m_dao.findPendingNotices()).andReturn(getSnmpMockNotices()).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).atLeastOnce();
     EasyMock.expect(m_dispatchFactory.getDispatcher("SNMP")).andReturn(
         dispatcher).atLeastOnce();
 
@@ -268,16 +276,15 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   @Test
   public void testFailedDispatch() throws Exception {
     MockEmailDispatcher dispatcher = new MockEmailDispatcher();
-    List<AlertNoticeEntity> notices = getSingleEmailMockNotice();
+    List<AlertNoticeEntity> notices = getSingleMockNotice(dispatcher.getType());
     AlertNoticeEntity notice = notices.get(0);
 
     // these expectations happen b/c we need to mark the notice as FAILED
     EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).once();
     EasyMock.expect(m_dao.findNoticeByUuid(ALERT_NOTICE_UUID_1)).andReturn(notice).once();
-    EasyMock.expect(m_dao.merge(getSingleEmailMockNotice().get(0))).andReturn(notice).once();
-
-    EasyMock.expect(m_dispatchFactory.getDispatcher("EMAIL")).andReturn(
-        dispatcher).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).once();
+    EasyMock.expect(m_dispatchFactory.getDispatcher(dispatcher.getType())).andReturn(dispatcher).once();
 
     EasyMock.replay(m_dao, m_dispatchFactory);
 
@@ -295,26 +302,70 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
   }
 
   /**
+   * Tests that when a dispatcher doesn't call back, the
+   * {@link AlertNoticeEntity} will be put from
+   * {@link NotificationState#PENDING} to {@link NotificationState#DISPATCHED}.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testDispatcherWithoutCallbacks() throws Exception {
+    MockNoCallbackDispatcher dispatcher = new MockNoCallbackDispatcher();
+    List<AlertNoticeEntity> notices = getSingleMockNotice(dispatcher.getType());
+    AlertNoticeEntity notice = notices.get(0);
+
+    // these expectations happen b/c we need to mark the notice as FAILED
+    EasyMock.expect(m_dao.findPendingNotices()).andReturn(notices).once();
+    EasyMock.expect(m_dao.merge(notice)).andReturn(notice).atLeastOnce();
+    EasyMock.expect(m_dispatchFactory.getDispatcher(dispatcher.getType())).andReturn(dispatcher).once();
+
+    EasyMock.replay(m_dao, m_dispatchFactory);
+
+    // do NOT startup the service which will force a template NPE
+    AlertNoticeDispatchService service = m_injector.getInstance(AlertNoticeDispatchService.class);
+    service.startUp();
+
+    // service trigger with mock executor that blocks
+    service.setExecutor(new MockExecutor());
+    service.runOneIteration();
+
+    EasyMock.verify(m_dao, m_dispatchFactory);
+
+    Notification notification = dispatcher.getNotification();
+    assertNotNull(notification);
+
+    // the most important part of this test; ensure that notices that are
+    // processed but have no callbacks are in the DISPATCHED state
+    assertEquals(NotificationState.DISPATCHED, notice.getNotifyState());
+  }
+
+  /**
    * Gets a single PENDING notice.
    *
    * @return
    */
-  private List<AlertNoticeEntity> getSingleEmailMockNotice() {
+  private List<AlertNoticeEntity> getSingleMockNotice(String notificationType) {
+    AlertDefinitionEntity definition = new AlertDefinitionEntity();
+    definition.setDefinitionId(1L);
+    definition.setDefinitionName("alert-definition-1");
+    definition.setLabel("Alert Definition 1");
+
     AlertHistoryEntity history = new AlertHistoryEntity();
+    history.setAlertDefinition(definition);
     history.setServiceName("HDFS");
     history.setClusterId(1L);
-    history.setAlertDefinition(null);
     history.setAlertLabel("Label");
     history.setAlertState(AlertState.OK);
     history.setAlertText(ALERT_UNIQUE_TEXT);
     history.setAlertTimestamp(System.currentTimeMillis());
+
 
     AlertTargetEntity target = new AlertTargetEntity();
     target.setTargetId(1L);
     target.setAlertStates(EnumSet.allOf(AlertState.class));
     target.setTargetName("Alert Target");
     target.setDescription("Mock Target");
-    target.setNotificationType("EMAIL");
+    target.setNotificationType(notificationType);
 
     String properties = "{ \"foo\" : \"bar\" }";
     target.setProperties(properties);
@@ -421,7 +472,7 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     }
 
     @Override
-    public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
+    public TargetConfigurationResult validateTargetConfig(Map<String, Object> properties) {
       return null;
     }
 
@@ -467,9 +518,52 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     }
 
     @Override
-    public ConfigValidationResult validateTargetConfig(
+    public TargetConfigurationResult validateTargetConfig(
         Map<String, Object> properties) {
       return null;
+    }
+  }
+
+  /**
+   * A mock dispatcher that captures the {@link Notification}.
+   */
+  private static final class MockNoCallbackDispatcher implements
+      NotificationDispatcher {
+
+    private Notification m_notificaiton;
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String getType() {
+      return "NO_CALLBACK";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isDigestSupported() {
+      return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void dispatch(Notification notification) {
+      m_notificaiton = notification;
+    }
+
+    @Override
+    public TargetConfigurationResult validateTargetConfig(
+        Map<String, Object> properties) {
+      return null;
+    }
+
+    public Notification getNotification() {
+      return m_notificaiton;
     }
   }
 

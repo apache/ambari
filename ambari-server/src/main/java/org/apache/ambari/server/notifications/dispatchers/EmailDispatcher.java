@@ -33,6 +33,7 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.DispatchCredentials;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
@@ -166,19 +167,19 @@ public class EmailDispatcher implements NotificationDispatcher {
    * {@inheritDoc}
    */
   @Override
-  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
+  public TargetConfigurationResult validateTargetConfig(Map<String, Object> properties) {
     try {
       Transport transport = getMailTransport(properties);
       transport.connect();
       transport.close();
     } catch(AuthenticationFailedException e) {
       LOG.debug("Invalid credentials. Authentication failure.", e);
-      return ConfigValidationResult.invalid("Invalid credentials. Authentication failure: " + e.getMessage());
+      return TargetConfigurationResult.invalid("Invalid credentials. Authentication failure: " + e.getMessage());
     } catch(MessagingException e) {
       LOG.debug("Invalid config.", e);
-      return ConfigValidationResult.invalid("Invalid config: " + e.getMessage());
+      return TargetConfigurationResult.invalid("Invalid config: " + e.getMessage());
     }
-    return ConfigValidationResult.valid();
+    return TargetConfigurationResult.valid();
   }
 
   protected Transport getMailTransport(Map<String, Object> properties) throws NoSuchProviderException {

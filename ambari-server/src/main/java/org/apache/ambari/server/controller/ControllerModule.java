@@ -67,6 +67,8 @@ import org.apache.ambari.server.controller.internal.RepositoryVersionResourcePro
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.DatabaseChecker;
+import org.apache.ambari.server.notifications.DispatchFactory;
+import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.orm.DBAccessor;
 import org.apache.ambari.server.orm.DBAccessorImpl;
 import org.apache.ambari.server.orm.PersistenceType;
@@ -117,6 +119,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.context.annotation.ClassPathScanningCandidateComponentProvider;
 import org.springframework.core.type.filter.AnnotationTypeFilter;
+import org.springframework.core.type.filter.AssignableTypeFilter;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.password.StandardPasswordEncoder;
 import org.springframework.util.ClassUtils;
@@ -286,6 +289,7 @@ public class ControllerModule extends AbstractModule {
         setTargetBeanName("springSecurityFilterChain");
       }
     });
+
     bind(Gson.class).annotatedWith(Names.named("prettyGson")).toInstance(prettyGson);
 
     install(buildJpaPersistModule());
@@ -311,8 +315,8 @@ public class ControllerModule extends AbstractModule {
     bindConstant().annotatedWith(Names.named("executionCommandCacheSize")).
         to(configuration.getExecutionCommandsCacheSize());
 
-    bind(AmbariManagementController.class)
-        .to(AmbariManagementControllerImpl.class);
+    bind(AmbariManagementController.class).to(
+        AmbariManagementControllerImpl.class);
     bind(AbstractRootServiceResponseFactory.class).to(RootServiceResponseFactory.class);
     bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
     bind(DBAccessor.class).to(DBAccessorImpl.class);
@@ -322,6 +326,7 @@ public class ControllerModule extends AbstractModule {
     requestStaticInjection(DatabaseChecker.class);
 
     bindByAnnotation(null);
+    bindNotificationDispatchers();
   }
 
 
@@ -498,5 +503,52 @@ public class ControllerModule extends AbstractModule {
     bind(ServiceManager.class).toInstance(manager);
 
     return beanDefinitions;
+  }
+
+  /**
+   * Searches for all instances of {@link NotificationDispatcher} on the
+   * classpath and registers each as a singleton with the
+   * {@link DispatchFactory}.
+   */
+  private void bindNotificationDispatchers() {
+    ClassPathScanningCandidateComponentProvider scanner =
+        new ClassPathScanningCandidateComponentProvider(false);
+
+    // make the factory a singleton
+    DispatchFactory dispatchFactory = DispatchFactory.getInstance();
+    bind(DispatchFactory.class).toInstance(dispatchFactory);
+
+    // match all implementations of the dispatcher interface
+    AssignableTypeFilter filter = new AssignableTypeFilter(
+        NotificationDispatcher.class);
+
+    scanner.addIncludeFilter(filter);
+
+    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(
+        "org.apache.ambari.server.notifications.dispatchers");
+
+    // no dispatchers is a problem
+    if (null == beanDefinitions || beanDefinitions.size() == 0) {
+      LOG.error("No instances of {} found to register", NotificationDispatcher.class);
+      return;
+    }
+
+    // for every discovered dispatcher, singleton-ize them and register with
+    // the dispatch factory
+    for (BeanDefinition beanDefinition : beanDefinitions) {
+      String className = beanDefinition.getBeanClassName();
+      Class<?> clazz = ClassUtils.resolveClassName(className,
+          ClassUtils.getDefaultClassLoader());
+
+      try {
+        NotificationDispatcher dispatcher = (NotificationDispatcher) clazz.newInstance();
+        dispatchFactory.register(dispatcher.getType(), dispatcher);
+
+        LOG.info("Binding and registering notification dispatcher {}", clazz);
+      } catch (Exception exception) {
+        LOG.error("Unable to bind and register notification dispatcher {}",
+            clazz, exception);
+      }
+    }
   }
 }

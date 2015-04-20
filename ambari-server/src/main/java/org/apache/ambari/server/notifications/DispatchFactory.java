@@ -20,12 +20,7 @@ package org.apache.ambari.server.notifications;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.apache.ambari.server.notifications.dispatchers.EmailDispatcher;
-
-import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.Singleton;
-import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
 
 /**
  * The {@link DispatchFactory} is used to provide singleton instances of
@@ -33,6 +28,11 @@ import org.apache.ambari.server.notifications.dispatchers.SNMPDispatcher;
  */
 @Singleton
 public class DispatchFactory {
+
+  /**
+   * Singleton.
+   */
+  private static final DispatchFactory s_instance = new DispatchFactory();
 
   /**
    * Mapping of dispatch type to dispatcher singleton.
@@ -43,12 +43,16 @@ public class DispatchFactory {
    * Constructor.
    *
    */
-  @Inject
-  public DispatchFactory(Injector injector) {
-    EmailDispatcher emailDispatcher = injector.getInstance(EmailDispatcher.class);
-    SNMPDispatcher snmpDispatcher = injector.getInstance(SNMPDispatcher.class);
-    m_dispatchers.put(emailDispatcher.getType(), emailDispatcher);
-    m_dispatchers.put(snmpDispatcher.getType(), snmpDispatcher);
+  private DispatchFactory() {
+  }
+
+  /**
+   * Gets the single instance of this factory.
+   *
+   * @return
+   */
+  public static DispatchFactory getInstance() {
+    return s_instance;
   }
 
   /**

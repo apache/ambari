@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.notifications.dispatchers;
 
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.DispatchCallback;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
@@ -379,8 +380,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "1.3.6.1.6.3.1.1.5.4");
     properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "public");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -393,8 +394,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv4");
     properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "public");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -406,8 +407,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv1");
     properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "public");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -420,8 +421,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "1.3.6.1.6.3.1.1.5.4");
     properties.put(SNMPDispatcher.COMMUNITY_PROPERTY, "public");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -433,8 +434,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.TRAP_OID_PROPERTY, "1.3.6.1.6.3.1.1.5.4");
     properties.put(SNMPDispatcher.SNMP_VERSION_PROPERTY, "SNMPv2c");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -450,8 +451,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_PRIV_PASSPHRASE_PROPERTY, "PASSPHRASE2");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "INCORRECT");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -465,8 +466,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "NOAUTH_NOPRIV");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -481,8 +482,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_AUTH_PASSPHRASE_PROPERTY, "PASSPHRASE1");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "AUTH_NOPRIV");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -496,8 +497,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "AUTH_NOPRIV");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -513,8 +514,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_PRIV_PASSPHRASE_PROPERTY, "PASSPHRASE2");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "AUTH_PRIV");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -528,8 +529,8 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_USERNAME_PROPERTY, "USER");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "AUTH_PRIV");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -544,7 +545,7 @@ public class SNMPDispatcherTest {
     properties.put(SNMPDispatcher.SECURITY_AUTH_PASSPHRASE_PROPERTY, "PASSPHRASE1");
     properties.put(SNMPDispatcher.SECURITY_LEVEL_PROPERTY, "AUTH_PRIV");
     NotificationDispatcher dispatcher = new SNMPDispatcher();
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 }

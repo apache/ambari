@@ -42,6 +42,7 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.DispatchFactory;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
@@ -506,8 +507,8 @@ public class AlertTargetResourceProvider extends
     if (dispatcher == null) {
       throw new IllegalArgumentException("Dispatcher for given notification type doesn't exist");
     }
-    NotificationDispatcher.ConfigValidationResult validationResult = dispatcher.validateTargetConfig(properties);
-    if (validationResult.getStatus() == NotificationDispatcher.ConfigValidationResult.Status.INVALID) {
+    TargetConfigurationResult validationResult = dispatcher.validateTargetConfig(properties);
+    if (validationResult.getStatus() == TargetConfigurationResult.Status.INVALID) {
       throw new IllegalArgumentException(validationResult.getMessage());
     }
   }

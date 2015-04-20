@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
@@ -124,7 +125,7 @@ public class SNMPDispatcher implements NotificationDispatcher {
    * {@inheritDoc}
    */
   @Override
-  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties) {
+  public TargetConfigurationResult validateTargetConfig(Map<String, Object> properties) {
     Map<String, String> stringValuesConfig = new HashMap<String, String>(properties.size());
     for (Map.Entry<String, Object> propertyEntry : properties.entrySet()) {
       stringValuesConfig.put(propertyEntry.getKey(), propertyEntry.getValue().toString());
@@ -155,9 +156,9 @@ public class SNMPDispatcher implements NotificationDispatcher {
           break;
       }
     } catch (InvalidSnmpConfigurationException ex) {
-      return ConfigValidationResult.invalid(ex.getMessage());
+      return TargetConfigurationResult.invalid(ex.getMessage());
     }
-    return ConfigValidationResult.valid();
+    return TargetConfigurationResult.valid();
   }
 
   /**

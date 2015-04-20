@@ -27,7 +27,7 @@ import java.util.Map;
 public class Notification {
 
   /**
-   *
+   * A short summary of the notification.
    */
   public String Subject;
 

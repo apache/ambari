@@ -125,8 +125,8 @@ public class EmailDispatcherTest {
 
     EasyMock.replay(dispatcher, mockedTransport);
 
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    Assert.assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    Assert.assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -143,8 +143,8 @@ public class EmailDispatcherTest {
 
     EasyMock.replay(dispatcher, mockedTransport);
 
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    Assert.assertEquals(NotificationDispatcher.ConfigValidationResult.Status.INVALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    Assert.assertEquals(TargetConfigurationResult.Status.INVALID, configValidationResult.getStatus());
   }
 
   @Test
@@ -159,8 +159,8 @@ public class EmailDispatcherTest {
 
     EasyMock.replay(dispatcher, mockedTransport);
 
-    NotificationDispatcher.ConfigValidationResult configValidationResult = dispatcher.validateTargetConfig(properties);
-    Assert.assertEquals(NotificationDispatcher.ConfigValidationResult.Status.VALID, configValidationResult.getStatus());
+    TargetConfigurationResult configValidationResult = dispatcher.validateTargetConfig(properties);
+    Assert.assertEquals(TargetConfigurationResult.Status.VALID, configValidationResult.getStatus());
   }
 
   /**

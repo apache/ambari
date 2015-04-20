@@ -522,24 +522,30 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // stack for each cluster defined
     String INSERT_STACK_ID_TEMPLATE = "UPDATE {0} SET {1} = {2} WHERE cluster_id = {3}";
     ResultSet resultSet = dbAccessor.executeSelect("SELECT * FROM clusters");
-    while (resultSet.next()) {
-      long clusterId = resultSet.getLong("cluster_id");
-      String stackJson = resultSet.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
-      StackId stackId = gson.fromJson(stackJson, StackId.class);
+    try {
+      while (resultSet.next()) {
+        long clusterId = resultSet.getLong("cluster_id");
+        String stackJson = resultSet.getString(DESIRED_STACK_VERSION_COLUMN_NAME);
+        StackId stackId = gson.fromJson(stackJson, StackId.class);
 
-      StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
-          stackId.getStackVersion());
+        StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+            stackId.getStackVersion());
 
-      String clusterConfigSQL = MessageFormat.format(INSERT_STACK_ID_TEMPLATE,
-          "clusterconfig", STACK_ID_COLUMN_NAME, stackEntity.getStackId(),
-          clusterId);
+        String clusterConfigSQL = MessageFormat.format(
+            INSERT_STACK_ID_TEMPLATE, "clusterconfig", STACK_ID_COLUMN_NAME,
+            stackEntity.getStackId(), clusterId);
 
-      String serviceConfigSQL = MessageFormat.format(INSERT_STACK_ID_TEMPLATE,
-          "serviceconfig", STACK_ID_COLUMN_NAME, stackEntity.getStackId(),
-          clusterId);
+        String serviceConfigSQL = MessageFormat.format(
+            INSERT_STACK_ID_TEMPLATE, "serviceconfig", STACK_ID_COLUMN_NAME,
+            stackEntity.getStackId(), clusterId);
 
-      dbAccessor.executeQuery(clusterConfigSQL);
-      dbAccessor.executeQuery(serviceConfigSQL);
+        dbAccessor.executeQuery(clusterConfigSQL);
+        dbAccessor.executeQuery(serviceConfigSQL);
+      }
+    } finally {
+      if (null != resultSet) {
+        resultSet.close();
+      }
     }
   }
 

@@ -290,6 +290,10 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         aggregateMap.put(target, notices);
       }
 
+      // at this point, notices have been processed but not yet delivered
+      notice.setNotifyState(NotificationState.DISPATCHED);
+      notice = m_dao.merge(notice);
+
       notices.add(notice);
     }
 

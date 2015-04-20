@@ -59,36 +59,5 @@ public interface NotificationDispatcher {
    * @param properties alert target properties
    * @return ConfigValidationResult with validation status and message
    */
-  public ConfigValidationResult validateTargetConfig(Map<String, Object> properties);
-
-  public static class ConfigValidationResult {
-
-    public enum Status {
-      VALID, INVALID
-    }
-
-    private String message;
-    private Status status;
-
-    private ConfigValidationResult(Status status, String message) {
-      this.message = message;
-      this.status = status;
-    }
-
-    public String getMessage() {
-      return message;
-    }
-
-    public Status getStatus() {
-      return status;
-    }
-
-    public static ConfigValidationResult valid() {
-      return new ConfigValidationResult(Status.VALID, "Configuration is valid");
-    }
-
-    public static ConfigValidationResult invalid(String message) {
-      return new ConfigValidationResult(Status.INVALID, message);
-    }
-  }
+  public TargetConfigurationResult validateTargetConfig(Map<String, Object> properties);
 }

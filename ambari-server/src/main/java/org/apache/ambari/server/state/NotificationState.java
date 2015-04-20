@@ -39,6 +39,11 @@ public enum NotificationState {
   /**
    * The notification was processed successfully.
    */
-  DELIVERED
+  DELIVERED,
 
+  /**
+   * The notification was picked up and processed by the dispatcher, but there
+   * is no information on whether the delivery was successful.
+   */
+  DISPATCHED;
 }
