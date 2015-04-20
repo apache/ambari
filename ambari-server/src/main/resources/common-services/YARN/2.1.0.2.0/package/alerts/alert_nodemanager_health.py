@@ -122,6 +122,7 @@ def execute(parameters=None, host_name=None):
   try:
     json_response = json.loads(url_response.read())
     node_healthy = json_response['nodeInfo']['nodeHealthy']
+    node_healthy_report = json_response['nodeInfo']['healthReport']
 
     # convert boolean to string
     node_healthy = str(node_healthy)
@@ -138,6 +139,9 @@ def execute(parameters=None, host_name=None):
   if node_healthy.lower() == 'true':
     result_code = RESULT_CODE_OK
     label = OK_MESSAGE
+  elif node_healthy.lower() == 'false':
+    result_code = RESULT_CODE_CRITICAL
+    label = node_healthy_report
   else:
     result_code = RESULT_CODE_CRITICAL
     label = CRITICAL_NODEMANAGER_STATUS_MESSAGE.format(node_healthy)
