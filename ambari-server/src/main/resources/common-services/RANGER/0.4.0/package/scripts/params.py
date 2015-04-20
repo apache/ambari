@@ -53,6 +53,8 @@ ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 db_flavor =  config['configurations']['admin-properties']['DB_FLAVOR']
 
+usersync_exturl =  config['configurations']['admin-properties']['policymgr_external_url']
+
 sql_command_invoker = config['configurations']['admin-properties']['SQL_COMMAND_INVOKER']
 db_root_user = config['configurations']['admin-properties']['db_root_user']
 db_root_password = unicode(config['configurations']['admin-properties']['db_root_password'])

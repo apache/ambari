@@ -242,7 +242,7 @@ class Rangeradmin:
       result = urllib2.urlopen(request)
       response_code =  result.getcode()
       response = json.loads(result.read())
-      if response_code == 200 and len(response['vXUsers']) > 0:
+      if response_code == 200 and len(response['vXUsers']) >= 0:
         ambari_admin_username = ambari_admin_username
         flag_ambari_admin_present = False
         for vxuser in response['vXUsers']:
