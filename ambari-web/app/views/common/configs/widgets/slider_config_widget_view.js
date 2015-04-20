@@ -54,8 +54,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   unitLabel: '',
 
-  undoAllowed: false,
-
   /**
    * max allowed value transformed form config unit to widget unit
    * @type {Number}
