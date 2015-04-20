@@ -188,6 +188,8 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   graphView: App.ChartLinearTimeView.extend({
 
+    noTitleUnderGraph: true,
+
     /**
      * graph height
      * @type {number}
@@ -208,6 +210,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       return this.get('parentView.content.properties.graph_type') === 'STACK' ? 'area' : 'line';
     }.property('parentView.content.properties.graph_type'),
 
+    title: function () {
+      return this.get('parentView.content.displayName');
+    }.property('parentView.content.displayName'),
+
     transformToSeries: function (seriesData) {
       var seriesArray = [];
 
@@ -217,8 +223,15 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       return seriesArray;
     },
 
+    loadData: function () {
+      var self = this;
+      Em.run.next(function () {
+        self._refreshGraph(self.get('parentView.data'))
+      });
+    },
+
     didInsertElement: function () {
-      this._refreshGraph(this.get('parentView.data'));
+      this.loadData();
     }.observes('parentView.data')
   })
 });
