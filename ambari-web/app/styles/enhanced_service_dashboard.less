@@ -164,6 +164,77 @@
 }
 
 #add-widget-wizard {
+  #add-widget-step1 {
+    .widgets-info-container {
+      .span6.widget-info-section {
+        width: 44%;
+        height: 122px;
+        margin: 5px 15px;
+        padding-top: 10px;
+        padding-left: 5px;
+      }
+      .span6.widget-info-section:hover {
+        background-color: #eee;
+        .icon {
+          background-color: white;
+        }
+        .widget-section-actions {
+          display: block;
+        }
+      }
+      .span6.widget-info-section.is-selected {
+        background-color: #eee;
+        .icon {
+          background-color: white;
+        }
+      }
+      .span6.widget-info-section.is-selected:hover {
+        background-color: #eee;
+        .widget-section-actions {
+          display: none;
+        }
+      }
+      .icon {
+        border: 1px solid #ddd;
+        .widget-icon-image {
+          img {
+            display: block;
+            margin: 5px auto;
+          }
+        }
+      }
+      .label-description {
+        padding-top: 5px;
+        .label-text {
+          display: block;
+          font-size: 14px;
+          font-weight: bold;
+          margin-bottom: 1px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+        .description-text {
+          font-size: 12px;
+          display: block;
+          color: #808080;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          height: 60px;
+        }
+      }
+      .widget-section-actions {
+        display: none;
+        position: relative;
+        top: -30px;
+        right: 30px;
+        .btn {
+          padding: 3px 8px;
+          width: 70px;
+        }
+      }
+    }
+  }
   .step2 {
     .badge-container {
       height: 26px;
@@ -388,7 +459,7 @@
         padding-left: 5px;
       }
       .span6.widget-info-section:hover {
-        background-color: #ddd;
+        background-color: #eee;
         .icon {
           background-color: white;
         }

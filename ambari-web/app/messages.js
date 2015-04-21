@@ -2505,6 +2505,7 @@ Em.I18n.translations = {
   'widget.create.wizard.header': 'Create Widget',
   'widget.create.wizard.step1.header': 'Choose Type',
   'widget.create.wizard.step1.body.text': 'What type of widget do you want to create?',
+  'widget.create.wizard.step1.body.button.choose': 'Choose',
   'widget.create.wizard.step2.header': 'Metrics and Expression',
   'widget.create.wizard.step2.body.text':'Define the expression with any metrics and valid operators. </br>Use parentheses when necessary.',
   'widget.create.wizard.step2.body.template':'Define the template first, a template can have any number of {{expression}} and any string.',

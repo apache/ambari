@@ -75,6 +75,7 @@ App.Widget.FIXTURES = [];
 App.WidgetType = DS.Model.extend({
   name: DS.attr('string'),
   displayName: DS.attr('string'),
+  iconPath: DS.attr('string'),
   description: DS.attr('string'),
   properties: DS.attr('array')
 });
@@ -84,6 +85,7 @@ App.WidgetType.FIXTURES = [
   {
     id: 1,
     name: 'GAUGE',
+    icon_path: '/img/widget-gauge.png',
     display_name: 'Gauge',
     description: Em.I18n.t('widget.type.gauge.description'),
     properties: [
@@ -100,6 +102,7 @@ App.WidgetType.FIXTURES = [
   {
     id: 2,
     name: 'NUMBER',
+    icon_path: '/img/widget-number.png',
     display_name: 'Number',
     description: Em.I18n.t('widget.type.number.description'),
     properties: [
@@ -124,6 +127,7 @@ App.WidgetType.FIXTURES = [
     id: 3,
     name: 'GRAPH',
     display_name: 'Graph',
+    icon_path: '/img/widget-graph.png',
     description: Em.I18n.t('widget.type.graph.description'),
     properties: [
       {
@@ -144,6 +148,7 @@ App.WidgetType.FIXTURES = [
   {
     id: 4,
     name: 'TEMPLATE',
+    icon_path: '/img/widget-template.png',
     display_name: 'Template',
     description: Em.I18n.t('widget.type.template.description'),
     properties: [

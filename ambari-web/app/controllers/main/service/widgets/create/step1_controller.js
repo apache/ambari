@@ -41,7 +41,22 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
   /**
    * @type {App.WidgetType}
    */
-  options: App.WidgetType.find(),
+  options: function () {
+    var selectedType = this.get('widgetType');
+    return App.WidgetType.find().map(function(option) {
+      return {
+        name: option.get('name'),
+        displayName: option.get('displayName'),
+        iconPath: option.get('iconPath'),
+        description: option.get('description'),
+        isSelected: option.get('name') == selectedType
+      }
+    });
+  }.property('widgetType'),
+
+  chooseOption: function (event) {
+    this.set('widgetType', event.context);
+  },
 
   loadStep: function () {
     this.clearStep();

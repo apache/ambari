@@ -20,15 +20,27 @@
   <h2>{{t widget.create.wizard.step1.header}}</h2>
 
   <div id="add-widget-step1-options-body">
-    {{t widget.create.wizard.step1.body.text}}
-    {{#each option in options}}
-      <label class="checkbox add-widget-step1-option-radiobutton">
-        {{view Ember.RadioButton name="option.displayName" selectionBinding="widgetType" valueBinding="option.name"}}  {{option.displayName}} &nbsp;<span class="muted">{{option.description}} </span>
-      </label>
-    {{/each}}
-    <br/>
-  </div>
+    <h4>{{t widget.create.wizard.step1.body.text}}</h4>
 
+    <div class="widgets-info-container row-fluid">
+      {{#each option in options}}
+        <div {{bindAttr class="option.isSelected:is-selected :span6 :row-fluid :widget-info-section"}}>
+          <div class="icon span4">
+            <a class="widget-icon-image" target="_blank"><img {{bindAttr src="option.iconPath"}}></a>
+          </div>
+          <div class="label-description span8">
+            <p class="label-text">{{option.displayName}}</p>
+            <p class="description-text">{{option.description}}</p>
+          </div>
+          <div class="widget-section-actions pull-right">
+            <button type="button" class="btn btn-primary" {{action "chooseOption" option.name target="controller"}} >
+              {{t widget.create.wizard.step1.body.button.choose}}
+            </button>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  </div>
 
   <div class="btn-area">
     <button id="add-widget-step1-next" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "next" target="controller"}}>{{t common.next}} &rarr;</button>
