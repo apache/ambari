@@ -30,6 +30,16 @@ App.Section = DS.Model.extend({
   sectionRows: DS.attr('number', {defaultValue: 1}),
   subSections: DS.hasMany('App.SubSection'),
   tab: DS.belongsTo('App.Tab'),
+
+  /**
+   * Number of the errors in all subsections in the current section
+   * @type {number}
+   */
+  errorsCount: function () {
+    var errors = this.get('subSections').mapProperty('errorsCount');
+    return errors.length ? errors.reduce(Em.sum) : 0;
+  }.property('subSections.@each.errorsCount'),
+
   isFirstRow: function () {
     return this.get('rowIndex') == 0;
   }.property(),

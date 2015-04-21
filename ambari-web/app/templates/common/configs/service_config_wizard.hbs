@@ -51,7 +51,20 @@
 {{#if view.supportsConfigLayout}}
   <ul class="nav nav-tabs">
     {{#each tab in view.tabs}}
-      <li {{bindAttr class="tab.isActive:active" }}><a href="#" {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">{{tab.displayName}}</a></li>
+      <li {{bindAttr class="tab.isActive:active" }}>
+        <a href="#" {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
+          {{tab.displayName}}
+          {{#if tab.isAdvanced}}
+            {{#if controller.errorsCount}}
+              <span class="badge badge-important">{{controller.errorsCount}}</span>
+            {{/if}}
+          {{else}}
+            {{#if tab.errorsCount}}
+              <span class="badge badge-important">{{tab.errorsCount}}</span>
+            {{/if}}
+          {{/if}}
+        </a>
+      </li>
     {{/each}}
   </ul>
   <div class="tab-content">

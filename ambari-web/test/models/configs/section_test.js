@@ -17,36 +17,27 @@
  */
 
 var App = require('app');
+var model;
 
-App.Tab = DS.Model.extend({
-  id: DS.attr('string'),
-  name: DS.attr('string'),
-  displayName: DS.attr('string'),
-  columns: DS.attr('number', {defaultValue: 1}),
-  rows: DS.attr('number', {defaultValue: 1}),
-  isAdvanced: DS.attr('boolean', {defaultValue: false}),
-  serviceName: DS.attr('string'),
-  sections: DS.hasMany('App.Section'),
+describe('App.Section', function () {
 
-  /**
-   * Number of the errors in all sections in the current tab
-   * @type {number}
-   */
-  errorsCount: function () {
-    var errors = this.get('sections').mapProperty('errorsCount');
-    return errors.length ? errors.reduce(Em.sum) : 0;
-  }.property('sections.@each.errorsCount'),
+  beforeEach(function () {
+    model = App.Section.createRecord();
+  });
 
-  /**
-   * Class name used for tab switching
-   *
-   * @type {String}
-   * @property headingClass
-   */
-  headingClass: function() {
-    return '.' + this.get('id');
-  }.property('id')
+  describe('#errorsCount', function () {
+
+    beforeEach(function () {
+      model.reopen({subSections: [
+        App.SubSection.createRecord({configs: [{isValid: true}, {isValid: false}]}),
+        App.SubSection.createRecord({configs: [{isValid: true}, {isValid: false}]})
+      ]});
+    });
+
+    it('should use subsections.@each.errorsCount', function () {
+      expect(model.get('errorsCount')).to.equal(2);
+    });
+
+  });
+
 });
-
-
-App.Tab.FIXTURES = [];

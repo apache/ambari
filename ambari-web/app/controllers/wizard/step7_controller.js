@@ -133,6 +133,16 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   }.property('isAdvancedConfigLoaded', 'isAppliedConfigLoaded'),
 
   /**
+   * Number of errors in the configs in the selected service
+   * @type {number}
+   */
+  errorsCount: function () {
+    return this.get('selectedService.configs').filter(function (config) {
+      return Em.isNone(config.get('widget'));
+    }).filterProperty('isValid', false).length;
+  }.property('selectedService.configs.@each.isValid'),
+
+  /**
    * Should Next-button be disabled
    * @type {bool}
    */

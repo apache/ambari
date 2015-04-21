@@ -173,6 +173,16 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadedClusterSiteToTagMap: {},
 
   /**
+   * Number of errors in the configs in the selected service
+   * @type {number}
+   */
+  errorsCount: function () {
+    return this.get('selectedService.configs').filter(function (config) {
+      return Em.isNone(config.get('widget'));
+    }).filterProperty('isValid', false).length;
+  }.property('selectedService.configs.@each.isValid'),
+
+  /**
    * Determines if Save-button should be disabled
    * Disabled if some configs have invalid values or save-process currently in progress
    * @type {boolean}

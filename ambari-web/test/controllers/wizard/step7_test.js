@@ -1952,4 +1952,23 @@ describe('App.InstallerStep7Controller', function () {
     });
   });
 
+  describe('#errorsCount', function () {
+
+    it('should ignore configs with widgets (enhanced configs)', function () {
+
+      installerStep7Controller.reopen({selectedService: {
+        configs: [
+          Em.Object.create({widget: Em.View, isValid: false}),
+          Em.Object.create({widget: Em.View, isValid: true}),
+          Em.Object.create({isValid: true}),
+          Em.Object.create({isValid: false})
+        ]
+      }});
+
+      expect(installerStep7Controller.get('errorsCount')).to.equal(1);
+
+    });
+
+  });
+
 });

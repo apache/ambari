@@ -1305,4 +1305,23 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   });
 
+  describe('#errorsCount', function () {
+
+    it('should ignore configs with widgets (enhanced configs)', function () {
+
+      mainServiceInfoConfigsController.reopen({selectedService: {
+        configs: [
+          Em.Object.create({widget: Em.View, isValid: false}),
+          Em.Object.create({widget: Em.View, isValid: true}),
+          Em.Object.create({isValid: true}),
+          Em.Object.create({isValid: false})
+        ]
+      }});
+
+      expect(mainServiceInfoConfigsController.get('errorsCount')).to.equal(1);
+
+    });
+
+  });
+
 });

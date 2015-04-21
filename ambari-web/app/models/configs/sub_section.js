@@ -29,6 +29,16 @@ App.SubSection = DS.Model.extend({
   columnSpan: DS.attr('number', {defaultValue: 1}),
   section: DS.belongsTo('App.Section'),
   configProperties: DS.hasMany('App.StackConfigProperty'),
+  configs: [],
+
+  /**
+   * Number of the errors in all configs
+   * @type {number}
+   */
+  errorsCount: function () {
+    return this.get('configs').filterProperty('isValid', false).length;
+  }.property('configs.@each.isValid'),
+
   isFirstRow: function () {
     return this.get('rowIndex') == 0;
   }.property(),

@@ -40,7 +40,7 @@ App.ServiceConfig = Ember.Object.extend({
     });
     configs.forEach(function (item) {
       var category = configCategories.findProperty('name', item.get('category'));
-      if (category && !item.get('isValid') && item.get('isVisible')) {
+      if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widget')) {
         category.incrementProperty('nonSlaveErrorCount');
         masterErrors++;
       }
