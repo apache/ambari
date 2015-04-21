@@ -964,6 +964,8 @@ public class ClusterTest {
     Assert.assertEquals("HDFS", hdfsResponse.getServiceName());
     Assert.assertEquals("c1", hdfsResponse.getClusterName());
     Assert.assertEquals("admin", hdfsResponse.getUserName());
+    Assert.assertEquals("default", hdfsResponse.getGroupName());
+    Assert.assertEquals(Long.valueOf(-1), hdfsResponse.getGroupId());
     Assert.assertEquals(Long.valueOf(1), hdfsResponse.getVersion());
 
     c1.addDesiredConfig("admin", Collections.singleton(config2));

@@ -89,7 +89,7 @@ public class ServiceConfigVersionResponse {
     userName = serviceConfigEntity.getUser();
     createTime = serviceConfigEntity.getCreateTimestamp();
     note = serviceConfigEntity.getNote();
-    groupId = serviceConfigEntity.getGroupId();
+    groupId = (null != serviceConfigEntity.getGroupId() ? serviceConfigEntity.getGroupId(): -1L);
     groupName = configGroupName;
     hosts = serviceConfigEntity.getHostNames();
 
