@@ -113,6 +113,16 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   restoreValue: function() {
     this._super();
     this.setConfigValue({ context: this.get('config.defaultValue') });
+  },
+
+  /**
+   * Delegate event from text input in combo widget to trigger dropdown
+   */
+  click: function(event) {
+    if (event.target.className.contains('ember-text-field')) {
+      $(event.target).closest('.dropdown').toggleClass('open');
+      return false;
+    }
   }
 
 });
