@@ -178,7 +178,7 @@ doConfigUpdate () {
 doConfigFileUpdate () {
   FILENAME=$1
   if [ -f $FILENAME ]; then
-    if [ "1" == "`grep -n \"\\\"properties\\\"\" $FILENAME | cut -d : -f 1`" ]; then
+    if [ "1" == "$(grep -En ^\"properties\" $FILENAME | cut -d : -f 1)" ]; then
       newTag=`date "+%s%N"`
       newTag="version${newTag}"
       newProperties=`cat $FILENAME`;
