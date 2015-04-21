@@ -202,3 +202,9 @@ downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0:
+  solr_enabled = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.IS_ENABLED", "false")
+  solr_max_queue_size = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.MAX_QUEUE_SIZE", "1")
+  solr_max_flush_interval = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS", "1000")
+  solr_url = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.SOLR_URL", "http://localhost:6083/solr/ranger_audits")

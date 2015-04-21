@@ -26,6 +26,7 @@ import os
 from resource_management import *
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.logger import Logger
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 
 def setup_ranger_hive():
   import params
@@ -171,6 +172,12 @@ def ranger_hive_properties():
   ranger_hive_properties['SSL_TRUSTSTORE_PASSWORD'] = params.ssl_truststore_password
    
   ranger_hive_properties['UPDATE_XAPOLICIES_ON_GRANT_REVOKE'] = params.grant_revoke
+
+  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
+    ranger_hive_properties['XAAUDIT.SOLR.IS_ENABLED'] = str(params.solr_enabled).lower()
+    ranger_hive_properties['XAAUDIT.SOLR.MAX_QUEUE_SIZE'] = params.solr_max_queue_size
+    ranger_hive_properties['XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS'] = params.solr_max_flush_interval
+    ranger_hive_properties['XAAUDIT.SOLR.SOLR_URL'] = params.solr_url
 
   return ranger_hive_properties
 

@@ -26,7 +26,7 @@ import os
 from resource_management import *
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
 from resource_management.core.logger import Logger
-
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 
 def setup_ranger_hdfs():
   import params
@@ -173,6 +173,12 @@ def ranger_hdfs_properties():
   ranger_hdfs_properties['SSL_KEYSTORE_PASSWORD'] = params.ssl_keystore_password
   ranger_hdfs_properties['SSL_TRUSTSTORE_FILE_PATH'] = params.ssl_truststore_file
   ranger_hdfs_properties['SSL_TRUSTSTORE_PASSWORD'] = params.ssl_truststore_password
+
+  if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
+    ranger_hdfs_properties['XAAUDIT.SOLR.IS_ENABLED'] = str(params.solr_enabled).lower()
+    ranger_hdfs_properties['XAAUDIT.SOLR.MAX_QUEUE_SIZE'] = params.solr_max_queue_size
+    ranger_hdfs_properties['XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS'] = params.solr_max_flush_interval
+    ranger_hdfs_properties['XAAUDIT.SOLR.SOLR_URL'] = params.solr_url
 
   return ranger_hdfs_properties
 
