@@ -43,15 +43,11 @@ import org.easymock.Capture;
 import org.easymock.EasyMock;
 import org.easymock.IAnswer;
 import org.junit.Test;
-import org.springframework.ldap.control.PagedResultsCookie;
-import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.LdapTemplate;
 import org.springframework.ldap.core.support.LdapContextSource;
-
-import javax.naming.directory.SearchControls;
 
 import static junit.framework.Assert.*;
 import static org.easymock.EasyMock.*;
@@ -73,7 +69,6 @@ public class AmbariLdapDataPopulatorTest {
 
     protected LdapTemplate ldapTemplate;
     private LdapContextSource ldapContextSource;
-    private PagedResultsDirContextProcessor processor;
 
     public TestAmbariLdapDataPopulator(Configuration configuration, Users users) {
       super(configuration, users);
@@ -90,17 +85,8 @@ public class AmbariLdapDataPopulatorTest {
       return ldapTemplate;
     }
 
-    @Override
-    protected PagedResultsDirContextProcessor createPagingProcessor() {
-      return processor;
-    }
-
     public void setLdapContextSource(LdapContextSource ldapContextSource) {
       this.ldapContextSource = ldapContextSource;
-    }
-
-    public void setProcessor(PagedResultsDirContextProcessor processor) {
-      this.processor = processor;
     }
 
     public void setLdapTemplate(LdapTemplate ldapTemplate) {
@@ -1483,9 +1469,6 @@ public class AmbariLdapDataPopulatorTest {
     LdapTemplate ldapTemplate = createNiceMock(LdapTemplate.class);
     LdapServerProperties ldapServerProperties = createNiceMock(LdapServerProperties.class);
     Capture<ContextMapper> contextMapperCapture = new Capture<ContextMapper>();
-    Capture<SearchControls> searchControlsCapture = new Capture<SearchControls>();
-    PagedResultsDirContextProcessor processor = createNiceMock(PagedResultsDirContextProcessor.class);
-    PagedResultsCookie cookie = createNiceMock(PagedResultsCookie.class);
     LdapUserDto dto = new LdapUserDto();
 
     List<LdapUserDto> list = new LinkedList<LdapUserDto>();
@@ -1495,25 +1478,22 @@ public class AmbariLdapDataPopulatorTest {
     expect(ldapServerProperties.getUserObjectClass()).andReturn("objectClass").anyTimes();
     expect(ldapServerProperties.getDnAttribute()).andReturn("dn").anyTimes();
     expect(ldapServerProperties.getBaseDN()).andReturn("baseDN").anyTimes();
-    expect(processor.getCookie()).andReturn(cookie).anyTimes();
-    expect(cookie.getCookie()).andReturn(null).anyTimes();
 
     expect(ldapTemplate.lookup(eq("uid=foo,dc=example,dc=com"), capture(contextMapperCapture))).andReturn(dto);
 
     expect(ldapTemplate.lookup(eq("foo"), capture(contextMapperCapture))).andReturn(null);
-    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), anyObject(SearchControls.class), capture(contextMapperCapture), eq(processor))).andReturn(list);
+    expect(ldapTemplate.search(eq("baseDN"), eq("(&(objectClass=objectClass)(|(dn=foo)(uid=foo)))"), capture(contextMapperCapture))).andReturn(list);
 
-    replay(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
+    replay(ldapTemplate, ldapServerProperties, users, configuration);
 
     AmbariLdapDataPopulatorTestInstance populator = new AmbariLdapDataPopulatorTestInstance(configuration, users);
 
     populator.setLdapTemplate(ldapTemplate);
-    populator.setProcessor(processor);
 
     assertEquals(dto, populator.getLdapUserByMemberAttr("uid=foo,dc=example,dc=com"));
     assertEquals(dto, populator.getLdapUserByMemberAttr("foo"));
 
-    verify(ldapTemplate, ldapServerProperties, users, configuration, processor, cookie);
+    verify(ldapTemplate, ldapServerProperties, users, configuration);
   }
 
   @Test

@@ -28,7 +28,6 @@ import java.util.Set;
 
 import javax.naming.NamingException;
 import javax.naming.directory.Attributes;
-import javax.naming.directory.SearchControls;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
@@ -38,7 +37,6 @@ import org.apache.ambari.server.security.authorization.User;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.ldap.control.PagedResultsDirContextProcessor;
 import org.springframework.ldap.core.AttributesMapper;
 import org.springframework.ldap.core.ContextMapper;
 import org.springframework.ldap.core.DirContextAdapter;
@@ -85,7 +83,6 @@ public class AmbariLdapDataPopulator {
   // Constants
   private static final String UID_ATTRIBUTE          = "uid";
   private static final String OBJECT_CLASS_ATTRIBUTE = "objectClass";
-  private static final int USERS_PAGE_SIZE = 500;
 
   /**
    * Construct an AmbariLdapDataPopulator.
@@ -518,19 +515,12 @@ public class AmbariLdapDataPopulator {
     final Set<LdapUserDto> users = new HashSet<LdapUserDto>();
     final LdapTemplate ldapTemplate = loadLdapTemplate();
     String baseDn = ldapServerProperties.getBaseDN();
-    PagedResultsDirContextProcessor processor = createPagingProcessor();
-    SearchControls searchControls = new SearchControls();
-    searchControls.setSearchScope(SearchControls.SUBTREE_SCOPE);
-    LdapUserContextMapper ldapUserContextMapper = new LdapUserContextMapper(ldapServerProperties);
-    String encodedFilter = filter.encode();
-    
-    do {
-      for (Object dto : ldapTemplate.search(baseDn, encodedFilter, searchControls, ldapUserContextMapper, processor)) {
-        if (dto != null) {
-          users.add((LdapUserDto)dto);
-        }
+
+    for (Object dto: ldapTemplate.search(baseDn, filter.encode(), new LdapUserContextMapper(ldapServerProperties))) {
+      if (dto != null ) {
+        users.add((LdapUserDto) dto);
       }
-    } while (processor.getCookie().getCookie() != null);
+    }
     return users;
   }
 
@@ -593,11 +583,6 @@ public class AmbariLdapDataPopulator {
       ldapServerProperties = properties;
 
       final LdapContextSource ldapContextSource = createLdapContextSource();
-	  
-      // The LdapTemplate by design will close the connection after each call to the LDAP Server
-      // In order to have the interaction work with large/paged results, said connection must be pooled and reused
-      ldapContextSource.setPooled(true);
-
       final List<String> ldapUrls = ldapServerProperties.getLdapUrls();
       ldapContextSource.setUrls(ldapUrls.toArray(new String[ldapUrls.size()]));
 
@@ -629,14 +614,6 @@ public class AmbariLdapDataPopulator {
    */
   protected LdapContextSource createLdapContextSource() {
     return new LdapContextSource();
-  }
-
-  /**
-   * PagedResultsDirContextProcessor factory method.
-   * @return new processor;
-   */
-  protected PagedResultsDirContextProcessor createPagingProcessor() {
-    return new PagedResultsDirContextProcessor(USERS_PAGE_SIZE, null);
   }
 
   /**
