@@ -272,7 +272,8 @@ App.AlertDefinition = DS.Model.extend({
     'SCRIPT': 'icon-file-text',
     'WEB': 'icon-globe',
     'PORT': 'icon-signin',
-    'AGGREGATE': 'icon-plus'
+    'AGGREGATE': 'icon-plus',
+    'SERVER': 'icon-desktop'
   },
 
   /**

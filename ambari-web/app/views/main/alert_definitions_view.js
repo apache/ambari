@@ -292,6 +292,10 @@ App.MainAlertDefinitionsView = App.TableView.extend({
       {
         value: 'AGGREGATE',
         label: 'AGGREGATE'
+      },
+      {
+        value: 'SERVER',
+        label: 'SERVER'
       }
     ],
     onChangeValue: function(){
