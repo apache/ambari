@@ -144,6 +144,61 @@ class TestCustomServiceOrchestrator(TestCase):
 
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("hostname.public_hostname")
+  @patch("os.path.isfile")
+  @patch("os.unlink")
+  @patch.object(FileCache, "__init__")
+  def test_dump_command_to_json_with_retry(self, FileCache_mock, unlink_mock,
+                                isfile_mock, hostname_mock):
+    FileCache_mock.return_value = None
+    hostname_mock.return_value = "test.hst"
+    command = {
+      'commandType': 'EXECUTION_COMMAND',
+      'role': u'DATANODE',
+      'roleCommand': u'INSTALL',
+      'commandId': '1-1',
+      'taskId': 3,
+      'clusterName': u'cc',
+      'serviceName': u'HDFS',
+      'configurations':{'global' : {}},
+      'configurationTags':{'global' : { 'tag': 'v1' }},
+      'clusterHostInfo':{'namenode_host' : ['1'],
+                         'slave_hosts'   : ['0', '1'],
+                         'all_racks'   : [u'/default-rack:0'],
+                         'ambari_server_host' : 'a.b.c',
+                         'all_ipv4_ips'   : [u'192.168.12.101:0'],
+                         'all_hosts'     : ['h1.hortonworks.com', 'h2.hortonworks.com'],
+                         'all_ping_ports': ['8670:0,1']},
+      'hostLevelParams':{}
+    }
+
+    config = AmbariConfig().getConfig()
+    tempdir = tempfile.gettempdir()
+    config.set('agent', 'prefix', tempdir)
+    dummy_controller = MagicMock()
+    orchestrator = CustomServiceOrchestrator(config, dummy_controller)
+    isfile_mock.return_value = True
+    # Test dumping EXECUTION_COMMAND
+    json_file = orchestrator.dump_command_to_json(command)
+    self.assertTrue(os.path.exists(json_file))
+    self.assertTrue(os.path.getsize(json_file) > 0)
+    if get_platform() != PLATFORM_WINDOWS:
+      self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    self.assertTrue(json_file.endswith("command-3.json"))
+    os.unlink(json_file)
+    # Test dumping STATUS_COMMAND
+    json_file = orchestrator.dump_command_to_json(command, True)
+    self.assertTrue(os.path.exists(json_file))
+    self.assertTrue(os.path.getsize(json_file) > 0)
+    if get_platform() != PLATFORM_WINDOWS:
+      self.assertEqual(oct(os.stat(json_file).st_mode & 0777), '0600')
+    self.assertTrue(json_file.endswith("command-3.json"))
+    os.unlink(json_file)
+    # Testing side effect of dump_command_to_json
+    self.assertEquals(command['public_hostname'], "test.hst")
+    self.assertTrue(unlink_mock.called)
+
+  @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
   @patch("os.path.exists")
   @patch.object(FileCache, "__init__")
   def test_resolve_script_path(self, FileCache_mock, exists_mock):

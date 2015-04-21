@@ -97,7 +97,7 @@ class CustomServiceOrchestrator():
         logger.warn("Unable to find pid by taskId = %s" % task_id)
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name=None,
-                 override_output_files = True):
+                 override_output_files=True, retry=False):
     """
     forced_command_name may be specified manually. In this case, value, defined at
     command json, is ignored.
@@ -155,7 +155,7 @@ class CustomServiceOrchestrator():
         handle.on_background_command_started = self.map_task_to_process
         del command['__handle']
 
-      json_path = self.dump_command_to_json(command)
+      json_path = self.dump_command_to_json(command, retry)
       pre_hook_tuple = self.resolve_hook_script_path(hook_dir,
           self.PRE_HOOK_PREFIX, command_name, script_type)
       post_hook_tuple = self.resolve_hook_script_path(hook_dir,
@@ -293,7 +293,7 @@ class CustomServiceOrchestrator():
     return hook_script_path, hook_base_dir
 
 
-  def dump_command_to_json(self, command):
+  def dump_command_to_json(self, command, retry=False):
     """
     Converts command to json file and returns file path
     """
@@ -311,7 +311,7 @@ class CustomServiceOrchestrator():
       file_path = os.path.join(self.tmp_dir, "status_command.json")
     else:
       task_id = command['taskId']
-      if 'clusterHostInfo' in command and command['clusterHostInfo']:
+      if 'clusterHostInfo' in command and command['clusterHostInfo'] and not retry:
         command['clusterHostInfo'] = self.decompressClusterHostInfo(command['clusterHostInfo'])
       file_path = os.path.join(self.tmp_dir, "command-{0}.json".format(task_id))
       if command_type == ActionQueue.AUTO_EXECUTION_COMMAND:

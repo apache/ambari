@@ -306,8 +306,10 @@ public class ExecutionCommand extends AgentCommand {
     String GROUP_LIST = "group_list";
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
+    String COMMAND_RETRY_MAX_ATTEMPT_COUNT = "command_retry_max_attempt_count";
+    String COMMAND_RETRY_ENABLED = "command_retry_enabled";
 
-    String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standart command? maybe add it to RoleCommand enum?
+    String SERVICE_CHECK = "SERVICE_CHECK"; // TODO: is it standard command? maybe add it to RoleCommand enum?
     String CUSTOM_COMMAND = "custom_command";
   }
 

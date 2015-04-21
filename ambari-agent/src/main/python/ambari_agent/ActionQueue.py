@@ -25,6 +25,8 @@ import threading
 import pprint
 import os
 import json
+from random import randint
+import time
 
 from AgentException import AgentException
 from LiveStatus import LiveStatus
@@ -223,16 +225,40 @@ class ActionQueue(threading.Thread):
 
     self.commandStatuses.put_command_status(command, in_progress_status)
 
-    # running command
-    commandresult = self.customServiceOrchestrator.runCommand(command,
-      in_progress_status['tmpout'], in_progress_status['tmperr'])
+    numAttempts = 0
+    maxAttempts = 1
+    retryAble = False
+    delay = 1
+    if 'commandParams' in command:
+      if 'command_retry_max_attempt_count' in command['commandParams']:
+        maxAttempts = int(command['commandParams']['command_retry_max_attempt_count'])
+      if 'command_retry_enabled' in command['commandParams']:
+        retryAble = command['commandParams']['command_retry_enabled'] == "true"
+
+    logger.debug("Command execution metadata - retry enabled = {retryAble}, max attempt count = {maxAttemptCount}".
+                 format(retryAble = retryAble, maxAttemptCount = maxAttempts))
+    while numAttempts < maxAttempts:
+      numAttempts += 1
+      # running command
+      commandresult = self.customServiceOrchestrator.runCommand(command,
+        in_progress_status['tmpout'], in_progress_status['tmperr'],
+        override_output_files=numAttempts == 1, retry=numAttempts > 1)
 
 
-    # dumping results
-    if isCommandBackground:
-      return
-    else:
-      status = self.COMPLETED_STATUS if commandresult['exitcode'] == 0 else self.FAILED_STATUS
+      # dumping results
+      if isCommandBackground:
+        return
+      else:
+        status = self.COMPLETED_STATUS if commandresult['exitcode'] == 0 else self.FAILED_STATUS
+
+      if status != self.COMPLETED_STATUS and retryAble == True and maxAttempts > numAttempts:
+        delay = self.get_retry_delay(delay)
+        logger.info("Retrying command id {cid} after a wait of {delay}".format(cid = taskId, delay=delay))
+        time.sleep(delay)
+        continue
+      else:
+        break
+
     roleResult = self.commandStatuses.generate_report_template(command)
     roleResult.update({
       'stdout': commandresult['stdout'],
@@ -288,6 +314,13 @@ class ActionQueue(threading.Thread):
         roleResult['configurationTags'] = configHandler.read_actual_component(command['role'])
 
     self.commandStatuses.put_command_status(command, roleResult)
+
+  def get_retry_delay(self, last_delay):
+    """
+    Returns exponentially growing delay. The idea being if number of retries is high then the reason to retry
+    is probably a host or environment specific issue requiring longer waits
+    """
+    return last_delay * 2
 
   def command_was_canceled(self):
     self.customServiceOrchestrator

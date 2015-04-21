@@ -19,6 +19,8 @@
 package org.apache.ambari.server.controller;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CLIENTS_TO_UPDATE_CONFIGS;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_ENABLED;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_RETRY_MAX_ATTEMPT_COUNT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMMAND_TIMEOUT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.COMPONENT_CATEGORY;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.CUSTOM_COMMAND;
@@ -175,8 +177,8 @@ public class AmbariCustomCommandExecutionHelper {
       return false;
     }
     ComponentInfo componentInfo = ambariMetaInfo.getComponent(
-      stackId.getStackName(), stackId.getStackVersion(),
-      serviceName, componentName);
+        stackId.getStackName(), stackId.getStackVersion(),
+        serviceName, componentName);
 
     return !(!componentInfo.isCustomCommand(commandName) &&
       !actionMetadata.isDefaultHostComponentCommand(commandName));
@@ -247,15 +249,15 @@ public class AmbariCustomCommandExecutionHelper {
     Set<String> candidateHosts = new HashSet<String>(resourceFilter.getHostNames());
     // Filter hosts that are in MS
     Set<String> ignoredHosts = maintenanceStateHelper.filterHostsInMaintenanceState(
-            candidateHosts, new MaintenanceStateHelper.HostPredicate() {
-              @Override
-              public boolean shouldHostBeRemoved(final String hostname)
-                      throws AmbariException {
-                return !maintenanceStateHelper.isOperationAllowed(
-                        cluster, actionExecutionContext.getOperationLevel(),
-                        resourceFilter, serviceName, componentName, hostname);
-              }
-            }
+        candidateHosts, new MaintenanceStateHelper.HostPredicate() {
+          @Override
+          public boolean shouldHostBeRemoved(final String hostname)
+              throws AmbariException {
+            return !maintenanceStateHelper.isOperationAllowed(
+                cluster, actionExecutionContext.getOperationLevel(),
+                resourceFilter, serviceName, componentName, hostname);
+          }
+        }
     );
 
     // Filter unhealthy hosts
@@ -279,7 +281,7 @@ public class AmbariCustomCommandExecutionHelper {
     StackId stackId = cluster.getDesiredStackVersion();
     AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
     ServiceInfo serviceInfo = ambariMetaInfo.getService(
-       stackId.getStackName(), stackId.getStackVersion(), serviceName);
+        stackId.getStackName(), stackId.getStackVersion(), serviceName);
     StackInfo stackInfo = ambariMetaInfo.getStack
        (stackId.getStackName(), stackId.getStackVersion());
 
@@ -367,6 +369,8 @@ public class AmbariCustomCommandExecutionHelper {
         if (script != null) {
           commandParams.put(SCRIPT, script.getScript());
           commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
+          commandParams.put(COMMAND_RETRY_MAX_ATTEMPT_COUNT, Integer.toString(configs.commandRetryCount()));
+          commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(configs.isCommandRetryEnabled()));
           if (script.getTimeout() > 0) {
             commandTimeout = String.valueOf(script.getTimeout());
           }
@@ -564,6 +568,8 @@ public class AmbariCustomCommandExecutionHelper {
       if (script != null) {
         commandParams.put(SCRIPT, script.getScript());
         commandParams.put(SCRIPT_TYPE, script.getScriptType().toString());
+        commandParams.put(COMMAND_RETRY_MAX_ATTEMPT_COUNT, Integer.toString(configs.commandRetryCount()));
+        commandParams.put(COMMAND_RETRY_ENABLED, Boolean.toString(configs.isCommandRetryEnabled()));
         if (script.getTimeout() > 0) {
           commandTimeout = String.valueOf(script.getTimeout());
         }
