@@ -62,5 +62,41 @@ public class TimelineMetricReadHelper {
     return metric;
   }
 
+  public MetricClusterAggregate getMetricClusterAggregateFromResultSet(ResultSet rs)
+      throws SQLException {
+    MetricClusterAggregate agg = new MetricClusterAggregate();
+    agg.setSum(rs.getDouble("METRIC_SUM"));
+    agg.setMax(rs.getDouble("METRIC_MAX"));
+    agg.setMin(rs.getDouble("METRIC_MIN"));
+    agg.setNumberOfHosts(rs.getInt("HOSTS_COUNT"));
+
+    agg.setDeviation(0.0);
+
+    return agg;
+  }
+
+  public MetricClusterAggregate getMetricClusterTimeAggregateFromResultSet(ResultSet rs)
+    throws SQLException {
+    MetricClusterAggregate agg = new MetricClusterAggregate();
+    agg.setSum(rs.getDouble("METRIC_SUM"));
+    agg.setMax(rs.getDouble("METRIC_MAX"));
+    agg.setMin(rs.getDouble("METRIC_MIN"));
+    agg.setNumberOfHosts(rs.getInt("METRIC_COUNT"));
+
+    agg.setDeviation(0.0);
+
+    return agg;
+  }
+
+
+  public TimelineClusterMetric fromResultSet(ResultSet rs) throws SQLException {
+    return new TimelineClusterMetric(
+      rs.getString("METRIC_NAME"),
+      rs.getString("APP_ID"),
+      ignoreInstance ? null : rs.getString("INSTANCE_ID"),
+      rs.getLong("SERVER_TIME"),
+      rs.getString("UNITS"));
+  }
+
 }
 

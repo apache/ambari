@@ -28,8 +28,6 @@ import org.apache.hadoop.yarn.api.records.timeline.TimelinePutResponse;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.Function;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregator;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregatorHourly;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 
@@ -69,38 +67,52 @@ public class HBaseTimelineMetricStore extends AbstractService
     hBaseAccessor = new PhoenixHBaseAccessor(hbaseConf, metricsConf);
     hBaseAccessor.initMetricSchema();
 
-    // Start the cluster aggregator
-    TimelineMetricClusterAggregator minuteClusterAggregator =
-      new TimelineMetricClusterAggregator(hBaseAccessor, metricsConf);
+    // Start the cluster aggregator minute
+    TimelineMetricAggregator minuteClusterAggregator =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hBaseAccessor, metricsConf);
     if (!minuteClusterAggregator.isDisabled()) {
       Thread aggregatorThread = new Thread(minuteClusterAggregator);
       aggregatorThread.start();
     }
 
-    // Start the cluster aggregator hourly
-    TimelineMetricClusterAggregatorHourly hourlyClusterAggregator =
-      new TimelineMetricClusterAggregatorHourly(hBaseAccessor, metricsConf);
+    // Start the hourly cluster aggregator
+    TimelineMetricAggregator hourlyClusterAggregator =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hBaseAccessor, metricsConf);
     if (!hourlyClusterAggregator.isDisabled()) {
       Thread aggregatorThread = new Thread(hourlyClusterAggregator);
       aggregatorThread.start();
     }
 
-    // Start the 5 minute aggregator
+    // Start the daily cluster aggregator
+    TimelineMetricAggregator dailyClusterAggregator =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hBaseAccessor, metricsConf);
+    if (!dailyClusterAggregator.isDisabled()) {
+      Thread aggregatorThread = new Thread(dailyClusterAggregator);
+      aggregatorThread.start();
+    }
+
+    // Start the minute host aggregator
     TimelineMetricAggregator minuteHostAggregator =
-      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute
-        (hBaseAccessor, metricsConf);
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hBaseAccessor, metricsConf);
     if (!minuteHostAggregator.isDisabled()) {
       Thread minuteAggregatorThread = new Thread(minuteHostAggregator);
       minuteAggregatorThread.start();
     }
 
-    // Start hourly host aggregator
+    // Start the hourly host aggregator
     TimelineMetricAggregator hourlyHostAggregator =
-      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly
-        (hBaseAccessor, metricsConf);
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hBaseAccessor, metricsConf);
     if (!hourlyHostAggregator.isDisabled()) {
       Thread aggregatorHourlyThread = new Thread(hourlyHostAggregator);
       aggregatorHourlyThread.start();
+    }
+
+    // Start the daily host aggregator
+    TimelineMetricAggregator dailyHostAggregator =
+      TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(hBaseAccessor, metricsConf);
+    if (!dailyHostAggregator.isDisabled()) {
+      Thread aggregatorDailyThread = new Thread(dailyHostAggregator);
+      aggregatorDailyThread.start();
     }
   }
 

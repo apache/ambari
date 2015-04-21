@@ -41,19 +41,21 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
  * Base class for all runnable aggregators. Provides common functions like
  * check pointing and scheduling.
  */
-public abstract class AbstractTimelineAggregator implements Runnable {
+public abstract class AbstractTimelineAggregator implements TimelineMetricAggregator {
   protected final PhoenixHBaseAccessor hBaseAccessor;
   private final Log LOG;
-
   private Clock clock;
   protected final long checkpointDelayMillis;
   protected final Integer resultsetFetchSize;
   protected Configuration metricsConf;
 
-  public AbstractTimelineAggregator(PhoenixHBaseAccessor hBaseAccessor,
-                                    Configuration metricsConf) {
-    this(hBaseAccessor, metricsConf, new SystemClock());
-  }
+  private String checkpointLocation;
+  private Long sleepIntervalMillis;
+  private Integer checkpointCutOffMultiplier;
+  private String aggregatorDisableParam;
+  protected String tableName;
+  protected String outputTableName;
+  protected Long nativeTimeRangeDelay;
 
   public AbstractTimelineAggregator(PhoenixHBaseAccessor hBaseAccessor,
                                     Configuration metricsConf, Clock clk) {
@@ -64,6 +66,30 @@ public abstract class AbstractTimelineAggregator implements Runnable {
     this.resultsetFetchSize = metricsConf.getInt(RESULTSET_FETCH_SIZE, 2000);
     this.LOG = LogFactory.getLog(this.getClass());
     this.clock = clk;
+  }
+
+  public AbstractTimelineAggregator(PhoenixHBaseAccessor hBaseAccessor,
+                                    Configuration metricsConf) {
+    this(hBaseAccessor, metricsConf, new SystemClock());
+  }
+
+  public AbstractTimelineAggregator(PhoenixHBaseAccessor hBaseAccessor,
+                                    Configuration metricsConf,
+                                    String checkpointLocation,
+                                    Long sleepIntervalMillis,
+                                    Integer checkpointCutOffMultiplier,
+                                    String aggregatorDisableParam,
+                                    String tableName,
+                                    String outputTableName,
+                                    Long nativeTimeRangeDelay) {
+    this(hBaseAccessor, metricsConf);
+    this.checkpointLocation = checkpointLocation;
+    this.sleepIntervalMillis = sleepIntervalMillis;
+    this.checkpointCutOffMultiplier = checkpointCutOffMultiplier;
+    this.aggregatorDisableParam = aggregatorDisableParam;
+    this.tableName = tableName;
+    this.outputTableName = outputTableName;
+    this.nativeTimeRangeDelay =  nativeTimeRangeDelay;
   }
 
   @Override
@@ -198,6 +224,7 @@ public abstract class AbstractTimelineAggregator implements Runnable {
    * @param startTime Sample start time
    * @param endTime Sample end time
    */
+  @Override
   public boolean doWork(long startTime, long endTime) {
     LOG.info("Start aggregation cycle @ " + new Date() + ", " +
       "startTime = " + new Date(startTime) + ", endTime = " + new Date(endTime));
@@ -257,18 +284,25 @@ public abstract class AbstractTimelineAggregator implements Runnable {
 
   protected abstract Condition prepareMetricQueryCondition(long startTime, long endTime);
 
-  protected abstract void aggregate(ResultSet rs, long startTime, long endTime)
-    throws IOException, SQLException;
+  protected abstract void aggregate(ResultSet rs, long startTime, long endTime) throws IOException, SQLException;
 
-  protected abstract Long getSleepIntervalMillis();
+  protected Long getSleepIntervalMillis() {
+    return sleepIntervalMillis;
+  }
 
-  protected abstract Integer getCheckpointCutOffMultiplier();
+  protected Integer getCheckpointCutOffMultiplier() {
+    return checkpointCutOffMultiplier;
+  }
 
   protected Long getCheckpointCutOffIntervalMillis() {
     return getCheckpointCutOffMultiplier() * getSleepIntervalMillis();
   }
 
-  public abstract boolean isDisabled();
+  public boolean isDisabled() {
+    return metricsConf.getBoolean(aggregatorDisableParam, false);
+  }
 
-  protected abstract String getCheckpointLocation();
+  protected String getCheckpointLocation() {
+    return checkpointLocation;
+  }
 }

@@ -28,11 +28,8 @@ import java.util.Map;
 
 public class MetricTestHelper {
 
-  public static MetricHostAggregate
-  createMetricHostAggregate(double max, double min, int numberOfSamples,
-                            double sum) {
-    MetricHostAggregate expectedAggregate =
-        new MetricHostAggregate();
+  public static MetricHostAggregate createMetricHostAggregate(double max, double min, int numberOfSamples, double sum) {
+    MetricHostAggregate expectedAggregate = new MetricHostAggregate();
     expectedAggregate.setMax(max);
     expectedAggregate.setMin(min);
     expectedAggregate.setNumberOfSamples(numberOfSamples);
