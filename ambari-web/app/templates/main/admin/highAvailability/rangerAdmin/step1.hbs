@@ -16,6 +16,25 @@ right ownership.  The ASF licenses this file
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<div>
+  <h2>{{t admin.ra_highAvailability.wizard.step1.header}}</h2>
+
+  <div class="alert alert-info">
+    {{t admin.ra_highAvailability.wizard.step1.body}}
+  </div>
+  <form class="form-horizontal">
+    <div {{bindAttr class=":control-group showloadBalancerURLError:error"}}>
+      <label class="control-label">{{t admin.ra_highAvailability.wizard.step1.load_balancer_url}}:</label>
+
+      <div class="controls">
+        {{view Em.TextField valueBinding="content.loadBalancerURL"}}
+        {{#if showloadBalancerURLError}}
+          <span class="help-inline">{{t admin.ra_highAvailability.wizard.step1.invalid_url}}</span>
+        {{/if}}
+      </div>
+    </div>
+  </form>
+</div>
 <div class="btn-area">
-  <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
+  <button class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action next}}>{{t common.next}} &rarr;</button>
 </div>

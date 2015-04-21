@@ -17,8 +17,32 @@
  */
 
 var App = require('app');
+var validator = require('utils/validator');
 
 App.RAHighAvailabilityWizardStep1Controller = Em.Controller.extend({
-  name: "rAHighAvailabilityWizardStep1Controller"
+  name: "rAHighAvailabilityWizardStep1Controller",
+
+  /**
+   * Define if typed load balancer URL is valid URL
+   * @type {Boolean}
+   */
+  isloadBalancerURLValid: function () {
+    return validator.isValidURL(this.get('content.loadBalancerURL'));
+  }.property('content.loadBalancerURL'),
+
+  /**
+   * Define if show load balancer URL error
+   * do not show is input-field is empty
+   * @type {Boolean}
+   */
+  showloadBalancerURLError: function () {
+    return this.get('content.loadBalancerURL') && !this.get('isloadBalancerURLValid');
+  }.property('isloadBalancerURLValid', 'content.loadBalancerURL'),
+
+  /**
+   * Define either Submit is disabled or enabled
+   * @type {Bolean}
+   */
+  isSubmitDisabled: Ember.computed.not('isloadBalancerURLValid')
 });
 

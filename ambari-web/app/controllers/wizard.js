@@ -307,6 +307,30 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   /**
+   * Convert any object or array to pure JS instance without inherit properties
+   * It is used to convert Ember.Object to pure JS Object and Ember.Array to pure JS Array
+   * @param originalInstance
+   * @returns {*}
+   */
+  toJSInstance: function (originalInstance) {
+    var convertedInstance = originalInstance;
+    if (Em.isArray(originalInstance)) {
+      convertedInstance = [];
+      originalInstance.forEach(function (element) {
+        convertedInstance.push(this.toJSInstance(element));
+      }, this)
+    } else if (originalInstance && typeof originalInstance === 'object') {
+      convertedInstance = {};
+      for (var property in originalInstance) {
+        if (originalInstance.hasOwnProperty(property)) {
+          convertedInstance[property] = this.toJSInstance(originalInstance[property]);
+        }
+      }
+    }
+    return convertedInstance
+  },
+
+  /**
    * save status of the cluster. This is called from step8 and step9 to persist install and start requestId
    * @param clusterStatus object with status, isCompleted, requestId, isInstallError and isStartError field.
    */
@@ -485,9 +509,9 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
   },
 
   save: function (name) {
-    var value = this.toObject(this.get('content.' + name));
-    this.setDBProperty(name, value);
-    console.log(this.get('name') + ": saved " + name, value);
+    var convertedValue = this.toJSInstance(this.get('content.' + name));
+    this.setDBProperty(name, convertedValue);
+    console.log(this.get('name') + ": saved " + name, convertedValue);
   },
 
   clear: function () {

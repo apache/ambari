@@ -101,14 +101,15 @@ module.exports = App.WizardRoute.extend({
     route: '/step1',
     connectOutlets: function (router) {
       var controller = router.get('rAHighAvailabilityWizardController');
-      controller.setCurrentStep('1');
       controller.dataLoading().done(function () {
+        controller.setCurrentStep('1');
         controller.loadAllPriorSteps().done(function(){
           controller.connectOutlet('rAHighAvailabilityWizardStep1', controller.get('content'));
         });
       })
     },
     next: function (router) {
+      router.get('rAHighAvailabilityWizardController').save('loadBalancerURL');
       router.transitionTo('step2');
     }
   }),
@@ -117,8 +118,8 @@ module.exports = App.WizardRoute.extend({
     route: '/step2',
     connectOutlets: function (router) {
       var controller = router.get('rAHighAvailabilityWizardController');
-      controller.setCurrentStep('2');
       controller.dataLoading().done(function () {
+        controller.setCurrentStep('2');
         controller.loadAllPriorSteps().done(function(){
           controller.connectOutlet('rAHighAvailabilityWizardStep2', controller.get('content'));
         });
@@ -136,8 +137,8 @@ module.exports = App.WizardRoute.extend({
     route: '/step3',
     connectOutlets: function (router) {
       var controller = router.get('rAHighAvailabilityWizardController');
-      controller.setCurrentStep('3');
       controller.dataLoading().done(function () {
+        controller.setCurrentStep('3');
         controller.connectOutlet('rAHighAvailabilityWizardStep3', controller.get('content'));
       })
     },
@@ -153,8 +154,8 @@ module.exports = App.WizardRoute.extend({
     route: '/step4',
     connectOutlets: function (router) {
       var controller = router.get('rAHighAvailabilityWizardController');
-      controller.setCurrentStep('4');
       controller.dataLoading().done(function () {
+        controller.setCurrentStep('4');
         controller.connectOutlet('rAHighAvailabilityWizardStep4', controller.get('content'));
       })
     },

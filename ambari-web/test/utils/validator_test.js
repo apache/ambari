@@ -407,4 +407,21 @@ describe('validator', function () {
       })
     });
   });
+
+  describe('#isValidURL', function() {
+    var tests = [
+      {m:'"http://apache.org" - valid',i:'http://apache.org',e:true},
+      {m:'"http://ambari.apache.org" - valid',i:'http://ambari.apache.org',e:true},
+      {m:'"https://ambari.apache.org" - valid',i:'https://ambari.apache.org',e:true},
+      {m:'"htp://ambari.apache.org." - invalid',i:'.htp://ambari.apache.org.',e:false},
+      {m:'"ambari.apache.org" - invalid',i:'ambari.apache.org',e:false},
+      {m:'"www.ambari.apache.org" - invalid',i:'www.ambari.apache.org',e:false},
+      {m:'"" - invalid',i:'',e:false}
+    ];
+    tests.forEach(function(test) {
+      it(test.m + ' ', function () {
+        expect(validator.isValidURL(test.i)).to.equal(test.e);
+      })
+    });
+  });
 });

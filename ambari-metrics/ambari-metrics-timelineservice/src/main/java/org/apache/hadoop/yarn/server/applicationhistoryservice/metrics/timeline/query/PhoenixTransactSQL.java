@@ -58,24 +58,8 @@ public class PhoenixTransactSQL {
     "INSTANCE_ID)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
     "TTL=%s, COMPRESSION='%s'";
 
-  public static final String CREATE_METRICS_AGGREGATE_HOURLY_TABLE_SQL =
-    "CREATE TABLE IF NOT EXISTS METRIC_RECORD_HOURLY " +
-      "(METRIC_NAME VARCHAR, " +
-      "HOSTNAME VARCHAR, " +
-      "APP_ID VARCHAR, " +
-      "INSTANCE_ID VARCHAR, " +
-      "SERVER_TIME UNSIGNED_LONG NOT NULL, " +
-      "UNITS CHAR(20), " +
-      "METRIC_SUM DOUBLE," +
-      "METRIC_COUNT UNSIGNED_INT, " +
-      "METRIC_MAX DOUBLE," +
-      "METRIC_MIN DOUBLE CONSTRAINT pk " +
-      "PRIMARY KEY (METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, " +
-      "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
-      "TTL=%s, COMPRESSION='%s'";
-
-  public static final String CREATE_METRICS_AGGREGATE_MINUTE_TABLE_SQL =
-    "CREATE TABLE IF NOT EXISTS METRIC_RECORD_MINUTE " +
+  public static final String CREATE_METRICS_AGGREGATE_TABLE_SQL =
+    "CREATE TABLE IF NOT EXISTS %s " +
       "(METRIC_NAME VARCHAR, " +
       "HOSTNAME VARCHAR, " +
       "APP_ID VARCHAR, " +
@@ -91,7 +75,7 @@ public class PhoenixTransactSQL {
       " COMPRESSION='%s'";
 
   public static final String CREATE_METRICS_CLUSTER_AGGREGATE_TABLE_SQL =
-    "CREATE TABLE IF NOT EXISTS METRIC_AGGREGATE " +
+    "CREATE TABLE IF NOT EXISTS %s " +
       "(METRIC_NAME VARCHAR, " +
       "APP_ID VARCHAR, " +
       "INSTANCE_ID VARCHAR, " +
@@ -105,8 +89,9 @@ public class PhoenixTransactSQL {
       "SERVER_TIME)) DATA_BLOCK_ENCODING='%s', IMMUTABLE_ROWS=true, " +
       "TTL=%s, COMPRESSION='%s'";
 
+  // HOSTS_COUNT vs METRIC_COUNT
   public static final String CREATE_METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_SQL =
-    "CREATE TABLE IF NOT EXISTS METRIC_AGGREGATE_HOURLY " +
+    "CREATE TABLE IF NOT EXISTS %s " +
       "(METRIC_NAME VARCHAR, " +
       "APP_ID VARCHAR, " +
       "INSTANCE_ID VARCHAR, " +
@@ -139,7 +124,7 @@ public class PhoenixTransactSQL {
     "(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
   public static final String UPSERT_CLUSTER_AGGREGATE_SQL = "UPSERT INTO " +
-    "METRIC_AGGREGATE (METRIC_NAME, APP_ID, INSTANCE_ID, SERVER_TIME, " +
+    "%s (METRIC_NAME, APP_ID, INSTANCE_ID, SERVER_TIME, " +
     "UNITS, " +
     "METRIC_SUM, " +
     "HOSTS_COUNT, " +
@@ -155,7 +140,6 @@ public class PhoenixTransactSQL {
     "METRIC_MAX, " +
     "METRIC_MIN) " +
     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
 
   public static final String UPSERT_AGGREGATE_RECORD_SQL = "UPSERT INTO " +
     "%s (METRIC_NAME, HOSTNAME, APP_ID, INSTANCE_ID, " +
@@ -198,25 +182,29 @@ public class PhoenixTransactSQL {
     "METRIC_MIN " +
     "FROM %s";
 
-  public static final String GET_CLUSTER_AGGREGATE_HOURLY_SQL = "SELECT %s " +
-      "METRIC_NAME, APP_ID, " +
-      "INSTANCE_ID, SERVER_TIME, " +
-      "UNITS, " +
-      "METRIC_SUM, " +
-      "METRIC_COUNT, " +
-      "METRIC_MAX, " +
-      "METRIC_MIN " +
-      "FROM %s";
+  public static final String GET_CLUSTER_AGGREGATE_TIME_SQL = "SELECT %s " +
+    "METRIC_NAME, APP_ID, " +
+    "INSTANCE_ID, SERVER_TIME, " +
+    "UNITS, " +
+    "METRIC_SUM, " +
+    "METRIC_COUNT, " +
+    "METRIC_MAX, " +
+    "METRIC_MIN " +
+    "FROM %s";
 
   public static final String METRICS_RECORD_TABLE_NAME = "METRIC_RECORD";
   public static final String METRICS_AGGREGATE_MINUTE_TABLE_NAME =
     "METRIC_RECORD_MINUTE";
   public static final String METRICS_AGGREGATE_HOURLY_TABLE_NAME =
     "METRIC_RECORD_HOURLY";
+  public static final String METRICS_AGGREGATE_DAILY_TABLE_NAME =
+    "METRIC_RECORD_DAILY";
   public static final String METRICS_CLUSTER_AGGREGATE_TABLE_NAME =
     "METRIC_AGGREGATE";
   public static final String METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME =
     "METRIC_AGGREGATE_HOURLY";
+  public static final String METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME =
+    "METRIC_AGGREGATE_DAILY";
   public static final String DEFAULT_TABLE_COMPRESSION = "SNAPPY";
   public static final String DEFAULT_ENCODING = "FAST_DIFF";
   public static final long NATIVE_TIME_RANGE_DELTA = 120000; // 2 minutes
@@ -250,7 +238,11 @@ public class PhoenixTransactSQL {
         long endTime = condition.getEndTime() == null ? System.currentTimeMillis() : condition.getEndTime();
         long startTime = condition.getStartTime() == null ? 0 : condition.getStartTime();
         Long timeRange = endTime - startTime;
-        if (timeRange > 5 * DAY) {
+        if (timeRange > 7 * DAY) {
+          metricsTable = METRICS_AGGREGATE_DAILY_TABLE_NAME;
+          query = GET_METRIC_AGGREGATE_ONLY_SQL;
+          condition.setPrecision(Precision.DAYS);
+        } else if (timeRange < 7 * DAY && timeRange > DAY) {
           metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
           query = GET_METRIC_AGGREGATE_ONLY_SQL;
           condition.setPrecision(Precision.HOURS);
@@ -265,6 +257,10 @@ public class PhoenixTransactSQL {
         }
       } else {
         switch (condition.getPrecision()) {
+          case DAYS:
+            metricsTable = METRICS_AGGREGATE_DAILY_TABLE_NAME;
+            query = GET_METRIC_AGGREGATE_ONLY_SQL;
+            break;
           case HOURS:
             metricsTable = METRICS_AGGREGATE_HOURLY_TABLE_NAME;
             query = GET_METRIC_AGGREGATE_ONLY_SQL;
@@ -462,9 +458,13 @@ public class PhoenixTransactSQL {
       long endTime = condition.getEndTime() == null ? System.currentTimeMillis() : condition.getEndTime();
       long startTime = condition.getStartTime() == null ? 0 : condition.getStartTime();
       Long timeRange = endTime - startTime;
-      if (timeRange > 5 * DAY) {
+      if (timeRange > 7 * DAY) {
+        metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
+        queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
+        condition.setPrecision(Precision.DAYS);
+      } else if (timeRange < 7 * DAY && timeRange > DAY) {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
-        queryStmt = GET_CLUSTER_AGGREGATE_HOURLY_SQL;
+        queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
         condition.setPrecision(Precision.HOURS);
       } else {
         metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
@@ -473,15 +473,23 @@ public class PhoenixTransactSQL {
       }
     } else {
       switch (condition.getPrecision()) {
+        case DAYS:
+          metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_DAILY_TABLE_NAME;
+          queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
+          break;
         case HOURS:
           metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
-          queryStmt = GET_CLUSTER_AGGREGATE_HOURLY_SQL;
+          queryStmt = GET_CLUSTER_AGGREGATE_TIME_SQL;
           break;
         default:
           metricsAggregateTable = METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
           queryStmt = GET_CLUSTER_AGGREGATE_SQL;
       }
     }
+
+    queryStmt = String.format(queryStmt,
+      getNaiveTimeRangeHint(condition.getStartTime(), NATIVE_TIME_RANGE_DELTA),
+      metricsAggregateTable);
 
     StringBuilder sb = new StringBuilder(queryStmt);
     sb.append(" WHERE ");
@@ -491,9 +499,7 @@ public class PhoenixTransactSQL {
       sb.append(" LIMIT ").append(condition.getLimit());
     }
 
-    String query = String.format(sb.toString(),
-      PhoenixTransactSQL.getNaiveTimeRangeHint(condition.getStartTime(),
-        NATIVE_TIME_RANGE_DELTA), metricsAggregateTable);
+    String query = sb.toString();
     if (LOG.isDebugEnabled()) {
       LOG.debug("SQL => " + query + ", condition => " + condition);
     }

@@ -308,4 +308,49 @@ describe('App.WizardController', function () {
     });
 
   });
+
+  describe('#toJSInstance', function () {
+
+    var testCases = [
+      {
+        o: {'test': 'test'},
+        e: {'test': 'test'}
+      },
+      {
+        o: {'test': Em.Object.create()},
+        e: {'test': {}}
+      },
+      {
+        o: {'test': Em.Object.create({'test': {}})},
+        e: {'test': {'test': {}}}
+      },
+      {
+        o: [],
+        e: []
+      },
+      {
+        o: Em.A([[]]),
+        e: [[]]
+      },
+      {
+        o: 11,
+        e: 11
+      },
+      {
+        o: '11',
+        e: '11'
+      },
+      {
+        o: null,
+        e: null
+      }
+    ];
+
+    it('should convert objects and arrays to pure JS objects and arrays', function () {
+      testCases.forEach(function (testCase) {
+        expect(c.toJSInstance(testCase.o)).to.eql(testCase.e);
+      });
+    });
+
+  });
 });

@@ -20,17 +20,18 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricClusterAggregate;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetric;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineClusterMetricReader;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregator;
-import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricClusterAggregatorHourly;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricReadHelper;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -39,6 +40,7 @@ import java.sql.Statement;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.fail;
@@ -46,14 +48,14 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.MetricTestHelper.prepareSingleTimelineMetric;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.TimelineMetricConfiguration.CLUSTER_AGGREGATOR_APP_IDS;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.GET_CLUSTER_AGGREGATE_SQL;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_CLUSTER_AGGREGATE_TABLE_NAME;
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.NATIVE_TIME_RANGE_DELTA;
 
 public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   private Connection conn;
   private PhoenixHBaseAccessor hdb;
-  private final TimelineClusterMetricReader metricReader = new
-    TimelineClusterMetricReader(false);
+  private final TimelineMetricReadHelper metricReader = new TimelineMetricReadHelper(false);
 
   @Before
   public void setUp() throws Exception {
@@ -83,8 +85,9 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   @Test
   public void testShouldAggregateClusterProperly() throws Exception {
     // GIVEN
-    TimelineMetricClusterAggregator agg =
-      new TimelineMetricClusterAggregator(hdb, new Configuration());
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, new Configuration());
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -118,7 +121,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     while (rs.next()) {
       TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
+        readHelper.getMetricClusterAggregateFromResultSet(rs);
 
       if ("disk_free".equals(currentMetric.getMetricName())) {
         assertEquals(2, currentHostAggregate.getNumberOfHosts());
@@ -136,8 +139,9 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   @Test
   public void testShouldAggregateClusterIgnoringInstance() throws Exception {
     // GIVEN
-    TimelineMetricClusterAggregator agg =
-      new TimelineMetricClusterAggregator(hdb, new Configuration());
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, new Configuration());
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -188,7 +192,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
       TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
 //        PhoenixHBaseAccessor.getTimelineMetricClusterKeyFromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
+        readHelper.getMetricClusterAggregateFromResultSet(rs);
 
       if ("disk_free".equals(currentMetric.getMetricName())) {
         System.out.println("OUTPUT: " + currentMetric+" - " +
@@ -205,11 +209,11 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   }
 
   @Test
-  public void testShouldAggregateDifferentMetricsOnClusterProperly()
-    throws Exception {
+  public void testShouldAggregateDifferentMetricsOnClusterProperly() throws Exception {
     // GIVEN
-    TimelineMetricClusterAggregator agg =
-      new TimelineMetricClusterAggregator(hdb, new Configuration());
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, new Configuration());
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     // here we put some metrics tha will be aggregated
     long startTime = System.currentTimeMillis();
@@ -249,7 +253,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     while (rs.next()) {
       TimelineClusterMetric currentMetric = metricReader.fromResultSet(rs);
       MetricClusterAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
+        readHelper.getMetricClusterAggregateFromResultSet(rs);
 
       if ("disk_free".equals(currentMetric.getMetricName())) {
         assertEquals(2, currentHostAggregate.getNumberOfHosts());
@@ -269,12 +273,56 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     }
   }
 
+  @Test
+  public void testAggregateDailyClusterMetrics() throws Exception {
+    // GIVEN
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorDaily(hdb, new Configuration());
+
+    // this time can be virtualized! or made independent from real clock
+    long startTime = System.currentTimeMillis();
+    long ctime = startTime;
+    long hour = 3600 * 1000;
+
+    Map<TimelineClusterMetric, MetricHostAggregate> records =
+      new HashMap<TimelineClusterMetric, MetricHostAggregate>();
+
+    records.put(createEmptyTimelineClusterMetric(ctime),
+      MetricTestHelper.createMetricHostAggregate(4.0, 0.0, 2, 4.0));
+    records.put(createEmptyTimelineClusterMetric(ctime += hour),
+      MetricTestHelper.createMetricHostAggregate(4.0, 0.0, 2, 4.0));
+    records.put(createEmptyTimelineClusterMetric(ctime += hour),
+      MetricTestHelper.createMetricHostAggregate(4.0, 0.0, 2, 4.0));
+    records.put(createEmptyTimelineClusterMetric(ctime += hour),
+      MetricTestHelper.createMetricHostAggregate(4.0, 0.0, 2, 4.0));
+
+
+    hdb.saveClusterTimeAggregateRecords(records, METRICS_CLUSTER_AGGREGATE_HOURLY_TABLE_NAME);
+
+    // WHEN
+    agg.doWork(startTime, ctime + hour + 1000);
+
+    // THEN
+    ResultSet rs = executeQuery("SELECT * FROM METRIC_AGGREGATE_DAILY");
+    int count = 0;
+    while (rs.next()) {
+      assertEquals("METRIC_NAME", "disk_used", rs.getString("METRIC_NAME"));
+      assertEquals("APP_ID", "test_app", rs.getString("APP_ID"));
+      assertEquals("METRIC_SUM", 16.0, rs.getDouble("METRIC_SUM"));
+      assertEquals("METRIC_COUNT", 8, rs.getLong("METRIC_COUNT"));
+      assertEquals("METRIC_MAX", 4.0, rs.getDouble("METRIC_MAX"));
+      assertEquals("METRIC_MIN", 0.0, rs.getDouble("METRIC_MIN"));
+      count++;
+    }
+
+    assertEquals("Day aggregated row expected ", 1, count);
+  }
 
   @Test
   public void testShouldAggregateClusterOnHourProperly() throws Exception {
     // GIVEN
-    TimelineMetricClusterAggregatorHourly agg =
-      new TimelineMetricClusterAggregatorHourly(hdb, new Configuration());
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, new Configuration());
 
     // this time can be virtualized! or made independent from real clock
     long startTime = System.currentTimeMillis();
@@ -315,11 +363,10 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   }
 
   @Test
-  public void testShouldAggregateDifferentMetricsOnHourProperly() throws
-    Exception {
+  public void testShouldAggregateDifferentMetricsOnHourProperly() throws Exception {
     // GIVEN
-    TimelineMetricClusterAggregatorHourly agg =
-      new TimelineMetricClusterAggregatorHourly(hdb, new Configuration());
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorHourly(hdb, new Configuration());
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -381,7 +428,9 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
   public void testAppLevelHostMetricAggregates() throws Exception {
     Configuration conf = new Configuration();
     conf.set(CLUSTER_AGGREGATOR_APP_IDS, "app1");
-    TimelineMetricClusterAggregator agg = new TimelineMetricClusterAggregator(hdb, conf);
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, conf);
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -416,7 +465,7 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     MetricClusterAggregate currentHostAggregate = null;
     while (rs.next()) {
       currentMetric = metricReader.fromResultSet(rs);
-      currentHostAggregate = PhoenixHBaseAccessor.getMetricClusterAggregateFromResultSet(rs);
+      currentHostAggregate = readHelper.getMetricClusterAggregateFromResultSet(rs);
       recordCount++;
     }
     assertEquals(4, recordCount);

@@ -53,8 +53,8 @@ public class TestMetricHostAggregate {
     assertThat(aggregate.getAvg()).isEqualTo((3.0 + 8.0 + 1.0) / 5);
   }
 
-  private MetricHostAggregate createAggregate
-    (double sum, double min, double max, int samplesCount) {
+  static MetricHostAggregate createAggregate (Double sum, Double min,
+                                              Double max, Integer samplesCount) {
     MetricHostAggregate aggregate = new MetricHostAggregate();
     aggregate.setSum(sum);
     aggregate.setMax(max);

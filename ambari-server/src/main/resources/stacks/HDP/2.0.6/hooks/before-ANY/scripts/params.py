@@ -180,3 +180,5 @@ user_to_gid_dict = collections.defaultdict(lambda:user_group)
 
 user_list = json.loads(config['hostLevelParams']['user_list'])
 group_list = json.loads(config['hostLevelParams']['group_list'])
+
+tez_am_view_acls = config['configurations']['tez-site']["tez.am.view-acls"]

@@ -53,6 +53,14 @@
     </description>
   </property>
   <property>
+    <name>timeline.metrics.host.aggregator.minute.interval</name>
+    <value>120</value>
+    <description>
+      Time in seconds to sleep for the minute resolution host based
+      aggregator. Default resolution is 2 minutes.
+    </description>
+  </property>
+  <property>
     <name>timeline.metrics.host.aggregator.hourly.interval</name>
     <value>3600</value>
     <description>
@@ -61,11 +69,11 @@
     </description>
   </property>
   <property>
-    <name>timeline.metrics.host.aggregator.minute.interval</name>
-    <value>120</value>
+    <name>timeline.metrics.daily.aggregator.minute.interval</name>
+    <value>86400</value>
     <description>
-      Time in seconds to sleep for the minute resolution host based
-      aggregator. Default resolution is 2 minutes.
+      Time in seconds to sleep for the day resolution host based
+      aggregator. Default resolution is 24 hours.
     </description>
   </property>
   <property>
@@ -77,11 +85,28 @@
     </description>
   </property>
   <property>
+    <name>timeline.metrics.cluster.aggregator.daily.interval</name>
+    <value>86400</value>
+    <description>
+      Time in seconds to sleep for the day resolution cluster wide
+      aggregator. Default is 24 hours.
+    </description>
+  </property>
+  <property>
     <name>timeline.metrics.cluster.aggregator.minute.interval</name>
     <value>120</value>
     <description>
       Time in seconds to sleep for the minute resolution cluster wide
       aggregator. Default resolution is 2 minutes.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.checkpointCutOffMultiplier</name>
+    <value>1</value>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
     </description>
   </property>
   <property>
@@ -121,6 +146,22 @@
     </description>
   </property>
   <property>
+    <name>timeline.metrics.cluster.aggregator.daily.checkpointCutOffMultiplier</name>
+    <value>1</value>
+    <description>
+      Multiplier value * interval = Max allowed checkpoint lag. Effectively
+      if aggregator checkpoint is greater than max allowed checkpoint delay,
+      the checkpoint will be discarded by the aggregator.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.disabled</name>
+    <value>false</value>
+    <description>
+      Disable host based daily aggregations.
+    </description>
+  </property>
+  <property>
     <name>timeline.metrics.host.aggregator.hourly.disabled</name>
     <value>false</value>
     <description>
@@ -132,6 +173,13 @@
     <value>false</value>
     <description>
       Disable host based minute aggregations.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.disabled</name>
+    <value>false</value>
+    <description>
+      Disable cluster based daily aggregations.
     </description>
   </property>
   <property>
@@ -153,6 +201,13 @@
     <value>15</value>
     <description>
       Lowest resolution of desired data for cluster level minute aggregates.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.host.aggregator.daily.ttl</name>
+    <value>31536000</value>
+    <description>
+      Host based daily resolution data purge interval. Default is 1 year.
     </description>
   </property>
   <property>
@@ -181,6 +236,13 @@
     <value>31536000</value>
     <description>
       Cluster wide hourly resolution data purge interval. Default is 1 year.
+    </description>
+  </property>
+  <property>
+    <name>timeline.metrics.cluster.aggregator.daily.ttl</name>
+    <value>63072000</value>
+    <description>
+      Cluster wide daily resolution data purge interval. Default is 2 years.
     </description>
   </property>
   <property>

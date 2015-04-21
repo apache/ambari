@@ -26,7 +26,8 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 public enum Precision {
   SECONDS,
   MINUTES,
-  HOURS;
+  HOURS,
+  DAYS;
 
   public static class PrecisionFormatException extends IllegalArgumentException {
     public PrecisionFormatException(String message, Throwable cause) {
@@ -41,7 +42,8 @@ public enum Precision {
     try {
       return Precision.valueOf(precision.toUpperCase());
     } catch (IllegalArgumentException e) {
-      throw new PrecisionFormatException("precision should be seconds, minutes or hours", e);
+      throw new PrecisionFormatException("precision should be seconds, " +
+        "minutes, hours or days", e);
     }
   }
 }

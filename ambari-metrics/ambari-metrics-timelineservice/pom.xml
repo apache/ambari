@@ -249,6 +249,7 @@
         <configuration>
           <redirectTestOutputToFile>true</redirectTestOutputToFile>
           <forkMode>always</forkMode>
+          <argLine>-XX:-UseSplitVerifier</argLine>
         </configuration>
       </plugin>
     </plugins>
