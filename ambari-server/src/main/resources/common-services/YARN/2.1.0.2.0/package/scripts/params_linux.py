@@ -153,6 +153,9 @@ exclude_file_path = default("/configurations/yarn-site/yarn.resourcemanager.node
 ats_host = set(default("/clusterHostInfo/app_timeline_server_hosts", []))
 has_ats = not len(ats_host) == 0
 
+nm_hosts = default("/clusterHostInfo/nm_hosts", [])
+number_of_nm = len(nm_hosts)
+
 # default kinit commands
 rm_kinit_cmd = ""
 yarn_timelineservice_kinit_cmd = ""
