@@ -44,8 +44,8 @@ class PhoenixQueryServer(Script):
     phoenix_service('stop')
 
   def status(self, env):
-    import params
-    env.set_params(params)
+    import status_params
+    env.set_params(status_params)
     phoenix_service('status')
 
   def security_status(self, env):

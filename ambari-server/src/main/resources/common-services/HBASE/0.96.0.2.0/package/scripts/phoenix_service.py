@@ -18,20 +18,22 @@ limitations under the License.
 
 """
 
-import sys
-from resource_management.libraries.script import Script
 from resource_management.core.resources.system import Execute
+from resource_management.libraries.functions import check_process_status, format
 
-class HbaseMasterUpgrade(Script):
-
-  def snapshot(self, env):
-    import params
-
-    snap_cmd = "echo 'snapshot_all' | {0} shell".format(params.hbase_cmd)
-
-    exec_cmd = "{0} {1}".format(params.kinit_cmd, snap_cmd)
-
-    Execute(exec_cmd, user=params.hbase_user)
-
-if __name__ == "__main__":
-  HbaseMasterUpgrade().execute()
+def phoenix_service(action = 'start'): # 'start', 'stop', 'status'
+    pid_file = format("{pid_dir}/phoenix-{hbase_user}-server.pid")
+    no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  
+    if action == 'start':
+      Execute(format("{phx_daemon_script} start"))
+  
+    elif action == 'stop':
+      daemon_cmd = format("{phx_daemon_script} stop")
+      Execute(daemon_cmd,
+        timeout = 30,
+        on_timeout = format("! ( {no_op_test} ) || {sudo} -H -E kill -9 `cat {pid_file}`"),
+      )
+      Execute(format("rm -f {pid_file}"))
+    elif action == 'status':
+      check_process_status(pid_file)

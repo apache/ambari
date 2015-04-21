@@ -51,6 +51,9 @@ else:
   region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
   hbase_cmd = "/usr/lib/hbase/bin/hbase"
 
+# no symlink for phoenix-server at this point
+phx_daemon_script = '/usr/hdp/current/phoenix-server/bin/queryserver.py'
+
 hadoop_conf_dir = "/etc/hadoop/conf"
 hbase_conf_dir_prefix = "/etc/hbase"
 hbase_conf_dir = format("{hbase_conf_dir_prefix}/conf")

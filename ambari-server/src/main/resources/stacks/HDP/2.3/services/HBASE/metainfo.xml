@@ -21,6 +21,20 @@
     <service>
       <name>HBASE</name>
       <version>1.1.0.2.3</version>
+      <comment>A Non-relational distributed database, plus Phoenix, a high performance SQL layer for low latency applications.</comment>
+      <components>   
+        <component>
+          <name>PHOENIX_QUERY_SERVER</name>
+          <displayName>Phoenix Query Server</displayName>
+          <category>SLAVE</category>
+          <cardinality>0+</cardinality>
+          <versionAdvertised>true</versionAdvertised>
+          <commandScript>
+            <script>scripts/phoenix_queryserver.py</script>
+            <scriptType>PYTHON</scriptType>
+          </commandScript>
+        </component>
+      </components>
 
       <osSpecifics>
         <osSpecific>

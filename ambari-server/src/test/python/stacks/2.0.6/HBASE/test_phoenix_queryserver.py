@@ -24,7 +24,7 @@ from unittest import skip
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 class TestPhoenixQueryServer(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "HBASE/1.1.0.2.3/package"
+  COMMON_SERVICES_PACKAGE_DIR = "HBASE/0.96.0.2.0/package"
   STACK_VERSION = "2.3"
 
   def test_configure_default(self):
