@@ -27,13 +27,13 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
-import com.google.inject.Singleton;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
+import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
 @Singleton
@@ -119,6 +119,26 @@ public class ClusterDAO {
     );
     TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createQuery(cq);
     return daoUtils.selectOne(query);
+  }
+
+  /**
+   * Gets the next version that will be created for a given
+   * {@link ClusterConfigEntity}.
+   *
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @param configType
+   *          the name of the configuration type (not {@code null}).
+   * @return the highest existing value of the version column + 1
+   */
+  public Long findNextConfigVersion(long clusterId, String configType) {
+    TypedQuery<Long> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findNextConfigVersion", Long.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("configType", configType);
+
+    return daoUtils.selectSingle(query);
   }
 
   /**

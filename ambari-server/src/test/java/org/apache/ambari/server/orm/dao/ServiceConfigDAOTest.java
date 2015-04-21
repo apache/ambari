@@ -18,7 +18,6 @@
 package org.apache.ambari.server.orm.dao;
 
 import java.util.List;
-import java.util.Map;
 
 import junit.framework.Assert;
 
@@ -174,16 +173,14 @@ public class ServiceConfigDAOTest {
     createServiceConfig("HDFS", "admin", 2L, 2L, 2222L, null);
     createServiceConfig("YARN", "admin", 1L, 3L, 3333L, null);
 
+    long hdfsVersion = serviceConfigDAO.findNextServiceConfigVersion(
+        clusterDAO.findByName("c1").getClusterId(), "HDFS");
 
-    Map<String,Long> maxVersions = serviceConfigDAO.findMaxVersions(
-      clusterDAO.findByName("c1").getClusterId());
+    long yarnVersion = serviceConfigDAO.findNextServiceConfigVersion(
+        clusterDAO.findByName("c1").getClusterId(), "YARN");
 
-    Assert.assertNotNull(maxVersions);
-
-    Assert.assertEquals(2, maxVersions.size());
-
-    Assert.assertEquals(Long.valueOf(2), maxVersions.get("HDFS"));
-    Assert.assertEquals(Long.valueOf(1), maxVersions.get("YARN"));
+    Assert.assertEquals(3, hdfsVersion);
+    Assert.assertEquals(2, yarnVersion);
   }
 
   @Test

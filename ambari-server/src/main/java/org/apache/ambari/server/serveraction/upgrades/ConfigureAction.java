@@ -40,7 +40,9 @@ import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import com.google.inject.Inject;
 
 /**
- * Action that represents a manual stage.
+ * The {@link ConfigureAction} is used to alter a configuration property during
+ * an upgrade. It will only produce a new configuration if the value being
+ * changed is different than the existing value.
  */
 public class ConfigureAction extends AbstractServerAction {
 

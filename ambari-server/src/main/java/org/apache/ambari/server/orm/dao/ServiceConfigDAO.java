@@ -18,12 +18,10 @@
 
 package org.apache.ambari.server.orm.dao;
 
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
-import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Tuple;
@@ -31,21 +29,22 @@ import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
-import javax.persistence.criteria.Subquery;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 @Singleton
 public class ServiceConfigDAO {
   @Inject
-  Provider<EntityManager> entityManagerProvider;
-  @Inject
-  DaoUtils daoUtils;
+  private Provider<EntityManager> entityManagerProvider;
 
+  @Inject
+  private DaoUtils daoUtils;
 
   @RequiresSession
   public ServiceConfigEntity find(Long serviceConfigId) {
@@ -58,20 +57,6 @@ public class ServiceConfigDAO {
         createQuery("SELECT scv FROM ServiceConfigEntity scv " +
             "WHERE scv.serviceName=?1 AND scv.version=?2", ServiceConfigEntity.class);
     return daoUtils.selectOne(query, serviceName, version);
-  }
-
-  @RequiresSession
-  public Map<String, Long> findMaxVersions(Long clusterId) {
-    Map<String, Long> maxVersions = new HashMap<String, Long>();
-
-    TypedQuery<String> query = entityManagerProvider.get().createQuery("SELECT DISTINCT scv.serviceName FROM ServiceConfigEntity scv WHERE scv.clusterId = ?1", String.class);
-    List<String> serviceNames = daoUtils.selectList(query, clusterId);
-
-    for (String serviceName : serviceNames) {
-      maxVersions.put(serviceName, findMaxVersion(clusterId, serviceName).getVersion());
-    }
-
-    return maxVersions;
   }
 
   @RequiresSession
@@ -156,6 +141,27 @@ public class ServiceConfigDAO {
     return daoUtils.selectList(query, clusterId);
   }
 
+  /**
+   * Gets the next version that will be created when persisting a new
+   * {@link ServiceConfigEntity}.
+   *
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @param serviceName
+   *          the name of the service (not {@code null}).
+   * @return the maximum version value + 1
+   */
+  @RequiresSession
+  public Long findNextServiceConfigVersion(long clusterId, String serviceName) {
+    TypedQuery<Long> query = entityManagerProvider.get().createNamedQuery(
+        "ServiceConfigEntity.findNextServiceConfigVersion", Long.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("serviceName", serviceName);
+
+    return daoUtils.selectSingle(query);
+  }
+
   @Transactional
   public void create(ServiceConfigEntity serviceConfigEntity) {
     entityManagerProvider.get().persist(serviceConfigEntity);
@@ -170,6 +176,4 @@ public class ServiceConfigDAO {
   public void remove(ServiceConfigEntity serviceConfigEntity) {
     entityManagerProvider.get().remove(merge(serviceConfigEntity));
   }
-
-
 }

@@ -91,7 +91,6 @@ import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
 import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigVersionHelper;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
@@ -180,36 +179,48 @@ public class ClusterImpl implements Cluster {
 
   private ClusterEntity clusterEntity;
 
-  private final ConfigVersionHelper configVersionHelper;
-
   @Inject
   private ClusterDAO clusterDAO;
+
   @Inject
   private ClusterStateDAO clusterStateDAO;
+
   @Inject
   private ClusterVersionDAO clusterVersionDAO;
+
   @Inject
   private HostDAO hostDAO;
+
   @Inject
   private HostVersionDAO hostVersionDAO;
+
   @Inject
   private ServiceFactory serviceFactory;
+
   @Inject
   private ConfigFactory configFactory;
+
   @Inject
   private HostConfigMappingDAO hostConfigMappingDAO;
+
   @Inject
   private ConfigGroupFactory configGroupFactory;
+
   @Inject
   private ConfigGroupHostMappingDAO configGroupHostMappingDAO;
+
   @Inject
   private RequestExecutionFactory requestExecutionFactory;
+
   @Inject
   private ConfigHelper configHelper;
+
   @Inject
   private MaintenanceStateHelper maintenanceStateHelper;
+
   @Inject
   private AmbariMetaInfo ambariMetaInfo;
+
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
 
@@ -272,8 +283,6 @@ public class ClusterImpl implements Cluster {
       StringUtils.isEmpty(desiredStackVersion.getStackVersion())) {
       loadServiceConfigTypes();
     }
-
-    configVersionHelper = new ConfigVersionHelper(getConfigLastVersions());
   }
 
 
@@ -1926,18 +1935,13 @@ public class ClusterImpl implements Cluster {
 
 
   @Override
-  public ServiceConfigVersionResponse createServiceConfigVersion(String serviceName, String user, String note,
-                                                                 ConfigGroup configGroup) {
+  public ServiceConfigVersionResponse createServiceConfigVersion(
+      String serviceName, String user, String note, ConfigGroup configGroup) {
 
-    //create next service config version
+    // create next service config version
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
-    serviceConfigEntity.setServiceName(serviceName);
-    serviceConfigEntity.setClusterEntity(clusterEntity);
-    serviceConfigEntity.setVersion(configVersionHelper.getNextVersion(serviceName));
-    serviceConfigEntity.setUser(user);
-    serviceConfigEntity.setNote(note);
-    serviceConfigEntity.setStack(clusterEntity.getDesiredStack());
 
+    // set config group
     if (configGroup != null) {
       serviceConfigEntity.setGroupId(configGroup.getId());
       Collection<Config> configs = configGroup.getConfigurations().values();
@@ -1945,8 +1949,8 @@ public class ClusterImpl implements Cluster {
       for (Config config : configs) {
         configEntities.add(clusterDAO.findConfig(getClusterId(), config.getType(), config.getTag()));
       }
-      serviceConfigEntity.setClusterConfigEntities(configEntities);
 
+      serviceConfigEntity.setClusterConfigEntities(configEntities);
       serviceConfigEntity.setHostNames(new ArrayList<String>(configGroup.getHosts().keySet()));
 
     } else {
@@ -1954,7 +1958,23 @@ public class ClusterImpl implements Cluster {
       serviceConfigEntity.setClusterConfigEntities(configEntities);
     }
 
-    serviceConfigDAO.create(serviceConfigEntity);
+    clusterGlobalLock.writeLock().lock();
+
+    try {
+      long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(
+          clusterEntity.getClusterId(), serviceName);
+
+      serviceConfigEntity.setServiceName(serviceName);
+      serviceConfigEntity.setClusterEntity(clusterEntity);
+      serviceConfigEntity.setVersion(nextServiceConfigVersion);
+      serviceConfigEntity.setUser(user);
+      serviceConfigEntity.setNote(note);
+      serviceConfigEntity.setStack(clusterEntity.getDesiredStack());
+
+      serviceConfigDAO.create(serviceConfigEntity);
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
 
     configChangeLog.info("Cluster '{}' changed by: '{}'; service_name='{}' config_group='{}' config_group_id='{}' " +
       "version='{}'", getClusterName(), user, serviceName,
@@ -2193,6 +2213,9 @@ public class ClusterImpl implements Cluster {
       }
     }
 
+    long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(
+        clusterEntity.getClusterId(), serviceName);
+
     ServiceConfigEntity serviceConfigEntityClone = new ServiceConfigEntity();
     serviceConfigEntityClone.setCreateTimestamp(System.currentTimeMillis());
     serviceConfigEntityClone.setUser(user);
@@ -2204,7 +2227,7 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntityClone.setHostNames(serviceConfigEntity.getHostNames());
     serviceConfigEntityClone.setGroupId(serviceConfigEntity.getGroupId());
     serviceConfigEntityClone.setNote(serviceConfigVersionNote);
-    serviceConfigEntityClone.setVersion(configVersionHelper.getNextVersion(serviceName));
+    serviceConfigEntityClone.setVersion(nextServiceConfigVersion);
 
     serviceConfigDAO.create(serviceConfigEntityClone);
 
@@ -2356,30 +2379,12 @@ public class ClusterImpl implements Cluster {
     return getHostsDesiredConfigs(hostnames);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Long getNextConfigVersion(String type) {
-    return configVersionHelper.getNextVersion(type);
-  }
-
-  private Map<String, Long> getConfigLastVersions() {
-    Map<String, Long> maxVersions = new HashMap<String, Long>();
-    //config versions
-    for (Entry<String, Map<String, Config>> mapEntry : allConfigs.entrySet()) {
-      String type = mapEntry.getKey();
-      Long lastVersion = 0L;
-      for (Entry<String, Config> configEntry : mapEntry.getValue().entrySet()) {
-        Long version = configEntry.getValue().getVersion();
-        if (version > lastVersion) {
-          lastVersion = version;
-        }
-      }
-      maxVersions.put(type, lastVersion);
-    }
-
-    //service config versions
-    maxVersions.putAll(serviceConfigDAO.findMaxVersions(getClusterId()));
-
-    return maxVersions;
+    return clusterDAO.findNextConfigVersion(clusterEntity.getClusterId(), type);
   }
 
   @Transactional
