@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import javax.persistence.TypedQuery;
@@ -26,6 +28,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.utils.VersionUtils;
 
 import com.google.inject.Singleton;
 
@@ -171,5 +174,33 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
     this.create(newEntity);
     return newEntity;
   }
+
+  /**
+   * Finds the repository version, making sure if there is more than one match
+   * (unlikely) that the latest stack is chosen.
+   * @param version the version to find
+   * @return the matching repo version entity
+   */
+  public RepositoryVersionEntity findMaxByVersion(String version) {
+    List<RepositoryVersionEntity> list = findByVersion(version);
+    if (null == list || 0 == list.size()) {
+      return null;
+    } else if (1 == list.size()) {
+      return list.get(0);
+    } else {
+      Collections.sort(list, new Comparator<RepositoryVersionEntity>() {
+        @Override
+        public int compare(RepositoryVersionEntity o1, RepositoryVersionEntity o2) {
+          return VersionUtils.compareVersions(o1.getVersion(), o2.getVersion());
+        }
+      });
+
+      Collections.reverse(list);
+
+      return list.get(0);
+    }
+
+  }
+
 
 }

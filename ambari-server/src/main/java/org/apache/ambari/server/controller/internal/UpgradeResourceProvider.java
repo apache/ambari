@@ -67,12 +67,15 @@ import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.orm.entities.UpgradeEntity;
 import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.StackInfo;
@@ -405,7 +408,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String version = (String) requestMap.get(UPGRADE_VERSION);
     String versionForUpgradePack = (String) requestMap.get(UPGRADE_FROM_VERSION);
 
-
     if (null == clusterName) {
       throw new AmbariException(String.format("%s is required", UPGRADE_CLUSTER_NAME));
     }
@@ -423,8 +425,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       repoVersion = versionForUpgradePack;
     }
 
-    RepositoryVersionEntity versionEntity = s_repoVersionDAO.findByStackAndVersion(
-        stack, repoVersion);
+    RepositoryVersionEntity versionEntity = s_repoVersionDAO.findMaxByVersion(repoVersion);
 
     if (null == versionEntity) {
       throw new AmbariException(String.format("Version %s for stack %s was not found",
@@ -432,7 +433,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Map<String, UpgradePack> packs = s_metaProvider.get().getUpgradePacks(
-        stack.getStackName(), stack.getStackVersion());
+        versionEntity.getStackName(), versionEntity.getStackVersion());
 
     UpgradePack up = packs.get(versionEntity.getUpgradePackage());
 
@@ -443,8 +444,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           versionEntity.getUpgradePackage(),
           repoVersion));
     }
-
-    // !!! validate all hosts have the version installed
 
     return up;
   }
@@ -567,11 +566,91 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     entity.setRequestId(req.getId());
 
+    // !!! in case persist() starts creating tasks right away, square away the configs
+    createConfigs(cluster, version);
+
     req.persist();
 
     s_upgradeDAO.create(entity);
 
     return entity;
+  }
+
+  /**
+   * Merges and creates configs for the new stack.  No-op when the target stack version
+   * is the same as the cluster's current stack version.
+   * @param cluster the cluster
+   * @param version the version
+   * @throws AmbariException
+   */
+  private void createConfigs(Cluster cluster, String version) throws AmbariException {
+    RepositoryVersionEntity targetRve = s_repoVersionDAO.findMaxByVersion(version);
+    if (null == targetRve) {
+      LOG.info("Could not find version entity for {}; not setting new configs",
+          version);
+      return;
+    }
+
+    StackEntity oldStack = cluster.getCurrentClusterVersion().getRepositoryVersion().getStack();
+    StackEntity newStack = targetRve.getStack();
+
+    if (oldStack.equals(newStack)) {
+      return;
+    }
+
+    ConfigHelper configHelper = getManagementController().getConfigHelper();
+
+    Map<String, Map<String, String>> clusterConfigs = new HashMap<String, Map<String, String>>();
+
+    // !!! stack
+    Set<org.apache.ambari.server.state.PropertyInfo> pi = s_metaProvider.get().getStackProperties(newStack.getStackName(),
+        newStack.getStackVersion());
+
+    for (PropertyInfo stackProperty : pi) {
+      String type = ConfigHelper.fileNameToConfigType(stackProperty.getFilename());
+
+      if (!clusterConfigs.containsKey(type)) {
+        clusterConfigs.put(type, new HashMap<String, String>());
+      }
+
+      clusterConfigs.get(type).put(stackProperty.getName(),
+          stackProperty.getValue());
+    }
+
+    // !!! by service
+    for (String serviceName : cluster.getServices().keySet()) {
+      pi = s_metaProvider.get().getServiceProperties(newStack.getStackName(),
+          newStack.getStackVersion(), serviceName);
+
+      // !!! use new stack as the basis
+      for (PropertyInfo stackProperty : pi) {
+        String type = ConfigHelper.fileNameToConfigType(stackProperty.getFilename());
+
+        if (!clusterConfigs.containsKey(type)) {
+          clusterConfigs.put(type, new HashMap<String, String>());
+        }
+
+        clusterConfigs.get(type).put(stackProperty.getName(),
+            stackProperty.getValue());
+      }
+    }
+
+    // !!! upgrading the stack
+    cluster.setDesiredStackVersion(
+        new StackId(newStack.getStackName(), newStack.getStackVersion()));
+
+    // !!! overlay the currently defined values per type
+    for (Map.Entry<String, Map<String, String>> entry : clusterConfigs.entrySet()) {
+      Config config = cluster.getDesiredConfigByType(entry.getKey());
+      if (null != config) {
+        entry.getValue().putAll(config.getProperties());
+      }
+    }
+
+    configHelper.createConfigTypes(cluster, getManagementController(),
+        clusterConfigs, getManagementController().getAuthName(),
+        "Configuration created for Upgrade");
+
   }
 
 

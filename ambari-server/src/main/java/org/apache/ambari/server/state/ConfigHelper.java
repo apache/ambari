@@ -31,7 +31,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.TimeUnit;
 
-import com.google.common.collect.Maps;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
@@ -47,6 +46,7 @@ import org.slf4j.LoggerFactory;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+import com.google.common.collect.Maps;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
@@ -741,6 +741,66 @@ public class ConfigHelper {
           Collections.singleton(baseConfig), serviceVersionNote);
     }
   }
+
+  /**
+   * Create configurations and assign them for services.
+   * @param cluster               the cluster
+   * @param controller            the controller
+   * @param batchProperties       the type->config map batch of properties
+   * @param authenticatedUserName the user that initiated the change
+   * @param serviceVersionNote    the service version note
+   * @throws AmbariException
+   */
+  public void createConfigTypes(Cluster cluster,
+      AmbariManagementController controller,
+      Map<String, Map<String, String>> batchProperties, String authenticatedUserName,
+      String serviceVersionNote) throws AmbariException {
+
+    Map<String, Set<Config>> serviceMapped = new HashMap<String, Set<Config>>();
+
+    for (Map.Entry<String, Map<String, String>> entry : batchProperties.entrySet()) {
+      String type = entry.getKey();
+      String tag = "version1";
+
+      if (cluster.getConfigsByType(type) != null) {
+        tag = "version" + System.currentTimeMillis();
+      }
+
+      // create the configuration
+      ConfigurationRequest configurationRequest = new ConfigurationRequest();
+      configurationRequest.setClusterName(cluster.getClusterName());
+      configurationRequest.setVersionTag(tag);
+      configurationRequest.setType(type);
+      configurationRequest.setProperties(entry.getValue());
+      configurationRequest.setServiceConfigVersionNote(serviceVersionNote);
+      controller.createConfiguration(configurationRequest);
+
+      Config baseConfig = cluster.getConfig(configurationRequest.getType(),
+          configurationRequest.getVersionTag());
+
+      if (null != baseConfig) {
+        try {
+          String service = cluster.getServiceForConfigTypes(Collections.singleton(type));
+          if (!serviceMapped.containsKey(service)) {
+            serviceMapped.put(service, new HashSet<Config>());
+          }
+          serviceMapped.get(service).add(baseConfig);
+
+        } catch (Exception e) {
+          // !!! ignore
+        }
+      }
+    }
+
+    // create the configuration history entries
+    for (Set<Config> configs : serviceMapped.values()) {
+      if (!configs.isEmpty()) {
+        cluster.addDesiredConfig(authenticatedUserName, configs, serviceVersionNote);
+      }
+    }
+
+  }
+
 
   /**
    * Since global configs are deprecated since 1.7.0, but still supported.

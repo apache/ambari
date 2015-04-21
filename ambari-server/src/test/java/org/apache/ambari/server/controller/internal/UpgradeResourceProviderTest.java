@@ -64,7 +64,9 @@ import org.apache.ambari.server.orm.entities.UpgradeGroupEntity;
 import org.apache.ambari.server.orm.entities.UpgradeItemEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ConfigImpl;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -154,6 +156,13 @@ public class UpgradeResourceProviderTest {
     repoVersionEntity.setVersion("2.2.2.2");
     repoVersionDao.create(repoVersionEntity);
 
+    repoVersionEntity = new RepositoryVersionEntity();
+    repoVersionEntity.setDisplayName("For Stack Version 2.2.0");
+    repoVersionEntity.setOperatingSystems("");
+    repoVersionEntity.setStack(stackDAO.find("HDP", "2.2.0"));
+    repoVersionEntity.setUpgradePackage("upgrade_test");
+    repoVersionEntity.setVersion("2.2.0.0");
+    repoVersionDao.create(repoVersionEntity);
 
     clusters = injector.getInstance(Clusters.class);
 
@@ -607,6 +616,53 @@ public class UpgradeResourceProviderTest {
     assertEquals(100d, calc.getPercent(), 0.01d);
   }
 
+  @Test
+  public void testCreateCrossStackUpgrade() throws Exception {
+    Cluster cluster = clusters.getCluster("c1");
+
+    // add a single ZK server
+//    Service service = cluster.addService("HDFS");
+//    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
+//    service.persist();
+//
+//    ServiceComponent component = service.addServiceComponent("NAMENODE");
+//    ServiceComponentHost sch = component.addServiceComponentHost("h1");
+//    sch.setVersion("2.2.2.1");
+//
+//    component = service.addServiceComponent("HDFS_CLIENT");
+//    sch = component.addServiceComponentHost("h1");
+//    sch.setVersion("2.2.2.1");
+
+    Config config = new ConfigImpl("zoo.cfg");
+    config.setProperties(new HashMap<String, String>() {{
+      put("a", "b");
+    }});
+    config.setTag("abcdefg");
+
+    cluster.addConfig(config);
+    cluster.addDesiredConfig("admin", Collections.singleton(config));
+
+
+    Map<String, Object> requestProps = new HashMap<String, Object>();
+    requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.0.0");
+
+    ResourceProvider upgradeResourceProvider = createProvider(amc);
+
+    Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
+    upgradeResourceProvider.createResources(request);
+
+    List<UpgradeEntity> upgrades = upgradeDao.findUpgrades(cluster.getClusterId());
+    assertEquals(1, upgrades.size());
+
+    UpgradeEntity upgrade = upgrades.get(0);
+    assertEquals(3, upgrade.getUpgradeGroups().size());
+    UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);
+    assertEquals(2, group.getItems().size());
+
+    assertTrue(cluster.getDesiredConfigs().containsKey("zoo.cfg"));
+  }
+
   /**
    * @param amc
    * @return the provider
@@ -627,4 +683,7 @@ public class UpgradeResourceProviderTest {
       binder.bind(ConfigHelper.class).toInstance(configHelper);
     }
   }
+
+
+
 }

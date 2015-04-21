@@ -17,10 +17,7 @@
  */
 package org.apache.ambari.server.checks;
 
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
@@ -33,7 +30,6 @@ import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
@@ -57,7 +53,7 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
       return false;
     }
 
-    RepositoryVersionEntity rve = findByVersion(repoVersion);
+    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findMaxByVersion(repoVersion);
     if (null == rve) {
       return false;
     }
@@ -84,7 +80,7 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request)
       throws AmbariException {
 
-    RepositoryVersionEntity rve = findByVersion(request.getRepositoryVersion());
+    RepositoryVersionEntity rve = repositoryVersionDaoProvider.get().findMaxByVersion(request.getRepositoryVersion());
 
     Map<String, Map<String, ThreeWayValue>> changes =
         m_mergeHelper.getConflicts(request.getClusterName(), rve.getStackId());
@@ -120,31 +116,6 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
     }
   }
 
-  /**
-   * Finds the repository version, making sure if there is more than one match
-   * (unlikely) that the latest stack is chosen.
-   * @param version the version to find
-   * @return the matching repo version entity
-   */
-  private RepositoryVersionEntity findByVersion(String version) {
-    List<RepositoryVersionEntity> list = repositoryVersionDaoProvider.get().findByVersion(version);
-    if (null == list || 0 == list.size()) {
-      return null;
-    } else if (1 == list.size()) {
-      return list.get(0);
-    } else {
-      Collections.sort(list, new Comparator<RepositoryVersionEntity>() {
-        @Override
-        public int compare(RepositoryVersionEntity o1, RepositoryVersionEntity o2) {
-          return VersionUtils.compareVersions(o1.getVersion(), o2.getVersion());
-        }
-      });
 
-      Collections.reverse(list);
-
-      return list.get(0);
-    }
-
-  }
 
 }

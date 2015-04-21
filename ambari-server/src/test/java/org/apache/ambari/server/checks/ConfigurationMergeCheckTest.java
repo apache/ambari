@@ -89,13 +89,9 @@ public class ConfigurationMergeCheckTest {
     Assert.assertFalse(cmc.isApplicable(request));
 
     final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findByVersion("1.0")).andReturn(
-        Collections.singletonList(createFor("1.0"))).anyTimes();
-    expect(repositoryVersionDAO.findByVersion("1.1")).andReturn(
-        Collections.singletonList(createFor("1.1"))).anyTimes();
-    expect(repositoryVersionDAO.findByVersion("1.2")).andReturn(
-        Collections.<RepositoryVersionEntity>emptyList()).anyTimes();
-
+    expect(repositoryVersionDAO.findMaxByVersion("1.0")).andReturn(createFor("1.0")).anyTimes();
+    expect(repositoryVersionDAO.findMaxByVersion("1.1")).andReturn(createFor("1.1")).anyTimes();
+    expect(repositoryVersionDAO.findMaxByVersion("1.2")).andReturn(null).anyTimes();
 
     replay(repositoryVersionDAO);
 
@@ -129,10 +125,8 @@ public class ConfigurationMergeCheckTest {
     ConfigurationMergeCheck cmc = new ConfigurationMergeCheck();
 
     final RepositoryVersionDAO repositoryVersionDAO = EasyMock.createMock(RepositoryVersionDAO.class);
-    expect(repositoryVersionDAO.findByVersion("1.0")).andReturn(
-        Collections.singletonList(createFor("1.0"))).anyTimes();
-    expect(repositoryVersionDAO.findByVersion("1.1")).andReturn(
-        Collections.singletonList(createFor("1.1"))).anyTimes();
+    expect(repositoryVersionDAO.findMaxByVersion("1.0")).andReturn(createFor("1.0")).anyTimes();
+    expect(repositoryVersionDAO.findMaxByVersion("1.1")).andReturn(createFor("1.1")).anyTimes();
 
     replay(repositoryVersionDAO);
 
