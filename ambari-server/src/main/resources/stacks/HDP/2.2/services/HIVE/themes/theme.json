@@ -316,6 +316,10 @@
           "subsection-name": "performance-row2-col2"
         },
         {
+          "config": "hiveserver2-site/hive.server2.tez.default.queues",
+          "subsection-name": "interactive-query-row1-col1"
+        },
+        {
           "config": "hiveserver2-site/hive.server2.tez.initialize.default.sessions",
           "subsection-name": "interactive-query-row1-col1"
         },
@@ -620,6 +624,12 @@
         "config": "hive-site/hive.server2.use.SSL",
         "widget": {
           "type": "toggle"
+        }
+      },
+      {
+        "config": "hiveserver2-site/hive.server2.tez.default.queues",
+        "widget": {
+          "type": "list"
         }
       }
     ]
