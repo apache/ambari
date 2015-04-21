@@ -1287,16 +1287,23 @@ public class ViewRegistry {
     ViewEntity         persistedView = viewDAO.findByName(viewName);
     ResourceTypeEntity resourceType  = view.getResourceType();
 
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Syncing view " + viewName + ".");
+    }
+
     // if the view is not yet persisted ...
     if (persistedView == null) {
       if (LOG.isDebugEnabled()) {
-        LOG.debug("Creating View " + viewName + ".");
+        LOG.debug("Creating view " + viewName + ".");
       }
 
       // get or create an admin resource type to represent this view
       ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findByName(viewName);
       if (resourceTypeEntity == null) {
         resourceTypeEntity = resourceType;
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Creating resource type for " + viewName + ".");
+        }
         resourceTypeDAO.create(resourceTypeEntity);
       }
 
@@ -1332,6 +1339,9 @@ public class ViewRegistry {
       } else {
         syncViewInstance(instance, persistedInstance);
       }
+    }
+    if (LOG.isDebugEnabled()) {
+      LOG.debug("Syncing view " + viewName + " complete.");
     }
   }
 
@@ -1521,6 +1531,8 @@ public class ViewRegistry {
 
     String extractedArchiveDirPath = extractedArchiveDirFile.getAbsolutePath();
 
+    LOG.info("Reading view archive " + archiveFile + ".");
+
     try {
       // extract the archive and get the class loader
       ClassLoader cl = extractor.extractViewArchive(viewDefinition, archiveFile, extractedArchiveDirFile);
@@ -1543,6 +1555,8 @@ public class ViewRegistry {
         persistView(viewDefinition, instanceDefinitions);
 
         setViewStatus(viewDefinition, ViewEntity.ViewStatus.DEPLOYED, "Deployed " + extractedArchiveDirPath + ".");
+
+        LOG.info("View deployed: " + viewDefinition.getName() + ".");
       }
     } catch (Exception e) {
       String msg = "Caught exception loading view " + viewDefinition.getName();
