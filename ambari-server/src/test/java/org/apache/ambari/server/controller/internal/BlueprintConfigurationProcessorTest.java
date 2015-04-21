@@ -1742,6 +1742,125 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForClusterWithNameNodeHAEnabledSpecifyingHostNamesDirectly() throws Exception {
+    final String expectedNameService = "mynameservice";
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "serverTwo";
+    final String expectedPortNum = "808080";
+    final String expectedNodeOne = "nn1";
+    final String expectedNodeTwo = "nn2";
+    final String expectedHostGroupName = "host_group_1";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName)).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo)).atLeastOnce();
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("NAMENODE")).atLeastOnce();
+    expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("NAMENODE")).atLeastOnce();
+    expect(mockStack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).atLeastOnce();
+    expect(mockStack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hbaseSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hadoopEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> accumuloSiteProperties =
+      new HashMap<String, String>();
+
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+    configProperties.put("hadoop-env", hadoopEnvProperties);
+    configProperties.put("core-site", coreSiteProperties);
+    configProperties.put("hbase-site", hbaseSiteProperties);
+    configProperties.put("accumulo-site", accumuloSiteProperties);
+
+    // setup hdfs HA config for test
+    hdfsSiteProperties.put("dfs.nameservices", expectedNameService);
+    hdfsSiteProperties.put("dfs.ha.namenodes.mynameservice", expectedNodeOne + ", " + expectedNodeTwo);
+
+
+    // setup properties that include exported host group information
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne, createHostAddress(expectedHostName, expectedPortNum));
+    hdfsSiteProperties.put("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo, createHostAddress(expectedHostNameTwo, expectedPortNum));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne, createHostAddress(expectedHostName, expectedPortNum));
+    hdfsSiteProperties.put("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo, createHostAddress(expectedHostNameTwo, expectedPortNum));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne, createHostAddress(expectedHostName, expectedPortNum));
+    hdfsSiteProperties.put("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo, createHostAddress(expectedHostNameTwo, expectedPortNum));
+
+    // add properties that require the SECONDARY_NAMENODE, which
+    // is not included in this test
+    hdfsSiteProperties.put("dfs.secondary.http.address", "localhost:8080");
+    hdfsSiteProperties.put("dfs.namenode.secondary.http-address", "localhost:8080");
+
+    // configure the defaultFS to use the nameservice URL
+    coreSiteProperties.put("fs.defaultFS", "hdfs://" + expectedNameService);
+
+    // configure the hbase rootdir to use the nameservice URL
+    hbaseSiteProperties.put("hbase.rootdir", "hdfs://" + expectedNameService + "/hbase/test/root/dir");
+
+    // configure the hbase rootdir to use the nameservice URL
+    accumuloSiteProperties.put("instance.volumes", "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups = new LinkedHashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put("host-group-2", mockHostGroupTwo);
+
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    // verify that the expected hostname was substituted for the host group name in the config
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostNameTwo + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.https-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostNameTwo + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.http-address." + expectedNameService + "." + expectedNodeTwo));
+
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostName + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeOne));
+    assertEquals("HTTPS address HA property not properly exported",
+      expectedHostNameTwo + ":" + expectedPortNum, hdfsSiteProperties.get("dfs.namenode.rpc-address." + expectedNameService + "." + expectedNodeTwo));
+
+    // verify that the Blueprint config processor has set the internal required properties
+    // that determine the active and standby node hostnames for this HA setup
+    assertEquals("Active Namenode hostname was not set correctly",
+      expectedHostName, hadoopEnvProperties.get("dfs_ha_initial_namenode_active"));
+
+    assertEquals("Standby Namenode hostname was not set correctly",
+      expectedHostNameTwo, hadoopEnvProperties.get("dfs_ha_initial_namenode_standby"));
+
+    assertEquals("fs.defaultFS should not be modified by cluster update when NameNode HA is enabled.",
+      "hdfs://" + expectedNameService, coreSiteProperties.get("fs.defaultFS"));
+
+    assertEquals("hbase.rootdir should not be modified by cluster update when NameNode HA is enabled.",
+      "hdfs://" + expectedNameService + "/hbase/test/root/dir", hbaseSiteProperties.get("hbase.rootdir"));
+
+    assertEquals("instance.volumes should not be modified by cluster update when NameNode HA is enabled.",
+      "hdfs://" + expectedNameService + "/accumulo/test/instance/volumes", accumuloSiteProperties.get("instance.volumes"));
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
   public void testDoUpdateForClusterWithNameNodeHAEnabledAndActiveNodeSet() throws Exception {
     final String expectedNameService = "mynameservice";
     final String expectedHostName = "serverThree";
@@ -2240,6 +2359,90 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testYarnHighAvailabilityConfigClusterUpdateSpecifyingHostNamesDirectly() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    Set<String> setOfComponents = new HashSet<String>();
+    setOfComponents.add("RESOURCEMANAGER");
+    setOfComponents.add("APP_TIMELINE_SERVER");
+    setOfComponents.add("HISTORYSERVER");
+    expect(mockHostGroupOne.getComponents()).andReturn(setOfComponents).atLeastOnce();
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton(expectedHostName)).atLeastOnce();
+    expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("RESOURCEMANAGER")).atLeastOnce();
+
+    expect(mockStack.getCardinality("RESOURCEMANAGER")).andReturn(new Cardinality("1-2")).atLeastOnce();
+    //expect(mockStack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).atLeastOnce();
+    //expect(mockStack.getCardinality("HISTORYSERVER")).andReturn(new Cardinality("1")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> yarnSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("yarn-site", yarnSiteProperties);
+
+    // setup properties that include host information
+    yarnSiteProperties.put("yarn.log.server.url", "http://" + expectedHostName +":19888/jobhistory/logs");
+    yarnSiteProperties.put("yarn.resourcemanager.hostname", expectedHostName);
+    yarnSiteProperties.put("yarn.resourcemanager.resource-tracker.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.scheduler.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.admin.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.webapp.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.timeline-service.webapp.https.address", expectedHostName + ":" + expectedPortNum);
+    yarnSiteProperties.put("yarn.resourcemanager.ha.enabled", "true");
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups = new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put(expectedHostGroupNameTwo, mockHostGroupTwo);
+
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    // verify that the properties with hostname information was correctly preserved
+    assertEquals("Yarn Log Server URL was incorrectly updated",
+      "http://" + expectedHostName +":19888/jobhistory/logs", yarnSiteProperties.get("yarn.log.server.url"));
+    assertEquals("Yarn ResourceManager hostname was incorrectly exported",
+      expectedHostName, yarnSiteProperties.get("yarn.resourcemanager.hostname"));
+    assertEquals("Yarn ResourceManager tracker address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.resource-tracker.address"));
+    assertEquals("Yarn ResourceManager webapp address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.webapp.address"));
+    assertEquals("Yarn ResourceManager scheduler address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.scheduler.address"));
+    assertEquals("Yarn ResourceManager address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.address"));
+    assertEquals("Yarn ResourceManager admin address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.resourcemanager.admin.address"));
+    assertEquals("Yarn ResourceManager timeline-service address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.address"));
+    assertEquals("Yarn ResourceManager timeline webapp address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.address"));
+    assertEquals("Yarn ResourceManager timeline webapp HTTPS address was incorrectly updated",
+      createHostAddress(expectedHostName, expectedPortNum), yarnSiteProperties.get("yarn.timeline-service.webapp.https.address"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
   public void testYarnConfigExportedWithDefaultZeroHostAddress() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedPortNum = "808080";
@@ -2436,6 +2639,56 @@ public class BlueprintConfigurationProcessorTest {
     // expect that all servers are included in the updated config, and that the qjournal URL format is preserved
     assertEquals("HDFS HA shared edits directory property not properly updated for cluster create.",
       "qjournal://" + createHostAddress(expectedHostNameOne, expectedPortNum) + ";" + createHostAddress(expectedHostNameTwo, expectedPortNum) + "/mycluster",
+      hdfsSiteProperties.get("dfs.namenode.shared.edits.dir"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHDFSConfigClusterUpdateQuorumJournalURLSpecifyingHostNamesDirectly() throws Exception {
+    final String expectedHostNameOne = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.apache.ambari.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedQuorumJournalURL = "qjournal://" + createHostAddress(expectedHostNameOne, expectedPortNum) + ";" +
+                                            createHostAddress(expectedHostNameTwo, expectedPortNum) + "/mycluster";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hdfsSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hdfs-site", hdfsSiteProperties);
+
+    // setup properties that include host information
+    // setup shared edit property, that includes a qjournal URL scheme
+
+    hdfsSiteProperties.put("dfs.namenode.shared.edits.dir", expectedQuorumJournalURL);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put(expectedHostGroupNameTwo, mockHostGroupTwo);
+
+    // call top-level export method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, null);
+
+    // expect that all servers are included in configuration property without changes, and that the qjournal URL format is preserved
+    assertEquals("HDFS HA shared edits directory property should not have been modified, since FQDNs were specified.",
+      expectedQuorumJournalURL,
       hdfsSiteProperties.get("dfs.namenode.shared.edits.dir"));
 
     mockSupport.verifyAll();
@@ -2652,6 +2905,84 @@ public class BlueprintConfigurationProcessorTest {
       oozieEnvProperties.containsKey("oozie_existing_mysql_host"));
     assertFalse("oozie.service.JPAService.jdbc.url should not have been present in the exported configuration",
       oozieSiteProperties.containsKey("oozie.service.JPAService.jdbc.url"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testOozieConfigClusterUpdateHAEnabledSpecifyingHostNamesDirectly() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedExternalHost = "c6408.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("OOZIE_SERVER")).atLeastOnce();
+    expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("OOZIE_SERVER")).atLeastOnce();
+
+    expect(mockStack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> oozieSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> oozieEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+    configProperties.put("oozie-env", oozieEnvProperties);
+    configProperties.put("hive-env", oozieEnvProperties);
+    configProperties.put("core-site", coreSiteProperties);
+
+    oozieSiteProperties.put("oozie.base.url", expectedHostName);
+    oozieSiteProperties.put("oozie.authentication.kerberos.principal", expectedHostName);
+    oozieSiteProperties.put("oozie.service.HadoopAccessorService.kerberos.principal", expectedHostName);
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedExternalHost + "/ooziedb");
+
+    // simulate the Oozie HA configuration
+    oozieSiteProperties.put("oozie.services.ext",
+      "org.apache.oozie.service.ZKLocksService,org.apache.oozie.service.ZKXLogStreamingService,org.apache.oozie.service.ZKJobsConcurrencyService,org.apache.oozie.service.ZKUUIDService");
+
+
+    oozieEnvProperties.put("oozie_hostname", expectedHostName);
+    oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
+
+    coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> hostGroups =
+      new HashMap<String, HostGroup>();
+    hostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    hostGroups.put(expectedHostGroupNameTwo, mockHostGroupTwo);
+
+    // call top-level update method
+    configProcessor.doUpdateForClusterCreate(hostGroups, mockStack);
+
+    assertEquals("oozie property not updated correctly",
+      expectedHostName, oozieSiteProperties.get("oozie.base.url"));
+    assertEquals("oozie property not updated correctly",
+      expectedHostName, oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
+    assertEquals("oozie property not updated correctly",
+      expectedHostName, oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
+    assertEquals("oozie property not updated correctly",
+      expectedHostName, oozieEnvProperties.get("oozie_hostname"));
+    assertEquals("oozie property not updated correctly",
+      expectedHostName + "," + expectedHostNameTwo, coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
 
     mockSupport.verifyAll();
 

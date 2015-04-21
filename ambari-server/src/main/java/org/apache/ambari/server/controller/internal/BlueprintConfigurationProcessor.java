@@ -131,7 +131,7 @@ public class BlueprintConfigurationProcessor {
           Map<String, String> typeMap = properties.get(type);
           if (typeMap != null && typeMap.containsKey(propertyName)) {
             typeMap.put(propertyName, updater.updateForClusterCreate(
-                hostGroups, typeMap.get(propertyName), properties, stackDefinition));
+                hostGroups, propertyName, typeMap.get(propertyName), properties, stackDefinition));
           }
         }
       }
@@ -318,6 +318,29 @@ public class BlueprintConfigurationProcessor {
    */
   static boolean isNameNodeHAEnabled(Map<String, Map<String, String>> configProperties) {
     return configProperties.containsKey("hdfs-site") && configProperties.get("hdfs-site").containsKey("dfs.nameservices");
+  }
+
+
+  /**
+   * Static convenience function to determine if Yarn ResourceManager HA is enabled
+   * @param configProperties configuration properties for this cluster
+   * @return true if Yarn ResourceManager HA is enabled
+   *         false if Yarn ResourceManager HA is not enabled
+   */
+  static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
+      && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
+  }
+
+  /**
+   * Static convenience function to determine if Oozie HA is enabled
+   * @param configProperties configuration properties for this cluster
+   * @return true if Oozie HA is enabled
+   *         false if Oozie HA is not enabled
+   */
+  static boolean isOozieServerHAEnabled(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("oozie-site") && configProperties.get("oozie-site").containsKey("oozie.services.ext")
+      && configProperties.get("oozie-site").get("oozie.services.ext").contains("org.apache.oozie.service.ZKLocksService");
   }
 
 
@@ -595,6 +618,7 @@ public class BlueprintConfigurationProcessor {
      *
      *
      * @param hostGroups      host groups
+     * @param propertyName    name of property
      * @param origValue       original value of property
      * @param properties      all properties
      * @param stackDefinition definition of stack used for this cluster
@@ -603,7 +627,7 @@ public class BlueprintConfigurationProcessor {
      * @return new property value
      */
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
-                                         String origValue, Map<String, Map<String, String>> properties, Stack stackDefinition
+                                         String propertyName, String origValue, Map<String, Map<String, String>> properties, Stack stackDefinition
     );
   }
 
@@ -631,6 +655,7 @@ public class BlueprintConfigurationProcessor {
      *
      *
      * @param hostGroups       host groups
+     * @param propertyName    name of property
      * @param origValue        original value of property
      * @param properties       all properties
      * @param stackDefinition  stack used for cluster creation
@@ -639,6 +664,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
+                                         String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          Stack stackDefinition)  {
@@ -681,6 +707,12 @@ public class BlueprintConfigurationProcessor {
                 // reference must point to the logical nameservice, rather than an individual namenode
                 return origValue;
               }
+
+              if (!origValue.contains("localhost")) {
+                // if this NameNode HA property is a FDQN, then simply return it
+                return origValue;
+              }
+
             }
 
             if (isNameNodeHAEnabled(properties) && isComponentSecondaryNameNode() && (matchingGroups.isEmpty())) {
@@ -689,7 +721,21 @@ public class BlueprintConfigurationProcessor {
               return origValue;
             }
 
-            throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
+            if (isYarnResourceManagerHAEnabled(properties) && isComponentResourceManager() && (matchingGroups.size() == 2)) {
+              if (!origValue.contains("localhost")) {
+                // if this Yarn property is a FQDN, then simply return it
+                return origValue;
+              }
+            }
+
+            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroups.size() > 1))     {
+              if (!origValue.contains("localhost")) {
+                // if this Oozie property is a FQDN, then simply return i
+                return origValue;
+              }
+            }
+
+            throw new IllegalArgumentException("Unable to update configuration property " + "'" + propertyName + "'"+ " with topology information. " +
               "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
           }
         }
@@ -716,6 +762,28 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isComponentSecondaryNameNode() {
       return component.equals("SECONDARY_NAMENODE");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is a Yarn ResourceManager
+     *
+     * @return true if the component associated is a Yarn ResourceManager
+     *         false if the component is not a Yarn ResourceManager
+     */
+    private boolean isComponentResourceManager() {
+      return component.equals("RESOURCEMANAGER");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is an Oozie Server
+     *
+     * @return true if the component associated is an Oozie Server
+     *         false if the component is not an Oozie Server
+     */
+    private boolean isComponentOozieServer() {
+      return component.equals("OOZIE_SERVER");
     }
 
     /**
@@ -747,9 +815,9 @@ public class BlueprintConfigurationProcessor {
     }
 
     @Override
-    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String origValue, Map<String, Map<String, String>> properties, Stack stackDefinition) {
+    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String propertyName, String origValue, Map<String, Map<String, String>> properties, Stack stackDefinition) {
       try {
-        return super.updateForClusterCreate(hostGroups, origValue, properties, stackDefinition);
+        return super.updateForClusterCreate(hostGroups, propertyName, origValue, properties, stackDefinition);
       } catch (IllegalArgumentException illegalArgumentException) {
         // return the original value, since the optional component is not available in this cluster
         return origValue;
@@ -803,11 +871,12 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
+                                         String propertyName,
                                          String origValue, Map<String, Map<String, String>> properties,
                                          Stack stackDefinition) {
 
       if (isDatabaseManaged(properties)) {
-        return super.updateForClusterCreate(hostGroups, origValue, properties, stackDefinition);
+        return super.updateForClusterCreate(hostGroups, propertyName, origValue, properties, stackDefinition);
       } else {
         return origValue;
       }
@@ -871,6 +940,7 @@ public class BlueprintConfigurationProcessor {
      *
      *
      * @param hostGroups       host groups
+     *
      * @param origValue        original value of property
      * @param properties       all properties
      * @param stackDefinition  stack used for cluster creation
@@ -879,9 +949,16 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
+                                         String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          Stack stackDefinition) {
+      if (!origValue.contains("%HOSTGROUP") &&
+        (!origValue.contains("localhost"))) {
+        // this property must contain FQDNs specified directly by the user
+        // of the Blueprint, so the processor should not attempt to update them
+        return origValue;
+      }
 
       Collection<String> hostStrings = getHostStrings(hostGroups, origValue);
       if (hostStrings.isEmpty()) {
@@ -964,6 +1041,7 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
+                                         String propertyName,
                                          String origValue, Map<String,
                                          Map<String, String>> properties,
                                          Stack stackDefinition) {
@@ -999,11 +1077,12 @@ public class BlueprintConfigurationProcessor {
      */
     @Override
     public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroupMap,
+                                         String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          Stack stackDefinition) {
 
-      return doFormat(propertyUpdater.updateForClusterCreate(hostGroupMap, origValue, properties, stackDefinition));
+      return doFormat(propertyUpdater.updateForClusterCreate(hostGroupMap, propertyName, origValue, properties, stackDefinition));
     }
 
     /**
@@ -1063,7 +1142,8 @@ public class BlueprintConfigurationProcessor {
    */
   private static class OriginalValuePropertyUpdater implements PropertyUpdater {
     @Override
-    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String origValue,
+    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups,
+                                         String propertyName, String origValue,
                                          Map<String, Map<String, String>> properties,
                                          Stack stackDefinition) {
       // always return the original value, since these properties do not require update handling
