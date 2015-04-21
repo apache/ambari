@@ -79,8 +79,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * @type {boolean}
    */
   isShowBlock: function () {
-    return this.get('category.customCanAddProperty') || this.get('categoryConfigs').filterProperty('isHiddenByFilter', false).length > 0;
-  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter'),
+    var isCustomPropertiesCategory = this.get('category.customCanAddProperty');
+    var emptyFiltered = this.get('categoryConfigs').filterProperty('isHiddenByFilter', false).length > 0;
+    var isWidgetsOnlyCategory = this.get('categoryConfigs.length') == this.get('categoryConfigs').filterProperty('widget').length;
+    return isCustomPropertiesCategory || (emptyFiltered && !isWidgetsOnlyCategory);
+  }.property('category.customCanAddProperty', 'categoryConfigs.@each.isHiddenByFilter', 'categoryConfigs.@each.widget'),
 
   /**
    * Re-order the configs to list content displayType properties at last in the category
