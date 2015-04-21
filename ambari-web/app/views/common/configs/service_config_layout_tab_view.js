@@ -192,7 +192,7 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     this.get('parentView').pickActiveTab(this.get('parentView.tabs'));
   }.observes('parentView.filter', 'parentView.columns.@each.selected'),
 
-  willInsertElement: function () {
+  didInsertElement: function () {
     this._super();
     this.prepareConfigProperties();
   }
