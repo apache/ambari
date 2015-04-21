@@ -112,6 +112,8 @@ App.config = Em.Object.create({
 
   preDefinedSiteProperties: function () {
     var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
+    // default is HDP2
+    var configProperties = require('data/HDP2/site_properties').configProperties;
     if (sitePropertiesForCurrentStack) {
       return sitePropertiesForCurrentStack.configProperties;
     }
@@ -120,9 +122,16 @@ App.config = Em.Object.create({
       return require('data/HDP2.3/site_properties').configProperties;
     }
     if (App.get('isHadoop22Stack')) {
-      return require('data/HDP2.2/site_properties').configProperties;
+      configProperties = require('data/HDP2.2/site_properties').configProperties;
     }
-    return require('data/HDP2/site_properties').configProperties;
+    // filter config properties by stack name and version if defined
+    return configProperties.filter(function(item) {
+      if (item.stack) {
+        var stackVersion = item.stack[App.get('currentStackName')];
+        return stackVersion && stringUtils.compareVersions(App.get('currentStackVersionNumber'), stackVersion) > -1;
+      }
+      return true;
+    });
   }.property('App.isHadoop22Stack', 'App.isHadoop23Stack', 'App.currentStackName'),
 
   preDefinedConfigFile: function(file) {

@@ -395,6 +395,21 @@ describe('App.config', function () {
     });
   });
 
+  describe('#preDefinedSiteProperties-stack-attribute', function() {
+    var HDP23Only = ['nfs.dump.dir', 'nfs.exports.allowed.hosts'];
+    it('should ignore properties that not belongs to stack HDP - 2.2', function() {
+      setups.setupStackVersion(this, 'HDP-2.2');
+      expect(App.config.get('preDefinedSiteProperties').mapProperty('name')).to.not.include.members(HDP23Only);
+      setups.restoreStackVersion(this);
+    });
+
+    it('properties related to HDP-2.3 stack only should be present', function() {
+      setups.setupStackVersion(this, 'HDP-2.3');
+      expect(App.config.get('preDefinedSiteProperties').mapProperty('name')).to.include.members(HDP23Only);
+      setups.restoreStackVersion(this);
+    });
+  });
+
   describe('#generateConfigPropertiesByName', function() {
     var tests = [
       {

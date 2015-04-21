@@ -119,6 +119,9 @@ var hdp2properties = [
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
+    "stack": {
+      "HDP": "2.3"
+    },
     "index": 1
   },
   {
@@ -141,6 +144,9 @@ var hdp2properties = [
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
+    "stack": {
+      "HDP": "2.3"
+    },
     "index": 3
   },
   {
