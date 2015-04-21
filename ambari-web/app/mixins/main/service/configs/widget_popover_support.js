@@ -48,11 +48,11 @@ App.WidgetPopoverSupport = Em.Mixin.create({
 
   initPopover: function () {
     // if description for this config not exist, then no need to show popover
-    if (this.get('isPopoverEnabled') !== 'false' && this.get('config.description')) {
+    if (this.get('isPopoverEnabled') !== 'false') {
       App.popover(this.$('.original-widget'), {
         title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
           this.get('configLabel'),
-          (this.get('config.displayName') == this.get('config.name')) ? '' : this.get('config.name')
+          (this.get('config.configLabel') == this.get('config.name')) ? '' : this.get('config.name')
         ),
         content: this.get('config.description'),
         placement: this.get('popoverPlacement'),
