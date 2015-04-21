@@ -31,7 +31,7 @@
     <description></description>
   </property>
   <property>
-    <name>policymanager.baseURL</name>
+    <name>POLICY_MGR_URL</name>
     <value>{{usersync_exturl}}</value>
     <description>Policy Manager external url</description>
   </property>
