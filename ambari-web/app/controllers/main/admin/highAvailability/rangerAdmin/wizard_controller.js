@@ -30,6 +30,7 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
   content: Em.Object.create({
     controllerName: 'rAHighAvailabilityWizardController',
     cluster: null,
+    loadBalancerURL: null,
     hosts: null,
     services: null,
     masterComponentHosts: null
@@ -59,6 +60,7 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
         type: 'sync',
         callback: function () {
           this.load('cluster');
+          this.load('loadBalancerURL');
         }
       }
     ],
