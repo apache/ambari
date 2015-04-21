@@ -1444,8 +1444,8 @@ class TestHDP22StackAdvisor(TestCase):
       'hadoop-env': {
         'properties': {
           'namenode_heapsize': '1024',
-          'namenode_opt_newsize' : '256',
-          'namenode_opt_maxnewsize' : '256'
+          'namenode_opt_newsize' : '128',
+          'namenode_opt_maxnewsize' : '128'
         },
         'property_attributes': {
           'dtnode_heapsize': {'maximum': '2048'},
@@ -1558,30 +1558,6 @@ class TestHDP22StackAdvisor(TestCase):
 
                           ]
                         },
-                        {
-                          "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/SECONDARY_NAMENODE",
-                          "StackServiceComponents":{
-                            "advertise_version":"true",
-                            "cardinality":"1",
-                            "component_category":"MASTER",
-                            "component_name":"SECONDARY_NAMENODE",
-                            "custom_commands":[
-
-                            ],
-                            "display_name":"SNameNode",
-                            "is_client":"false",
-                            "is_master":"true",
-                            "service_name":"HDFS",
-                            "stack_name":"HDP",
-                            "stack_version":"2.2",
-                            "hostnames":[
-                              "host1"
-                            ]
-                          },
-                          "dependencies":[
-
-                          ]
-                        },
                       ],
                     }],
                 "configurations": configurations
@@ -1619,6 +1595,36 @@ class TestHDP22StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+    # namenode heapsize depends on # of datanodes
+    datanode_hostnames = services["services"][0]["components"][0]["StackServiceComponents"]["hostnames"] # datanode hostnames
+    for i in xrange(200):
+      hostname = "datanode" + `i`
+      datanode_hostnames.append(hostname)
+      hosts['items'].append(
+        {
+          "href" : "/api/v1/hosts/" + hostname,
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : hostname,
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : hostname,
+            "rack_info" : "/default-rack",
+            "total_mem" : 2097152
+          }
+        }
+      )
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "47872")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "6144")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "6144")
+    # namenode_heapsize depends on number of disks used used by datanode
+    configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"] = "/path1"
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "14848")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "2048")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "2048")
 
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}

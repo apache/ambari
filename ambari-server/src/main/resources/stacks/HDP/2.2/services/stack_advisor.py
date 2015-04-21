@@ -98,26 +98,67 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHdfsSiteProperty("dfs.namenode.safemode.threshold-pct", "0.99f" if len(namenodeHosts) > 1 else "1.0f")
 
     putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
+    putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
+
+    nn_max_heapsize=None
+    if (namenodeHosts is not None and len(namenodeHosts) > 0):
+      if len(namenodeHosts) > 1:
+        nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
+      else:
+        nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
+
+      putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', nn_max_heapsize)
+
+    #Old fallback values
     putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
     putHdfsEnvProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
     putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
-    # Property Attributes
-    putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
-    if (namenodeHosts is not None and len(namenodeHosts) > 0):
-      if len(namenodeHosts) > 1:
-        namenode_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
-      else:
-        namenode_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
-
-      putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', namenode_heapsize)
-
     datanodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
-    if (datanodeHosts is not None and len(datanodeHosts)>0):
+    if datanodeHosts is not None and len(datanodeHosts) > 0:
       min_datanode_ram_kb = 1073741824 # 1 TB
       for datanode in datanodeHosts:
         ram_kb = datanode['Hosts']['total_mem']
         min_datanode_ram_kb = min(min_datanode_ram_kb, ram_kb)
+
+      datanodeFilesM = len(datanodeHosts)*dataDirsCount/10 # in millions, # of files = # of disks * 100'000
+      nn_memory_configs = [
+        {'nn_heap':1024,  'nn_opt':128},
+        {'nn_heap':3072,  'nn_opt':512},
+        {'nn_heap':5376,  'nn_opt':768},
+        {'nn_heap':9984,  'nn_opt':1280},
+        {'nn_heap':14848, 'nn_opt':2048},
+        {'nn_heap':19456, 'nn_opt':2560},
+        {'nn_heap':24320, 'nn_opt':3072},
+        {'nn_heap':33536, 'nn_opt':4352},
+        {'nn_heap':47872, 'nn_opt':6144},
+        {'nn_heap':59648, 'nn_opt':7680},
+        {'nn_heap':71424, 'nn_opt':8960},
+        {'nn_heap':94976, 'nn_opt':8960}
+      ]
+      index = {
+        datanodeFilesM < 1 : 0,
+        1 <= datanodeFilesM < 5 : 1,
+        5 <= datanodeFilesM < 10 : 2,
+        10 <= datanodeFilesM < 20 : 3,
+        20 <= datanodeFilesM < 30 : 4,
+        30 <= datanodeFilesM < 40 : 5,
+        40 <= datanodeFilesM < 50 : 6,
+        50 <= datanodeFilesM < 70 : 7,
+        70 <= datanodeFilesM < 100 : 8,
+        100 <= datanodeFilesM < 125 : 9,
+        125 <= datanodeFilesM < 150 : 10,
+        150 <= datanodeFilesM : 11
+      }[1]
+
+      nn_memory_config = nn_memory_configs[index]
+
+      #override with new values if applicable
+      if nn_max_heapsize is not None and nn_max_heapsize <= nn_memory_config['nn_heap']:
+        putHdfsEnvProperty('namenode_heapsize', nn_memory_config['nn_heap'])
+        putHdfsEnvProperty('namenode_opt_newsize', nn_memory_config['nn_opt'])
+        putHdfsEnvProperty('namenode_opt_maxnewsize', nn_memory_config['nn_opt'])
+
       putHdfsEnvPropertyAttribute('dtnode_heapsize', 'maximum', int(min_datanode_ram_kb/1024))
 
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")

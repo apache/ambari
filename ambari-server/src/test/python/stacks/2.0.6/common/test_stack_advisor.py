@@ -585,3 +585,152 @@ class TestHDP206StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
+
+  def test_getHostsWithComponent(self):
+    services = {"services":
+                  [{"StackServices":
+                      {"service_name" : "HDFS",
+                       "service_version" : "2.6.0.2.2"
+                      },
+                    "components":[
+                      {
+                        "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/DATANODE",
+                        "StackServiceComponents":{
+                          "advertise_version":"true",
+                          "cardinality":"1+",
+                          "component_category":"SLAVE",
+                          "component_name":"DATANODE",
+                          "custom_commands":[
+
+                          ],
+                          "display_name":"DataNode",
+                          "is_client":"false",
+                          "is_master":"false",
+                          "service_name":"HDFS",
+                          "stack_name":"HDP",
+                          "stack_version":"2.2",
+                          "hostnames":[
+                            "host1",
+                            "host2"
+                          ]
+                        },
+                        "dependencies":[
+
+                        ]
+                      },
+                      {
+                        "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/JOURNALNODE",
+                        "StackServiceComponents":{
+                          "advertise_version":"true",
+                          "cardinality":"0+",
+                          "component_category":"SLAVE",
+                          "component_name":"JOURNALNODE",
+                          "custom_commands":[
+
+                          ],
+                          "display_name":"JournalNode",
+                          "is_client":"false",
+                          "is_master":"false",
+                          "service_name":"HDFS",
+                          "stack_name":"HDP",
+                          "stack_version":"2.2",
+                          "hostnames":[
+                            "host1"
+                          ]
+                        },
+                        "dependencies":[
+                          {
+                            "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/JOURNALNODE/dependencies/HDFS_CLIENT",
+                            "Dependencies":{
+                              "component_name":"HDFS_CLIENT",
+                              "dependent_component_name":"JOURNALNODE",
+                              "dependent_service_name":"HDFS",
+                              "stack_name":"HDP",
+                              "stack_version":"2.2"
+                            }
+                          }
+                        ]
+                      },
+                      {
+                        "href":"/api/v1/stacks/HDP/versions/2.2/services/HDFS/components/NAMENODE",
+                        "StackServiceComponents":{
+                          "advertise_version":"true",
+                          "cardinality":"1-2",
+                          "component_category":"MASTER",
+                          "component_name":"NAMENODE",
+                          "custom_commands":[
+                            "DECOMMISSION",
+                            "REBALANCEHDFS"
+                          ],
+                          "display_name":"NameNode",
+                          "is_client":"false",
+                          "is_master":"true",
+                          "service_name":"HDFS",
+                          "stack_name":"HDP",
+                          "stack_version":"2.2",
+                          "hostnames":[
+                            "host2"
+                          ]
+                        },
+                        "dependencies":[
+
+                        ]
+                      },
+                      ],
+                    }],
+                "configurations": {}
+    }
+    hosts = {
+      "items" : [
+        {
+          "href" : "/api/v1/hosts/host1",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "host1",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "host1",
+            "rack_info" : "/default-rack",
+            "total_mem" : 2097152
+          }
+        },
+        {
+          "href" : "/api/v1/hosts/host2",
+          "Hosts" : {
+            "cpu_count" : 1,
+            "host_name" : "host2",
+            "os_arch" : "x86_64",
+            "os_type" : "centos6",
+            "ph_cpu_count" : 1,
+            "public_host_name" : "host2",
+            "rack_info" : "/default-rack",
+            "total_mem" : 1048576
+          }
+        },
+        ]
+    }
+
+    datanodes = self.stackAdvisor.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
+    self.assertEquals(len(datanodes), 2)
+    self.assertEquals(datanodes, hosts["items"])
+    datanode = self.stackAdvisor.getHostWithComponent("HDFS", "DATANODE", services, hosts)
+    self.assertEquals(datanode, hosts["items"][0])
+    namenodes = self.stackAdvisor.getHostsWithComponent("HDFS", "NAMENODE", services, hosts)
+    self.assertEquals(len(namenodes), 1)
+    # [host2]
+    self.assertEquals(namenodes, [hosts["items"][1]])
+    namenode = self.stackAdvisor.getHostWithComponent("HDFS", "NAMENODE", services, hosts)
+    # host2
+    self.assertEquals(namenode, hosts["items"][1])
+
+    # not installed
+    nodemanager = self.stackAdvisor.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
+    self.assertEquals(nodemanager, None)
+
+    # unknown component
+    unknown_component = self.stackAdvisor.getHostWithComponent("YARN", "UNKNOWN", services, hosts)
+    self.assertEquals(nodemanager, None)
+    # unknown service
+    unknown_component = self.stackAdvisor.getHostWithComponent("UNKNOWN", "NODEMANAGER", services, hosts)
+    self.assertEquals(nodemanager, None)

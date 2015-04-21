@@ -213,9 +213,8 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       service = [serviceEntry for serviceEntry in services["services"] if serviceEntry["StackServices"]["service_name"] == serviceName][0]
       components = [componentEntry for componentEntry in service["components"] if componentEntry["StackServiceComponents"]["component_name"] == componentName]
       if (len(components) > 0 and len(components[0]["StackServiceComponents"]["hostnames"]) > 0):
-        # component available - determine hosts and memory
-        componentHostname = components[0]["StackServiceComponents"]["hostnames"][0]
-        componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] == componentHostname]
+        componentHostnames = components[0]["StackServiceComponents"]["hostnames"]
+        componentHosts = [host for host in hosts["items"] if host["Hosts"]["host_name"] in componentHostnames]
         return componentHosts
     return []
 
