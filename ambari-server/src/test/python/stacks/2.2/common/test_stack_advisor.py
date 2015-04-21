@@ -1687,3 +1687,156 @@ class TestHDP22StackAdvisor(TestCase):
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
     self.assertEquals(res, res_expected)
 
+  def test_recommendYarnCGroupConfigurations(self):
+    servicesList = ["YARN"]
+    configurations = {}
+    components = []
+    hosts = {
+      "items" : [
+        {
+          "Hosts" : {
+            "cpu_count" : 6,
+            "total_mem" : 50331648,
+            "disk_info" : [
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"},
+              {"mountpoint" : "/"},
+              {"mountpoint" : "/dev/shm"},
+              {"mountpoint" : "/vagrant"}
+            ],
+            "public_host_name" : "c6401.ambari.apache.org",
+            "host_name" : "c6401.ambari.apache.org"
+          }
+        }
+      ]
+    }
+    services = {
+      "services" : [ {
+        "StackServices":{
+          "service_name": "YARN",
+         },
+         "components": [
+            {
+              "StackServiceComponents": {
+                "component_name": "NODEMANAGER",
+                "hostnames": ["c6401.ambari.apache.org"]
+              }
+            }
+          ]
+        }
+      ],
+      "configurations": {
+        "yarn-env": {
+          "properties": {
+            "yarn_cgroups_enabled": "true"
+          }
+        }
+      }
+    }
+    expected = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.container-executor.group": "hadoop",
+          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.container-executor.cgroups.mount": "true",
+          "yarn.nodemanager.resource.memory-mb": "39424",
+          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.nodemanager.resource.cpu-vcores": "12",
+          "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
+          "yarn.scheduler.maximum-allocation-mb": "39424",
+          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
+        },
+        "property_attributes": {
+          "yarn.scheduler.minimum-allocation-vcores": {
+            "maximum": "12"
+          },
+          "yarn.scheduler.maximum-allocation-vcores": {
+            "maximum": "12"
+          },
+          "yarn.nodemanager.resource.memory-mb": {
+            "maximum": "49152"
+          },
+          "yarn.scheduler.minimum-allocation-mb": {
+            "maximum": "39424"
+          },
+          "yarn.nodemanager.resource.cpu-vcores": {
+            "maximum": "24"
+          },
+          "yarn.scheduler.maximum-allocation-mb": {
+            "maximum": "39424"
+          }
+        }
+      }
+    }
+
+    clusterData = self.stackAdvisor.getConfigurationClusterSummary(servicesList, hosts, components, None)
+    self.assertEquals(clusterData['hbaseRam'], 8)
+
+    # Test when yarn_cgroups_enabled = true
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    # Test when yarn_cgroups_enabled = false
+    services['configurations']['yarn-env']['properties']['yarn_cgroups_enabled'] = 'false'
+    expected = {
+      "yarn-env": {
+        "properties": {
+          "min_user_id": "500"
+        }
+      },
+      "yarn-site": {
+        "properties": {
+          "yarn.nodemanager.container-executor.group": "hadoop",
+          "yarn.nodemanager.container-executor.class": "org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor",
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": "/cgroup",
+          "yarn.nodemanager.container-executor.cgroups.mount": "true",
+          "yarn.nodemanager.resource.memory-mb": "39424",
+          "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.nodemanager.resource.cpu-vcores": "12",
+          "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
+          "yarn.scheduler.maximum-allocation-mb": "39424",
+          "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
+        },
+        "property_attributes": {
+          "yarn.nodemanager.container-executor.cgroups.mount": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.container-executor.cgroups.hierarchy": {
+            "delete": "true"
+          },
+          "yarn.nodemanager.linux-container-executor.cgroups.mount-path": {
+            "delete": "true"
+          },
+          "yarn.scheduler.minimum-allocation-vcores": {
+            "maximum": "12"
+          },
+          "yarn.scheduler.maximum-allocation-vcores": {
+            "maximum": "12"
+          },
+          "yarn.nodemanager.resource.memory-mb": {
+            "maximum": "49152"
+          },
+          "yarn.scheduler.minimum-allocation-mb": {
+            "maximum": "39424"
+          },
+          "yarn.nodemanager.resource.cpu-vcores": {
+            "maximum": "24"
+          },
+          "yarn.scheduler.maximum-allocation-mb": {
+            "maximum": "39424"
+          },
+          "yarn.nodemanager.container-executor.resources-handler.class": {
+            "delete": "true"
+          }
+        }
+      }
+    }
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)

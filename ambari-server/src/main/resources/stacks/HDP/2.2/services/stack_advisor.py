@@ -51,6 +51,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
 
+      if "yarn-env" in services["configurations"] and "yarn_cgroups_enabled" in services["configurations"]["yarn-env"]["properties"]:
+        yarn_cgroups_enabled = services["configurations"]["yarn-env"]["properties"]["yarn_cgroups_enabled"].lower() == "true"
+        if yarn_cgroups_enabled:
+          putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
+          putYarnProperty('yarn.nodemanager.container-executor.group', 'hadoop')
+          putYarnProperty('yarn.nodemanager.container-executor.resources-handler.class', 'org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler')
+          putYarnProperty('yarn.nodemanager.container-executor.cgroups.hierarchy', ' /yarn')
+          putYarnProperty('yarn.nodemanager.container-executor.cgroups.mount', 'true')
+          putYarnProperty('yarn.nodemanager.linux-container-executor.cgroups.mount-path', '/cgroup')
+        else:
+          putYarnProperty('yarn.nodemanager.container-executor.class', 'org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor')
+          putYarnPropertyAttribute('yarn.nodemanager.container-executor.resources-handler.class', 'delete', 'true')
+          putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.hierarchy', 'delete', 'true')
+          putYarnPropertyAttribute('yarn.nodemanager.container-executor.cgroups.mount', 'delete', 'true')
+          putYarnPropertyAttribute('yarn.nodemanager.linux-container-executor.cgroups.mount-path', 'delete', 'true')
+
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSiteProperty("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
@@ -710,6 +726,28 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     result['METRICS_COLLECTOR'] = {"min": 1}
     return result
 
+  def getAffectedConfigs(self, services):
+    affectedConfigs = super(HDP22StackAdvisor, self).getAffectedConfigs(services)
+
+    # There are configs that are not defined in the stack but added/removed by 
+    # stack-advisor. Here we add such configs in order to clear the config
+    # filtering down in base class
+    configsList = [affectedConfig["type"] + "/" + affectedConfig["name"] for affectedConfig in affectedConfigs]
+    if 'yarn-env/yarn_cgroups_enabled' in configsList:
+      if 'yarn-site/yarn.nodemanager.container-executor.class' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.class"})
+      if 'yarn-site/yarn.nodemanager.container-executor.group' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.group"})
+      if 'yarn-site/yarn.nodemanager.container-executor.resources-handler.class' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.resources-handler.class"})
+      if 'yarn-site/yarn.nodemanager.container-executor.cgroups.hierarchy' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.cgroups.hierarchy"})
+      if 'yarn-site/yarn.nodemanager.container-executor.cgroups.mount' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.cgroups.mount"})
+      if 'yarn-site/yarn.nodemanager.linux-container-executor.cgroups.mount-path' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.linux-container-executor.cgroups.mount-path"})
+
+    return affectedConfigs;
 
 def is_number(s):
   try:

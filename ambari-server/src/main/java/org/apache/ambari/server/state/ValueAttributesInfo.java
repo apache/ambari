@@ -26,7 +26,6 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlElementWrapper;
 import javax.xml.bind.annotation.XmlElements;
-import java.util.ArrayList;
 import java.util.Collection;
 
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -36,6 +35,7 @@ public class ValueAttributesInfo {
   private String maximum;
   private String minimum;
   private String unit;
+  private String delete;
 
   @XmlElement(name = "increment-step")
   @JsonProperty("increment_step")
@@ -120,6 +120,14 @@ public class ValueAttributesInfo {
     this.incrementStep = incrementStep;
   }
 
+  public String getDelete() {
+    return delete;
+  }
+
+  public void setDelete(String delete) {
+    this.delete = delete;
+  }
+
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
@@ -136,6 +144,7 @@ public class ValueAttributesInfo {
       return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (unit != null ? !unit.equals(that.unit) : that.unit != null) return false;
+    if (delete != null ? !delete.equals(that.delete) : that.delete != null) return false;
     if (incrementStep != null ? !incrementStep.equals(that.incrementStep) : that.incrementStep != null) return false;
 
     return true;
@@ -147,6 +156,7 @@ public class ValueAttributesInfo {
     result = 31 * result + (maximum != null ? maximum.hashCode() : 0);
     result = 31 * result + (minimum != null ? minimum.hashCode() : 0);
     result = 31 * result + (unit != null ? unit.hashCode() : 0);
+    result = 31 * result + (delete != null ? delete.hashCode() : 0);
     result = 31 * result + (entries != null ? entries.hashCode() : 0);
     result = 31 * result + (entriesEditable != null ? entriesEditable.hashCode() : 0);
     result = 31 * result + (selectionCardinality != null ? selectionCardinality.hashCode() : 0);
@@ -162,6 +172,7 @@ public class ValueAttributesInfo {
       ", maximum='" + maximum + '\'' +
       ", minimum='" + minimum + '\'' +
       ", unit='" + unit + '\'' +
+      ", delete='" + delete + '\'' +
       ", incrementStep='" + incrementStep + '\'' +
       ", entriesEditable=" + entriesEditable +
       ", selectionCardinality='" + selectionCardinality + '\'' +
