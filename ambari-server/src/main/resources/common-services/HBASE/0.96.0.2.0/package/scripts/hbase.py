@@ -155,7 +155,7 @@ def hbase(name=None):
       group=params.user_group,
       owner=params.hbase_user
     )
-  if name in ["master","regionserver", "queryserver"]:
+  if name in ["master","regionserver"]:
     params.HdfsDirectory(params.hbase_hdfs_root_dir,
                          action="create_delayed",
                          owner=params.hbase_user

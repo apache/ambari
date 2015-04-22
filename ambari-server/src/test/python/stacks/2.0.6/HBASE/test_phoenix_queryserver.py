@@ -266,36 +266,6 @@ class TestPhoenixQueryServer(RMFTestCase):
                               owner='hbase',
                               content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('HdfsDirectory', 'hdfs://c6405.ambari.apache.org:8020/apps/hbase/data',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'hbase',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0711,
-                              owner = 'hbase',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              action = ['create'],
-                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
@@ -390,33 +360,3 @@ class TestPhoenixQueryServer(RMFTestCase):
                               owner='hbase',
                               content='log4jproperties\nline2'
     )
-    self.assertResourceCalled('HdfsDirectory', 'hdfs://c6405.ambari.apache.org:8020/apps/hbase/data',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'hbase',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0711,
-                              owner = 'hbase',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              action = ['create'],
-                              )
