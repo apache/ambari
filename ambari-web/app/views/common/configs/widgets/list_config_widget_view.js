@@ -136,7 +136,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
       options.pushObject(configOption.create({
         value: entryValue.value,
         label: entryValue.label || entryValue.value,
-        description: entryValue.description
+        description: entryValue.description || ''
       }));
     });
     this.set('options', options);
@@ -202,8 +202,8 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    */
   parseCardinality: function () {
     var cardinality = this.get('config.stackConfigProperty.valueAttributes.selection_cardinality');
-    this.set('allowedToSelect', numberUtils.getCardinalityValue(cardinality, true));
-    this.set('neededToSelect', numberUtils.getCardinalityValue(cardinality, false));
+    this.set('allowedToSelect', numberUtils.getCardinalityValue(cardinality, true) || 1);
+    this.set('neededToSelect', numberUtils.getCardinalityValue(cardinality, false) || 1);
   },
 
   /**
@@ -233,12 +233,16 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
-   * Just a small checkbox-wrapper with improved click-handler
+   * Just a small checkbox-wrapper with modified click-handler
    * Should call <code>parentView.toggleOption</code>
    * User may click on the checkbox or on the link which wraps it, but action in both cases should be the same (<code>toggleOption</code>)
    * @type {Em.Checkbox}
    */
   checkBoxWithoutAction: Em.Checkbox.extend({
+    init: function() {
+      this._super();
+      this.off('change', this, this._updateElementValue);
+    },
     _updateElementValue: function () {
       var option = this.get('parentView.options').findProperty('value', this.get('value'));
       this.get('parentView').toggleOption({context: option});

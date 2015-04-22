@@ -67,7 +67,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    */
   keyUp: function() {
     if (App.get('supports.enhancedConfigs')) {
-      this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig'));
+      this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig') || this.get('config'));
     }
   },
 

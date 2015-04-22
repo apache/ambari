@@ -272,6 +272,12 @@ App.ServiceConfigProperty = Em.Object.extend({
     var supportsFinal = this.get('supportsFinal');
     var isFinal = this.get('isFinal');
     var defaultIsFinal = this.get('defaultIsFinal');
+    // ignore precision difference for configs with type of `float` which value may ends with 0
+    // e.g. between 0.4 and 0.40
+    if (this.get('stackConfigProperty') && this.get('stackConfigProperty.valueAttributes.type') == 'float') {
+      defaultValue = '' + parseFloat(defaultValue);
+      value = '' + parseFloat(value);
+    }
     return (defaultValue != null && value !== defaultValue) || (supportsFinal && isFinal !== defaultIsFinal);
   }.property('value', 'defaultValue', 'isEditable', 'isFinal', 'defaultIsFinal'),
 

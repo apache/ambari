@@ -25,6 +25,7 @@ App.ConvertUnitWidgetViewMixin = Em.Mixin.create(App.BaseUnitConvertMixin, {
   /**
    * Get converted value according to widget value format from specified config property value.
    *
+   * @method widgetValueByConfigAttributes
    * @param {String|Number} value - config property value to convert
    * @param {Boolean} [returnObject=false] - returned value should be an array of objects
    * @returns {Number|Object[]}

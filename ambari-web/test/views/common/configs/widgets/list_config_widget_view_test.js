@@ -33,11 +33,31 @@ describe('App.ListConfigWidgetView', function () {
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
             entries: [
-              {value: '1', label: 'first label', description: '1'},
-              {value: '2', label: 'second label', description: '2'},
-              {value: '3', label: 'third label', description: '3'},
-              {value: '4', label: '4th label', description: '4'},
-              {value: '5', label: '5th label', description: '5'}
+              {
+                value: '1',
+                label: 'first label',
+                description: '1'
+              },
+              {
+                value: '2',
+                label: 'second label',
+                description: '2'
+              },
+              {
+                value: '3',
+                label: 'third label',
+                description: '3'
+              },
+              {
+                value: '4',
+                label: '4th label',
+                description: '4'
+              },
+              {
+                value: '5',
+                label: '4th label',
+                description: '5'
+              }
             ],
             selection_cardinality: '3'
           }
