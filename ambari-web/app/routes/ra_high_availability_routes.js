@@ -126,6 +126,16 @@ module.exports = App.WizardRoute.extend({
       })
     },
     next: function (router) {
+      var wizardController = router.get('rAHighAvailabilityWizardController');
+      var stepController = router.get('rAHighAvailabilityWizardStep2Controller');
+      var currentRA = stepController.get('servicesMasters').filterProperty('component_name', 'RANGER_ADMIN').findProperty('isInstalled', true);
+      var additionalRAs = stepController.get('servicesMasters').filterProperty('component_name', 'RANGER_ADMIN').filterProperty('isInstalled', false);
+      var raHosts = {
+        currentRA: currentRA.get('selectedHost'),
+        additionalRA: additionalRAs.mapProperty('selectedHost')
+      };
+      wizardController.set('content.raHosts', raHosts);
+      wizardController.save('raHosts');
       router.transitionTo('step3');
     },
     back: function (router) {
@@ -139,8 +149,10 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('rAHighAvailabilityWizardController');
       controller.dataLoading().done(function () {
         controller.setCurrentStep('3');
-        controller.connectOutlet('rAHighAvailabilityWizardStep3', controller.get('content'));
-      })
+        controller.loadAllPriorSteps().done(function () {
+          controller.connectOutlet('rAHighAvailabilityWizardStep3', controller.get('content'));
+        })
+      });
     },
     next: function (router) {
       router.transitionTo('step4');

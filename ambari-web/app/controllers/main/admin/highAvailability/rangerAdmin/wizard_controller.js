@@ -78,6 +78,14 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
           return dfd.promise();
         }
       }
+    ],
+    '3': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.load('raHosts');
+        }
+      }
     ]
   },
 

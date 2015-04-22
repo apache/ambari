@@ -15,6 +15,37 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
+<h2>{{t admin.ra_highAvailability.wizard.step3.header}}</h2>
+
+<div class="alert alert-info">
+  {{t admin.ra_highAvailability.wizard.step3.alert_message}}
+</div>
+
+<div id="ha-step3-content" class="well pre-scrollable">
+  <div id="step8-info">
+    <table id="ha-step3-review-table">
+      <tr>
+        <td>
+          <b>{{t admin.ra_highAvailability.wizard.step3.currentRA}}</b>:
+        </td>
+        <td>{{controller.content.raHosts.currentRA}}</td>
+        <td></td>
+      </tr>
+      {{#each host in controller.content.raHosts.additionalRA}}
+        <tr>
+          <td>
+            <b>{{t admin.ra_highAvailability.wizard.step3.additionalRA}}</b>:
+          </td>
+          <td>{{host}}</td>
+          <td><span class="to-be-installed-green"><i class="icon-plus"></i>&nbsp;{{t admin.highAvailability.wizard.step3.toBeInstalled}}</span></td>
+        </tr>
+      {{/each}}
+    </table>
+  </div>
+</div>
+<div class="alert alert-info">
+  {{{t admin.rm_highAvailability.wizard.step3.configs_changes}}}
+</div>
 <div class="btn-area">
   <a class="btn" {{action back}}>&larr; {{t common.back}}</a>
   <a class="btn btn-success pull-right" {{action next}}>{{t common.next}} &rarr;</a>
