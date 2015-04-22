@@ -43,11 +43,11 @@ class PythonExecutor:
   used as a singleton for a concurrent execution of python scripts
   """
   NO_ERROR = "none"
-  grep = Grep()
-  event = threading.Event()
-  python_process_has_been_killed = False
 
   def __init__(self, tmpDir, config):
+    self.grep = Grep()
+    self.event = threading.Event()
+    self.python_process_has_been_killed = False
     self.tmpDir = tmpDir
     self.config = config
     pass
@@ -181,11 +181,10 @@ class PythonExecutor:
   def condenseOutput(self, stdout, stderr, retcode, structured_out):
     log_lines_count = self.config.get('heartbeat', 'log_lines_count')
     
-    grep = self.grep
     result = {
       "exitcode": retcode,
-      "stdout": grep.tail(stdout, log_lines_count) if log_lines_count else stdout,
-      "stderr": grep.tail(stderr, log_lines_count) if log_lines_count else stderr,
+      "stdout": self.grep.tail(stdout, log_lines_count) if log_lines_count else stdout,
+      "stderr": self.grep.tail(stderr, log_lines_count) if log_lines_count else stderr,
       "structuredOut" : structured_out
     }
     

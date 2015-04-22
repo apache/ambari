@@ -80,7 +80,9 @@ class ActionQueue(threading.Thread):
     self._stop = threading.Event()
     self.tmpdir = config.get('agent', 'prefix')
     self.customServiceOrchestrator = CustomServiceOrchestrator(config, controller)
-
+    self.parallel_execution = config.get_parallel_exec_option()
+    if self.parallel_execution == 1:
+      logger.info("Parallel execution is enabled, will start Agent commands in parallel")
 
   def stop(self):
     self._stop.set()
@@ -145,10 +147,22 @@ class ActionQueue(threading.Thread):
       self.processBackgroundQueueSafeEmpty();
       self.processStatusCommandQueueSafeEmpty();
       try:
-        command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
-        self.process_command(command)
+        if self.parallel_execution == 0:
+          command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+          self.process_command(command)
+        else:
+          # If parallel execution is enabled, just kick off all available
+          # commands using separate threads
+          while (True):
+            command = self.commandQueue.get(True, self.EXECUTION_COMMAND_WAIT_TIME)
+            logger.info("Kicking off a thread for the command, id=" +
+                        str(command['commandId']) + " taskId=" + str(command['taskId']))
+            t = threading.Thread(target=self.process_command, args=(command,))
+            t.daemon = True
+            t.start()
       except (Queue.Empty):
         pass
+
   def processBackgroundQueueSafeEmpty(self):
     while not self.backgroundCommandQueue.empty():
       try:
@@ -324,8 +338,9 @@ class ActionQueue(threading.Thread):
 
   def command_was_canceled(self):
     self.customServiceOrchestrator
-  def on_background_command_complete_callback(self, process_condenced_result, handle):
-    logger.debug('Start callback: %s' % process_condenced_result)
+
+  def on_background_command_complete_callback(self, process_condensed_result, handle):
+    logger.debug('Start callback: %s' % process_condensed_result)
     logger.debug('The handle is: %s' % handle)
     status = self.COMPLETED_STATUS if handle.exitCode == 0 else self.FAILED_STATUS
 
@@ -340,10 +355,10 @@ class ActionQueue(threading.Thread):
     roleResult = self.commandStatuses.generate_report_template(handle.command)
 
     roleResult.update({
-      'stdout': process_condenced_result['stdout'] + aborted_postfix,
-      'stderr': process_condenced_result['stderr'] + aborted_postfix,
-      'exitCode': process_condenced_result['exitcode'],
-      'structuredOut': str(json.dumps(process_condenced_result['structuredOut'])) if 'structuredOut' in process_condenced_result else '',
+      'stdout': process_condensed_result['stdout'] + aborted_postfix,
+      'stderr': process_condensed_result['stderr'] + aborted_postfix,
+      'exitCode': process_condensed_result['exitcode'],
+      'structuredOut': str(json.dumps(process_condensed_result['structuredOut'])) if 'structuredOut' in process_condensed_result else '',
       'status': status,
     })
 
