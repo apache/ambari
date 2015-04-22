@@ -33,7 +33,7 @@ def hbase(name=None):
             configuration_attributes=params.config['configuration_attributes']['hbase-site']
   )
 
-# name is 'master' or 'regionserver' or 'client'
+# name is 'master' or 'regionserver' or 'queryserver' or 'client'
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None):
   import params
@@ -155,7 +155,7 @@ def hbase(name=None):
       group=params.user_group,
       owner=params.hbase_user
     )
-  if name in ["master","regionserver"]:
+  if name in ["master","regionserver", "queryserver"]:
     params.HdfsDirectory(params.hbase_hdfs_root_dir,
                          action="create_delayed",
                          owner=params.hbase_user

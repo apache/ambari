@@ -20,7 +20,9 @@ limitations under the License.
 import sys
 from resource_management.libraries.script import Script
 from phoenix_service import phoenix_service
+from hbase import hbase
 
+# Note: Phoenix Query Server is only applicable to HDP-2.3 and above.
 class PhoenixQueryServer(Script):
 
   def install(self, env):
@@ -30,7 +32,9 @@ class PhoenixQueryServer(Script):
     return {"HDP": "phoenix-server"}
 
   def configure(self, env):
-    pass
+    import params
+    env.set_params(params)
+    hbase(name='queryserver')
 
   def start(self, env, rolling_restart=False):
     import params

@@ -25,8 +25,7 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 
 def kms_service(action='start'):
-  import params
-
+  # Note: params/status_params should already be imported before calling kms_service()
   if action == 'start':
     no_op_test = format('ps -ef | grep proc_rangerkms | grep -v grep')
     cmd = format('{kms_home}/ranger-kms-services.sh start')
