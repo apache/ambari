@@ -56,6 +56,7 @@ public class ServiceConfigVersionResourceProvider extends
   public static final String SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "service_config_version_note");
   public static final String SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_id");
   public static final String SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID = PropertyHelper.getPropertyId(null, "group_name");
+  public static final String SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID = PropertyHelper.getPropertyId(null, "stack_id");
   public static final String SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_current");
   public static final String SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID = PropertyHelper.getPropertyId(null, "is_cluster_compatible");
   public static final String SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID = PropertyHelper.getPropertyId(null, "hosts");
@@ -81,6 +82,7 @@ public class ServiceConfigVersionResourceProvider extends
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_NOTE_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID);
+    PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID);
     PROPERTY_IDS.add(SERVICE_CONFIG_VERSION_CONFIGURATIONS_PROPERTY_ID);
@@ -155,6 +157,7 @@ public class ServiceConfigVersionResourceProvider extends
       resource.setProperty(SERVICE_CONFIG_VERSION_GROUP_ID_PROPERTY_ID, response.getGroupId());
       resource.setProperty(SERVICE_CONFIG_VERSION_GROUP_NAME_PROPERTY_ID, response.getGroupName());
       resource.setProperty(SERVICE_CONFIG_VERSION_HOSTS_PROPERTY_ID, response.getHosts());
+      resource.setProperty(SERVICE_CONFIG_VERSION_STACK_ID_PROPERTY_ID, response.getStackId());
       resource.setProperty(SERVICE_CONFIG_VERSION_IS_CURRENT_PROPERTY_ID, response.getIsCurrent());
       resource.setProperty(SERVICE_CONFIG_VERSION_IS_COMPATIBLE_PROPERTY_ID, response.isCompatibleWithCurrentStack());
 
@@ -183,14 +186,15 @@ public class ServiceConfigVersionResourceProvider extends
     Set<String> unsupportedProperties = new HashSet<String>();
 
     for (String propertyId : propertyIds) {
-
       if (!propertyId.equals("cluster_name") && !propertyId.equals("service_config_version") &&
           !propertyId.equals("service_name") && !propertyId.equals("createtime") &&
           !propertyId.equals("appliedtime") && !propertyId.equals("user") &&
           !propertyId.equals("service_config_version_note") &&
           !propertyId.equals("group_id") &&
           !propertyId.equals("group_name") &&
+          !propertyId.equals("stack_id") &&
           !propertyId.equals("is_current") &&
+          !propertyId.equals("is_cluster_compatible") &&
           !propertyId.equals("hosts")) {
 
         unsupportedProperties.add(propertyId);

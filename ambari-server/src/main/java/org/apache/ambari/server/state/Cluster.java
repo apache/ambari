@@ -166,13 +166,6 @@ public interface Cluster {
   public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException;
 
   /**
-   * Update state of a cluster stack version for cluster based on states of host versions.
-   * @param repositoryVersion repository version (e.g. 2.2.1.0-100)
-   * @throws AmbariException
-   */
-  void recalculateClusterVersionState(String repositoryVersion) throws AmbariException;
-
-  /**
    * Update state of a cluster stack version for cluster based on states of host versions and stackids.
    * @param stackId           the stack id with the version
    * @param repositoryVersion the repository version (e.g. 2.2.1.0-100)

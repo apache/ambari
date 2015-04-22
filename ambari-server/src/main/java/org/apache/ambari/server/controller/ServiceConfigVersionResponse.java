@@ -24,6 +24,7 @@ import java.util.List;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
@@ -55,6 +56,9 @@ public class ServiceConfigVersionResponse {
   @JsonProperty("service_config_version_note")
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
   private final String note;
+
+  @JsonProperty("stack_id")
+  private String stackId;
 
   @JsonProperty("is_current")
   private Boolean isCurrent = Boolean.FALSE;
@@ -97,6 +101,7 @@ public class ServiceConfigVersionResponse {
     StackEntity clusterStackEntity = clusterEntity.getClusterStateEntity().getCurrentStack();
 
     isCompatibleWithCurrentStack = clusterStackEntity.equals(serviceConfigStackEntity);
+    stackId = new StackId(serviceConfigStackEntity).getStackId();
   }
 
   public String getServiceName() {
@@ -140,6 +145,15 @@ public class ServiceConfigVersionResponse {
 
   public Long getGroupId() {
     return groupId;
+  }
+
+  /**
+   * Gets the Stack ID that this configuration is scoped for.
+   *
+   * @return
+   */
+  public String getStackId() {
+    return stackId;
   }
 
   public Boolean getIsCurrent() {

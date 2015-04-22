@@ -60,10 +60,14 @@ public class ConfigImpl implements Config {
   public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties,
       @Assisted Map<String, Map<String, String>> propertiesAttributes, Injector injector) {
     this.cluster = cluster;
-    stackId = cluster.getCurrentStackVersion();
     this.type = type;
     this.properties = properties;
     this.propertiesAttributes = propertiesAttributes;
+
+    // when creating a brand new config without a backing entity, use the
+    // cluster's desired stack as the config's stack
+    stackId = cluster.getDesiredStackVersion();
+
     injector.injectMembers(this);
 
   }
@@ -71,10 +75,13 @@ public class ConfigImpl implements Config {
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity, Injector injector) {
     this.cluster = cluster;
-    stackId = cluster.getCurrentStackVersion();
     type = entity.getType();
     tag = entity.getTag();
     version = entity.getVersion();
+
+    // when using an existing entity, use the actual value of the entity's stack
+    stackId = new StackId(entity.getStack());
+
     this.entity = entity;
     injector.injectMembers(this);
   }

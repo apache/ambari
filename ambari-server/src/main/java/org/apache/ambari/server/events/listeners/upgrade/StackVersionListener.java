@@ -25,6 +25,7 @@ import org.apache.ambari.server.events.HostComponentVersionEvent;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,16 +72,19 @@ public class StackVersionListener {
     LOG.debug("Received event {}", event);
 
     Cluster cluster = event.getCluster();
+    StackId desiredStackId = cluster.getDesiredStackVersion();
+
     ServiceComponentHost sch = event.getServiceComponentHost();
 
     m_stackVersionLock.lock();
 
     try {
       String repoVersion = sch.recalculateHostVersionState();
-      cluster.recalculateClusterVersionState(repoVersion);
+      cluster.recalculateClusterVersionState(desiredStackId, repoVersion);
     } catch (Exception e) {
-      LOG.error("Unable to propagate version for ServiceHostComponent on component: " + sch.getServiceComponentName() +
-          ", host: " + sch.getHostName() + ". Error: " + e.getMessage());
+      LOG.error(
+          "Unable to propagate version for ServiceHostComponent on component: {}, host: {}. Error: {}",
+          sch.getServiceComponentName(), sch.getHostName(), e.getMessage());
     } finally {
       m_stackVersionLock.unlock();
     }

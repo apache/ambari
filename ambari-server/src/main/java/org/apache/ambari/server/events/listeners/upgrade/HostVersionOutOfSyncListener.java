@@ -17,11 +17,12 @@
  */
 package org.apache.ambari.server.events.listeners.upgrade;
 
-import com.google.common.eventbus.Subscribe;
-import com.google.inject.Inject;
-import com.google.inject.Provider;
-import com.google.inject.Singleton;
-import com.google.inject.persist.Transactional;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
 import org.apache.ambari.server.events.HostAddedEvent;
@@ -41,11 +42,11 @@ import org.apache.ambari.server.state.StackId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.common.eventbus.Subscribe;
+import com.google.inject.Inject;
+import com.google.inject.Provider;
+import com.google.inject.Singleton;
+import com.google.inject.persist.Transactional;
 
 /**
  * The {@link org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener} class
@@ -72,11 +73,8 @@ public class HostVersionOutOfSyncListener {
   @Inject
   private Provider<Clusters> clusters;
 
-  private AmbariEventPublisher ambariEventPublisher;
-
   @Inject
   public HostVersionOutOfSyncListener(AmbariEventPublisher ambariEventPublisher) {
-    this.ambariEventPublisher = ambariEventPublisher;
     ambariEventPublisher.register(this);
   }
 
@@ -86,17 +84,20 @@ public class HostVersionOutOfSyncListener {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
+
     try {
       Cluster cluster = clusters.get().getClusterById(event.getClusterId());
       List<HostVersionEntity> hostVersionEntities =
           hostVersionDAO.get().findByClusterAndHost(cluster.getClusterName(), event.getHostName());
+
       StackId currentStackId = cluster.getCurrentStackVersion();
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
         if (hostVersionEntity.getRepositoryVersion().getStack().equals(currentStackId.getStackId())
             && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
           hostVersionEntity.setState(RepositoryVersionState.OUT_OF_SYNC);
           hostVersionDAO.get().merge(hostVersionEntity);
-          cluster.recalculateClusterVersionState(hostVersionEntity.getRepositoryVersion().getVersion());
+          cluster.recalculateClusterVersionState(currentStackId,
+              hostVersionEntity.getRepositoryVersion().getVersion());
         }
       }
     } catch (AmbariException e) {
@@ -110,6 +111,7 @@ public class HostVersionOutOfSyncListener {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
+
     try {
       Cluster cluster = clusters.get().getClusterById(event.getClusterId());
       Set<String> changedRepositoryVersions = new HashSet<String>();
@@ -135,7 +137,7 @@ public class HostVersionOutOfSyncListener {
         }
       }
       for (String version : changedRepositoryVersions) {
-        cluster.recalculateClusterVersionState(version);
+        cluster.recalculateClusterVersionState(currentStackId, version);
       }
     } catch (AmbariException e) {
       LOG.error("Can not update hosts about out of sync", e);
@@ -148,8 +150,11 @@ public class HostVersionOutOfSyncListener {
     if (LOG.isDebugEnabled()) {
       LOG.debug(event.toString());
     }
+
     try {
       Cluster cluster = clusters.get().getClusterById(event.getClusterId());
+      StackId currentStackId = cluster.getCurrentStackVersion();
+
       Set<String> changedRepositoryVersions = new HashSet<String>();
       Collection<ClusterVersionEntity> allClusterVersions = cluster.getAllClusterVersions();
       for (ClusterVersionEntity clusterVersion : allClusterVersions) {
@@ -163,7 +168,7 @@ public class HostVersionOutOfSyncListener {
         }
       }
       for (String version : changedRepositoryVersions) {
-        cluster.recalculateClusterVersionState(version);
+        cluster.recalculateClusterVersionState(currentStackId, version);
       }
     } catch (AmbariException e) {
       LOG.error("Can not update hosts about out of sync", e);
