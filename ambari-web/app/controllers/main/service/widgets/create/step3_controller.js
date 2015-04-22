@@ -43,6 +43,11 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   /**
    * @type {string}
    */
+  widgetDisplayName: '',
+
+  /**
+   * @type {string}
+   */
   widgetAuthor: '',
 
   /**
@@ -81,14 +86,15 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetValues', this.get('content.widgetValues'));
     this.set('widgetMetrics', this.get('content.widgetMetrics'));
     this.set('widgetAuthor', App.router.get('loginName'));
-    this.set('widgetName', '');
-    this.set('widgetDescription', '');
+    this.set('widgetName', this.get('content.widgetDisplayName'));
+    this.set('widgetDisplayName', this.get('content.widgetDisplayName'));
+    this.set('widgetDescription', this.get('content.widgetDescription'));
   },
 
-  //TODO: Following computed propert needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
+  //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
   isSubmitDisabled: function () {
-    return !this.get('widgetName');
-  }.property('widgetName'),
+    return !this.get('widgetDisplayName');
+  }.property('widgetDisplayName'),
 
   /**
    * collect all needed data to create new widget
@@ -98,7 +104,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     return {
       WidgetInfo: {
         widget_name: this.get('widgetName'),
-        display_name: this.get('widgetName'),
+        display_name: this.get('widgetDisplayName'),
         widget_type: this.get('content.widgetType'),
         description: this.get('widgetDescription'),
         scope: this.get('widgetScope.name').toUpperCase(),
@@ -115,27 +121,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     };
   },
 
-  /**
-   * post widget definition to server
-   * @returns {$.ajax}
-   */
-  postWidgetDefinition: function () {
-    return App.ajax.send({
-      name: 'widgets.wizard.add',
-      sender: this,
-      data: {
-        data: this.collectWidgetData()
-      },
-      success: 'postWidgetDefinitionSuccessCallback'
-    });
-  },
-
-  postWidgetDefinitionSuccessCallback: function() {
-
-  },
-
   complete: function () {
-    this.postWidgetDefinition();
-    App.router.send('complete');
+    App.router.send('complete', this.collectWidgetData());
   }
 });

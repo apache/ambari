@@ -571,6 +571,27 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   addWidget: require('routes/add_widget'),
 
+  editServiceWidget: function (router, context) {
+    if (context) {
+      var widgetController = router.get('widgetEditController');
+      widgetController.save('widgetService', context.get('serviceName'));
+      widgetController.save('widgetType', context.get('widgetType'));
+      widgetController.save('widgetProperties', context.get('properties'));
+      widgetController.save('widgetMetrics', context.get('metrics'));
+      widgetController.save('widgetValues', context.get('values'));
+      widgetController.save('widgetName', context.get('widgetName'));
+      widgetController.save('widgetDisplayName', context.get('displayName'));
+      widgetController.save('widgetDescription', context.get('description'));
+      widgetController.save('widgetScope', context.get('scope'));
+      widgetController.save('widgetId', context.get('id'));
+      widgetController.save('allMetrics', []);
+      router.get('widgetWizardStep2Controller').convertData(context, widgetController);
+    }
+    router.transitionTo('editWidget');
+  },
+
+  editWidget: require('routes/edit_widget'),
+
   services: Em.Route.extend({
     route: '/services',
     index: Em.Route.extend({

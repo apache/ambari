@@ -392,7 +392,7 @@ App.WidgetMixin = Ember.Mixin.create({
    * make call when clicking on "edit icon" on widget
    */
   editWidget: function (event) {
-
+    this.get('controller').editWidget(this.get('content'));
   }
 
 });

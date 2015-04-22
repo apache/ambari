@@ -146,6 +146,23 @@
               "values": "[{\"name\":\"CPU Idle\",\"value\":\"${cpu_idle}\"},{\"name\":\"Disk Free\",\"value\":\"${disk_free}\"},{\"name\":\"Network Packets In/Out\",\"value\":\"${pkts_in + pkts_out}\"}]",
               "cluster_name": "c1"
             }
+          },
+          {
+            "href": "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/widgets/30",
+            "WidgetInfo": {
+              "id": 37,
+              "metrics": "[{\"name\":\"regionserver.Server.Get_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/Get_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"},{\"name\":\"regionserver.Server.ScanNext_95th_percentile\",\"metric_path\":\"metrics/hbase/regionserver/Server/ScanNext_95th_percentile\",\"service_name\":\"HBASE\",\"component_name\":\"HBASE_REGIONSERVER\"}]",
+              "author": "ambari",
+              "description": "This widget shows 95th percentile of the read latency.",
+              "scope": "CLUSTER",
+              "properties": "{\"display_unit\":\"%\"}",
+              "widget_name": "READ_LATENCY_97",
+              "widget_type": "TEMPLATE",
+              "time_created": 1428990958952,
+              "display_name": "95% Read Latency",
+              "values": "[{\"name\":\"95% Read Latency\",\"value\":\"${regionserver.Server.Get_95th_percentile+regionserver.Server.ScanNext_95th_percentile}/${regionserver.Server.Get_95th_percentile}\"}]",
+              "cluster_name": "c1"
+            }
           }
         ]
       }

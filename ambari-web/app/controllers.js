@@ -109,6 +109,7 @@ require('controllers/main/service/widgets/create/wizard_controller');
 require('controllers/main/service/widgets/create/step1_controller');
 require('controllers/main/service/widgets/create/step2_controller');
 require('controllers/main/service/widgets/create/step3_controller');
+require('controllers/main/service/widgets/edit_controller');
 require('controllers/main/host');
 require('controllers/main/host/details');
 require('controllers/main/host/configs_service');

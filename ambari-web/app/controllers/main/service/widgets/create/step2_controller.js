@@ -24,6 +24,19 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   EXPRESSION_PREFIX: 'Expression',
 
   /**
+   * @type {RegExp}
+   * @const
+   */
+  EXPRESSION_REGEX: /\$\{([\w\s\.\,\+\-\*\/\(\)\:\=\[\]]*)\}/g,
+
+  /**
+   * list of operators that can be used in expression
+   * @type {Array}
+   * @constant
+   */
+  OPERATORS: ["+", "-", "*", "/", "(", ")"],
+
+  /**
    * actual values of properties in API format
    * @type {object}
    */
@@ -132,6 +145,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * Add data set
    * @param {object|null} event
    * @param {boolean} isDefault
+   * @returns {number} id
    */
   addDataSet: function(event, isDefault) {
     var id = (isDefault) ? 1 :(Math.max.apply(this, this.get('dataSets').mapProperty('id')) + 1);
@@ -145,6 +159,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         editMode: false
       }
     }));
+    return id;
   },
 
   /**
@@ -159,6 +174,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * Add expression
    * @param {object|null} event
    * @param {boolean} isDefault
+   * @returns {number} id
    */
   addExpression: function(event, isDefault) {
     var id = (isDefault) ? 1 :(Math.max.apply(this, this.get('expressions').mapProperty('id')) + 1);
@@ -170,6 +186,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
       editMode: false
     }));
+    return id;
   },
 
   /**
@@ -205,7 +222,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
 
   /**
    * update preview widget with latest expression data
-   * @param {Em.View} view
+   * Note: in order to draw widget it should be converted to API format of widget
    */
   updateExpressions: function () {
     var widgetType = this.get('content.widgetType');
@@ -429,6 +446,113 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         isRequired: false
       })
     ];
+  },
+
+  /**
+   * convert data with model format to editable format
+   * Note: in order to edit widget expression it should be converted to editable format
+   * @param {App.Widget} content
+   * @param {Ember.Controller} widgetController
+   */
+  convertData: function(content, widgetController) {
+    var self = this;
+    var expressionId = 0;
+
+    this.get('expressions').clear();
+    this.get('dataSets').clear();
+
+    switch (content.get('widgetType')) {
+      case 'NUMBER':
+      case 'GAUGE':
+        var id = this.addExpression(null, true);
+        this.get('expressions').findProperty('id', id).set('data', this.parseValue(content.get('values')[0].value, content.get('metrics'))[0]);
+        break;
+      case 'TEMPLATE':
+        this.parseValue(content.get('values')[0].value, content.get('metrics')).forEach(function(item, index) {
+          var id = this.addExpression(null, (index === 0));
+          this.get('expressions').findProperty('id', id).set('data', item);
+        }, this);
+        this.set('templateValue', content.get('values')[0].value.replace(this.get('EXPRESSION_REGEX'), function(){
+          return '{{' + self.get('EXPRESSION_PREFIX') + ++expressionId + '}}';
+        }));
+        break;
+      case 'GRAPH':
+        content.get('values').forEach(function (value, index) {
+          var id = this.addDataSet(null, (index === 0));
+          var dataSet = this.get('dataSets').findProperty('id', id);
+          dataSet.set('label', value.name);
+          dataSet.set('expression.data', this.parseValue(value.value, content.get('metrics'))[0]);
+        }, this);
+        break;
+    }
+    widgetController.save('templateValue', this.get('templateValue'));
+    widgetController.save('expressions', this.get('expressions'));
+    widgetController.save('dataSets', this.get('dataSets'));
+  },
+
+  /**
+   * parse value
+   * @param value
+   * @param metrics
+   * @returns {Array}
+   */
+  parseValue: function(value, metrics) {
+    var pattern = this.get('EXPRESSION_REGEX'),
+      expressions = [],
+      match;
+
+    while (match = pattern.exec(value)) {
+      expressions.push(this.getExpressionData(match[1], metrics));
+    }
+
+    return expressions;
+  },
+
+  /**
+   * format values into expression data objects
+   * @param {string} expression
+   * @param {Array} metrics
+   * @returns {Array}
+   */
+  getExpressionData: function(expression, metrics) {
+    var str = '';
+    var data = [];
+    var id = 0;
+    var metric;
+
+    for (var i = 0, l = expression.length; i < l; i++) {
+      if (this.get('OPERATORS').contains(expression[i])) {
+        if (str.trim().length > 0) {
+          metric = metrics.findProperty('name', str.trim());
+          data.pushObject(Em.Object.create({
+            id: ++id,
+            name: str.trim(),
+            isMetric: true,
+            componentName: metric.component_name,
+            serviceName: metric.service_name
+          }));
+          str = '';
+        }
+        data.pushObject(Em.Object.create({
+          id: ++id,
+          name: expression[i],
+          isOperator: true
+        }));
+      } else {
+        str += expression[i];
+      }
+    }
+    if (str.trim().length > 0) {
+      metric = metrics.findProperty('name', str.trim());
+      data.pushObject(Em.Object.create({
+        id: ++id,
+        name: str.trim(),
+        isMetric: true,
+        componentName: metric.component_name,
+        serviceName: metric.service_name
+      }));
+    }
+    return data;
   },
 
   next: function () {

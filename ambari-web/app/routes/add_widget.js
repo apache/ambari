@@ -157,6 +157,7 @@ module.exports = App.WizardRoute.extend({
     },
     back: Em.Router.transitionTo('step2'),
     complete: function (router, context) {
+      router.get('widgetWizardController').postWidgetDefinition(context);
       router.get('widgetWizardController.popup').onClose();
     }
   })

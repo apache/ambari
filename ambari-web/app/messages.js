@@ -2525,6 +2525,8 @@ Em.I18n.translations = {
   'widget.create.wizard.step3.widgetName': 'Widget Name',
   'widget.create.wizard.step3.header': 'Name and Description',
 
+  'widget.edit.wizard.header': 'Edit Widget',
+
   'widget.clone.body': 'Are you sure you want to clone current widget {0}?',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',

@@ -682,6 +682,14 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
   },
 
   /**
+   * edit widget
+   * @param {App.Widget} content
+   */
+  editWidget: function (content) {
+    App.router.send('editServiceWidget', content);
+  },
+
+  /**
    * launch Widgets Browser popup
    * @method showPopup
    * @return {App.ModalPopup}

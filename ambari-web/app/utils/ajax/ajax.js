@@ -2486,6 +2486,17 @@ var urls = {
         data: JSON.stringify(data.data)
       };
     }
+  },
+
+  'widgets.wizard.edit': {
+    real: '/clusters/{clusterName}/widgets/{widgetId}',
+    mock: '',
+    'format': function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      };
+    }
   }
 };
 /**

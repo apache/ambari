@@ -85,6 +85,7 @@ App.WidgetWizardController = App.WizardController.extend({
     dataSets: [],
     templateValue: null,
     widgetName: null,
+    widgetDisplayName: null,
     widgetDescription: null,
     widgetScope: null
   }),
@@ -246,6 +247,27 @@ App.WidgetWizardController = App.WizardController.extend({
       }, this);
     }
     this.save('allMetrics', result);
+  },
+
+  /**
+   * post widget definition to server
+   * @returns {$.ajax}
+   */
+  postWidgetDefinition: function (data) {
+    //TODO set correct widget name when adding new one, now widget name the same as to display name
+    data.WidgetInfo.widget_name = data.WidgetInfo.display_name;
+    return App.ajax.send({
+      name: 'widgets.wizard.add',
+      sender: this,
+      data: {
+        data: data
+      },
+      success: 'postWidgetDefinitionSuccessCallback'
+    });
+  },
+
+  postWidgetDefinitionSuccessCallback: function() {
+
   },
 
   /**
