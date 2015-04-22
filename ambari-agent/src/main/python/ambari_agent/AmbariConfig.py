@@ -43,7 +43,6 @@ data_cleanup_max_age=2592000
 data_cleanup_max_size_MB = 100
 ping_port=8670
 cache_dir={ps}var{ps}lib{ps}ambari-agent{ps}cache
-parallel_execution=0
 
 [services]
 
@@ -245,9 +244,6 @@ class AmbariConfig:
       return True
     else:
       return False
-
-  def get_parallel_exec_option(self):
-    return self.get('agent', 'parallel_execution', 0)
 
 
 def updateConfigServerHostname(configFile, new_host):

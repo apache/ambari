@@ -55,7 +55,7 @@ class TestHeartbeat(TestCase):
 
 
   def test_build(self):
-    config = AmbariConfig.AmbariConfig()
+    config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
@@ -94,7 +94,7 @@ class TestHeartbeat(TestCase):
                    'exitCode': 777}],
       'componentStatus': [{'status': 'HEALTHY', 'componentName': 'NAMENODE'}]
     }
-    config = AmbariConfig.AmbariConfig()
+    config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
@@ -110,7 +110,7 @@ class TestHeartbeat(TestCase):
 
   @patch.object(ActionQueue, "result")
   def test_build_long_result(self, result_mock):
-    config = AmbariConfig.AmbariConfig()
+    config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
@@ -205,7 +205,7 @@ class TestHeartbeat(TestCase):
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_no_host_check_cmd_in_queue(self, register_mock):
-    config = AmbariConfig.AmbariConfig()
+    config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")
@@ -232,7 +232,7 @@ class TestHeartbeat(TestCase):
   @patch.object(Hardware, "_chk_mount", new = MagicMock(return_value=True))
   @patch.object(HostInfoLinux, 'register')
   def test_heartbeat_host_check_no_cmd(self, register_mock):
-    config = AmbariConfig.AmbariConfig()
+    config = AmbariConfig.AmbariConfig().getConfig()
     config.set('agent', 'prefix', 'tmp')
     config.set('agent', 'cache_dir', "/var/lib/ambari-agent/cache")
     config.set('agent', 'tolerate_download_failures', "true")

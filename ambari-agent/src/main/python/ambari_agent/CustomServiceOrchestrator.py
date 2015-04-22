@@ -61,6 +61,7 @@ class CustomServiceOrchestrator():
     self.tmp_dir = config.get('agent', 'prefix')
     self.exec_tmp_dir = config.get('agent', 'tmp_dir')
     self.file_cache = FileCache(config)
+    self.python_executor = PythonExecutor(self.tmp_dir, config)
     self.status_commands_stdout = os.path.join(self.tmp_dir,
                                                'status_command_stdout.txt')
     self.status_commands_stderr = os.path.join(self.tmp_dir,
@@ -94,13 +95,6 @@ class CustomServiceOrchestrator():
         shell.kill_process_with_children(pid)
       else: 
         logger.warn("Unable to find pid by taskId = %s" % task_id)
-
-  def get_py_executor(self):
-    """
-    Wrapper for unit testing
-    :return:
-    """
-    return PythonExecutor(self.tmp_dir, self.config)
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name=None,
                  override_output_files=True, retry=False):
@@ -178,11 +172,10 @@ class CustomServiceOrchestrator():
       if command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1:
         raise AgentException("Background commands are supported without hooks only")
 
-      python_executor = self.get_py_executor()
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
         script_params = [command_name, json_path, current_base_dir]
-        ret = python_executor.run_file(py_file, script_params,
+        ret = self.python_executor.run_file(py_file, script_params,
                                self.exec_tmp_dir, tmpoutfile, tmperrfile, timeout,
                                tmpstrucoutfile, logger_level, self.map_task_to_process,
                                task_id, override_output_files, handle = handle, log_info_on_failure=log_info_on_failure)

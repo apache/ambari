@@ -389,21 +389,19 @@ class TestCustomServiceOrchestrator(TestCase):
   from ambari_agent.StackVersionsFileHandler import StackVersionsFileHandler
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(CustomServiceOrchestrator, "get_py_executor")
   @patch("ambari_commons.shell.kill_process_with_children")
   @patch.object(FileCache, "__init__")
   @patch.object(CustomServiceOrchestrator, "resolve_script_path")
   @patch.object(CustomServiceOrchestrator, "resolve_hook_script_path")
   @patch.object(StackVersionsFileHandler, "read_stack_version")
-  def test_cancel_backgound_command(self, read_stack_version_mock, resolve_hook_script_path_mock,
-                                    resolve_script_path_mock, FileCache_mock, kill_process_with_children_mock,
-                                    get_py_executor_mock):
+  def test_cancel_backgound_command(self, read_stack_version_mock, resolve_hook_script_path_mock, resolve_script_path_mock, FileCache_mock,
+                                      kill_process_with_children_mock):
     FileCache_mock.return_value = None
     FileCache_mock.cache_dir = MagicMock()
     resolve_hook_script_path_mock.return_value = None
 #     shell.kill_process_with_children = MagicMock()
     dummy_controller = MagicMock()
-    cfg = AmbariConfig()
+    cfg = AmbariConfig().getConfig()
     cfg.set('agent', 'tolerate_download_failures', 'true')
     cfg.set('agent', 'prefix', '.')
     cfg.set('agent', 'cache_dir', 'background_tasks')
@@ -421,10 +419,8 @@ class TestCustomServiceOrchestrator(TestCase):
     import TestActionQueue
     import copy
 
-    pyex = PythonExecutor(actionQueue.customServiceOrchestrator.tmp_dir, actionQueue.customServiceOrchestrator.config)
-    TestActionQueue.patch_output_file(pyex)
-    pyex.prepare_process_result = MagicMock()
-    get_py_executor_mock.return_value = pyex
+    TestActionQueue.patch_output_file(orchestrator.python_executor)
+    orchestrator.python_executor.prepare_process_result = MagicMock()
     orchestrator.dump_command_to_json = MagicMock()
 
     lock = threading.RLock()
@@ -602,14 +598,12 @@ class TestCustomServiceOrchestrator(TestCase):
     self.assertEqual('UNKNOWN', status)
 
 
-  @patch.object(CustomServiceOrchestrator, "get_py_executor")
   @patch.object(CustomServiceOrchestrator, "dump_command_to_json")
   @patch.object(FileCache, "__init__")
   @patch.object(FileCache, "get_custom_actions_base_dir")
   def test_runCommand_background_action(self, get_custom_actions_base_dir_mock,
                                     FileCache_mock,
-                                    dump_command_to_json_mock,
-                                    get_py_executor_mock):
+                                    dump_command_to_json_mock):
     FileCache_mock.return_value = None
     get_custom_actions_base_dir_mock.return_value = "some path"
     _, script = tempfile.mkstemp()
@@ -631,10 +625,8 @@ class TestCustomServiceOrchestrator(TestCase):
     orchestrator = CustomServiceOrchestrator(self.config, dummy_controller)
 
     import TestActionQueue
-    pyex = PythonExecutor(orchestrator.tmp_dir, orchestrator.config)
-    TestActionQueue.patch_output_file(pyex)
-    pyex.condenseOutput = MagicMock()
-    get_py_executor_mock.return_value = pyex
+    TestActionQueue.patch_output_file(orchestrator.python_executor)
+    orchestrator.python_executor.condenseOutput = MagicMock()
     orchestrator.dump_command_to_json = MagicMock()
 
     ret = orchestrator.runCommand(command, "out.txt", "err.txt")
