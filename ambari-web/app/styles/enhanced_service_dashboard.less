@@ -79,12 +79,17 @@
       color: @health-status-green;
       font-weight: bold;
       font-size: 35px;
+      width: 95%;
+      position: absolute;
     }
     .template-widget,
     .number-widget {
       .frame;
       .content {
         padding-top: 70px;
+        height: 50px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
     .graph-widget {
@@ -114,6 +119,9 @@
     }
     .green {
       color: @health-status-green;
+    }
+    .grey {
+      color: #D6DDDF;
     }
   }
 }

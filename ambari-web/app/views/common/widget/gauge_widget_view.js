@@ -73,8 +73,8 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
 
     data: function () {
       var data = parseFloat(this.get('parentView.value')) * this.get('FACTOR');
-      if (isNaN(data)) return [0, this.get('MAX_VALUE')];
-      return [data, this.get('MAX_VALUE') - data];
+      if (isNaN(data) || data > this.get('MAX_VALUE')) return [0, this.get('MAX_VALUE')];
+      return [data.toFixed(0), this.get('MAX_VALUE') - data.toFixed(0)];
     }.property('parentView.value'),
 
     contentColor: function () {
