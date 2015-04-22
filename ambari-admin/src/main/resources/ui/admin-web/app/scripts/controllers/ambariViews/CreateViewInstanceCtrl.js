@@ -34,7 +34,7 @@ angular.module('ambariAdminConsole')
         item.value = item['defaultValue'];
         item.clusterConfig = !!item.clusterConfig;
         item.displayName = item.name.replace(/\./g, '\.\u200B');
-        $scope.numberOfClusterConfigs = item.clusterConfig ? $scope.numberOfClusterConfigs+1 : $scope.numberOfClusterConfigs;
+        item.clusterConfig ? $scope.numberOfClusterConfigs++ : $scope.numberOfSettingConfigs++;
       });
 
       $scope.clusterConfigurable = viewVersion.ViewVersionInfo.cluster_configurable;
@@ -74,6 +74,7 @@ angular.module('ambariAdminConsole')
   $scope.noClusterAvailible = true;
   $scope.cluster = null;
   $scope.numberOfClusterConfigs = 0;
+  $scope.numberOfSettingConfigs = 0;
 
   Cluster.getAllClusters().then(function (clusters) {
     if(clusters.length >0){
