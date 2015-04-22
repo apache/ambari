@@ -134,28 +134,32 @@ describe('App.config', function () {
         configs: [Em.Object.create({
           "name": "capacity-scheduler",
           "value": "config1=value1",
-          "filename": "capacity-scheduler.xml"
+          "filename": "capacity-scheduler.xml",
+          "isRequiredByAgent": true
         })]
       },
       {
         configs: [Em.Object.create({
           "name": "capacity-scheduler",
           "value": "config1=value1\nconfig2=value2\n",
-          "filename": "capacity-scheduler.xml"
+          "filename": "capacity-scheduler.xml",
+          "isRequiredByAgent": false
         })]
       },
       {
         configs: [Em.Object.create({
           "name": "capacity-scheduler",
           "value": "config1=value1,value2\n",
-          "filename": "capacity-scheduler.xml"
+          "filename": "capacity-scheduler.xml",
+          "isRequiredByAgent": true
         })]
       },
       {
         configs: [Em.Object.create({
           "name": "capacity-scheduler",
           "value": "config1=value1 config2=value2\n",
-          "filename": "capacity-scheduler.xml"
+          "filename": "capacity-scheduler.xml",
+          "isRequiredByAgent": false
         })]
       }
     ];
@@ -165,6 +169,7 @@ describe('App.config', function () {
       expect(result.length).to.equal(1);
       expect(result[0].value).to.equal('value1');
       expect(result[0].name).to.equal('config1');
+      expect(result[0].isRequiredByAgent).to.be.true;
     });
     it('config1=value1\\nconfig2=value2\\n to two configs', function () {
       var result = App.config.textareaIntoFileConfigs.call(App.config, testData[1].configs, filename);
@@ -173,16 +178,20 @@ describe('App.config', function () {
       expect(result[0].name).to.equal('config1');
       expect(result[1].value).to.equal('value2');
       expect(result[1].name).to.equal('config2');
+      expect(result[0].isRequiredByAgent).to.be.false;
+      expect(result[1].isRequiredByAgent).to.be.false;
     });
     it('config1=value1,value2\n to one config', function () {
       var result = App.config.textareaIntoFileConfigs.call(App.config, testData[2].configs, filename);
       expect(result.length).to.equal(1);
       expect(result[0].value).to.equal('value1,value2');
       expect(result[0].name).to.equal('config1');
+      expect(result[0].isRequiredByAgent).to.be.true;
     });
     it('config1=value1 config2=value2 to two configs', function () {
       var result = App.config.textareaIntoFileConfigs.call(App.config, testData[3].configs, filename);
       expect(result.length).to.equal(1);
+      expect(result[0].isRequiredByAgent).to.be.false;
     });
   });
 

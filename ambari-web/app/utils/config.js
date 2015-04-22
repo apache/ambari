@@ -1400,6 +1400,7 @@ App.config = Em.Object.create({
             filename: filename,
             isFinal: configsTextarea.get('isFinal'),
             isNotDefaultValue: configsTextarea.get('isNotDefaultValue'),
+            isRequiredByAgent: configsTextarea.get('isRequiredByAgent'),
             group: null
           }));
         }
