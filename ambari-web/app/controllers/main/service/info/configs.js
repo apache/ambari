@@ -989,6 +989,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty, {
       value: Em.get(override, 'value'),
+      defaultValue: Em.get(override, 'value'),
       isFinal: Em.get(override, 'isFinal'),
       group: Em.get(override, 'group'),
       supportsFinal: serviceConfigProperty.get('supportsFinal'),
@@ -1305,6 +1306,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       // create new override with new value
       var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty, {
         value: value || '',
+        defaultValue: serviceConfigProperty.get('defaultValue'),
         isOriginalSCP: false,
         parentSCP: serviceConfigProperty,
         isEditable: true,

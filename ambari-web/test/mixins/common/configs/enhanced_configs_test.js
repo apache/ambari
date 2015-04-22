@@ -41,5 +41,58 @@ describe('App.EnhancedConfigsMixin', function() {
       });
     });
   });
+
+  describe('#buildConfigGroupJSON()', function() {
+    it('generates JSON based on config group info', function() {
+      var configGroup = App.ConfigGroup.create({
+        name: 'group1',
+        isDefault: false,
+        hosts: ['host1', 'host2']
+      });
+      var configs = [
+        App.ServiceConfigProperty.create({
+          name: 'p1',
+          filename: 'f1',
+          overrides: [
+            App.ServiceConfigProperty.create({
+              group: configGroup,
+              value: 'v1'
+            })
+          ]
+        }),
+        App.ServiceConfigProperty.create({
+          name: 'p2',
+          filename: 'f1',
+          overrides: [
+            App.ServiceConfigProperty.create({
+              group: configGroup,
+              value: 'v2'
+            })
+          ]
+        }),
+        App.ServiceConfigProperty.create({
+          name: 'p3',
+          filename: 'f2'
+        })
+      ];
+      expect(instanceObject.buildConfigGroupJSON(configs, configGroup)).to.eql({
+        "configurations": [
+          {
+            "f1": {
+              "properties": {
+                "p1": "v1",
+                "p2": "v2"
+              }
+            }
+          }
+        ],
+        "hosts": ['host1', 'host2']
+      })
+    });
+
+    it('throws error as group is null', function() {
+      expect(instanceObject.buildConfigGroupJSON.bind(instanceObject)).to.throw(Error, 'configGroup can\'t be null');
+    });
+  });
 });
 

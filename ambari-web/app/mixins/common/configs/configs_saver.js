@@ -255,7 +255,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   getConfigsForGroup: function(stepConfigs, configGroupName) {
     var overridenConfigs = [];
 
-    stepConfigs.filterProperty('isOverridden', true).forEach(function (config) {
+    stepConfigs.filterProperty('overrides').forEach(function (config) {
       overridenConfigs = overridenConfigs.concat(config.get('overrides'));
     });
     // find custom original properties that assigned to selected config group
@@ -674,7 +674,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    */
   saveGroup: function(overridenConfigs, selectedConfigGroup, showPopup) {
     var groupHosts = [];
-    var fileNamesToSave = overridenConfigs.mapProperty('filename');
+    var fileNamesToSave = overridenConfigs.mapProperty('filename').uniq();
     selectedConfigGroup.get('hosts').forEach(function (hostName) {
       groupHosts.push({"host_name": hostName});
     });
