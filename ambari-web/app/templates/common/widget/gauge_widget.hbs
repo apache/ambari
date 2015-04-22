@@ -21,11 +21,11 @@
     <a {{bindAttr class=":corner-icon :span1 view.parentView.isMoving:hidden"}} href="#" {{action hideWidget view.id target="view"}}>
       <i class="icon-remove-sign icon-large"></i>
     </a>
-    <div class="caption title span9">{{view.content.displayName}}</div>
-    <a class="corner-icon span1" href="#" {{action cloneWidget target="view"}}>
+    <div class="caption title span11">{{view.content.displayName}}</div>
+    <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
       <i class="icon-copy"></i>
     </a>
-    <a class="corner-icon span1" href="#" {{action editWidget target="view"}}>
+    <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
       <i class="icon-edit"></i>
     </a>
     <div class="content"> {{view view.chartView}}</div>

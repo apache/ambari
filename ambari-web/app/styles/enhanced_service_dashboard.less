@@ -60,22 +60,25 @@
     margin: 5px 0 5px 5px;
   }
   .widget {
+    .thumbnail {
+      position: relative;
+    }
     .spinner {
       margin: 55px auto;
     }
     .title {
-      padding: 5px 0 0 5px;
-      height: 25px;
+      padding: 5px 0 0 1px;
       font-weight: bold;
       text-align: left;
-      position: relative;
+      height: 45px;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     .content {
       text-align: center;
       color: @health-status-green;
       font-weight: bold;
       font-size: 35px;
-      position: relative;
     }
     .template-widget,
     .number-widget {
@@ -133,20 +136,26 @@
   .widget {
     .thumbnail .corner-icon {
       display: none;
-      position: relative;
       .icon-remove-sign{
         color: #000000;
         text-shadow: #fff 0px 0px 15px;
-        position: relative;
-        left: -17px;
-        top: -11px;
+        position: absolute;
+        left: -7px;
+        top: -7px;
       }
       .icon-edit,.icon-copy{
         color: #555555;
-        position: relative;
+        font-weight: bold;
+        text-shadow: #ffffff -8px 8px 10px;
+        background-color: rgba(255,255,255,0.6);
+        position: absolute;
+        padding: 5px 5px;
+      }
+      .icon-copy {
+        right: 25px;
       }
       .icon-edit {
-        left: 2px;
+        right: 5px;
       }
     }
     .thumbnail:hover {
