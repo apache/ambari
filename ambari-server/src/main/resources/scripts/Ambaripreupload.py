@@ -21,6 +21,7 @@ limitations under the License.
 # export PYTHONPATH=/usr/lib/python2.6/site-packages 
 import glob
 from logging import thread
+import sys
 import os
 import re
 import tempfile
@@ -230,7 +231,13 @@ def getPropertyValueFromConfigXMLFile(xmlfile, name, defaultValue=None):
         else:
           return ''
   return defaultValue
- 
+
+# See if hdfs path prefix is provided on the command line. If yes, use that value, if no
+# use empty string as default.
+hdfs_path_prefix = ""
+if len(sys.argv) == 2:
+    hdfs_path_prefix = sys.argv[1]
+
 hadoop_conf_dir = params.hadoop_conf_dir
 fsdefaultName =  getPropertyValueFromConfigXMLFile("/etc/hadoop/conf/core-site.xml", "fs.defaultFS")
 if fsdefaultName is None:
@@ -258,18 +265,16 @@ with Environment() as env:
            sudo = True,
            )
 
-
-  oozie_root = 'oozie-server'
-  oozie_setup_sh = format("/usr/hdp/current/{oozie_root}/bin/oozie-setup.sh")
-  oozie_shared_lib = format("/usr/hdp/current/{oozie_root}/share")
+  oozie_shared_lib = format("/usr/hdp/current/oozie-server/share")
   oozie_user = 'oozie'
-  oozie_hdfs_user_dir = format("/user/{oozie_user}")
+  oozie_hdfs_user_dir = format("{hdfs_path_prefix}/user/{oozie_user}")
   kinit_if_needed = ''
- 
-  put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
- 
+
+  #Ideally, we would want to run: put_shared_lib_to_hdfs_cmd = format("{oozie_setup_sh} sharelib create -fs {fs_root} -locallib {oozie_shared_lib}")
+  #However given that oozie_setup_sh does not support an arbitrary hdfs path prefix, we are simulating the same command below
+  put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -copyFromLocal {oozie_shared_lib}/lib/** {oozie_hdfs_user_dir}/share/lib/lib_20150212065327")
+
   oozie_cmd = format("{put_shared_lib_to_hdfs_cmd} ; hadoop --config {hadoop_conf_dir} dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
-  not_if_command = format("{kinit_if_needed} hadoop --config {hadoop_conf_dir} dfs -ls /user/oozie/share | awk 'BEGIN {{count=0;}} /share/ {{count++}} END {{if (count > 0) {{exit 0}} else {{exit 1}}}}'")
 
   #Check if destination folder already exists
   does_hdfs_file_exist_cmd = "fs -ls %s" % format("{oozie_hdfs_user_dir}/share")
@@ -282,19 +287,19 @@ with Environment() as env:
     )
   except Fail:
     #If dir does not exist create it and put files there
-    HdfsDirectory(format("{oozie_hdfs_user_dir}/share"),
+    HdfsDirectory(format("{oozie_hdfs_user_dir}/share/lib/lib_20150212065327"),
                   action="create",
                   owner=oozie_user,
                   mode=0555,
                   conf_dir=params.hadoop_conf_dir,
                   hdfs_user=params.hdfs_user,
                   )
-    Execute( oozie_cmd, user = params.oozie_user, not_if = not_if_command,
+    Execute( oozie_cmd, user = params.oozie_user, not_if = None,
              path = params.execute_path )
 
-  copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-client/mapreduce.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs("/usr/hdp/current/tez-client/lib/tez.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs("/usr/hdp/current/hive-client/hive.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs("/usr/hdp/current/pig-client/pig.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", "wasb:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
-  copy_tarballs_to_hdfs("/usr/hdp/current/sqoop-client/sqoop.tar.gz", "wasb:///hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-client/mapreduce.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs("/usr/hdp/current/tez-client/lib/tez.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/tez/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs("/usr/hdp/current/hive-client/hive.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/hive/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs("/usr/hdp/current/pig-client/pig.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/pig/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs("/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/mapreduce/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
+  copy_tarballs_to_hdfs("/usr/hdp/current/sqoop-client/sqoop.tar.gz", hdfs_path_prefix+"/hdp/apps/{{ hdp_stack_version }}/sqoop/", 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
