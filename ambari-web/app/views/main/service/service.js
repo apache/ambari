@@ -114,8 +114,8 @@ App.ComponentLiveTextView =  Em.View.extend({
   liveComponents: null,
   totalComponents: null,
   color: function() {
-    return this.get("liveComponents") === 0;
-  }.property("liveComponents")
+    return this.get("liveComponents") === 0 && this.get('totalComponents') !== 0;
+  }.property("liveComponents", 'totalComponents')
 });
 
 App.MainDashboardServiceView = Em.View.extend({
