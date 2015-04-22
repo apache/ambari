@@ -237,13 +237,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       parseFunction = this.get('parseFunction'),
       ticks = [this.get('minMirrorValue')],
       ticksLabels = [],
-      defaultValue = this.widgetValueByConfigAttributes(this.valueForTick(+config.get('defaultValue'))),
+      defaultValue = this.valueForTick(+this.get('widgetDefaultValue')),
       defaultValueMirroredId,
       defaultValueId;
 
     // ticks and labels
     for (var i = 1; i <= 3; i++) {
-      var val = (this.get('maxMirrorValue') + this.get('minMirrorValue')) / 4 * i;
+      var val = this.get('minMirrorValue') + (this.get('maxMirrorValue') - this.get('minMirrorValue')) * (i / 4);
       // if value's type is float, ticks may be float too
       ticks.push(this.valueForTick(val));
     }
@@ -265,13 +265,17 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         defaultValueId = ticks.indexOf(defaultValue);
         // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
         defaultValueMirroredId = ticks.length - defaultValueId;
+        // push mirrored default value behind default
+        if (defaultValueId == defaultValueMirroredId) {
+          defaultValueMirroredId--;
+        }
         // push empty label for default value tick
         ticksLabels.insertAt(defaultValueId, '');
         // push empty to mirrored position
         ticksLabels.insertAt(defaultValueMirroredId, '');
         // for saving correct sliding need to add value to mirrored position which is average between previous
         // and next value
-        ticks.insertAt(defaultValueMirroredId, (ticks[defaultValueMirroredId] + ticks[defaultValueMirroredId - 1]) / 2);
+        ticks.insertAt(defaultValueMirroredId, this.valueForTick((ticks[defaultValueMirroredId] + ticks[defaultValueMirroredId - 1]) / 2));
         // get new index for default value
         defaultValueId = ticks.indexOf(defaultValue);
       } else {
@@ -288,7 +292,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         return val + self.get('unitLabel');
       }
     });
-
     slider.on('change', function (obj) {
       var val = self.get('mirrorValueParseFunction')(obj.newValue);
       self.set('config.value', '' + self.configValueByWidget(val));

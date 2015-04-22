@@ -70,7 +70,7 @@ describe('App.SliderConfigWidgetView', function () {
           valueAttributes: Em.Object.create({
             type: 'float',
             minimum: '0',
-            maximum: '100',
+            maximum: '100'
           }),
           widget: Em.Object.create({
             type: 'slider',
@@ -99,7 +99,7 @@ describe('App.SliderConfigWidgetView', function () {
           valueAttributes: Em.Object.create({
             type: 'float',
             minimum: '0',
-            maximum: '0.8',
+            maximum: '0.8'
           }),
           widget: Em.Object.create({
             type: 'slider',
@@ -169,6 +169,90 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewPercent.get('isMirrorValueValid')).to.be.false;
       expect(viewPercent.get('config.value')).to.equal('0.32');
       expect(viewPercent.get('config.errorMessage')).to.have.property('length').that.is.least(1);
+    });
+  });
+
+  describe('#initSlider', function() {
+    beforeEach(function() {
+      this.view = App.SliderConfigWidgetView;
+    });
+
+    afterEach(function() {
+      this.view.destroy();
+      this.view = null;
+    });
+
+    var tests = [
+      {
+        viewSetup: {
+          minMirrorValue: 20,
+          maxMirrorValue: 100,
+          widgetDefaultValue: 30,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'float' },
+              widget: { units: [ { 'unit-name': "percent"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [20,30,40,60,80,90,100],
+          ticksLabels: ['20 %', '', '', '60 %', '', '', '100 %']
+        }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 5,
+          maxMirrorValue: 50,
+          widgetDefaultValue: 35,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int' },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [5, 16, 22, 28, 35, 39, 50],
+          ticksLabels: ['5 ','', '', '28 ', '', '', '50 ']
+        }
+      }
+    ];
+
+    tests.forEach(function(test) {
+      it('should generate ticks: {0} - tick labels: {1}'.format(test.e.ticks, test.e.ticksLabels), function() {
+        var ticks, ticksLabels;
+        this.view = this.view.create(test.viewSetup);
+        var sliderCopy= window.Slider.prototype;
+        window.Slider = function(a, b) {
+          ticks = b.ticks;
+          ticksLabels = b.ticks_labels;
+          return {
+            on: function() {
+              return this;
+            }
+          };
+        };
+        sinon.stub(this.view, '$')
+          .withArgs('input.slider-input').returns([])
+          .withArgs('.ui-slider-wrapper:eq(0) .slider-tick').returns({
+            eq: function() {return this;},
+            addClass: function() {return this;},
+            on: function() {return this;},
+            append: function() {return this;},
+            find: function() {return this;},
+            css: function() {return this;},
+            width: function() {},
+            last: function() { return this;},
+            hide: function() { return this;}
+          });
+        this.view.willInsertElement();
+        this.view.initSlider();
+        window.Slider.prototype = sliderCopy;
+        this.view.$.restore();
+        expect(ticks.toArray()).to.be.eql(test.e.ticks);
+        expect(ticksLabels.toArray()).to.be.eql(test.e.ticksLabels);
+      });
     });
   });
 
