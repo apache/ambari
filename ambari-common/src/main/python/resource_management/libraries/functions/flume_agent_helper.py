@@ -21,6 +21,7 @@ limitations under the License.
 import json
 import glob
 import os
+import time
 
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions import check_process_status
@@ -114,3 +115,19 @@ def get_live_status(pid_file, flume_conf_directory):
     pass
 
   return res
+
+
+def await_flume_process_termination(pid_file, try_count=20, retry_delay=2):
+  """
+  Waits while the flume agent represented by the specified file is being stopped.
+  :param pid_file: the PID file of the agent to check
+  :param try_count: the count of checks
+  :param retry_delay: time between checks in seconds
+  :return: True if the agent was stopped, False otherwise
+  """
+  for i in range(0, try_count):
+    if not is_flume_process_live(pid_file):
+      return True
+    else:
+      time.sleep(retry_delay)
+  return not is_flume_process_live(pid_file)

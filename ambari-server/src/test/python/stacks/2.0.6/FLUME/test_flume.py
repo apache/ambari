@@ -74,8 +74,10 @@ class TestFlumeHandler(RMFTestCase):
 
   @patch("glob.glob")
   @patch("flume._set_desired_state")
-  def test_stop_default(self, set_desired_mock, glob_mock):
+  @patch("flume.await_flume_process_termination")
+  def test_stop_default(self, await_flume_process_termination_mock, set_desired_mock, glob_mock):
     glob_mock.side_effect = [['/var/run/flume/a1/pid'], ['/etc/flume/conf/a1/ambari-meta.json']]
+    await_flume_process_termination_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -85,6 +87,7 @@ class TestFlumeHandler(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(glob_mock.called)
+    await_flume_process_termination_mock.assert_called_with('/var/run/flume/a1.pid')
 
     self.assertTrue(set_desired_mock.called)
     self.assertTrue(set_desired_mock.call_args[0][0] == 'INSTALLED')
@@ -311,8 +314,10 @@ class TestFlumeHandler(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("glob.glob")
-  def test_stop_single(self, glob_mock):
+  @patch("flume.await_flume_process_termination")
+  def test_stop_single(self, await_flume_process_termination_mock, glob_mock):
     glob_mock.return_value = ['/var/run/flume/b1.pid']
+    await_flume_process_termination_mock.return_value = True
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -322,6 +327,7 @@ class TestFlumeHandler(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(glob_mock.called)
+    await_flume_process_termination_mock.assert_called_with('/var/run/flume/b1.pid')
 
     self.assertResourceCalled('Execute', 'kill `cat /var/run/flume/b1.pid` > /dev/null 2>&1',
       ignore_failures = True)

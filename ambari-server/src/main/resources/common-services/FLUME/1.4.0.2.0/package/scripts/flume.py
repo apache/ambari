@@ -23,6 +23,7 @@ import os
 from resource_management import *
 from resource_management.libraries.functions.flume_agent_helper import is_flume_process_live
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
+from resource_management.libraries.functions.flume_agent_helper import await_flume_process_termination
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -178,6 +179,8 @@ def flume(action = None):
       pid_file = params.flume_run_dir + os.sep + agent + '.pid'
       pid = format('`cat {pid_file}` > /dev/null 2>&1')
       Execute(format('kill {pid}'), ignore_failures=True)
+      if not await_flume_process_termination(pid_file):
+        raise Fail("Can't stop flume agent: {0}".format(agent))
       File(pid_file, action = 'delete')
 
 
