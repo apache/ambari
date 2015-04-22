@@ -400,6 +400,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       configSet = App.config.syncOrderWithPredefined(configSet);
 
       var configs = configSet.configs;
+
+      /**
+       * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
+       * ui should add this properties to step configs
+       */
+      configs = self.addMissedPropertiesFromStack(configs);
+
       //put properties from capacity-scheduler.xml into one config with textarea view
       if (self.get('content.serviceName') === 'YARN') {
         configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
@@ -418,6 +425,36 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       });
     });
   }.observes('selectedConfigGroup'),
+
+  /**
+   * adds properties form stack that doesn't belong to cluster
+   * to step configs
+   *
+   * @return {App.ServiceConfigProperty[]}
+   * @method addMissedPropertiesFromStack
+   */
+  addMissedPropertiesFromStack: function(configs) {
+    this.get('advancedConfigs').forEach(function(advanced) {
+      if (!configs.someProperty('name', advanced.get('name'))) {
+        configs.pushObject(App.ServiceConfigProperty.create({
+          name: advanced.get('name'),
+          displayName: advanced.get('displayName'),
+          value: advanced.get('value'),
+          defaultValue: advanced.get('defaultValue'),
+          filename: advanced.get('fileName'),
+          isUserProperty: false,
+          isNotSaved: true,
+          isFinal: advanced.get('isFinal'),
+          defaultIsFinal: advanced.get('defaultIsFinal'),
+          serviceName: advanced.get('serviceName'),
+          supportsFinal: advanced.get('supportsFinal'),
+          category: 'Advanced ' + App.config.getConfigTagFromFileName(advanced.get('fileName')),
+          widget: advanced.get('widget')
+        }));
+      }
+    });
+    return configs;
+  },
 
   /**
    * load version configs for comparison

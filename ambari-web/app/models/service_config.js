@@ -59,11 +59,12 @@ App.ServiceConfig = Ember.Object.extend({
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
   isPropertiesChanged: function() {
-    return this.get('configs').someProperty('isNotDefaultValue') ||
+    return this.get('configs').someProperty('isNotSaved') ||
+           this.get('configs').someProperty('isNotDefaultValue') ||
            this.get('configs').someProperty('isOverrideChanged') ||
            this.get('configs.length') !== this.get('initConfigsLength') ||
            (this.get('configs.length') === this.get('initConfigsLength') && this.get('configs').someProperty('defaultValue', null));
-  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length')
+  }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved')
 });
 
 App.ServiceConfigCategory = Ember.Object.extend({
