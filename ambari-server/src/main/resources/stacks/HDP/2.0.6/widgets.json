@@ -3,7 +3,7 @@
     {
       "layout_name": "default_system_heatmap",
       "display_name": "Heatmaps",
-      "section_name": "SYSTEM_METRICS_HEATMAPS",
+      "section_name": "SYSTEM_HEATMAPS",
       "widgetLayoutInfo": [
         {
           "widget_name": "HOST_DISK_USED",

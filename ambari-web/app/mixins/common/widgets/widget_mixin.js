@@ -56,6 +56,7 @@ App.WidgetMixin = Ember.Mixin.create({
   content: null,
 
   beforeRender: function () {
+    this.get('metrics').clear();
     this.loadMetrics();
   },
 
@@ -72,7 +73,19 @@ App.WidgetMixin = Ember.Mixin.create({
     for (var i in requestData) {
       request = requestData[i];
       requestCounter++;
-      if (request.host_component_criteria) {
+      if (this.get('content.widgetType') === 'HEATMAP'){
+        if (request.service_name === 'STACK') {
+          this.getHostsMetrics(request).complete(function () {
+            requestCounter--;
+            if (requestCounter === 0) self.onMetricsLoaded();
+          });
+        } else {
+          this.getHostComponentsMetrics(request).complete(function () {
+            requestCounter--;
+            if (requestCounter === 0) self.onMetricsLoaded();
+          });
+        }
+      } else if (request.host_component_criteria) {
         this.getHostComponentMetrics(request).always(function () {
           requestCounter--;
           if (requestCounter === 0) self.onMetricsLoaded();
@@ -153,7 +166,7 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /**
-   * make GET call to server in order to fetch service-component metrics
+   * make GET call to server in order to fetch specifc host-component metrics
    * @param {object} request
    * @returns {$.Deferred}
    */
@@ -185,6 +198,8 @@ App.WidgetMixin = Ember.Mixin.create({
     return dfd.promise();
   },
 
+
+
   /**
    * make GET call to server in order to fetch host-component names
    * @param {object} request
@@ -203,6 +218,7 @@ App.WidgetMixin = Ember.Mixin.create({
     });
   },
 
+
   /**
    * callback on getting aggregated metrics and host component metrics
    * @param data
@@ -218,6 +234,66 @@ App.WidgetMixin = Ember.Mixin.create({
     }, this);
   },
 
+  /**
+   * make GET call to get host component metrics accross
+   * @param {object} request
+   * @return {$.ajax}
+   */
+  getHostComponentsMetrics: function(request) {
+    request.metric_paths.forEach(function(_metric,index){
+      request.metric_paths[index] = "host_components/" + _metric;
+    });
+    return App.ajax.send({
+      name: 'widgets.serviceComponent.metrics.get',
+      sender: this,
+      data: {
+        serviceName: request.service_name,
+        componentName: request.component_name,
+        metricPaths: request.metric_paths.join(',')
+      },
+      success: 'getHostComponentsMetricsSuccessCallback'
+    });
+  },
+
+
+  getHostComponentsMetricsSuccessCallback: function(data) {
+    var metrics = this.get('content.metrics');
+    data.host_components.forEach(function(item){
+      metrics.forEach(function (_metric) {
+        if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
+          var metric = $.extend({},_metric,true);
+          metric.data =  Em.get(item, _metric.metric_path.replace(/\//g, '.'));
+          metric.hostName = item.HostRoles.host_name;
+          this.get('metrics').pushObject(metric);
+        }
+      }, this);
+    },this);
+  },
+
+  getHostsMetrics: function(request) {
+    return App.ajax.send({
+      name: 'widgets.hosts.metrics.get',
+      sender: this,
+      data: {
+        metricPaths: request.metric_paths.join(',')
+      },
+      success: 'getHostsMetricsSuccessCallback'
+    });
+  },
+
+  getHostsMetricsSuccessCallback: function(data) {
+    var metrics = this.get('content.metrics');
+    data.items.forEach(function(item){
+      metrics.forEach(function (_metric,index) {
+        if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
+          var metric = $.extend({},_metric,true);
+          metric.data =  Em.get(item, _metric.metric_path.replace(/\//g, '.'));
+          metric.hostName = item.Hosts.host_name;
+          this.get('metrics').pushObject(metric);
+        }
+      }, this);
+    },this);
+  },
 
   /**
    * callback on metrics loaded
@@ -294,18 +370,22 @@ App.WidgetMixin = Ember.Mixin.create({
 
       //replace values with metrics data
       var beforeCompute = _expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
-        if (metrics.someProperty('name', match)) {
-          return metrics.findProperty('name', match).data;
+        if (window.isNaN(match)) {
+          if (metrics.someProperty('name', match)) {
+            return metrics.findProperty('name', match).data;
+          } else {
+            validExpression = false;
+            console.error('Metrics with name "' + match + '" not found to compute expression');
+          }
         } else {
-          validExpression = false;
-          console.warn('Metrics not found to compute expression');
+          return match;
         }
       });
 
-      if (validExpression) {
-        //check for correct math expression
-        validExpression = this.get('MATH_EXPRESSION_REGEX').test(beforeCompute);
-        !validExpression && console.warn('Value is not correct mathematical expression');
+      //check for correct math expression
+      if (!(validExpression && this.get('MATH_EXPRESSION_REGEX').test(beforeCompute))) {
+        validExpression = false;
+        console.error('Value for metric is not correct mathematical expression: ' + beforeCompute);
       }
 
       result['${' + _expression + '}'] = (validExpression) ? Number(window.eval(beforeCompute)).toString() : value;

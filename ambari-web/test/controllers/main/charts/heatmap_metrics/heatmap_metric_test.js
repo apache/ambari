@@ -43,30 +43,6 @@ describe('MainChartHeatmapMetric', function () {
     });
   });
 
-  describe('#refreshHostSlots', function() {
-    beforeEach(function() {
-      sinon.stub(App.ajax, 'send', Em.K);
-    });
-
-    afterEach(function() {
-      App.ajax.send.restore();
-    });
-
-    it('Should load proper URL', function() {
-      mainChartHeatmapMetric.set('ajaxData', {
-        serviceName: 'SERVICE',
-        componentName: 'COMPONENT'
-      });
-      mainChartHeatmapMetric.set('defaultMetric', 'default.metric');
-      mainChartHeatmapMetric.refreshHostSlots();
-      expect(App.ajax.send.getCall(0).args[0].data).to.eql({
-        "metricName": "default/metric",
-        "serviceName": "SERVICE",
-        "componentName": "COMPONENT"
-      });
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('hosts.metrics');
-    });
-  });
 
   describe('#slotDefinitions', function () {
     beforeEach(function () {
@@ -301,25 +277,6 @@ describe('MainChartHeatmapMetric', function () {
         expect(mainChartHeatmapMetric.calculateSlot(test.data.hostToValueMap, test.data.hostName)).to.equal(test.result);
         mainChartHeatmapMetric.get.restore();
       });
-    });
-  });
-
-  describe('#refreshHostSlotsSuccessCallback()', function () {
-    it('launch metricMapper with recieved data', function () {
-      sinon.stub(mainChartHeatmapMetric, 'metricMapper').returns({'host1': 1});
-      mainChartHeatmapMetric.refreshHostSlotsSuccessCallback({data: 'data'});
-      expect(mainChartHeatmapMetric.get('hostToValueMap')).to.eql({'host1': 1});
-      expect(mainChartHeatmapMetric.get('loading')).to.be.false;
-      expect(mainChartHeatmapMetric.metricMapper.calledWith({data: 'data'})).to.be.true;
-      mainChartHeatmapMetric.metricMapper.restore();
-    });
-  });
-
-  describe('#refreshHostSlotsErrorCallback()', function () {
-    it('', function () {
-      mainChartHeatmapMetric.set('loading', undefined);
-      mainChartHeatmapMetric.refreshHostSlotsErrorCallback({data: 'data'});
-      expect(mainChartHeatmapMetric.get('loading')).to.be.false;
     });
   });
 

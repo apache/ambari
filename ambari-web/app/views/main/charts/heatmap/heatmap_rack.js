@@ -29,31 +29,12 @@ App.MainChartsHeatmapRackView = Em.View.extend({
   /** loaded hosts of rack */
   hosts: [],
 
-  willDestroyElement: function () {
-    this.get('hosts').clear();
-  },
-
-  /**
-   * get hosts from the root controller
-   */
-  getHosts: function () {
-    var controller = this.get('controller');
-    var rackId = this.get('rack.rackId');
-    var rackMap = controller.get('rackMap');
-    this.pushHostsToRack(rackMap[rackId].hosts);
-  },
-
-  getHostsSuccessCallback: function (data, opt, params) {
-    this.pushHostsToRack(data);
-    this.displayHosts();
-  },
-
   /**
    * display hosts of rack
    */
   displayHosts: function () {
     var rackHosts = this.get('rack.hosts');
-    var rackCount = this.get('controller.modelRacks.length');
+    var rackCount = this.get('controller.racks.length');
 
     if (this.get('hosts.length') === 0) {
       if (rackHosts.length > 100 && rackCount == 1) {
@@ -72,77 +53,7 @@ App.MainChartsHeatmapRackView = Em.View.extend({
     }
   },
 
-  getHostsErrorCallback: function (request, ajaxOptions, error, opt, params) {
-    this.set('rack.isLoaded', true);
-  },
-  /**
-   * push hosts to rack
-   * @param data
-   */
-  pushHostsToRack: function (hosts) {
-    var newHostsData = hosts;
-    var rackHosts = this.get('rack.hosts');
-
-    if (rackHosts.length > 0) {
-      this.updateLoadedHosts(rackHosts, newHostsData);
-    } else {
-      this.set('rack.hosts', newHostsData);
-    }
-  },
-
-  updateLoadedHosts: function (rackHosts, newHostsData) {
-    var rackHostsMap = {};
-    var isNewHosts = false;
-
-    //create map
-    rackHosts.forEach(function (host) {
-      rackHostsMap[host.hostName] = host;
-    });
-
-    newHostsData.forEach(function (item) {
-      var currentHostInfo = rackHostsMap[item.hostName];
-
-      if (currentHostInfo) {
-        ['diskTotal', 'diskFree', 'cpuSystem', 'cpuUser', 'memTotal', 'memFree', 'hostComponents'].forEach(function (property) {
-          currentHostInfo[property] = item[property];
-        });
-        delete rackHostsMap[item.hostName];
-      } else {
-        isNewHosts = true;
-      }
-    }, this);
-
-    //if hosts were deleted or added then reload hosts view
-    if (!App.isEmptyObject(rackHostsMap) || isNewHosts) {
-      this.redrawHostsView(newHostsData)
-    }
-  },
-
-  /**
-   * reload hosts rack
-   * @param newHostsData
-   */
-  redrawHostsView: function (newHostsData) {
-    this.set('rack.isLoaded', false);
-    this.get('hosts').clear();
-    this.set('rack.hosts', newHostsData);
-  },
-
-  /**
-   * call metrics update after hosts of rack are loaded
-   */
-  updateMetrics: function(){
-    if (this.get('rack.isLoaded')) {
-      this.get('controller').loadMetrics();
-    }
-  }.observes('rack.isLoaded'),
-
   didInsertElement: function () {
-    this.set('rack.isLoaded', false);
-    if (this.get('rack.hosts.length') > 0) {
-      this.displayHosts();
-    }
-    this.getHosts();
     this.get('controller').addRackView(this);
   },
   /**

@@ -2406,6 +2406,11 @@ var urls = {
     }
   },
 
+  'widgets.get': {
+    real: '/clusters/{clusterName}/widgets?{urlParams}',
+    mock: '/data/widget_layouts/all_heatmaps.json'
+  },
+
   'widgets.all.shared.get': {
     real: '/clusters/{clusterName}/widgets?WidgetInfo/scope=CLUSTER&fields=*',
     mock: '/data/widget_layouts/all_shared_widgets.json'
@@ -2469,6 +2474,11 @@ var urls = {
 
   'widgets.hostComponent.metrics.get': {
     real: '/clusters/{clusterName}/hosts/{hostName}/host_components/{componentName}?fields={metricPaths}',
+    mock: '/data/metrics/{serviceName}/Append_num_ops.json'
+  },
+
+  'widgets.hosts.metrics.get': {
+    real: '/clusters/{clusterName}/hosts?fields={metricPaths}',
     mock: '/data/metrics/{serviceName}/Append_num_ops.json'
   },
 

@@ -142,8 +142,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
         route: '/heatmap',
         connectOutlets: function (router, context) {
           router.get('mainController').dataLoading().done(function () {
-            router.get('mainChartsHeatmapController').loadRacks();
-            router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
+            router.get('mainChartsHeatmapController').loadRacks().done(function(data){
+              router.get('mainChartsHeatmapController').loadRacksSuccessCallback(data);
+              router.get('mainChartsController').connectOutlet('mainChartsHeatmap');
+            });
           });
         }
       }),
@@ -685,8 +687,10 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
           var item = router.get('mainServiceItemController.content');
           if (item.get('isLoaded')) {
             router.get('mainController').dataLoading().done(function () {
-              router.get('mainServiceInfoHeatmapController').loadRacks();
-              router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
+              router.get('mainServiceInfoHeatmapController').loadRacks().done(function(data) {
+                router.get('mainServiceInfoHeatmapController').loadRacksSuccessCallback(data);
+                router.get('mainServiceItemController').connectOutlet('mainServiceInfoHeatmap', item);
+              });
             });
           }
         }

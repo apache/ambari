@@ -17,35 +17,148 @@
 
 var App = require('app');
 
-App.MainChartsHeatmapController = Em.Controller.extend({
+App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
   name: 'mainChartsHeatmapController',
-  rackMap: [],
-  modelRacks: [],
+  rackMap: {},
+  racks: [],
   rackViews: [],
+
+  /**
+   * Heatmap metrics that are available choices  on the page
+   */
+  heatmapCategories: [],
+
+  allHeatmaps:[],
+
+  layoutNameSuffix: "_heatmap",
+
+  sectionNameSuffix: "_HEATMAPS",
+
   loadRacksUrlParams: 'fields=Hosts/rack_info,Hosts/host_name,Hosts/public_host_name,Hosts/os_type,Hosts/ip,host_components,metrics/disk,metrics/cpu/cpu_system,metrics/cpu/cpu_user,metrics/memory/mem_total,metrics/memory/mem_free&minimal_response=true',
 
-  racks: function () {
-    return this.get('modelRacks');
-  }.property('modelRacks.@each.isLoaded'),
+  loadHeatmapsUrlParams: function() {
+    var serviceName = this.get('content.serviceName');
+    if (serviceName) {
+      return 'WidgetInfo/widget_type=HEATMAP&WidgetInfo/scope=CLUSTER&WidgetInfo/metrics.matches(.*\"service_name\":\"' + serviceName + '\".*)&fields=WidgetInfo/metrics';
+    } else {
+      return 'WidgetInfo/widget_type=HEATMAP&WidgetInfo/scope=CLUSTER&fields=WidgetInfo/metrics';
+    }
+  }.property('content.serviceName'),
+
+
+  selectedMetric: null,
+
+  inputMaximum: '',
+
+  /**
+   * Heatmap widget currently shown on the page
+   */
+  activeWidget: function() {
+    if (this.get('widgets') && this.get('widgets').length) {
+      return this.get('widgets')[0];
+    } else {
+      return false;
+    }
+  }.property('widgets.@each'),
+
+
+  /**
+   * This function is called from the binded view of the controller
+   */
+  loadPageData: function() {
+    var self = this;
+    this.resetPageData();
+    this.getAllHeatMaps().done(function(allHeatmapData){
+      allHeatmapData.items.forEach(function(_allHeatmapData) {
+        self.get('allHeatmaps').pushObject(_allHeatmapData.WidgetInfo);
+      });
+      var categories = self.categorizeByServiceName(self.get('allHeatmaps'));
+      self.set('heatmapCategories', categories);
+      self.loadActiveWidgetLayout();
+    });
+  },
+
+  /**
+   * categorize heatmaps with respect to service names
+   * @param {Array} allHeatmaps
+   * @return {Array}
+   */
+  categorizeByServiceName: function(allHeatmaps) {
+  var categories = [];
+    allHeatmaps.forEach(function(_heatmap){
+    var serviceNames = JSON.parse(_heatmap.metrics).mapProperty('service_name').uniq();
+      serviceNames.forEach(function(_serviceName){
+        var category = categories.findProperty('serviceName',_serviceName);
+        if (!category) {
+          categories.pushObject(Em.Object.create({
+            serviceName: _serviceName,
+            displayName: _serviceName === 'STACK' ? 'Host' : App.StackService.find().findProperty('serviceName',_serviceName).get('displayName'),
+            heatmaps: [_heatmap]
+          }));
+        } else {
+          category.get('heatmaps').pushObject(_heatmap);
+        }
+      },this);
+    },this);
+    return categories;
+  },
+
+  /**
+   * clears/resets the data. This function should be called every time user navigates to heatmap page
+   */
+  resetPageData: function() {
+    this.get('heatmapCategories').clear();
+    this.get('allHeatmaps').clear();
+  },
+
+  /**
+   * success callback of <code>loadActiveWidgetLayout()</code>
+   * @overrriden
+   * @param {object|null} data
+   */
+  loadActiveWidgetLayoutSuccessCallback: function (data) {
+    if (data.items[0]) {
+      App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
+      App.widgetLayoutMapper.map(data);
+      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('defaultLayoutName')));
+      this.set('isWidgetsLoaded', true);
+    }
+  },
+
+  /**
+   *  Gets all heatmap widgets that should be available in select metrics dropdown on heatmap page
+   * @return {$.ajax}
+   */
+  getAllHeatMaps: function() {
+    var urlParams = this.get('loadHeatmapsUrlParams');
+
+    return App.ajax.send({
+      name: 'widgets.get',
+      sender: this,
+      data: {
+        urlParams: urlParams
+      }
+    });
+  },
+
 
   /**
    * get hosts from server
    */
   loadRacks: function () {
-    this.get('modelRacks').clear();
-    this.get('rackMap').clear();
+    this.get('racks').clear();
+    this.set('rackMap', {});
     var urlParams = this.get('loadRacksUrlParams');
-    App.ajax.send({
+    return App.ajax.send({
       name: 'hosts.heatmaps',
       sender: this,
       data: {
         urlParams: urlParams
-      },
-      success: 'getHostsSuccessCallback'
+      }
     });
   },
 
-  getHostsSuccessCallback: function (data, opt, params) {
+  loadRacksSuccessCallback: function (data, opt, params) {
     var hosts = [];
     data.items.forEach(function (item) {
       hosts.push({
@@ -64,14 +177,14 @@ App.MainChartsHeatmapController = Em.Controller.extend({
       });
     });
     var rackMap = this.indexByRackId(hosts);
-    var modelRacks = this.toList(rackMap);
+    var racks = this.toList(rackMap);
     //this list has an empty host array property
     this.set('rackMap', rackMap);
-    this.set('modelRacks', modelRacks);
+    this.set('racks', racks);
   },
 
   indexByRackId: function (hosts) {
-    var rackMap = [];
+    var rackMap = {};
     hosts.forEach(function (host) {
       var rackId = host.rack;
       if(!rackMap[rackId]) {
@@ -97,7 +210,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
           Em.Object.create({
             name: rackKey,
             rackId: rackKey,
-            hosts: [],
+            hosts: rackMap[rackKey].hosts,
             isLoaded: false,
             index: i++
           })
@@ -106,25 +219,6 @@ App.MainChartsHeatmapController = Em.Controller.extend({
     }
     return racks;
   },
-
-  allMetrics: function () {
-    var metrics = [];
-
-    // Display host heatmaps if the stack definition has a host metrics service to display it.
-    if(App.get('services.hostMetrics').length) {
-      metrics.pushObjects([
-        App.MainChartHeatmapDiskSpaceUsedMetric.create(),
-        App.MainChartHeatmapMemoryUsedMetric.create(),
-        App.MainChartHeatmapCpuWaitIOMetric.create()
-      ]);
-    }
-
-    return metrics;
-  }.property(),
-
-  selectedMetric: null,
-
-  inputMaximum: '',
 
   validation: function () {
     if (this.get('selectedMetric')) {
@@ -140,7 +234,7 @@ App.MainChartsHeatmapController = Em.Controller.extend({
 
   addRackView: function (view) {
     this.get('rackViews').push(view);
-    if (this.get('rackViews').length == this.get('modelRacks').length) {
+    if (this.get('rackViews').length == this.get('racks').length) {
       this.displayAllRacks();
     }
   },
@@ -153,27 +247,16 @@ App.MainChartsHeatmapController = Em.Controller.extend({
   },
 
   showHeatMapMetric: function (event) {
-    var metricItem = event.context;
-    if (metricItem) {
-      this.set('selectedMetric', metricItem);
-    }
+    var self = this;
+    var metricItem = Em.Object.create(event.context);
+    this.saveWidgetLayout([metricItem]).done(function(){
+      self.loadActiveWidgetLayout();
+    });
   },
 
   hostToSlotMap: function () {
     return this.get('selectedMetric.hostToSlotMap');
   }.property('selectedMetric.hostToSlotMap'),
-
-  loadMetrics: function () {
-    var selectedMetric = this.get('selectedMetric');
-    var hostNames = [];
-    if (selectedMetric && this.get('racks').everyProperty('isLoaded', true)) {
-      this.get('racks').forEach(function (rack) {
-        hostNames = hostNames.concat(rack.hosts.mapProperty('hostName'));
-      });
-      selectedMetric.refreshHostSlots(hostNames);
-    }
-    this.set('inputMaximum', this.get('selectedMetric.maximumValue'));
-  }.observes('selectedMetric'),
 
   /**
    * return class name for to be used for containing each rack.

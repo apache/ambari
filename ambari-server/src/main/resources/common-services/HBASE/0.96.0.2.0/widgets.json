@@ -139,7 +139,7 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "ipc.IPC.numOpenConnections",
+              "name": "regionserver.RegionServer.numOpenConnections",
               "metric_path": "metrics/hbase/ipc/IPC/numOpenConnections",
               "category": "",
               "service_name": "HBASE",
@@ -149,7 +149,7 @@
           "values": [
             {
               "name": "Open Connections",
-              "value": "${ipc.IPC.numOpenConnections}"
+              "value": "${regionserver.RegionServer.numOpenConnections}"
             }
           ],
           "properties": {
@@ -165,13 +165,13 @@
           "is_visible": true,
           "metrics": [
             {
-              "name": "ipc.IPC.numActiveHandler",
+              "name": "regionserver.RegionServer.numActiveHandler",
               "metric_path": "metrics/hbase/ipc/IPC/numActiveHandler",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "ipc.IPC.numCallsInGeneralQueue",
+              "name": "regionserver.RegionServer.numCallsInGeneralQueue",
               "metric_path": "metrics/hbase/ipc/IPC/numCallsInGeneralQueue",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
@@ -180,11 +180,11 @@
           "values": [
             {
               "name": "Active Handlers",
-              "value": "${ipc.IPC.numActiveHandler}"
+              "value": "${regionserver.RegionServer.numActiveHandler}"
             },
             {
               "name": "Calls in General Queue",
-              "value": "${ipc.IPC.numCallsInGeneralQueue}"
+              "value": "${regionserver.RegionServer.numCallsInGeneralQueue}"
             }
           ],
           "properties": {

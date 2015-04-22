@@ -7,7 +7,7 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "GC_STATISTICS",
-          "display_name": "Garbage Collection Statistics",
+          "display_name": "GC Statistics",
           "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -287,7 +287,7 @@
           "metrics": [
             {
               "name": "dfs.datanode.BytesWritten",
-              "metric_path": "metrics/dfs/datanode/bytes_read",
+              "metric_path": "metrics/dfs/datanode/bytes_written",
               "service_name": "HDFS",
               "component_name": "DATANODE"
             }

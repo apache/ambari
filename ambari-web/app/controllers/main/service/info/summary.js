@@ -17,7 +17,7 @@
 
 var App = require('app');
 
-App.MainServiceInfoSummaryController = Em.Controller.extend({
+App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMixin, {
   name: 'mainServiceInfoSummaryController',
 
   selectedFlumeAgent: null,
@@ -40,29 +40,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   isPreviousRangerConfigsCallFailed: false,
 
-  /**
-   * UI section name
-   */
-  sectionName: function () {
-    return this.get('content.serviceName') + "_SUMMARY";
-  }.property('content.serviceName'),
+  layoutNameSuffix: "_dashboard",
 
-  /**
-   * UI default layout name
-   */
-  defaultLayoutName: function () {
-    return "default_" + this.get('content.serviceName').toLowerCase() + "_dashboard";
-  }.property('content.serviceName'),
-
-  /**
-   * Does Service has widget descriptor defined in the stack
-   * @type {boolean}
-   */
-  isServiceWithEnhancedWidgets: function () {
-    var serviceName = this.get('content.serviceName');
-    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-    return stackService.get('isServiceWithWidgets') && App.supports.customizedWidgets;
-  }.property('content.serviceName'),
+  sectionNameSuffix: "_SUMMARY",
 
   /**
    * Ranger plugins data
@@ -317,10 +297,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     });
   },
 
-  /**
-   * @type {boolean}
-   */
-  isWidgetsLoaded: false,
 
   /**
    * @type {boolean}
@@ -337,24 +313,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
    */
   isMineWidgetsLoaded: false,
 
-  /**
-   *  @Type {App.WidgetLayout}
-   */
-  activeWidgetLayout: {},
-
-
-  /**
-   * @type {Em.A}
-   */
-  widgets: function () {
-    if (this.get('isWidgetsLoaded')) {
-      if (this.get('activeWidgetLayout.widgets')) {
-        return this.get('activeWidgetLayout.widgets').toArray();
-      } else {
-        return  [];
-      }
-    }
-  }.property('isWidgetsLoaded'),
 
   /**
    * @type {Em.A}
@@ -384,41 +342,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     this.set('isWidgetLayoutsLoaded', true);
   },
 
-  /**
-   * load widgets defined by user
-   * @returns {$.ajax}
-   */
-  loadActiveWidgetLayout: function () {
-    this.set('activeWidgetLayout', {});
-    this.set('isWidgetsLoaded', false);
-    if (this.get('isServiceWithEnhancedWidgets')) {
-      return App.ajax.send({
-        name: 'widget.layout.get',
-        sender: this,
-        data: {
-          layoutName: this.get('defaultLayoutName'),
-          serviceName: this.get('content.serviceName')
-        },
-        success: 'loadActiveWidgetLayoutSuccessCallback'
-      });
-    } else {
-      this.set('isWidgetsLoaded', true);
-    }
-  },
-
-
-  /**
-   * success callback of <code>loadWidgets()</code>
-   * @param {object|null} data
-   */
-  loadActiveWidgetLayoutSuccessCallback: function (data) {
-    if (data.items[0]) {
-      App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
-      App.widgetLayoutMapper.map(data);
-      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('defaultLayoutName')));
-      this.set('isWidgetsLoaded', true);
-    }
-  },
 
   /**
    * load all shared widgets to show on widget browser
@@ -525,7 +448,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     });
     widgetIds.pushObject({
       "id": widgetToAdd.id
-    })
+    });
     var data = {
       "WidgetLayoutInfo": {
         "display_name": activeLayout.get("displayName"),
@@ -642,36 +565,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend({
     var widgetName = widget.widgetName;
     // todo share current widget
 
-  },
-
-  /**
-   * save layout after re-order widgets
-   * return {$.ajax}
-   */
-  saveReorderedLayout: function (widgets) {
-    var activeLayout = this.get('activeWidgetLayout');
-    var data = {
-      "WidgetLayoutInfo": {
-        "display_name": activeLayout.get("displayName"),
-        "id": activeLayout.get("id"),
-        "layout_name": activeLayout.get("layoutName"),
-        "scope": activeLayout.get("scope"),
-        "section_name": activeLayout.get("sectionName"),
-        "widgets": widgets.map(function (widget) {
-          return {
-            "id": widget.get('id')
-          }
-        })
-      }
-    };
-    return App.ajax.send({
-      name: 'widget.layout.edit',
-      sender: this,
-      data: {
-        layoutId: activeLayout.get("id"),
-        data: data
-      }
-    });
   },
 
   /**

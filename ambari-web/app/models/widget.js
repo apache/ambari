@@ -64,6 +64,8 @@ App.Widget = DS.Model.extend({
         return App.NumberWidgetView;
       case 'GAUGE':
         return App.GaugeWidgetView;
+      case 'HEATMAP':
+        return App.HeatmapWidgetView;
       default:
         return Em.View;
     }

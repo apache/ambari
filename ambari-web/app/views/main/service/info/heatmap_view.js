@@ -17,5 +17,7 @@
  */
 var App = require('app');
 App.MainServiceInfoHeatmapView = App.MainChartsHeatmapView.extend({
-  templateName: require('templates/main/charts/heatmap')
+  dropdownView: Em.View.extend({
+    templateName: require('templates/main/service/info/heatmap_dropdown')
+  })
 });

@@ -210,7 +210,7 @@
         },
         {
           "widget_name": "YARN_MEMORY_USED",
-          "display_name": "YARN Memory used %",
+          "display_name": "NodeManager Memory used %",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -230,7 +230,7 @@
           ],
           "values": [
             {
-              "name": "YARN Memory used %",
+              "name": "NodeManager Memory used %",
               "value": "${yarn.NodeManagerMetrics.AllocatedGB/(yarn.NodeManagerMetrics.AvailableGB + yarn.NodeManagerMetrics.AllocatedGB)}"
             }
           ],

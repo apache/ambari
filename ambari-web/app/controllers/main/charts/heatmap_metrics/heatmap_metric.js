@@ -32,7 +32,7 @@ var heatmap = require('utils/heatmap');
  * </ul>
  * 
  */
-App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
+App.MainChartHeatmapMetric = Em.Object.extend({
   /**
    * Name of this metric
    */
@@ -93,11 +93,6 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
    */
   units: '',
 
-  /**
-   * Indicates whether this metric is currently loading data from the server.
-   * {Boolean}
-   */
-  loading: false,
 
   /**
    * Provides following information about slots in an array of objects.
@@ -199,51 +194,6 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
    */
   slotDefinitionLabelSuffix: '',
 
-  defaultMetric: '',
-
-  /**
-   * Name in the <code>App.ajax</code>
-   * @type {String}
-   */
-  ajaxIndex: 'hosts.metrics',
-
-  /**
-   * Additional data for ajax-request
-   * May be redeclared in child-objects
-   * @type {Object}
-   */
-  ajaxData: {},
-
-  /**
-   * Maps server JSON into an object where keys are hostnames and values are the
-   * true metric values. This function by default will map 'defaultMetric' into
-   * its corresponding value.
-   * 
-   * @Function
-   */
-  metricMapper: function (json) {
-    var hostToValueMap = {};
-    var metricName = this.get('defaultMetric');
-    if (json.items) {
-      var props = metricName.split('.');
-      json.items.forEach(function (item) {
-        var value = item;
-        props.forEach(function (prop) {
-          if (value != null && prop in value) {
-            value = value[prop];
-          } else {
-            value = null;
-          }
-        });
-        if (value != null) {
-          var hostName = item.Hosts.host_name;
-          hostToValueMap[hostName] = value;
-        }
-      });
-    }
-    return hostToValueMap;
-  },
-
   hostToValueMap: null,
 
   hostToSlotMap: function () {
@@ -252,7 +202,7 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
     var hostToSlotMap = {};
     if (hostToValueMap && hostNames) {
       hostNames.forEach(function (hostName) {
-        var slot = this.calculateSlot(hostToValueMap, hostName)
+        var slot = this.calculateSlot(hostToValueMap, hostName);
         if (slot > -1) {
           hostToSlotMap[hostName] = slot;
         }
@@ -291,40 +241,6 @@ App.MainChartHeatmapMetric = Em.Object.extend(heatmap.mappers, {
       slot = slotDefs.length - 1;
     }
     return slot;
-  },
-
-  /**
-   * Determines which slot each host falls into. This information is given to
-   * the callback's #map(hostnameToSlotObject) method. The
-   * 'hostnameToSlotObject' has key as hostname, and the slot index as value.
-   */
-  refreshHostSlots: function (hostNames) {
-    this.set('loading', true);
-    this.set('hostNames', hostNames);
-    var fixedMetricName = this.get('defaultMetric');
-    fixedMetricName = fixedMetricName.replace(/\./g, "/");
-    var ajaxData = {
-      metricName: fixedMetricName
-    };
-    jQuery.extend(ajaxData, this.get('ajaxData'));
-
-    App.ajax.send({
-      name: this.get('ajaxIndex'),
-      sender: this,
-      data: ajaxData,
-      success: 'refreshHostSlotsSuccessCallback',
-      error: 'refreshHostSlotsErrorCallback'
-    });
-  },
-
-  refreshHostSlotsSuccessCallback: function (data) {
-    var hostToValueMap = this.metricMapper(data);
-    this.set('hostToValueMap', hostToValueMap);
-    this.set('loading', false);
-  },
-
-  refreshHostSlotsErrorCallback: function () {
-    this.set('loading', false);
   },
 
   /**

@@ -19,59 +19,35 @@
 <div class="heatmap">
 
   <div class="container-fluid">
-	  <div class="row-fluid">
-	    <div class="span2 legend-column">
-		     <div class="btn-group" id="select-metric-btn-group">
-				  <button class="btn heatmap-select-metric-btn">{{t charts.heatmap.selectMetric}}</button>
-				  <button class="btn dropdown-toggle heatmap-toggle-metrics-btn" data-toggle="dropdown">
-				    <span class="caret"></span>
-				  </button>
-				  <ul class="dropdown-menu">
-				    {{#each metric in controller.allMetrics}}
-							<li class="heatmap-metrics-dropdown-links">
-                <a tabindex="-1" {{action showHeatMapMetric metric target="controller"}}>{{metric.name}}</a>
-							</li>
-            {{/each}}
-				  </ul>
-				</div>
-        {{#if controller.selectedMetric}}
-					<table class="legend">
-					  {{#each slot in controller.selectedMetric.slotDefinitions}}
-					    <tr>
-					      <td>
-					        <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
-					      </td>
-					      <td>{{slot.label}}</td>
-					    </tr>
-					  {{/each}}
-					</table>
-	        {{t common.maximum}}:
-	        <div id="inputMaximum" class="control-group">
-	          {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="span6"}}
-	          {{controller.selectedMetric.units}}
-	        </div>
-        {{/if}}
-	    </div>
-	    <div class="span10 heatmap-content">
-	      <h4 id="heatmap-metric-loading">
-	        <span id="heatmap-metric-title">
-						{{controller.selectedMetric.name}} &nbsp;
-						{{#if controller.selectedMetric.loading}}
-              <i class='icon-spinner icon-spin icon-small'></i>
-						{{/if}}
-					</span>
-	      </h4>
-	      <div class="row-fluid">
+    <div class="row-fluid">
+      <div class="span2 legend-column">
 
-				  {{#each rack in controller.racks}}
-				    <div {{bindAttr class="controller.rackClass"}}>
-				      {{view App.MainChartsHeatmapRackView rackBinding="rack" }}
-				    </div>
-				  {{/each}}
-			  </div>
-			  {{view App.MainChartsHeatmapHostDetailView}}
-	    </div>
-	  </div>
+        {{view view.dropdownView}}
+
+        {{#if controller.selectedMetric}}
+          <table class="legend">
+            {{#each slot in controller.selectedMetric.slotDefinitions}}
+              <tr>
+                <td>
+                  <div class="tile" {{bindAttr style="slot.cssStyle"}}></div>
+                </td>
+                <td>{{slot.label}}</td>
+              </tr>
+            {{/each}}
+          </table>
+          {{t common.maximum}}:
+          <div id="inputMaximum" class="control-group">
+            {{view Ember.TextField type="text" maxlength="8" valueBinding="controller.inputMaximum" class="span6"}}
+            {{controller.selectedMetric.units}}
+          </div>
+        {{/if}}
+      </div>
+      {{#if controller.activeWidget}}
+        <div class="active-widget" {{bindAttr id="activeWidget.id"}}>
+          {{view activeWidget.viewClass contentBinding="activeWidget" racksBinding = "racks" idBinding="activeWidget.id"}}
+        </div>
+      {{/if}}
+    </div>
   </div>
 
 </div>

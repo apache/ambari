@@ -76,6 +76,7 @@ require('views/common/widget/graph_widget_view');
 require('views/common/widget/template_widget_view');
 require('views/common/widget/gauge_widget_view');
 require('views/common/widget/number_widget_view');
+require('views/common/widget/heatmap_widget_view');
 require('views/common/assign_master_components_view');
 require('views/login');
 require('views/main');

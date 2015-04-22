@@ -17,36 +17,5 @@
  */
 var App = require('app');
 App.MainServiceInfoHeatmapController = App.MainChartsHeatmapController.extend({
-  name: 'mainServiceInfoHeatmapController',
-  allMetrics: function () {
-    var metrics = [];
-    var serviceName = this.get('content.serviceName');
-    switch (serviceName) {
-      case 'HDFS':
-        metrics.pushObjects([
-          App.MainChartHeatmapDFSBytesReadMetric.create(),
-          App.MainChartHeatmapDFSBytesWrittenMetric.create(),
-          App.MainChartHeatmapDFSGCTimeMillisMetric.create(),
-          App.MainChartHeatmapDFSMemHeapUsedMetric.create()
-        ]);
-        break;
-      case 'YARN':
-        metrics.pushObjects([
-          App.MainChartHeatmapYarnGCTimeMillisMetric.create(),
-          App.MainChartHeatmapYarnMemHeapUsedMetric.create(),
-          App.MainChartHeatmapYarnResourceUsedMetric.create()
-        ]);
-        break;
-      case 'HBASE':
-        metrics.pushObjects([
-          App.MainChartHeatmapHbaseReadReqCount.create(),
-          App.MainChartHeatmapHbaseWriteReqCount.create(),
-          App.MainChartHeatmapHbaseCompactionQueueSize.create(),
-          App.MainChartHeatmapHbaseRegions.create(),
-          App.MainChartHeatmapHbaseMemStoreSize.create()
-        ]);
-        break;
-    }
-    return metrics;
-  }.property('content.serviceName')
+  name: 'mainServiceInfoHeatmapController'
 });
