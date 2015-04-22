@@ -56,6 +56,7 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
 
   chooseOption: function (event) {
     this.set('widgetType', event.context);
+    this.next();
   },
 
   loadStep: function () {
@@ -67,9 +68,7 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
   },
 
   next: function () {
-    if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
-    }
+    App.router.send('next');
   }
 });
 
