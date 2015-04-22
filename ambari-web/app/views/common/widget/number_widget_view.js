@@ -41,7 +41,7 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
     var warningThreshold = parseFloat(this.get('content.properties.warning_threshold'));
     var errorThreshold = parseFloat(this.get('content.properties.error_threshold'));
 
-    if (value <= warningThreshold) {
+    if (isNaN(warningThreshold) || isNaN(errorThreshold) || value <= warningThreshold) {
       return 'green';
     } else if (value <= errorThreshold) {
       return 'orange';

@@ -75,29 +75,6 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    */
   widgetPropertiesViews: [],
 
-  propertiesMap: {
-    "warning_threshold": {
-      name: 'threshold',
-      property: 'smallValue'
-    },
-    "error_threshold": {
-      name: 'threshold',
-      property: 'bigValue'
-    },
-    "display_unit": {
-      name: 'display-unit',
-      property: 'value'
-    },
-    "graph_type": {
-      name: 'graph_type',
-      property: 'value'
-    },
-    "time_range": {
-      name: 'time_range',
-      property: 'value'
-    }
-  },
-
   /**
    * metrics filtered by type
    * @type {Array}
@@ -338,16 +315,13 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * update properties of preview widget
    */
   updateProperties: function () {
-    var propertiesMap = this.get('propertiesMap');
     var result = {};
-    var widgetProperty;
 
-    for (var i in propertiesMap) {
-      widgetProperty = this.get('widgetPropertiesViews').findProperty('name', propertiesMap[i].name);
-      if (widgetProperty && widgetProperty.get('isValid')) {
-        result[i] = widgetProperty.get(propertiesMap[i].property);
+    this.get('widgetPropertiesViews').forEach(function(property){
+      for (var key in property.valueMap) {
+        result[property.valueMap[key]] = property.get(key);
       }
-    }
+    });
     this.set('widgetProperties', result);
   }.observes('widgetPropertiesViews.@each.value', 'widgetPropertiesViews.@each.bigValue', 'widgetPropertiesViews.@each.smallValue'),
 
@@ -355,97 +329,24 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * Generate the thresholds, unit, time range.etc object based on the widget type selected in previous step.
    */
   renderProperties: function () {
-    var widgetType = this.get('content.widgetType');
-    var widgetProperties = App.WidgetType.find().findProperty('name', widgetType).get('properties');
-    var properties = [];
+    var widgetProperties = App.WidgetType.find(this.get('content.widgetType')).get('properties');
+    var propertiesData = this.get('widgetProperties');
+    var result = [];
 
-    switch (widgetType) {
-      case 'GAUGE':
-        properties = this.renderGaugeProperties(widgetProperties);
-        break;
-      case 'NUMBER':
-        properties = this.renderNumberProperties(widgetProperties);
-        break;
-      case 'GRAPH':
-        properties = this.renderGraphProperties(widgetProperties);
-        break;
-      case 'TEMPLATE':
-        properties = this.renderTemplateProperties(widgetProperties);
-        break;
-      default:
-        console.error('Incorrect Widget Type: ', widgetType);
-    }
-    this.set('widgetPropertiesViews', properties);
-  },
+    widgetProperties.forEach(function (property) {
+      var definition = App.WidgetPropertyTypes.findProperty('name', property.name);
+      property = $.extend({}, property);
 
-  /**
-   * Render properties for gauge-type widget
-   * @method renderGaugeProperties
-   * @returns {App.WidgetProperties[]}
-   */
-  renderGaugeProperties: function () {
-    return [
-      App.WidgetProperties.Thresholds.PercentageThreshold.create({
-        smallValue: this.get('widgetProperties.warning_threshold') || '0.7',
-        bigValue: this.get('widgetProperties.error_threshold') || '0.9',
-        isRequired: true
-      })
-    ];
-  },
+      //restore previous values
+      for (var key in definition.valueMap) {
+        if (propertiesData[definition.valueMap[key]]) {
+          property[key] = propertiesData[definition.valueMap[key]];
+        }
+      }
+      result.pushObject(App.WidgetProperty.create($.extend(definition, property)));
+    });
 
-  /**
-   * Render properties for number-type widget
-   * @method renderNumberProperties
-   * @returns {App.WidgetProperties[]}
-   */
-  renderNumberProperties: function () {
-    return [
-      App.WidgetProperties.Threshold.create({
-        smallValue: this.get('widgetProperties.warning_threshold') || '10',
-        bigValue: this.get('widgetProperties.error_threshold') || '20',
-        isRequired: false
-      }),
-      App.WidgetProperties.Unit.create({
-        value: this.get('widgetProperties.display_unit') || 'MB',
-        isRequired: false
-      })
-    ];
-  },
-
-  /**
-   * Render properties for template-type widget
-   * @method renderTemplateProperties
-   * @returns {App.WidgetProperties[]}
-   */
-  renderTemplateProperties: function (widgetProperties) {
-    return [
-      App.WidgetProperties.Unit.create({
-        value: this.get('widgetProperties.display_unit') || 'MB',
-        isRequired: false
-      })
-    ];
-  },
-
-  /**
-   * Render properties for graph-type widget
-   * @method renderGraphProperties
-   * @returns {App.WidgetProperties[]}
-   */
-  renderGraphProperties: function (widgetProperties) {
-    return [
-      App.WidgetProperties.GraphType.create({
-        value: this.get('widgetProperties.graph_type') || 'LINE',
-        isRequired: true
-      }),
-      App.WidgetProperties.TimeRange.create({
-        value: this.get('widgetProperties.time_range') || 'Last 1 hour',
-        isRequired: true
-      }),
-      App.WidgetProperties.Unit.create({
-        value: this.get('widgetProperties.display_unit') || 'MB',
-        isRequired: false
-      })
-    ];
+    this.set('widgetPropertiesViews', result);
   },
 
   /**

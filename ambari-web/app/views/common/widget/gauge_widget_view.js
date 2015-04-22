@@ -33,11 +33,21 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   metrics: [],
 
   chartView: App.ChartPieView.extend({
-    stroke: '#D6DDDF', //light grey
+    stroke: '#D6DDDF',
     innerR: 25,
 
+    /**
+     * since chart widget using percentage values factor equal 100
+     * @type {number}
+     * @const
+     */
     FACTOR: 100,
 
+    /**
+     * 100 - is maximum percentage value
+     * @type {number}
+     * @const
+     */
     MAX_VALUE: 100,
 
     warningThreshold: function(){
@@ -74,7 +84,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
       var color_green = App.healthStatusGreen;
       var color_red = App.healthStatusRed;
       var color_orange = App.healthStatusOrange;
-      if (used <= thresh1) {
+      if (isNaN(thresh1) || isNaN(thresh2) || used <= thresh1) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_green  ].reverse()
         }));

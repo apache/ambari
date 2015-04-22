@@ -83,79 +83,76 @@ App.WidgetType = DS.Model.extend({
 
 App.WidgetType.FIXTURES = [
   {
-    id: 1,
+    id: 'GAUGE',
     name: 'GAUGE',
     icon_path: '/img/widget-gauge.png',
     display_name: 'Gauge',
     description: Em.I18n.t('widget.type.gauge.description'),
     properties: [
       {
-        property_name : 'warning_threshold',
-        isRequired: true   // This field is used to distinguish required properties from optional. This can be used for imposing client side validation
-      },
-      {
-        property_name : 'error_threshold',
-        isRequired: true
+        name : 'threshold',
+        isRequired: true,
+        smallValue: '0.7',
+        bigValue: '0.9'
       }
     ]
   },
   {
-    id: 2,
+    id: 'NUMBER',
     name: 'NUMBER',
     icon_path: '/img/widget-number.png',
     display_name: 'Number',
     description: Em.I18n.t('widget.type.number.description'),
     properties: [
       {
-        property_name : 'warning_threshold',
-        display_name: 'warning',
-        isRequired: false
+        name : 'threshold',
+        isRequired: false,
+        smallValue: '10',
+        bigValue: '20',
+        MAX_VALUE: Infinity
       },
       {
-        property_name : 'error_threshold',
-        display_name: 'critical',
-        isRequired: false
-      },
-      {
-        property_name : 'display_unit',
-        display_name: 'unit',
-        isRequired: false
+        name : 'display_unit',
+        isRequired: false,
+        value: 'MB'
       }
     ]
   },
   {
-    id: 3,
+    id: 'GRAPH',
     name: 'GRAPH',
     display_name: 'Graph',
     icon_path: '/img/widget-graph.png',
     description: Em.I18n.t('widget.type.graph.description'),
     properties: [
       {
-        property_name : 'graph_type',
-        isRequired: true
+        name : 'graph_type',
+        isRequired: true,
+        value: 'LINE'
       },
       {
-        property_name : 'time_range',
-        isRequired: true
+        name : 'time_range',
+        isRequired: true,
+        value: 'Last 1 hour'
       },
       {
-        property_name : 'display_unit',
-        display_name: 'unit',
-        isRequired: false
+        name : 'display_unit',
+        isRequired: false,
+        value: 'MB'
       }
     ]
   },
   {
-    id: 4,
+    id: 'TEMPLATE',
     name: 'TEMPLATE',
     icon_path: '/img/widget-template.png',
     display_name: 'Template',
     description: Em.I18n.t('widget.type.template.description'),
     properties: [
       {
-        property_name : 'display_unit',
-        display_name: 'unit',
-        isRequired: false
+        name : 'display_unit',
+        isRequired: false,
+        value: 'MB'
       }
     ]
   }

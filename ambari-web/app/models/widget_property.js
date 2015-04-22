@@ -89,38 +89,54 @@ App.WidgetProperty = Ember.Object.extend({
   isRequired: true
 });
 
-App.WidgetProperties = {
+App.WidgetPropertyTypes = [
 
-  Unit: App.WidgetProperty.extend({
-    name: 'display-unit',
+  {
+    name: 'display_unit',
     label: 'Unit',
     displayType: 'textField',
     classNames: 'widget-property-unit',
     isValid: function () {
       return this.get('isRequired') ? this.get('value') : true;
-    }.property('value')
-  }),
+    }.property('value'),
+    valueMap: {
+     "value": "display_unit"
+    }
+  },
 
-  GraphType: App.WidgetProperty.extend({
+  {
     name: 'graph_type',
     label: 'Graph Type',
     displayType: 'select',
-    options: ["LINE", "STACK"]
-  }),
+    options: ["LINE", "STACK"],
+    valueMap: {
+      "value": "graph_type"
+    }
+  },
 
-  TimeRange: App.WidgetProperty.extend({
+  {
     name: 'time_range',
     label: 'Time Range',
     displayType: 'select',
     options: ["Last 1 hour", "Last 2 hours", "Last 4 hours", "Last 12 hours", "Last 24 hours",
-    "Last 1 week", "Last 1 month", "Last 1 year"]
-  }),
+      "Last 1 week", "Last 1 month", "Last 1 year"],
+    valueMap: {
+      "value": "time_range"
+    }
+  },
 
-
-  Threshold: App.WidgetProperty.extend({
-
+  {
     name: 'threshold',
     label: 'Thresholds',
+
+    MIN_VALUE: 0,
+
+    MAX_VALUE: 1,
+
+    valueMap: {
+      "smallValue": "warning_threshold",
+      "bigValue": "error_threshold"
+    },
 
     /**
      * threshold-value
@@ -136,25 +152,12 @@ App.WidgetProperties = {
 
     classNames: 'widget-property-threshold',
 
-    apiProperty: [],
-
-    init: function () {
-      this._super();
-    },
-
     /**
      * Check if <code>smallValue</code> is valid float number
      * @return {boolean}
      */
     isSmallValueValid: function () {
-      var value = this.get('smallValue');
-      if (!this.get('isRequired') && !this.get('smallValue') && !this.get('bigValue')) {
-        return true;
-      } else if (!this.get('smallValue')) {
-        return false;
-      }
-      value = ('' + value).trim();
-      return validator.isValidFloat(value) && value > 0;
+      return this.validate(this.get('smallValue'));
     }.property('smallValue', 'bigValue'),
 
     /**
@@ -162,15 +165,23 @@ App.WidgetProperties = {
      * @return {boolean}
      */
     isBigValueValid: function () {
-      var value = this.get('bigValue');
+      return this.validate(this.get('bigValue'));
+    }.property('bigValue', 'smallValue'),
+
+    /**
+     * validate
+     * @param {string} value
+     * @returns {boolean}
+     */
+    validate: function (value) {
       if (!this.get('isRequired') && !this.get('smallValue') && !this.get('bigValue')) {
         return true;
-      } else if (!this.get('bigValue')) {
+      } else if (!value) {
         return false;
       }
       value = ('' + value).trim();
-      return validator.isValidFloat(value) && value > 0;
-    }.property('bigValue', 'smallValue'),
+      return validator.isValidFloat(value) && value > this.get('MIN_VALUE') && value <= this.get('MAX_VALUE');
+    },
 
     thresholdError: function () {
       if (this.get('isSmallValueValid') && this.get('isBigValueValid')) {
@@ -191,43 +202,5 @@ App.WidgetProperties = {
     errorMsg: function () {
       return this.get('thresholdError') ? "Threshold 1 should be smaller than threshold 2" : null;
     }.property('thresholdError')
-
-  })
-};
-
-App.WidgetProperties.Thresholds = {
-
-  PercentageThreshold: App.WidgetProperties.Threshold.extend({
-
-    /**
-     * Check if <code>smallValue</code> is valid float number
-     * @return {boolean}
-     */
-    isSmallValueValid: function () {
-      var value = this.get('smallValue');
-      if (!this.get('isRequired') && !this.get('smallValue') && !this.get('bigValue')) {
-        return true;
-      } else if (!this.get('smallValue')) {
-        return false;
-      }
-      value = ('' + value).trim();
-      return validator.isValidFloat(value) && value > 0 && value <=1;
-    }.property('smallValue', 'bigValue'),
-
-    /**
-     * Check if <code>bigValue</code> is valid float number
-     * @return {boolean}
-     */
-    isBigValueValid: function () {
-      var value = this.get('bigValue');
-      if (!this.get('isRequired') && !this.get('smallValue') && !this.get('bigValue')) {
-        return true;
-      } else if (!this.get('bigValue')) {
-        return false;
-      }
-      value = ('' + value).trim();
-      return validator.isValidFloat(value) && value > 0 && value <= 1;
-    }.property('bigValue', 'smallValue')
-
-  })
-};
+  }
+];
