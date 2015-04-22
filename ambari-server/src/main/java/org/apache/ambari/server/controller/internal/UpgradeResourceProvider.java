@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOOKS_FOLDER;
-import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_PACKAGE_FOLDER;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
@@ -417,7 +416,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     }
 
     Cluster cluster = getManagementController().getClusters().getCluster(clusterName);
-    StackId stack = cluster.getDesiredStackVersion();
+
+    // !!! find upgrade packs based on current stack.  This is where to upgrade from.
+    StackId stack = cluster.getCurrentStackVersion();
 
     String repoVersion = version;
 
@@ -428,14 +429,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     RepositoryVersionEntity versionEntity = s_repoVersionDAO.findMaxByVersion(repoVersion);
 
     if (null == versionEntity) {
-      throw new AmbariException(String.format("Version %s for stack %s was not found",
-          repoVersion, stack.getStackVersion()));
+      throw new AmbariException(String.format("Repository version %s was not found",
+          repoVersion));
     }
 
     Map<String, UpgradePack> packs = s_metaProvider.get().getUpgradePacks(
-        versionEntity.getStackName(), versionEntity.getStackVersion());
+        stack.getStackName(), stack.getStackVersion());
 
     UpgradePack up = packs.get(versionEntity.getUpgradePackage());
+
+    if (null == up) {
+      // !!! in case there is an upgrade pack that doesn't match the name
+      String repoStackId = versionEntity.getStackId().getStackId();
+      for (UpgradePack upgradePack : packs.values()) {
+        if (null != upgradePack.getTargetStack() &&
+            upgradePack.getTargetStack().equals(repoStackId)) {
+          up = upgradePack;
+          break;
+        }
+      }
+    }
+
 
     if (null == up) {
       throw new AmbariException(String.format(

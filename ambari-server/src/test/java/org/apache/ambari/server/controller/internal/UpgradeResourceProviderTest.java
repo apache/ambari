@@ -620,19 +620,6 @@ public class UpgradeResourceProviderTest {
   public void testCreateCrossStackUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
 
-    // add a single ZK server
-//    Service service = cluster.addService("HDFS");
-//    service.setDesiredStackVersion(cluster.getDesiredStackVersion());
-//    service.persist();
-//
-//    ServiceComponent component = service.addServiceComponent("NAMENODE");
-//    ServiceComponentHost sch = component.addServiceComponentHost("h1");
-//    sch.setVersion("2.2.2.1");
-//
-//    component = service.addServiceComponent("HDFS_CLIENT");
-//    sch = component.addServiceComponentHost("h1");
-//    sch.setVersion("2.2.2.1");
-
     Config config = new ConfigImpl("zoo.cfg");
     config.setProperties(new HashMap<String, String>() {{
       put("a", "b");
@@ -657,8 +644,15 @@ public class UpgradeResourceProviderTest {
 
     UpgradeEntity upgrade = upgrades.get(0);
     assertEquals(3, upgrade.getUpgradeGroups().size());
+
     UpgradeGroupEntity group = upgrade.getUpgradeGroups().get(2);
     assertEquals(2, group.getItems().size());
+
+    group = upgrade.getUpgradeGroups().get(0);
+    assertEquals(2, group.getItems().size());
+    UpgradeItemEntity item = group.getItems().get(1);
+    assertEquals("Value is set for the source stack upgrade pack",
+        "Foo", item.getText());
 
     assertTrue(cluster.getDesiredConfigs().containsKey("zoo.cfg"));
   }

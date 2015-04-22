@@ -37,7 +37,7 @@
       </execute-stage>
       <execute-stage title="Confirm 2">
         <task xsi:type="manual">
-          <message>Foo</message>
+          <message>Goo</message>
         </task>
       </execute-stage>
     </group>
