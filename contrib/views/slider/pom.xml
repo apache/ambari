@@ -121,6 +121,11 @@
       <artifactId>jersey-server</artifactId>
       <version>${jersey.version}</version>
     </dependency>
+    <dependency>
+      <groupId>commons-io</groupId>
+      <artifactId>commons-io</artifactId>
+      <version>${commons-io.version}</version>
+    </dependency>
   </dependencies>
 
   <properties>
@@ -136,6 +141,7 @@
     <guice.version>3.0</guice.version>
     <jackson.version>1.9.13</jackson.version>
     <jersey.version>1.9</jersey.version>
+    <commons-io.version>2.4</commons-io.version>
   </properties>
 
   <build>
