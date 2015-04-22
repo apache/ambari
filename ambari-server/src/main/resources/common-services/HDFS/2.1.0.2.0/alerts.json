@@ -432,6 +432,34 @@
         }
       }
     ],
+    "NFS_GATEWAY": [
+      {
+        "name": "nfsgateway_process",
+        "label": "NFS Gateway Process",
+        "description": "This host-level alert is triggered if the NFS Gateway process cannot be confirmed to be up and listening on the network.",
+        "interval": 1,
+        "scope": "HOST",
+        "enabled": true,
+        "source": {
+          "type": "PORT",
+          "uri": "{{hdfs-site/nfs.server.port}}",
+          "default_port": 2049,
+          "reporting": {
+            "ok": {
+              "text": "TCP OK - {0:.3f}s response on port {1}"
+            },
+            "warning": {
+              "text": "TCP OK - {0:.3f}s response on port {1}",
+              "value": 1.5
+            },
+            "critical": {
+              "text": "Connection failed: {0} to {1}:{2}",
+              "value": 5.0
+            }
+          }
+        }
+      }
+    ],
     "JOURNALNODE": [
       {
         "name": "journalnode_process",
