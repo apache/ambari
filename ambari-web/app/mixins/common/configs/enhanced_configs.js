@@ -399,7 +399,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
           var isNewProperty = (!notDefaultGroup && Em.isNone(cp)) || (notDefaultGroup && group && Em.isNone(override));
 
-          if (!updateOnlyBoundaries && group && !parentPropertiesNames.contains(propertyName) && defaultValue != recommendedValue) { //on first initial request we don't need to change values
+          if (!updateOnlyBoundaries && !parentPropertiesNames.contains(propertyName) && defaultValue != recommendedValue) { //on first initial request we don't need to change values
             if (dependentProperty) {
               Em.set(dependentProperty, 'value', defaultValue);
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
@@ -488,7 +488,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 self.get('_dependentConfigValues').pushObject({
                   saveRecommended: true,
                   saveRecommendedDefault: true,
-                  propertyValue: cp.get('defaultValue'),
+                  propertyValue: cp && cp.get('defaultValue'),
                   toDelete: true,
                   toAdd: false,
                   isDeleted: true,
@@ -554,9 +554,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             serviceName: stepConfigs.get('serviceName'),
             filename: App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')),
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
-            isRequired: false,
-            group: selectedGroup.get('isDefault') ? null : selectedGroup,
-            isOverridable: selectedGroup.get('isDefault')
+            isRequired: false
           }));
         } else {
           var cp = stepConfigs.get('configs').filterProperty('name', Em.get(propertyToAdd, 'propertyName')).findProperty('filename', App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')));
