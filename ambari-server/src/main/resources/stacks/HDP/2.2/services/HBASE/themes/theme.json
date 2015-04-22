@@ -16,7 +16,7 @@
                 "sections": [
                   {
                     "name": "section-hbase-memory",
-                    "display-name": "Memory",
+                    "display-name": "Server",
                     "row-index": "0",
                     "column-index": "0",
                     "row-span": "1",
@@ -132,7 +132,7 @@
                   },
                   {
                     "name": "section-hbase-phoenix",
-                    "display-name": "Phoenix",
+                    "display-name": "Phoenix SQL",
                     "row-index": "2",
                     "column-index": "2",
                     "row-span": "1",
@@ -173,7 +173,7 @@
         },
         {
           "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
-          "subsection-name": "subsection-hbase-memory-col2"
+          "subsection-name": "subsection-hbase-memory-col1"
         },
         {
           "config": "hbase-site/hbase.hregion.memstore.flush.size",
@@ -185,11 +185,7 @@
         },
         {
           "config": "hbase-site/hbase.regionserver.handler.count",
-          "subsection-name": "subsection-hbase-client-col1"
-        },
-        {
-          "config": "hbase-site/hbase.client.scanner.caching",
-          "subsection-name": "subsection-hbase-client-col1"
+          "subsection-name": "subsection-hbase-memory-col2"
         },
         {
           "config": "hbase-site/hbase.client.retries.number",
@@ -301,17 +297,6 @@
       },
       {
         "config":"hbase-site/hbase.regionserver.handler.count",
-        "widget":{
-          "type":"slider",
-          "units":[
-            {
-              "unit-name":"int"
-            }
-          ]
-        }
-      },
-      {
-        "config":"hbase-site/hbase.client.scanner.caching",
         "widget":{
           "type":"slider",
           "units":[

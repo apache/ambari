@@ -89,6 +89,7 @@
       <type>float</type>
       <minimum>0</minimum>
       <maximum>0.8</maximum>
+      <increment-step>0.01</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -188,7 +189,7 @@
   </property>
   <property>
     <name>hbase.hregion.max.filesize</name>
-    <value>1073741824</value>
+    <value>10737418240</value>
     <description>
     Maximum HStoreFile size. If any one of a column families' HStoreFiles has
     grown to exceed this value, the hosting HRegion is split in two.
@@ -198,9 +199,9 @@
     <value-attributes>
       <type>int</type>
       <minimum>1073741824</minimum>
-      <maximum>10737418240</maximum>
+      <maximum>107374182400</maximum>
       <unit>B</unit>
-      <increment-step>268435456</increment-step>
+      <increment-step>1073741824</increment-step>
     </value-attributes>
   </property>
   <property>
@@ -268,7 +269,7 @@
     is run to rewrite all HStoreFiles files as one.  Larger numbers
     put off compaction but when it runs, it takes longer to complete.
     </description>
-    <display-name>Maximum Files in a Store before Compaction</display-name>
+    <display-name>Maximum Store Files before Minor Compaction</display-name>
     <value-attributes>
       <type>int</type>
       <entries>
@@ -315,6 +316,7 @@
       <type>float</type>
       <minimum>0</minimum>
       <maximum>0.8</maximum>
+      <increment-step>0.01</increment-step>
     </value-attributes>
   </property>
 
@@ -456,15 +458,15 @@
   </property>
   <property>
     <name>hbase.rpc.timeout</name>
-    <value>60000</value>
+    <value>90000</value>
     <description>This is for the RPC layer to define how long HBase client applications
         take for a remote call to time out. It uses pings to check connections
         but will eventually throw a TimeoutException.</description>
-    <display-name>HBase RPC Timeout</display-name>
+    <display-name>RPC Timeout</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>30000</minimum>
-      <maximum>300000</maximum>
+      <minimum>10000</minimum>
+      <maximum>180000</maximum>
       <unit>milliseconds</unit>
       <increment-step>10000</increment-step>
     </value-attributes>
@@ -482,7 +484,7 @@
     <value-attributes>
       <type>int</type>
       <minimum>30000</minimum>
-      <maximum>300000</maximum>
+      <maximum>180000</maximum>
       <unit>milliseconds</unit>
       <increment-step>10000</increment-step>
     </value-attributes>

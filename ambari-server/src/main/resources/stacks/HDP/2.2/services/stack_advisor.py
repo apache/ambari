@@ -100,6 +100,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
     putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
 
+    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
+    putHdfsEnvProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
+    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+
     nn_max_heapsize=None
     if (namenodeHosts is not None and len(namenodeHosts) > 0):
       if len(namenodeHosts) > 1:
@@ -109,10 +113,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
       putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', nn_max_heapsize)
 
-    #Old fallback values
-    putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
-    putHdfsEnvProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
-    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
+      nn_heapsize = nn_max_heapsize
+      nn_heapsize -= clusterData["reservedRam"]
+      if clusterData["hBaseInstalled"]:
+        nn_heapsize -= clusterData["hbaseRam"]
+      putHdfsEnvProperty('namenode_heapsize', max(int(nn_heapsize / 2), 1024))
+      putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
+      putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 256))
 
     datanodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
     if datanodeHosts is not None and len(datanodeHosts) > 0:
@@ -154,7 +161,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       nn_memory_config = nn_memory_configs[index]
 
       #override with new values if applicable
-      if nn_max_heapsize is not None and nn_max_heapsize <= nn_memory_config['nn_heap']:
+      if nn_max_heapsize is not None and nn_memory_config['nn_heap'] <= nn_max_heapsize:
         putHdfsEnvProperty('namenode_heapsize', nn_memory_config['nn_heap'])
         putHdfsEnvProperty('namenode_opt_newsize', nn_memory_config['nn_opt'])
         putHdfsEnvProperty('namenode_opt_maxnewsize', nn_memory_config['nn_opt'])

@@ -60,7 +60,7 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
     <name>phoenix_sql_enabled</name>
     <value>false</value>
     <description>Enable Phoenix SQL</description>
-    <display-name>Phoenix SQL</display-name>
+    <display-name>Enable Phoenix</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>

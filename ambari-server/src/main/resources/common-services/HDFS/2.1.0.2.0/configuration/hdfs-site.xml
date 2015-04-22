@@ -180,11 +180,11 @@
       <entries>
         <entry>
           <value>0.99</value>
-          <label>NN HA</label>
+          <label>0.99f</label>
         </entry>
         <entry>
           <value>1.0</value>
-          <label>No NN HA</label>
+          <label>1.0f</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
