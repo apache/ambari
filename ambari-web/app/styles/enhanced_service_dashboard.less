@@ -431,98 +431,109 @@
   }
 }
 
-#widget-browser-popup {
-  min-width: 750px;
-  max-width: 900px;
-  #shared-mine-tabs {
-    a {
-      font-size: 15px;
+.sixty-percent-width-modal.widgets-browser-popup {
+  .modal {
+    max-height: 703px;
+    .modal-body {
+      max-height: 543px;
     }
   }
-  #services-filter-bar {
-    padding: 0px 10px 10px 10px;
-    a {
-      font-size: 14px;
-      padding: 5px 3px;
-      line-height: 30px;
-    }
-    a:hover {
-      cursor: pointer;
-    }
-    a.active {
-      color: #555555;
-      border: 1px #ddd solid;
-      border-bottom-style: none;
-    }
-    a.active:hover {
-      text-decoration: none;
-      cursor: default;
-    }
-  }
-  #widgets-info {
-    .widgets-info-container {
-      .span6.widget-info-section {
-        width: 44%;
-        height: 122px;
-        margin: 5px 15px;
-        padding-top: 10px;
-        padding-left: 5px;
+  
+  #widget-browser-popup {
+    min-width: 750px;
+    max-width: 900px;
+    #shared-mine-tabs {
+      a {
+        font-size: 15px;
       }
-      .span6.widget-info-section:hover {
-        background-color: #eee;
-        .icon {
-          background-color: white;
+    }
+    #services-filter-bar {
+      padding: 0px 10px 10px 10px;
+      a {
+        font-size: 14px;
+        padding: 5px 3px;
+        line-height: 30px;
+      }
+      a:hover {
+        cursor: pointer;
+      }
+      a.active {
+        color: #555555;
+        border: 1px #ddd solid;
+        border-bottom-style: none;
+      }
+      a.active:hover {
+        text-decoration: none;
+        cursor: default;
+      }
+    }
+    #widgets-info {
+      .widgets-info-container {
+        .span6.widget-info-section {
+          width: 44%;
+          height: 122px;
+          margin: 5px 15px;
+          padding-top: 10px;
+          padding-left: 5px;
         }
-      }
-      .icon {
-        border: 1px solid #ddd;
-        .widget-icon-image {
-          img {
+        .span6.widget-info-section:hover {
+          background-color: #eee;
+          .icon {
+            background-color: white;
+          }
+        }
+        .icon {
+          border: 1px solid #ddd;
+          .widget-icon-image {
+            img {
+              display: block;
+              margin: 5px auto;
+            }
+          }
+        }
+        .label-description {
+          padding-top: 5px;
+          .label-text {
             display: block;
-            margin: 5px auto;
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 1px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+          .description-text {
+            font-size: 12px;
+            display: block;
+            color: #808080;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            height: 60px;
+          }
+        }
+        .widget-section-actions {
+          position: relative;
+          top: -30px;
+          right: 5px;
+          .btn {
+            padding: 3px 8px;
+            width: 60px;
+          }
+          .added-btn {
+            margin-left: 63px;;
+          }
+          .dropdown-menu {
+            min-width: 110px;
+            left: 0px;
           }
         }
       }
-      .label-description {
-        padding-top: 5px;
-        .label-text {
-          display: block;
-          font-size: 14px;
-          font-weight: bold;
-          margin-bottom: 1px;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-        }
-        .description-text {
-          font-size: 12px;
-          display: block;
-          color: #808080;
-          overflow: hidden;
-          text-overflow: ellipsis;
-          height: 60px;
-        }
+      .no-widgets-text {
+        padding-left: 20px;
+        color: #808080;
       }
-      .widget-section-actions {
-        position: relative;
-        top: -30px;
-        right: 5px;
-        .btn {
-          padding: 3px 8px;
-          width: 60px;
-        }
-        .added-btn {
-          margin-left: 63px;;
-        }
-        .dropdown-menu {
-          min-width: 110px;
-          left: 0px;
-        }
-      }
-    }
-    .no-widgets-text {
-      padding-left: 20px;
-      color: #808080;
     }
   }
 }
+
+
