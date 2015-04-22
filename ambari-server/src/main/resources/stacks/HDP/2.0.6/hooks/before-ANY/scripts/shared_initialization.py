@@ -62,20 +62,25 @@ def setup_users():
   Creates users before cluster installation
   """
   import params
-  
-  for group in params.group_list:
-    Group(group,
-        ignore_failures = params.ignore_groupsusers_create
-    )
-    
-  for user in params.user_list:
-    User(user,
-        gid = params.user_to_gid_dict[user],
-        groups = params.user_to_groups_dict[user],
-        ignore_failures = params.ignore_groupsusers_create       
-    )
-           
-  set_uid(params.smoke_user, params.smoke_user_dirs)
+
+  if not params.host_sys_prepped:
+    for group in params.group_list:
+      Group(group,
+          ignore_failures = params.ignore_groupsusers_create
+      )
+
+    for user in params.user_list:
+      User(user,
+          gid = params.user_to_gid_dict[user],
+          groups = params.user_to_groups_dict[user],
+          ignore_failures = params.ignore_groupsusers_create
+      )
+
+    set_uid(params.smoke_user, params.smoke_user_dirs)
+  else:
+    print 'Skipping creation of User and Group as host is sys prepped'
+    pass
+
 
   if params.has_hbase_masters:
     Directory (params.hbase_tmp_dir,
@@ -84,12 +89,19 @@ def setup_users():
                recursive = True,
                cd_access="a",
     )
-    set_uid(params.hbase_user, params.hbase_user_dirs)
+    if not params.host_sys_prepped:
+      set_uid(params.hbase_user, params.hbase_user_dirs)
+    else:
+      print 'Skipping setting uid for hbase user as host is sys prepped'
+      pass
 
-  if params.has_namenode:
-    create_dfs_cluster_admins()
-  if params.has_tez and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
-      create_tez_am_view_acls()
+  if not params.host_sys_prepped:
+    if params.has_namenode:
+      create_dfs_cluster_admins()
+    if params.has_tez and params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3') >= 0:
+        create_tez_am_view_acls()
+  else:
+    print 'Skipping setting dfs cluster admin and tez view acls as host is sys prepped'
 
 def create_dfs_cluster_admins():
   """

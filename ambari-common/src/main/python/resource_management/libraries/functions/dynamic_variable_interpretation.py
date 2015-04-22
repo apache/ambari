@@ -137,13 +137,14 @@ def _copy_files(source_and_dest_pairs, component_user, file_owner, group_owner, 
   return return_value
 
 
-def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_user, file_owner, group_owner):
+def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_user, file_owner, group_owner, ignore_sysprep=False):
   """
   :param tarball_prefix: Prefix of the tarball must be one of tez, hive, mr, pig
   :param hdp_select_component_name: Component name to get the status to determine the version
   :param component_user: User that will execute the Hadoop commands, usually smokeuser
   :param file_owner: Owner of the files copied to HDFS (typically hdfs user)
   :param group_owner: Group owner of the files copied to HDFS (typically hadoop group)
+  :param ignore_sysprep: Ignore sysprep directives
   :return: Returns 0 on success, 1 if no files were copied, and in some cases may raise an exception.
 
   In order to call this function, params.py must have all of the following,
@@ -151,6 +152,10 @@ def copy_tarballs_to_hdfs(tarball_prefix, hdp_select_component_name, component_u
   hadoop_bin_dir, hadoop_conf_dir, and HdfsDirectory as a partial function.
   """
   import params
+
+  if not ignore_sysprep and hasattr(params, "host_sys_prepped") and params.host_sys_prepped:
+    Logger.info("Host is sys-prepped. Tarball %s will not be copied for %s." % (tarball_prefix, hdp_select_component_name))
+    return 0
 
   if not hasattr(params, "hdp_stack_version") or params.hdp_stack_version is None:
     Logger.warning("Could not find hdp_stack_version")

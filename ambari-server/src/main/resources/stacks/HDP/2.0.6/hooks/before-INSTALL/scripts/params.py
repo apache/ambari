@@ -97,6 +97,7 @@ jce_policy_zip = default("/hostLevelParams/jce_name", None) # None when jdk is a
 jce_location = config['hostLevelParams']['jdk_location']
 jdk_location = config['hostLevelParams']['jdk_location']
 ignore_groupsusers_create = default("/configurations/cluster-env/ignore_groupsusers_create", False)
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 smoke_user_dirs = format("/tmp/hadoop-{smoke_user},/tmp/hsperfdata_{smoke_user},/home/{smoke_user},/tmp/{smoke_user},/tmp/sqoop-{smoke_user}")
 if has_hbase_masters:

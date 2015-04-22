@@ -135,6 +135,19 @@ class TestNamenode(RMFTestCase):
     self.assertNoMoreResources()
     pass
 
+  def test_install_default(self):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "install",
+                       config_file = "default_no_install.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       try_install=True
+    )
+    self.assert_configure_default()
+    self.assertNoMoreResources()
+    pass
+
   def test_start_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
                        classname = "NameNode",

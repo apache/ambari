@@ -274,6 +274,12 @@ class Script(object):
     from this list
     """
     config = self.get_config()
+    if 'host_sys_prepped' in config['hostLevelParams']:
+      # do not install anything on sys-prepped host
+      if config['hostLevelParams']['host_sys_prepped'] == True:
+        Logger.info("Node has all packages pre-installed. Skipping.")
+        return
+      pass
     try:
       package_list_str = config['hostLevelParams']['package_list']
       if isinstance(package_list_str, basestring) and len(package_list_str) > 0:

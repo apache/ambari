@@ -52,6 +52,9 @@ def _alter_repo(action, repo_string, repo_template):
 
 def install_repos():
   import params
+  if params.host_sys_prepped:
+    return
+
   template = "repo_suse_rhel.j2" if OSCheck.is_suse_family() or OSCheck.is_redhat_family() else "repo_ubuntu.j2"
   _alter_repo("create", params.repo_info, template)
   if params.service_repo_info:

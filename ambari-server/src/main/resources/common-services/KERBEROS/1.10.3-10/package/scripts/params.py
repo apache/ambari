@@ -40,6 +40,7 @@ kadm5_acl_path = kadm5_acl_dir + '/' + kadm5_acl_file
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 configurations = None
 keytab_details = None

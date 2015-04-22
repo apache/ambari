@@ -76,6 +76,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.DB_DRIVER_FILENAME;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JAVA_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
@@ -1809,6 +1810,7 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getOjdbcJarName()).andReturn(OJDBC_JAR_NAME);
     expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.areHostsSysPrepped()).andReturn("true");
     expect(clusterVersionDAO.findByClusterAndStateCurrent(clusterName)).andReturn(clusterVersionEntity).anyTimes();
     expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity).anyTimes();
     expect(repositoryVersionEntity.getVersion()).andReturn("1234").anyTimes();
@@ -1846,11 +1848,12 @@ public class AmbariManagementControllerImplTest {
 
     Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster);
 
-    assertEquals(defaultHostParams.size(), 12);
+    assertEquals(defaultHostParams.size(), 13);
     assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);
     assertEquals(defaultHostParams.get(STACK_NAME), SOME_STACK_NAME);
     assertEquals(defaultHostParams.get(STACK_VERSION), SOME_STACK_VERSION);
-    assertEquals(defaultHostParams.get(JAVA_VERSION), "8");
+    assertEquals("true", defaultHostParams.get(HOST_SYS_PREPPED));
+    assertEquals("8", defaultHostParams.get(JAVA_VERSION));
   }
 
   @Test

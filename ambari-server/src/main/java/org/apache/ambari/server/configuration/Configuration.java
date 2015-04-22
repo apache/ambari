@@ -294,6 +294,14 @@ public class Configuration {
   private static final String LDAP_BIND_ANONYMOUSLY_DEFAULT = "true";
 
   /**
+   * Indicator for sys prepped host
+   * It is possible the some nodes are sys prepped and some are not. This can be enabled later
+   * by agent over-writing global indicator from ambari-server
+   */
+  public static final String SYS_PREPPED_HOSTS_KEY = "packages.pre.installed";
+  public static final String SYS_PREPPED_HOSTS_DEFAULT = "false";
+
+  /**
    * !!! TODO: For embedded server only - should be removed later
    */
   private static final String LDAP_PRIMARY_URL_DEFAULT = "localhost:33389";
@@ -736,6 +744,10 @@ public class Configuration {
   public File getRecommendationsDir() {
     String fileName = properties.getProperty(RECOMMENDATIONS_DIR, RECOMMENDATIONS_DIR_DEFAULT);
     return new File(fileName);
+  }
+
+  public String areHostsSysPrepped(){
+    return properties.getProperty(SYS_PREPPED_HOSTS_KEY, SYS_PREPPED_HOSTS_DEFAULT);
   }
 
   public String getStackAdvisorScript() {

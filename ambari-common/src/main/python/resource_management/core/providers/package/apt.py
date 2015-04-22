@@ -101,7 +101,7 @@ class AptProvider(PackageProvider):
         Logger.info("Removing temporal sources directory: %s" % apt_sources_list_tmp_dir)
         os.rmdir(apt_sources_list_tmp_dir)
     else:
-      Logger.info("Skipping installing existent package %s" % (name))
+      Logger.info("Skipping installation of existing package %s" % (name))
 
   @replace_underscores
   def upgrade_package(self, name, use_repos=[]):
@@ -114,7 +114,7 @@ class AptProvider(PackageProvider):
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
-      Logger.info("Skipping removing non-existent package %s" % (name))
+      Logger.info("Skipping removal of non-existing package %s" % (name))
 
   @replace_underscores
   def _check_existence(self, name):

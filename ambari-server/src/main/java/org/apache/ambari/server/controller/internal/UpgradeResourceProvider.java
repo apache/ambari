@@ -645,9 +645,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     actionContext.setIgnoreMaintenance(true);
     actionContext.setTimeout(Short.valueOf(s_configuration.getDefaultAgentTaskTimeout(false)));
 
-    Map<String, String> hostLevelParams = new HashMap<String, String>();
-    hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
-
     ExecuteCommandJson jsons = s_commandExecutionHelper.get().getCommandJson(
         actionContext, cluster);
 

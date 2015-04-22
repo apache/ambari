@@ -30,6 +30,7 @@ config = Script.get_config()
 stack_name = default("/hostLevelParams/stack_name", None)
 
 version = default("/commandParams/version", None)
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)

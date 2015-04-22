@@ -17,7 +17,9 @@
         "java_version": "8",
         "db_name": "ambari",
         "group_list": "[\"hadoop\",\"nobody\",\"users\"]",
-        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]"
+        "user_list": "[\"hive\",\"oozie\",\"nobody\",\"ambari-qa\",\"flume\",\"hdfs\",\"storm\",\"mapred\",\"hbase\",\"tez\",\"zookeeper\",\"falcon\",\"sqoop\",\"yarn\",\"hcat\"]",
+        "host_sys_prepped": "true",
+        "package_list": "[{\"name\":\"mysql-server\"}]"
     }, 
     "commandType": "EXECUTION_COMMAND", 
     "roleParams": {}, 

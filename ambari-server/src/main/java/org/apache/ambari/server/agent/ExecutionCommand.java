@@ -306,6 +306,7 @@ public class ExecutionCommand extends AgentCommand {
     String GROUP_LIST = "group_list";
     String VERSION = "version";
     String REFRESH_TOPOLOGY = "refresh_topology";
+    String HOST_SYS_PREPPED = "host_sys_prepped";
     String COMMAND_RETRY_MAX_ATTEMPT_COUNT = "command_retry_max_attempt_count";
     String COMMAND_RETRY_ENABLED = "command_retry_enabled";
 

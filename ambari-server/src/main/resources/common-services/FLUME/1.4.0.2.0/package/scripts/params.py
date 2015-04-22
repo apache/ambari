@@ -30,6 +30,7 @@ else:
 config = Script.get_config()
 
 stack_name = default("/hostLevelParams/stack_name", None)
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)

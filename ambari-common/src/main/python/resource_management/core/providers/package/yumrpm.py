@@ -50,7 +50,7 @@ class YumProvider(PackageProvider):
       Logger.info("Installing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
-      Logger.info("Skipping installing existent package %s" % (name))
+      Logger.info("Skipping installation of existing package %s" % (name))
 
   def upgrade_package(self, name, use_repos=[]):
     return self.install_package(name, use_repos)
@@ -61,7 +61,7 @@ class YumProvider(PackageProvider):
       Logger.info("Removing package %s ('%s')" % (name, string_cmd_from_args_list(cmd)))
       shell.checked_call(cmd, sudo=True, logoutput=self.get_logoutput())
     else:
-      Logger.info("Skipping removing non-existent package %s" % (name))
+      Logger.info("Skipping removal of non-existing package %s" % (name))
 
   def _check_existence(self, name):
     if '.' in name:  # To work with names like 'zookeeper_2_2_1_0_2072.noarch'

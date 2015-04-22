@@ -117,6 +117,8 @@ if security_enabled:
 else:
   kinit_cmd = ""
 
+host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
+
 #for create_hdfs_directory
 hostname = status_params.hostname
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']

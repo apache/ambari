@@ -87,6 +87,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SERVICE_R
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.STACK_VERSION;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.USER_LIST;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 
 /**
  * Resource provider for client config resources.
@@ -286,6 +287,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       hostLevelParams.put(DB_NAME, managementController.getServerDB());
       hostLevelParams.put(MYSQL_JDBC_URL, managementController.getMysqljdbcUrl());
       hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
+      hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
       hostLevelParams.putAll(managementController.getRcaParameters());
       hostLevelParams.putAll(managementController.getRcaParameters());
 

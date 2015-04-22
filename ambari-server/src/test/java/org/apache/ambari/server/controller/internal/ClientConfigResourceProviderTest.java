@@ -240,6 +240,7 @@ public class ClientConfigResourceProviderTest {
     expect(configMap.get(Configuration.AMBARI_PYTHON_WRAP_KEY)).andReturn(Configuration.AMBARI_PYTHON_WRAP_DEFAULT);
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");
@@ -442,6 +443,7 @@ public class ClientConfigResourceProviderTest {
     expect(configuration.getConfigsMap()).andReturn(returnConfigMap);
     expect(configuration.getCommonServicesPath()).andReturn(commonServicesPath);
     expect(configuration.getJavaVersion()).andReturn(8);
+    expect(configuration.areHostsSysPrepped()).andReturn("false");
     expect(configuration.getExternalScriptTimeout()).andReturn(Integer.parseInt(Configuration.EXTERNAL_SCRIPT_TIMEOUT_DEFAULT));
     Map<String,String> props = new HashMap<String, String>();
     props.put(Configuration.HIVE_METASTORE_PASSWORD_PROPERTY, "pass");

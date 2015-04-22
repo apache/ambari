@@ -26,6 +26,7 @@ from ambari_commons import OSCheck
 config = Script.get_config()
 
 flume_conf_dir = '/etc/flume/conf'
+
 flume_user = 'flume'
 flume_group = 'flume'
 if 'flume-env' in config['configurations'] and 'flume_user' in config['configurations']['flume-env']:

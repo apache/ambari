@@ -35,6 +35,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCAT
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_NAME;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.MYSQL_JDBC_URL;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.ORACLE_JDBC_URL;
+import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.HOST_SYS_PREPPED;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.REPO_INFO;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.SCRIPT_TYPE;
@@ -1096,6 +1097,7 @@ public class AmbariCustomCommandExecutionHelper {
     hostLevelParams.put(ORACLE_JDBC_URL, managementController.getOjdbcUrl());
     hostLevelParams.put(DB_DRIVER_FILENAME, configs.getMySQLJarName());
     hostLevelParams.putAll(managementController.getRcaParameters());
+    hostLevelParams.put(HOST_SYS_PREPPED, configs.areHostsSysPrepped());
     ClusterVersionEntity clusterVersionEntity = clusterVersionDAO.findByClusterAndStateCurrent(cluster.getClusterName());
     if (clusterVersionEntity == null) {
       List<ClusterVersionEntity> clusterVersionEntityList = clusterVersionDAO
