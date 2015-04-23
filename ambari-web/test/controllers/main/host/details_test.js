@@ -499,8 +499,30 @@ describe('App.MainHostDetailsController', function () {
     });
 
     beforeEach(function () {
-      sinon.spy(App.ModalPopup, "show");
-      sinon.stub(controller, "primary", Em.K);
+      sinon.stub(controller, 'showAddComponentPopup', Em.K);
+    });
+
+    afterEach(function () {
+      controller.showAddComponentPopup.restore();
+    });
+
+    it('any CLIENT component', function () {
+      var popup = controller.addClientComponent(component);
+      expect(controller.showAddComponentPopup.calledOnce).to.be.true;
+    });
+
+  });
+
+  describe('#showAddComponentPopup()', function () {
+
+    var message = 'Comp1',
+      component = Em.Object.create({
+        componentName: ' Comp1'
+      });
+
+    beforeEach(function () {
+      sinon.spy(App.ModalPopup, 'show');
+      sinon.stub(controller, 'primary', Em.K);
     });
 
     afterEach(function () {
@@ -508,15 +530,13 @@ describe('App.MainHostDetailsController', function () {
       controller.primary.restore();
     });
 
-    it('any CLIENT component', function () {
-      var popup = controller.addClientComponent(component);
+    it('should display add component confirmation', function () {
+      var popup = controller.showAddComponentPopup(message, function () {
+        controller.primary(component);
+      });
       expect(App.ModalPopup.show.calledOnce).to.be.true;
+      expect(popup.get('addComponentMsg')).to.eql(Em.I18n.t('hosts.host.addComponent.msg').format(message));
       popup.onPrimary();
-      expect(controller.primary.calledWith(component)).to.be.true;
-    });
-
-    it('should launch primary method without confirmation', function () {
-      controller.addClientComponent(component, true);
       expect(controller.primary.calledWith(component)).to.be.true;
     });
   });
@@ -2148,50 +2168,121 @@ describe('App.MainHostDetailsController', function () {
   });
 
   describe('#installClients()', function () {
+
+    var cases = [
+        {
+          context: [
+            Em.Object.create({
+              componentName: 'c0',
+              workStatus: 'INSTALLED'
+            }),
+            Em.Object.create({
+              componentName: 'c1',
+              workStatus: 'INIT'
+            }),
+            Em.Object.create({
+              componentName: 'c2',
+              workStatus: 'INSTALL_FAILED'
+            })
+          ],
+          dependencies: {
+            c0: [],
+            c1: [],
+            c2: []
+          },
+          getKDCSessionStateCalled: true,
+          sendComponentCommandCalled: true,
+          showAlertPopupCalled: false,
+          title: 'No clients to add, some clients to install'
+        },
+        {
+          context: [
+            Em.Object.create({
+              componentName: 'c3',
+              displayName: 'c3'
+            })
+          ],
+          dependencies: {
+            c3: []
+          },
+          getKDCSessionStateCalled: true,
+          sendComponentCommandCalled: false,
+          showAlertPopupCalled: false,
+          title: 'No clients to install, some clients to add'
+        },
+        {
+          context: [
+            Em.Object.create({
+              componentName: 'c4',
+              displayName: 'c4'
+            })
+          ],
+          dependencies: {
+            c4: ['c5']
+          },
+          getKDCSessionStateCalled: false,
+          sendComponentCommandCalled: false,
+          showAlertPopupCalled: true,
+          title: 'Clients to add have unresolved dependencies'
+        },
+        {
+          context: [
+            Em.Object.create({
+              componentName: 'c5',
+              displayName: 'c5'
+            }),
+            Em.Object.create({
+              componentName: 'c6',
+              displayName: 'c6'
+            })
+          ],
+          dependencies: {
+            c5: ['c6'],
+            c6: ['c5']
+          },
+          getKDCSessionStateCalled: true,
+          sendComponentCommandCalled: false,
+          showAlertPopupCalled: false,
+          title: 'Clients to add have mutual dependencies'
+        }
+      ],
+      componentsUtils = require('utils/components');
+
     beforeEach(function () {
       sinon.stub(controller, 'sendComponentCommand', Em.K);
-      sinon.stub(controller, 'addComponentWithCheck', Em.K);
+      sinon.stub(controller, 'showAddComponentPopup', Em.K);
+      sinon.stub(App.get('router.mainAdminKerberosController'), 'getKDCSessionState', function (arg) {
+        return arg();
+      });
+      sinon.stub(App, 'showAlertPopup', Em.K);
+      sinon.stub(App.StackServiceComponent, 'find', function (componentName) {
+        return Em.Object.create({
+          displayName: componentName
+        });
+      });
+      controller.set('content.hostComponents', []);
     });
     afterEach(function () {
       controller.sendComponentCommand.restore();
-      controller.addComponentWithCheck.restore();
+      controller.showAddComponentPopup.restore();
+      App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
+      App.showAlertPopup.restore();
+      App.StackServiceComponent.find.restore();
+      componentsUtils.checkComponentDependencies.restore();
     });
-    it('No clients to install, some clients to add', function () {
-      var event = {
-        context: [
-          Em.Object.create()
-        ]
-      };
-      controller.installClients(event);
-      expect(controller.sendComponentCommand.called).to.be.false;
-      expect(controller.addComponentWithCheck.calledWith({
-        context: Em.Object.create()
-      }, true)).to.be.true;
-    });
-    it('Some clients to install, no clients to add', function () {
-      var event = {
-        context: [
-          Em.Object.create({
-            workStatus: 'INSTALLED'
-          }),
-          Em.Object.create({
-            workStatus: 'INIT'
-          }),
-          Em.Object.create({
-            workStatus: 'INSTALL_FAILED'
-          })
-        ]
-      };
-      controller.installClients(event);
-      expect(controller.sendComponentCommand.calledWith([
-        Em.Object.create({
-          workStatus: 'INIT'
-        }),
-        Em.Object.create({
-          workStatus: 'INSTALL_FAILED'
-        })
-      ], Em.I18n.t('host.host.details.installClients'), 'INSTALLED')).to.be.true;
-      expect(controller.addComponentWithCheck.called).to.be.false;
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        sinon.stub(componentsUtils, 'checkComponentDependencies', function (componentName, params) {
+          return item.dependencies[componentName];
+        });
+        controller.installClients({
+          context: item.context
+        });
+        expect(App.get('router.mainAdminKerberosController').getKDCSessionState.calledOnce).to.equal(item.getKDCSessionStateCalled);
+        expect(controller.sendComponentCommand.calledOnce).to.equal(item.sendComponentCommandCalled);
+        expect(App.showAlertPopup.calledOnce).to.equal(item.showAlertPopupCalled);
+      });
     });
   });
 

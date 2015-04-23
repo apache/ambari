@@ -432,20 +432,18 @@ App.MainHostDetailsController = Em.Controller.extend({
    * add component as <code>addComponent<code> method but perform
    * kdc sessionstate if cluster is secure;
    * @param event
-   * @param skipConfirmation
    */
-  addComponentWithCheck: function (event, skipConfirmation) {
+  addComponentWithCheck: function (event) {
     var componentName = event.context ? event.context.get('componentName') : "";
     event.hiveMetastoreHost = (componentName == "HIVE_METASTORE" && !!this.get('content.hostName')) ? this.get('content.hostName') : null;
-    App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event, skipConfirmation));
+    App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
   },
   /**
    * Send command to server to install selected host component
    * @param {object} event
-   * @param {boolean} skipConfirmation
    * @method addComponent
    */
-  addComponent: function (event, skipConfirmation) {
+  addComponent: function (event) {
     var
       returnFunc,
       self = this,
@@ -477,41 +475,40 @@ App.MainHostDetailsController = Em.Controller.extend({
         }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
         break;
       default:
-        returnFunc = this.addClientComponent(component, skipConfirmation);
+        returnFunc = this.addClientComponent(component);
       }
     return returnFunc;
   },
   /**
    * Send command to server to install client on selected host
    * @param component
-   * @param skipConfirmation
    */
-  addClientComponent: function (component, skipConfirmation) {
+  addClientComponent: function (component) {
     var self = this;
     var message = this.formatClientsMessage(component);
-    var returnFunction;
-    if (skipConfirmation) {
-      returnFunction = this.primary(component);
-    } else {
-      returnFunction = App.ModalPopup.show({
-        primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
-        header: Em.I18n.t('popup.confirmation.commonHeader'),
+    return this.showAddComponentPopup(message, function () {
+      self.primary(component);
+    });
+  },
 
-        addComponentMsg: function () {
-          return Em.I18n.t('hosts.host.addComponent.msg').format(message);
-        }.property(),
+  showAddComponentPopup: function (message, primary) {
+    return App.ModalPopup.show({
+      primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
+      header: Em.I18n.t('popup.confirmation.commonHeader'),
 
-        bodyClass: Em.View.extend({
-          templateName: require('templates/main/host/details/addComponentPopup')
-        }),
+      addComponentMsg: function () {
+        return Em.I18n.t('hosts.host.addComponent.msg').format(message);
+      }.property(),
 
-        onPrimary: function () {
-          this.hide();
-          self.primary(component);
-        }
-      });
-    }
-    return returnFunction;
+      bodyClass: Em.View.extend({
+        templateName: require('templates/main/host/details/addComponentPopup')
+      }),
+
+      onPrimary: function () {
+        this.hide();
+        primary();
+      }
+    });
   },
 
   /**
@@ -1933,7 +1930,10 @@ App.MainHostDetailsController = Em.Controller.extend({
 
   installClients: function(event) {
     var clientsToInstall = [],
-      clientsToAdd = [];
+      clientsToAdd = [],
+      missedComponents = [],
+      dependentComponents = [],
+      self = this;
     event.context.forEach(function (component) {
       if (['INIT', 'INSTALL_FAILED'].contains(component.get('workStatus'))) {
         clientsToInstall.push(component);
@@ -1941,14 +1941,45 @@ App.MainHostDetailsController = Em.Controller.extend({
         clientsToAdd.push(component);
       }
     });
-    if (clientsToInstall.length) {
-      this.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
-    }
-    clientsToAdd.forEach(function (component) {
-      this.addComponentWithCheck({
-        context: component
-      }, true);
+    clientsToAdd.forEach(function (component, index, array) {
+      var dependencies = componentsUtils.checkComponentDependencies(component.get('componentName'), {
+        scope: 'host',
+        installedComponents: this.get('content.hostComponents').mapProperty('componentName')
+      }).reject(function (componentName) {
+          return array.mapProperty('componentName').contains(componentName);
+        });
+      if (dependencies.length) {
+        missedComponents.pushObjects(dependencies);
+        dependentComponents.push(component.get('displayName'));
+      }
     }, this);
+    missedComponents = missedComponents.uniq();
+    if (missedComponents.length) {
+      var popupMessage = Em.I18n.t('host.host.addComponent.popup.clients.dependedComponents.body').format(stringUtils.getFormattedStringFromArray(dependentComponents),
+        stringUtils.getFormattedStringFromArray(missedComponents.map(function(componentName) {
+          return App.StackServiceComponent.find(componentName).get('displayName');
+        })));
+      App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
+    } else {
+      App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+        var sendInstallCommand = function () {
+          if (clientsToInstall.length) {
+            self.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
+          }
+        };
+        if (clientsToAdd.length) {
+          var message = stringUtils.getFormattedStringFromArray(clientsToAdd.mapProperty('displayName'));
+          self.showAddComponentPopup(message, function () {
+            sendInstallCommand();
+            clientsToAdd.forEach(function (component) {
+              this.primary(component);
+            }, self);
+          });
+        } else {
+          sendInstallCommand();
+        }
+      });
+    }
   },
 
   /**
