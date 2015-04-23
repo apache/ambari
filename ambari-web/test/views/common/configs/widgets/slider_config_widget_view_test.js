@@ -222,6 +222,108 @@ describe('App.SliderConfigWidgetView', function () {
           ticks: [5, 16, 22, 28, 35, 39, 50],
           ticksLabels: ['5 ','', '', '28 ', '', '', '50 ']
         }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 1,
+          maxMirrorValue: 2,
+          widgetDefaultValue: 2,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int', increment_step: 1 },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [1,2],
+          ticksLabels: ['1 ', '2 ']
+        }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 1,
+          maxMirrorValue: 3,
+          widgetDefaultValue: 2,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int', increment_step: 1 },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [1,2,3],
+          ticksLabels: ['1 ', '2 ', '3 ']
+        }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 0,
+          maxMirrorValue: 3,
+          widgetDefaultValue: 2,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int', increment_step: 1 },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [0,1,2,3],
+          ticksLabels: ['0 ', '1 ', '2 ', '3 ']
+        }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 1,
+          maxMirrorValue: 5,
+          widgetDefaultValue: 2,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int', increment_step: 1 },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [1,2,3,4,5],
+          ticksLabels: ['1 ', '', '3 ', '', '5 ']
+        }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 0,
+          maxMirrorValue: 5,
+          widgetDefaultValue: 2,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int', increment_step: 1 },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [0,2,3,5],
+          ticksLabels: ['0 ', '2 ', '3 ', '5 ']
+        }
+      },
+      {
+        viewSetup: {
+          minMirrorValue: 0,
+          maxMirrorValue: 23,
+          widgetDefaultValue: 2,
+          config: Em.Object.create({
+            stackConfigProperty: Em.Object.create({
+              valueAttributes: { type: 'int', increment_step: 1 },
+              widget: { units: [ { 'unit-name': "int"}]}
+            })
+          })
+        },
+        e: {
+          ticks: [0,2,6,12,17,20,23],
+          ticksLabels: ['0 ', '', '', '12 ', '', '', '23 ']
+        }
       }
     ];
 

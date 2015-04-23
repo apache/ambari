@@ -242,18 +242,23 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticks = [this.get('minMirrorValue')],
       ticksLabels = [],
       defaultValue = this.valueForTick(+this.get('widgetDefaultValue')),
+      range = this.get('maxMirrorValue') - this.get('minMirrorValue'),
+      // for little odd numbers in range 4..23 and widget type 'int' use always 4 ticks
+      isSmallInt = this.get('unitType') == 'int' && range > 4 && range < 23 && range % 2 == 1,
       defaultValueMirroredId,
       defaultValueId;
 
     // ticks and labels
     for (var i = 1; i <= 3; i++) {
-      var val = this.get('minMirrorValue') + (this.get('maxMirrorValue') - this.get('minMirrorValue')) * (i / 4);
+      var val = this.get('minMirrorValue') + range * (i / (isSmallInt ? 3 : 4));
       // if value's type is float, ticks may be float too
       ticks.push(this.valueForTick(val));
     }
+
     ticks.push(this.get('maxMirrorValue'));
-    ticks.forEach(function (tick, index) {
-      ticksLabels.push(index % 2 === 0 ? tick + ' ' + self.get('unitLabel') : '');
+    ticks = ticks.uniq();
+    ticks.forEach(function (tick, index, items) {
+      ticksLabels.push((items.length < 5 || index % 2 === 0 || items.length - 1 == index) ? tick + ' ' + self.get('unitLabel') : '');
     });
 
     // default-value marker should be added only if defaultValue is in range [min, max]
