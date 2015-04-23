@@ -428,6 +428,16 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           }
 
           /**
+           * saving recommended value to service config properties
+           * this value can be used as marker on slider widget
+           */
+          if (notDefaultGroup) {
+            override && override.set('recommendedValue', recommendedValue);
+          } else {
+            cp && cp.set('recommendedValue', recommendedValue);
+          }
+
+          /**
            * clear _dependentPropertyValues from
            * properties that wasn't changed while recommendations
            */

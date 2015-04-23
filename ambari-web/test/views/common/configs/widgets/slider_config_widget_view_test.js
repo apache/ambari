@@ -193,7 +193,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 20,
           maxMirrorValue: 100,
-          widgetDefaultValue: 30,
+          widgetRecommendedValue: 30,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'float' },
@@ -210,7 +210,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 5,
           maxMirrorValue: 50,
-          widgetDefaultValue: 35,
+          widgetRecommendedValue: 35,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int' },
@@ -227,7 +227,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 1,
           maxMirrorValue: 2,
-          widgetDefaultValue: 2,
+          widgetRecommendedValue: 2,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int', increment_step: 1 },
@@ -244,7 +244,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 1,
           maxMirrorValue: 3,
-          widgetDefaultValue: 2,
+          widgetRecommendedValue: 2,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int', increment_step: 1 },
@@ -261,7 +261,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 0,
           maxMirrorValue: 3,
-          widgetDefaultValue: 2,
+          widgetRecommendedValue: 2,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int', increment_step: 1 },
@@ -278,7 +278,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 1,
           maxMirrorValue: 5,
-          widgetDefaultValue: 2,
+          widgetRecommendedValue: 2,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int', increment_step: 1 },
@@ -295,7 +295,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 0,
           maxMirrorValue: 5,
-          widgetDefaultValue: 2,
+          widgetRecommendedValue: 2,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int', increment_step: 1 },
@@ -312,7 +312,7 @@ describe('App.SliderConfigWidgetView', function () {
         viewSetup: {
           minMirrorValue: 0,
           maxMirrorValue: 23,
-          widgetDefaultValue: 2,
+          widgetRecommendedValue: 2,
           config: Em.Object.create({
             stackConfigProperty: Em.Object.create({
               valueAttributes: { type: 'int', increment_step: 1 },

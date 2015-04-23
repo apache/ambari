@@ -95,6 +95,15 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   }.property('config.defaultValue'),
 
   /**
+   * Default value of config property transformed according widget format
+   * @returns {Number}
+   */
+  widgetRecommendedValue: function() {
+    var parseFunction = this.get('mirrorValueParseFunction');
+    return parseFunction(this.widgetValueByConfigAttributes(this.get('config.recommendedValue')));
+  }.property('config.recommendedValue'),
+
+  /**
    * unit type of widget
    * @type {String}
    */
@@ -161,12 +170,14 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this.toggleWidgetState();
     this.initPopover();
     this.addObserver('maxMirrorValue', this, this.changeBoundaries);
+    this.addObserver('widgetRecommendedValue', this, this.changeBoundaries);
     this.addObserver('minMirrorValue', this, this.changeBoundaries);
     this.addObserver('mirrorStep', this, this.changeBoundaries);
   },
 
   willDestroyElement: function() {
     this.removeObserver('maxMirrorValue', this, this.changeBoundaries);
+    this.removeObserver('widgetRecommendedValue', this, this.changeBoundaries);
     this.removeObserver('minMirrorValue', this, this.changeBoundaries);
     this.removeObserver('mirrorStep', this, this.changeBoundaries);
   },
@@ -241,12 +252,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       parseFunction = this.get('parseFunction'),
       ticks = [this.get('minMirrorValue')],
       ticksLabels = [],
-      defaultValue = this.valueForTick(+this.get('widgetDefaultValue')),
+      recommendedValue = this.valueForTick(+this.get('widgetRecommendedValue')),
       range = this.get('maxMirrorValue') - this.get('minMirrorValue'),
       // for little odd numbers in range 4..23 and widget type 'int' use always 4 ticks
       isSmallInt = this.get('unitType') == 'int' && range > 4 && range < 23 && range % 2 == 1,
-      defaultValueMirroredId,
-      defaultValueId;
+      recommendedValueMirroredId,
+      recommendedValueId;
 
     // ticks and labels
     for (var i = 1; i <= 3; i++) {
@@ -262,33 +273,33 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     });
 
     // default-value marker should be added only if defaultValue is in range [min, max]
-    if (defaultValue <= this.get('maxMirrorValue') && defaultValue >= this.get('minMirrorValue')) {
+    if (recommendedValue <= this.get('maxMirrorValue') && recommendedValue >= this.get('minMirrorValue') && recommendedValue != '') {
       // process additional tick for default value if it not defined in previous computation
-      if (!ticks.contains(defaultValue)) {
+      if (!ticks.contains(recommendedValue)) {
         // push default value
-        ticks.push(defaultValue);
+        ticks.push(recommendedValue);
         // and resort array
         ticks = ticks.sort(function (a, b) {
           return a - b;
         });
-        defaultValueId = ticks.indexOf(defaultValue);
+        recommendedValueId = ticks.indexOf(recommendedValue);
         // to save nice tick labels layout we should add new tick value which is mirrored by index to default value
-        defaultValueMirroredId = ticks.length - defaultValueId;
+        recommendedValueMirroredId = ticks.length - recommendedValueId;
         // push mirrored default value behind default
-        if (defaultValueId == defaultValueMirroredId) {
-          defaultValueMirroredId--;
+        if (recommendedValueId == recommendedValueMirroredId) {
+          recommendedValueMirroredId--;
         }
         // push empty label for default value tick
-        ticksLabels.insertAt(defaultValueId, '');
+        ticksLabels.insertAt(recommendedValueId, '');
         // push empty to mirrored position
-        ticksLabels.insertAt(defaultValueMirroredId, '');
+        ticksLabels.insertAt(recommendedValueMirroredId, '');
         // for saving correct sliding need to add value to mirrored position which is average between previous
         // and next value
-        ticks.insertAt(defaultValueMirroredId, this.valueForTick((ticks[defaultValueMirroredId] + ticks[defaultValueMirroredId - 1]) / 2));
+        ticks.insertAt(recommendedValueMirroredId, this.valueForTick((ticks[recommendedValueMirroredId] + ticks[recommendedValueMirroredId - 1]) / 2));
         // get new index for default value
-        defaultValueId = ticks.indexOf(defaultValue);
+        recommendedValueId = ticks.indexOf(recommendedValue);
       } else {
-        defaultValueId = ticks.indexOf(defaultValue);
+        recommendedValueId = ticks.indexOf(recommendedValue);
       }
     }
     var slider = new Slider(this.$('input.slider-input')[0], {
@@ -314,20 +325,25 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     });
     this.set('slider', slider);
     var sliderTicks = this.$('.ui-slider-wrapper:eq(0) .slider-tick');
-    var defaultSliderTick = sliderTicks.eq(defaultValueId);
 
-    sliderTicks.eq(defaultValueId).addClass('slider-tick-default').on('mousedown', function(e) {
-      if (self.get('disabled')) return false;
-      self.restoreValue();
-      e.stopPropagation();
-      return false;
-    });
-    // create label for default value and align it
-    defaultSliderTick.append('<span>{0}</span>'.format(defaultValue + this.get('unitLabel')));
-    defaultSliderTick.find('span').css('marginLeft', -defaultSliderTick.find('span').width()/2 + 'px');
-    // if mirrored value was added need to hide the tick for it
-    if (defaultValueMirroredId) {
-      sliderTicks.eq(defaultValueMirroredId).hide();
+    if (recommendedValueId) {
+      var defaultSliderTick = sliderTicks.eq(recommendedValueId);
+
+      sliderTicks.eq(recommendedValueId).addClass('slider-tick-default').on('mousedown', function(e) {
+        if (self.get('disabled')) return false;
+        self.setValue(self.get('config.recommendedValue'));
+        e.stopPropagation();
+        return false;
+      });
+      // create label for default value and align it
+
+        defaultSliderTick.append('<span>{0}</span>'.format(recommendedValueId + this.get('unitLabel')));
+        defaultSliderTick.find('span').css('marginLeft', -defaultSliderTick.find('span').width()/2 + 'px');
+
+      // if mirrored value was added need to hide the tick for it
+      if (recommendedValueMirroredId) {
+        sliderTicks.eq(recommendedValueMirroredId).hide();
+      }
     }
     // mark last tick to fix it style
     sliderTicks.last().addClass('last');
