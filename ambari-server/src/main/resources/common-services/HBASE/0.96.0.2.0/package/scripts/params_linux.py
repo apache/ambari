@@ -94,6 +94,7 @@ local_dir = substitute_vars(_local_dir_conf, config['configurations']['hbase-sit
 client_jaas_config_file = format("{hbase_conf_dir}/hbase_client_jaas.conf")
 master_jaas_config_file = format("{hbase_conf_dir}/hbase_master_jaas.conf")
 regionserver_jaas_config_file = format("{hbase_conf_dir}/hbase_regionserver_jaas.conf")
+queryserver_jaas_config_file = format("{hbase_conf_dir}/phoenix_queryserver_jaas.conf")
 
 ganglia_server_hosts = default('/clusterHostInfo/ganglia_server_host', []) # is not passed when ganglia is not present
 ganglia_server_host = '' if len(ganglia_server_hosts) == 0 else ganglia_server_hosts[0]
@@ -123,9 +124,11 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   regionserver_jaas_princ = config['configurations']['hbase-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
+  queryserver_jaas_princ = config['configurations']['hbase-site']['phoenix.queryserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
 
 master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
+queryserver_keytab_path = config['configurations']['hbase-site']['phoenix.queryserver.keytab.file']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))

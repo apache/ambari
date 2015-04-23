@@ -330,6 +330,7 @@
             "hbase.local.dir": "${hbase.tmp.dir}/local", 
             "hfile.block.cache.size": "0.40", 
             "hbase.regionserver.kerberos.principal": "hbase/_HOST@EXAMPLE.COM", 
+            "phoenix.queryserver.kerberos.principal": "hbase/_HOST@EXAMPLE.COM",
             "hbase.security.authentication": "kerberos", 
             "hbase.defaults.for.version.skip": "true", 
             "hbase.zookeeper.quorum": "c6401.ambari.apache.org,c6402.ambari.apache.org", 

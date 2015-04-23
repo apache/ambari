@@ -357,6 +357,7 @@
             "hbase.tmp.dir": "/hadoop/hbase", 
             "hfile.block.cache.size": "0.40", 
             "hbase.regionserver.kerberos.principal": "hbase/_HOST@EXAMPLE.COM", 
+            "phoenix.queryserver.kerberos.principal": "hbase/_HOST@EXAMPLE.COM", 
             "hbase.client.scanner.caching": "100", 
             "hbase.security.authentication": "kerberos", 
             "hbase.defaults.for.version.skip": "true", 

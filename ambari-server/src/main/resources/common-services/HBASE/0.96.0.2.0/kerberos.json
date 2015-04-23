@@ -98,6 +98,32 @@
               }
             }
           ]
+        },
+        {
+          "name": "PHOENIX_QUERY_SERVER",
+          "identities": [
+            {
+              "name": "hbase_queryserver_hbase",
+              "principal": {
+                "value": "hbase/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "hbase-site/phoenix.queryserver.kerberos.principal",
+                "local_username": "${hbase-env/hbase_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/hbase.service.keytab",
+                "owner": {
+                  "name": "${hbase-env/hbase_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "hbase-site/phoenix.queryserver.keytab.file"
+              }
+            }
+          ]
         }
       ]
     }
