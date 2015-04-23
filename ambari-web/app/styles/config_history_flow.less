@@ -37,10 +37,10 @@
   margin-top: -5px;
   .version-slider {
     width: 100%;
-    height: 58px;
+    height: 69px;
     margin: 5px 0;
     .flow-element {
-      height: 58px;
+      height: 69px;
       width: 15.2%;
       max-width: 146px;
       .version-box {
@@ -80,6 +80,11 @@
         .current-label {
           text-align: center;
           padding: 2px 5px;
+        }
+        .stack-label {
+          margin-right: 6px;
+          text-align: right;
+          line-height: 11px;
         }
       }
       .version-box .version-popover {
@@ -161,7 +166,7 @@
     }
 
     .icon-chevron-box {
-      margin-top: 10px;
+      margin-top: 15px;
       width: 4%;
       cursor: pointer;
       .icon-chevron-right,
@@ -172,14 +177,8 @@
       .icon-chevron-right:hover{
         color: #808080;
       }
-    }
-    .icon-chevron-box.disabled {
-      margin-top: 10px;
-      width: 4%;
-      cursor: not-allowed;
-      .icon-chevron-right,
-      .icon-chevron-left{
-        color: #d2d9dd;
+      &.disabled {
+        cursor: not-allowed;
       }
     }
   }
@@ -294,6 +293,10 @@
         }
       }
     }
+  }
+  .stack {
+    padding: 1px 10px;
+    font-size: 11px;
   }
 }
 

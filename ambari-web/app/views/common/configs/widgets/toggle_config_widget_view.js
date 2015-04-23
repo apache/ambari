@@ -154,11 +154,7 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
    */
   restoreValue: function () {
     this._super();
-    var value = this.getNewSwitcherValue(this.get('config.value'));
-    this.set('skipRequestForDependencies', true);
-    this.get('switcher').bootstrapSwitch('toggleState', value);
-    this.set('skipRequestForDependencies', false);
-    this.set('switcherValue', value);
+    this.setValue(this.get('config.value'));
   },
 
   /**

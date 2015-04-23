@@ -25,6 +25,7 @@
         <span class="author pull-right">{{serviceVersion.author}}</span>
       </div>
       <div class="content">{{serviceVersion.timeSinceCreated}}</div>
+      <div class="stack-label">{{serviceVersion.stackVersion}}</div>
       {{#if serviceVersion.isCurrent}}
         <div class="current-label">
           <span class="label label-success">
@@ -38,6 +39,7 @@
     <div class="version-popover">
       <div class="content">
         <span class="label label-info">{{serviceVersion.versionText}}</span> <span class="pull-right"><strong>{{serviceVersion.configGroupName}}</strong></span>
+        <span class="stack">{{serviceVersion.stackVersion}}</span>
         <div class="date"><strong>{{serviceVersion.author}}</strong>&nbsp;{{t dashboard.configHistory.info-bar.authoredOn}}&nbsp;<strong>{{serviceVersion.createdDate}}</strong></div>
         <div class="notes">{{{serviceVersion.fullNotes}}}</div>
       </div>

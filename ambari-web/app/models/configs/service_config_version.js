@@ -37,6 +37,7 @@ App.ServiceConfigVersion = DS.Model.extend({
   index: DS.attr('number'),
   isCurrent: DS.attr('boolean'),
   isDisplayed: DS.attr('boolean'),
+  stackVersion: DS.attr('string'),
   isDefault: function() {
     return this.get('groupName') === 'default';
   }.property('groupName'),

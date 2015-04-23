@@ -381,7 +381,7 @@
       {
         "config":"hbase-site/hbase.security.authentication",
         "widget":{
-          "type":"checkbox"
+          "type":"toggle"
         }
       },
       {

@@ -393,10 +393,10 @@ App.config = Em.Object.create({
     switch (type) {
       case 'int':
         var res = parseInt(value);
-        return Number.isNaN(res) ? "" : res.toString();
+        return isNaN(res) ? "" : res.toString();
       case 'float':
         var res = parseFloat(value);
-        return Number.isNaN(res) ? "" : res.toString();
+        return isNaN(res) ? "" : res.toString();
       default:
         return value;
     }
