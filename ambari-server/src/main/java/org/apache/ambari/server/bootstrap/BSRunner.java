@@ -18,6 +18,7 @@
 package org.apache.ambari.server.bootstrap;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.*;
@@ -25,7 +26,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
-import static org.apache.ambari.server.bootstrap.BSHostStatusCollector.doneFileFilter;
 
 import org.apache.ambari.server.bootstrap.BootStrapStatus.BSStat;
 import org.apache.commons.io.FileUtils;
@@ -152,6 +152,13 @@ class BSRunner extends Thread {
   @Override
   public void run() {
     String hostString = createHostString(sshHostInfo.getHosts());
+    // Startup a scheduled executor service to look through the logs
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    BSStatusCollector statusCollector = new BSStatusCollector();
+    ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector,
+        0, 10, TimeUnit.SECONDS);
+    LOG.info("Kicking off the scheduler for polling on logs in " +
+    this.requestIdDir);
     String user = sshHostInfo.getUser();
     String userRunAs = sshHostInfo.getUserRunAs();
     if (user == null || user.isEmpty()) {
@@ -251,14 +258,6 @@ class BSRunner extends Thread {
           stdErrWriter.close();
       }
 
-
-      // Startup a scheduled executor service to look through the logs
-      ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
-      BSStatusCollector statusCollector = new BSStatusCollector();
-      ScheduledFuture<?> handle = scheduler.scheduleWithFixedDelay(statusCollector,
-          0, 10, TimeUnit.SECONDS);
-      LOG.info("Kicking off the scheduler for polling on logs in " +
-          this.requestIdDir);
       try {
         String logInfoMessage = "Bootstrap output, log="
               + bootStrapErrorFilePath + " " + bootStrapOutputFilePath + " at " + this.ambariHostname;
@@ -272,34 +271,11 @@ class BSRunner extends Thread {
         } catch(IOException io) {
           LOG.info("Error in reading files ", io);
         }
-        PrintWriter setupAgentDoneWriter = null;
-        PrintWriter setupAgentLogWriter  = null; 
-        try {
-          if (exitCode != 0) {      
-            for (String host : hostString.split(",")) {
-              setupAgentDoneWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.doneFileFilter));
-              setupAgentLogWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.logFileFilter));
-              setupAgentLogWriter.print(logInfoMessage + "\n Error while bootstrapping:\n" + errMesg);
-              setupAgentDoneWriter.print(exitCode);
-              setupAgentDoneWriter.close();
-              setupAgentLogWriter.close();
-            }
-                     
-          }
-        } finally {
-          if (setupAgentDoneWriter != null) {
-            setupAgentDoneWriter.close();
-          }
-
-          if (setupAgentLogWriter != null) {
-            setupAgentLogWriter.close();
-          }
-        }
-
         scriptlog = outMesg + "\n\n" + errMesg;
         LOG.info("Script log Mesg " + scriptlog);
         if (exitCode != 0) {
           stat = BSStat.ERROR;
+          interuptSetupAgent(99, scriptlog);
         } else {
           stat = BSStat.SUCCESS;
         }
@@ -358,6 +334,7 @@ class BSRunner extends Thread {
     } catch(IOException io) {
       LOG.info("Error executing bootstrap " + io.getMessage());
       stat = BSStat.ERROR;
+      interuptSetupAgent(99, io.getMessage()); 
     }
     finally {
       /* get the bstatus */
@@ -395,6 +372,33 @@ class BSRunner extends Thread {
     }
   }
 
+  public synchronized void interuptSetupAgent(int exitCode, String errMesg){
+    PrintWriter setupAgentDoneWriter = null;
+    PrintWriter setupAgentLogWriter  = null; 
+    try {
+ 
+        for (String host : sshHostInfo.getHosts()) {
+          setupAgentDoneWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.doneFileFilter));
+          setupAgentLogWriter = new PrintWriter(new File(requestIdDir, host + BSHostStatusCollector.logFileFilter));
+          setupAgentLogWriter.print("Error while bootstrapping:\n" + errMesg);
+          setupAgentDoneWriter.print(exitCode);
+          setupAgentDoneWriter.close();
+          setupAgentLogWriter.close();
+        }
+
+    } catch (FileNotFoundException ex) {
+      LOG.error(ex);
+    } finally {
+      if (setupAgentDoneWriter != null) {
+        setupAgentDoneWriter.close();
+      }
+
+      if (setupAgentLogWriter != null) {
+        setupAgentLogWriter.close();
+      }
+    }    
+  }
+  
   public synchronized boolean isRunning() {
     return !this.finished;
   }

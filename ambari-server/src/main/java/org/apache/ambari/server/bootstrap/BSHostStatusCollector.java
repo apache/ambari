@@ -113,7 +113,8 @@ class BSHostStatusCollector {
           
           logString = sb.toString();
         } catch (IOException e) {
-          LOG.info("Error reading log file " + log);
+          LOG.info("Error reading log file " + log +
+                  ". Log file may be have not created yet");
         }
         finally {
           try {
