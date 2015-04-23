@@ -69,7 +69,11 @@
 {{#if view.config.errorMessage}}
   <p class="text-error">{{view.config.errorMessage}}</p>
   {{else}}
-  <p>&nbsp;</p>
+    {{#if view.config.warnMessage}}
+      <p class="text-warning">{{view.config.warnMessage}}</p>
+    {{else}}
+      <p>&nbsp;</p>
+    {{/if}}
 {{/if}}
 
 {{#if view.isComparison}}

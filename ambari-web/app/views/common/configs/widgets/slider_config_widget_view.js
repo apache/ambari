@@ -185,16 +185,20 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       parseFunction = this.get('mirrorValueParseFunction');
     if (validationFunction(mirrorValue)) {
       var parsed = parseFunction(mirrorValue);
-      if (parsed >= min && parsed <= max) {
+      if (parsed > max) {
+        this.set('isMirrorValueValid', false);
+        this.set('config.warnMessage', Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max));
+      } else if (parsed < min) {
+        this.set('isMirrorValueValid', false);
+        this.set('config.warnMessage', Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min));
+      } else {
         this.set('isMirrorValueValid', true);
+        this.set('config.warnMessage', '');
         this.set('config.errorMessage', '');
         this.set('config.value', '' + this.configValueByWidget(parsed));
         if (slider) {
           slider.setValue(parsed);
         }
-      } else {
-        this.set('isMirrorValueValid', false);
-        this.set('config.errorMessage', 'Invalid value');
       }
     } else {
       this.set('isMirrorValueValid', false);

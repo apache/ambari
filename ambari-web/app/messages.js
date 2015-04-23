@@ -2591,6 +2591,9 @@ Em.I18n.translations = {
   'config.group.save.confirmation.manage.button': 'Manage Hosts',
   'config.group.description.default': 'New configuration group created on {0}',
 
+  'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
+  'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
+
   'utils.ajax.errorMessage': 'Error message',
   'utils.ajax.defaultErrorPopupBody.message': 'received on {0} method for API: {1}',
   'utils.ajax.defaultErrorPopupBody.statusCode': '{0} status code'

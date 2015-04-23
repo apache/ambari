@@ -140,11 +140,13 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewInt.get('isMirrorValueValid')).to.be.true;
       expect(viewInt.get('config.value')).to.equal('1000');
       expect(viewInt.get('config.errorMessage')).to.equal('');
+      expect(viewInt.get('config.warnMessage')).to.equal('');
 
       viewInt.set('mirrorValue', 100500);
       expect(viewInt.get('isMirrorValueValid')).to.be.false;
       expect(viewInt.get('config.value')).to.equal('1000');
-      expect(viewInt.get('config.errorMessage')).to.have.property('length').that.is.least(1);
+      expect(viewInt.get('config.errorMessage')).to.equal('');
+      expect(viewInt.get('config.warnMessage')).to.have.property('length').that.is.least(1);
     });
 
     it('check float', function () {
@@ -152,11 +154,13 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewFloat.get('isMirrorValueValid')).to.be.true;
       expect(viewFloat.get('config.value')).to.equal('55.5');
       expect(viewFloat.get('config.errorMessage')).to.equal('');
+      expect(viewFloat.get('config.warnMessage')).to.equal('');
 
       viewFloat.set('mirrorValue', 100500.5);
       expect(viewFloat.get('isMirrorValueValid')).to.be.false;
       expect(viewFloat.get('config.value')).to.equal('55.5');
-      expect(viewFloat.get('config.errorMessage')).to.have.property('length').that.is.least(1);
+      expect(viewFloat.get('config.errorMessage')).to.equal('');
+      expect(viewFloat.get('config.warnMessage')).to.have.property('length').that.is.least(1);
     });
 
     it('check percent', function () {
@@ -164,11 +168,13 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewPercent.get('isMirrorValueValid')).to.be.true;
       expect(viewPercent.get('config.value')).to.equal('0.32');
       expect(viewPercent.get('config.errorMessage')).to.equal('');
+      expect(viewPercent.get('config.warnMessage')).to.equal('');
 
       viewPercent.set('mirrorValue', 100500.5);
       expect(viewPercent.get('isMirrorValueValid')).to.be.false;
       expect(viewPercent.get('config.value')).to.equal('0.32');
-      expect(viewPercent.get('config.errorMessage')).to.have.property('length').that.is.least(1);
+      expect(viewPercent.get('config.errorMessage')).to.equal('');
+      expect(viewPercent.get('config.warnMessage')).to.have.property('length').that.is.least(1);
     });
   });
 

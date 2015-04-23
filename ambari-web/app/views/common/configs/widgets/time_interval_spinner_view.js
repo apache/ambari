@@ -174,18 +174,18 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   checkErrors: function() {
     var convertedValue = this.configValueByWidget(this.get('content'));
-    var errorMessage = '';
+    var warnMessage = '';
     if (convertedValue < parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'))) {
-      errorMessage = Em.I18n.t('number.validate.lessThanMinimum').format(this.dateToText(this.get('minValue')));
+      warnMessage = Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(this.dateToText(this.get('minValue')));
     }
     else if (convertedValue > parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'))) {
-      errorMessage = Em.I18n.t('number.validate.moreThanMaximum').format(this.dateToText(this.get('maxValue')));
+      warnMessage = Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(this.dateToText(this.get('maxValue')));
     }
     this.setProperties({
-      isValid: !errorMessage,
-      errorMessage: errorMessage
+      isValid: !warnMessage,
+      warnMessage: warnMessage
     });
-    this.set('config.errorMessage', errorMessage);
+    this.set('config.warnMessage', warnMessage);
   },
 
   /**
