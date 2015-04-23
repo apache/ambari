@@ -205,8 +205,8 @@ hbase_zookeeper_property_clientPort = config['configurations']['hbase-site']['hb
 hbase_security_authentication = config['configurations']['hbase-site']['hbase.security.authentication']
 hadoop_security_authentication = config['configurations']['core-site']['hadoop.security.authentication']
 
-repo_config_username = default("/configurations/ranger-hbase-plugin-properties/REPOSITORY_CONFIG_USERNAME", "hbase")
-repo_config_password = default("/configurations/ranger-hbase-plugin-properties/REPOSITORY_CONFIG_PASSWORD", "hbase")
+repo_config_username = config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
+repo_config_password = config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
 admin_uname = config['configurations']['ranger-env']['admin_username']
 admin_password = config['configurations']['ranger-env']['admin_password']

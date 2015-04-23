@@ -133,28 +133,19 @@ class RMFTestCase(TestCase):
     if 'status_params' in sys.modules:
       del(sys.modules["status_params"])
 
-    # run
-    if try_install:
-      with Environment(basedir, test_mode=True) as RMFTestCase.env:
-        with patch('resource_management.core.shell.checked_call', side_effect=checked_call_mocks) as mocks_dict['checked_call']:
-          with patch('resource_management.core.shell.call', side_effect=call_mocks) as mocks_dict['call']:
-            with patch.object(Script, 'get_config', return_value=self.config_dict) as mocks_dict['get_config']: # mocking configurations
-              with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
-                with patch.object(Script, 'install_packages') as mocks_dict['install_packages']:
-                  with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
-                    with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
-                      with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
+    with Environment(basedir, test_mode=True) as RMFTestCase.env:
+      with patch('resource_management.core.shell.checked_call', side_effect=checked_call_mocks) as mocks_dict['checked_call']:
+        with patch('resource_management.core.shell.call', side_effect=call_mocks) as mocks_dict['call']:
+          with patch.object(Script, 'get_config', return_value=self.config_dict) as mocks_dict['get_config']: # mocking configurations
+            with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
+              with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
+                with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
+                  with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
+                    if not try_install:
+                      with patch.object(Script, 'install_packages') as install_mock_value:
                         method(RMFTestCase.env)
-    else:
-      with Environment(basedir, test_mode=True) as RMFTestCase.env:
-        with patch('resource_management.core.shell.checked_call', side_effect=checked_call_mocks) as mocks_dict['checked_call']:
-          with patch('resource_management.core.shell.call', side_effect=call_mocks) as mocks_dict['call']:
-            with patch.object(Script, 'get_config', return_value=self.config_dict) as mocks_dict['get_config']: # mocking configurations
-              with patch.object(Script, 'get_tmp_dir', return_value="/tmp") as mocks_dict['get_tmp_dir']:
-                  with patch('resource_management.libraries.functions.get_kinit_path', return_value=kinit_path_local) as mocks_dict['get_kinit_path']:
-                    with patch.object(platform, 'linux_distribution', return_value=os_type) as mocks_dict['linux_distribution']:
-                      with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
-                        method(RMFTestCase.env)
+                    else:
+                      method(RMFTestCase.env)
 
     sys.path.remove(scriptsdir)
   
