@@ -125,6 +125,11 @@
               <fileName>log4j.properties</fileName>
               <dictionaryName>accumulo-log4j</dictionaryName>
             </configFile>
+            <configFile>
+              <type>properties</type>
+              <fileName>client.conf</fileName>
+              <dictionaryName>client</dictionaryName>
+            </configFile>
           </configFiles>
         </component>
       </components>

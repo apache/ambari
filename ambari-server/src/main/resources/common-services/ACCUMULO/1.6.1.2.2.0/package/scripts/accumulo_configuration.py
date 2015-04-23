@@ -105,10 +105,21 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
 
   # create client.conf file
   configs = {}
+  if 'client' in params.config['configurations']:
+    configs.update(params.config['configurations']['client'])
   configs["instance.name"] = params.instance_name
   configs["instance.zookeeper.host"] = params.config['configurations']['accumulo-site']['instance.zookeeper.host']
-  if 'instance.rpc.sasl.enabled' in params.config['configurations']['accumulo-site']:
-    configs["instance.rpc.sasl.enabled"] = params.config['configurations']['accumulo-site']['instance.rpc.sasl.enabled']
+  copy_site_property(configs, 'instance.rpc.sasl.enabled')
+  copy_site_property(configs, 'rpc.sasl.qop')
+  copy_site_property(configs, 'rpc.useJsse')
+  copy_site_property(configs, 'instance.rpc.ssl.clientAuth')
+  copy_site_property(configs, 'instance.rpc.ssl.enabled')
+  copy_site_property(configs, 'instance.zookeeper.timeout')
+  copy_site_property(configs, 'trace.span.receivers')
+  copy_site_property(configs, 'trace.zookeeper.path')
+  for key,value in params.config['configurations']['accumulo-site'].iteritems():
+    if key.startswith("trace.span.receiver."):
+      configs[key] = value
   PropertiesFile(format("{dest_conf_dir}/client.conf"),
                  properties = configs,
                  owner = params.accumulo_user,
@@ -277,6 +288,10 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
       try_remove(rpassfile)
       try_remove(cmdfile)
 
+def copy_site_property(configs, name):
+  import params
+  if name in params.config['configurations']['accumulo-site']:
+    configs[name] = params.config['configurations']['accumulo-site'][name]
 
 def create_user(user, password):
   import params
