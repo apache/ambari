@@ -29,6 +29,7 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
 
   didInsertElement: function () {
     var self = this;
+    this.initPopover();
     this._super(arguments);
     Em.run.next(function () {
       if (self.$())
