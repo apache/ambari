@@ -32,7 +32,8 @@ App.serviceConfigVersionsMapper = App.QuickDataMapper.create({
     notes: 'service_config_version_note',
     is_current: 'is_current',
     index: 'index',
-    stack_version: 'stack_id'
+    stack_version: 'stack_id',
+    is_compatible: 'is_cluster_compatible'
   },
   map: function (json) {
     var result = [];

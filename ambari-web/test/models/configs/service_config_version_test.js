@@ -51,4 +51,39 @@ describe('App.ServiceConfigVersion', function () {
 
   });
 
+  describe('#canBeMadeCurrent', function () {
+
+    var cases = [
+      {
+        isCompatible: true,
+        isCurrent: true,
+        canBeMadeCurrent: false,
+        title: 'current version'
+      },
+      {
+        isCompatible: true,
+        isCurrent: false,
+        canBeMadeCurrent: true,
+        title: 'compatible version'
+      },
+      {
+        isCompatible: false,
+        isCurrent: false,
+        canBeMadeCurrent: false,
+        title: 'not compatible version'
+      }
+    ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        model.setProperties({
+          isCompatible: item.isCompatible,
+          isCurrent: item.isCurrent
+        });
+        expect(model.get('canBeMadeCurrent')).to.equal(item.canBeMadeCurrent);
+      });
+    });
+
+  });
+
 });

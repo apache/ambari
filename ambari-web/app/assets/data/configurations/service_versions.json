@@ -8,7 +8,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "ganglia-env",
           "tag" : "version1414410959005",
@@ -36,7 +36,8 @@
       "service_config_version_note" : "Initial configurations for Ganglia",
       "service_name" : "GANGLIA",
       "user" : "admin",
-      "stack_id": "HDP-2.0.6"
+      "stack_id" : "HDP-2.0.6",
+      "is_cluster_compatible": true
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/tdk/configurations/service_config_versions?service_name=HDFS&service_config_version=2",
@@ -45,7 +46,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "core-site",
           "tag" : "version1",
@@ -75,7 +76,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hadoop-policy",
           "tag" : "version1",
@@ -97,7 +98,8 @@
         },
         {
           "Config" : {
-            "cluster_name" : "tdk"
+            "cluster_name" : "tdk",
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hdfs-log4j",
           "tag" : "version1",
@@ -110,7 +112,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hdfs-site",
           "tag" : "version1",
@@ -173,7 +175,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hadoop-env",
           "tag" : "version1414314983497",
@@ -206,7 +208,8 @@
       "service_config_version_note" : "",
       "service_name" : "HDFS",
       "user" : "admin",
-      "stack_id": "HDP-2.0.6"
+      "stack_id" : "HDP-2.0.5",
+      "is_cluster_compatible": false
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/tdk/configurations/service_config_versions?service_name=HDFS&service_config_version=1",
@@ -215,7 +218,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hadoop-env",
           "tag" : "version1",
@@ -241,7 +244,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hdfs-log4j",
           "tag" : "version1",
@@ -254,7 +257,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hdfs-site",
           "tag" : "version1",
@@ -317,7 +320,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "hadoop-policy",
           "tag" : "version1",
@@ -340,7 +343,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.5"
           },
           "type" : "core-site",
           "tag" : "version1",
@@ -377,7 +380,8 @@
       "service_config_version_note" : "Initial configurations for HDFS",
       "service_name" : "HDFS",
       "user" : "admin",
-      "stack_id": "HDP-2.0.6"
+      "stack_id" : "HDP-2.0.5",
+      "is_cluster_compatible": false
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/tdk/configurations/service_config_versions?service_name=HDFS&service_config_version=3",
@@ -386,7 +390,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "hadoop-env",
           "tag" : "version1414314983497",
@@ -412,7 +416,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "hadoop-policy",
           "tag" : "version1",
@@ -435,7 +439,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "hdfs-log4j",
           "tag" : "version1",
@@ -448,7 +452,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "hdfs-site",
           "tag" : "version1",
@@ -511,7 +515,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "core-site",
           "tag" : "version1414410959005",
@@ -548,7 +552,8 @@
       "service_config_version_note" : null,
       "service_name" : "HDFS",
       "user" : "admin",
-      "stack_id": "HDP-2.0.6"
+      "stack_id" : "HDP-2.0.6",
+      "is_cluster_compatible": true
     },
     {
       "href" : "http://192.168.56.101:8080/api/v1/clusters/tdk/configurations/service_config_versions?service_name=ZOOKEEPER&service_config_version=1",
@@ -557,7 +562,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "zookeeper-env",
           "tag" : "version1",
@@ -578,7 +583,7 @@
         {
           "Config" : {
             "cluster_name" : "tdk",
-            "stack_id": "HDP-2.0.6"
+            "stack_id" : "HDP-2.0.6"
           },
           "type" : "zookeeper-log4j",
           "tag" : "version1",
@@ -598,7 +603,8 @@
       "service_config_version_note" : "Initial configurations for ZooKeeper",
       "service_name" : "ZOOKEEPER",
       "user" : "admin",
-      "stack_id": "HDP-2.0.6"
+      "stack_id" : "HDP-2.0.6",
+      "is_cluster_compatible": true
     }
   ]
 }

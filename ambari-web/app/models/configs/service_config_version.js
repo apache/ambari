@@ -38,6 +38,10 @@ App.ServiceConfigVersion = DS.Model.extend({
   isCurrent: DS.attr('boolean'),
   isDisplayed: DS.attr('boolean'),
   stackVersion: DS.attr('string'),
+  isCompatible: DS.attr('boolean'),
+  canBeMadeCurrent: function () {
+    return this.get('isCompatible') && !this.get('isCurrent');
+  }.property('isCurrent', 'isCompatible'),
   isDefault: function() {
     return this.get('groupName') === 'default';
   }.property('groupName'),
