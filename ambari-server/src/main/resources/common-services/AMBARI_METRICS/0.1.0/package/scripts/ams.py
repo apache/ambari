@@ -72,7 +72,27 @@ def ams(name=None):
          owner=params.ams_user,
          content=InlineTemplate(params.ams_env_sh_template)
     )
+    pass
 
+    if params.is_hbase_distributed:
+      # Configuration needed to support NN HA
+      XmlConfig("hdfs-site.xml",
+            conf_dir=params.ams_collector_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            owner=params.ams_user,
+            group=params.user_group,
+            mode=0644
+      )
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.ams_collector_conf_dir,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0644
+      )
     pass
 
   elif name == 'monitor':
@@ -200,6 +220,27 @@ def ams(name=None):
                 group=params.user_group,
                 cd_access="a",
                 recursive=True
+      )
+    pass
+
+    if params.is_hbase_distributed:
+      # Configuration needed to support NN HA
+      XmlConfig("hdfs-site.xml",
+            conf_dir=params.ams_collector_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            owner=params.ams_user,
+            group=params.user_group,
+            mode=0644
+      )
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.ams_collector_conf_dir,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0644
       )
     pass
 
