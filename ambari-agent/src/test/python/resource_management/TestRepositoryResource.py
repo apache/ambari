@@ -171,7 +171,7 @@ class TestRepositoryResource(TestCase):
       #'apt-get update -qq -o Dir::Etc::sourcelist="sources.list.d/HDP.list" -o APT::Get::List-Cleanup="0"')
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
-      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'APT::Get::List-Cleanup=0'])
+      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
       self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
 
     @patch("resource_management.libraries.providers.repository.checked_call")
@@ -211,7 +211,7 @@ class TestRepositoryResource(TestCase):
       self.assertEqual(copy_item, "call('/etc/apt/sources.list.d/HDP.list', content=StaticFile('/tmp/1.txt'))")
       execute_command_item = execute_mock.call_args_list[0][0][0]
 
-      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'APT::Get::List-Cleanup=0'])
+      self.assertEqual(checked_call_mock.call_args_list[0][0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
       self.assertEqual(execute_command_item, 'apt-key adv --recv-keys --keyserver keyserver.ubuntu.com 123ABCD')
 
     @patch.object(tempfile, "NamedTemporaryFile")
@@ -257,7 +257,7 @@ class TestRepositoryResource(TestCase):
           )
           
       self.assertEqual(str(file_mock.call_args), "call('/etc/apt/sources.list.d/HDP.list', action='delete')")
-      self.assertEqual(execute_mock.call_args[0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'APT::Get::List-Cleanup=0'])
+      self.assertEqual(execute_mock.call_args[0][0], ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/HDP.list', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0'])
 
     @patch("os.path.isfile", new=MagicMock(return_value=False))
     @patch.object(System, "os_family", new='ubuntu')
