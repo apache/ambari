@@ -1,64 +1,62 @@
 {
-  "Theme": {
-    "name": "default",
-    "description": "Default theme for HDFS service",
-    "configuration": {
-      "layouts": [
-        {
-          "name": "default",
-          "tabs": [
-            {
-              "name": "settings",
-              "display-name": "Settings",
-              "layout": {
-                "tab-columns": "2",
-                "tab-rows": "1",
-                "sections": [
-                  {
-                    "name": "section-namenode",
-                    "display-name": "NameNode",
-                    "row-index": "0",
-                    "column-index": "0",
-                    "row-span": "1",
-                    "column-span": "1",
-                    "section-columns": "1",
-                    "section-rows": "1",
-                    "subsections": [
-                      {
-                        "name": "subsection-namenode-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "section-datanode",
-                    "display-name": "DataNode",
-                    "row-index": "0",
-                    "column-index": "1",
-                    "row-span": "1",
-                    "column-span": "1",
-                    "section-columns": "1",
-                    "section-rows": "1",
-                    "subsections": [
-                      {
-                        "name": "subsection-datanode-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  }
-                ]
-              }
+  "name": "default",
+  "description": "Default theme for HDFS service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-columns": "2",
+              "tab-rows": "1",
+              "sections": [
+                {
+                  "name": "section-namenode",
+                  "display-name": "NameNode",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-namenode-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "section-datanode",
+                  "display-name": "DataNode",
+                  "row-index": "0",
+                  "column-index": "1",
+                  "row-span": "1",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "1",
+                  "subsections": [
+                    {
+                      "name": "subsection-datanode-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
             }
-          ]
-        }
-      ]
-    },
+          }
+        ]
+      }
+    ],
     "placement": {
       "configuration-layout": "default",
       "configs": [
@@ -96,76 +94,76 @@
         }
       ]
     },
-    "widgets":[
+    "widgets": [
       {
-        "config":"hdfs-site/dfs.namenode.name.dir",
-        "widget":{
-          "type":"directories"
+        "config": "hdfs-site/dfs.namenode.name.dir",
+        "widget": {
+          "type": "directories"
         }
       },
       {
-        "config":"hdfs-site/dfs.namenode.safemode.threshold-pct",
-        "widget":{
-          "type":"toggle"
+        "config": "hdfs-site/dfs.namenode.safemode.threshold-pct",
+        "widget": {
+          "type": "toggle"
         }
       },
       {
-        "config":"hdfs-site/dfs.namenode.handler.count",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "config": "hdfs-site/dfs.namenode.handler.count",
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"int"
+              "unit-name": "int"
             }
           ]
         }
       },
       {
         "config": "hadoop-env/namenode_heapsize",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"GB"
+              "unit-name": "GB"
             }
           ]
         }
       },
       {
         "config": "hdfs-site/dfs.datanode.failed.volumes.tolerated",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"int"
+              "unit-name": "int"
             }
           ]
         }
       },
       {
         "config": "hdfs-site/dfs.datanode.data.dir",
-        "widget":{
-          "type":"directories"
+        "widget": {
+          "type": "directories"
         }
       },
       {
         "config": "hadoop-env/dtnode_heapsize",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"GB"
+              "unit-name": "GB"
             }
           ]
         }
       },
       {
         "config": "hdfs-site/dfs.datanode.max.transfer.threads",
-        "widget":{
-          "type":"slider",
-          "units":[
+        "widget": {
+          "type": "slider",
+          "units": [
             {
-              "unit-name":"int"
+              "unit-name": "int"
             }
           ]
         }
@@ -173,3 +171,4 @@
     ]
   }
 }
+

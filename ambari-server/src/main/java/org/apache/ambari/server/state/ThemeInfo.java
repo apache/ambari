@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state;
 
+import org.apache.ambari.server.state.theme.Theme;
+
 import javax.xml.bind.annotation.XmlAccessType;
 import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
@@ -35,16 +37,16 @@ public class ThemeInfo {
   private Boolean deleted = false;
 
   @XmlTransient
-  private Map<String, Object> themeMap = null;
+  private Map<String, Theme> themeMap = null;
 
   public ThemeInfo() {
   }
 
-  public Map<String, Object> getThemeMap() {
+  public Map<String, Theme> getThemeMap() {
     return themeMap;
   }
 
-  public void setThemeMap(Map<String, Object> themeMap) {
+  public void setThemeMap(Map<String, Theme> themeMap) {
     this.themeMap = themeMap;
   }
 

@@ -18,70 +18,36 @@
 
 package org.apache.ambari.server.stack;
 
-import org.apache.ambari.server.state.ThemeInfo;
-import org.apache.commons.lang.StringUtils;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
+import org.apache.ambari.server.state.theme.Theme;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
 
 import static org.junit.Assert.*;
 
 public class ThemeModuleTest {
-  private String parentTheme = "{\n" +
-    "  \"Theme\": {\n" +
-    "    \"name\": \"default\",\n" +
-    "    \"description\": \"Default theme for HDFS service\",\n" +
-    "    \"subObject\": {\n" +
-    "      \"primitiveInt\" : 10,\n" +
-    "      \"primitiveStr\" : \"str\",\n" +
-    "      \"array1\" : [1,2,3],\n" +
-    "      \"array2\" : [1,2,3]\n" +
-    "    }\n" +
-    "  }\n" +
-    "}";
-  private String childTheme = "{\n" +
-    "  \"Theme\": {\n" +
-    "    \"description\": \"inherited theme\",\n" +
-    "    \"subObject\": {\n" +
-    "      \"primitiveInt\" : 12,\n" +
-    "      \"primitiveStr\" : \"newStr\",\n" +
-    "      \"array1\" : [1,2,3,4,5],\n" +
-    "      \"array2\" : null,\n" +
-    "      \"subObject2\" : {\"1\":\"1\"}\n" +
-    "    }\n" +
-    "  }\n" +
-    "}";
-
-  private ObjectMapper mapper = new ObjectMapper();
-  TypeReference<HashMap<String,Object>> typeRef = new TypeReference<HashMap<String,Object>>() {};
 
 
   @Test
   public void testResolve() throws Exception {
+    File parentThemeFile = new File(this.getClass().getClassLoader().getResource("parent-theme.json").getFile());
+    File childThemeFile = new File(this.getClass().getClassLoader().getResource("child-theme.json").getFile());
 
-    ThemeInfo parentInfo = new ThemeInfo();
-    parentInfo.setThemeMap(mapper.<Map<String, Object>>readValue(parentTheme, typeRef));
-    ThemeModule parentModule = new ThemeModule(parentInfo);
-
-    ThemeInfo childInfo = new ThemeInfo();
-    childInfo.setThemeMap(mapper.<Map<String, Object>>readValue(childTheme, typeRef));
-    ThemeModule childModule = new ThemeModule(childInfo);
+    ThemeModule parentModule = new ThemeModule(parentThemeFile);
+    ThemeModule childModule = new ThemeModule(childThemeFile);
 
     childModule.resolve(parentModule, null, null);
 
-    Map descriptionMap = ((Map) childInfo.getThemeMap().get("Theme"));
-    Map subObjectMap = (Map) descriptionMap.get("subObject");
+    Theme childTheme = childModule.getModuleInfo().getThemeMap().get(ThemeModule.THEME_KEY);
+    Theme parentTheme = parentModule.getModuleInfo().getThemeMap().get(ThemeModule.THEME_KEY);
 
-    assertTrue(StringUtils.equals((String) descriptionMap.get("description"), "inherited theme"));
-    assertTrue(descriptionMap.containsKey("name"));
-    assertFalse(subObjectMap.containsKey("array2"));
-    assertEquals(subObjectMap.get("primitiveInt"), 12);
-    assertEquals(subObjectMap.get("primitiveStr"), "newStr");
-    assertEquals(((List)subObjectMap.get("array1")).size(), 5);
+    assertNotNull(childTheme.getThemeConfiguration().getLayouts()); // not defined in child should be inherited
+
+    assertEquals(10, parentTheme.getThemeConfiguration().getPlacement().getConfigs().size());
+    assertEquals(12, childTheme.getThemeConfiguration().getPlacement().getConfigs().size()); //two more inherited
+
+    assertEquals(10, parentTheme.getThemeConfiguration().getWidgets().size());
+    assertEquals(12, childTheme.getThemeConfiguration().getWidgets().size());
 
 
   }

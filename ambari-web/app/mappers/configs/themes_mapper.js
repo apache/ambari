@@ -123,7 +123,7 @@ App.themesMapper = App.QuickDataMapper.create({
    * @param {Object} json - json to parse
    */
   mapThemeConfigs: function(json) {
-    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.placement.configs", []).forEach(function(configLink) {
+    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.placement.configs", []).forEach(function(configLink) {
       var configId = this.getConfigId(configLink);
       var subSectionId = configLink["subsection-name"];
       var subSection = App.SubSection.find(subSectionId);
@@ -144,7 +144,7 @@ App.themesMapper = App.QuickDataMapper.create({
    * @param {Object} json - json to parse
    */
   mapThemeWidgets: function(json) {
-    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.widgets", []).forEach(function(widget) {
+    Em.getWithDefault(json, "ThemeInfo.theme_data.Theme.configuration.widgets", []).forEach(function(widget) {
       var configId = this.getConfigId(widget);
       var configProperty = App.StackConfigProperty.find(configId);
 

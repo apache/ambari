@@ -1,201 +1,199 @@
 {
-  "Theme": {
-    "name": "default",
-    "description": "Default theme for HIVE service",
-    "configuration": {
-      "layouts": [
-        {
-          "name": "default",
-          "tabs": [
-            {
-              "name": "settings",
-              "display-name": "Settings",
-              "layout": {
-                "tab-rows": 6,
-                "tab-columns": 3,
-                "sections": [
-                  {
-                    "name": "optimization",
-                    "display-name": "Optimization",
-                    "row-index": "0",
-                    "column-index": "0",
-                    "row-span": "3",
-                    "column-span": "2",
-                    "section-columns": "2",
-                    "section-rows": "4",
-                    "subsections": [
-                      {
-                        "name": "optimization-row1-col1",
-                        "display-name": "Storage",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "2",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "optimization-row1-col2-1",
-                        "display-name": "",
-                        "row-index": "0",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "optimization-row1-col2-2",
-                        "display-name": "",
-                        "row-index": "1",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1",
-                        "border": true
-                      },
-                      {
-                        "name": "optimization-row2-col1",
-                        "display-name": "Optimization Vectorization",
-                        "row-index": "2",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "optimization-row2-col2",
-                        "display-name": "",
-                        "row-index": "2",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "optimization-row3-col1",
-                        "display-name": "Memory",
-                        "row-index": "3",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "optimization-row3-col2",
-                        "display-name": "",
-                        "row-index": "3",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "acid-transactions",
-                    "display-name": "Acid Transactions",
-                    "row-index": "0",
-                    "column-index": "2",
-                    "row-span": "2",
-                    "column-span": "1",
-                    "section-columns": "1",
-                    "section-rows": "2",
-                    "subsections": [
-                      {
-                        "name": "acid-transactions-row1-col1-1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "acid-transactions-row1-col1-2",
-                        "row-index": "1",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "performance",
-                    "display-name": "Performance",
-                    "row-index": "3",
-                    "column-index": "0",
-                    "row-span": "3",
-                    "column-span": "2",
-                    "section-columns": "2",
-                    "section-rows": "2",
-                    "subsections": [
-                      {
-                        "name": "performance-row1-col1",
-                        "display-name": "TEZ Engine",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "performance-row1-col2",
-                        "display-name": "",
-                        "row-index": "0",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "performance-row2-col1",
-                        "row-index": "1",
-                        "column-index": "0",
-                        "row-span": "1",
-                        "column-span": "1"
-                      },
-                      {
-                        "name": "performance-row2-col2",
-                        "row-index": "1",
-                        "column-index": "1",
-                        "row-span": "1",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "interactive-query",
-                    "display-name": "Interactive Query",
-                    "row-index": "2",
-                    "column-index": "2",
-                    "row-span": "2",
-                    "column-span": "1",
-                    "section-columns": "1",
-                    "section-rows": "2",
-                    "subsections": [
-                      {
-                        "name": "interactive-query-row1-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "2",
-                        "column-span": "1"
-                      }
-                    ]
-                  },
-                  {
-                    "name": "security",
-                    "display-name": "Security",
-                    "row-index": "4",
-                    "column-index": "2",
-                    "row-span": "2",
-                    "column-span": "1",
-                    "section-columns": "1",
-                    "section-rows": "2",
-                    "subsections": [
-                      {
-                        "name": "security-row1-col1",
-                        "row-index": "0",
-                        "column-index": "0",
-                        "row-span": "2",
-                        "column-span": "1"
-                      }
-                    ]
-                  }
-                ]
-              }
+  "name": "default",
+  "description": "Default theme for HIVE service",
+  "configuration": {
+    "layouts": [
+      {
+        "name": "default",
+        "tabs": [
+          {
+            "name": "settings",
+            "display-name": "Settings",
+            "layout": {
+              "tab-rows": 6,
+              "tab-columns": 3,
+              "sections": [
+                {
+                  "name": "optimization",
+                  "display-name": "Optimization",
+                  "row-index": "0",
+                  "column-index": "0",
+                  "row-span": "3",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "4",
+                  "subsections": [
+                    {
+                      "name": "optimization-row1-col1",
+                      "display-name": "Storage",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "2",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row1-col2-1",
+                      "display-name": "",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row1-col2-2",
+                      "display-name": "",
+                      "row-index": "1",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1",
+                      "border": true
+                    },
+                    {
+                      "name": "optimization-row2-col1",
+                      "display-name": "Optimization Vectorization",
+                      "row-index": "2",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row2-col2",
+                      "display-name": "",
+                      "row-index": "2",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row3-col1",
+                      "display-name": "Memory",
+                      "row-index": "3",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "optimization-row3-col2",
+                      "display-name": "",
+                      "row-index": "3",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "acid-transactions",
+                  "display-name": "Acid Transactions",
+                  "row-index": "0",
+                  "column-index": "2",
+                  "row-span": "2",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "acid-transactions-row1-col1-1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "acid-transactions-row1-col1-2",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "performance",
+                  "display-name": "Performance",
+                  "row-index": "3",
+                  "column-index": "0",
+                  "row-span": "3",
+                  "column-span": "2",
+                  "section-columns": "2",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "performance-row1-col1",
+                      "display-name": "TEZ Engine",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "performance-row1-col2",
+                      "display-name": "",
+                      "row-index": "0",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "performance-row2-col1",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "performance-row2-col2",
+                      "row-index": "1",
+                      "column-index": "1",
+                      "row-span": "1",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "interactive-query",
+                  "display-name": "Interactive Query",
+                  "row-index": "2",
+                  "column-index": "2",
+                  "row-span": "2",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "interactive-query-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "2",
+                      "column-span": "1"
+                    }
+                  ]
+                },
+                {
+                  "name": "security",
+                  "display-name": "Security",
+                  "row-index": "4",
+                  "column-index": "2",
+                  "row-span": "2",
+                  "column-span": "1",
+                  "section-columns": "1",
+                  "section-rows": "2",
+                  "subsections": [
+                    {
+                      "name": "security-row1-col1",
+                      "row-index": "0",
+                      "column-index": "0",
+                      "row-span": "2",
+                      "column-span": "1"
+                    }
+                  ]
+                }
+              ]
             }
-          ]
-        }
-      ]
-    },
+          }
+        ]
+      }
+    ],
     "placement": {
       "configuration-layout": "default",
       "configs": [
@@ -635,3 +633,4 @@
     ]
   }
 }
+

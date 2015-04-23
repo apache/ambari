@@ -19,8 +19,8 @@ package org.apache.ambari.server.stack;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.state.ThemeInfo;
+import org.apache.ambari.server.state.theme.Theme;
 import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.type.TypeReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +38,8 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
 
   private static final Logger LOG = LoggerFactory.getLogger(ThemeModule.class);
   private static final ObjectMapper mapper = new ObjectMapper();
+
+  public static final String THEME_KEY = "Theme";
 
   static {
   }
@@ -62,9 +64,9 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
         LOG.error("Theme file not found");
       }
       try {
-        TypeReference<HashMap<String, Object>> typeRef = new TypeReference<HashMap<String, Object>>() {
-        };
-        Map<String, Object> map = mapper.readValue(reader, typeRef);
+        Theme theme = mapper.readValue(reader, Theme.class);
+        Map<String, Theme> map = new HashMap<String, Theme>();
+        map.put(THEME_KEY, theme);
         moduleInfo.setThemeMap(map);
         LOG.debug("Loaded theme: {}", moduleInfo);
       } catch (IOException e) {
@@ -83,44 +85,15 @@ public class ThemeModule extends BaseModule<ThemeModule, ThemeInfo> implements V
   public void resolve(ThemeModule parent, Map<String, StackModule> allStacks, Map<String, ServiceModule> commonServices) throws AmbariException {
     ThemeInfo parentModuleInfo = parent.getModuleInfo();
 
-
-
     if (parent.getModuleInfo() != null && !moduleInfo.isDeleted()) {
-      moduleInfo.setThemeMap(mergedMap(parent.getModuleInfo().getThemeMap(), moduleInfo.getThemeMap()));
-    }
-  }
-
-  @SuppressWarnings("unchecked")
-  private Map<String, Object> mergedMap(Map<String, Object> parent, Map<String, Object> child) {
-    Map<String, Object> mergedMap = new HashMap<String, Object>();
-    if (parent == null) {
-      mergedMap = child;
-    }else if (child == null) {
-      mergedMap.putAll(parent);
-    } else {
-      mergedMap.putAll(parent);
-      for (Map.Entry<String, Object> entry : child.entrySet()) {
-        String key = entry.getKey();
-        Object childValue = entry.getValue();
-        if (childValue == null) {
-          mergedMap.remove(key);
-        }else if (!mergedMap.containsKey(key) || !(childValue instanceof Map)) {
-          //insert if absent, override if explicitly null, override primitives and arrays
-          mergedMap.put(key, childValue);
-        }else {
-          Object parentValue = mergedMap.get(key);
-          if (!(parentValue instanceof Map)) {
-            //override on type mismatch also
-            mergedMap.put(key, childValue);
-          } else {
-            mergedMap.put(key, mergedMap((Map<String, Object>)parentValue, (Map<String, Object>)childValue));
-          }
-        }
+      if (moduleInfo.getThemeMap() == null || moduleInfo.getThemeMap().isEmpty()) {
+        moduleInfo.setThemeMap(parentModuleInfo.getThemeMap());
+      } else if(parentModuleInfo.getThemeMap() != null && !parentModuleInfo.getThemeMap().isEmpty()) {
+        Theme childTheme = moduleInfo.getThemeMap().get(THEME_KEY);
+        Theme parentTheme = parentModuleInfo.getThemeMap().get(THEME_KEY);
+        childTheme.mergeWithParent(parentTheme);
       }
-
     }
-
-    return mergedMap;
   }
 
   @Override
