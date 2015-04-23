@@ -33,7 +33,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @type {boolean}
    */
   hasChangedDependencies: function() {
-    return App.get('supports.enhancedConfigs') && this.get('_dependentConfigValues.length') > 0;
+    return App.get('isClusterSupportsEnhancedConfigs') && this.get('_dependentConfigValues.length') > 0;
   }.property('_dependentConfigValues.length'),
 
   /**
@@ -211,7 +211,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         hosts: this.get('hostNames'),
         services: this.get('serviceNames')
       };
-      if (App.get('supports.enhancedConfigs') && changedConfigs) {
+      if (App.get('isClusterSupportsEnhancedConfigs') && changedConfigs) {
         if (changedConfigs) {
           dataToSend.recommend = 'configuration-dependencies';
           dataToSend.changed_configurations = changedConfigs;

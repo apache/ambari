@@ -183,6 +183,16 @@ module.exports = Em.Application.create({
   }.property('currentStackName'),
 
   /**
+   * when working with enhanced configs we should rely on stack version
+   * as version that is below 2.2 doesn't supports it
+   * even if flag <code>supports.enhancedConfigs<code> is true
+   * @type {boolean}
+   */
+  isClusterSupportsEnhancedConfigs: function() {
+    return this.get('isHadoop22Stack') && App.get('supports.enhancedConfigs')
+  }.property('isHadoop22Stack'),
+
+  /**
    * If NameNode High Availability is enabled
    * Based on <code>clusterStatus.isInstalled</code>, stack version, <code>SNameNode</code> availability
    *

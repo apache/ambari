@@ -1234,7 +1234,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
    loadConfigThemes: function() {
     var self = this;
     var dfd = $.Deferred();
-    if (App.get('supports.enhancedConfigs') && !this.get('stackConfigsLoaded')) {
+    if (App.get('isClusterSupportsEnhancedConfigs') && !this.get('stackConfigsLoaded')) {
       var serviceNames = App.StackService.find().filter(function(s) {
         return s.get('isSelected') || s.get('isInstalled');
       }).mapProperty('serviceName');

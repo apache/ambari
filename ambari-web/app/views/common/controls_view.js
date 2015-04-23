@@ -66,7 +66,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * do not apply recommended value if user change value by himself.
    */
   keyUp: function() {
-    if (App.get('supports.enhancedConfigs')) {
+    if (App.get('isClusterSupportsEnhancedConfigs')) {
       this.get('controller').removeCurrentFromDependentList(this.get('serviceConfig') || this.get('config'));
     }
   },
@@ -79,7 +79,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
-    if (App.get('supports.enhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
+    if (App.get('isClusterSupportsEnhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));

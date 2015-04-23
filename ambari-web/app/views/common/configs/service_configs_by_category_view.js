@@ -582,7 +582,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   removeProperty: function (event) {
     var serviceConfigProperty = event.contexts[0];
     this.get('serviceConfigs').removeObject(serviceConfigProperty);
-    if (App.get('supports.enhancedConfigs')) {
+    if (App.get('isClusterSupportsEnhancedConfigs')) {
       var deletedConfig = App.ConfigProperty.find().find(function(cp) {
         return cp.get('name') === serviceConfigProperty.get('name')
           && cp.get('fileName') === serviceConfigProperty.get('filename')

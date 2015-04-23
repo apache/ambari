@@ -77,7 +77,7 @@ App.ServiceConfigView.SCPOverriddenRowsView = Ember.View.extend({
       var group = controller.get('selectedService.configGroups').findProperty('name', controller.get('selectedConfigGroup.name'));
       group.get('properties').removeObject(scpToBeRemoved);
     }
-    if (App.get('supports.enhancedConfigs')) {
+    if (App.get('isClusterSupportsEnhancedConfigs')) {
       var deletedConfig = App.ConfigProperty.find().find(function(cp) {
         return cp.get('name') === scpToBeRemoved.get('name')
           && cp.get('fileName') === scpToBeRemoved.get('filename')

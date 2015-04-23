@@ -338,7 +338,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     console.log("TRACE: Loading configure for service");
     var serviceName = this.get('content.serviceName');
     this.clearStep();
-    if (App.get('supports.enhancedConfigs')) {
+    if (App.get('isClusterSupportsEnhancedConfigs')) {
       this.setDependentServices(serviceName);
       this.loadConfigTheme(serviceName).always(function() {
         App.themesMapper.generateAdvancedTabs([serviceName]);

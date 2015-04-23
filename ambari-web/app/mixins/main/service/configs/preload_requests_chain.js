@@ -138,7 +138,7 @@ App.PreloadRequestsChainMixin = Em.Mixin.create({
       serviceName: this.get('content.serviceName'),
       serviceConfigVersions: versions
     };
-    if (App.get('supports.enhancedConfigs') && this.get('dependentServiceNames.length')) {
+    if (App.get('isClusterSupportsEnhancedConfigs') && this.get('dependentServiceNames.length')) {
       data.additionalParams = '|service_name.in(' +  this.get('dependentServiceNames') + ')&is_current=true';
     }
     this.trackRequest(App.ajax.send({
