@@ -1076,7 +1076,7 @@ class TestNamenode(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
-                              'hdp-select set hadoop-hdfs-namenode %s' % version,)
+                              'hdp-select set hadoop-hdfs-namenode %s' % version)
     self.assertNoMoreResources()
 
 

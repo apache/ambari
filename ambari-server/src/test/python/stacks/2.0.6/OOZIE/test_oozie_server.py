@@ -906,4 +906,3 @@ class TestOozieServer(RMFTestCase):
     except Fail,f:
       pass
 
-

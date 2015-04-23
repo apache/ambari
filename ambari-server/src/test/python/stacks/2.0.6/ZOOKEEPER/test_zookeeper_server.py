@@ -17,8 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
+import resource_management.libraries.functions.get_unique_id_and_date
 
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
@@ -338,3 +340,47 @@ class TestZookeeperServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+
+  def test_pre_rolling_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zookeeper_server.py",
+                       classname = "ZookeeperServer",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertResourceCalled('Execute',
+                              'hdp-select set zookeeper-server %s' % version)
+    self.assertNoMoreResources()
+
+  @patch.object(resource_management.libraries.functions, "get_unique_id_and_date")
+  def test_post_rolling_restart(self, get_unique_id_and_date_mock):
+    unique_value = "unique1"
+    get_unique_id_and_date_mock.return_value = unique_value
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/zookeeper_server.py",
+                       classname = "ZookeeperServer",
+                       command = "post_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [
+                         (0, 'Created'),
+                         (0, '[ Unique %s]' % unique_value),
+                         (0, 'stdout'),
+                         (0, 'stdout')
+                       ],
+                       mocks_dict = mocks_dict)
+    self.assertEqual(mocks_dict['call'].call_count, 4)
+    self.assertNoMoreResources()

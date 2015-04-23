@@ -47,3 +47,18 @@ class TestMahoutClient(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  def test_pre_rolling_restart(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
+                       classname = "MahoutClient",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+    self.assertResourceCalled('Execute',
+                              ('hdp-select', 'set', 'mahout-client', version), sudo = True)
+    self.assertNoMoreResources()

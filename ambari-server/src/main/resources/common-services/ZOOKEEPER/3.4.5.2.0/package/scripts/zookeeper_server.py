@@ -27,7 +27,7 @@ from resource_management.libraries.functions.version import compare_versions, fo
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_JAAS_CONF
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.core.logger import Logger
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.check_process_status import check_process_status
@@ -91,11 +91,11 @@ class ZookeeperServerLinux(ZookeeperServer):
     quorum_err_message = "Failed to establish zookeeper quorum"
     call_and_match_output(create_command, 'Created', quorum_err_message)
     call_and_match_output(list_command, r"\[.*?" + unique + ".*?\]", quorum_err_message)
-    call(delete_command)
+    shell.call(delete_command)
 
     if params.client_port:
       check_leader_command = format("echo stat | nc localhost {client_port} | grep Mode")
-      code, out = call(check_leader_command, logoutput=False)
+      code, out = shell.call(check_leader_command, logoutput=False)
       if code == 0 and out:
         Logger.info(out)
 

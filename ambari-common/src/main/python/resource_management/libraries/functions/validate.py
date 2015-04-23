@@ -20,7 +20,7 @@ limitations under the License.
 import re
 
 from resource_management.libraries.functions.decorator import retry
-from resource_management.core.shell import call
+from resource_management.core import shell
 from resource_management.core.exceptions import Fail
 
 
@@ -31,6 +31,6 @@ def call_and_match_output(command, regex_expression, err_message):
   :param command: Command to call
   :param regex_expression: Regex expression to search in the output
   """
-  code, out = call(command, logoutput=True)
+  code, out = shell.call(command, logoutput=True)
   if not (out and re.search(regex_expression, out, re.IGNORECASE)):
     raise Fail(err_message)

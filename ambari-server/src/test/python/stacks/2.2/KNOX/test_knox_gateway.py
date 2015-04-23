@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 from resource_management import *
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch
@@ -213,14 +214,19 @@ class TestKnoxGateway(RMFTestCase):
   @patch("os.path.isdir")
   def test_pre_rolling_restart(self, isdir_mock, tarfile_open_mock):
     isdir_mock.return_value = True
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.2.1.0-3242'
+    json_content['commandParams']['version'] = version
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/knox_gateway.py",
                        classname = "KnoxGateway",
                        command = "pre_rolling_restart",
-                       config_file="default.json",
+                       config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
     self.assertTrue(tarfile_open_mock.called)
 
-    self.assertResourceCalled("Execute", "hdp-select set knox-server 2.2.1.0-2067")
+    self.assertResourceCalled("Execute", "hdp-select set knox-server %s" % version)
