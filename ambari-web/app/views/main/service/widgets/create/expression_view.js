@@ -191,7 +191,9 @@ App.WidgetWizardExpressionView = Em.View.extend({
             self.set('parentView.selectedMetric', {
               name: obj.selected,
               componentName: self.get('selectedComponent.componentName'),
-              serviceName: self.get('selectedComponent.serviceName')
+              serviceName: self.get('selectedComponent.serviceName'),
+              metricPath: self.get('controller.filteredMetrics').findProperty('name', obj.selected).widget_id,
+              isMetric: true
             });
           });
         },
@@ -289,14 +291,10 @@ App.WidgetWizardExpressionView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       onPrimary: function () {
         var data = this.get('expression.data');
-        var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
-        data.pushObject(Em.Object.create({
-          id: ++lastId,
-          name: this.get('selectedMetric.name'),
-          componentName: this.get('selectedMetric.componentName'),
-          serviceName: this.get('selectedMetric.serviceName'),
-          isMetric: true
-        }));
+        var id = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) + 1 : 1;
+        var selectedMetric = this.get('selectedMetric');
+        selectedMetric.set('id', id);
+        data.pushObject(selectedMetric);
         this.hide();
       }
     })

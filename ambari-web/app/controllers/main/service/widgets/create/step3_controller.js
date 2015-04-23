@@ -89,6 +89,9 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetName', this.get('content.widgetDisplayName'));
     this.set('widgetDisplayName', this.get('content.widgetDisplayName'));
     this.set('widgetDescription', this.get('content.widgetDescription'));
+    this.get('scopes').forEach(function (scope) {
+      scope.set('checked', scope.get('name').toUpperCase() == this.get('content.widgetScope'));
+    }, this);
   },
 
   //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
@@ -112,7 +115,8 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
           return {
             "name": metric.name,
             "service_name": metric.serviceName,
-            "component_name": metric.componentName
+            "component_name": metric.componentName,
+            "metric_path": metric.metricPath
           }
         }),
         values: this.get('widgetValues'),

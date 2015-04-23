@@ -166,15 +166,7 @@ App.WidgetWizardController = App.WizardController.extend({
    */
   save: function (name, value) {
     this.set('content.' + name, value);
-    if (Array.isArray(value)) {
-      value = value.map(function (item) {
-        return this.toObject(item);
-      }, this);
-    } else if (typeof value === 'object') {
-      value = this.toObject(value);
-    }
-    this.setDBProperty(name, value);
-    console.log(this.get('name') + ": saved " + name, value);
+    this._super(name);
   },
 
   /**

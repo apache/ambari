@@ -294,11 +294,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       value = '${';
       expression.data.forEach(function (element) {
         if (element.isMetric) {
-          metrics.push({
-            name: element.name,
-            componentName: element.componentName,
-            serviceName: element.serviceName
-          });
+          metrics.push(element);
         }
         value += element.name;
       }, this);
@@ -430,7 +426,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
             name: str.trim(),
             isMetric: true,
             componentName: metric.component_name,
-            serviceName: metric.service_name
+            serviceName: metric.service_name,
+            metricPath: metric.metric_path
           }));
           str = '';
         }
@@ -450,7 +447,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         name: str.trim(),
         isMetric: true,
         componentName: metric.component_name,
-        serviceName: metric.service_name
+        serviceName: metric.service_name,
+        metricPath: metric.metric_path
       }));
     }
     return data;
