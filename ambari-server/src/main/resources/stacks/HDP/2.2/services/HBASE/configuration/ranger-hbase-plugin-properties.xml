@@ -158,5 +158,53 @@
     <value>true</value>
     <description></description>
   </property>
-
+  
+  <property>
+    <name>POLICY_MGR_URL</name>
+    <value>{{policymgr_mgr_url}}</value>
+    <description>Policy Manager url</description>    
+  </property> 
+  
+  <property>
+    <name>SQL_CONNECTOR_JAR</name>
+    <value>{{sql_connector_jar}}</value>
+    <description>Location of DB client library (please check the location of the jar file)</description>    
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.FLAVOUR</name>
+    <value>{{xa_audit_db_flavor}}</value>
+    <description>The database type to be used (mysql/oracle)</description>    
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.DATABASE_NAME</name>
+    <value>{{xa_audit_db_name}}</value>
+    <description>Audit database name</description>    
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.USER_NAME</name>
+    <value>{{xa_audit_db_user}}</value>
+    <description>Audit database user</description>    
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.PASSWORD</name>
+    <value>{{xa_audit_db_password}}</value>
+    <description>Audit database password</description>    
+  </property>
+  
+  <property>
+    <name>XAAUDIT.DB.HOSTNAME</name>
+    <value>{{xa_db_host}}</value>
+    <description>Audit database password</description>    
+  </property>
+  
+  <property>
+    <name>REPOSITORY_NAME</name>
+    <value>{{repo_name}}</value>
+    <description>Ranger repository name</description>    
+  </property>
+  
 </configuration>
