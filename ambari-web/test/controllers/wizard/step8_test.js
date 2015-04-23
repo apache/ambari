@@ -236,6 +236,629 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
+  describe('#createCoreSiteObj', function () {
+    it('should return config', function () {
+      var content = Em.Object.create({
+        services: Em.A([
+          Em.Object.create({
+            serviceName: 's1',
+            isSelected: true,
+            isInstalled: false
+          }),
+          Em.Object.create({
+            serviceName: 's2',
+            isSelected: true,
+            isInstalled: false
+          }),
+          Em.Object.create({
+            serviceName: 's3',
+            isSelected: true,
+            isInstalled: false
+          }),
+          Em.Object.create({
+            serviceName: 'GLUSTERFS',
+            isSelected: false,
+            isInstalled: true,
+            configTypesRendered: {hdfs:'tag1'}
+          })
+        ])
+      });
+      var installedServices = content.services.filterProperty('isInstalled', true);
+      var selectedServices = content.services.filterProperty('isSelected', true);
+      installerStep8Controller.set('content', content);
+      installerStep8Controller.set('installedServices', installedServices);
+      installerStep8Controller.set('selectedServices', selectedServices);
+      installerStep8Controller.set('configs', Em.A([
+        Em.Object.create({
+          name: 'fs_glusterfs_default_name',
+          filename: 'core-site.xml', 
+          value: 'value',
+          overrides: Em.A([
+            Em.Object.create({
+              value: '4',
+              hosts: Em.A(['h1','h2'])
+            })
+          ])
+        }),
+        Em.Object.create({
+          name: 'fs.defaultFS',
+          filename: 'core-site.xml', 
+          value: 'value',
+          overrides: Em.A([
+            Em.Object.create({
+              value: '4',
+              hosts: Em.A(['h1','h2'])
+            })
+          ])
+        }),
+        Em.Object.create({
+          name: 'glusterfs_defaultFS_name',
+          filename: 'core-site.xml', 
+          value: 'value',
+          overrides: Em.A([
+            Em.Object.create({
+              value: '4',
+              hosts: Em.A(['h1','h2'])
+            })
+          ])
+        })
+      ]));
+      var expected = {
+        "type": "core-site",
+        "tag": "version1",
+        "properties": {
+          "fs_glusterfs_default_name": "value",
+          "fs.defaultFS": "value",
+          "glusterfs_defaultFS_name": "value"
+        }
+      };
+
+      expect(installerStep8Controller.createCoreSiteObj()).to.eql(expected);
+    });
+  });
+
+  describe('#createConfigurationGroups', function () {
+    beforeEach(function() {
+      sinon.stub(App.router,'get').returns(Em.Object.create({
+        getDBProperty: function() {
+          return Em.A([
+            Em.Object.create({
+              value: 1
+            })
+          ]);
+        },
+        getConfigAttributes: function() {
+          return Em.A(['atr']);
+        }
+      }));
+    });
+    afterEach(function() {
+      App.router.get.restore();
+    });
+    it('should push group in properties', function () {
+      var content = Em.Object.create({
+        configGroups: Em.A([
+          Em.Object.create({
+            isDefault: true,
+            service: Em.Object.create({
+              id: 1
+            }),
+            name: 'n1',
+            description: 'describe',
+            hosts: ['h1', 'h2'],
+            properties: Em.A([
+              Em.Object.create({
+                value: 'p1',
+                filename: 'file.xml'
+              }),
+              Em.Object.create({
+                value: 'p2',
+                filename: 'file1.xml'
+              })
+            ])
+          }),
+          Em.Object.create({
+            isDefault: false,
+            service: Em.Object.create({
+              id: 2
+            }),
+            name: 'n2',
+            hosts: ['h3', 'h4'],
+            description: 'describe1',
+            properties: Em.A([
+              Em.Object.create({
+                value: 'p3',
+                filename: 'file2.xml'
+              }),
+              Em.Object.create({
+                value: 'p4',
+                filename: 'file3.xml'
+              })
+            ])
+          })
+        ])
+      });
+      var defaultGroups = Em.A([
+        Em.Object.create({
+          group: 'n2',
+          filename: 'file5.xml'
+        }),
+        Em.Object.create({
+          group: 'n1',
+          filename: 'file4.xml'
+        })
+      ]);
+      installerStep8Controller.set('content', content);
+      installerStep8Controller.set('clusterName', 'name');
+      installerStep8Controller.set('customNonDefaultGroupConfigs', defaultGroups);
+      installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
+      installerStep8Controller.get('ajaxRequestsQueue').clear();
+      installerStep8Controller.createConfigurationGroups();
+      var expected = [
+        {
+          "value": "p3",
+          "filename": "file2.xml"
+        },
+        {
+          "value": "p4",
+          "filename": "file3.xml"
+        },
+        {
+          "group": "n2",
+          "filename": "file5.xml"
+        }
+      ];
+      var result = JSON.parse(JSON.stringify(content.configGroups[1].properties));
+      expect(result).to.eql(expected);
+    });
+  });
+
+  describe('#getGlobConfigValueWithOverrides', function () {
+    it('should retun empty objects', function () {
+      expect(installerStep8Controller.getGlobConfigValueWithOverrides('','','')).to.eql({
+        "value": "",
+        "overrides": []
+      });
+    });
+    it('should retun overrides', function () {
+      var expression = '<cod index=[1]></cod index=[2]>';
+      installerStep8Controller.set('configs', Em.A([
+        Em.Object.create({
+          name:'name', overrides: Em.A([
+            Em.Object.create({
+              value: '4',
+              hosts: Em.A(['h1','h2'])
+            })
+          ])
+        })
+      ]));
+      var names = Em.A(['name0', 'name', 'name', 'ad']);
+      var result = {
+        "value": "undefinedundefined",
+        "overrides": [
+          {
+            "value": "44",
+            "hosts": [
+              "h1",
+              "h2"
+            ]
+          }
+        ]
+      };
+      expect(installerStep8Controller.getGlobConfigValueWithOverrides(names,expression,'')).to.eql(result);
+    });
+  });
+
+  describe('#isConfigsChanged', function () {
+    it('should return true if config changed', function () {
+      var properties = Em.Object.create({
+        property:true,
+        property1: Em.Object.create({
+          hasInitialValue: false,
+          isNotDefaultValue: false
+        })
+      });
+      var configs = Em.A([Em.Object.create({
+        name: 'property'
+      })]);
+      expect(installerStep8Controller.isConfigsChanged(properties,configs)).to.be.true;
+    });
+  });
+
+  describe('#loadServices', function () {
+    it('should load services', function () {
+      var services = Em.A([
+        Em.Object.create({
+          serviceName: 's1',
+          isSelected: true,
+          displayNameOnSelectServicePage: 's01',
+          isClientOnlyService: false,
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isClient: true
+            })
+          ]),
+          isHiddenOnSelectServicePage: false
+        }),
+        Em.Object.create({
+          serviceName: 's2',
+          isSelected: true,
+          displayNameOnSelectServicePage: 's02',
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isMaster: true
+            })
+          ]),
+          isHiddenOnSelectServicePage: false
+        }),
+        Em.Object.create({
+          serviceName: 's3',
+          isSelected: true,
+          displayNameOnSelectServicePage: 's03',
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isHAComponentOnly: true
+            })
+          ]),
+          isHiddenOnSelectServicePage: false
+        }),
+        Em.Object.create({
+          serviceName: 's4',
+          isSelected: true,
+          displayNameOnSelectServicePage: 's03',
+          isClientOnlyService: true,
+          serviceComponents: Em.A([
+            Em.Object.create({
+              isClient: true
+            })
+          ]),
+          isHiddenOnSelectServicePage: false
+        })
+      ]);
+      var selectedServices = services.filterProperty('isSelected');
+      var slaveComponentHosts = Em.A([
+        Em.Object.create({
+          componentName: 'CLIENT', 
+          hostName: 'h1',
+          hosts: Em.A([
+            Em.Object.create({hostName: 'h1', isInstalled: true}),
+            Em.Object.create({hostName: 'h2', isInstalled: false})
+          ])
+        })
+      ]);
+      var content = Em.Object.create({
+        services: services,
+        selectedServices: selectedServices,
+        slaveComponentHosts: slaveComponentHosts
+      });
+      installerStep8Controller.set('content', content);
+      installerStep8Controller.set('services', Em.A([]));
+      installerStep8Controller.reopen({selectedServices: selectedServices});
+      installerStep8Controller.loadServices();
+      var expected = [
+        {
+          "service_name": "s1",
+          "display_name": "s01",
+          "service_components": []
+        },
+        {
+          "service_name": "s2",
+          "display_name": "s02",
+          "service_components": []
+        },
+        {
+          "service_name": "s3",
+          "display_name": "s03",
+          "service_components": []
+        },
+        {
+          "service_name": "s4",
+          "display_name": "s03",
+          "service_components": [
+            {
+              "component_name": "CLIENT",
+              "display_name": "Clients",
+              "component_value": "2 hosts"
+            }
+          ]
+        }
+      ];
+      var result = JSON.parse(JSON.stringify(installerStep8Controller.get('services')));
+      expect(result).to.be.eql(expected);
+    });
+  });
+
+  describe('#removeClientsFromList', function () {
+    it('should remove h1', function () {
+      installerStep8Controller.set('content', Em.Object.create({
+        hosts: Em.Object.create({
+          h1: Em.Object.create({
+            hostName: 'h1', 
+            isInstalled: true,
+            hostComponents: Em.A([Em.Object.create({HostRoles: Em.Object.create({component_name: "h1"})})])
+          }),
+          h2: Em.Object.create({
+            hostName: 'h2', 
+            isInstalled: true,
+            hostComponents: Em.A([Em.Object.create({HostRoles: Em.Object.create({component_name: "h2"})})])
+          })
+        })
+      }));
+      var hostList = Em.A(['h1','h2']);
+      installerStep8Controller.removeClientsFromList('h1', hostList);
+      expect(JSON.parse(JSON.stringify(hostList))).to.eql(["h2"]);
+    });
+  });
+
+  describe('#createSlaveAndClientsHostComponents', function () {
+    it('should return non install object', function () {
+      installerStep8Controller.set('content', Em.Object.create({
+        masterComponentHosts: Em.A([
+          Em.Object.create({
+            componentName: 'CLIENT',
+            component: 'HBASE_MASTER', 
+            hostName: 'h1'
+          })
+        ]),
+        slaveComponentHosts: Em.A([
+          Em.Object.create({
+            componentName: 'CLIENT', 
+            hostName: 'h1',
+            hosts: Em.A([
+              Em.Object.create({hostName: 'h1', isInstalled: true}),
+              Em.Object.create({hostName: 'h2', isInstalled: false})
+            ])
+          }),
+          Em.Object.create({
+            componentName: 'CLIENT1', 
+            hostName: 'h1',
+            hosts: Em.A([
+              Em.Object.create({hostName: 'h1', isInstalled: true}),
+              Em.Object.create({hostName: 'h2', isInstalled: false})
+            ])
+          })
+        ]),
+        clients: Em.A([
+          Em.Object.create({
+            isInstalled: false
+          })
+        ]),
+        services: Em.A([
+          Em.Object.create({
+            isInstalled: true,
+            serviceName: "name",
+            isClient: true
+          })
+        ]),
+        hosts: Em.Object.create({
+          h1: Em.Object.create({
+            hostName: 'h1', 
+            isInstalled: true,
+            hostComponents: Em.A([Em.Object.create({})])
+          }),
+          h2: Em.Object.create({
+            hostName: 'h2', 
+            isInstalled: false,
+            hostComponents: Em.A([Em.Object.create({})])
+          })
+        }),
+        additionalClients: Em.A([{hostNames: "name", componentName: "client"}])
+      }));
+      installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
+      installerStep8Controller.get('ajaxRequestsQueue').clear();
+      installerStep8Controller.createSlaveAndClientsHostComponents();
+      expect(installerStep8Controller.get('content.clients')[0].isInstalled).to.be.false;
+    });
+  });
+
+  describe('#createAdditionalClientComponents', function () {
+    it('should bes equal to content.cluster.name', function () {
+      installerStep8Controller.set('content', Em.Object.create({
+        masterComponentHosts: Em.A([
+          Em.Object.create({
+            componentName: 'CLIENT',
+            component: 'HBASE_MASTER', 
+            hostName: 'h1'
+          })
+        ]),
+        slaveComponentHosts: Em.A([
+          Em.Object.create({
+            componentName: 'CLIENT', 
+            hostName: 'h1',
+            hosts: Em.A([
+              Em.Object.create({hostName: 'h1', isInstalled: true}),
+              Em.Object.create({hostName: 'h2', isInstalled: false})
+            ])
+          })
+        ]),
+        clients: Em.A([
+          Em.Object.create({
+            isInstalled: false
+          })
+        ]),
+        services: Em.A([
+          Em.Object.create({
+            isInstalled: true,
+            serviceName: "name",
+            isClient: true
+          })
+        ]),
+        hosts: Em.Object.create({
+          h1: Em.Object.create({
+            hostName: 'h1', 
+            isInstalled: true,
+            hostComponents: Em.A([Em.Object.create({})])
+          }),
+          h2: Em.Object.create({
+            hostName: 'h2', 
+            isInstalled: false,
+            hostComponents: Em.A([Em.Object.create({})])
+          })
+        }),
+        additionalClients: Em.A([{hostNames: "name", componentName: "client"}])
+      }));
+      installerStep8Controller.set('ajaxRequestsQueue', App.ajaxQueue.create());
+      installerStep8Controller.get('ajaxRequestsQueue').clear();
+      installerStep8Controller.createAdditionalClientComponents();
+      var result = [
+        {
+          "hostNames": "name",
+          "componentName": "client"
+        }
+      ];
+      var expected = installerStep8Controller.get('content.additionalClients');
+      expect(JSON.parse(JSON.stringify(expected))).to.eql(result);
+    });
+  });
+
+  describe('#assignComponentHosts', function () {
+    it('should return host name', function () {
+      var component = Em.Object.create({
+        isMaster: true,
+        componentName: 'HBASE_MASTER',
+        hostName: 'h1'
+      });
+      installerStep8Controller.set('content', Em.Object.create({
+        masterComponentHosts:Em.A([
+          Em.Object.create({component: 'HBASE_MASTER', hostName: 'h1'})
+      ])}));
+      var res = installerStep8Controller.assignComponentHosts(component);
+      expect(res).to.equal("h1");
+    });
+    it('should return number of hosts', function () {
+      var component = Em.Object.create({
+        componentName: 'HBASE_MASTER',
+        isClient: false,
+        hostName: 'h1'
+      });
+      installerStep8Controller.set('content', Em.Object.create({
+        slaveComponentHosts:Em.A([
+          Em.Object.create({
+            componentName: 'HBASE_MASTER', 
+            hostName: 'h1',
+            hosts: [
+              {hostName: 'h1'},
+              {hostName: 'h2'}
+            ]
+          })
+      ])}));
+      var res = installerStep8Controller.assignComponentHosts(component);
+      expect(res).to.equal("2 hosts");
+    });
+  });
+
+  describe('#loadClusterInfo', function () {
+    beforeEach(function () {
+      sinon.stub(App.Stack, 'find', function(){
+        return Em.A([
+          Em.Object.create({isSelected: false, hostName: 'h1'}),
+          Em.Object.create({
+            isSelected: true, 
+            hostName: 'h2', 
+            operatingSystems: Em.A([Em.Object.create({
+              name:'windows',
+              isSelected: true,
+              repositories: Em.A([Em.Object.create({
+                baseUrl: "url",
+                osType: "2",
+                repoId: "3"
+              })])
+            })])
+          }),
+          Em.Object.create({isSelected: false, hostName: 'h3'})
+        ]);
+      });
+    });
+    afterEach(function () {
+      App.Stack.find.restore();
+    });
+    it('should return config with display_name', function () {
+      installerStep8Controller.set('clusterInfo', Em.A([]));
+      installerStep8Controller.loadClusterInfo();
+      var res = [{
+        "config_name":"cluster",
+        "display_name":"Cluster Name"
+      },{
+        "config_name":"hosts",
+        "display_name":"Total Hosts",
+        "config_value":"0 (0 new)"
+      }];
+      var calcRes = JSON.parse(JSON.stringify(installerStep8Controller.get('clusterInfo')));
+      expect(calcRes).to.eql(res);
+    });
+  });
+
+  describe('#loadConfigs', function () {
+    beforeEach(function () {
+      sinon.stub(App.config, 'excludeUnsupportedConfigs', Em.K);
+      sinon.stub(installerStep8Controller, 'loadUiSideConfigs', Em.K);
+    });
+    afterEach(function () {
+      App.config.excludeUnsupportedConfigs.restore();
+      installerStep8Controller.loadUiSideConfigs.restore();
+    });
+    it('should stringify serviceConfigProperties', function () {
+      var serviceConfigProperties = [
+        {name: 'oozie_hostname', value: true},
+        {name: 'oozie_existing_oracle_host', value: true},
+        {name: 'hive_database', value: false},
+        {name: 'oozie_database', value: false}
+      ];
+      var services = Em.A([
+        Em.Object.create({serviceName: 's1'}),
+        Em.Object.create({serviceName: 's2'}),
+        Em.Object.create({serviceName: 's3'})
+      ]);
+      var content = Em.Object.create({
+        services: services,
+        serviceConfigProperties: serviceConfigProperties
+      });
+      installerStep8Controller.set('content', content);
+      installerStep8Controller.set('configs', Em.A([]));
+      installerStep8Controller.loadConfigs();
+      var expected = [
+        {'name': 'oozie_hostname', 'value': 'true'},
+        {'name': 'oozie_existing_oracle_host', 'value': 'true'},
+        {'name': 'hive_database', 'value': 'false'},
+        {'name': 'oozie_database', 'value': 'false'}
+      ];
+      expect(JSON.parse(JSON.stringify(serviceConfigProperties))).to.eql(expected);
+    });
+  });
+
+  describe('#isDeployStarted', function () {
+    it('should be undefined', function () {
+      installerStep8Controller.set('isSubmitDisabled',false);
+      expect(installerStep8Controller.get('isDeployStarted')).to.equal(undefined);
+    });
+  });
+
+  describe('#configMapping', function () {
+    it('should object with isOverridable', function () {
+      var configMapping = [
+        {foreignKey: null, templateName: 't1', value: 'v1', name: 'c1', filename: 'f1'},
+        {foreignKey: null, templateName: 't2', value: 'v2', name: 'c2', filename: 'f2'},
+        {foreignKey: null, templateName: 't3', value: 'v3', name: 'c3', filename: 'f2'},
+        {foreignKey: null, templateName: 't4', value: 'v4', name: 'c4', filename: 'f1'}
+      ];
+      installerStep8Controller.set(configMapping);
+      var result = {
+        "name": "hadoop.proxyuser.<foreignKey[0]>.groups",
+        "templateName": [
+          "proxyuser_group"
+        ],
+        "foreignKey": [
+          "hive_user"
+        ],
+        "value": "<templateName[0]>",
+        "filename": "core-site.xml",
+        "isOverridable": true
+      };
+
+      expect(installerStep8Controller.get('configMapping')[0]).to.eql(result);
+    });
+  });
+
   describe('#loadStep', function () {
     beforeEach(function () {
       sinon.stub(installerStep8Controller, 'clearStep', Em.K);
@@ -299,6 +922,17 @@ describe('App.WizardStep8Controller', function () {
         },
         {
           globals: [
+            {name: 'hive_database', value: 'New PostgreSQL Database'},
+            {name: 'hive_database_type', value: 'postgresql'},
+            {name: 'hive_ambari_host', value: 'h1'},
+            {name: 'hive_hostname', value: 'h2'}
+          ],
+          removed: Em.A(['hive_existing_mysql_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
+          m: 'hive_database: New PostgreSQL Database',
+          host: 'h1'
+        },
+        {
+          globals: [
             {name: 'hive_database', value: 'Existing MySQL Database'},
             {name: 'hive_database_type', value: 'mysql'},
             {name: 'hive_existing_mysql_host', value: 'h1'},
@@ -306,6 +940,28 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
           m: 'hive_database: Existing MySQL Database',
+          host: 'h1'
+        },
+        {
+          globals: [
+            {name: 'hive_database', value: 'Existing MSSQL Server database with SQL authentication'},
+            {name: 'hive_database_type', value: 'mssql_server'},
+            {name: 'hive_existing_mssql_server_host', value: 'h1'},
+            {name: 'hive_hostname', value: 'h2'}
+          ],
+          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
+          m: 'hive_database: Existing MSSQL Server Database',
+          host: 'h1'
+        },
+        {
+          globals: [
+            {name: 'hive_database', value: 'Existing MSSQL Server database with integrated authentication'},
+            {name: 'hive_database_type', value: 'mssql_server2'},
+            {name: 'hive_existing_mssql_server_2_host', value: 'h1'},
+            {name: 'hive_hostname', value: 'h2'}
+          ],
+          removed: Em.A(['hive_ambari_database', 'hive_existing_oracle_database', 'hive_existing_postgresql_database', 'hive_master_hosts']),
+          m: 'hive_database: Existing MSSQL Server database with integrated authentication',
           host: 'h1'
         },
         {
@@ -376,6 +1032,26 @@ describe('App.WizardStep8Controller', function () {
           ],
           removed: Em.A(['oozie_ambari_database', 'oozie_existing_oracle_database', 'oozie_existing_mysql_database']),
           m: 'oozie_database: Existing PostgreSQL Database',
+          host: 'h1'
+        },
+        {
+          globals: [
+            {name: 'oozie_database', value: 'Existing MSSQL Server database with SQL authentication'},
+            {name: 'oozie_existing_mssql_server_host', value: 'h1'},
+            {name: 'oozie_hostname', value: 'h2'}
+          ],
+          removed: Em.A(['oozie_existing_mssql_server_database', 'oozie_existing_mssql_server_2_database', 'oozie_existing_mysql_database']),
+          m: 'oozie_database: Existing MSSQL with SQL authentication Database',
+          host: 'h1'
+        },
+        {
+          globals: [
+            {name: 'oozie_database', value: 'Existing MSSQL Server database with integrated authentication'},
+            {name: 'oozie_existing_mssql_server_2_host', value: 'h1'},
+            {name: 'oozie_hostname', value: 'h2'}
+          ],
+          removed: Em.A(['oozie_existing_mssql_server_database', 'oozie_existing_oracle_database', 'oozie_existing_mysql_database']),
+          m: 'oozie_database: Existing MSSQL with integrated authentication Database',
           host: 'h1'
         },
         {
@@ -598,6 +1274,22 @@ describe('App.WizardStep8Controller', function () {
           ],
           m: 'New MySQL Database',
           e: 'MySQL (New Database)'
+        },
+        {
+          serviceConfigProperties: [
+            {name: 'hive_database', value: 'Existing MSSQL Server database with SQL authentication'},
+            {name: 'hive_existing_mssql_server_database', value: 'dbname'}
+          ],
+          m: 'Existing MSSQL Server database with SQL authentication',
+          e: 'dbname (Existing MSSQL Server database with SQL authentication)'
+        },
+        {
+          serviceConfigProperties: [
+            {name: 'hive_database', value: 'Existing MSSQL Server database with integrated authentication'},
+            {name: 'hive_existing_mssql_server_2_database', value: 'dbname'}
+          ],
+          m: 'Existing MSSQL Server database with integrated authentication',
+          e: 'dbname (Existing MSSQL Server database with integrated authentication)'
         },
         {
           serviceConfigProperties: [

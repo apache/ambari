@@ -216,6 +216,7 @@ App.MainHostView = App.TableView.extend(App.TableServerViewMixin, {
 
   willDestroyElement: function () {
     this.clearExpandedSections();
+    $('.tooltip').remove();
   },
 
   clearExpandedSections: function () {
