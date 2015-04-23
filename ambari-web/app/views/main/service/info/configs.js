@@ -18,12 +18,23 @@
 
 var App = require('app');
 var batchUtils = require('utils/batch_scheduled_requests');
+require('utils/pages/scroll_manager');
 
 App.MainServiceInfoConfigsView = Em.View.extend({
   templateName: require('templates/main/service/info/configs'),
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
+    if (!App.ScrollManager.get('elements').someProperty('id', 'dependedConfigs')) {
+      App.ScrollManager.get('elements').pushObject({
+        id: 'dependedConfigs',
+        updatedElementSelector: '.dependencies-info-bar-wrapper',
+        elementForLeftOffsetSelector: '#config_history_flow>.version-slider',
+        defaultTop: 370,
+        movedTop: 70
+      });
+    }
+    App.ScrollManager.updatePositionForElements();
   },
 
   componentsCount: null,
@@ -53,5 +64,13 @@ App.MainServiceInfoConfigsView = Em.View.extend({
       label = Em.I18n.t('rollingrestart.dialog.title').format(App.format.role(componentName));
     }
     return label;
-  }.property('rollingRestartSlaveComponentName')
+  }.property('rollingRestartSlaveComponentName'),
+
+  /**
+   * @method onHasChangedDependenciesUpdated
+   */
+  onHasChangedDependenciesUpdated: function () {
+    App.ScrollManager.updatePositionForElements();
+  }.observes('controller.hasChangedDependencies')
+
 });
