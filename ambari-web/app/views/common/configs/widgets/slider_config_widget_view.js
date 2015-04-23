@@ -309,7 +309,11 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticks_labels: ticksLabels,
       step: this.get('mirrorStep'),
       formatter: function(val) {
-        return val + self.get('unitLabel');
+        if (Em.isArray(val)) {
+          return val[0] + self.get('unitLabel');
+        } else {
+          return val + self.get('unitLabel');
+        }
       }
     });
     slider.on('change', function (obj) {
@@ -337,7 +341,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       });
       // create label for default value and align it
 
-        defaultSliderTick.append('<span>{0}</span>'.format(recommendedValueId + this.get('unitLabel')));
+        defaultSliderTick.append('<span>{0}</span>'.format(recommendedValue + this.get('unitLabel')));
         defaultSliderTick.find('span').css('marginLeft', -defaultSliderTick.find('span').width()/2 + 'px');
 
       // if mirrored value was added need to hide the tick for it
@@ -401,6 +405,19 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       this.initSlider();
       this.toggleWidgetState();
     }
-  }
+  },
+
+  /**
+   * Workaround for bootstrap-slider widget that was initiated inside hidden container.
+   */
+  refreshSliderObserver: function() {
+    var sliderTickLabel = this.$('.ui-slider-wrapper:eq(0) .slider-tick-label:first');
+    var self = this;
+    if (sliderTickLabel.width() == 0) {
+      Em.run.later('sync', function() {
+        self.changeBoundariesOnce();
+      }, 10);
+    }
+  }.observes('parentView.content.isActive')
 
 });
