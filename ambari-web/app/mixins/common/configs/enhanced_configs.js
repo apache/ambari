@@ -394,6 +394,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           var cp = configProperties.findProperty('name', propertyName);
           var override = (notDefaultGroup && group && cp && cp.get('overrides')) ? cp.get('overrides').findProperty('group.name', group.get('name')) : null;
 
+          var value = override ? override.get('value') : cp && cp.get('value');
           var defaultValue = override ? override.get('defaultValue') : cp && cp.get('defaultValue');
           var recommendedValue = configObject[key].properties[propertyName];
 
@@ -430,20 +431,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
            * clear _dependentPropertyValues from
            * properties that wasn't changed while recommendations
            */
-          if (dependentProperty) {
-            if ((defaultValue == recommendedValue) || (Em.isNone(defaultValue) && Em.isNone(recommendedValue))) {
-              /** if recommended value same as default we shouldn't show it in popup **/
-              if (notDefaultGroup) {
-                if (override) {
-                  if (override.get('isNotSaved')) {
-                    cp.get('overrides').removeObject(override);
-                  } else {
-                    override.set('value', defaultValue);
-                  }
+
+          if ((defaultValue == recommendedValue) || (Em.isNone(defaultValue) && Em.isNone(recommendedValue))) {
+            /** if recommended value same as default we shouldn't show it in popup **/
+            if (notDefaultGroup) {
+              if (override) {
+                if (override.get('isNotSaved')) {
+                  cp.get('overrides').removeObject(override);
+                } else {
+                  override.set('value', defaultValue);
+                }
+                if (dependentProperty) {
                   this.get('_dependentConfigValues').removeObject(dependentProperty);
                 }
-              } else {
-                cp.set('value', defaultValue);
+              }
+            } else {
+              cp.set('value', defaultValue);
+              if (dependentProperty) {
                 this.get('_dependentConfigValues').removeObject(dependentProperty);
               }
             }

@@ -76,7 +76,6 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * and in case there was changes shows popup with info about changed configs
    *
    * @param {App.ServiceConfigProperty} config
-   * @param {function} complete
    * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
@@ -159,9 +158,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   },
   //Set editDone true for last edited config text field parameter
   focusOut: function () {
-    if (this.get('serviceConfig.isNotDefaultValue')) {
-      this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
-    }
+    this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     this.get('serviceConfig').set("editDone", true);
   },
   //Set editDone false for all current category config text field parameter
@@ -194,9 +191,7 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
 
   //Set editDone true for last edited config text field parameter
   focusOut: function () {
-    if (this.get('serviceConfig.isNotDefaultValue')) {
-      this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
-    }
+    this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
   },
   templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
@@ -249,6 +244,10 @@ App.ServiceConfigPasswordField = Ember.TextField.extend({
  * @type {*}
  */
 App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
+
+  focusOut: function () {
+    this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
+  },
 
   valueBinding: 'serviceConfig.value',
   rows: 4,
@@ -330,6 +329,7 @@ App.ServiceConfigCheckbox = Ember.Checkbox.extend(App.ServiceConfigPopoverSuppor
     if (this.isNotAppropriateValue()){
       this.set('serviceConfig.value', this.get(this.get('checked') + 'Value'));
       this.get('serviceConfig').set("editDone", true);
+      this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
     }
   }.observes('checked'),
 
