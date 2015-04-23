@@ -179,12 +179,14 @@ public class ConfigHelperTest {
     private Long addConfigGroup(String name, String tag, List<String> hosts,
                                 List<Config> configs) throws AmbariException {
 
-      Map<String, Host> hostMap = new HashMap<String, Host>();
+      Map<Long, Host> hostMap = new HashMap<Long, Host>();
       Map<String, Config> configMap = new HashMap<String, Config>();
 
+      Long hostId = 1L;
       for (String hostname : hosts) {
         Host host = clusters.getHost(hostname);
-        hostMap.put(host.getHostName(), host);
+        hostMap.put(hostId, host);
+        hostId++;
       }
 
       for (Config config : configs) {

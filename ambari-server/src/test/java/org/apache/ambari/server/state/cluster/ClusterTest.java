@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
+import com.google.gson.Gson;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -55,11 +56,14 @@ import org.apache.ambari.server.controller.ServiceConfigVersionResponse;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
 import org.apache.ambari.server.orm.dao.HostComponentStateDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterServiceEntity;
 import org.apache.ambari.server.orm.entities.ClusterStateEntity;
@@ -69,6 +73,8 @@ import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostStateEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceDesiredStateEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AgentVersion;
@@ -121,11 +127,15 @@ public class ClusterTest {
   private ConfigFactory configFactory;
   private ConfigGroupFactory configGroupFactory;
   private OrmTestHelper helper;
+  private StackDAO stackDAO;
+  private ResourceTypeDAO resourceTypeDAO;
+  private ClusterDAO clusterDAO;
   private HostDAO hostDAO;
   private ClusterVersionDAO clusterVersionDAO;
   private HostVersionDAO hostVersionDAO;
   private HostComponentStateDAO hostComponentStateDAO;
   private RepositoryVersionDAO repositoryVersionDAO;
+  private Gson gson;
 
   @Singleton
   static class ClusterVersionDAOMock extends ClusterVersionDAO {
@@ -174,11 +184,15 @@ public class ClusterTest {
     configFactory = injector.getInstance(ConfigFactory.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     helper = injector.getInstance(OrmTestHelper.class);
+    stackDAO = injector.getInstance(StackDAO.class);
+    resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
+    clusterDAO = injector.getInstance(ClusterDAO.class);
     hostDAO = injector.getInstance(HostDAO.class);
     clusterVersionDAO = injector.getInstance(ClusterVersionDAO.class);
     hostVersionDAO = injector.getInstance(HostVersionDAO.class);
     hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
+    gson = injector.getInstance(Gson.class);
   }
 
   @After
@@ -187,38 +201,56 @@ public class ClusterTest {
   }
 
   private void createDefaultCluster() throws Exception {
-    StackId stackId = new StackId("HDP-0.1");
-    clusters.addCluster("c1", stackId);
-    c1 = clusters.getCluster("c1");
-    Assert.assertEquals("c1", c1.getClusterName());
-    Assert.assertEquals(1, c1.getClusterId());
+    // TODO, use common function
+    StackId stackId = new StackId("HDP", "0.1");
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(), stackId.getStackVersion());
+    org.junit.Assert.assertNotNull(stackEntity);
 
-    clusters.addHost("h1");
-    clusters.addHost("h2");
-    Host host1 = clusters.getHost("h1");
-    host1.setIPv4("ipv4");
-    host1.setIPv6("ipv6");
+    String clusterName = "c1";
 
-    Host host2 = clusters.getHost("h2");
-    host2.setIPv4("ipv4");
-    host2.setIPv6("ipv6");
+    ResourceTypeEntity resourceTypeEntity = resourceTypeDAO.findById(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+    if (resourceTypeEntity == null) {
+      resourceTypeEntity = new ResourceTypeEntity();
+      resourceTypeEntity.setId(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE);
+      resourceTypeEntity.setName(ResourceTypeEntity.CLUSTER_RESOURCE_TYPE_NAME);
+      resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
+    }
+    ResourceEntity resourceEntity = new ResourceEntity();
+    resourceEntity.setResourceType(resourceTypeEntity);
+
+    ClusterEntity clusterEntity = new ClusterEntity();
+    clusterEntity.setClusterName(clusterName);
+    clusterEntity.setResource(resourceEntity);
+    clusterEntity.setDesiredStack(stackEntity);
+    clusterDAO.create(clusterEntity);
 
     Map<String, String> hostAttributes = new HashMap<String, String>();
     hostAttributes.put("os_family", "redhat");
     hostAttributes.put("os_release_version", "5.9");
-    host1.setHostAttributes(hostAttributes);
-    host2.setHostAttributes(hostAttributes);
 
-    host1.persist();
-    host2.persist();
+    List<HostEntity> hostEntities = new ArrayList<HostEntity>();
+    Set<String> hostNames = new HashSet<String>() {{ add("h1"); add("h2"); }};
+    for (String hostName : hostNames) {
+      HostEntity hostEntity = new HostEntity();
+      hostEntity.setHostName(hostName);
+      hostEntity.setIpv4("ipv4");
+      hostEntity.setIpv6("ipv6");
+      hostEntity.setHostAttributes(gson.toJson(hostAttributes));
+      hostEntity.setClusterEntities(Arrays.asList(clusterEntity));
+      hostEntities.add(hostEntity);
+      hostDAO.create(hostEntity);
+    }
+
+    clusterEntity.setHostEntities(hostEntities);
+    clusterDAO.merge(clusterEntity);
+    c1 = clusters.getCluster(clusterName);
 
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
     c1.createClusterVersion(stackId, stackId.getStackVersion(), "admin",
         RepositoryVersionState.UPGRADING);
     c1.transitionClusterVersion(stackId, stackId.getStackVersion(),
         RepositoryVersionState.CURRENT);
-    clusters.mapHostToCluster("h1", "c1");
-    clusters.mapHostToCluster("h2", "c1");
+
     ClusterVersionDAOMock.failOnCurrentVersionState = false;
   }
 
@@ -898,6 +930,7 @@ public class ClusterTest {
     createDefaultCluster();
 
     Host host1 = clusters.getHost("h1");
+    HostEntity hostEntity1 = hostDAO.findByName("h1");
 
     Map<String, Map<String, String>> propAttributes = new HashMap<String, Map<String,String>>();
     propAttributes.put("final", new HashMap<String, String>());
@@ -909,18 +942,18 @@ public class ClusterTest {
 
     host1.addDesiredConfig(c1.getClusterId(), true, "test", config);
 
-    Map<String, Map<String, DesiredConfig>> configs = c1.getAllHostsDesiredConfigs();
+    Map<Long, Map<String, DesiredConfig>> configs = c1.getAllHostsDesiredConfigs();
 
-    assertTrue(configs.containsKey("h1"));
-    assertEquals(1, configs.get("h1").size());
+    assertTrue(configs.containsKey(hostEntity1.getHostId()));
+    assertEquals(1, configs.get(hostEntity1.getHostId()).size());
 
-    List<String> hostnames = new ArrayList<String>();
-    hostnames.add("h1");
+    List<Long> hostIds = new ArrayList<Long>();
+    hostIds.add(hostEntity1.getHostId());
 
-    configs = c1.getHostsDesiredConfigs(hostnames);
+    configs = c1.getHostsDesiredConfigs(hostIds);
 
-    assertTrue(configs.containsKey("h1"));
-    assertEquals(1, configs.get("h1").size());
+    assertTrue(configs.containsKey(hostEntity1.getHostId()));
+    assertEquals(1, configs.get(hostEntity1.getHostId()).size());
   }
 
   @Test
@@ -1060,7 +1093,7 @@ public class ClusterTest {
 
     ConfigGroup configGroup =
       configGroupFactory.createNew(c1, "test group", "HDFS", "descr", Collections.singletonMap("hdfs-site", config2),
-        Collections.<String, Host>emptyMap());
+        Collections.<Long, Host>emptyMap());
 
     configGroup.persist();
 
@@ -1117,7 +1150,7 @@ public class ClusterTest {
 
     ConfigGroup configGroup2 =
         configGroupFactory.createNew(c1, "test group 2", "HDFS", "descr", Collections.singletonMap("hdfs-site", config4),
-            Collections.<String, Host>emptyMap());
+            Collections.<Long, Host>emptyMap());
 
     configGroup2.persist();
     c1.addConfigGroup(configGroup2);
@@ -1328,12 +1361,12 @@ public class ClusterTest {
     assertNotNull(entityHDP2);
 
     List<HostVersionEntity> hostVersionsH1Before = hostVersionDAO.findByClusterAndHost("c1", "h1");
-    assertEquals(0, hostVersionsH1Before.size());
+    assertEquals(1, hostVersionsH1Before.size());
 
     c1.inferHostVersions(entityHDP2);
 
     List<HostVersionEntity> hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
-    assertEquals(1, hostVersionsH1After.size());
+    assertEquals(2, hostVersionsH1After.size());
 
     boolean checked = false;
     for (HostVersionEntity entity : hostVersionsH1After) {
@@ -1351,7 +1384,7 @@ public class ClusterTest {
     c1.inferHostVersions(entityHDP2);
 
     hostVersionsH1After = hostVersionDAO.findByClusterAndHost("c1", "h1");
-    assertEquals(1, hostVersionsH1After.size());
+    assertEquals(2, hostVersionsH1After.size());
 
     checked = false;
     for (HostVersionEntity entity : hostVersionsH1After) {

@@ -17,7 +17,15 @@
  */
 package org.apache.ambari.server.orm.dao;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.WeakHashMap;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -30,6 +38,7 @@ import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.cache.HostConfigMapping;
 import org.apache.ambari.server.orm.cache.HostConfigMappingImpl;
 import org.apache.ambari.server.orm.entities.HostConfigMappingEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.Predicate;
 
@@ -43,13 +52,16 @@ import com.google.inject.persist.Transactional;
 @Singleton
 public class HostConfigMappingDAO {
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
+
   @Inject
-  DaoUtils daoUtils;
-  
+  private DaoUtils daoUtils;
+
+  @Inject
+  private HostDAO hostDAO;
 
   private final ReadWriteLock gl = new ReentrantReadWriteLock();
-  private Map<String, Set<HostConfigMapping>> hostConfigMappingByHost;
+  private Map<Long, Set<HostConfigMapping>> hostConfigMappingByHost;
   
   private volatile boolean cacheLoaded;
   
@@ -61,7 +73,7 @@ public class HostConfigMappingDAO {
         gl.writeLock().lock();
         try {
           if (hostConfigMappingByHost == null) {
-            hostConfigMappingByHost = new WeakHashMap<String, Set<HostConfigMapping>>();
+            hostConfigMappingByHost = new WeakHashMap<Long, Set<HostConfigMapping>>();
             
             TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
                 "SELECT entity FROM HostConfigMappingEntity entity",
@@ -70,12 +82,18 @@ public class HostConfigMappingDAO {
             List<HostConfigMappingEntity> hostConfigMappingEntities = daoUtils.selectList(query);
             
             for (HostConfigMappingEntity hostConfigMappingEntity : hostConfigMappingEntities) {
+              Long hostId = hostConfigMappingEntity.getHostId();
 
-              Set<HostConfigMapping> setByHost = hostConfigMappingByHost.get((hostConfigMappingEntity.getHostName()));
-              
-              if (setByHost == null) {
+              if (hostId == null) {
+                continue;
+              }
+
+              Set<HostConfigMapping> setByHost;
+              if (hostConfigMappingByHost.containsKey(hostId)) {
+                setByHost = hostConfigMappingByHost.get(hostId);
+              } else {
                 setByHost = new HashSet<HostConfigMapping>();
-                hostConfigMappingByHost.put(hostConfigMappingEntity.getHostName(), setByHost);
+                hostConfigMappingByHost.put(hostId, setByHost);
               }
        
               HostConfigMapping hostConfigMapping = buildHostConfigMapping(hostConfigMappingEntity);
@@ -90,65 +108,70 @@ public class HostConfigMappingDAO {
       }
       
       cacheLoaded = true;
-
     }
-    
   }
   
 
   @Transactional
   public void create(HostConfigMapping hostConfigMapping) {
-    
     populateCache();
     
     //create in db
     entityManagerProvider.get().persist(buildHostConfigMappingEntity(hostConfigMapping));
     
     //create in cache
-    Set<HostConfigMapping> set = hostConfigMappingByHost.get(hostConfigMapping.getHostName());
-    if (set == null){
-      set = new HashSet<HostConfigMapping>();
-      hostConfigMappingByHost.put(hostConfigMapping.getHostName(), set);
+    Long hostId = hostConfigMapping.getHostId();
+
+    if (hostId != null) {
+      Set<HostConfigMapping> set;
+      if (hostConfigMappingByHost.containsKey(hostId)) {
+        set = hostConfigMappingByHost.get(hostId);
+      } else {
+        set = new HashSet<HostConfigMapping>();
+        hostConfigMappingByHost.put(hostId, set);
+      }
+
+      set.add(hostConfigMapping);
     }
-    
-    set.add(hostConfigMapping);
   }
 
   @Transactional
   public HostConfigMapping merge(HostConfigMapping hostConfigMapping) {
-    
     populateCache();
-    
-    Set<HostConfigMapping> set = hostConfigMappingByHost.get(hostConfigMapping.getHostName());
-    if (set == null){
-      set = new HashSet<HostConfigMapping>();
-      hostConfigMappingByHost.put(hostConfigMapping.getHostName(), set);
+
+    Long hostId = hostConfigMapping.getHostId();
+    if (hostId != null) {
+      Set<HostConfigMapping> set;
+      if (hostConfigMappingByHost.containsKey(hostId)) {
+        set = hostConfigMappingByHost.get(hostId);
+      } else {
+        set = new HashSet<HostConfigMapping>();
+        hostConfigMappingByHost.put(hostId, set);
+      }
+
+      //Update object in set
+      set.remove(hostConfigMapping);
+      set.add(hostConfigMapping);
+
+      entityManagerProvider.get().merge(buildHostConfigMappingEntity(hostConfigMapping));
     }
-    
-    //Update object in set
-    set.remove(hostConfigMapping);
-    set.add(hostConfigMapping);
-    
-    entityManagerProvider.get().merge(buildHostConfigMappingEntity(hostConfigMapping));
-    
+
     return hostConfigMapping;
   }
 
   @RequiresSession
-  public Set<HostConfigMapping> findByType(final long clusterId, String hostName, final String type) {
-    
+  public Set<HostConfigMapping> findByType(final long clusterId, Long hostId, final String type) {
     populateCache();
     
-    if (!hostConfigMappingByHost.containsKey(hostName))
+    if (!hostConfigMappingByHost.containsKey(hostId))
       return Collections.emptySet();
       
-    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostName));
+    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
      
     CollectionUtils.filter(set, new Predicate() {
         
       @Override
       public boolean evaluate(Object arg0) {
-                  
         return ((HostConfigMapping) arg0).getClusterId().equals(clusterId) 
             && ((HostConfigMapping) arg0).getType().equals(type);
       }
@@ -159,41 +182,35 @@ public class HostConfigMappingDAO {
 
   @RequiresSession
   public HostConfigMapping findSelectedByType(final long clusterId,
-      String hostName, final String type) {
-    
+      Long hostId, final String type) {
     populateCache();
     
-    if (!hostConfigMappingByHost.containsKey(hostName))
+    if (!hostConfigMappingByHost.containsKey(hostId))
       return null;
     
-    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostName));
+    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
     
     HostConfigMapping result = (HostConfigMapping) CollectionUtils.find(set, new Predicate() {
       
       @Override
       public boolean evaluate(Object arg0) {
-        
         return ((HostConfigMapping) arg0).getClusterId().equals(clusterId) 
             && ((HostConfigMapping) arg0).getType().equals(type)
             && ((HostConfigMapping) arg0).getSelected() > 0;
       }
     });
     
-    
     return result;
-    
   }
 
   @RequiresSession
-  public Set<HostConfigMapping> findSelected(final long clusterId, String hostName) {
-    
+  public Set<HostConfigMapping> findSelected(final long clusterId, Long hostId) {
     populateCache();
     
-    if (!hostConfigMappingByHost.containsKey(hostName))
+    if (!hostConfigMappingByHost.containsKey(hostId))
       return Collections.emptySet();
-      
     
-    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostName));
+    Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
     
     CollectionUtils.filter(set, new Predicate() {
       
@@ -208,31 +225,26 @@ public class HostConfigMappingDAO {
   }
 
   @RequiresSession
-  public Set<HostConfigMapping> findSelectedByHosts(long clusterId, Collection<String> hostNames) {
-    
+  public Set<HostConfigMapping> findSelectedByHosts(Collection<Long> hostIds) {
     populateCache();
 
-    if (hostNames == null || hostNames.isEmpty()) {
+    if (hostIds == null || hostIds.isEmpty()) {
       return Collections.emptySet();
     }
     
-    
     HashSet<HostConfigMapping> result = new HashSet<HostConfigMapping>();
-    
 
-
-    for (final String hostName : hostNames) {
-      
-      if (!hostConfigMappingByHost.containsKey(hostName))
+    for (final Long hostId : hostIds) {
+      if (!hostConfigMappingByHost.containsKey(hostId))
         continue;
       
-      Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostName));
+      Set<HostConfigMapping> set = new HashSet<HostConfigMapping>(hostConfigMappingByHost.get(hostId));
       
       CollectionUtils.filter(set, new Predicate() {
         
         @Override
         public boolean evaluate(Object arg0) {
-          return ((HostConfigMapping) arg0).getHostName().equals(hostName) && 
+          return ((HostConfigMapping) arg0).getHostId().equals(hostId) &&
               ((HostConfigMapping) arg0).getSelected() > 0;
         }
       });
@@ -247,9 +259,7 @@ public class HostConfigMappingDAO {
   @RequiresSession
   public Map<String, List<HostConfigMapping>> findSelectedHostsByTypes(final long clusterId,
                                                                              Collection<String> types) {
-    
     populateCache();
-
     
     Map<String, List<HostConfigMapping>> mappingsByType = new HashMap<String, List<HostConfigMapping>>();
     
@@ -268,7 +278,6 @@ public class HostConfigMappingDAO {
           
           if (types.contains(entry.getType()) && entry.getClusterId().equals(clusterId))
             mappings.add(new HostConfigMappingImpl(entry));
-          
         }
       }
 
@@ -276,8 +285,6 @@ public class HostConfigMappingDAO {
         mappingsByType.get(mapping.getType()).add(mapping);
       }
     }
-    
-    
 
     return mappingsByType;
   }
@@ -293,42 +300,40 @@ public class HostConfigMappingDAO {
    */
   @Transactional
   public void removeHost(final long clusterId, String hostName) {
-    
     populateCache();
-    
-    Set<HostConfigMapping> set = hostConfigMappingByHost.get(hostName);
-    
-    //Remove from cache items with clusterId
-    CollectionUtils.filter(set, new Predicate() {
-      
-      @Override
-      public boolean evaluate(Object arg0) {
-        return !((HostConfigMapping) arg0).getClusterId().equals(clusterId);
+
+    if (hostConfigMappingByHost.containsKey(hostName)) {
+      Set<HostConfigMapping> set = hostConfigMappingByHost.get(hostName);
+
+      //Remove from cache items with clusterId
+      CollectionUtils.filter(set, new Predicate() {
+        @Override
+        public boolean evaluate(Object arg0) {
+          return !((HostConfigMapping) arg0).getClusterId().equals(clusterId);
+        }
+      });
+
+      //delete from db
+      TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
+          "SELECT entity FROM HostConfigMappingEntity entity " +
+              "WHERE entity.clusterId = ?1 AND entity.hostEntity.hostName = ?2",
+          HostConfigMappingEntity.class);
+
+      List<HostConfigMappingEntity> list = daoUtils.selectList(query, Long.valueOf(clusterId), hostName);
+
+      for (HostConfigMappingEntity entity : list) {
+        entityManagerProvider.get().remove(entity);
       }
-    });
-    
-    //delete from db
-    TypedQuery<HostConfigMappingEntity> query = entityManagerProvider.get().createQuery(
-      "SELECT entity FROM HostConfigMappingEntity entity " +
-      "WHERE entity.clusterId = ?1 AND entity.hostName = ?2",
-      HostConfigMappingEntity.class);
-             
-    List<HostConfigMappingEntity> list = daoUtils.selectList(query, Long.valueOf(clusterId), hostName);
-        
-    for (HostConfigMappingEntity entity : list) {
-      entityManagerProvider.get().remove(entity);
     }
-    
-    
   }
 
   public HostConfigMappingEntity buildHostConfigMappingEntity(HostConfigMapping hostConfigMapping) {
-    
+    HostEntity hostEntity = hostDAO.findById(hostConfigMapping.getHostId());
     HostConfigMappingEntity hostConfigMappingEntity = new HostConfigMappingEntity();
-    
+
     hostConfigMappingEntity.setClusterId(hostConfigMapping.getClusterId());
     hostConfigMappingEntity.setCreateTimestamp(hostConfigMapping.getCreateTimestamp());
-    hostConfigMappingEntity.setHostName(hostConfigMapping.getHostName());
+    hostConfigMappingEntity.setHostId(hostEntity.getHostId());
     hostConfigMappingEntity.setSelected(hostConfigMapping.getSelected());
     hostConfigMappingEntity.setServiceName(hostConfigMapping.getServiceName());
     hostConfigMappingEntity.setType(hostConfigMapping.getType());
@@ -340,12 +345,11 @@ public class HostConfigMappingDAO {
   
   public HostConfigMapping buildHostConfigMapping(
       HostConfigMappingEntity hostConfigMappingEntity) {
-    
     HostConfigMapping hostConfigMapping = new HostConfigMappingImpl();
     
     hostConfigMapping.setClusterId(hostConfigMappingEntity.getClusterId());
     hostConfigMapping.setCreateTimestamp(hostConfigMappingEntity.getCreateTimestamp());
-    hostConfigMapping.setHostName(hostConfigMappingEntity.getHostName());
+    hostConfigMapping.setHostId(hostConfigMappingEntity.getHostId());
     hostConfigMapping.setServiceName(hostConfigMappingEntity.getServiceName());
     hostConfigMapping.setType(hostConfigMappingEntity.getType());
     hostConfigMapping.setUser(hostConfigMappingEntity.getUser());
@@ -354,5 +358,4 @@ public class HostConfigMappingDAO {
     
     return hostConfigMapping;
   }
-
 }

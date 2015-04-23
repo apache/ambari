@@ -21,9 +21,9 @@ public interface HostConfigMapping {
   
   public Long getClusterId();
   public void setClusterId(Long clusterId);
-  
-  public String getHostName();
-  public void setHostName(String hostName);
+
+  public Long getHostId();
+  public void setHostId(Long hostId);
   
   public String getType();
   public void setType(String type);
@@ -42,6 +42,4 @@ public interface HostConfigMapping {
   
   public Integer getSelected();
   public void setSelected(Integer selected);
-  
-
 }

@@ -36,8 +36,8 @@ public class HostConfigMappingEntity {
   private Long clusterId;
 
   @Id
-  @Column(name = "host_name", insertable = true, updatable = false, nullable = false)
-  private String hostName;
+  @Column(name = "host_id", insertable = true, updatable = false, nullable=false)
+  private Long hostId;
 
   @Id
   @Column(name = "type_name", insertable = true, updatable = false, nullable = false)
@@ -58,7 +58,7 @@ public class HostConfigMappingEntity {
   
   @Column(name = "user_name", insertable = true, updatable = true, nullable = false)
   private String user = null;
-  
+
   public Long getClusterId() {
     return clusterId;
   }
@@ -67,12 +67,12 @@ public class HostConfigMappingEntity {
     clusterId = id;
   }
 
-  public String getHostName() {
-    return hostName;
+  public Long getHostId() {
+    return hostId;
   }
 
-  public void setHostName(String name) {
-    hostName = name;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   public String getType() {
@@ -140,7 +140,7 @@ public class HostConfigMappingEntity {
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
     if (createTimestamp != null ? !createTimestamp.equals(that.createTimestamp) : that.createTimestamp != null)
       return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (hostId != null ? !hostId.equals(that.hostId) : that.hostId != null) return false;
     if (serviceName != null ? !serviceName.equals(that.serviceName) : that.serviceName != null) return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (user != null ? !user.equals(that.user) : that.user != null) return false;
@@ -152,7 +152,7 @@ public class HostConfigMappingEntity {
   @Override
   public int hashCode() {
     int result = clusterId != null ? clusterId.hashCode() : 0;
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
     result = 31 * result + (type != null ? type.hashCode() : 0);
     result = 31 * result + (createTimestamp != null ? createTimestamp.hashCode() : 0);
     result = 31 * result + (versionTag != null ? versionTag.hashCode() : 0);

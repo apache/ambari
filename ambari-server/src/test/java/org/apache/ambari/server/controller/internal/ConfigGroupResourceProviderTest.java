@@ -17,6 +17,11 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.Binder;
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.google.inject.Module;
+import com.google.inject.util.Modules;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
@@ -29,6 +34,9 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -39,13 +47,19 @@ import org.apache.ambari.server.state.configgroup.ConfigGroupFactory;
 import org.easymock.Capture;
 import org.easymock.IAnswer;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
 import static junit.framework.Assert.assertTrue;
@@ -57,19 +71,40 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.createStrictMock;
 
 public class ConfigGroupResourceProviderTest {
 
-  ConfigGroupResourceProvider getConfigGroupResourceProvider
-    (AmbariManagementController managementController) {
+  private Injector injector;
 
+  private HostDAO hostDAO = null;
+
+  @Before
+  public void setup() throws Exception {
+    hostDAO = createStrictMock(HostDAO.class);
+
+    // Create injector after all mocks have been initialized
+    injector = Guice.createInjector(Modules.override(
+        new InMemoryDefaultTestModule()).with(new MockModule()));
+  }
+
+  ConfigGroupResourceProvider getConfigGroupResourceProvider
+      (AmbariManagementController managementController) {
     Resource.Type type = Resource.Type.ConfigGroup;
 
     return (ConfigGroupResourceProvider) AbstractControllerResourceProvider.getResourceProvider(
-      type,
-      PropertyHelper.getPropertyIds(type),
-      PropertyHelper.getKeyPropertyIds(type),
-      managementController);
+        type,
+        PropertyHelper.getPropertyIds(type),
+        PropertyHelper.getKeyPropertyIds(type),
+        managementController);
+  }
+
+
+  private class MockModule implements Module {
+    @Override
+    public void configure(Binder binder) {
+      binder.bind(HostDAO.class).toInstance(hostDAO);
+    }
   }
 
   @Test
@@ -80,6 +115,8 @@ public class ConfigGroupResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Host h1 = createNiceMock(Host.class);
     Host h2 = createNiceMock(Host.class);
+    HostEntity hostEntity1 = createMock(HostEntity.class);
+    HostEntity hostEntity2 = createMock(HostEntity.class);
     ConfigGroupFactory configGroupFactory = createNiceMock(ConfigGroupFactory.class);
     ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
 
@@ -89,6 +126,10 @@ public class ConfigGroupResourceProviderTest {
     expect(clusters.getHost("h2")).andReturn(h2);
     expect(managementController.getConfigGroupFactory()).andReturn(configGroupFactory);
     expect(managementController.getAuthName()).andReturn("admin").anyTimes();
+    expect(hostDAO.findByName("h1")).andReturn(hostEntity1).atLeastOnce();
+    expect(hostDAO.findByName("h2")).andReturn(hostEntity2).atLeastOnce();
+    expect(hostEntity1.getHostId()).andReturn(1L).atLeastOnce();
+    expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
 
     Capture<Cluster> clusterCapture = new Capture<Cluster>();
     Capture<String> captureName = new Capture<String>();
@@ -96,14 +137,14 @@ public class ConfigGroupResourceProviderTest {
     Capture<String> captureTag = new Capture<String>();
     Capture<Map<String, Config>> captureConfigs = new Capture<Map<String,
       Config>>();
-    Capture<Map<String, Host>> captureHosts = new Capture<Map<String, Host>>();
+    Capture<Map<Long, Host>> captureHosts = new Capture<Map<Long, Host>>();
 
     expect(configGroupFactory.createNew(capture(clusterCapture),
       capture(captureName), capture(captureTag), capture(captureDesc),
       capture(captureConfigs), capture(captureHosts))).andReturn(configGroup);
 
     replay(managementController, clusters, cluster, configGroupFactory,
-      configGroup, response);
+      configGroup, response, hostDAO, hostEntity1, hostEntity2);
 
     ResourceProvider provider = getConfigGroupResourceProvider
       (managementController);
@@ -146,12 +187,12 @@ public class ConfigGroupResourceProviderTest {
     provider.createResources(request);
 
     verify(managementController, clusters, cluster, configGroupFactory,
-      configGroup, response);
+      configGroup, response, hostDAO, hostEntity1, hostEntity2);
 
     assertEquals("version100", captureConfigs.getValue().get("core-site")
       .getTag());
-    assertTrue(captureHosts.getValue().containsKey("h1"));
-    assertTrue(captureHosts.getValue().containsKey("h2"));
+    assertTrue(captureHosts.getValue().containsKey(1L));
+    assertTrue(captureHosts.getValue().containsKey(2L));
   }
 
   @Test
@@ -222,6 +263,9 @@ public class ConfigGroupResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     Host h1 = createNiceMock(Host.class);
     Host h2 = createNiceMock(Host.class);
+    HostEntity hostEntity1 = createMock(HostEntity.class);
+    HostEntity hostEntity2 = createMock(HostEntity.class);
+
     final ConfigGroup configGroup = createNiceMock(ConfigGroup.class);
     ConfigGroupResponse configGroupResponse = createNiceMock
       (ConfigGroupResponse.class);
@@ -231,6 +275,10 @@ public class ConfigGroupResourceProviderTest {
     expect(clusters.getCluster("Cluster100")).andReturn(cluster).anyTimes();
     expect(clusters.getHost("h1")).andReturn(h1);
     expect(clusters.getHost("h2")).andReturn(h2);
+    expect(hostDAO.findByName("h1")).andReturn(hostEntity1).atLeastOnce();
+    expect(hostDAO.findByName("h2")).andReturn(hostEntity2).atLeastOnce();
+    expect(hostEntity1.getHostId()).andReturn(1L).atLeastOnce();
+    expect(hostEntity2.getHostId()).andReturn(2L).atLeastOnce();
 
     expect(configGroup.getName()).andReturn("test-1").anyTimes();
     expect(configGroup.getId()).andReturn(25L).anyTimes();
@@ -253,7 +301,7 @@ public class ConfigGroupResourceProviderTest {
     expectLastCall().once();
 
     replay(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse, configHelper);
+      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2);
 
     ResourceProvider provider = getConfigGroupResourceProvider
       (managementController);
@@ -302,7 +350,7 @@ public class ConfigGroupResourceProviderTest {
     provider.updateResources(request, predicate);
 
     verify(managementController, clusters, cluster,
-      configGroup, response, configGroupResponse, configHelper);
+      configGroup, response, configGroupResponse, configHelper, hostDAO, hostEntity1, hostEntity2);
   }
 
   @SuppressWarnings("unchecked")
@@ -312,6 +360,14 @@ public class ConfigGroupResourceProviderTest {
     Clusters clusters = createNiceMock(Clusters.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Host h1 = createNiceMock(Host.class);
+    final Long host1Id = 1L;
+    List<Long> hostIds = new ArrayList<Long>() {{ add(host1Id); }};
+    List<String> hostNames = new ArrayList<String>() {{ add("h1"); }};
+    HostEntity hostEntity1 = createMock(HostEntity.class);
+
+    expect(hostDAO.getHostNamesByHostIds(hostIds)).andReturn(hostNames).atLeastOnce();
+    expect(hostDAO.findByName("h1")).andReturn(hostEntity1).anyTimes();
+    expect(hostEntity1.getHostId()).andReturn(host1Id).anyTimes();
 
     ConfigGroup configGroup1 = createNiceMock(ConfigGroup.class);
     ConfigGroup configGroup2 = createNiceMock(ConfigGroup.class);
@@ -350,8 +406,8 @@ public class ConfigGroupResourceProviderTest {
     expect(configGroup3.getTag()).andReturn("t3").anyTimes();
     expect(configGroup4.getTag()).andReturn("t4").anyTimes();
 
-    Map<String, Host> hostMap = new HashMap<String, Host>();
-    hostMap.put("h1", h1);
+    Map<Long, Host> hostMap = new HashMap<Long, Host>();
+    hostMap.put(host1Id, h1);
     expect(configGroup4.getHosts()).andReturn(hostMap).anyTimes();
 
 
@@ -373,9 +429,8 @@ public class ConfigGroupResourceProviderTest {
     hostObj.add(hostnames);
     expect(response4.getHosts()).andReturn(hostObj).anyTimes();
 
-    replay(managementController, clusters, cluster, configGroup1,
-      configGroup2, configGroup3, configGroup4, response1, response2,
-      response3, response4);
+    replay(managementController, clusters, cluster, hostDAO, hostEntity1,
+        configGroup1, configGroup2, configGroup3, configGroup4, response1, response2, response3, response4);
 
     ResourceProvider resourceProvider = getConfigGroupResourceProvider
       (managementController);
@@ -470,7 +525,7 @@ public class ConfigGroupResourceProviderTest {
       .CONFIGGROUP_CLUSTER_NAME_PROPERTY_ID).equals("Cluster100").and()
       .property(ConfigGroupResourceProvider.CONFIGGROUP_TAG_PROPERTY_ID)
       .equals("t4").and().property(ConfigGroupResourceProvider
-        .CONFIGGROUP_HOSTS_PROPERTY_ID).equals("h1").toPredicate();
+        .CONFIGGROUP_HOSTS_PROPERTY_ID).equals(host1Id).toPredicate();
 
     resources = resourceProvider.getResources(request, predicate);
 
@@ -513,9 +568,8 @@ public class ConfigGroupResourceProviderTest {
     }
     Assert.assertNotNull(resourceException);
 
-    verify(managementController, clusters, cluster, configGroup1,
-      configGroup2, configGroup3, configGroup4, response1, response2,
-      response3, response4);
+    verify(managementController, clusters, cluster, hostDAO, hostEntity1,
+        configGroup1, configGroup2, configGroup3, configGroup4, response1, response2, response3, response4);
   }
 
   @Test

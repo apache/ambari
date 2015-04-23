@@ -34,7 +34,7 @@ import javax.persistence.Table;
 @NamedQueries({
   @NamedQuery(name = "groupsByHost", query =
   "SELECT confighosts FROM ConfigGroupHostMappingEntity confighosts " +
-    "WHERE confighosts.hostname=:hostname"),
+    "WHERE confighosts.hostEntity.hostName=:hostname"),
   @NamedQuery(name = "hostsByGroup", query =
   "SELECT confighosts FROM ConfigGroupHostMappingEntity confighosts " +
     "WHERE confighosts.configGroupId=:groupId")
@@ -46,12 +46,12 @@ public class ConfigGroupHostMappingEntity {
   private Long configGroupId;
 
   @Id
-  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
-  private String hostname;
+  @Column(name = "host_id", nullable = false, insertable = true, updatable = true)
+  private Long hostId;
 
   @ManyToOne
   @JoinColumns({
-    @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false, insertable = false, updatable = false) })
+    @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false, insertable = false, updatable = false) })
   private HostEntity hostEntity;
 
   @ManyToOne
@@ -67,12 +67,16 @@ public class ConfigGroupHostMappingEntity {
     this.configGroupId = configGroupId;
   }
 
-  public String getHostname() {
-    return hostname;
+  public Long getHostId() {
+    return hostId;
   }
 
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
+  }
+
+  public String getHostname() {
+    return hostEntity != null ? hostEntity.getHostName() : null;
   }
 
   public HostEntity getHostEntity() {
@@ -99,7 +103,7 @@ public class ConfigGroupHostMappingEntity {
     ConfigGroupHostMappingEntity that = (ConfigGroupHostMappingEntity) o;
 
     if (!configGroupId.equals(that.configGroupId)) return false;
-    if (!hostname.equals(that.hostname)) return false;
+    if (!hostEntity.equals(that.hostEntity)) return false;
 
     return true;
   }
@@ -107,7 +111,7 @@ public class ConfigGroupHostMappingEntity {
   @Override
   public int hashCode() {
     int result = configGroupId.hashCode();
-    result = 31 * result + hostname.hashCode();
+    result = 31 * result + hostEntity.hashCode();
     return result;
   }
 }

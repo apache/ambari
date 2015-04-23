@@ -62,7 +62,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   private Cluster cluster;
   private ConfigGroupEntity configGroupEntity;
-  private Map<String, Host> hosts;
+  private Map<Long, Host> hosts;
   private Map<String, Config> configurations;
   private volatile boolean isPersisted = false;
 
@@ -89,7 +89,7 @@ public class ConfigGroupImpl implements ConfigGroup {
                          @Assisted("tag") String tag,
                          @Assisted("description") String description,
                          @Assisted("configs") Map<String, Config> configs,
-                         @Assisted("hosts") Map<String, Host> hosts,
+                         @Assisted("hosts") Map<Long, Host> hosts,
                          Injector injector) {
     injector.injectMembers(this);
     this.cluster = cluster;
@@ -103,7 +103,7 @@ public class ConfigGroupImpl implements ConfigGroup {
     if (hosts != null) {
       this.hosts = hosts;
     } else {
-      this.hosts = new HashMap<String, Host>();
+      this.hosts = new HashMap<Long, Host>();
     }
 
     if (configs != null) {
@@ -122,7 +122,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
     this.configGroupEntity = configGroupEntity;
     configurations = new HashMap<String, Config>();
-    hosts = new HashMap<String, Host>();
+    hosts = new HashMap<Long, Host>();
 
     // Populate configs
     for (ConfigGroupConfigMappingEntity configMappingEntity : configGroupEntity
@@ -147,8 +147,9 @@ public class ConfigGroupImpl implements ConfigGroup {
 
       try {
         Host host = clusters.getHost(hostMappingEntity.getHostname());
-        if (host != null) {
-          hosts.put(host.getHostName(), host);
+        HostEntity hostEntity = hostMappingEntity.getHostEntity();
+        if (host != null && hostEntity != null) {
+          hosts.put(hostEntity.getHostId(), host);
         }
       } catch (AmbariException e) {
         String msg = "Host seems to be deleted but Config group mapping still " +
@@ -235,7 +236,7 @@ public class ConfigGroupImpl implements ConfigGroup {
   }
 
   @Override
-  public Map<String, Host> getHosts() {
+  public Map<Long, Host> getHosts() {
     readWriteLock.readLock().lock();
     try {
       return Collections.unmodifiableMap(hosts);
@@ -260,7 +261,7 @@ public class ConfigGroupImpl implements ConfigGroup {
    * @param hosts
    */
   @Override
-  public void setHosts(Map<String, Host> hosts) {
+  public void setHosts(Map<Long, Host> hosts) {
     readWriteLock.writeLock().lock();
     try {
       this.hosts = hosts;
@@ -287,23 +288,25 @@ public class ConfigGroupImpl implements ConfigGroup {
 
   @Override
   @Transactional
-  public void removeHost(String hostname) throws AmbariException {
+  public void removeHost(Long hostId) throws AmbariException {
     readWriteLock.writeLock().lock();
     try {
-      if (hosts.containsKey(hostname)) {
-        LOG.info("Removing host from config group, hostname = " + hostname);
-        hosts.remove(hostname);
+      if (hosts.containsKey(hostId)) {
+        String hostName = hosts.get(hostId).getHostName();
+        LOG.info("Removing host from config group, hostid = " + hostId + ", hostname = " + hostName);
+        hosts.remove(hostId);
         try {
           ConfigGroupHostMappingEntityPK hostMappingEntityPK = new
             ConfigGroupHostMappingEntityPK();
-          hostMappingEntityPK.setHostname(hostname);
+          hostMappingEntityPK.setHostId(hostId);
           hostMappingEntityPK.setConfigGroupId(configGroupEntity.getGroupId());
           configGroupHostMappingDAO.removeByPK(hostMappingEntityPK);
         } catch (Exception e) {
           LOG.error("Failed to delete config group host mapping"
             + ", clusterName = " + getClusterName()
             + ", id = " + getId()
-            + ", hostname = " + hostname, e);
+            + ", hostid = " + hostId
+            + ", hostname = " + hostName, e);
           throw new AmbariException(e.getMessage());
         }
       }
@@ -366,7 +369,7 @@ public class ConfigGroupImpl implements ConfigGroup {
         if (hostEntity != null) {
           ConfigGroupHostMappingEntity hostMappingEntity = new
             ConfigGroupHostMappingEntity();
-          hostMappingEntity.setHostname(host.getHostName());
+          hostMappingEntity.setHostId(hostEntity.getHostId());
           hostMappingEntity.setHostEntity(hostEntity);
           hostMappingEntity.setConfigGroupEntity(configGroupEntity);
           hostMappingEntity.setConfigGroupId(configGroupEntity.getGroupId());
@@ -487,7 +490,10 @@ public class ConfigGroupImpl implements ConfigGroup {
               configGroupEntity.getGroupName());
           }
         }
-        hosts.put(host.getHostName(), host);
+        HostEntity hostEntity = hostDAO.findByName(host.getHostName());
+        if (hostEntity != null) {
+          hosts.put(hostEntity.getHostId(), host);
+        }
       }
     } finally {
       readWriteLock.writeLock().unlock();

@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.TypedQuery;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -117,4 +118,14 @@ public class HostDAO {
     remove(findByName(hostName));
   }
 
+  public List<String> getHostNamesByHostIds(List<Long> hostIds) {
+    List<String> hostNames = new ArrayList<String>();
+    if (hostIds != null) {
+      for (Long hostId : hostIds) {
+        HostEntity hostEntity = findById(hostId);
+        hostNames.add(hostEntity.getHostName());
+      }
+    }
+    return hostNames;
+  }
 }

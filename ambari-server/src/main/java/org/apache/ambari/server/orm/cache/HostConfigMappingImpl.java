@@ -22,7 +22,7 @@ package org.apache.ambari.server.orm.cache;
 public class HostConfigMappingImpl implements HostConfigMapping {
   
   private Long clusterId;
-  private String hostName;
+  private Long hostId;
   private String type;
   private Long createTimestamp;
   private String version;
@@ -34,7 +34,7 @@ public class HostConfigMappingImpl implements HostConfigMapping {
   
   public HostConfigMappingImpl(HostConfigMapping entry) {
     setClusterId(entry.getClusterId());
-    setHostName(entry.getHostName());
+    setHostId(entry.getHostId());
     setType(entry.getType());
     setCreateTimestamp(entry.getCreateTimestamp());
     setVersion(entry.getVersion());
@@ -57,17 +57,17 @@ public class HostConfigMappingImpl implements HostConfigMapping {
       throw new RuntimeException("ClusterId couldn't be null");
     this.clusterId = clusterId;
   }
-  
+
   @Override
-  public String getHostName() {
-    return hostName;
+  public Long getHostId() {
+    return hostId;
   }
-  
+
   @Override
-  public void setHostName(String hostName) {
-    if (hostName == null)
-      throw new RuntimeException("HostName couldn't be null");
-    this.hostName = hostName;
+  public void setHostId(Long hostId) {
+    if (hostId == null)
+      throw new RuntimeException("HostId couldn't be null");
+    this.hostId = hostId;
   }
   
   @Override
@@ -143,10 +143,8 @@ public class HostConfigMappingImpl implements HostConfigMapping {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((clusterId == null) ? 0 : clusterId.hashCode());
-    result =
-        prime * result
-            + ((createTimestamp == null) ? 0 : createTimestamp.hashCode());
-    result = prime * result + ((hostName == null) ? 0 : hostName.hashCode());
+    result = prime * result + ((createTimestamp == null) ? 0 : createTimestamp.hashCode());
+    result = prime * result + ((hostId == null) ? 0 : hostId.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     return result;
   }
@@ -159,29 +157,13 @@ public class HostConfigMappingImpl implements HostConfigMapping {
       return false;
     if (getClass() != obj.getClass())
       return false;
+
     HostConfigMappingImpl other = (HostConfigMappingImpl) obj;
-    if (clusterId == null) {
-      if (other.clusterId != null)
-        return false;
-    } else if (!clusterId.equals(other.clusterId))
-      return false;
-    if (createTimestamp == null) {
-      if (other.createTimestamp != null)
-        return false;
-    } else if (!createTimestamp.equals(other.createTimestamp))
-      return false;
-    if (hostName == null) {
-      if (other.hostName != null)
-        return false;
-    } else if (!hostName.equals(other.hostName))
-      return false;
-    if (type == null) {
-      if (other.type != null)
-        return false;
-    } else if (!type.equals(other.type))
-      return false;
+    if (clusterId != null ? !clusterId.equals(other.clusterId) : other.clusterId != null) return false;
+    if (createTimestamp != null ? !createTimestamp.equals(other.createTimestamp) : other.createTimestamp != null) return false;
+    if (hostId != null ? !hostId.equals(other.hostId) : other.hostId != null) return false;
+    if (type != null ? !type.equals(other.type) : other.type != null) return false;
+
     return true;
   }
-  
-
 }

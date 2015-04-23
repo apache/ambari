@@ -89,6 +89,7 @@ public class ClustersImpl implements Clusters {
   private ConcurrentHashMap<String, Cluster> clusters;
   private ConcurrentHashMap<Long, Cluster> clustersById;
   private ConcurrentHashMap<String, Host> hosts;
+  private ConcurrentHashMap<Long, Host> hostsById;
   private ConcurrentHashMap<String, Set<Cluster>> hostClusterMap;
   private ConcurrentHashMap<String, Set<Host>> clusterHostMap;
 
@@ -138,6 +139,7 @@ public class ClustersImpl implements Clusters {
     clusters = new ConcurrentHashMap<String, Cluster>();
     clustersById = new ConcurrentHashMap<Long, Cluster>();
     hosts = new ConcurrentHashMap<String, Host>();
+    hostsById = new ConcurrentHashMap<Long, Host>();
     hostClusterMap = new ConcurrentHashMap<String, Set<Cluster>>();
     clusterHostMap = new ConcurrentHashMap<String, Set<Host>>();
 
@@ -172,6 +174,7 @@ public class ClustersImpl implements Clusters {
     for (HostEntity hostEntity : hostDAO.findAll()) {
       Host host = hostFactory.create(hostEntity, true);
       hosts.put(hostEntity.getHostName(), host);
+      hostsById.put(hostEntity.getHostId(), host);
       Set<Cluster> cSet = Collections.newSetFromMap(new ConcurrentHashMap<Cluster, Boolean>());
       hostClusterMap.put(hostEntity.getHostName(), cSet);
 
@@ -326,6 +329,17 @@ public class ClustersImpl implements Clusters {
     }
 
     return hosts.get(hostname);
+  }
+
+  @Override
+  public Host getHostById(Long hostId) throws AmbariException {
+    checkLoaded();
+
+    if (!hosts.containsKey(hostId)) {
+      throw new HostNotFoundException("Host Id = " + hostId);
+    }
+
+    return hosts.get(hostId);
   }
 
   /**
@@ -614,6 +628,27 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
+  public Map<Long, Host> getHostIdsForCluster(String clusterName)
+      throws AmbariException {
+
+    checkLoaded();
+    r.lock();
+
+    try {
+      Map<Long, Host> hosts = new HashMap<Long, Host>();
+
+      for (Host h : clusterHostMap.get(clusterName)) {
+        HostEntity hostEntity = hostDAO.findByName(h.getHostName());
+        hosts.put(hostEntity.getHostId(), h);
+      }
+
+      return hosts;
+    } finally {
+      r.unlock();
+    }
+  }
+
+  @Override
   public void deleteCluster(String clusterName)
       throws AmbariException {
     checkLoaded();
@@ -649,6 +684,7 @@ public class ClustersImpl implements Clusters {
       throws AmbariException {
     Host host = null;
     Cluster cluster = null;
+    HostEntity hostEntity = null;
 
     checkLoaded();
 
@@ -656,6 +692,7 @@ public class ClustersImpl implements Clusters {
     try {
       host = getHost(hostname);
       cluster = getCluster(clusterName);
+      hostEntity = hostDAO.findByName(hostname);
     } finally {
       r.unlock();
     }
@@ -677,7 +714,7 @@ public class ClustersImpl implements Clusters {
       host.refresh();
       cluster.refresh();
 
-      deleteConfigGroupHostMapping(hostname);
+      deleteConfigGroupHostMapping(hostEntity.getHostId());
 
       // Remove mapping of principals to the unmapped host
       kerberosPrincipalHostDAO.removeByHost(hostname);
@@ -699,11 +736,11 @@ public class ClustersImpl implements Clusters {
   }
 
   @Transactional
-  private void deleteConfigGroupHostMapping(String hostname) throws AmbariException {
+  private void deleteConfigGroupHostMapping(Long hostId) throws AmbariException {
     // Remove Config group mapping
     for (Cluster cluster : clusters.values()) {
       for (ConfigGroup configGroup : cluster.getConfigGroups().values()) {
-        configGroup.removeHost(hostname);
+        configGroup.removeHost(hostId);
       }
     }
   }
@@ -719,17 +756,23 @@ public class ClustersImpl implements Clusters {
     w.lock();
 
     try {
-      deleteConfigGroupHostMapping(hostname);
+      HostEntity entity = hostDAO.findByName(hostname);
+      
+      if (entity == null) {
+        return;
+      }
+
+      deleteConfigGroupHostMapping(entity.getHostId());
 
       Collection<HostVersionEntity> hostVersions = hosts.get(hostname).getAllHostVersions();
       for (HostVersionEntity hostVersion : hostVersions) {
         hostVersionDAO.remove(hostVersion);
       }
 
-      HostEntity entity = hostDAO.findByName(hostname);
       hostDAO.refresh(entity);
       hostDAO.remove(entity);
       hosts.remove(hostname);
+      hostsById.remove(entity.getHostId());
 
       // Remove mapping of principals to deleted host
       kerberosPrincipalHostDAO.removeByHost(hostname);
@@ -743,7 +786,6 @@ public class ClustersImpl implements Clusters {
     } finally {
       w.unlock();
     }
-
   }
 
   @Override

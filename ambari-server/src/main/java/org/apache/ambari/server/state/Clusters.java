@@ -80,6 +80,14 @@ public interface Clusters {
   public Host getHost(String hostname) throws AmbariException;
 
   /**
+   * Get a Host object managed by this server
+   * @param hostId Host Id from the {@link org.apache.ambari.server.orm.entities.HostEntity} objecty
+   * @return Host object
+   * @throws AmbariException
+   */
+  public Host getHostById(Long hostId) throws AmbariException;
+
+  /**
    * Add a Host object to be managed by this server
    * @param hostname Host to be added
    * @throws AmbariException
@@ -134,6 +142,15 @@ public interface Clusters {
    * @throws AmbariException
    */
   public Map<String, Host> getHostsForCluster(String clusterName)
+      throws AmbariException;
+
+  /**
+   * Gets all the host Ids associated with the cluster
+   * @param clusterName The name of the cluster
+   * @return <code>Map</code> containing host id and <code>Host</code>
+   * @throws AmbariException
+   */
+  public Map<Long, Host> getHostIdsForCluster(String clusterName)
       throws AmbariException;
 
   /**

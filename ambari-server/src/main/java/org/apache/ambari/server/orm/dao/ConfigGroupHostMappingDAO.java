@@ -64,7 +64,7 @@ public class ConfigGroupHostMappingDAO {
   
   private final ReadWriteLock gl = new ReentrantReadWriteLock();
   
-  private Map<String, Set<ConfigGroupHostMapping>> configGroupHostMappingByHost;
+  private Map<Long, Set<ConfigGroupHostMapping>> configGroupHostMappingByHost;
   
   private volatile boolean cacheLoaded;
 
@@ -75,7 +75,7 @@ public class ConfigGroupHostMappingDAO {
       gl.writeLock().lock();
       try {
         if (configGroupHostMappingByHost == null) {
-          configGroupHostMappingByHost = new WeakHashMap<String, Set<ConfigGroupHostMapping>>();
+          configGroupHostMappingByHost = new WeakHashMap<Long, Set<ConfigGroupHostMapping>>();
           
           TypedQuery<ConfigGroupHostMappingEntity> query = entityManagerProvider.get().createQuery(
               "SELECT entity FROM ConfigGroupHostMappingEntity entity",
@@ -85,11 +85,11 @@ public class ConfigGroupHostMappingDAO {
           
           for (ConfigGroupHostMappingEntity configGroupHostMappingEntity : configGroupHostMappingEntities) {
 
-            Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get((configGroupHostMappingEntity.getHostname()));
+            Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get((configGroupHostMappingEntity.getHostId()));
               
             if (setByHost == null) {
               setByHost = new HashSet<ConfigGroupHostMapping>();
-              configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostname(), setByHost);
+              configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), setByHost);
             }
        
             ConfigGroupHostMapping configGroupHostMapping = buildConfigGroupHostMapping(configGroupHostMappingEntity);
@@ -121,14 +121,14 @@ public class ConfigGroupHostMappingDAO {
   }
 
   @RequiresSession
-  public Set<ConfigGroupHostMapping> findByHost(String hostname) {
+  public Set<ConfigGroupHostMapping> findByHostId(Long hostId) {
     
     populateCache();
     
-    if (!configGroupHostMappingByHost.containsKey(hostname))
+    if (!configGroupHostMappingByHost.containsKey(hostId))
       return null;
     
-    Set<ConfigGroupHostMapping> set = new HashSet<ConfigGroupHostMapping>(configGroupHostMappingByHost.get(hostname));
+    Set<ConfigGroupHostMapping> set = new HashSet<ConfigGroupHostMapping>(configGroupHostMappingByHost.get(hostId));
     
     return set;
     
@@ -169,33 +169,29 @@ public class ConfigGroupHostMappingDAO {
   @Transactional
   public void create(ConfigGroupHostMappingEntity
                          configGroupHostMappingEntity) {
-    
     populateCache();
 
     entityManagerProvider.get().persist(configGroupHostMappingEntity);
     
     //create in cache
-    Set<ConfigGroupHostMapping> set = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostname());
+    Set<ConfigGroupHostMapping> set = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostId());
     if (set == null){
       set = new HashSet<ConfigGroupHostMapping>();
-      configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostname(), set);
+      configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), set);
     }
     
     set.add(buildConfigGroupHostMapping(configGroupHostMappingEntity));
-    
   }
-
-
 
   @Transactional
   public ConfigGroupHostMappingEntity merge(ConfigGroupHostMappingEntity configGroupHostMappingEntity) {
     
     populateCache();
     
-    Set<ConfigGroupHostMapping> set = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostname());
+    Set<ConfigGroupHostMapping> set = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostId());
     if (set == null){
       set = new HashSet<ConfigGroupHostMapping>();
-      configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostname(), set);
+      configGroupHostMappingByHost.put(configGroupHostMappingEntity.getHostId(), set);
     }
     
     //Update object in set
@@ -223,7 +219,7 @@ public class ConfigGroupHostMappingDAO {
     
     entityManagerProvider.get().remove(merge(configGroupHostMappingEntity));
     
-    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostname());
+    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(configGroupHostMappingEntity.getHostId());
     
     if (setByHost != null) {
       CollectionUtils.filter(setByHost, new Predicate() {
@@ -244,8 +240,7 @@ public class ConfigGroupHostMappingDAO {
     
     entityManagerProvider.get().remove(findByPK(configGroupHostMappingEntityPK));
     
-    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost
-      .get(configGroupHostMappingEntityPK.getHostname());
+    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(configGroupHostMappingEntityPK.getHostId());
     
     if (setByHost != null) {
       CollectionUtils.filter(setByHost, new Predicate() {
@@ -287,19 +282,17 @@ public class ConfigGroupHostMappingDAO {
   }
 
   @Transactional
-  public void removeAllByHost(String hostname) {
+  public void removeAllByHost(Long hostId) {
     TypedQuery<String> query = entityManagerProvider.get().createQuery
       ("DELETE FROM ConfigGroupHostMappingEntity confighosts WHERE " +
-        "confighosts.hostname = ?1", String.class);
+        "confighosts.hostId = ?1", String.class);
 
-    daoUtils.executeUpdate(query, hostname);
+    daoUtils.executeUpdate(query, hostId);
     
     
-    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(hostname);
+    Set<ConfigGroupHostMapping> setByHost = configGroupHostMappingByHost.get(hostId);
     
     setByHost.clear();
-    
-    
   }
   
   private ConfigGroupHostMapping buildConfigGroupHostMapping(
@@ -309,13 +302,12 @@ public class ConfigGroupHostMappingDAO {
     configGroupHostMapping.setConfigGroup(buildConfigGroup(configGroupHostMappingEntity.getConfigGroupEntity()));
     configGroupHostMapping.setConfigGroupId(configGroupHostMappingEntity.getConfigGroupId());
     configGroupHostMapping.setHost(buildHost(configGroupHostMappingEntity.getHostEntity()));
-    configGroupHostMapping.setHostname(configGroupHostMappingEntity.getHostname());
+    configGroupHostMapping.setHostId(configGroupHostMappingEntity.getHostId());
     
     return configGroupHostMapping;
   }
 
   private ConfigGroup buildConfigGroup(ConfigGroupEntity configGroupEntity) {
-    
     Cluster cluster = clusterFactory.create(configGroupEntity.getClusterEntity());
     ConfigGroup configGroup = configGroupFactory.createExisting(cluster, configGroupEntity);
     
@@ -323,9 +315,7 @@ public class ConfigGroupHostMappingDAO {
   }
 
   private Host buildHost(HostEntity hostEntity) {
-    
     Host host = hostFactory.create(hostEntity, false);
-    
     return host;
   }
 }

@@ -23,7 +23,7 @@ import java.io.Serializable;
 
 public class ConfigGroupHostMappingEntityPK implements Serializable {
   private Long configGroupId;
-  private String hostname;
+  private Long hostId;
 
   @Id
   @Column(name = "config_group_id", nullable = false, insertable = true, updatable = true)
@@ -36,13 +36,13 @@ public class ConfigGroupHostMappingEntityPK implements Serializable {
   }
 
   @Id
-  @Column(name = "host_name", nullable = false, insertable = true, updatable = true)
-  public String getHostname() {
-    return hostname;
+  @Column(name = "host_id", nullable = false, insertable = true, updatable = true)
+  public Long getHostId() {
+    return hostId;
   }
 
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   @Override
@@ -53,7 +53,7 @@ public class ConfigGroupHostMappingEntityPK implements Serializable {
     ConfigGroupHostMappingEntityPK that = (ConfigGroupHostMappingEntityPK) o;
 
     if (!configGroupId.equals(that.configGroupId)) return false;
-    if (!hostname.equals(that.hostname)) return false;
+    if (!hostId.equals(that.hostId)) return false;
 
     return true;
   }
@@ -61,7 +61,7 @@ public class ConfigGroupHostMappingEntityPK implements Serializable {
   @Override
   public int hashCode() {
     int result = configGroupId.hashCode();
-    result = 31 * result + hostname.hashCode();
+    result = 31 * result + hostId.hashCode();
     return result;
   }
 }

@@ -23,6 +23,7 @@ import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.VERSION;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -59,11 +60,13 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.dao.UpgradeDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -169,6 +172,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static HostRoleCommandDAO s_hostRoleCommandDAO = null;
+
+  @Inject
+  private static HostDAO s_hostDAO = null;
+
 
   /**
    * Used to generated the correct tasks and stages during an upgrade.
@@ -901,6 +908,19 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);
 
+    String hostName = null;
+    Collection<Long> hostIds = cluster.getAllHostsDesiredConfigs().keySet();
+    if (!hostIds.isEmpty()) {
+      Long hostId = hostIds.iterator().next();
+      HostEntity hostEntity = s_hostDAO.findById(hostId);
+      if (hostEntity != null) {
+        hostName = hostEntity.getHostName();
+      }
+    }
+    if (StringUtils.isBlank(hostName)) {
+      throw new AmbariException("Could not retrieve an arbitrary host name to use for the server-side command.");
+    }
+
     switch (task.getType()) {
       case MANUAL: {
         ManualTask mt = (ManualTask) task;
@@ -980,15 +1000,12 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     stage.setStageId(stageId);
     entity.setStageId(Long.valueOf(stageId));
 
-    // !!! hack hack hack
-    String host = cluster.getAllHostsDesiredConfigs().keySet().iterator().next();
-
     stage.addServerActionCommand(task.getImplementationClass(),
         getManagementController().getAuthName(),
         Role.AMBARI_SERVER_ACTION,
         RoleCommand.EXECUTE,
         cluster.getClusterName(),
-        host,
+        hostName,
         new ServiceComponentHostServerActionEvent(StageUtils.getHostName(), System.currentTimeMillis()),
         commandParams,
         itemDetail,

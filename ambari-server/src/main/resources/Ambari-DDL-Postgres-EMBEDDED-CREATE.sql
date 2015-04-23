@@ -94,8 +94,8 @@ GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfig TO :username;
 
 CREATE TABLE ambari.serviceconfighosts (
   service_config_id BIGINT NOT NULL,
-  hostname VARCHAR(255) NOT NULL,
-  PRIMARY KEY(service_config_id, hostname));
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY(service_config_id, host_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.serviceconfighosts TO :username;
 
 CREATE TABLE ambari.serviceconfigmapping (
@@ -353,16 +353,14 @@ GRANT ALL PRIVILEGES ON TABLE ambari.key_value_store TO :username;
 
 CREATE TABLE ambari.hostconfigmapping (
   cluster_id BIGINT NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   version_tag VARCHAR(255) NOT NULL,
   service_name VARCHAR(255),
   create_timestamp BIGINT NOT NULL,
   selected INTEGER NOT NULL DEFAULT 0,
   user_name VARCHAR(255) NOT NULL DEFAULT '_db',
-  PRIMARY KEY (cluster_id, host_name, type_name, create_timestamp));
-  --PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp));
+  PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp));
 GRANT ALL PRIVILEGES ON TABLE ambari.hostconfigmapping TO :username;
 
 CREATE TABLE ambari.metainfo (
@@ -399,10 +397,8 @@ GRANT ALL PRIVILEGES ON TABLE ambari.confgroupclusterconfigmapping TO :username;
 
 CREATE TABLE ambari.configgrouphostmapping (
   config_group_id BIGINT NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
-  PRIMARY KEY(config_group_id, host_name));
-  --PRIMARY KEY(config_group_id, host_id));
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY(config_group_id, host_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.configgrouphostmapping TO :username;
 
 CREATE TABLE ambari.requestschedule (
@@ -697,12 +693,10 @@ ALTER TABLE ambari.request ADD CONSTRAINT FK_request_schedule_id FOREIGN KEY (re
 ALTER TABLE ambari.ClusterHostMapping ADD CONSTRAINT FK_clhostmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.ClusterHostMapping ADD CONSTRAINT FK_clusterhostmapping_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
 ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
-ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_name FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
---ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
+ALTER TABLE ambari.hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
 ALTER TABLE ambari.configgroup ADD CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES ambari.clusters (cluster_id);
 ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_cghm_cgid FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
-ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_cghm_hname FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name);
---ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_cghm_hid FOREIGN KEY (host_id) REFERENCES ambari.hosts (id);
+ALTER TABLE ambari.configgrouphostmapping ADD CONSTRAINT FK_cghm_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (id);
 ALTER TABLE ambari.requestschedulebatchrequest ADD CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES ambari.requestschedule (schedule_id);
 ALTER TABLE ambari.hostgroup ADD CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES ambari.blueprint(blueprint_name);
 ALTER TABLE ambari.hostgroup_component ADD CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES ambari.hostgroup (blueprint_name, name);
@@ -720,7 +714,8 @@ ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_confg FOREIGN
 ALTER TABLE ambari.confgroupclusterconfigmapping ADD CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES ambari.configgroup (group_id);
 ALTER TABLE ambari.serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES ambari.serviceconfig(service_config_id);
 ALTER TABLE ambari.serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES ambari.clusterconfig(config_id);
-ALTER TABLE ambari.serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES ambari.serviceconfig(service_config_id);
+ALTER TABLE ambari.serviceconfighosts ADD CONSTRAINT FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES ambari.serviceconfig(service_config_id);
+ALTER TABLE ambari.serviceconfighosts ADD CONSTRAINT FK_scvhosts_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts(host_id);
 ALTER TABLE ambari.adminresource ADD CONSTRAINT FK_resource_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id);
 ALTER TABLE ambari.adminprincipal ADD CONSTRAINT FK_principal_principal_type_id FOREIGN KEY (principal_type_id) REFERENCES ambari.adminprincipaltype(principal_type_id);
 ALTER TABLE ambari.adminpermission ADD CONSTRAINT FK_permission_resource_type_id FOREIGN KEY (resource_type_id) REFERENCES ambari.adminresourcetype(resource_type_id);

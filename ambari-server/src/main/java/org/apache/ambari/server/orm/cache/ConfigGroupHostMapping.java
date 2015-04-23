@@ -24,12 +24,12 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 public interface ConfigGroupHostMapping {
   
   public Long getConfigGroupId();
-  public String getHostname();
+  public Long getHostId();
   public Host getHost();
   public ConfigGroup getConfigGroup();
   
   public void setConfigGroupId(Long configGroupId);
-  public void setHostname(String hostname);
+  public void setHostId(Long setHostId);
   public void setHost(Host host);
   public void setConfigGroup(ConfigGroup configGroup);
 }

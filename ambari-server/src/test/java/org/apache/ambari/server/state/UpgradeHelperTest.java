@@ -44,6 +44,7 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
@@ -80,7 +81,8 @@ public class UpgradeHelperTest {
   private MasterHostResolver m_masterHostResolver;
   private UpgradeHelper m_upgradeHelper;
   private ConfigHelper m_configHelper;
-  AmbariManagementController m_managementController;
+  private AmbariManagementController m_managementController;
+  private HostDAO m_hostDAO;
 
   @Before
   public void before() throws Exception {
@@ -106,6 +108,7 @@ public class UpgradeHelperTest {
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
+    m_hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After

@@ -24,7 +24,7 @@ import org.apache.ambari.server.state.configgroup.ConfigGroup;
 public class ConfigGroupHostMappingImpl implements ConfigGroupHostMapping {
 
   private Long configGroupId;
-  private String hostname;
+  private Long hostId;
   private Host host;
   private ConfigGroup configGroup;
 
@@ -34,8 +34,8 @@ public class ConfigGroupHostMappingImpl implements ConfigGroupHostMapping {
   }
 
   @Override
-  public String getHostname() {
-    return hostname;
+  public Long getHostId() {
+    return hostId;
   }
 
   @Override
@@ -51,25 +51,21 @@ public class ConfigGroupHostMappingImpl implements ConfigGroupHostMapping {
   @Override
   public void setConfigGroupId(Long configGroupId) {
     this.configGroupId = configGroupId;
-
   }
 
   @Override
-  public void setHostname(String hostname) {
-    this.hostname = hostname;
-
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   @Override
   public void setHost(Host host) {
     this.host = host;
-
   }
 
   @Override
   public void setConfigGroup(ConfigGroup configGroup) {
     this.configGroup = configGroup;
-
   }
 
   @Override
@@ -82,7 +78,7 @@ public class ConfigGroupHostMappingImpl implements ConfigGroupHostMapping {
         prime * result
             + ((configGroupId == null) ? 0 : configGroupId.hashCode());
     result = prime * result + ((host == null) ? 0 : host.hashCode());
-    result = prime * result + ((hostname == null) ? 0 : hostname.hashCode());
+    result = prime * result + ((hostId == null) ? 0 : hostId.hashCode());
     return result;
   }
 
@@ -95,27 +91,12 @@ public class ConfigGroupHostMappingImpl implements ConfigGroupHostMapping {
     if (getClass() != obj.getClass())
       return false;
     ConfigGroupHostMappingImpl other = (ConfigGroupHostMappingImpl) obj;
-    if (configGroup == null) {
-      if (other.configGroup != null)
-        return false;
-    } else if (!configGroup.equals(other.configGroup))
-      return false;
-    if (configGroupId == null) {
-      if (other.configGroupId != null)
-        return false;
-    } else if (!configGroupId.equals(other.configGroupId))
-      return false;
-    if (host == null) {
-      if (other.host != null)
-        return false;
-    } else if (!host.equals(other.host))
-      return false;
-    if (hostname == null) {
-      if (other.hostname != null)
-        return false;
-    } else if (!hostname.equals(other.hostname))
-      return false;
+
+    if (configGroup != null ? !configGroup.equals(other.configGroup) : other.configGroup != null) return false;
+    if (configGroupId != null ? !configGroupId.equals(other.configGroupId) : other.configGroupId != null) return false;
+    if (host != null ? !host.equals(other.host) : other.host != null) return false;
+    if (hostId != null ? !hostId.equals(other.hostId) : other.hostId != null) return false;
+    
     return true;
   }
-
 }

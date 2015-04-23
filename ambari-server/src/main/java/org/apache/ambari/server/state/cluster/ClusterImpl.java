@@ -290,7 +290,6 @@ public class ClusterImpl implements Cluster {
     return clusterGlobalLock;
   }
 
-
   private void loadServiceConfigTypes() throws AmbariException {
     try {
       serviceConfigTypes = collectServiceConfigTypesMapping();
@@ -501,22 +500,24 @@ public class ClusterImpl implements Cluster {
 
     clusterGlobalLock.readLock().lock();
     try {
-      Set<ConfigGroupHostMapping> hostMappingEntities = configGroupHostMappingDAO.findByHost(hostname);
+      HostEntity hostEntity = hostDAO.findByName(hostname);
+      if (hostEntity != null) {
+        Set<ConfigGroupHostMapping> hostMappingEntities = configGroupHostMappingDAO.findByHostId(hostEntity.getHostId());
 
-      if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
-        for (ConfigGroupHostMapping entity : hostMappingEntities) {
-          ConfigGroup configGroup = configGroupMap.get(entity.getConfigGroupId());
-          if (configGroup != null
-              && !configGroups.containsKey(configGroup.getId())) {
-            configGroups.put(configGroup.getId(), configGroup);
+        if (hostMappingEntities != null && !hostMappingEntities.isEmpty()) {
+          for (ConfigGroupHostMapping entity : hostMappingEntities) {
+            ConfigGroup configGroup = configGroupMap.get(entity.getConfigGroupId());
+            if (configGroup != null
+                && !configGroups.containsKey(configGroup.getId())) {
+              configGroups.put(configGroup.getId(), configGroup);
+            }
           }
         }
       }
-      return configGroups;
-
     } finally {
       clusterGlobalLock.readLock().unlock();
     }
+    return configGroups;
   }
 
   @Override
@@ -1964,6 +1965,9 @@ public class ClusterImpl implements Cluster {
         }
       }
 
+      // TODO AMBARI-10679, need efficient caching from hostId to hostName
+      Map<Long, String> hostIdToName = new HashMap<Long, String>();
+
       if (!map.isEmpty()) {
         Map<String, List<HostConfigMapping>> hostMappingsByType = hostConfigMappingDAO.findSelectedHostsByTypes(
             clusterEntity.getClusterId(), types);
@@ -1971,8 +1975,14 @@ public class ClusterImpl implements Cluster {
         for (Entry<String, DesiredConfig> entry : map.entrySet()) {
           List<DesiredConfig.HostOverride> hostOverrides = new ArrayList<DesiredConfig.HostOverride>();
           for (HostConfigMapping mappingEntity : hostMappingsByType.get(entry.getKey())) {
+
+            if (!hostIdToName.containsKey(mappingEntity.getHostId())) {
+              HostEntity hostEntity = hostDAO.findById(mappingEntity.getHostId());
+              hostIdToName.put(mappingEntity.getHostId(), hostEntity.getHostName());
+            }
+
             hostOverrides.add(new DesiredConfig.HostOverride(
-                mappingEntity.getHostName(), mappingEntity.getVersion()));
+                hostIdToName.get(mappingEntity.getHostId()), mappingEntity.getVersion()));
           }
           entry.getValue().setHostOverrides(hostOverrides);
         }
@@ -2002,7 +2012,7 @@ public class ClusterImpl implements Cluster {
       }
 
       serviceConfigEntity.setClusterConfigEntities(configEntities);
-      serviceConfigEntity.setHostNames(new ArrayList<String>(configGroup.getHosts().keySet()));
+      serviceConfigEntity.setHostIds(new ArrayList<Long>(configGroup.getHosts().keySet()));
 
     } else {
       List<ClusterConfigEntity> configEntities = getClusterConfigEntitiesByService(serviceName);
@@ -2248,13 +2258,15 @@ public class ClusterImpl implements Cluster {
         }
         configGroup.setConfigurations(groupDesiredConfigs);
 
-        Map<String, Host> groupDesiredHosts = new HashMap<String, Host>();
-        for (String hostname : serviceConfigEntity.getHostNames()) {
-          Host host = clusters.getHost(hostname);
-          if (host != null) {
-            groupDesiredHosts.put(hostname, host);
-          } else {
-            LOG.warn("Host {} doesn't exist anymore, skipping", hostname);
+        Map<Long, Host> groupDesiredHosts = new HashMap<Long, Host>();
+        if (serviceConfigEntity.getHostIds() != null) {
+          for (Long hostId : serviceConfigEntity.getHostIds()) {
+            Host host = clusters.getHostById(hostId);
+            if (host != null) {
+              groupDesiredHosts.put(hostId, host);
+            } else {
+              LOG.warn("Host with id {} doesn't exist anymore, skipping", hostId);
+            }
           }
         }
         configGroup.setHosts(groupDesiredHosts);
@@ -2275,7 +2287,7 @@ public class ClusterImpl implements Cluster {
     serviceConfigEntityClone.setStack(serviceConfigEntity.getStack());
     serviceConfigEntityClone.setClusterConfigEntities(serviceConfigEntity.getClusterConfigEntities());
     serviceConfigEntityClone.setClusterId(serviceConfigEntity.getClusterId());
-    serviceConfigEntityClone.setHostNames(serviceConfigEntity.getHostNames());
+    serviceConfigEntityClone.setHostIds(serviceConfigEntity.getHostIds());
     serviceConfigEntityClone.setGroupId(serviceConfigEntity.getGroupId());
     serviceConfigEntityClone.setNote(serviceConfigVersionNote);
     serviceConfigEntityClone.setVersion(nextServiceConfigVersion);
@@ -2388,21 +2400,20 @@ public class ClusterImpl implements Cluster {
     }
   }
 
-
   @Override
-  public Map<String, Map<String, DesiredConfig>> getHostsDesiredConfigs(Collection<String> hostnames) {
+  public Map<Long, Map<String, DesiredConfig>> getHostsDesiredConfigs(Collection<Long> hostIds) {
 
-    if (hostnames == null || hostnames.isEmpty()) {
+    if (hostIds == null || hostIds.isEmpty()) {
       return Collections.emptyMap();
     }
 
     Set<HostConfigMapping> mappingEntities =
-      hostConfigMappingDAO.findSelectedByHosts(clusterEntity.getClusterId(), hostnames);
+        hostConfigMappingDAO.findSelectedByHosts(hostIds);
 
-    Map<String, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<String, Map<String, DesiredConfig>>();
+    Map<Long, Map<String, DesiredConfig>> desiredConfigsByHost = new HashMap<Long, Map<String, DesiredConfig>>();
 
-    for (String hostname : hostnames) {
-      desiredConfigsByHost.put(hostname, new HashMap<String, DesiredConfig>());
+    for (Long hostId : hostIds) {
+      desiredConfigsByHost.put(hostId, new HashMap<String, DesiredConfig>());
     }
 
     for (HostConfigMapping mappingEntity : mappingEntities) {
@@ -2411,23 +2422,23 @@ public class ClusterImpl implements Cluster {
       desiredConfig.setServiceName(mappingEntity.getServiceName());
       desiredConfig.setUser(mappingEntity.getUser());
 
-      desiredConfigsByHost.get(mappingEntity.getHostName()).put(mappingEntity.getType(), desiredConfig);
+      desiredConfigsByHost.get(mappingEntity.getHostId()).put(mappingEntity.getType(), desiredConfig);
     }
 
     return desiredConfigsByHost;
   }
 
   @Override
-  public Map<String, Map<String, DesiredConfig>> getAllHostsDesiredConfigs() {
+  public Map<Long, Map<String, DesiredConfig>> getAllHostsDesiredConfigs() {
 
-    Collection<String> hostnames;
+    Collection<Long> hostIds;
     try {
-      hostnames = clusters.getHostsForCluster(clusterEntity.getClusterName()).keySet();
+      hostIds = clusters.getHostIdsForCluster(clusterEntity.getClusterName()).keySet();
     } catch (AmbariException ignored) {
       return Collections.emptyMap();
     }
 
-    return getHostsDesiredConfigs(hostnames);
+    return getHostsDesiredConfigs(hostIds);
   }
 
   /**

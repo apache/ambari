@@ -1069,6 +1069,29 @@ public class HostImpl implements Host {
   }
 
   @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+
+    Host that = (Host) o;
+
+    return this.getHostName().equals(that.getHostName());
+  }
+
+  @Override
+  public int hashCode() {
+    return (null == getHostName() ? 0 : getHostName().hashCode());
+  }
+
+  public int compareTo(HostEntity other) {
+    return getHostName().compareTo(other.getHostName());
+  }
+  
+  @Override
   public HostResponse convertToResponse() {
     try {
       readLock.lock();
@@ -1200,7 +1223,7 @@ public class HostImpl implements Host {
     try {
       // set all old mappings for this type to empty
       for (HostConfigMapping e : hostConfigMappingDAO.findByType(clusterId,
-          hostEntity.getHostName(), config.getType())) {
+          hostEntity.getHostId(), config.getType())) {
         e.setSelected(0);
         hostConfigMappingDAO.merge(e);
       }
@@ -1208,7 +1231,7 @@ public class HostImpl implements Host {
       HostConfigMapping hostConfigMapping = new HostConfigMappingImpl();
       hostConfigMapping.setClusterId(clusterId);
       hostConfigMapping.setCreateTimestamp(System.currentTimeMillis());
-      hostConfigMapping.setHostName(hostEntity.getHostName());
+      hostConfigMapping.setHostId(hostEntity.getHostId());
       hostConfigMapping.setSelected(1);
       hostConfigMapping.setUser(user);
       hostConfigMapping.setType(config.getType());
@@ -1230,7 +1253,7 @@ public class HostImpl implements Host {
     Map<String, DesiredConfig> map = new HashMap<String, DesiredConfig>();
 
     for (HostConfigMapping e : hostConfigMappingDAO.findSelected(
-        clusterId, hostEntity.getHostName())) {
+        clusterId, hostEntity.getHostId())) {
 
       DesiredConfig dc = new DesiredConfig();
       dc.setTag(e.getVersion());
@@ -1289,7 +1312,7 @@ public class HostImpl implements Host {
   }
 
   private HostConfigMapping getDesiredConfigEntity(long clusterId, String type) {
-    return hostConfigMappingDAO.findSelectedByType(clusterId, hostEntity.getHostName(), type);
+    return hostConfigMappingDAO.findSelectedByType(clusterId, hostEntity.getHostId(), type);
   }
 
   private void ensureMaintMap() {

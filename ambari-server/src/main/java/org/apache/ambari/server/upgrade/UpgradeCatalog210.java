@@ -63,6 +63,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String HOST_CONFIG_MAPPING_TABLE = "hostconfigmapping";
   private static final String CONFIG_GROUP_HOST_MAPPING_TABLE = "configgrouphostmapping";
   private static final String KERBEROS_PRINCIPAL_HOST_TABLE = "kerberos_principal_host";
+  private static final String SERVICE_CONFIG_HOSTS_TABLE = "serviceconfighosts";
   private static final String CLUSTER_HOST_MAPPING_TABLE = "ClusterHostMapping";
   private static final String WIDGET_TABLE = "widget";
   private static final String WIDGET_LAYOUT_TABLE = "widget_layout";
@@ -254,10 +255,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // TODO, for now, these still point to the host_name and will be fixed one table at a time to point to the host id.
     // Re-add the FKs
-    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_name",
-        "host_name", HOSTS_TABLE, "host_name", false);
-    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_hname",
-        "host_name", HOSTS_TABLE, "host_name", false);
     dbAccessor.addFKConstraint(KERBEROS_PRINCIPAL_HOST_TABLE, "FK_krb_pr_host_host_name",
         "host_name", HOSTS_TABLE, "host_name", false);
 
@@ -265,22 +262,31 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // Add host_id to the host-related tables, and populate the host_id, one table at a time.
     // TODO, include other tables.
     String[] tablesToAddHostID = new String[] {
+        CONFIG_GROUP_HOST_MAPPING_TABLE,
         CLUSTER_HOST_MAPPING_TABLE,
+        HOST_CONFIG_MAPPING_TABLE,
         HOST_COMPONENT_STATE_TABLE,
         HOST_COMPONENT_DESIRED_STATE_TABLE,
         HOST_ROLE_COMMAND_TABLE,
         HOST_STATE_TABLE,
-        HOST_VERSION_TABLE
+        HOST_VERSION_TABLE,
+        SERVICE_CONFIG_HOSTS_TABLE
     };
 
     for (String tableName : tablesToAddHostID) {
       dbAccessor.addColumn(tableName, new DBColumnInfo(HOST_ID_COL, Long.class, null, null, true));
-      dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = t.host_name) WHERE t.host_id IS NULL AND t.host_name IS NOT NULL");
 
-      // For legacy reasons, the hostrolecommand table will contain "none" for some records where the host_name was not important.
-      // These records were populated during Finalize in Rolling Upgrade, so they must be updated to use a valid host_name.
-      if (tableName == HOST_ROLE_COMMAND_TABLE && StringUtils.isNotBlank(randomHostName)) {
-        dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = '" + randomHostName + "') WHERE t.host_id IS NULL AND t.host_name = 'none'");
+      // The column name is different for one table
+      String hostNameColumnName = tableName == SERVICE_CONFIG_HOSTS_TABLE ? "hostname" : "host_name";
+
+      if (dbAccessor.tableHasData(tableName)) {
+        dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = t." + hostNameColumnName + ") WHERE t.host_id IS NULL AND t." + hostNameColumnName + " IS NOT NULL");
+
+        // For legacy reasons, the hostrolecommand table will contain "none" for some records where the host_name was not important.
+        // These records were populated during Finalize in Rolling Upgrade, so they must be updated to use a valid host_name.
+        if (tableName == HOST_ROLE_COMMAND_TABLE && StringUtils.isNotBlank(randomHostName)) {
+          dbAccessor.executeQuery("UPDATE " + tableName + " t SET host_id = (SELECT host_id FROM hosts h WHERE h.host_name = '" + randomHostName + "') WHERE t.host_id IS NULL AND t.host_name = 'none'");
+        }
       }
 
       if (databaseType == Configuration.DatabaseType.DERBY) {
@@ -293,7 +299,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // These are the FKs that have already been corrected.
     // TODO, include other tables.
+    dbAccessor.addFKConstraint(CONFIG_GROUP_HOST_MAPPING_TABLE, "FK_cghm_host_id",
+        "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(CLUSTER_HOST_MAPPING_TABLE, "FK_clusterhostmapping_host_id",
+        "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_CONFIG_MAPPING_TABLE, "FK_hostconfmapping_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
@@ -301,16 +311,21 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(SERVICE_CONFIG_HOSTS_TABLE, "FK_scvhosts_host_id",
+        "host_id", HOSTS_TABLE, "host_id", false);
 
 
 
     // For any tables where the host_name was part of the PK, need to drop the PK, and recreate it with the host_id
     // TODO, include other tables.
     String[] tablesWithHostNameInPK =  new String[] {
+        CONFIG_GROUP_HOST_MAPPING_TABLE,
         CLUSTER_HOST_MAPPING_TABLE,
+        HOST_CONFIG_MAPPING_TABLE,
         HOST_COMPONENT_STATE_TABLE,
         HOST_COMPONENT_DESIRED_STATE_TABLE,
-        HOST_STATE_TABLE
+        HOST_STATE_TABLE,
+        SERVICE_CONFIG_HOSTS_TABLE
     };
 
     if (databaseType == Configuration.DatabaseType.DERBY) {
@@ -321,29 +336,43 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         }
       }
     } else {
+      dbAccessor.executeQuery("ALTER TABLE " + CONFIG_GROUP_HOST_MAPPING_TABLE + " DROP CONSTRAINT configgrouphostmapping_pkey");
       dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE + " DROP CONSTRAINT clusterhostmapping_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE + " DROP CONSTRAINT hostconfigmapping_pkey");
       dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE + " DROP CONSTRAINT hostcomponentstate_pkey");
       dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE + " DROP CONSTRAINT hostcomponentdesiredstate_pkey");
       dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE + " DROP CONSTRAINT hoststate_pkey");
+      dbAccessor.executeQuery("ALTER TABLE " + SERVICE_CONFIG_HOSTS_TABLE + " DROP CONSTRAINT serviceconfighosts_pkey");
       // TODO, include other tables.
     }
+    dbAccessor.executeQuery("ALTER TABLE " + CONFIG_GROUP_HOST_MAPPING_TABLE +
+        " ADD CONSTRAINT configgrouphostmapping_pkey PRIMARY KEY (config_group_id, host_id)");
     dbAccessor.executeQuery("ALTER TABLE " + CLUSTER_HOST_MAPPING_TABLE +
         " ADD CONSTRAINT clusterhostmapping_pkey PRIMARY KEY (cluster_id, host_id)");
+    dbAccessor.executeQuery("ALTER TABLE " + HOST_CONFIG_MAPPING_TABLE +
+        " ADD CONSTRAINT hostconfigmapping_pkey PRIMARY KEY (cluster_id, host_id, type_name, create_timestamp)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_STATE_TABLE +
         " ADD CONSTRAINT hostcomponentstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_COMPONENT_DESIRED_STATE_TABLE +
         " ADD CONSTRAINT hostcomponentdesiredstate_pkey PRIMARY KEY (cluster_id, component_name, host_id, service_name)");
     dbAccessor.executeQuery("ALTER TABLE " + HOST_STATE_TABLE +
         " ADD CONSTRAINT hoststate_pkey PRIMARY KEY (host_id)");
+    dbAccessor.executeQuery("ALTER TABLE " + SERVICE_CONFIG_HOSTS_TABLE +
+        " ADD CONSTRAINT serviceconfighosts_pkey PRIMARY KEY (service_config_id, host_id)");
     // TODO, include other tables.
 
     // Finish by deleting the unnecessary host_name columns.
+    dbAccessor.dropColumn(CONFIG_GROUP_HOST_MAPPING_TABLE, "host_name");
     dbAccessor.dropColumn(CLUSTER_HOST_MAPPING_TABLE, "host_name");
+    dbAccessor.dropColumn(HOST_CONFIG_MAPPING_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_COMPONENT_DESIRED_STATE_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_ROLE_COMMAND_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_STATE_TABLE, "host_name");
     dbAccessor.dropColumn(HOST_VERSION_TABLE, "host_name");
+
+    // Notice that the column name doesn't have an underscore here.
+    dbAccessor.dropColumn(SERVICE_CONFIG_HOSTS_TABLE, "hostname");
     // TODO, include other tables.
 
     // view columns for cluster association

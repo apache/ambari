@@ -27,7 +27,7 @@ import java.io.Serializable;
  */
 public class HostConfigMappingEntityPK implements Serializable {
   private Long clusterId;
-  private String hostName;
+  private Long hostId;
   private String type;
   private Long createTimestamp;
 
@@ -41,14 +41,14 @@ public class HostConfigMappingEntityPK implements Serializable {
     clusterId = id;
   }
   
-  @Column(name = "host_name", insertable = true, updatable = true, nullable = false)
+  @Column(name = "host_id", insertable = true, updatable = true, nullable = false)
   @Id
-  public String getHostName() {
-    return hostName;
+  public Long getHostId() {
+    return hostId;
   }
   
-  public void setHostName(String name) {
-    hostName = name;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
   
   @Column(name = "type_name", insertable = true, updatable = true, nullable = false)
@@ -81,7 +81,7 @@ public class HostConfigMappingEntityPK implements Serializable {
     HostConfigMappingEntityPK that = (HostConfigMappingEntityPK) o;
 
     if (clusterId != null ? !clusterId.equals(that.clusterId) : that.clusterId != null) return false;
-    if (hostName != null ? !hostName.equals(that.hostName) : that.hostName != null) return false;
+    if (hostId != null ? !hostId.equals(that.hostId) : that.hostId != null) return false;
     if (type != null ? !type.equals(that.type) : that.type != null) return false;
     if (createTimestamp != null ? !createTimestamp.equals (that.createTimestamp) : that.createTimestamp != null) return false;
 
@@ -92,10 +92,8 @@ public class HostConfigMappingEntityPK implements Serializable {
   public int hashCode() {
     int result = clusterId !=null ? clusterId.intValue() : 0;
     result = 31 * result + (type != null ? type.hashCode() : 0);
-    result = 31 * result + (hostName != null ? hostName.hashCode() : 0);
+    result = 31 * result + (hostId != null ? hostId.hashCode() : 0);
     result = 31 * result + createTimestamp.intValue();
     return result;
-  }  
-  
-  
+  }
 }

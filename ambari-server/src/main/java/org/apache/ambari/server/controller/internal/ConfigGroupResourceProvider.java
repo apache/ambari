@@ -17,12 +17,14 @@
  */
 package org.apache.ambari.server.controller.internal;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ClusterNotFoundException;
 import org.apache.ambari.server.ConfigGroupNotFoundException;
 import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigGroupRequest;
 import org.apache.ambari.server.controller.ConfigGroupResponse;
@@ -37,6 +39,8 @@ import org.apache.ambari.server.controller.spi.ResourcePredicateEvaluator;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -48,13 +52,16 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+@StaticallyInject
 public class ConfigGroupResourceProvider extends
   AbstractControllerResourceProvider implements ResourcePredicateEvaluator {
 
@@ -85,6 +92,9 @@ public class ConfigGroupResourceProvider extends
 
   private static Set<String> pkPropertyIds = new HashSet<String>(Arrays
     .asList(new String[] { CONFIGGROUP_ID_PROPERTY_ID }));
+
+  @Inject
+  private static HostDAO hostDAO;
 
   /**
    * Create a  new resource provider for the given management controller.
@@ -343,10 +353,11 @@ public class ConfigGroupResourceProvider extends
             // Has tag
             if (configGroup.getTag().equals(request.getTag())) {
               // Has a match with hosts
-              Set<String> groupHosts = new HashSet<String>(configGroup
-                .getHosts().keySet());
-              groupHosts.retainAll(request.getHosts());
-              if (!groupHosts.isEmpty()) {
+              List<Long> groupHostIds = new ArrayList<Long>(configGroup.getHosts().keySet());
+              Set<String> groupHostNames = new HashSet<String>(hostDAO.getHostNamesByHostIds(groupHostIds));
+
+              groupHostNames.retainAll(request.getHosts());
+              if (!groupHostNames.isEmpty()) {
                 responses.add(configGroup.convertToResponse());
               }
             }
@@ -362,7 +373,7 @@ public class ConfigGroupResourceProvider extends
     return responses;
   }
 
-  private void verifyHostList(Cluster cluster, Map<String, Host> hosts,
+  private void verifyHostList(Cluster cluster, Map<Long, Host> hosts,
                               ConfigGroupRequest request) throws AmbariException {
 
     Map<Long, ConfigGroup> configGroupMap = cluster.getConfigGroups();
@@ -472,14 +483,15 @@ public class ConfigGroupResourceProvider extends
       }
 
       // Find hosts
-      Map<String, Host> hosts = new HashMap<String, Host>();
+      Map<Long, Host> hosts = new HashMap<Long, Host>();
       if (request.getHosts() != null && !request.getHosts().isEmpty()) {
         for (String hostname : request.getHosts()) {
           Host host = clusters.getHost(hostname);
-          if (host == null) {
+          HostEntity hostEntity = hostDAO.findByName(hostname);
+          if (host == null || hostEntity == null) {
             throw new HostNotFoundException(hostname);
           }
-          hosts.put(hostname, host);
+          hosts.put(hostEntity.getHostId(), host);
         }
       }
 
@@ -568,14 +580,15 @@ public class ConfigGroupResourceProvider extends
       }
 
       // Update hosts
-      Map<String, Host> hosts = new HashMap<String, Host>();
+      Map<Long, Host> hosts = new HashMap<Long, Host>();
       if (request.getHosts() != null && !request.getHosts().isEmpty()) {
         for (String hostname : request.getHosts()) {
           Host host = clusters.getHost(hostname);
-          if (host == null) {
+          HostEntity hostEntity = hostDAO.findByName(hostname);
+          if (host == null || hostEntity == null) {
             throw new HostNotFoundException(hostname);
           }
-          hosts.put(hostname, host);
+          hosts.put(hostEntity.getHostId(), host);
         }
       }
 

@@ -96,6 +96,7 @@ import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
 import org.apache.ambari.server.orm.entities.ExecutionCommandEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
@@ -199,6 +200,7 @@ public class AmbariManagementControllerTest {
   private ConfigGroupFactory configGroupFactory;
   private OrmTestHelper helper;
   private StageFactory stageFactory;
+  private HostDAO hostDAO;
 
   @Rule
   public ExpectedException expectedException = ExpectedException.none();
@@ -226,6 +228,7 @@ public class AmbariManagementControllerTest {
     configGroupFactory = injector.getInstance(ConfigGroupFactory.class);
     helper = injector.getInstance(OrmTestHelper.class);
     stageFactory = injector.getInstance(StageFactory.class);
+    hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After
@@ -332,12 +335,13 @@ public class AmbariManagementControllerTest {
                               List<String> hosts, List<Config> configs)
                               throws AmbariException {
 
-    Map<String, Host> hostMap = new HashMap<String, Host>();
+    Map<Long, Host> hostMap = new HashMap<Long, Host>();
     Map<String, Config> configMap = new HashMap<String, Config>();
 
     for (String hostname : hosts) {
       Host host = clusters.getHost(hostname);
-      hostMap.put(host.getHostName(), host);
+      HostEntity hostEntity = hostDAO.findByName(hostname);
+      hostMap.put(hostEntity.getHostId(), host);
     }
 
     for (Config config : configs) {
@@ -6701,7 +6705,7 @@ public class AmbariManagementControllerTest {
 
     // Associate the right host
     ConfigGroup configGroup = cluster.getConfigGroups().get(groupId);
-    configGroup.setHosts(new HashMap<String, Host>() {{ put("h3",
+    configGroup.setHosts(new HashMap<Long, Host>() {{ put(3L,
       clusters.getHost("h3")); }});
     configGroup.persist();
 

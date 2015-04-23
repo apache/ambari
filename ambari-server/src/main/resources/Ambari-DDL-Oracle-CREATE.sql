@@ -69,8 +69,8 @@ CREATE TABLE serviceconfig (
 
 CREATE TABLE serviceconfighosts (
   service_config_id NUMBER(19) NOT NULL,
-  hostname VARCHAR(255) NOT NULL,
-  PRIMARY KEY(service_config_id, hostname));
+  host_id NUMBER(19) NOT NULL,
+  PRIMARY KEY(service_config_id, host_id));
 
 CREATE TABLE serviceconfigmapping (
   service_config_id NUMBER(19) NOT NULL,
@@ -305,16 +305,14 @@ CREATE TABLE clusterconfigmapping (
 
 CREATE TABLE hostconfigmapping (
   create_timestamp NUMBER(19) NOT NULL,
-  host_name VARCHAR2(255) NOT NULL,
-  --host_id NUMBER(19) NOT NULL,
+  host_id NUMBER(19) NOT NULL,
   cluster_id NUMBER(19) NOT NULL,
   type_name VARCHAR2(255) NOT NULL,
   selected NUMBER(10) NOT NULL,
   service_name VARCHAR2(255) NULL,
   version_tag VARCHAR2(255) NOT NULL,
   user_name VARCHAR(255) DEFAULT '_db',
-  PRIMARY KEY (create_timestamp, host_name, cluster_id, type_name));
-  --PRIMARY KEY (create_timestamp, host_id, cluster_id, type_name));
+  PRIMARY KEY (create_timestamp, host_id, cluster_id, type_name));
 
 CREATE TABLE metainfo (
   "metainfo_key" VARCHAR2(255) NOT NULL,
@@ -352,10 +350,8 @@ CREATE TABLE confgroupclusterconfigmapping (
 
 CREATE TABLE configgrouphostmapping (
   config_group_id NUMBER(19) NOT NULL,
-  host_name VARCHAR2(255) NOT NULL,
-  --host_id NUMBER(19) NOT NULL,
-  PRIMARY KEY(config_group_id, host_name));
-  --PRIMARY KEY(config_group_id, host_id));
+  host_id NUMBER(19) NOT NULL,
+  PRIMARY KEY(config_group_id, host_id));
 
 CREATE TABLE requestschedule (
   schedule_id NUMBER(19),
@@ -599,7 +595,8 @@ ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (st
 ALTER TABLE members ADD CONSTRAINT FK_members_group_id FOREIGN KEY (group_id) REFERENCES groups (group_id);
 ALTER TABLE members ADD CONSTRAINT FK_members_user_id FOREIGN KEY (user_id) REFERENCES users (user_id);
 ALTER TABLE clusterconfig ADD CONSTRAINT FK_clusterconfig_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
-ALTER TABLE serviceconfighosts ADD CONSTRAINT  FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
+ALTER TABLE serviceconfighosts ADD CONSTRAINT FK_scvhosts_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
+ALTER TABLE serviceconfighosts ADD CONSTRAINT FK_scvhosts_host_id FOREIGN KEY (host_id) REFERENCES hosts(host_id);
 ALTER TABLE clusterservices ADD CONSTRAINT FK_clusterservices_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterconfigmapping ADD CONSTRAINT clusterconfigmappingcluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE clusterstate ADD CONSTRAINT FK_clusterstate_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
@@ -623,16 +620,14 @@ ALTER TABLE request ADD CONSTRAINT FK_request_schedule_id FOREIGN KEY (request_s
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT FK_clhostmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE ClusterHostMapping ADD CONSTRAINT FK_clusterhostmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
-ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_name FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
+ALTER TABLE hostconfigmapping ADD CONSTRAINT FK_hostconfmapping_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_scv FOREIGN KEY (service_config_id) REFERENCES serviceconfig(service_config_id);
 ALTER TABLE serviceconfigmapping ADD CONSTRAINT FK_scvm_config FOREIGN KEY (config_id) REFERENCES clusterconfig(config_id);
 ALTER TABLE configgroup ADD CONSTRAINT FK_configgroup_cluster_id FOREIGN KEY (cluster_id) REFERENCES clusters (cluster_id);
 ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_confg FOREIGN KEY (version_tag, config_type, cluster_id) REFERENCES clusterconfig (version_tag, type_name, cluster_id);
 ALTER TABLE confgroupclusterconfigmapping ADD CONSTRAINT FK_cgccm_gid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
 ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_cgid FOREIGN KEY (config_group_id) REFERENCES configgroup (group_id);
-ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_hname FOREIGN KEY (host_name) REFERENCES hosts (host_name);
---ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
+ALTER TABLE configgrouphostmapping ADD CONSTRAINT FK_cghm_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
 ALTER TABLE requestschedulebatchrequest ADD CONSTRAINT FK_rsbatchrequest_schedule_id FOREIGN KEY (schedule_id) REFERENCES requestschedule (schedule_id);
 ALTER TABLE hostgroup ADD CONSTRAINT FK_hg_blueprint_name FOREIGN KEY (blueprint_name) REFERENCES blueprint(blueprint_name);
 ALTER TABLE hostgroup_component ADD CONSTRAINT FK_hgc_blueprint_name FOREIGN KEY (blueprint_name, hostgroup_name) REFERENCES hostgroup(blueprint_name, name);

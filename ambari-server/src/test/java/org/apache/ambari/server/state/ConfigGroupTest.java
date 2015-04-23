@@ -103,10 +103,10 @@ public class ConfigGroupTest {
     Host host = clusters.getHost("h1");
 
     Map<String, Config> configs = new HashMap<String, Config>();
-    Map<String, Host> hosts = new HashMap<String, Host>();
+    Map<Long, Host> hosts = new HashMap<Long, Host>();
 
     configs.put(config.getType(), config);
-    hosts.put(host.getHostName(), host);
+    hosts.put(1L, host);
 
     ConfigGroup configGroup = configGroupFactory.createNew(cluster, "cg-test",
       "HDFS", "New HDFS configs for h1", configs, hosts);
@@ -225,8 +225,9 @@ public class ConfigGroupTest {
     clusters.unmapHostFromCluster("h1", clusterName);
 
     Assert.assertNull(clusters.getHostsForCluster(clusterName).get("h1"));
-    Assert.assertTrue(configGroupHostMappingDAO.findByHost("h1").isEmpty());
-    Assert.assertNull(configGroup.getHosts().get("h1"));
+    // Assumes that 1L is the id of host h1, as specified in createConfigGroup
+    Assert.assertTrue(configGroupHostMappingDAO.findByHostId(1L).isEmpty());
+    Assert.assertFalse(configGroup.getHosts().containsKey(1L));
   }
 
   @Test

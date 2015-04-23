@@ -84,7 +84,7 @@ public interface ConfigGroup {
    * List of hosts to which configs are applied
    * @return
    */
-  public Map<String, Host> getHosts();
+  public Map<Long, Host> getHosts();
 
   /**
    * List of @Config objects
@@ -137,7 +137,7 @@ public interface ConfigGroup {
    * Reassign the set of hosts associated with this config group
    * @param hosts
    */
-  public void setHosts(Map<String, Host> hosts);
+  public void setHosts(Map<Long, Host> hosts);
 
   /**
    * Reassign the set of configs associated with this config group
@@ -148,7 +148,7 @@ public interface ConfigGroup {
   /**
    * Remove host mapping
    */
-  public void removeHost(String hostname) throws AmbariException;
+  public void removeHost(Long hostId) throws AmbariException;
 
   String getServiceName();
 

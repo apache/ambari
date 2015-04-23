@@ -32,7 +32,7 @@ public interface ConfigGroupFactory {
                        @Assisted("tag") String tag,
                        @Assisted("description") String description,
                        @Assisted("configs") Map<String, Config> configs,
-                       @Assisted("hosts") Map<String, Host> hosts);
+                       @Assisted("hosts") Map<Long, Host> hosts);
 
   ConfigGroup createExisting(Cluster cluster, ConfigGroupEntity entity);
 }

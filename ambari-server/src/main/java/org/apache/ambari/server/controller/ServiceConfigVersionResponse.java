@@ -21,6 +21,9 @@ package org.apache.ambari.server.controller;
 
 import java.util.List;
 
+import com.google.inject.Inject;
+import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
@@ -28,6 +31,7 @@ import org.apache.ambari.server.state.StackId;
 import org.codehaus.jackson.annotate.JsonProperty;
 import org.codehaus.jackson.map.annotate.JsonSerialize;
 
+@StaticallyInject
 public class ServiceConfigVersionResponse {
   @JsonProperty("cluster_name")
   @JsonSerialize(include = JsonSerialize.Inclusion.NON_NULL)
@@ -72,15 +76,14 @@ public class ServiceConfigVersionResponse {
   @JsonProperty("hosts")
   private final List<String> hosts;
 
+  @Inject
+  private static HostDAO hostDAO;
+
   /**
    * Constructor.
    *
-   * @param clusterName
-   * @param serviceName
-   * @param version
-   * @param isCurrent
-   * @param isCompatibleWithCurrentStack
-   * @param configurations
+   * @param serviceConfigEntity
+   * @param configGroupName
    */
   public ServiceConfigVersionResponse(ServiceConfigEntity serviceConfigEntity,
       String configGroupName) {
@@ -95,7 +98,7 @@ public class ServiceConfigVersionResponse {
     note = serviceConfigEntity.getNote();
     groupId = (null != serviceConfigEntity.getGroupId() ? serviceConfigEntity.getGroupId(): -1L);
     groupName = configGroupName;
-    hosts = serviceConfigEntity.getHostNames();
+    hosts = hostDAO.getHostNamesByHostIds(serviceConfigEntity.getHostIds());
 
     StackEntity serviceConfigStackEntity = serviceConfigEntity.getStack();
     StackEntity clusterStackEntity = clusterEntity.getClusterStateEntity().getCurrentStack();

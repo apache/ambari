@@ -83,8 +83,8 @@ public class ServiceConfigEntity {
 
   @ElementCollection()
   @CollectionTable(name = "serviceconfighosts", joinColumns = {@JoinColumn(name = "service_config_id")})
-  @Column(name = "hostname")
-  private List<String> hostNames;
+  @Column(name = "host_id")
+  private List<Long> hostIds;
 
   @ManyToMany
   @JoinTable(
@@ -185,12 +185,12 @@ public class ServiceConfigEntity {
     this.groupId = groupId;
   }
 
-  public List<String> getHostNames() {
-    return hostNames;
+  public List<Long> getHostIds() {
+    return hostIds;
   }
 
-  public void setHostNames(List<String> hostNames) {
-    this.hostNames = hostNames;
+  public void setHostIds(List<Long> hostIds) {
+    this.hostIds = hostIds;
   }
 
   /**
