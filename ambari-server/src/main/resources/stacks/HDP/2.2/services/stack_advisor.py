@@ -111,7 +111,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       else:
         nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
 
-      putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', nn_max_heapsize)
+      putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', max(nn_max_heapsize, 1024))
 
       nn_heapsize = nn_max_heapsize
       nn_heapsize -= clusterData["reservedRam"]
@@ -430,7 +430,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredProperty('mapreduce.reduce.memory.mb', int(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.reduce.memory.mb"]))) + "m")
-    putMapredProperty('mapreduce.task.io.sort.mb', str(int(0.7*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]))))
+    putMapredProperty('mapreduce.task.io.sort.mb', str(min(int(0.7*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"])), 2047)))
     # Property Attributes
     putMapredPropertyAttribute = self.putPropertyAttribute(configurations, "mapred-site")
     yarnMinAllocationSize = int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
@@ -441,6 +441,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "minimum", yarnMinAllocationSize)
     putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "maximum", yarnMaxAllocationSize)
     putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "minimum", yarnMinAllocationSize)
+    # Hadoop MR limitation
+    putMapredPropertyAttribute("mapreduce.task.io.sort.mb", "maximum", "2047")
 
   def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
     validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},

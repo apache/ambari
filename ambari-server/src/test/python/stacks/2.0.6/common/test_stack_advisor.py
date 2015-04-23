@@ -207,6 +207,51 @@ class TestHDP206StackAdvisor(TestCase):
     ]
     self.assertValidationResult(expectedItems, result)
 
+  def test_validationMinMax(self):
+
+    configurations = {
+      "mapred-site": {
+        "properties": {
+          "mapreduce.task.io.sort.mb": "4096",
+          "some_float_value": "0.5",
+          "no_min_or_max_attribute_property": "STRING_VALUE"
+        }
+      }
+    }
+    recommendedDefaults = {
+      "mapred-site": {
+        "properties": {
+          "mapreduce.task.io.sort.mb": "2047",
+          "some_float_value": "0.8",
+          "no_min_or_max_attribute_property": "STRING_VALUE"
+        },
+        "property_attributes": {
+          'mapreduce.task.io.sort.mb': {'maximum': '2047'},
+          'some_float_value': {'minimum': '0.8'}
+        }
+      }
+    }
+    items = []
+    self.stackAdvisor.validateMinMax(items, recommendedDefaults, configurations)
+
+    expectedItems = [
+      {
+        'message': 'Value is greater than the recommended maximum of 2047 ',
+        'level': 'WARN',
+        'config-type':  'mapred-site',
+        'config-name': 'mapreduce.task.io.sort.mb',
+        'type': 'configuration'
+      },
+      {
+        'message': 'Value is less than the recommended minimum of 0.8 ',
+        'level': 'WARN',
+        'config-type':  'mapred-site',
+        'config-name': 'some_float_value',
+        'type': 'configuration'
+      }
+    ]
+    self.assertEquals(expectedItems, items)
+
   def test_validationHostIsNotUsedForNonValuableComponent(self):
     servicesInfo = [
       {

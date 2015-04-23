@@ -1048,7 +1048,8 @@ class TestHDP22StackAdvisor(TestCase):
           "mapreduce.reduce.java.opts": "-Xmx546m",
           "yarn.app.mapreduce.am.resource.mb": "682",
           "mapreduce.map.java.opts": "-Xmx546m",
-          "mapreduce.task.io.sort.mb": "273"        }
+          "mapreduce.task.io.sort.mb": "273"
+        }
       },
       "yarn-site": {
         "properties": {
@@ -1081,6 +1082,7 @@ class TestHDP22StackAdvisor(TestCase):
           "mapreduce.task.io.sort.mb": "70"
         },
         "property_attributes": {
+          'mapreduce.task.io.sort.mb': {'maximum': '2047'},
           'yarn.app.mapreduce.am.resource.mb': {'maximum': '1280',
                                                 'minimum': '100'},
           'mapreduce.map.memory.mb': {'maximum': '1280',
