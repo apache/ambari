@@ -189,6 +189,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   graphView: App.ChartLinearTimeView.extend({
 
     noTitleUnderGraph: true,
+    inWidget: true,
 
     /**
      * graph height

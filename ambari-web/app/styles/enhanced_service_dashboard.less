@@ -52,7 +52,7 @@
 #widget-preview {
   .frame {
     height: 150px;
-    width: 90%;
+    width: 93%;
   }
   .span2p4 {
     width: 19.3%;
@@ -67,10 +67,12 @@
       margin: 55px auto;
     }
     .title {
-      padding: 5px 0 0 1px;
+      padding: 4px 0 0 1px;
       font-weight: bold;
+      font-size: 13px;
+      line-height: 17px;
       text-align: left;
-      height: 45px;
+      height: 40px;
       overflow: hidden;
       text-overflow: ellipsis;
     }
@@ -95,14 +97,28 @@
     .graph-widget {
       .frame;
       .content {
-        padding-top: 30px;
+        padding-top: 45px;
+        width: 99%;
       }
-      .chart-legend {
-        min-width: 100%;
-        padding: 5px;
-        text-align: left;
-        top: 95px;
-        left: -15px;
+      .screensaver{ // graph onload wait
+        width: 90%;
+        height: 100px;
+        border: 1px solid #eee;
+        background: url(/img/spinner.gif) no-repeat center center;
+      }
+      .chart-container{
+        margin: -4px 8px 0px 8px;
+        .chart-y-axis{
+          margin-top: 10px;
+        }
+        .chart-legend {
+          top: 110px;
+          left: 0px;
+          padding: 3px;
+          min-width: 100%;
+          text-align: left;
+          z-index: 3;
+        }
       }
     }
     .gauge-widget {
