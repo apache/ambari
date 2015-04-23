@@ -93,47 +93,47 @@ describe('App.themeMapper', function () {
                       ]
                     }
                   ],
+                  "widgets": [
+                              {
+                                "config": "c1/p1",
+                                "widget": {
+                                  "type": "slider",
+                                  "units": [
+                                            {
+                                              "unit-name": "MB"
+                                            },
+                                            {
+                                              "unit-name": "GB"
+                                            }
+                                            ]
+                                }
+                              },
+                              {
+                                "config": "c1/p2",
+                                "widget": {
+                                  "type": "slider",
+                                  "units": [
+                                            {
+                                              "unit-name": "percent"
+                                            }
+                                            ]
+                                }
+                              }
+                              ],
+                              "placement": {
+                                "configuration-layout": "default",
+                                "configs": [
+                                            {
+                                              "config": "c1/p1",
+                                              "subsection-name": "subsection1"
+                                            },
+                                            {
+                                              "config": "c1/p2",
+                                              "subsection-name": "subsection1"
+                                            }
+                                            ]
+                              }
                 },
-                "widgets": [
-                  {
-                    "config": "c1/p1",
-                    "widget": {
-                      "type": "slider",
-                      "units": [
-                        {
-                          "unit-name": "MB"
-                        },
-                        {
-                          "unit-name": "GB"
-                        }
-                      ]
-                    }
-                  },
-                  {
-                    "config": "c1/p2",
-                    "widget": {
-                      "type": "slider",
-                      "units": [
-                        {
-                          "unit-name": "percent"
-                        }
-                      ]
-                    }
-                  }
-                ],
-                "placement": {
-                  "configuration-layout": "default",
-                  "configs": [
-                    {
-                      "config": "c1/p1",
-                      "subsection-name": "subsection1"
-                    },
-                    {
-                      "config": "c1/p2",
-                      "subsection-name": "subsection1"
-                    }
-                  ]
-                }
               }
             }
           }
