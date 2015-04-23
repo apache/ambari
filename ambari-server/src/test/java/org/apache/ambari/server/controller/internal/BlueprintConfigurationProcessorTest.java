@@ -1368,9 +1368,6 @@ public class BlueprintConfigurationProcessorTest {
 
     HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
 
-    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("HIVE_METASTORE")).atLeastOnce();
-    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton("test-host-one")).atLeastOnce();
-
     mockSupport.replayAll();
 
     Map<String, Map<String, String>> configProperties =
@@ -1399,6 +1396,208 @@ public class BlueprintConfigurationProcessorTest {
       expectedPropertyValue,
       webHCatSiteProperties.get("templeton.hive.properties"));
 
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdateCustomValueSpecifyingHostNamesMetaStoreHA() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+
+    final String expectedPropertyValue =
+      "hive.metastore.local=false,hive.metastore.uris=thrift://headnode0.ivantestcluster2-ssh.d1.internal.cloudapp.net:9083,hive.user.install.directory=/user";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+
+    // setup properties that include host information
+    webHCatSiteProperties.put("templeton.hive.properties",
+      expectedPropertyValue);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put("host_group_2", mockHostGroupTwo);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    assertEquals("Unexpected config update for templeton.hive.properties",
+      expectedPropertyValue,
+      webHCatSiteProperties.get("templeton.hive.properties"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdateSpecifyingHostNamesHiveServer2HA() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+
+    final String expectedPropertyValue =
+      "c6401.ambari.apache.org";
+
+    final String expectedMetaStoreURIs = "thrift://c6401.ambari.apache.org:9083,thrift://c6402.ambari.apache.org:9083";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("HIVE_SERVER")).atLeastOnce();
+    expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("HIVE_SERVER")).atLeastOnce();
+
+    // simulate stack definition for HIVE_SERVER
+    expect(mockStack.getCardinality("HIVE_SERVER")).andReturn(new Cardinality("1+")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hiveEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> hiveSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hive-env", hiveEnvProperties);
+    configProperties.put("hive-site", hiveSiteProperties);
+
+    // setup properties that include host information
+    hiveEnvProperties.put("hive_hostname",
+      expectedPropertyValue);
+
+    // simulate HA mode, since this property must be present in HiveServer2 HA
+    hiveSiteProperties.put("hive.server2.support.dynamic.service.discovery", "true");
+
+    // set MetaStore URIs property to reflect an HA environment for HIVE_METASTORE
+
+    hiveSiteProperties.put("hive.metastore.uris", expectedMetaStoreURIs);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put("host_group_2", mockHostGroupTwo);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    assertEquals("Unexpected config update for hive_hostname",
+      expectedPropertyValue,
+      hiveEnvProperties.get("hive_hostname"));
+
+    assertEquals("Unexpected config update for hive.metastore.uris",
+      expectedMetaStoreURIs,
+      hiveSiteProperties.get("hive.metastore.uris"));
+
+      mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdateUsingExportedNamesHiveServer2HA() throws Exception {
+    final String expectedHostGroupNameOne = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    final String expectedHostNameOne =
+      "c6401.ambari.apache.org";
+
+    final String expectedHostNameTwo =
+      "c6402.ambari.apache.org";
+
+
+    // use exported HOSTGROUP syntax for this property, to make sure the
+    // config processor updates this as expected
+    final String inputMetaStoreURIs = "thrift://" + createExportedAddress("9083", expectedHostGroupNameOne) + "," + "thrift://" + createExportedAddress("9083", expectedHostGroupNameTwo);
+
+    final String expectedMetaStoreURIs = "thrift://c6401.ambari.apache.org:9083,thrift://c6402.ambari.apache.org:9083";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton(expectedHostNameOne)).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Collections.singleton(expectedHostNameTwo)).atLeastOnce();
+
+
+    Set<String> setOfComponents = new HashSet<String>();
+    setOfComponents.add("HIVE_SERVER");
+    setOfComponents.add("HIVE_METASTORE");
+
+    expect(mockHostGroupOne.getComponents()).andReturn(setOfComponents).atLeastOnce();
+    expect(mockHostGroupTwo.getComponents()).andReturn(setOfComponents).atLeastOnce();
+
+    // simulate stack definition for HIVE_SERVER
+    expect(mockStack.getCardinality("HIVE_SERVER")).andReturn(new Cardinality("1+")).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hiveEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> hiveSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hive-env", hiveEnvProperties);
+    configProperties.put("hive-site", hiveSiteProperties);
+
+    // setup properties that include host information
+    hiveEnvProperties.put("hive_hostname",
+      expectedHostNameOne);
+
+    // simulate HA mode, since this property must be present in HiveServer2 HA
+    hiveSiteProperties.put("hive.server2.support.dynamic.service.discovery", "true");
+
+    // set MetaStore URIs property to reflect an HA environment for HIVE_METASTORE
+
+    hiveSiteProperties.put("hive.metastore.uris", inputMetaStoreURIs);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupNameOne, mockHostGroupOne);
+    mapOfHostGroups.put(expectedHostGroupNameTwo, mockHostGroupTwo);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    assertEquals("Unexpected config update for hive_hostname",
+      expectedHostNameOne,
+      hiveEnvProperties.get("hive_hostname"));
+
+    assertEquals("Unexpected config update for hive.metastore.uris",
+      expectedMetaStoreURIs,
+      hiveSiteProperties.get("hive.metastore.uris"));
 
     mockSupport.verifyAll();
 
@@ -1445,6 +1644,63 @@ public class BlueprintConfigurationProcessorTest {
     // verify that the host name for the metastore.uris property has been updated
     assertEquals("Unexpected config update for templeton.hive.properties",
       "hive.metastore.local=false,hive.metastore.uris=thrift://" + expectedHostName + ":9933,hive.metastore.sasl.enabled=false",
+      webHCatSiteProperties.get("templeton.hive.properties"));
+
+    mockSupport.verifyAll();
+
+  }
+
+  @Test
+  public void testHiveConfigClusterUpdateDefaultValueWithMetaStoreHA() throws Exception {
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostNameOne = "c6401.ambari.apache.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+
+    final String expectedPropertyValue =
+      "hive.metastore.local=false,hive.metastore.uris=thrift://localhost:9933,hive.metastore.sasl.enabled=false";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    Stack mockStack = mockSupport.createMock(Stack.class);
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getComponents()).andReturn(Collections.singleton("HIVE_METASTORE")).atLeastOnce();
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Collections.singleton(expectedHostNameOne)).atLeastOnce();
+
+    expect(mockHostGroupTwo.getComponents()).andReturn(Collections.singleton("HIVE_METASTORE")).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Collections.singleton(expectedHostNameTwo)).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+
+    // setup properties that include host information
+    webHCatSiteProperties.put("templeton.hive.properties",
+      expectedPropertyValue);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    Map<String, HostGroup> mapOfHostGroups =
+      new HashMap<String, HostGroup>();
+    mapOfHostGroups.put(expectedHostGroupName, mockHostGroupOne);
+    mapOfHostGroups.put("host_group_2", mockHostGroupTwo);
+
+    // call top-level cluster config update method
+    configProcessor.doUpdateForClusterCreate(mapOfHostGroups, mockStack);
+
+    // verify that the host name for the metastore.uris property has been updated, and
+    // that both MetaStore Server URIs are included, using the required Hive Syntax
+    assertEquals("Unexpected config update for templeton.hive.properties",
+      "hive.metastore.local=false,hive.metastore.uris=thrift://" + expectedHostNameOne + ":9933\\," + "thrift://" + expectedHostNameTwo + ":9933" + "," + "hive.metastore.sasl.enabled=false",
       webHCatSiteProperties.get("templeton.hive.properties"));
 
     mockSupport.verifyAll();
@@ -2784,7 +3040,7 @@ public class BlueprintConfigurationProcessorTest {
 
 
     // setup properties that include host information
-    hiveSiteProperties.put("hive.metastore.uris", expectedHostName + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.metastore.uris", "thrift://" + expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
     hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
@@ -2805,7 +3061,102 @@ public class BlueprintConfigurationProcessorTest {
     configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
 
     assertEquals("hive property not properly exported",
-      createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("hive.metastore.uris"));
+      "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("hive.metastore.uris"));
+    assertEquals("hive property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName), hiveEnvProperties.get("hive_hostname"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo),
+      webHCatSiteProperties.get("templeton.hive.properties"));
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName), webHCatSiteProperties.get("templeton.kerberos.principal"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hive.hosts"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.HTTP.hosts"));
+
+    assertEquals("hive property not properly exported",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.hcat.hosts"));
+
+    assertEquals("hive zookeeper quorum property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo),
+      hiveSiteProperties.get("hive.zookeeper.quorum"));
+
+    assertEquals("hive zookeeper connectString property not properly exported",
+      createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo),
+      hiveSiteProperties.get("hive.cluster.delegation.token.store.zookeeper.connectString"));
+
+    mockSupport.verifyAll();
+  }
+
+  @Test
+  public void testHiveConfigExportedMultipleHiveMetaStoreServers() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedPortNum = "808080";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+
+    EasyMockSupport mockSupport = new EasyMockSupport();
+
+    HostGroup mockHostGroupOne = mockSupport.createMock(HostGroup.class);
+    HostGroup mockHostGroupTwo = mockSupport.createMock(HostGroup.class);
+
+    expect(mockHostGroupOne.getHostInfo()).andReturn(Arrays.asList(expectedHostName, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupTwo.getHostInfo()).andReturn(Arrays.asList(expectedHostNameTwo, "serverTwo")).atLeastOnce();
+    expect(mockHostGroupOne.getName()).andReturn(expectedHostGroupName).atLeastOnce();
+    expect(mockHostGroupTwo.getName()).andReturn(expectedHostGroupNameTwo).atLeastOnce();
+
+    mockSupport.replayAll();
+
+    Map<String, Map<String, String>> configProperties =
+      new HashMap<String, Map<String, String>>();
+
+    Map<String, String> hiveSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> hiveEnvProperties =
+      new HashMap<String, String>();
+    Map<String, String> webHCatSiteProperties =
+      new HashMap<String, String>();
+    Map<String, String> coreSiteProperties =
+      new HashMap<String, String>();
+
+    configProperties.put("hive-site", hiveSiteProperties);
+    configProperties.put("hive-env", hiveEnvProperties);
+    configProperties.put("webhcat-site", webHCatSiteProperties);
+    configProperties.put("core-site", coreSiteProperties);
+
+
+    // setup properties that include host information
+    hiveSiteProperties.put("hive.metastore.uris", "thrift://" + expectedHostName + ":" + expectedPortNum + "," + "thrift://" + expectedHostNameTwo + ":" + expectedPortNum);
+    hiveSiteProperties.put("javax.jdo.option.ConnectionURL", expectedHostName + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.zookeeper.quorum", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
+    hiveSiteProperties.put("hive.cluster.delegation.token.store.zookeeper.connectString", expectedHostName + ":" + expectedPortNum + "," + expectedHostNameTwo + ":" + expectedPortNum);
+    hiveEnvProperties.put("hive_hostname", expectedHostName);
+
+
+    webHCatSiteProperties.put("templeton.hive.properties", expectedHostName + "," + expectedHostNameTwo);
+    webHCatSiteProperties.put("templeton.kerberos.principal", expectedHostName);
+
+    coreSiteProperties.put("hadoop.proxyuser.hive.hosts", expectedHostName + "," + expectedHostNameTwo);
+    coreSiteProperties.put("hadoop.proxyuser.HTTP.hosts", expectedHostName + "," + expectedHostNameTwo);
+    coreSiteProperties.put("hadoop.proxyuser.hcat.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+    BlueprintConfigurationProcessor configProcessor =
+      new BlueprintConfigurationProcessor(configProperties);
+
+    // call top-level export method
+    configProcessor.doUpdateForBlueprintExport(Arrays.asList(mockHostGroupOne, mockHostGroupTwo));
+
+
+    System.out.println("RWN: exported value of hive.metastore.uris = " + hiveSiteProperties.get("hive.metastore.uris"));
+
+    assertEquals("hive property not properly exported",
+      "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupName) + "," + "thrift://" + createExportedAddress(expectedPortNum, expectedHostGroupNameTwo), hiveSiteProperties.get("hive.metastore.uris"));
     assertEquals("hive property not properly exported",
       createExportedAddress(expectedPortNum, expectedHostGroupName), hiveSiteProperties.get("javax.jdo.option.ConnectionURL"));
     assertEquals("hive property not properly exported",

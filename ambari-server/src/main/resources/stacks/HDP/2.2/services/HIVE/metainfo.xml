@@ -48,7 +48,14 @@
               <config-type>hiveserver2-site</config-type>
           </configuration-dependencies>
         </component>
+        <component>
+          <name>WEBHCAT_SERVER</name>
+          <cardinality>1+</cardinality>
+        </component>
+
       </components>
+
+
       
       <osSpecifics>
         <osSpecific>

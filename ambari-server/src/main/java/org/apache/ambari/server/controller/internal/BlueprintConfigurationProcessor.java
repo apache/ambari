@@ -22,6 +22,7 @@ package org.apache.ambari.server.controller.internal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -343,6 +344,16 @@ public class BlueprintConfigurationProcessor {
       && configProperties.get("oozie-site").get("oozie.services.ext").contains("org.apache.oozie.service.ZKLocksService");
   }
 
+  /**
+   * Static convenience function to determine if HiveServer HA is enabled
+   * @param configProperties configuration properties for this cluster
+   * @return true if HiveServer HA is enabled
+   *         false if HiveServer HA is not enabled
+   */
+  static boolean isHiveServerHAEnabled(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("hive-site") && configProperties.get("hive-site").containsKey("hive.server2.support.dynamic.service.discovery")
+      && configProperties.get("hive-site").get("hive.server2.support.dynamic.service.discovery").equals("true");
+  }
 
   /**
    * Convenience method to examine the current configuration, to determine
@@ -730,10 +741,25 @@ public class BlueprintConfigurationProcessor {
 
             if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroups.size() > 1))     {
               if (!origValue.contains("localhost")) {
-                // if this Oozie property is a FQDN, then simply return i
+                // if this Oozie property is a FQDN, then simply return it
                 return origValue;
               }
             }
+
+            if ((isHiveServerHAEnabled(properties)) && isComponentHiveServer() && (matchingGroups.size() > 1)) {
+              if (!origValue.contains("localhost")) {
+                // if this Hive property is a FQDN, then simply return it
+                return origValue;
+              }
+            }
+
+            if ((isComponentHiveMetaStoreServer()) && matchingGroups.size() > 1) {
+              if (!origValue.contains("localhost")) {
+                // if this Hive MetaStore property is a FQDN, then simply return it
+                return origValue;
+              }
+            }
+
 
             throw new IllegalArgumentException("Unable to update configuration property " + "'" + propertyName + "'"+ " with topology information. " +
               "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
@@ -784,6 +810,28 @@ public class BlueprintConfigurationProcessor {
      */
     private boolean isComponentOozieServer() {
       return component.equals("OOZIE_SERVER");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is a Hive Server
+     *
+     * @return true if the component associated is a Hive Server
+     *         false if the component is not a Hive Server
+     */
+    private boolean isComponentHiveServer() {
+      return component.equals("HIVE_SERVER");
+    }
+
+    /**
+     * Utility method to determine if the component associated with this updater
+     * instance is a Hive MetaStore Server
+     *
+     * @return true if the component associated is a Hive MetaStore Server
+     *         false if the component is not a Hive MetaStore Server
+     */
+    private boolean isComponentHiveMetaStoreServer() {
+      return component.equals("HIVE_METASTORE");
     }
 
     /**
@@ -914,12 +962,21 @@ public class BlueprintConfigurationProcessor {
     private final Character separator;
 
     /**
+     * Flag to determine if a URL scheme detected as
+     * a prefix in the property should be repeated across
+     * all hosts in the property
+     */
+    private final boolean usePrefixForEachHost;
+
+    private final Set<String> setOfKnownURLSchemes = Collections.singleton("thrift://");
+
+    /**
      * Constructor.
      *
      * @param component  component name associated with the property
      */
     public MultipleHostTopologyUpdater(String component) {
-      this(component, DEFAULT_SEPARATOR);
+      this(component, DEFAULT_SEPARATOR, false);
     }
 
     /**
@@ -929,9 +986,10 @@ public class BlueprintConfigurationProcessor {
      * @param separator the separator character to use when multiple hosts
      *                  are specified in a property or URL
      */
-    public MultipleHostTopologyUpdater(String component, Character separator) {
+    public MultipleHostTopologyUpdater(String component, Character separator, boolean userPrefixForEachHost) {
       this.component = component;
       this.separator = separator;
+      this.usePrefixForEachHost = userPrefixForEachHost;
     }
 
     /**
@@ -953,6 +1011,8 @@ public class BlueprintConfigurationProcessor {
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          Stack stackDefinition) {
+      StringBuilder sb = new StringBuilder();
+
       if (!origValue.contains("%HOSTGROUP") &&
         (!origValue.contains("localhost"))) {
         // this property must contain FQDNs specified directly by the user
@@ -960,14 +1020,26 @@ public class BlueprintConfigurationProcessor {
         return origValue;
       }
 
+      String prefix = null;
       Collection<String> hostStrings = getHostStrings(hostGroups, origValue);
       if (hostStrings.isEmpty()) {
         //default non-exported original value
         String port = null;
-        if (origValue.contains(":")) {
-          //todo: currently assuming all hosts are using same port
-          port = origValue.substring(origValue.indexOf(":") + 1);
+        for (String urlScheme : setOfKnownURLSchemes) {
+          if (origValue.startsWith(urlScheme)) {
+            prefix = urlScheme;
+          }
         }
+
+        if (prefix != null) {
+          String valueWithoutPrefix = origValue.substring(prefix.length());
+          port = calculatePort(valueWithoutPrefix);
+          sb.append(prefix);
+        } else {
+          port = calculatePort(origValue);
+        }
+
+
         Collection<HostGroup> matchingGroups = getHostGroupsForComponent(component, hostGroups.values());
         for (HostGroup group : matchingGroups) {
           for (String host : group.getHostInfo()) {
@@ -979,8 +1051,10 @@ public class BlueprintConfigurationProcessor {
         }
       }
 
-      StringBuilder sb = new StringBuilder();
+
+
       String suffix = null;
+
       // parse out prefix if one exists
       Matcher matcher = HOSTGROUP_PORT_REGEX.matcher(origValue);
       if (matcher.find()) {
@@ -988,7 +1062,8 @@ public class BlueprintConfigurationProcessor {
         // handle the case of a YAML config property
         if ((indexOfStart > 0) && (!origValue.substring(0, indexOfStart).equals("['"))) {
           // append prefix before adding host names
-          sb.append(origValue.substring(0, indexOfStart));
+          prefix = origValue.substring(0, indexOfStart);
+          sb.append(prefix);
         }
 
         // parse out suffix if one exists
@@ -1008,9 +1083,16 @@ public class BlueprintConfigurationProcessor {
       for (String host : hostStrings) {
         if (!firstHost) {
           sb.append(separator);
+          // support config properties that use a list of full URIs
+          if (usePrefixForEachHost && (prefix != null)) {
+            sb.append(prefix);
+          }
         } else {
           firstHost = false;
         }
+
+
+
         sb.append(host);
       }
 
@@ -1020,6 +1102,15 @@ public class BlueprintConfigurationProcessor {
 
 
       return sb.toString();
+    }
+
+    private static String calculatePort(String origValue) {
+      if (origValue.contains(":")) {
+        //todo: currently assuming all hosts are using same port
+        return origValue.substring(origValue.indexOf(":") + 1);
+      }
+
+      return null;
     }
   }
 
@@ -1151,6 +1242,64 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+
+  /**
+   * Custom PropertyUpdater that handles the parsing and updating of the
+   * "templeton.hive.properties" configuration property for WebHCat.
+   * This particular configuration property uses a format of
+   * comma-separated key/value pairs.  The Values in the case of the
+   * hive.metastores.uri property can also contain commas, and so character
+   * escaping with a backslash (\) must take place during substitution.
+   *
+   */
+  private static class TempletonHivePropertyUpdater implements PropertyUpdater {
+
+    private Map<String, PropertyUpdater> mapOfKeysToUpdaters =
+      new HashMap<String, PropertyUpdater>();
+
+    TempletonHivePropertyUpdater() {
+      // the only known property that requires hostname substitution is hive.metastore.uris,
+      // but this updater should be flexible enough for other properties in the future.
+      mapOfKeysToUpdaters.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true));
+    }
+
+    @Override
+    public String updateForClusterCreate(Map<String, ? extends HostGroup> hostGroups, String propertyName, String origValue, Map<String, Map<String, String>> properties, Stack stackDefinition) {
+      // short-circuit out any custom property values defined by the deployer
+      if (!origValue.contains("%HOSTGROUP") &&
+        (!origValue.contains("localhost"))) {
+        // this property must contain FQDNs specified directly by the user
+        // of the Blueprint, so the processor should not attempt to update them
+        return origValue;
+      }
+
+      StringBuffer updatedResult = new StringBuffer();
+
+      // split out the key/value pairs
+      String[] keyValuePairs = origValue.split(",");
+      boolean firstValue = true;
+      for (String keyValuePair : keyValuePairs) {
+        if (!firstValue) {
+          updatedResult.append(",");
+        } else {
+          firstValue = false;
+        }
+
+        String key = keyValuePair.split("=")[0];
+        if (mapOfKeysToUpdaters.containsKey(key)) {
+          String result = mapOfKeysToUpdaters.get(key).updateForClusterCreate(hostGroups, key, keyValuePair.split("=")[1], properties, stackDefinition);
+          // append the internal property result, escape out any commas in the internal property,
+          // this is required due to the specific syntax of templeton.hive.properties
+          updatedResult.append(key + "=" + result.replaceAll(",", Matcher.quoteReplacement("\\,")));
+        } else {
+          updatedResult.append(keyValuePair);
+        }
+      }
+
+      return updatedResult.toString();
+    }
+  }
+
   /**
    * Register updaters for configuration properties.
    */
@@ -1239,7 +1388,7 @@ public class BlueprintConfigurationProcessor {
     hbaseSiteMap.put("hbase.rootdir", new SingleHostTopologyUpdater("NAMENODE"));
     accumuloSiteMap.put("instance.volumes", new SingleHostTopologyUpdater("NAMENODE"));
     // HDFS shared.edits JournalNode Quorum URL uses semi-colons as separators
-    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';'));
+    multiHdfsSiteMap.put("dfs.namenode.shared.edits.dir", new MultipleHostTopologyUpdater("JOURNALNODE", ';', false));
 
     // SECONDARY_NAMENODE
     hdfsSiteMap.put("dfs.secondary.http.address", new SingleHostTopologyUpdater("SECONDARY_NAMENODE"));
@@ -1271,13 +1420,13 @@ public class BlueprintConfigurationProcessor {
 
 
     // HIVE_SERVER
-    hiveSiteMap.put("hive.metastore.uris", new SingleHostTopologyUpdater("HIVE_SERVER"));
+    multiHiveSiteMap.put("hive.metastore.uris", new MultipleHostTopologyUpdater("HIVE_METASTORE", ',', true));
     dbHiveSiteMap.put("javax.jdo.option.ConnectionURL",
         new DBTopologyUpdater("MYSQL_SERVER", "hive-env", "hive_database"));
     multiCoreSiteMap.put("hadoop.proxyuser.hive.hosts", new MultipleHostTopologyUpdater("HIVE_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.HTTP.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     multiCoreSiteMap.put("hadoop.proxyuser.hcat.hosts", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
-    multiWebhcatSiteMap.put("templeton.hive.properties", new SingleHostTopologyUpdater("HIVE_METASTORE"));
+    multiWebhcatSiteMap.put("templeton.hive.properties", new TempletonHivePropertyUpdater());
     multiWebhcatSiteMap.put("templeton.kerberos.principal", new MultipleHostTopologyUpdater("WEBHCAT_SERVER"));
     hiveEnvMap.put("hive_hostname", new SingleHostTopologyUpdater("HIVE_SERVER"));
     multiHiveSiteMap.put("hive.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
