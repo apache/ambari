@@ -693,10 +693,10 @@ Em.I18n.translations = {
   'installer.step4.ambariMetricsCheck.popup.header':'Limited Functionality Warning',
   'installer.step4.ambariMetricsCheck.popup.body':'Ambari Metrics collects metrics from the cluster and makes them available to Ambari.  If you do not install Ambari Metrics service, metrics will not be accessible from Ambari.  Are you sure you want to proceed without Ambari Metrics?',
   'installer.step4.rangerRequirements.popup.header': 'Ranger Requirements',
-  'installer.step4.rangerRequirements.popup.body.requirements': '<ol><li>You must have an <strong>existing MySQL Server or Oracle Server</strong> database instance running to be used by Ranger.</li>' +
-    '<li>In Assign Masters step of this wizard, you will be prompted to specify which host for the Ranger Admin. On that host, you <strong>must have MySQL Client or Oracle Client installed</strong> for Ranger to access to the database.</li>' +
-    '<li>Ensure that the access for the DB Admin user (<strong>root</strong> in case of MySQL or <strong>SYS</strong> in case of Oracle) is enabled in DB server from any host.</li>' +
-    '<li>Execute the following command on the Ambari Server host. Replace <code>database-type</code> with <strong>mysql</strong> or <strong>oracle</strong> and <code>/jdbc/driver/path</code> based on the location of the MySQL or Oracle JDBC driver:' +
+  'installer.step4.rangerRequirements.popup.body.requirements': '<ol><li>You must have an <strong>MySQL/Oracle/Postgres/MSSQL Server</strong> database instance running to be used by Ranger.</li>' +
+    '<li>In Assign Masters step of this wizard, you will be prompted to specify which host for the Ranger Admin. On that host, you <strong>must have DB Client installed</strong> for Ranger to access to the database. (Note: This is only applicable for only HDP 2.2)</li>' +
+    '<li>Ensure that the access for the DB Admin user is enabled in DB server from any host.</li>' +
+    '<li>Execute the following command on the Ambari Server host. Replace <code>database-type</code> with <strong>mysql|oracle|postgres|mssql</strong> and <code>/jdbc/driver/path</code> based on the location of corresponding JDBC driver:' +
     '<pre>ambari-server setup --jdbc-db={database-type} --jdbc-driver={/jdbc/driver/path}</pre></li></ol>',
   'installer.step4.rangerRequirements.popup.body.confirmation': 'I have met all the requirements above.',
   'installer.step4.sparkWarning.popup.body': 'Spark requires HDP 2.2.2 or later. Attempting to install Spark to a HDP 2.2.0 cluster will fail. Confirm you are using HDP 2.2.2 or later packages. Are you sure you want to proceed?',
