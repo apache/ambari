@@ -21,6 +21,7 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -145,7 +146,7 @@ public class UpgradeResourceProviderTest {
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setUpgradePackage("upgrade_test");
-    repoVersionEntity.setVersion("2.2.2.1");
+    repoVersionEntity.setVersion("2.1.1.0");
     repoVersionDao.create(repoVersionEntity);
 
     repoVersionEntity = new RepositoryVersionEntity();
@@ -153,7 +154,7 @@ public class UpgradeResourceProviderTest {
     repoVersionEntity.setOperatingSystems("");
     repoVersionEntity.setStack(stackEntity);
     repoVersionEntity.setUpgradePackage("upgrade_test");
-    repoVersionEntity.setVersion("2.2.2.2");
+    repoVersionEntity.setVersion("2.1.1.1");
     repoVersionDao.create(repoVersionEntity);
 
     repoVersionEntity = new RepositoryVersionEntity();
@@ -192,11 +193,11 @@ public class UpgradeResourceProviderTest {
 
     ServiceComponent component = service.addServiceComponent("ZOOKEEPER_SERVER");
     ServiceComponentHost sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.2.1");
+    sch.setVersion("2.1.1.0");
 
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
-    sch.setVersion("2.2.2.1");
+    sch.setVersion("2.1.1.0");
   }
 
   @After
@@ -214,7 +215,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -402,7 +403,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
     requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
@@ -424,7 +425,7 @@ public class UpgradeResourceProviderTest {
 
     UpgradeGroupEntity group = upgradeGroups.get(1);
     assertEquals("ZOOKEEPER", group.getName());
-    assertEquals(3, group.getItems().size());
+    assertEquals(4, group.getItems().size());
 
   }
 
@@ -435,7 +436,7 @@ public class UpgradeResourceProviderTest {
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2.2.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.1.1.1");
 
     ResourceProvider upgradeResourceProvider = createProvider(amc);
 
@@ -458,7 +459,7 @@ public class UpgradeResourceProviderTest {
 
     requestProps.put(UpgradeResourceProvider.UPGRADE_CLUSTER_NAME, "c1");
     requestProps.put(UpgradeResourceProvider.UPGRADE_VERSION, "2.2");
-    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.2.2.1");
+    requestProps.put(UpgradeResourceProvider.UPGRADE_FROM_VERSION, "2.1.1.0");
 
     Map<String, String> requestInfoProperties = new HashMap<String, String>();
     requestInfoProperties.put(UpgradeResourceDefinition.DOWNGRADE_DIRECTIVE, "true");
@@ -619,6 +620,20 @@ public class UpgradeResourceProviderTest {
   @Test
   public void testCreateCrossStackUpgrade() throws Exception {
     Cluster cluster = clusters.getCluster("c1");
+    StackId oldStack = cluster.getDesiredStackVersion();
+
+    for (Service s : cluster.getServices().values()) {
+      assertEquals(oldStack, s.getDesiredStackVersion());
+
+      for (ServiceComponent sc : s.getServiceComponents().values()) {
+        assertEquals(oldStack, sc.getDesiredStackVersion());
+
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          assertEquals(oldStack, sch.getDesiredStackVersion());
+        }
+      }
+    }
+
 
     Config config = new ConfigImpl("zoo.cfg");
     config.setProperties(new HashMap<String, String>() {{
@@ -655,6 +670,25 @@ public class UpgradeResourceProviderTest {
         "Foo", item.getText());
 
     assertTrue(cluster.getDesiredConfigs().containsKey("zoo.cfg"));
+
+    StackId newStack = cluster.getDesiredStackVersion();
+
+    assertFalse(oldStack.equals(newStack));
+
+    for (Service s : cluster.getServices().values()) {
+      assertEquals(newStack, s.getDesiredStackVersion());
+
+      for (ServiceComponent sc : s.getServiceComponents().values()) {
+        assertEquals(newStack, sc.getDesiredStackVersion());
+
+        for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+          assertEquals(newStack, sch.getDesiredStackVersion());
+        }
+      }
+    }
+
+
+
   }
 
   /**

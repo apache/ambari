@@ -772,6 +772,7 @@ public class HeartBeatHandler {
       final String previousVersion = scHost.getVersion();
       if (!StringUtils.equals(previousVersion, newVersion)) {
         scHost.setVersion(newVersion);
+        scHost.setStackVersion(cluster.getDesiredStackVersion());
         if (previousVersion != null && !previousVersion.equalsIgnoreCase(State.UNKNOWN.toString())) {
           scHost.setUpgradeState(UpgradeState.COMPLETE);
         }

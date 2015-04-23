@@ -891,6 +891,11 @@ public class ClusterImpl implements Cluster {
 
   @Override
   public void setDesiredStackVersion(StackId stackId) throws AmbariException {
+    setDesiredStackVersion(stackId, false);
+  }
+
+  @Override
+  public void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException {
     clusterGlobalLock.writeLock().lock();
     try {
       if (LOG.isDebugEnabled()) {
@@ -906,11 +911,27 @@ public class ClusterImpl implements Cluster {
 
       clusterEntity.setDesiredStack(stackEntity);
       clusterDAO.merge(clusterEntity);
+
+      if (cascade) {
+        for (Service service : getServices().values()) {
+          service.setDesiredStackVersion(stackId);
+
+          for (ServiceComponent sc : service.getServiceComponents().values()) {
+            sc.setDesiredStackVersion(stackId);
+
+            for (ServiceComponentHost sch : sc.getServiceComponentHosts().values()) {
+              sch.setDesiredStackVersion(stackId);
+            }
+          }
+        }
+      }
+
       loadServiceConfigTypes();
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
   }
+
 
   @Override
   public StackId getCurrentStackVersion() {

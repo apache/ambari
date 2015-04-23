@@ -581,7 +581,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setRequestId(req.getId());
 
     // !!! in case persist() starts creating tasks right away, square away the configs
-    createConfigs(cluster, version);
+    createConfigs(cluster, version, direction);
 
     req.persist();
 
@@ -597,7 +597,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
    * @param version the version
    * @throws AmbariException
    */
-  private void createConfigs(Cluster cluster, String version) throws AmbariException {
+  private void createConfigs(Cluster cluster, String version, Direction direction) throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findMaxByVersion(version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs",
@@ -614,29 +614,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
     ConfigHelper configHelper = getManagementController().getConfigHelper();
 
-    Map<String, Map<String, String>> clusterConfigs = new HashMap<String, Map<String, String>>();
+    Map<String, Map<String, String>> clusterConfigs = null;
 
-    // !!! stack
-    Set<org.apache.ambari.server.state.PropertyInfo> pi = s_metaProvider.get().getStackProperties(newStack.getStackName(),
-        newStack.getStackVersion());
+    if (direction == Direction.UPGRADE) {
 
-    for (PropertyInfo stackProperty : pi) {
-      String type = ConfigHelper.fileNameToConfigType(stackProperty.getFilename());
+      clusterConfigs = new HashMap<String, Map<String, String>>();
 
-      if (!clusterConfigs.containsKey(type)) {
-        clusterConfigs.put(type, new HashMap<String, String>());
-      }
+      // !!! stack
+      Set<org.apache.ambari.server.state.PropertyInfo> pi = s_metaProvider.get().getStackProperties(newStack.getStackName(),
+          newStack.getStackVersion());
 
-      clusterConfigs.get(type).put(stackProperty.getName(),
-          stackProperty.getValue());
-    }
-
-    // !!! by service
-    for (String serviceName : cluster.getServices().keySet()) {
-      pi = s_metaProvider.get().getServiceProperties(newStack.getStackName(),
-          newStack.getStackVersion(), serviceName);
-
-      // !!! use new stack as the basis
       for (PropertyInfo stackProperty : pi) {
         String type = ConfigHelper.fileNameToConfigType(stackProperty.getFilename());
 
@@ -647,23 +634,46 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         clusterConfigs.get(type).put(stackProperty.getName(),
             stackProperty.getValue());
       }
-    }
 
-    // !!! upgrading the stack
-    cluster.setDesiredStackVersion(
-        new StackId(newStack.getStackName(), newStack.getStackVersion()));
+      // !!! by service
+      for (String serviceName : cluster.getServices().keySet()) {
+        pi = s_metaProvider.get().getServiceProperties(newStack.getStackName(),
+            newStack.getStackVersion(), serviceName);
 
-    // !!! overlay the currently defined values per type
-    for (Map.Entry<String, Map<String, String>> entry : clusterConfigs.entrySet()) {
-      Config config = cluster.getDesiredConfigByType(entry.getKey());
-      if (null != config) {
-        entry.getValue().putAll(config.getProperties());
+        // !!! use new stack as the basis
+        for (PropertyInfo stackProperty : pi) {
+          String type = ConfigHelper.fileNameToConfigType(stackProperty.getFilename());
+
+          if (!clusterConfigs.containsKey(type)) {
+            clusterConfigs.put(type, new HashMap<String, String>());
+          }
+
+          clusterConfigs.get(type).put(stackProperty.getName(),
+              stackProperty.getValue());
+        }
       }
+
+      // !!! overlay the currently defined values per type
+      for (Map.Entry<String, Map<String, String>> entry : clusterConfigs.entrySet()) {
+        Config config = cluster.getDesiredConfigByType(entry.getKey());
+        if (null != config) {
+          entry.getValue().putAll(config.getProperties());
+        }
+      }
+    } else {
+      // !!! remove configs
     }
 
-    configHelper.createConfigTypes(cluster, getManagementController(),
-        clusterConfigs, getManagementController().getAuthName(),
-        "Configuration created for Upgrade");
+    // !!! update the stack
+    cluster.setDesiredStackVersion(
+        new StackId(newStack.getStackName(), newStack.getStackVersion()), true);
+
+    // !!! configs must be created after setting the stack version
+    if (null != clusterConfigs) {
+      configHelper.createConfigTypes(cluster, getManagementController(),
+          clusterConfigs, getManagementController().getAuthName(),
+          "Configuration created for Upgrade");
+    }
 
   }
 

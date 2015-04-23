@@ -356,7 +356,13 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
           ComponentInfo componentInfo = ambariMetaInfo.getComponent(targetStackId.getStackName(),
                   targetStackId.getStackVersion(), service.getName(), serviceComponent.getName());
 
-          if (componentInfo.isVersionAdvertised()
+          if (!componentInfo.isVersionAdvertised()) {
+            StackId desired = serviceComponentHost.getDesiredStackVersion();
+            StackId actual = serviceComponentHost.getStackVersion();
+            if (!desired.equals(actual)) {
+              serviceComponentHost.setStackVersion(desired);
+            }
+          } else if (componentInfo.isVersionAdvertised()
               && !serviceComponentHost.getVersion().equals(desiredVersion)) {
             errors.add(new InfoTuple(
                     service.getName(), serviceComponent.getName(), serviceComponentHost.getHostName()));

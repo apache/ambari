@@ -122,6 +122,15 @@ public interface Cluster {
   public void setDesiredStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
+   * Sets the desired stack version, optionally setting all owned services,
+   * components, and host components
+   * @param stackId the stack id
+   * @param cascade {@code true} to cascade the desired version
+   */
+  public void setDesiredStackVersion(StackId stackId, boolean cascade) throws AmbariException;
+
+
+  /**
    * Get current stack version
    * @return
    */
@@ -200,7 +209,7 @@ public interface Cluster {
 
   /**
    * Transition an existing cluster version from one state to another.
-   * 
+   *
    * @param stackId
    *          Stack ID
    * @param version
@@ -510,4 +519,5 @@ public interface Cluster {
    * @return the map of session attributes for this cluster; never null
    */
   public Map<String, Object> getSessionAttributes();
+
 }
