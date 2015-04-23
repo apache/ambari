@@ -139,7 +139,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   errorsCount: function () {
     return this.get('selectedService.configs').filter(function (config) {
       return Em.isNone(config.get('widget'));
-    }).filterProperty('isValid', false).length;
+    }).filterProperty('isValid', false).filterProperty('isVisible').length;
   }.property('selectedService.configs.@each.isValid'),
 
   /**

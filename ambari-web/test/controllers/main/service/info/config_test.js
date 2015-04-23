@@ -1311,10 +1311,26 @@ describe("App.MainServiceInfoConfigsController", function () {
 
       mainServiceInfoConfigsController.reopen({selectedService: {
         configs: [
-          Em.Object.create({widget: Em.View, isValid: false}),
-          Em.Object.create({widget: Em.View, isValid: true}),
-          Em.Object.create({isValid: true}),
-          Em.Object.create({isValid: false})
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: false}),
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: true}),
+          Em.Object.create({isVisible: true, isValid: true}),
+          Em.Object.create({isVisible: true, isValid: false})
+        ]
+      }});
+
+      expect(mainServiceInfoConfigsController.get('errorsCount')).to.equal(1);
+
+    });
+
+    it('should ignore configs with widgets (enhanced configs) and hidden configs', function () {
+
+      mainServiceInfoConfigsController.reopen({selectedService: {
+        configs: [
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: false}),
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: true}),
+          Em.Object.create({isVisible: false, isValid: false}),
+          Em.Object.create({isVisible: true, isValid: true}),
+          Em.Object.create({isVisible: true, isValid: false})
         ]
       }});
 

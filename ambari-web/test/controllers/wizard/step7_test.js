@@ -1958,10 +1958,26 @@ describe('App.InstallerStep7Controller', function () {
 
       installerStep7Controller.reopen({selectedService: {
         configs: [
-          Em.Object.create({widget: Em.View, isValid: false}),
-          Em.Object.create({widget: Em.View, isValid: true}),
-          Em.Object.create({isValid: true}),
-          Em.Object.create({isValid: false})
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: false}),
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: true}),
+          Em.Object.create({isVisible: true, isValid: true}),
+          Em.Object.create({isVisible: true, isValid: false})
+        ]
+      }});
+
+      expect(installerStep7Controller.get('errorsCount')).to.equal(1);
+
+    });
+
+    it('should ignore configs with widgets (enhanced configs) and hidden configs', function () {
+
+      installerStep7Controller.reopen({selectedService: {
+        configs: [
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: false}),
+          Em.Object.create({isVisible: true, widget: Em.View, isValid: true}),
+          Em.Object.create({isVisible: false, isValid: false}),
+          Em.Object.create({isVisible: true, isValid: true}),
+          Em.Object.create({isVisible: true, isValid: false})
         ]
       }});
 
