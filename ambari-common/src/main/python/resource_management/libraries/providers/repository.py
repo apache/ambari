@@ -67,7 +67,7 @@ def get_repo_dir():
 class UbuntuRepositoryProvider(Provider):
   package_type = "deb"
   repo_dir = "/etc/apt/sources.list.d"
-  update_cmd = ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/{repo_file_name}', '-o', 'APT::Get::List-Cleanup=0']
+  update_cmd = ['apt-get', 'update', '-qq', '-o', 'Dir::Etc::sourcelist=sources.list.d/{repo_file_name}', '-o', 'Dir::Etc::sourceparts=-', '-o', 'APT::Get::List-Cleanup=0']
   missing_pkey_regex = "The following signatures couldn't be verified because the public key is not available: NO_PUBKEY ([A-Z0-9]+)"
   add_pkey_cmd = "apt-key adv --recv-keys --keyserver keyserver.ubuntu.com {pkey}"
 
