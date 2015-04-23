@@ -209,6 +209,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
         selectComponents: function (event) {
           var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))
             .get('components').findProperty('id', event.context.get('id'));
+          $('#add-metric-popup .component-select').removeClass('open');
 
           this.set('selectedComponent', component);
           this.set('parentView.selectedMetric', null);
