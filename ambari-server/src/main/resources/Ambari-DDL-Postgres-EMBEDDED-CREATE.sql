@@ -334,8 +334,7 @@ CREATE TABLE ambari.requestoperationlevel (
   cluster_name VARCHAR(255),
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
-  host_name VARCHAR(255),
-  --host_id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
   PRIMARY KEY (operation_level_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestoperationlevel TO :username;
 
@@ -741,21 +740,13 @@ GRANT ALL PRIVILEGES ON TABLE ambari.kerberos_principal TO :username;
 
 CREATE TABLE ambari.kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
-  PRIMARY KEY(principal_name, host_name)
-  --PRIMARY KEY(principal_name, host_id)
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY(principal_name, host_id)
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.kerberos_principal_host TO :username;
 
-ALTER TABLE ambari.kerberos_principal_host
-ADD CONSTRAINT FK_krb_pr_host_hostname
-FOREIGN KEY (host_name) REFERENCES ambari.hosts (host_name) ON DELETE CASCADE;
---ALTER TABLE ambari.kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id) ON DELETE CASCADE;
-
-ALTER TABLE ambari.kerberos_principal_host
-ADD CONSTRAINT FK_krb_pr_host_principalname
-FOREIGN KEY (principal_name) REFERENCES ambari.kerberos_principal (principal_name) ON DELETE CASCADE;
+ALTER TABLE ambari.kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES ambari.hosts (host_id);
+ALTER TABLE ambari.kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES ambari.kerberos_principal (principal_name);
 -- Kerberos (end)
 
 -- Alerting Framework

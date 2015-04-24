@@ -23,8 +23,10 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.configuration.Configuration;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.KerberosPrincipalEntity;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.directory.server.kerberos.shared.keytab.Keytab;
@@ -69,6 +71,12 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
    */
   @Inject
   private Configuration configuration;
+
+  /**
+   * HostDAO used to retrieveHost Entity object
+   */
+  @Inject
+  private HostDAO hostDAO;
 
   /**
    * A map of data used to track what has been processed in order to optimize the creation of keytabs
@@ -150,25 +158,25 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
         Map<String, String> principalPasswordMap = getPrincipalPasswordMap(requestSharedDataContext);
         Map<String, Integer> principalKeyNumberMap = getPrincipalKeyNumberMap(requestSharedDataContext);
 
-        String host = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
+        String hostName = identityRecord.get(KerberosIdentityDataFileReader.HOSTNAME);
         String keytabFilePath = identityRecord.get(KerberosIdentityDataFileReader.KEYTAB_FILE_PATH);
 
-        if ((host != null) && !host.isEmpty() && (keytabFilePath != null) && !keytabFilePath.isEmpty()) {
+        if ((hostName != null) && !hostName.isEmpty() && (keytabFilePath != null) && !keytabFilePath.isEmpty()) {
           Set<String> visitedPrincipalKeys = visitedIdentities.get(evaluatedPrincipal);
-          String visitationKey = String.format("%s|%s", host, keytabFilePath);
+          String visitationKey = String.format("%s|%s", hostName, keytabFilePath);
 
           if ((visitedPrincipalKeys == null) || !visitedPrincipalKeys.contains(visitationKey)) {
             // Look up the current evaluatedPrincipal's password.
             // If found create the keytab file, else try to find it in the cache.
             String password = principalPasswordMap.get(evaluatedPrincipal);
 
-            message = String.format("Creating keytab file for %s on host %s", evaluatedPrincipal, host);
+            message = String.format("Creating keytab file for %s on host %s", evaluatedPrincipal, hostName);
             LOG.info(message);
             actionLog.writeStdOut(message);
 
             // Determine where to store the keytab file.  It should go into a host-specific
             // directory under the previously determined data directory.
-            File hostDirectory = new File(getDataDirectoryPath(), host);
+            File hostDirectory = new File(getDataDirectoryPath(), hostName);
 
             // Ensure the host directory exists...
             if (!hostDirectory.exists() && hostDirectory.mkdirs()) {
@@ -178,9 +186,17 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
 
             if (hostDirectory.exists()) {
               File destinationKeytabFile = new File(hostDirectory, DigestUtils.sha1Hex(keytabFilePath));
+              HostEntity hostEntity = hostDAO.findByName(hostName);
+              if (hostEntity == null) {
+                message = "Failed to find HostEntity for hostname = " + hostName;
+                actionLog.writeStdErr(message);
+                LOG.error(message);
+                commandReport = createCommandReport(1, HostRoleStatus.FAILED, "{}", actionLog.getStdOut(), actionLog.getStdErr());
+                return commandReport;
+              }
 
               if (password == null) {
-                if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal, host)) {
+                if (kerberosPrincipalHostDAO.exists(evaluatedPrincipal, hostEntity.getHostId())) {
                   // There is nothing to do for this since it must already exist and we don't want to
                   // regenerate the keytab
                   message = String.format("Skipping keytab file for %s, missing password indicates nothing to do", evaluatedPrincipal);
@@ -304,7 +320,7 @@ public class CreateKeytabFilesServerAction extends KerberosServerAction {
             visitedPrincipalKeys.add(visitationKey);
           }
           else {
-            LOG.debug(String.format("Skipping previously processed keytab for %s on host %s", evaluatedPrincipal, host));
+            LOG.debug(String.format("Skipping previously processed keytab for %s on host %s", evaluatedPrincipal, hostName));
           }
         }
       }

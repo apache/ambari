@@ -243,18 +243,31 @@ public class UpgradeCatalog210Test {
 
       // Column Capture section
       // Hosts
+      Capture<DBAccessor.DBColumnInfo> clusterHostMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> configGroupHostMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostConfigMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> hostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> hostComponentStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> hostComponentDesiredStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostRoleCommandColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
       Capture<DBAccessor.DBColumnInfo> hostStateColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
-      Capture<DBAccessor.DBColumnInfo> clusterHostMappingColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> hostVersionColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> kerberosPrincipalHostColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> requestOperationLevelColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+      Capture<DBAccessor.DBColumnInfo> serviceConfigHostsColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
 
-      // TODO, include other tables.
+      captures.put("ClusterHostMapping", clusterHostMappingColumnCapture);
+      captures.put("configgrouphostmapping", configGroupHostMappingColumnCapture);
+      captures.put("hostconfigmapping", hostConfigMappingColumnCapture);
       captures.put("hosts", hostsColumnCapture);
       captures.put("hostcomponentstate", hostComponentStateColumnCapture);
       captures.put("hostcomponentdesiredstate", hostComponentDesiredStateColumnCapture);
+      captures.put("host_role_command", hostRoleCommandColumnCapture);
       captures.put("hoststate", hostStateColumnCapture);
-      captures.put("ClusterHostMapping", clusterHostMappingColumnCapture);
+      captures.put("host_version", hostVersionColumnCapture);
+      captures.put("kerberos_principal_host", kerberosPrincipalHostColumnCapture);
+      captures.put("requestoperationlevel", requestOperationLevelColumnCapture);
+      captures.put("serviceconfighosts", serviceConfigHostsColumnCapture);
     }
 
     /**
@@ -263,11 +276,18 @@ public class UpgradeCatalog210Test {
     @Override
     public void execute(DBAccessor dbAccessor) throws SQLException {
       // Add columns and alter table section
+      dbAccessor.addColumn(eq("ClusterHostMapping"), capture(captures.get("ClusterHostMapping")));
+      dbAccessor.addColumn(eq("configgrouphostmapping"), capture(captures.get("configgrouphostmapping")));
+      dbAccessor.addColumn(eq("hostconfigmapping"), capture(captures.get("hostconfigmapping")));
       dbAccessor.addColumn(eq("hosts"), capture(captures.get("hosts")));
       dbAccessor.addColumn(eq("hostcomponentstate"), capture(captures.get("hostcomponentstate")));
       dbAccessor.addColumn(eq("hostcomponentdesiredstate"), capture(captures.get("hostcomponentdesiredstate")));
+      dbAccessor.addColumn(eq("host_role_command"), capture(captures.get("host_role_command")));
       dbAccessor.addColumn(eq("hoststate"), capture(captures.get("hoststate")));
-      dbAccessor.addColumn(eq("ClusterHostMapping"), capture(captures.get("ClusterHostMapping")));
+      dbAccessor.addColumn(eq("host_version"), capture(captures.get("host_version")));
+      dbAccessor.addColumn(eq("kerberos_principal_host"), capture(captures.get("kerberos_principal_host")));
+      dbAccessor.addColumn(eq("requestoperationlevel"), capture(captures.get("requestoperationlevel")));
+      dbAccessor.addColumn(eq("serviceconfighosts"), capture(captures.get("serviceconfighosts")));
     }
 
     /**

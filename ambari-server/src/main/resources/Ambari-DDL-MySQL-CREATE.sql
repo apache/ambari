@@ -26,9 +26,6 @@ delimiter ;
 
 # USE @schema;
 
--- DEVELOPER COMMENT
--- Ambari is transitioning to make the host_id the FK instead of the host_name.
--- Please do not remove lines that are related to this change and are being staged.
 
 CREATE TABLE stack(
   stack_id BIGINT NOT NULL,
@@ -294,8 +291,7 @@ CREATE TABLE requestoperationlevel (
   cluster_name VARCHAR(255),
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
-  host_name VARCHAR(255),
-  -- host_id BIGINT NOT NULL,
+  host_id BIGINT NOT NULL,
   PRIMARY KEY (operation_level_id));
 
 CREATE TABLE key_value_store (`key` VARCHAR(255),
@@ -674,18 +670,12 @@ CREATE TABLE kerberos_principal (
 
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  -- host_id BIGINT NOT NULL,
-  PRIMARY KEY(principal_name, host_name)
-  -- PRIMARY KEY(principal_name, host_id)
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY(principal_name, host_id)
 );
 
-ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_hostname FOREIGN KEY (host_name) REFERENCES hosts (host_name) ON DELETE CASCADE;
--- ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id) ON DELETE CASCADE;
-
-ALTER TABLE kerberos_principal_host
-ADD CONSTRAINT FK_krb_pr_host_principalname
-FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name) ON DELETE CASCADE;
+ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
+ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name);
 -- Kerberos (end)
 
 -- Alerting Framework

@@ -41,7 +41,7 @@ import javax.persistence.Table;
     @NamedQuery(name = "KerberosPrincipalHostEntityFindByPrincipal",
         query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.principalName=:principalName"),
     @NamedQuery(name = "KerberosPrincipalHostEntityFindByHost",
-        query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.hostName=:hostName")
+        query = "SELECT kph FROM KerberosPrincipalHostEntity kph WHERE kph.hostId=:hostId")
 })
 public class KerberosPrincipalHostEntity {
 
@@ -50,15 +50,15 @@ public class KerberosPrincipalHostEntity {
   private String principalName;
 
   @Id
-  @Column(name = "host_name", insertable = true, updatable = false, nullable = false)
-  private String hostName;
+  @Column(name = "host_id", insertable = true, updatable = false, nullable = false)
+  private Long hostId;
 
   @ManyToOne
   @JoinColumn(name = "principal_name", referencedColumnName = "principal_name", nullable = false, insertable = false, updatable = false)
   private KerberosPrincipalEntity principalEntity;
 
   @ManyToOne
-  @JoinColumn(name = "host_name", referencedColumnName = "host_name", nullable = false, insertable = false, updatable = false)
+  @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false, insertable = false, updatable = false)
   private HostEntity hostEntity;
 
   /**
@@ -71,11 +71,11 @@ public class KerberosPrincipalHostEntity {
    * Constructs a new KerberosPrincipalHostEntity
    *
    * @param principalName a String indicating this KerberosPrincipalHostEntity's principal name
-   * @param hostName      a String indicating the KerberosPrincipalHostEntity's host name
+   * @param hostId a Long indicating the KerberosPrincipalHostEntity's host id
    */
-  public KerberosPrincipalHostEntity(String principalName, String hostName) {
+  public KerberosPrincipalHostEntity(String principalName, Long hostId) {
     setPrincipalName(principalName);
-    setHostName(hostName);
+    setHostId(hostId);
   }
 
   /**
@@ -102,16 +102,25 @@ public class KerberosPrincipalHostEntity {
    * @return a String indicating this KerberosHostHostEntity's host name
    */
   public String getHostName() {
-    return hostName;
+    return hostEntity != null ? hostEntity.getHostName() : null;
   }
 
   /**
-   * Sets the host name for this KerberosHostHostEntity
+   * Gets the host id for this KerberosHostHostEntity
    *
-   * @param hostName a String indicating this KerberosHostHostEntity's host name
+   * @return a Long indicating this KerberosHostHostEntity's host id
    */
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public Long getHostId() {
+    return hostId;
+  }
+
+  /**
+   * Sets the host id for this KerberosHostHostEntity
+   *
+   * @param hostId a Long indicating this KerberosHostHostEntity's host id
+   */
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   /**

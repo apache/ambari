@@ -52,7 +52,9 @@ import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.events.publishers.VersionEventPublisher;
 import org.apache.ambari.server.metadata.ActionMetadata;
+import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReader;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileReaderFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -140,6 +142,9 @@ public class HeartBeatHandler {
 
   @Inject
   private ConfigHelper configHelper;
+
+  @Inject
+  private HostDAO hostDAO;
 
   @Inject
   private AlertDefinitionHash alertDefinitionHash;
@@ -455,6 +460,11 @@ public class HeartBeatHandler {
       LOG.debug("Received command report: " + report);
       // Fetch HostRoleCommand that corresponds to a given task ID
       HostRoleCommand hostRoleCommand = hostRoleCommandIterator.next();
+      HostEntity hostEntity = hostDAO.findByName(hostname);
+      if (hostEntity == null) {
+        LOG.error("Received a command report and was unable to retrieve HostEntity for hostname = " + hostname);
+        continue;
+      }
 
       // Send event for final command reports for actions
       if (RoleCommand.valueOf(report.getRoleCommand()) == RoleCommand.ACTIONEXECUTE &&
@@ -497,11 +507,11 @@ public class HeartBeatHandler {
             if (keytabs != null) {
               for (Map.Entry<String, String> entry : keytabs.entrySet()) {
                 String principal = entry.getKey();
-                if (!kerberosPrincipalHostDAO.exists(principal, hostname)) {
+                if (!kerberosPrincipalHostDAO.exists(principal, hostEntity.getHostId())) {
                   if (adding) {
-                    kerberosPrincipalHostDAO.create(principal, hostname);
+                    kerberosPrincipalHostDAO.create(principal, hostEntity.getHostId());
                   } else if ("_REMOVED_".equalsIgnoreCase(entry.getValue())) {
-                    kerberosPrincipalHostDAO.remove(principal, hostname);
+                    kerberosPrincipalHostDAO.remove(principal, hostEntity.getHostId());
                   }
                 }
               }

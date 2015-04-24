@@ -22,11 +22,15 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import com.google.inject.Inject;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.internal.RequestOperationLevel;
 import org.apache.ambari.server.controller.internal.RequestResourceFilter;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.orm.entities.RequestOperationLevelEntity;
 import org.apache.ambari.server.orm.entities.RequestResourceFilterEntity;
@@ -40,6 +44,7 @@ import com.google.gson.Gson;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 
+@StaticallyInject
 public class Request {
   private static final Logger LOG = LoggerFactory.getLogger(Request.class);
 
@@ -72,6 +77,9 @@ public class Request {
   private RequestType requestType;
 
   private Collection<Stage> stages = new ArrayList<Stage>();
+
+  @Inject
+  private static HostDAO hostDAO;
 
   @AssistedInject
   /**
@@ -245,14 +253,17 @@ public class Request {
       requestEntity.setResourceFilterEntities(filterEntities);
     }
 
+
     if (operationLevel != null) {
-      RequestOperationLevelEntity operationLevelEntity =
-              new RequestOperationLevelEntity();
+      HostEntity hostEntity = hostDAO.findByName(operationLevel.getHostName());
+      Long hostId = hostEntity != null ? hostEntity.getHostId() : null;
+
+      RequestOperationLevelEntity operationLevelEntity = new RequestOperationLevelEntity();
       operationLevelEntity.setLevel(operationLevel.getLevel().toString());
       operationLevelEntity.setClusterName(operationLevel.getClusterName());
       operationLevelEntity.setServiceName(operationLevel.getServiceName());
       operationLevelEntity.setHostComponentName(operationLevel.getHostComponentName());
-      operationLevelEntity.setHostName(operationLevel.getHostName());
+      operationLevelEntity.setHostId(hostId);
       operationLevelEntity.setRequestEntity(requestEntity);
       operationLevelEntity.setRequestId(requestId);
       requestEntity.setRequestOperationLevel(operationLevelEntity);
@@ -419,20 +430,23 @@ public class Request {
    */
   public static RequestOperationLevel operationLevelFromEntity(RequestEntity entity) {
     RequestOperationLevel level = null;
-
     RequestOperationLevelEntity operationLevelEntity = entity.getRequestOperationLevel();
+
     if (operationLevelEntity != null) {
+      String hostName = null;
+      if (operationLevelEntity.getHostId() != null) {
+        HostEntity hostEntity = hostDAO.findById(operationLevelEntity.getHostId());
+        hostName = hostEntity.getHostName();
+      }
+
       level = new RequestOperationLevel(
           Resource.Type.valueOf(operationLevelEntity.getLevel()),
-        operationLevelEntity.getClusterName(),
-        operationLevelEntity.getServiceName(),
-        operationLevelEntity.getHostComponentName(),
-        operationLevelEntity.getHostName());
+          operationLevelEntity.getClusterName(),
+          operationLevelEntity.getServiceName(),
+          operationLevelEntity.getHostComponentName(),
+          hostName);
     }
 
     return level;
   }
-
-
-
 }

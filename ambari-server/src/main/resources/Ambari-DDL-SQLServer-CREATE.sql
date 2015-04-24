@@ -328,7 +328,7 @@ CREATE TABLE requestoperationlevel (
   cluster_name VARCHAR(255),
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
-  host_name VARCHAR(255),
+  host_id BIGINT NOT NULL,
   PRIMARY KEY CLUSTERED (operation_level_id)
   );
   
@@ -784,20 +784,12 @@ CREATE TABLE kerberos_principal (
 
 CREATE TABLE kerberos_principal_host (
   principal_name VARCHAR(255) NOT NULL,
-  host_name VARCHAR(255) NOT NULL,
-  --host_id BIGINT NOT NULL,
-  PRIMARY KEY CLUSTERED (principal_name, host_name)
-  --PRIMARY KEY CLUSTERED (principal_name, host_id)
+  host_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (principal_name, host_id)
 );
 
-ALTER TABLE kerberos_principal_host
-ADD CONSTRAINT FK_krb_pr_host_hostname
-FOREIGN KEY (host_name) REFERENCES hosts (host_name) ON DELETE CASCADE;
---ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id) ON DELETE CASCADE;
-
-ALTER TABLE kerberos_principal_host
-ADD CONSTRAINT FK_krb_pr_host_principalname
-FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name) ON DELETE CASCADE;
+ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_id FOREIGN KEY (host_id) REFERENCES hosts (host_id);
+ALTER TABLE kerberos_principal_host ADD CONSTRAINT FK_krb_pr_host_principalname FOREIGN KEY (principal_name) REFERENCES kerberos_principal (principal_name);
 -- Kerberos (end)
 
 -- Alerting Framework

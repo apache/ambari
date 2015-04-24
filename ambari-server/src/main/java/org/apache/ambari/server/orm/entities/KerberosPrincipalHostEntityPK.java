@@ -32,15 +32,15 @@ public class KerberosPrincipalHostEntityPK implements Serializable{
   private String principalName = null;
 
   @Id
-  @Column(name = "host_name", insertable = false, updatable = false, nullable = false)
-  private String hostName = null;
+  @Column(name = "host_id", insertable = false, updatable = false, nullable = false)
+  private Long hostId = null;
 
   public KerberosPrincipalHostEntityPK() {
   }
 
-  public KerberosPrincipalHostEntityPK(String principalName, String hostName) {
+  public KerberosPrincipalHostEntityPK(String principalName, Long hostId) {
     setPrincipalName(principalName);
-    setHostName(hostName);
+    setHostId(hostId);
   }
 
   /**
@@ -62,21 +62,21 @@ public class KerberosPrincipalHostEntityPK implements Serializable{
   }
 
   /**
-   * Get the host name.
+   * Get the host id.
    *
-   * @return host name
+   * @return host id
    */
-  public String getHostName() {
-    return hostName;
+  public Long getHostId() {
+    return hostId;
   }
 
   /**
    * Set the configuration type.
    *
-   * @param hostName host name
+   * @param hostId host id
    */
-  public void setHostName(String hostName) {
-    this.hostName = hostName;
+  public void setHostId(Long hostId) {
+    this.hostId = hostId;
   }
 
   @Override
@@ -91,11 +91,11 @@ public class KerberosPrincipalHostEntityPK implements Serializable{
     KerberosPrincipalHostEntityPK that = (KerberosPrincipalHostEntityPK) o;
 
     return this.principalName.equals(that.principalName) &&
-        this.hostName.equals(that.hostName);
+        this.hostId.equals(that.hostId);
   }
 
   @Override
   public int hashCode() {
-    return 31 * principalName.hashCode() + hostName.hashCode();
+    return 31 * principalName.hashCode() + hostId.hashCode();
   }
 }

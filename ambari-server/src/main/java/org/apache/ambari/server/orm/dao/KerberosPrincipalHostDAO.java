@@ -54,8 +54,8 @@ public class KerberosPrincipalHostDAO {
     entityManagerProvider.get().persist(kerberosPrincipalHostEntity);
   }
 
-  public void create(String principal, String hostName) {
-    create(new KerberosPrincipalHostEntity(principal, hostName));
+  public void create(String principal, Long hostId) {
+    create(new KerberosPrincipalHostEntity(principal, hostId));
   }
 
   /**
@@ -79,7 +79,6 @@ public class KerberosPrincipalHostDAO {
     entityManagerProvider.get().remove(merge(kerberosPrincipalHostEntity));
   }
 
-
   /**
    * Refresh the state of the instance from the database,
    * overwriting changes made to the entity, if any.
@@ -90,7 +89,6 @@ public class KerberosPrincipalHostDAO {
   public void refresh(KerberosPrincipalHostEntity kerberosPrincipalHostEntity) {
     entityManagerProvider.get().refresh(kerberosPrincipalHostEntity);
   }
-
 
   /**
    * Finds KerberosPrincipalHostEntities for the requested principal
@@ -109,14 +107,14 @@ public class KerberosPrincipalHostDAO {
   /**
    * Find KerberosPrincipalHostEntities for the requested host
    *
-   * @param hostName a String indicating the name of the requested host
+   * @param hostId a Long indicating the id of the requested host
    * @return a List of requested KerberosPrincipalHostEntities or null if none were found
    */
   @RequiresSession
-  public List<KerberosPrincipalHostEntity> findByHost(String hostName) {
+  public List<KerberosPrincipalHostEntity> findByHost(Long hostId) {
     final TypedQuery<KerberosPrincipalHostEntity> query = entityManagerProvider.get()
         .createNamedQuery("KerberosPrincipalHostEntityFindByHost", KerberosPrincipalHostEntity.class);
-    query.setParameter("hostName", hostName);
+    query.setParameter("hostId", hostId);
     return query.getResultList();
   }
 
@@ -135,13 +133,13 @@ public class KerberosPrincipalHostDAO {
    * Find the KerberosPrincipalHostEntity for the requested principal name and host
    *
    * @param principalName a String indicating the name of the requested principal
-   * @param hostName      a String indicating the name of the requested host
+   * @param hostId        a Long indicating the id of the requested host
    * @return the KerberosPrincipalHostEntity or null if not found
    */
   @RequiresSession
-  public KerberosPrincipalHostEntity find(String principalName, String hostName) {
+  public KerberosPrincipalHostEntity find(String principalName, Long hostId) {
     return entityManagerProvider.get().find(KerberosPrincipalHostEntity.class,
-        new KerberosPrincipalHostEntityPK(principalName, hostName));
+        new KerberosPrincipalHostEntityPK(principalName, hostId));
   }
 
   /**
@@ -171,23 +169,23 @@ public class KerberosPrincipalHostDAO {
   /**
    * Remove KerberosPrincipalHostEntity instances for the specified host
    *
-   * @param hostName a String indicating the name of the host
+   * @param hostId a Long indicating the id of the host
    */
   @Transactional
-  public void removeByHost(String hostName) {
-    remove(findByHost(hostName));
+  public void removeByHost(Long hostId) {
+    remove(findByHost(hostId));
   }
 
   /**
    * Remove KerberosPrincipalHostEntity instance for the specified principal and host
    *
    * @param principalName a String indicating the name of the principal
-   * @param hostName      a String indicating the name of the host
+   * @param hostId        a Long indicating the id of the host
    * @see #remove(org.apache.ambari.server.orm.entities.KerberosPrincipalHostEntity)
    */
   @Transactional
-  public void remove(String principalName, String hostName) {
-    remove(new KerberosPrincipalHostEntity(principalName, hostName));
+  public void remove(String principalName, Long hostId) {
+    remove(new KerberosPrincipalHostEntity(principalName, hostId));
   }
 
   /**
@@ -206,12 +204,12 @@ public class KerberosPrincipalHostDAO {
    * Tests the existence of a particular principal on a specific host
    *
    * @param principalName a String indicating the name of the principal to test
-   * @param hostName      a String indicating the name of the host to test
+   * @param hostId      a LOng indicating the id of the host to test
    * @return true if the requested principal exists
    */
   @RequiresSession
-  public boolean exists(String principalName, String hostName) {
-    return find(principalName, hostName) != null;
+  public boolean exists(String principalName, Long hostId) {
+    return find(principalName, hostId) != null;
   }
 
   /**

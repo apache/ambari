@@ -717,7 +717,7 @@ public class ClustersImpl implements Clusters {
       deleteConfigGroupHostMapping(hostEntity.getHostId());
 
       // Remove mapping of principals to the unmapped host
-      kerberosPrincipalHostDAO.removeByHost(hostname);
+      kerberosPrincipalHostDAO.removeByHost(hostEntity.getHostId());
     } finally {
       w.unlock();
     }
@@ -775,7 +775,7 @@ public class ClustersImpl implements Clusters {
       hostsById.remove(entity.getHostId());
 
       // Remove mapping of principals to deleted host
-      kerberosPrincipalHostDAO.removeByHost(hostname);
+      kerberosPrincipalHostDAO.removeByHost(entity.getHostId());
 
       // publish the event
       HostRemovedEvent event = new HostRemovedEvent(hostname);
