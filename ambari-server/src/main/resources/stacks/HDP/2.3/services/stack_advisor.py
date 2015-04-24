@@ -18,4 +18,18 @@ limitations under the License.
 """
 
 class HDP23StackAdvisor(HDP22StackAdvisor):
-  pass
+
+  def getServiceConfigurationRecommenderDict(self):
+    parentRecommendConfDict = super(HDP23StackAdvisor, self).getServiceConfigurationRecommenderDict()
+    childRecommendConfDict = {
+      "TEZ": self.recommendTezConfigurations,
+    }
+    parentRecommendConfDict.update(childRecommendConfDict)
+    return parentRecommendConfDict
+
+  def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP23StackAdvisor, self).recommendTezConfigurations(configurations, clusterData, services, hosts)
+    if "tez-site" in services["configurations"] and "tez.runtime.sorter.class" in services["configurations"]["tez-site"]["properties"]:
+      if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
+        putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
+        putTezAttribute("tez.runtime.io.sort.mb","maximum", 2047)

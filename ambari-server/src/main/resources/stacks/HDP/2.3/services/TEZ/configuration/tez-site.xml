@@ -25,4 +25,56 @@
       Value format: Comma separated list of users, followed by whitespace, followed by a comma separated list of groups.
     </description>
   </property>
+
+  <property>
+    <name>tez.runtime.sorter.class</name>
+    <value>PIPELINED</value>
+    <description>Which sorter implementation to use</description>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>PIPELINED</value>
+          <label>Pipelined Sorter</label>
+        </entry>
+        <entry>
+          <value>LEGACY</value>
+          <label>Legacy Sorter</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>tez.runtime.pipelined.sorter.sort.threads</name>
+    <value>2</value>
+    <description>Tez runtime pipelined sorter sort threads</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.runtime.sorter.class</name>
+      </property>
+    </depends-on>
+  </property>
+
+  <property>
+    <name>tez.runtime.io.sort.mb</name>
+    <value>272</value>
+    <description>The size of the sort buffer when output needs to be sorted</description>
+    <value-attributes>
+      <type>int</type>
+      <unit>MB</unit>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>tez-site</type>
+        <name>tez.runtime.sorter.class</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>
