@@ -26,7 +26,7 @@ import status_params
 
 # server configurations
 config = Script.get_config()
-
+tmp_dir = Script.get_tmp_dir()
 stack_name = default("/hostLevelParams/stack_name", None)
 
 version = default("/commandParams/version", None)
@@ -48,6 +48,9 @@ kafka_user = config['configurations']['kafka-env']['kafka_user']
 kafka_log_dir = config['configurations']['kafka-env']['kafka_log_dir']
 kafka_pid_dir = status_params.kafka_pid_dir
 kafka_pid_file = kafka_pid_dir+"/kafka.pid"
+# This is hardcoded on the kafka bash process lifecycle on which we have no control over
+kafka_managed_pid_dir = "/var/run/kafka"
+kafka_managed_log_dir = "/var/log/kafka"
 hostname = config['hostname']
 user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']

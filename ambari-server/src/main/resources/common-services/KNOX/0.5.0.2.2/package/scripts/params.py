@@ -110,6 +110,8 @@ if has_oozie:
     if 'oozie.base.url' in config['configurations']['oozie-site']:
         oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 
+# Knox managed properties
+knox_managed_pid_symlink= "/usr/hdp/current/knox-server/pids"
 
 # server configurations
 knox_pid_dir = status_params.knox_pid_dir
