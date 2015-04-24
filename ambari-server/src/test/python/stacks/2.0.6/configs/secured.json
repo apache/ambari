@@ -312,6 +312,7 @@
             "hbase.hstore.flush.retries.number": "120", 
             "hbase.client.keyvalue.maxsize": "10485760", 
             "hbase.regionserver.keytab.file": "/etc/security/keytabs/hbase.service.keytab", 
+            "phoenix.queryserver.keytab.file": "/etc/security/keytabs/hbase.service.keytab",
             "hbase.hstore.compactionThreshold": "3", 
             "hbase.bulkload.staging.dir": "/apps/hbase/staging", 
             "hbase.rootdir": "hdfs://c6401.ambari.apache.org:8020/apps/hbase/data", 

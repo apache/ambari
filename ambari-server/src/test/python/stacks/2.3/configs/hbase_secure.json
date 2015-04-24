@@ -333,6 +333,7 @@
             "hbase.regionserver.port": "16020", 
             "hbase.client.keyvalue.maxsize": "1048576", 
             "hbase.regionserver.keytab.file": "/etc/security/keytabs/hbase.service.keytab", 
+            "phoenix.queryserver.keytab.file": "/etc/security/keytabs/hbase.service.keytab",
             "hbase.hstore.compactionThreshold": "3", 
             "hbase.hregion.majorcompaction.jitter": "0.50", 
             "hbase.client.retries.number": "35", 
