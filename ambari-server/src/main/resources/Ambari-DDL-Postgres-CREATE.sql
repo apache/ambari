@@ -537,7 +537,7 @@ CREATE TABLE repo_version (
   upgrade_package VARCHAR(255) NOT NULL,
   repositories TEXT NOT NULL,
   PRIMARY KEY(repo_version_id),
-  FOREIGN KEY (stack_id) REFERENCES stack(stack_id));
+  FOREIGN KEY (stack_id) REFERENCES stack(stack_id)
 );
 
 CREATE TABLE widget (
