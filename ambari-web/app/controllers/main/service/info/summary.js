@@ -588,7 +588,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @return {App.ModalPopup}
    */
   goToWidgetsBrowser: function () {
-
     var self = this;
 
     return App.ModalPopup.show({
@@ -597,8 +596,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       }.property(''),
 
       classNames: ['sixty-percent-width-modal', 'widgets-browser-popup'],
-      primary: Em.I18n.t('common.close'),
-      secondary: null,
       onPrimary: function () {
         this.hide();
         self.set('isAllSharedWidgetsLoaded', false);
@@ -608,8 +605,20 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       },
       autoHeight: false,
       isHideBodyScroll: false,
-      bodyClass: Ember.View.extend({
+      footerClass: Ember.View.extend({
+        template: Ember.Handlebars.compile('<div class="modal-footer">' +
+          '<label id="footer-checkbox">' +
+          '{{view Ember.Checkbox classNames="checkbox" checkedBinding="view.parentView.isShowMineOnly"}} &nbsp;' +
+          '{{t dashboard.widgets.browser.footer.checkbox}}</label>'+
+          '<button class="btn btn-success" {{action onPrimary target="view"}}>{{t common.close}}</button></div>'),
+        isShowMineOnly: false,
+        onPrimary: function() {
+          this.get('parentView').onPrimary();
+        }
 
+      }),
+      isShowMineOnly: false,
+      bodyClass: Ember.View.extend({
         templateName: require('templates/common/modal_popups/widget_browser_popup'),
         controller: self,
         willInsertElement: function () {
@@ -618,25 +627,24 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         },
 
         isLoaded: function () {
-          return !!this.get('controller.isAllSharedWidgetsLoaded');
-        }.property('controller.isAllSharedWidgetsLoaded'),
+          return !!(this.get('controller.isAllSharedWidgetsLoaded') && this.get('controller.isMineWidgetsLoaded'));
+        }.property('controller.isAllSharedWidgetsLoaded', 'controller.isMineWidgetsLoaded'),
 
         isWidgetEmptyList: function () {
           return !this.get('filteredContent.length');
         }.property('filteredContent.length'),
 
-        activeTab: 'shared',
         activeService: '',
         activeStatus: '',
 
         content: function () {
-          if (this.get('activeTab') == 'mine') {
+          if (this.get('parentView.isShowMineOnly')) {
             return this.get('controller.mineWidgets');
-          } else if (this.get('activeTab') == 'shared') {
-            return this.get('controller.allSharedWidgets');
+          } else {
+            return this.get('controller.mineWidgets').concat(this.get('controller.allSharedWidgets'));
           }
         }.property('controller.allSharedWidgets.length', 'controller.isAllSharedWidgetsLoaded',
-          'controller.mineWidgets.length', 'controller.isMineWidgetsLoaded', 'activeTab'),
+          'controller.mineWidgets.length', 'controller.isMineWidgetsLoaded', 'parentView.isShowMineOnly'),
 
         /**
          * displaying content filtered by service name and status.
@@ -651,44 +659,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           });
           return result;
         }.property('content', 'activeService', 'activeStatus'),
-
-        /**
-         * top tabs: Share / Mine
-         */
-        categories: [
-          {
-            name: 'shared',
-            label: Em.I18n.t('dashboard.widgets.browser.menu.shared')
-          },
-          {
-            name: 'mine',
-            label: Em.I18n.t('dashboard.widgets.browser.menu.mine')
-          }
-        ],
-
-        NavItemView: Ember.View.extend({
-          tagName: 'li',
-          classNameBindings: 'isActive:active'.w(),
-          isActive: function () {
-            return this.get('item') == this.get('parentView.activeTab');
-          }.property('item', 'parentView.activeTab'),
-          elementId: Ember.computed(function () {
-            var label = Em.get(this, 'templateData.keywords.category.label');
-            return label ? 'widget-browser-view-tab-' + label.toLowerCase().replace(/\s/g, '-') : "";
-          }),
-          count: function () {
-            if (this.get('item') == 'mine') {
-              return this.get('parentView.controller.mineWidgets.length');
-            } else if (this.get('item') == 'shared') {
-              return this.get('parentView.controller.allSharedWidgets.length');
-            }
-          }.property('item', 'parentView.controller.mineWidgets.length',
-            'parentView.controller.allSharedWidgets.length'),
-          goToWidgetTab: function (event) {
-            var targetName = event.context;
-            this.set('parentView.activeTab', targetName);
-          }
-        }),
 
         /**
          * service name filter
@@ -716,8 +686,14 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           this.get('controller').createWidget();
         },
 
-        didInsertElement: function () {
+        ensureTooltip: function () {
+          Em.run.later(this, function () {
+            App.tooltip($("[rel='shared-icon-tooltip']"));
+          }, 1000);
+        }.observes('activeService', 'parentView.isShowMineOnly'),
 
+        didInsertElement: function () {
+          this.ensureTooltip();
         }
       })
     });

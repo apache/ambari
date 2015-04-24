@@ -23,12 +23,16 @@
 .service-metrics-block {
 
   #add-widget-action-box {
-    width: 96%;
+    width: 98%;
     padding: 43px;
     border: 1px solid @border-color;
+    border-radius: 0px;
+    -webkit-border-radius: 0px;
+    -moz-border-radius: 0px;
+    background-image: none;
     .icon-plus {
       font-size: 70px;
-      color: @border-color;
+      color: #ccc;
     }
   }
 
@@ -201,7 +205,7 @@
     .widgets-info-container {
       .span6.widget-info-section {
         width: 44%;
-        height: 122px;
+        height: 115px;
         margin: 5px 15px;
         padding-top: 10px;
         padding-left: 5px;
@@ -465,36 +469,25 @@
   #widget-browser-popup {
     min-width: 750px;
     max-width: 900px;
-    #shared-mine-tabs {
-      a {
-        font-size: 15px;
-      }
-    }
     #services-filter-bar {
-      padding: 0px 10px 10px 10px;
-      a {
+      padding: 0px 10px 0px 10px;
+      margin-bottom: 10px;
+      border-bottom: transparent;
+      width: 80%;
+      li > a {
         font-size: 14px;
-        padding: 5px 3px;
-        line-height: 30px;
+        padding: 5px 5px;
       }
       a:hover {
         cursor: pointer;
-      }
-      a.active {
-        color: #555555;
-        border: 1px #ddd solid;
-        border-bottom-style: none;
-      }
-      a.active:hover {
-        text-decoration: none;
-        cursor: default;
+        border-bottom: transparent;
       }
     }
     #widgets-info {
       .widgets-info-container {
         .span6.widget-info-section {
           width: 44%;
-          height: 122px;
+          height: 115px;
           margin: 5px 15px;
           padding-top: 10px;
           padding-left: 5px;
@@ -531,19 +524,28 @@
             color: #808080;
             overflow: hidden;
             text-overflow: ellipsis;
-            height: 60px;
+            height: 40px;
           }
+        }
+        .is-shared-icon {
+          position: relative;
+          top: -5px;
+          left: 10px;
         }
         .widget-section-actions {
           position: relative;
-          top: -30px;
+          top: -10px;
           right: 5px;
           .btn {
             padding: 3px 8px;
-            width: 60px;
+            width: 70px;
           }
-          .added-btn {
-            margin-left: 63px;;
+          .added-btn.btn {
+            margin-left: 63px;
+            width: 85px;
+            .icon-ok {
+              color: #468847;
+            }
           }
           .dropdown-menu {
             min-width: 110px;

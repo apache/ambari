@@ -26,23 +26,13 @@
         </button>
       </div>
 
-      <!--Top menu tabs-->
-      <div id="shared-mine-tabs">
-        <ul class="nav nav-tabs">
-          {{#each category in view.categories}}
-            {{#view view.NavItemView itemBinding="category.name" }}
-                <a href="#" {{action "goToWidgetTab" category.name target="view"}} >{{category.label}} ({{view.count}})</a>
-            {{/view}}
-          {{/each}}
-        </ul>
-      </div>
-
       <!--Filters bar: service name filter, status filter here-->
-      <div id="services-filter-bar">
+      <ul id="services-filter-bar" class="nav nav-tabs">
         {{#each service in view.services}}
-          <a {{bindAttr class="service.isActive:active"}} {{action "filterByService" service.value target="view"}}>{{service.label}}</a>
+          <li {{bindAttr class="service.isActive:active"}}>
+            <a {{action "filterByService" service.value target="view"}}>{{service.label}}</a></li>
         {{/each}}
-      </div>
+      </ul>
 
       <!--Widgets table two column-->
       <div id="widgets-info">
@@ -59,14 +49,20 @@
                   <p class="label-text">{{widget.displayName}}</p>
                   <p class="description-text">{{widget.description}}</p>
                 </div>
-                <div class="widget-section-actions pull-right">
+                <div class="is-shared-icon pull-left">
+                  {{#if widget.isShared}}
+                    <i class="icon-group" rel="shared-icon-tooltip"
+                      {{translateAttr data-original-title="dashboard.widgets.browser.shareIcon.tooltip"}}></i>
+                  {{/if}}
+                </div>
+                <div class="widget-section-actions btn-group pull-right">
                   {{#if widget.added}}
-                    <button type="button" class="btn btn-primary added-btn" {{action "hideWidget" widget target="controller"}} >
-                      {{t dashboard.widgets.browser.action.added}}
+                    <button type="button" class="btn added-btn" {{action "hideWidget" widget target="controller"}} >
+                        <i class="icon-ok"></i> &nbsp; {{t dashboard.widgets.browser.action.added}}
                     </button>
                   {{else}}
                     <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                      <i class="icon-ellipsis-horizontal"></i>&nbsp;<span class="caret"></span>
+                      {{t common.more}}<span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu">
                       <li>
