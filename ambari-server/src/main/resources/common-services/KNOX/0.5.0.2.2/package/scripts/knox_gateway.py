@@ -81,11 +81,6 @@ class KnoxGateway(Script):
     daemon_cmd = format('{knox_bin} start')
     no_op_test = format('ls {knox_pid_file} >/dev/null 2>&1 && ps -p `cat {knox_pid_file}` >/dev/null 2>&1')
     setup_ranger_knox()
-    # Used to setup symlink, needed to update the knox managed symlink, in case of custom locations
-    if os.path.islink(params.knox_managed_pid_symlink) and os.path.realpath(params.knox_managed_pid_symlink) != params.knox_pid_dir:
-      os.unlink(params.knox_managed_pid_symlink)
-      os.symlink(params.knox_pid_dir, params.knox_managed_pid_symlink)
-
     Execute(daemon_cmd,
             user=params.knox_user,
             environment={'JAVA_HOME': params.java_home},

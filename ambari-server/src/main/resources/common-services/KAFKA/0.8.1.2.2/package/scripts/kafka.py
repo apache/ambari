@@ -20,7 +20,7 @@ limitations under the License.
 
 from resource_management import *
 from properties_config import properties_config
-import sys, os
+import sys
 from copy import deepcopy
 
 def kafka():
@@ -71,82 +71,9 @@ def kafka():
              content=params.log4j_props
          )
 
-    setup_symlink(params.kafka_managed_pid_dir, params.kafka_pid_dir)
-    setup_symlink(params.kafka_managed_log_dir, params.kafka_log_dir)
-
 
 def mutable_config_dict(kafka_broker_config):
     kafka_server_config = {}
     for key, value in kafka_broker_config.iteritems():
         kafka_server_config[key] = value
     return kafka_server_config
-
-# Used to workaround the hardcoded pid/log dir used on the kafka bash process launcher
-def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
-  import params
-  backup_folder_path = None
-  backup_folder_suffix = "_tmp"
-  if kafka_ambari_managed_dir != kafka_managed_dir:
-    if os.path.exists(kafka_managed_dir) and not os.path.islink(kafka_managed_dir):
-
-      # Backup existing data before delete if config is changed repeatedly to/from default location at any point in time time, as there may be relevant contents (historic logs)
-      backup_folder_path = backup_dir_contents(kafka_managed_dir, backup_folder_suffix)
-
-      Directory(kafka_managed_dir,
-                action="delete",
-                recursive=True)
-
-    elif os.path.islink(kafka_managed_dir) and os.path.realpath(kafka_managed_dir) != kafka_ambari_managed_dir:
-      Link(kafka_managed_dir,
-           action="delete")
-
-    if not os.path.islink(kafka_managed_dir):
-      Link(kafka_managed_dir,
-           to=kafka_ambari_managed_dir)
-
-  elif os.path.islink(kafka_managed_dir): # If config is changed and coincides with the kafka managed dir, remove the symlink and physically create the folder
-    Link(kafka_managed_dir,
-         action="delete")
-
-    Directory(kafka_managed_dir,
-              mode=0755,
-              cd_access='a',
-              owner=params.kafka_user,
-              group=params.user_group,
-              recursive=True
-    )
-
-  if backup_folder_path:
-    # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
-    for file in os.listdir(backup_folder_path):
-      File(os.path.join(kafka_managed_dir,file),
-           owner=params.kafka_user,
-           content = StaticFile(os.path.join(backup_folder_path,file)))
-
-    # Clean up backed up folder
-    Directory(backup_folder_path,
-              action="delete",
-              recursive=True)
-
-
-# Uses agent temp dir to store backup files
-def backup_dir_contents(dir_path, backup_folder_suffix):
-  import params
-  backup_destination_path = params.tmp_dir + os.path.normpath(dir_path)+backup_folder_suffix
-  Directory(backup_destination_path,
-            mode=0755,
-            cd_access='a',
-            owner=params.kafka_user,
-            group=params.user_group,
-            recursive=True
-  )
-  # Safely copy top-level contents to backup folder
-  for file in os.listdir(dir_path):
-    File(os.path.join(backup_destination_path, file),
-         owner=params.kafka_user,
-         content = StaticFile(os.path.join(dir_path,file)))
-
-  return backup_destination_path
-
-
-
