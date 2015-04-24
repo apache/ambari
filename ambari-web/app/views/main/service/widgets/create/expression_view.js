@@ -188,13 +188,13 @@ App.WidgetWizardExpressionView = Em.View.extend({
             placeholder_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound'),
             no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
           }).change(function (event, obj) {
-            self.set('parentView.selectedMetric', {
+            self.set('parentView.selectedMetric', Em.Object.create({
               name: obj.selected,
               componentName: self.get('selectedComponent.componentName'),
               serviceName: self.get('selectedComponent.serviceName'),
               metricPath: self.get('controller.filteredMetrics').findProperty('name', obj.selected).widget_id,
               isMetric: true
-            });
+            }));
           });
         },
 
