@@ -157,10 +157,11 @@ App.WidgetWizardExpressionView = Em.View.extend({
   addMetric: function () {
     return App.ModalPopup.show({
       header: Em.I18n.t('dashboard.widgets.wizard.step2.addMetric'),
-      classNames: ['modal-690px-width'],
+      classNames: ['modal-690px-width', 'add-metric-modal'],
       disablePrimary: function () {
         return Em.isNone(this.get('selectedMetric'));
       }.property('selectedMetric'),
+      isHideBodyScroll: true,
       expression: this.get('expression'),
 
       /**
@@ -185,7 +186,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
           });
 
           $(".chosen-select").chosen({
-            placeholder_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound'),
+            placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
             no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
           }).change(function (event, obj) {
             self.set('parentView.selectedMetric', Em.Object.create({
@@ -289,7 +290,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
           return result;
         }.property('controller.filteredMetrics')
       }),
-      primary: Em.I18n.t('common.save'),
+      primary: Em.I18n.t('common.add'),
       onPrimary: function () {
         var data = this.get('expression.data');
         var id = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) + 1 : 1;

@@ -2523,6 +2523,8 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ New Metric',
   'dashboard.widgets.wizard.step2.newOperator': '+ New Operator',
+  'dashboard.widgets.wizard.step2.Component': 'Component',
+  'dashboard.widgets.wizard.step2.Metric': 'Metric',
   'dashboard.widgets.wizard.step2.selectComponent': 'Select a Component',
   'dashboard.widgets.wizard.step2.selectMetric': 'Select a Metric',
   'dashboard.widgets.wizard.step2.addMetric': 'Add Metric',
