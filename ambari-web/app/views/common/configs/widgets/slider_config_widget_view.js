@@ -433,6 +433,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         self.changeBoundariesOnce();
       }, 10);
     }
-  }.observes('parentView.content.isActive')
+  }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive')
 
 });

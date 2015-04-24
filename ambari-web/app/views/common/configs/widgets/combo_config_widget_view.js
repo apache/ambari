@@ -119,7 +119,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * Delegate event from text input in combo widget to trigger dropdown
    */
   click: function(event) {
-    if (event.target.className.contains('ember-text-field')) {
+    if (!this.get('disabled') && event.target.className.contains('ember-text-field')) {
       $(event.target).closest('.dropdown').toggleClass('open');
       return false;
     }

@@ -66,22 +66,25 @@
   {{/if}}
 {{/if}}
 
-{{#if view.config.errorMessage}}
-  <p class="text-error">{{view.config.errorMessage}}</p>
+{{#unless controller.isCompareMode}}
+  {{#if view.config.errorMessage}}
+    <p class="text-error">{{view.config.errorMessage}}</p>
   {{else}}
     {{#if view.config.warnMessage}}
       <p class="text-warning">{{view.config.warnMessage}}</p>
     {{else}}
       <p>&nbsp;</p>
     {{/if}}
-{{/if}}
+  {{/if}}
+{{/unless}}
 
 {{#if view.isComparison}}
   <div class="widget-config-controls">
   {{#if controller.selectedConfigGroup.isDefault}}
     <span
-        class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+        class="label label-info pull-right">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
     {{#if controller.isCurrentSelected}}
+      <div class="clearfix"></div>
       <span class="label label-success">{{t common.current}}</span>
     {{/if}}
   {{else}}
