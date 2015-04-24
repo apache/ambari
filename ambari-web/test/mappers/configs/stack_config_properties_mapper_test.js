@@ -57,14 +57,16 @@ describe('App.stackConfigPropertiesMapper', function () {
                 "minimum": "512",
                 "maximum": "10240",
                 "unit": "MB"
-              },
-              "property_depended_by": [
-                {
-                  "property_type": "site4",
-                  "property_name": "p4"
+              }
+            },
+            "dependencies": [
+              {
+                "StackConfigurationDependency" : {
+                  "dependency_name" : "p4",
+                  "dependency_type" : "site4",
                 }
-              ]
-            }
+              }
+            ]
           }
         ]
       },
@@ -153,8 +155,8 @@ describe('App.stackConfigPropertiesMapper', function () {
       expect(App.StackConfigProperty.find('p1_site1').get('fileName')).to.eql('site1.xml');
       expect(App.StackConfigProperty.find('p1_site1').get('propertyDependedBy')).to.eql([
         {
-          "property_type": "site4",
-          "property_name": "p4"
+          "type": "site4",
+          "name": "p4"
         }
       ]);
       expect(App.StackConfigProperty.find('p1_site1').get('valueAttributes')).to.eql({
