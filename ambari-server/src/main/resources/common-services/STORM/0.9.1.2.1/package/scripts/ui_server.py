@@ -33,6 +33,7 @@ from resource_management.libraries.functions.security_commons import build_expec
 from setup_ranger_storm import setup_ranger_storm
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
+from resource_management.core.resources.service import Service
 
 
 class UiServer(Script):
@@ -61,6 +62,7 @@ class UiServerWindows(UiServer):
   def status(self, env):
     import status_params
     env.set_params(status_params)
+    from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
     check_windows_service_status(status_params.ui_win_service_name)
 
 

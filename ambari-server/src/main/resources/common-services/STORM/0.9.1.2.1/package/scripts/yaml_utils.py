@@ -19,8 +19,10 @@ limitations under the License.
 """
 
 import re
+import os
 import resource_management
 from resource_management.core.source import InlineTemplate
+from resource_management.core.resources.system import File
 
 def escape_yaml_propetry(value):
   unquouted = False
@@ -69,7 +71,7 @@ def yaml_config_template(configurations):
 
 def yaml_config(filename, configurations = None, conf_dir = None, owner = None, group = None):
   import params
-  config_content = source.InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
+  config_content = InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
 {% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
 
   File (os.path.join(params.conf_dir, filename),
