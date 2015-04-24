@@ -27,7 +27,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   scopes: [
     Em.Object.create({
       name: 'User',
-      checked: true
+      checked: false
     }),
     Em.Object.create({
       name: 'Cluster',
@@ -92,6 +92,10 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.get('scopes').forEach(function (scope) {
       scope.set('checked', scope.get('name').toUpperCase() == this.get('content.widgetScope'));
     }, this);
+    //if no scope selected, choose User by default
+    if (!this.get('scopes').someProperty('checked')) {
+      this.get('scopes').findProperty('name', 'User').set('checked', true);
+    }
   },
 
   //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled

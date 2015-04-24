@@ -369,14 +369,6 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   },
 
   /**
-   * launch Add Widget wizard
-   * @param event
-   */
-  goToAddWidgetWizard: function (event) {
-    App.router.send('addServiceWidget', event.context);
-  },
-
-  /**
    * list of static actions of widget
    * @type {Array}
    */

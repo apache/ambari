@@ -37,6 +37,12 @@ App.WidgetWizardController = App.WizardController.extend({
     widgetType: '',
 
     /**
+     * @type {number}
+     * @default null
+     */
+    layoutId: null,
+
+    /**
      * Example:
      * {
      *  "display_unit": "%",
@@ -258,8 +264,17 @@ App.WidgetWizardController = App.WizardController.extend({
     });
   },
 
-  postWidgetDefinitionSuccessCallback: function() {
-
+  /**
+   * assign created widget to active layout if it present
+   * @param data
+   */
+  postWidgetDefinitionSuccessCallback: function (data) {
+    if (Em.isNone(this.get('content.layoutId'))) return;
+    var widgets = App.WidgetLayout.find(this.get('content.layoutId')).get('widgets').toArray();
+    widgets.pushObject(Em.Object.create({
+      id: data.resources[0].WidgetInfo.id
+    }));
+    App.router.get('mainServiceInfoSummaryController').saveWidgetLayout(widgets);
   },
 
   /**

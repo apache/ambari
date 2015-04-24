@@ -134,9 +134,9 @@ module.exports = App.WizardRoute.extend({
       widgetWizardController.save('expressions', widgetStep2controller.get('expressions'));
       widgetWizardController.save('dataSets', widgetStep2controller.get('dataSets'));
       widgetWizardController.save('templateValue', widgetStep2controller.get('templateValue'));
-      widgetWizardController.setDBProperty('widgetName', null);
-      widgetWizardController.setDBProperty('widgetDescription', null);
-      widgetWizardController.setDBProperty('widgetScope', null);
+      widgetWizardController.save('widgetName', null);
+      widgetWizardController.save('widgetDescription', null);
+      widgetWizardController.save('widgetScope', null);
       router.transitionTo('step3');
     }
   }),
