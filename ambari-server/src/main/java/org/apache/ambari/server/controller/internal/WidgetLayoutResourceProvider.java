@@ -123,11 +123,13 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
+    Set<Resource> associatedResources = new HashSet<Resource>();
+
     for (final Map<String, Object> properties : request.getProperties()) {
-      Void resources = createResources(new Command<Void>() {
+      WidgetLayoutEntity widgetLayoutEntity = createResources(new Command<WidgetLayoutEntity>() {
 
         @Override
-        public Void invoke() throws AmbariException {
+        public WidgetLayoutEntity invoke() throws AmbariException {
           final String[] requiredProperties = {
               WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID,
               WIDGETLAYOUT_SECTION_NAME_PROPERTY_ID,
@@ -177,12 +179,16 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
           widgetLayoutDAO.create(entity);
           notifyCreate(Type.WidgetLayout, request);
 
-          return null;
+          return entity;
         }
       });
+      Resource resource = new ResourceImpl(Type.WidgetLayout);
+      resource.setProperty(WIDGETLAYOUT_ID_PROPERTY_ID, widgetLayoutEntity.getId());
+      associatedResources.add(resource);
+
     }
 
-    return getRequestStatus(null);
+    return getRequestStatus(null, associatedResources);
   }
 
   @Override

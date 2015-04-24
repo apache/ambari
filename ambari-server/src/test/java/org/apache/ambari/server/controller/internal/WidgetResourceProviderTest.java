@@ -22,6 +22,7 @@ import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
 import com.google.inject.util.Modules;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
@@ -201,12 +202,13 @@ public class WidgetResourceProviderTest {
     requestProps.put(WidgetResourceProvider.WIDGET_PROPERTIES_PROPERTY_ID+"/property2", "value2");
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    provider.createResources(request);
+    RequestStatus requestStatus = provider.createResources(request);
 
     Assert.assertTrue(entityCapture.hasCaptured());
     WidgetEntity entity = entityCapture.getValue();
     Assert.assertNotNull(entity);
 
+    Assert.assertEquals(1, requestStatus.getAssociatedResources().size());
     Assert.assertEquals(Long.valueOf(1), entity.getClusterId());
     Assert.assertEquals("USER", entity.getScope());
     Assert.assertEquals("widget name", entity.getWidgetName());

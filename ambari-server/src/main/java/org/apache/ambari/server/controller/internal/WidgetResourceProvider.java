@@ -131,11 +131,13 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
       ResourceAlreadyExistsException,
       NoSuchParentResourceException {
 
+    Set<Resource> associatedResources = new HashSet<Resource>();
+
     for (final Map<String, Object> properties : request.getProperties()) {
-      createResources(new Command<Void>() {
+      WidgetEntity widgetEntity = createResources(new Command<WidgetEntity>() {
 
         @Override
-        public Void invoke() throws AmbariException {
+        public WidgetEntity invoke() throws AmbariException {
           final String[] requiredProperties = {
               WIDGET_CLUSTER_NAME_PROPERTY_ID,
               WIDGET_WIDGET_NAME_PROPERTY_ID,
@@ -190,12 +192,16 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
 
           widgetDAO.create(entity);
           notifyCreate(Type.Widget, request);
-          return null;
+          return entity;
         }
       });
+      Resource resource = new ResourceImpl(Type.Widget);
+      resource.setProperty(WIDGET_ID_PROPERTY_ID, widgetEntity.getId());
+      associatedResources.add(resource);
+
     }
 
-    return getRequestStatus(null);
+    return getRequestStatus(null, associatedResources);
   }
 
   @Override

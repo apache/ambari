@@ -25,6 +25,7 @@ import com.google.inject.util.Modules;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
@@ -169,12 +170,13 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
-    provider.createResources(request);
+    RequestStatus requestStatus = provider.createResources(request);
 
     Assert.assertTrue(entityCapture.hasCaptured());
     WidgetLayoutEntity entity = entityCapture.getValue();
     Assert.assertNotNull(entity);
 
+    Assert.assertEquals(1, requestStatus.getAssociatedResources().size());
     Assert.assertEquals(Long.valueOf(1), entity.getClusterId());
     Assert.assertEquals("CLUSTER", entity.getScope());
     Assert.assertEquals("layout_name", entity.getLayoutName());
