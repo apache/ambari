@@ -278,6 +278,10 @@
           "subsection-name": "performance-row1-col1"
         },
         {
+          "config": "hive-env/hive_timeline_logging_enabled",
+          "subsection-name": "performance-row1-col1"
+        },
+        {
           "config": "hive-site/hive.tez.container.size",
           "subsection-name": "performance-row1-col1"
         },
@@ -628,6 +632,12 @@
         "config": "hiveserver2-site/hive.server2.tez.default.queues",
         "widget": {
           "type": "list"
+        }
+      },
+      {
+        "config": "hive-env/hive_timeline_logging_enabled",
+        "widget": {
+          "type": "toggle"
         }
       }
     ]
