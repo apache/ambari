@@ -126,9 +126,9 @@ public class PropertyInfo {
   
   public StackConfigurationResponse convertToResponse() {
     return new StackConfigurationResponse(getName(), getValue(),
-      getDescription(), getDisplayName() , getFilename(), isRequireInput(), getPropertyTypes(),
-      getAttributesMap(), getPropertyValueAttributes(),
-      getDependsOnProperties(), getDependedByProperties());
+      getDescription(), getDisplayName() , getFilename(), isRequireInput(),
+      getPropertyTypes(), getAttributesMap(), getPropertyValueAttributes(),
+      getDependsOnProperties());
   }
 
   public boolean isDeleted() {

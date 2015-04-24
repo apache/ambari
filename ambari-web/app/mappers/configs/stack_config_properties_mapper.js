@@ -54,6 +54,16 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
           config.id = config.StackConfigurations.property_name + '_' + configType;
           config.default_is_final = config.StackConfigurations.final === "true";
           config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
+          // Map from /dependencies to property_depended_by
+          config.StackConfigurations.property_depended_by = [];
+          if (config.dependencies && config.dependencies.length > 0) {
+            config.dependencies.forEach(function(dep) {
+              config.StackConfigurations.property_depended_by.push({
+                type : dep.StackConfigurationDependency.dependency_type,
+                name : dep.StackConfigurationDependency.dependency_name
+              })
+            });
+          }
           /**
            * merging stack info with that is stored on UI
            * for now is not used; uncomment in will be needed

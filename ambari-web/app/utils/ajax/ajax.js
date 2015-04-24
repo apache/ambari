@@ -635,7 +635,7 @@ var urls = {
   },
 
   'configs.stack_configs.load.services': {
-    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceList})&fields=configurations/*,StackServices/config_types/*',
+    'real': '{stackVersionUrl}/services?StackServices/service_name.in({serviceList})&fields=configurations/*,configurations/dependencies/*,StackServices/config_types/*',
     'mock': '/data/stacks/HDP-2.2/configurations.json'
   },
 

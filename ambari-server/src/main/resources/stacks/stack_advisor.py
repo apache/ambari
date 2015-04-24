@@ -747,8 +747,12 @@ class DefaultStackAdvisor(StackAdvisor):
           "name": config['StackConfigurations']['property_name']
         }
         if property in dependencies or property in changedConfigs:
-          for dependedConfig in config['StackConfigurations']['property_depended_by']:
-            if dependedConfig not in dependencies:
-              dependencies.append(dependedConfig)
+          for dependedConfig in config['dependencies']:
+            dependency = {
+              "name": dependedConfig["StackConfigurationDependency"]["dependency_name"],
+              "type": dependedConfig["StackConfigurationDependency"]["dependency_type"]
+            }
+            if dependency not in dependencies:
+              dependencies.append(dependency)
 
     return  dependencies

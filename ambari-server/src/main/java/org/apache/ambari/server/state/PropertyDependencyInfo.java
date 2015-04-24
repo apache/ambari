@@ -19,6 +19,8 @@
 package org.apache.ambari.server.state;
 
 
+import org.apache.ambari.server.controller.StackConfigurationDependencyResponse;
+
 public class PropertyDependencyInfo {
 
   private String type;
@@ -79,5 +81,10 @@ public class PropertyDependencyInfo {
         ", name='" + name + '\'' +
         '}';
   }
+
+  public StackConfigurationDependencyResponse convertToResponse() {
+    return new StackConfigurationDependencyResponse(getName(), getType());
+  }
+
 }
 

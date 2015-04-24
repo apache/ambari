@@ -95,6 +95,7 @@ public interface Resource {
     Repository,
     StackService,
     StackConfiguration,
+    StackConfigurationDependency,
     StackServiceComponent,
     StackServiceComponentDependency,
     DRFeed,
@@ -198,6 +199,7 @@ public interface Resource {
     public static final Type Repository = InternalType.Repository.getType();
     public static final Type StackService = InternalType.StackService.getType();
     public static final Type StackConfiguration = InternalType.StackConfiguration.getType();
+    public static final Type StackConfigurationDependency = InternalType.StackConfigurationDependency.getType();
     public static final Type StackServiceComponent = InternalType.StackServiceComponent.getType();
     public static final Type StackServiceComponentDependency = InternalType.StackServiceComponentDependency.getType();
     public static final Type DRFeed = InternalType.DRFeed.getType();

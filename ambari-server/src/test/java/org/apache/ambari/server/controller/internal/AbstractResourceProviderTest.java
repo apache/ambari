@@ -38,6 +38,7 @@ import org.apache.ambari.server.controller.MaintenanceStateHelper;
 import org.apache.ambari.server.controller.MemberRequest;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ServiceComponentHostRequest;
+import org.apache.ambari.server.controller.StackConfigurationDependencyRequest;
 import org.apache.ambari.server.controller.StackConfigurationRequest;
 import org.apache.ambari.server.controller.StackLevelConfigurationRequest;
 import org.apache.ambari.server.controller.TaskStatusRequest;
@@ -365,6 +366,13 @@ public class AbstractResourceProviderTest {
       return null;
     }
     
+    public static Set<StackConfigurationDependencyRequest> getStackConfigurationDependencyRequestSet(String stackName, String stackVersion,
+        String serviceName, String propertyName, String dependencyName)
+    {
+      EasyMock.reportMatcher(new StackConfigurationDependencyRequestSetMatcher(stackName, stackVersion, serviceName, propertyName, dependencyName));
+      return null;
+    }
+
     public static Set<StackLevelConfigurationRequest> getStackLevelConfigurationRequestSet(String stackName, String stackVersion,
         String propertyName)
     {
@@ -731,7 +739,48 @@ public class AbstractResourceProviderTest {
       stringBuffer.append("StackConfigurationRequestSetMatcher(").append(stackConfigurationRequest).append(")");
     }
   }
-  
+
+  /**
+   * Matcher for a StackConfigurationDependency set containing a single request.
+   */
+  public static class StackConfigurationDependencyRequestSetMatcher extends HashSet<StackConfigurationRequest> implements IArgumentMatcher {
+
+    private final StackConfigurationDependencyRequest stackConfigurationDependencyRequest;
+
+    public StackConfigurationDependencyRequestSetMatcher(String stackName, String stackVersion,
+        String serviceName, String propertyName, String dependencyName) {
+      this.stackConfigurationDependencyRequest = new StackConfigurationDependencyRequest(stackName, stackVersion, serviceName, propertyName, dependencyName);
+      add(this.stackConfigurationDependencyRequest);
+    }
+
+    @Override
+    public boolean matches(Object o) {
+
+      if (!(o instanceof Set)) {
+        return false;
+      }
+
+      Set set = (Set) o;
+
+      if (set.size() != 1) {
+        return false;
+      }
+
+      Object request = set.iterator().next();
+
+      return request instanceof StackConfigurationRequest &&
+          eq(((StackConfigurationRequest) request).getPropertyName(), stackConfigurationDependencyRequest.getPropertyName()) &&
+          eq(((StackConfigurationRequest) request).getServiceName(), stackConfigurationDependencyRequest.getServiceName()) &&
+          eq(((StackConfigurationRequest) request).getStackName(), stackConfigurationDependencyRequest.getStackName()) &&
+          eq(((StackConfigurationRequest) request).getStackVersion(), stackConfigurationDependencyRequest.getStackVersion());
+    }
+
+    @Override
+    public void appendTo(StringBuffer stringBuffer) {
+      stringBuffer.append("StackConfigurationRequestSetMatcher(").append(stackConfigurationDependencyRequest).append(")");
+    }
+  }
+
   public static class StackLevelConfigurationRequestSetMatcher extends HashSet<StackLevelConfigurationRequest> implements IArgumentMatcher {
 
     private final StackLevelConfigurationRequest stackLevelConfigurationRequest;

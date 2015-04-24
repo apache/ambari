@@ -65,6 +65,13 @@
     "StackService": "StackConfigurations/service_name",
     "StackConfiguration": "StackConfigurations/property_name"
   },
+  "StackConfigurationDependency": {
+    "Stack": "StackConfigurationDependency/stack_name",
+    "StackVersion": "StackConfigurationDependency/stack_version",
+    "StackService": "StackConfigurationDependency/service_name",
+    "StackConfiguration": "StackConfigurationDependency/property_name",
+    "StackConfigurationDependency": "StackConfigurationDependency/dependency_name"
+  },
   "StackServiceComponent": {
     "Stack": "StackServiceComponents/stack_name",
     "StackVersion": "StackServiceComponents/stack_version",

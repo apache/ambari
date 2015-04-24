@@ -16,40 +16,36 @@
  * limitations under the License.
  */
 
-
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.Resource.Type;
+import org.junit.Test;
 
-import java.util.HashSet;
 import java.util.Set;
 
-public class StackConfigurationResourceDefinition extends BaseResourceDefinition {
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-  public StackConfigurationResourceDefinition(Type resourceType) {
-    super(resourceType);
+/**
+ * StackConfigurationResourceDefinition unit tests.
+ */
+public class StackConfigurationDependencyDefinitionTest {
+
+  @Test
+  public void testGetPluralName() {
+    assertEquals("dependencies", new StackConfigurationDependencyResourceDefinition().getPluralName());
   }
 
-  public StackConfigurationResourceDefinition() {
-    super(Resource.Type.StackConfiguration);
+  @Test
+  public void testGetSingularName() {
+    assertEquals("dependency", new StackConfigurationDependencyResourceDefinition().getSingularName());
   }
 
-  @Override
-  public String getPluralName() {
-    return "configurations";
+  @Test
+  public void testGetSubResourceDefinitions() {
+    ResourceDefinition resource = new StackConfigurationDependencyResourceDefinition();
+    Set<SubResourceDefinition> subResources = resource.getSubResourceDefinitions();
+
+    assertTrue(subResources.isEmpty());
   }
 
-  @Override
-  public String getSingularName() {
-    return "configuration";
-  }
-
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
-    subs.add(new SubResourceDefinition(Resource.Type.StackConfigurationDependency));
-
-    return subs;
-  }
 }

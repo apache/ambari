@@ -126,6 +126,7 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.OperatingSystemInfo;
+import org.apache.ambari.server.state.PropertyDependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.PropertyInfo.PropertyType;
 import org.apache.ambari.server.state.RepositoryInfo;
@@ -2332,6 +2333,53 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     return ec;
   }
 
+  @Override
+  public Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(
+      Set<StackConfigurationDependencyRequest> requests) throws AmbariException {
+      Set<StackConfigurationDependencyResponse> response =
+        new HashSet<StackConfigurationDependencyResponse>();
+      for (StackConfigurationDependencyRequest request : requests) {
+
+        String stackName    = request.getStackName();
+        String stackVersion = request.getStackVersion();
+        String serviceName  = request.getServiceName();
+        String propertyName = request.getPropertyName();
+
+        Set<StackConfigurationDependencyResponse> stackConfigurations =
+          getStackConfigurationDependencies(request);
+
+        for (StackConfigurationDependencyResponse dependencyResponse : stackConfigurations) {
+          dependencyResponse.setStackName(stackName);
+          dependencyResponse.setStackVersion(stackVersion);
+          dependencyResponse.setServiceName(serviceName);
+          dependencyResponse.setPropertyName(propertyName);
+        }
+        response.addAll(stackConfigurations);
+      }
+
+      return response;  }
+
+  private Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(StackConfigurationDependencyRequest request) throws AmbariException {
+    Set<StackConfigurationDependencyResponse> response =
+      new HashSet<StackConfigurationDependencyResponse>();
+
+    String stackName = request.getStackName();
+    String stackVersion = request.getStackVersion();
+    String serviceName = request.getServiceName();
+    String propertyName = request.getPropertyName();
+    String dependencyName = request.getDependencyName();
+
+    Set<PropertyInfo> properties = ambariMetaInfo.getPropertiesByName(stackName, stackVersion, serviceName, propertyName);
+
+    for (PropertyInfo property: properties) {
+      for (PropertyDependencyInfo dependency: property.getDependedByProperties()) {
+        if (dependencyName == null || dependency.getName().equals(dependencyName)) {
+          response.add(dependency.convertToResponse());
+        }
+      }
+    }
+
+    return response;  }
 
   @Transactional
   void updateServiceStates(

@@ -75,7 +75,8 @@ public abstract class StackAdvisorCommand<T extends StackAdvisorResponse> extend
       + ",services/StackServices/service_name,services/StackServices/service_version"
       + ",services/components/StackServiceComponents,services/components/dependencies,services/components/auto_deploy"
       + ",services/configurations/StackConfigurations/property_depends_on"
-      + ",services/configurations/StackConfigurations/property_depended_by"
+      + ",services/configurations/dependencies/StackConfigurationDependency/dependency_name"
+      + ",services/configurations/dependencies/StackConfigurationDependency/dependency_type"
       + ",services/configurations/StackConfigurations/type"
       + "&services/StackServices/service_name.in(%s)";
   private static final String SERVICES_PROPERTY = "services";

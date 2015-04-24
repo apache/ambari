@@ -81,6 +81,7 @@ public class StackConfigurationResourceProviderTest {
     propertyIds.add(StackConfigurationResourceProvider.PROPERTY_DESCRIPTION_PROPERTY_ID);
     propertyIds.add(StackConfigurationResourceProvider.PROPERTY_TYPE_PROPERTY_ID);
     propertyIds.add(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
+    propertyIds.add(StackConfigurationResourceProvider.PROPERTY_DEPENDS_ON_PROPERTY_ID);
 
     // create the request
     Request request = PropertyHelper.getReadRequest(propertyIds);
@@ -100,11 +101,15 @@ public class StackConfigurationResourceProviderTest {
       String propertyIsFinal = (String)
           resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_FINAL_PROPERTY_ID);
       
+      String propertyDependencies = (String)
+          resource.getPropertyValue(StackConfigurationResourceProvider.PROPERTY_DEPENDS_ON_PROPERTY_ID);
+
       Assert.assertEquals(PROPERTY_NAME, propertyName);
       Assert.assertEquals(PROPERTY_VALUE, propertyValue);
       Assert.assertEquals(PROPERTY_DESC, propertyDesc);
       Assert.assertEquals(TYPE, propertyType);
       Assert.assertEquals("true", propertyIsFinal);
+      Assert.assertNull(propertyDependencies);
 
     }
 

@@ -219,7 +219,6 @@
         "StackConfigurations/property_value",
         "StackConfigurations/property_value_attributes",
         "StackConfigurations/property_depends_on",
-        "StackConfigurations/property_depended_by",
         "StackConfigurations/property_description",
         "StackConfigurations/property_display_name",
         "StackConfigurations/type",
@@ -441,11 +440,19 @@
         "StackLevelConfigurations/property_value",
         "StackLevelConfigurations/property_value_attributes",
         "StackLevelConfigurations/property_depends_on",
-        "StackLevelConfigurations/property_depended_by",
         "StackLevelConfigurations/property_description",
         "StackLevelConfigurations/type",
         "StackLevelConfigurations/final",
         "StackLevelConfigurations/property_type",
+        "_"
+    ],
+    "StackConfigurationDependency":[
+        "StackConfigurationDependency/stack_name",
+        "StackConfigurationDependency/stack_version",
+        "StackConfigurationDependency/service_name",
+        "StackConfigurationDependency/property_name",
+        "StackConfigurationDependency/dependency_type",
+        "StackConfigurationDependency/dependency_name",
         "_"
     ]
 }

@@ -60,9 +60,6 @@ public class StackLevelConfigurationResourceProvider extends
   public static final String DEPENDS_ON_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackLevelConfigurations", "property_depends_on");
 
-  public static final String DEPENDED_BY_PROPERTY_ID = PropertyHelper
-      .getPropertyId("StackLevelConfigurations", "property_depended_by");
-
   public static final String PROPERTY_DESCRIPTION_PROPERTY_ID = PropertyHelper
       .getPropertyId("StackLevelConfigurations", "property_description");
   
@@ -133,9 +130,6 @@ public class StackLevelConfigurationResourceProvider extends
 
       setResourceProperty(resource, DEPENDS_ON_PROPERTY_ID,
           response.getDependsOnProperties(), requestedIds);
-
-      setResourceProperty(resource, DEPENDED_BY_PROPERTY_ID,
-          response.getDependedByProperties(), requestedIds);
 
       setResourceProperty(resource, PROPERTY_DESCRIPTION_PROPERTY_ID,
           response.getPropertyDescription(), requestedIds);

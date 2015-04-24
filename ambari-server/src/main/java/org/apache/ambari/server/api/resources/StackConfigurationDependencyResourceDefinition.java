@@ -19,37 +19,26 @@
 
 package org.apache.ambari.server.api.resources;
 
-import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Resource.Type;
 
-import java.util.HashSet;
-import java.util.Set;
+public class StackConfigurationDependencyResourceDefinition extends BaseResourceDefinition {
 
-public class StackConfigurationResourceDefinition extends BaseResourceDefinition {
-
-  public StackConfigurationResourceDefinition(Type resourceType) {
+  public StackConfigurationDependencyResourceDefinition(Type resourceType) {
     super(resourceType);
   }
 
-  public StackConfigurationResourceDefinition() {
-    super(Resource.Type.StackConfiguration);
+  public StackConfigurationDependencyResourceDefinition() {
+    super(Type.StackConfigurationDependency);
   }
 
   @Override
   public String getPluralName() {
-    return "configurations";
+    return "dependencies";
   }
 
   @Override
   public String getSingularName() {
-    return "configuration";
+    return "dependency";
   }
 
-  @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
-    subs.add(new SubResourceDefinition(Resource.Type.StackConfigurationDependency));
-
-    return subs;
-  }
 }

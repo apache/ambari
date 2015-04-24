@@ -33,11 +33,10 @@ public class StackLevelConfigurationResponse extends StackConfigurationResponse 
       Boolean isRequired, Set<PropertyType> propertyTypes,
       Map<String, String> propertyAttributes,
       ValueAttributesInfo propertyValueAttributes,
-      Set<PropertyDependencyInfo> dependsOnProperties,
-      Set<PropertyDependencyInfo> dependedByProperties) {
+      Set<PropertyDependencyInfo> dependsOnProperties) {
     super(propertyName, propertyValue, propertyDescription, propertyDisplayName, type, isRequired,
         propertyTypes, propertyAttributes, propertyValueAttributes,
-        dependsOnProperties, dependedByProperties);
+        dependsOnProperties);
   }
   
   public StackLevelConfigurationResponse(String propertyName, String propertyValue, String propertyDescription,

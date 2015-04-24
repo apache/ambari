@@ -231,6 +231,19 @@ public class StacksService extends BaseService {
   }
 
   @GET
+  @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/configurations/{propertyName}/dependencies")
+  @Produces("text/plain")
+  public Response getStackConfigurationDependencies(String body, @Context HttpHeaders headers,
+                                        @Context UriInfo ui, @PathParam("stackName") String stackName,
+                                        @PathParam("stackVersion") String stackVersion,
+                                        @PathParam("serviceName") String serviceName,
+                                        @PathParam("propertyName") String propertyName) {
+
+    return handleRequest(headers, body, ui, Request.Type.GET,
+        createStackConfigurationDependencyResource(stackName, stackVersion, serviceName, propertyName));
+  }
+
+  @GET
   @Path("{stackName}/versions/{stackVersion}/services/{serviceName}/components")
   @Produces("text/plain")
   public Response getServiceComponents(String body,
@@ -365,6 +378,18 @@ public class StacksService extends BaseService {
     mapIds.put(Resource.Type.StackConfiguration, propertyName);
 
     return createResource(Resource.Type.StackConfiguration, mapIds);
+  }
+
+  ResourceInstance createStackConfigurationDependencyResource(String stackName,
+                                                              String stackVersion, String serviceName, String propertyName) {
+
+    Map<Resource.Type, String> mapIds = new HashMap<Resource.Type, String>();
+    mapIds.put(Resource.Type.Stack, stackName);
+    mapIds.put(Resource.Type.StackVersion, stackVersion);
+    mapIds.put(Resource.Type.StackService, serviceName);
+    mapIds.put(Resource.Type.StackConfiguration, propertyName);
+
+    return createResource(Resource.Type.StackConfigurationDependency, mapIds);
   }
 
   ResourceInstance createStackServiceResource(String stackName,

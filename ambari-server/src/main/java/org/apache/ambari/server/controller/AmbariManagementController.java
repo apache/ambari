@@ -775,5 +775,12 @@ public interface AmbariManagementController {
   public ExecutionCommand getExecutionCommand(Cluster cluster,
                                               ServiceComponentHost scHost,
                                               RoleCommand roleCommand) throws AmbariException;
+
+  /**
+   * Get configuration dependencies which are specific for a specific service configuration property
+   * @param requests
+   * @return
+   */
+  Set<StackConfigurationDependencyResponse> getStackConfigurationDependencies(Set<StackConfigurationDependencyRequest> requests) throws AmbariException;
 }
 

@@ -56,7 +56,6 @@ public class StackConfigurationResponse {
    * @param propertyAttributes Attributes map
    * @param propertyValueAttributes Value Attributes
    * @param dependsOnProperties depends on properties set
-   * @param dependedByProperties depended by properties set
    */
   public StackConfigurationResponse(String propertyName, String propertyValue,
                                     String propertyDescription, String propertyDisplayName, String type,
@@ -64,8 +63,7 @@ public class StackConfigurationResponse {
                                     Set<PropertyType> propertyTypes,
                                     Map<String, String> propertyAttributes,
                                     ValueAttributesInfo propertyValueAttributes,
-                                    Set<PropertyDependencyInfo> dependsOnProperties,
-                                    Set<PropertyDependencyInfo> dependedByProperties) {
+                                    Set<PropertyDependencyInfo> dependsOnProperties) {
     setPropertyName(propertyName);
     setPropertyValue(propertyValue);
     setPropertyDescription(propertyDescription);
@@ -76,7 +74,6 @@ public class StackConfigurationResponse {
     setPropertyAttributes(propertyAttributes);
     setPropertyValueAttributes(propertyValueAttributes);
     setDependsOnProperties(dependsOnProperties);
-    setDependedByProperties(dependedByProperties);
   }
 
   private String stackName;
@@ -90,7 +87,6 @@ public class StackConfigurationResponse {
   private Map<String, String> propertyAttributes;
   private ValueAttributesInfo propertyValueAttributes;
   private Set<PropertyDependencyInfo> dependsOnProperties;
-  private Set<PropertyDependencyInfo> dependedByProperties;
   private Boolean isRequired;
   private Set<PropertyType> propertyTypes;
 
@@ -214,24 +210,6 @@ public class StackConfigurationResponse {
    */
   public void setDependsOnProperties(Set<PropertyDependencyInfo> dependsOnProperties) {
     this.dependsOnProperties = dependsOnProperties;
-  }
-
-  /**
-   * Provides depended by properties of this configuration.
-   *
-   * @return depended by properties set
-   */
-  public Set<PropertyDependencyInfo> getDependedByProperties() {
-    return dependedByProperties;
-  }
-
-  /**
-   * Sets depended by properties set for this configuration.
-   *
-   * @param dependedByProperties
-   */
-  public void setDependedByProperties(Set<PropertyDependencyInfo> dependedByProperties) {
-    this.dependedByProperties = dependedByProperties;
   }
 
   /**
