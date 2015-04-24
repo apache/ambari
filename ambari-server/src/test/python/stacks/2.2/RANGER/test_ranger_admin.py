@@ -103,7 +103,8 @@ class TestRangerAdmin(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('Execute', 'mysql -u root --password=aa -h localhost  -s -e "select version();"',)
+    self.assertResourceCalled('Execute', 'mysql -u root --password=aa -h localhost  -s -e "select version();"',logoutput = True,
+                              environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
     )
@@ -131,7 +132,8 @@ class TestRangerAdmin(RMFTestCase):
     )
       
   def assert_configure_secured(self):
-    self.assertResourceCalled('Execute', 'mysql -u root --password=rootpassword -h localhost  -s -e "select version();"',)
+    self.assertResourceCalled('Execute', 'mysql -u root --password=rootpassword -h localhost  -s -e "select version();"',logoutput = True,
+                              environment = {})
     self.assertResourceCalled('File', '/tmp/mysql-connector-java.jar',
         content = DownloadSource('http://c6401.ambari.apache.org:8080/resources//mysql-jdbc-driver.jar'),
     )

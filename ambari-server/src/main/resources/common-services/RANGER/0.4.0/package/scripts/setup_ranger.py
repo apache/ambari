@@ -83,18 +83,21 @@ def check_db_connnection():
   import params
 
   Logger.info('Checking DB connection')
-
+  env_dict = {}
   if params.db_flavor.lower() == 'mysql':
     cmd = format('{sql_command_invoker} -u {db_root_user} --password={db_root_password} -h {db_host}  -s -e "select version();"')
   elif params.db_flavor.lower() == 'oracle':
     cmd = format('{sql_command_invoker} {db_root_user}/{db_root_password}@{db_host} AS SYSDBA')
+    env_dict = {'ORACLE_HOME':params.oracle_home, 'LD_LIBRARY_PATH':params.oracle_home}
   elif params.db_flavor.lower() == 'postgres':
     cmd = 'true'
   elif params.db_flavor.lower() == 'sqlserver':
     cmd = 'true'
 
   try:
-    Execute(cmd)
+    Execute(cmd,
+      environment=env_dict,
+      logoutput=True)
   except Fail as ex:
-    Logger.info(ex)
-    raise Fail('Ranger Admin installation Failed! Ranger requires DB client installed on Ranger Host, DB administrative privileges configured for connectivity from the Ranger Admin host to the configured DB host/instance and the DB server up and running on the DB host.')
+    Logger.error(str(ex))
+    raise Fail('Ranger Database connection check failed')
