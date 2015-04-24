@@ -102,7 +102,7 @@ def zookeeper(type = None, rolling_restart = False):
   )
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def zookeeper(type = None):
+def zookeeper(type = None, rolling_restart = False):
   import params
   configFile("zoo.cfg", template_name="zoo.cfg.j2", mode="f")
   configFile("configuration.xsl", template_name="configuration.xsl.j2", mode="f")

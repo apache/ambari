@@ -22,9 +22,15 @@ import os
 from status_params import *
 
 config = Script.get_config()
-hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
-hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
-hadoop_home = os.environ["HADOOP_HOME"]
+hadoop_conf_dir = None
+hbase_conf_dir = None
+hadoop_home = None
+try:
+  hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
+  hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
+  hadoop_home = os.environ["HADOOP_HOME"]
+except:
+  pass
 #directories & files
 dfs_name_dir = config['configurations']['hdfs-site']['dfs.namenode.name.dir']
 fs_checkpoint_dir = config['configurations']['hdfs-site']['dfs.namenode.checkpoint.dir']
