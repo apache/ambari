@@ -204,7 +204,7 @@ public class KerberosPrincipalHostDAO {
    * Tests the existence of a particular principal on a specific host
    *
    * @param principalName a String indicating the name of the principal to test
-   * @param hostId      a LOng indicating the id of the host to test
+   * @param hostId      a Long indicating the id of the host to test
    * @return true if the requested principal exists
    */
   @RequiresSession
