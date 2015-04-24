@@ -230,7 +230,7 @@ public class ServiceConfigVersionResourceProvider extends
       subResourceMap.put("type", config.getType());
       subResourceMap.put("tag", config.getVersionTag());
       subResourceMap.put("version", config.getVersion());
-      subResourceMap.put("properties", new TreeMap(config.getConfigs()));
+      subResourceMap.put("properties", new TreeMap<String, String>(config.getConfigs()));
       subResourceMap.put("properties_attributes", config.getConfigAttributes());
       result.add(subResourceMap);
     }

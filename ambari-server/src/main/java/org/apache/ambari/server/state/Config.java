@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public interface Config {
 
+  void setStackId(StackId stackId);
+
   /**
    * @return Config Type
    */

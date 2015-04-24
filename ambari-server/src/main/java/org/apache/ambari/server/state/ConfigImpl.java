@@ -47,15 +47,12 @@ public class ConfigImpl implements Config {
   private Map<String, String> properties;
   private Map<String, Map<String, String>> propertiesAttributes;
   private ClusterConfigEntity entity;
-
   @Inject
   private ClusterDAO clusterDAO;
   @Inject
   private Gson gson;
   @Inject
   private ServiceConfigDAO serviceConfigDAO;
-
-
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted String type, @Assisted Map<String, String> properties,
       @Assisted Map<String, Map<String, String>> propertiesAttributes, Injector injector) {
@@ -71,6 +68,7 @@ public class ConfigImpl implements Config {
     injector.injectMembers(this);
 
   }
+
 
   @AssistedInject
   public ConfigImpl(@Assisted Cluster cluster, @Assisted ClusterConfigEntity entity, Injector injector) {
@@ -97,8 +95,13 @@ public class ConfigImpl implements Config {
    * {@inheritDoc}
    */
   @Override
-  public StackId getStackId() {
+  public synchronized StackId getStackId() {
     return stackId;
+  }
+
+  @Override
+  public synchronized void setStackId(StackId stackId) {
+    this.stackId = stackId;
   }
 
   @Override

@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import javax.persistence.EntityManager;

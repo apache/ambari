@@ -406,6 +406,7 @@ public class ConfigGroupImpl implements ConfigGroup {
 
         if (clusterConfigEntity == null) {
           config.setVersion(cluster.getNextConfigVersion(config.getType()));
+          config.setStackId(cluster.getDesiredStackVersion());
           // Create configuration
           clusterConfigEntity = new ClusterConfigEntity();
           clusterConfigEntity.setClusterId(clusterEntity.getClusterId());
