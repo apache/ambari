@@ -152,21 +152,24 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
     var config = this.get('config'),
       options = this.get('options'),
       value = config.get('value'),
-      self = this;
-    if ('string' === Em.typeOf(value)) {
-      value = value.split(',');
-    }
-    options.invoke('setProperties', {isSelected: false, isDisabled: false});
-    var val = value.map(function (v) {
-      var option = options.findProperty('value', v.trim());
-      Em.assert('option with value `%@` is missing for config `%@`'.fmt(v, config.get('name')), option);
-      option.setProperties({
-        order: self.get('orderCounter'),
-        isSelected: true
+      self = this,
+      val = [];
+    if (value !== '') {
+      if ('string' === Em.typeOf(value)) {
+        value = value.split(',');
+      }
+      options.invoke('setProperties', {isSelected: false, isDisabled: false});
+      val = value.map(function (v) {
+        var option = options.findProperty('value', v.trim());
+        Em.assert('option with value `%@` is missing for config `%@`'.fmt(v, config.get('name')), option);
+        option.setProperties({
+          order: self.get('orderCounter'),
+          isSelected: true
+        });
+        self.incrementProperty('orderCounter');
+        return option;
       });
-      self.incrementProperty('orderCounter');
-      return option;
-    });
+    }
     this.set('val', val);
   },
 

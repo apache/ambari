@@ -116,6 +116,13 @@ describe('App.ListConfigWidgetView', function () {
       expect(view.get('val').length).to.equal(2);
     });
 
+    it('should set `val` empty if `value` is empty', function() {
+      view.set('val', [{}]);
+      view.set('config.value', '');
+      view.calculateInitVal();
+      expect(view.get('val')).to.eql([]);
+    });
+
   });
 
   describe('#calculateVal', function () {
