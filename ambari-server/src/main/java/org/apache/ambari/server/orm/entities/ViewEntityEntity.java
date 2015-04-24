@@ -39,8 +39,8 @@ import javax.persistence.TableGenerator;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "viewentity_id_seq"
     , initialValue = 1
-    , allocationSize = 50
-)public class ViewEntityEntity {
+)
+public class ViewEntityEntity {
 
   @Column(name = "id")
   @Id

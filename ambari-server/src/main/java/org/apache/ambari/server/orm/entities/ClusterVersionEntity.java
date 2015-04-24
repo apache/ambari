@@ -43,7 +43,6 @@ import org.apache.ambari.server.state.RepositoryVersionState;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "cluster_version_id_seq"
     , initialValue = 0
-    , allocationSize = 1
 )
 @NamedQueries({
     @NamedQuery(name = "clusterVersionByClusterAndStackAndVersion", query =

@@ -57,8 +57,7 @@ import com.google.inject.Provider;
     pkColumnName = "sequence_name",
     valueColumnName = "sequence_value",
     pkColumnValue = "repo_version_id_seq",
-    initialValue = 0,
-    allocationSize = 1
+    initialValue = 0
     )
 @NamedQueries({
     @NamedQuery(name = "repositoryVersionByDisplayName", query = "SELECT repoversion FROM RepositoryVersionEntity repoversion WHERE repoversion.displayName=:displayname"),

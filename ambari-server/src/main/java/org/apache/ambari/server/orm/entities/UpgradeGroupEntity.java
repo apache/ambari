@@ -39,7 +39,7 @@ import javax.persistence.TableGenerator;
 @Entity
 @TableGenerator(name = "upgrade_group_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
-    pkColumnValue = "upgrade_group_id_seq", initialValue = 0, allocationSize = 1)
+    pkColumnValue = "upgrade_group_id_seq", initialValue = 0)
 public class UpgradeGroupEntity {
 
   @Id

@@ -53,7 +53,6 @@ import org.apache.commons.lang.ArrayUtils;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "host_role_command_id_seq"
     , initialValue = 1
-    , allocationSize = 50
 )
 @NamedQueries({
     @NamedQuery(name = "HostRoleCommandEntity.findCountByCommandStatuses", query = "SELECT COUNT(command.taskId) FROM HostRoleCommandEntity command WHERE command.status IN :statuses"),

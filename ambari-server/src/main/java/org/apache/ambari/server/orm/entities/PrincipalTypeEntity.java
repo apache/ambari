@@ -29,7 +29,6 @@ import javax.persistence.*;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "principal_type_id_seq"
     , initialValue = 3
-    , allocationSize = 1
 )
 public class PrincipalTypeEntity {
 

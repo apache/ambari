@@ -78,7 +78,6 @@ import org.apache.ambari.view.validation.ValidationResult;
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "view_instance_id_seq"
   , initialValue = 1
-  , allocationSize = 1
 )
 @Entity
 public class ViewInstanceEntity implements ViewInstanceDefinition {

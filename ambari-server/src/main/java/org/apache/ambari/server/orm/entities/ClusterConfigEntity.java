@@ -47,7 +47,6 @@ import javax.persistence.UniqueConstraint;
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "config_id_seq"
   , initialValue = 1
-  , allocationSize = 1
 )
 @NamedQueries({ @NamedQuery(name = "ClusterConfigEntity.findNextConfigVersion", query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId") })
 public class ClusterConfigEntity {

@@ -29,7 +29,6 @@ import javax.persistence.*;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "resource_type_id_seq"
     , initialValue = 4
-    , allocationSize = 1
 )
 public class ResourceTypeEntity {
 

@@ -42,7 +42,7 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 @Entity
 @TableGenerator(name = "upgrade_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
-    pkColumnValue = "upgrade_id_seq", initialValue = 0, allocationSize = 1)
+    pkColumnValue = "upgrade_id_seq", initialValue = 0)
 @NamedQueries({
   @NamedQuery(name = "UpgradeEntity.findAllForCluster",
       query = "SELECT u FROM UpgradeEntity u WHERE u.clusterId = :clusterId"),

@@ -39,7 +39,7 @@ import org.apache.ambari.server.state.UpgradeState;
 @Entity
 @TableGenerator(name = "upgrade_item_id_generator",
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value",
-    pkColumnValue = "upgrade_item_id_seq", initialValue = 0, allocationSize = 1)
+    pkColumnValue = "upgrade_item_id_seq", initialValue = 0)
 public class UpgradeItemEntity {
 
   @Id

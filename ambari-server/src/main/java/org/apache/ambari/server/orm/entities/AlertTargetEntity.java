@@ -56,7 +56,7 @@ import com.google.common.collect.ImmutableSet;
  */
 @Entity
 @Table(name = "alert_target")
-@TableGenerator(name = "alert_target_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_target_id_seq", initialValue = 0, allocationSize = 1)
+@TableGenerator(name = "alert_target_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "alert_target_id_seq", initialValue = 0)
 @NamedQueries({
     @NamedQuery(name = "AlertTargetEntity.findAll", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget"),
     @NamedQuery(name = "AlertTargetEntity.findAllGlobal", query = "SELECT alertTarget FROM AlertTargetEntity alertTarget WHERE alertTarget.isGlobal = 1"),

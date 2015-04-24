@@ -42,8 +42,7 @@ import javax.persistence.UniqueConstraint;
     pkColumnName = "sequence_name",
     valueColumnName = "sequence_value",
     pkColumnValue = "group_id_seq",
-    initialValue = 1,
-    allocationSize = 1
+    initialValue = 1
     )
 @NamedQueries({
   @NamedQuery(name = "groupByName", query = "SELECT group_entity FROM GroupEntity group_entity where lower(group_entity.groupName)=:groupname")

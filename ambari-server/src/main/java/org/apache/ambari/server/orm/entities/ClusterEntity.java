@@ -65,7 +65,6 @@ import org.apache.ambari.server.state.State;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "cluster_id_seq"
     , initialValue = 1
-    , allocationSize = 1
 )
 public class ClusterEntity {
 

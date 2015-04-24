@@ -46,7 +46,6 @@ import java.util.List;
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "requestschedule_id_seq"
   , initialValue = 1
-  , allocationSize = 1
 )
 public class RequestScheduleEntity {
 

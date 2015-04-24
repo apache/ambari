@@ -39,8 +39,7 @@ import java.util.List;
         pkColumnName = "sequence_name",
         valueColumnName = "sequence_value",
         pkColumnValue = "widget_id_seq",
-        initialValue = 0,
-        allocationSize = 1
+        initialValue = 0
 )
 @NamedQueries({
     @NamedQuery(name = "WidgetEntity.findAll", query = "SELECT widget FROM WidgetEntity widget"),

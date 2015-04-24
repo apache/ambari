@@ -36,7 +36,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(name = "stack", uniqueConstraints = @UniqueConstraint(columnNames = {
     "stack_name", "stack_version" }))
-@TableGenerator(name = "stack_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "stack_id_seq", initialValue = 0, allocationSize = 1)
+@TableGenerator(name = "stack_id_generator", table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value", pkColumnValue = "stack_id_seq", initialValue = 0)
 @NamedQueries({
     @NamedQuery(name = "StackEntity.findAll", query = "SELECT stack FROM StackEntity stack"),
     @NamedQuery(name = "StackEntity.findByNameAndVersion", query = "SELECT stack FROM StackEntity stack WHERE stack.stackName = :stackName AND stack.stackVersion = :stackVersion") })

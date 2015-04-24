@@ -39,7 +39,6 @@ import javax.persistence.TableGenerator;
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "operation_level_id_seq"
   , initialValue = 1
-  , allocationSize = 1
 )
 public class RequestOperationLevelEntity {
 

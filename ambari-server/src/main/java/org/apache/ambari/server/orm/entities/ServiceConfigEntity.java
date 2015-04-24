@@ -44,7 +44,6 @@ import javax.persistence.TableGenerator;
   table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
   , pkColumnValue = "service_config_id_seq"
   , initialValue = 1
-  , allocationSize = 1
 )
 @NamedQueries({ @NamedQuery(name = "ServiceConfigEntity.findNextServiceConfigVersion", query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId") })
 public class ServiceConfigEntity {

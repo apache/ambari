@@ -47,7 +47,6 @@ import javax.persistence.TableGenerator;
     table = "ambari_sequences", pkColumnName = "sequence_name", valueColumnName = "sequence_value"
     , pkColumnValue = "host_id_seq"
     , initialValue = 0
-    , allocationSize = 1
 )
 @NamedQueries({
     @NamedQuery(name = "HostEntity.findByHostName", query = "SELECT host FROM HostEntity host WHERE host.hostName = :hostName"),
