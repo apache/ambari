@@ -50,7 +50,7 @@ def pre_upgrade_deregister():
     raise Fail('Unable to determine the current HiveServer2 version to deregister.')
 
   # deregister
-  command = 'hive --service hiveserver2 --deregister ' + current_hiveserver_version
+  command = format('hive --config {hive_server_conf_dir} --service hiveserver2 --deregister ' + current_hiveserver_version)
   Execute(command, user=params.hive_user, path=params.execute_path, tries=1 )
 
 
