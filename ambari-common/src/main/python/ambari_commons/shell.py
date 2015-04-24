@@ -76,9 +76,8 @@ class shellRunnerWindows(shellRunner):
   def run(self, script, user=None):
     logger.warn("user argument ignored on windows")
     code = 0
-    if not isinstance(script, list):
-      cmd = " "
-      cmd = cmd.join(script)
+    if isinstance(script, list):
+      cmd = " ".join(script)
     else:
       cmd = script
     p = subprocess.Popen(cmd, stdout=subprocess.PIPE,

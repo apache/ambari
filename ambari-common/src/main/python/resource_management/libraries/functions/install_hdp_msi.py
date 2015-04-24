@@ -178,7 +178,10 @@ def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_ver
       hdp_22_specific_props = hdp_22.format(hdp_data_dir=hdp_data_dir)
 
     # install msi
-    download_file(msi_url, os.path.join(msi_save_dir, save_file))
+    try:
+      download_file(msi_url, os.path.join(msi_save_dir, save_file))
+    except:
+      raise Fail("Failed to download {url}".format(url=msi_url))
     File(os.path.join(msi_save_dir, "properties.txt"), content=cluster_properties.format(hdp_log_dir=hdp_log_dir,
                                                                                          hdp_data_dir=hdp_data_dir,
                                                                                          local_host=local_host,

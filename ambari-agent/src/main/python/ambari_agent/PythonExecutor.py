@@ -112,8 +112,11 @@ class PythonExecutor:
     Log some useful information after task failure.
     """
     logger.info("Command " + pprint.pformat(pythonCommand) + " failed with exitcode=" + str(result['exitcode']))
-    cmd_list = ["ps faux", "netstat -tulpn"]
-    
+    if OSCheck.is_windows_family():
+      cmd_list = ["WMIC path win32_process get Caption,Processid,Commandline", "netstat -an"]
+    else:
+      cmd_list = ["ps faux", "netstat -tulpn"]
+
     shell_runner = shellRunner()
     
     for cmd in cmd_list:
