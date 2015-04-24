@@ -185,27 +185,50 @@ public class ConfigImpl implements Config {
   }
 
   @Override
+  public void persist() {
+    persist(true);
+  }
+
+  @Override
   @Transactional
-  public synchronized void persist() {
+  public synchronized void persist(boolean newConfig) {
     ClusterEntity clusterEntity = clusterDAO.findById(cluster.getClusterId());
 
-    ClusterConfigEntity entity = new ClusterConfigEntity();
-    entity.setClusterEntity(clusterEntity);
-    entity.setClusterId(cluster.getClusterId());
-    entity.setType(getType());
-    entity.setVersion(getVersion());
-    entity.setTag(getTag());
-    entity.setTimestamp(new Date().getTime());
-    entity.setStack(clusterEntity.getDesiredStack());
+    if (newConfig) {
+      ClusterConfigEntity entity = new ClusterConfigEntity();
+      entity.setClusterEntity(clusterEntity);
+      entity.setClusterId(cluster.getClusterId());
+      entity.setType(getType());
+      entity.setVersion(getVersion());
+      entity.setTag(getTag());
+      entity.setTimestamp(new Date().getTime());
+      entity.setStack(clusterEntity.getDesiredStack());
+      entity.setData(gson.toJson(getProperties()));
+      if (null != getPropertiesAttributes()) {
+        entity.setAttributes(gson.toJson(getPropertiesAttributes()));
+      }
 
-    entity.setData(gson.toJson(getProperties()));
-    if (null != getPropertiesAttributes()) {
-      entity.setAttributes(gson.toJson(getPropertiesAttributes()));
+      clusterDAO.createConfig(entity);
+
+      clusterEntity.getClusterConfigEntities().add(entity);
+    } else {
+      // only supporting changes to the properties
+      ClusterConfigEntity entity = null;
+      for (ClusterConfigEntity cfe : clusterEntity.getClusterConfigEntities()) {
+        if (getTag().equals(cfe.getTag()) &&
+            getType().equals(cfe.getType()) &&
+            getVersion().equals(cfe.getVersion())) {
+          entity = cfe;
+          break;
+        }
+
+      }
+
+      if (null != entity) {
+        entity.setData(gson.toJson(getProperties()));
+      }
     }
 
-    clusterDAO.createConfig(entity);
-
-    clusterEntity.getClusterConfigEntities().add(entity);
     clusterDAO.merge(clusterEntity);
     cluster.refresh();
   }

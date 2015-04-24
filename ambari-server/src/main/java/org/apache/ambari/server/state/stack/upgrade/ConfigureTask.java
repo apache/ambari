@@ -218,8 +218,11 @@ public class ConfigureTask extends ServerSideActionTask {
 
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
-    Config config = cluster.getConfig(configType, desiredConfig.getTag());
+    if (null == desiredConfig) {
+      return null;
+    }
 
+    Config config = cluster.getConfig(configType, desiredConfig.getTag());
     if (null == config) {
       return null;
     }

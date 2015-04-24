@@ -107,4 +107,10 @@ public interface Config {
    * Persist the configuration.
    */
   public void persist();
+
+  /**
+   * Persist the configuration, optionally creating a new config entity.
+   */
+  public void persist(boolean newConfig);
+
 }

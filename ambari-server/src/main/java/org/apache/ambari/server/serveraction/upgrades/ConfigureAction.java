@@ -35,6 +35,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 
 import com.google.inject.Inject;
@@ -72,6 +73,45 @@ public class ConfigureAction extends AbstractServerAction {
   private Configuration configuration;
 
   /**
+   * Aside from the normal execution, this method performs the following logic, with
+   * the stack values set in the table below:
+   * <p>
+   * <table>
+   *  <tr>
+   *    <th>Upgrade Path</th>
+   *    <th>direction</th>
+   *    <th>Stack Actual</th>
+   *    <th>Stack Desired</th>
+   *    <th>Config Stack</th>
+   *    <th>Action</th>
+   *  </tr>
+   *  <tr>
+   *    <td>2.2.x -> 2.2.y</td>
+   *    <td>upgrade or downgrade</td>
+   *    <td>2.2</td>
+   *    <td>2.2</td>
+   *    <td>2.2</td>
+   *    <td>if value has changed, create a new config object with new value</td>
+   *  </tr>
+   *  <tr>
+   *    <td>2.2 -> 2.3</td>
+   *    <td>upgrade</td>
+   *    <td>2.2</td>
+   *    <td>2.3: set before action is executed</td>
+   *    <td>2.3: set before action is executed</td>
+   *    <td>new configs are already created; just update with new properties</td>
+   *  </tr>
+   *  <tr>
+   *    <td>2.3 -> 2.2</td>
+   *    <td>downgrade</td>
+   *    <td>2.2</td>
+   *    <td>2.2: set before action is executed</td>
+   *    <td>2.2</td>
+   *    <td>configs are already managed, results are the same as 2.2.x -> 2.2.y</td>
+   *  </tr>
+   * </table>
+   * </p>
+   *
    * {@inheritDoc}
    */
   @Override
@@ -108,14 +148,44 @@ public class ConfigureAction extends AbstractServerAction {
     }
 
     Cluster cluster = m_clusters.getCluster(clusterName);
+
     Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
     DesiredConfig desiredConfig = desiredConfigs.get(configType);
     Config config = cluster.getConfig(configType, desiredConfig.getTag());
+
+    StackId currentStack = cluster.getCurrentStackVersion();
+    StackId targetStack = cluster.getDesiredStackVersion();
+    StackId configStack = config.getStackId();
+
+    String oldValue = config.getProperties().get(key);
+    // !!! values are not changing, so make this a no-op
+    if (null != oldValue && value.equals(oldValue)) {
+      if (currentStack.equals(targetStack)) {
+        return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
+            MessageFormat.format("{0}/{1} for cluster {2} would not change, skipping setting",
+                configType, key, clusterName),
+            "");
+      }
+    }
 
     Map<String, String> propertiesToChange = new HashMap<String, String>();
     propertiesToChange.put(key, value);
     config.updateProperties(propertiesToChange);
 
+    // !!! check to see if we're going to a new stack and double check the
+    // configs are for the target.  Then simply update the new properties instead
+    // of creating a whole new history record since it was already done
+    if (!targetStack.equals(currentStack) && targetStack.equals(configStack)) {
+      config.persist(false);
+
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
+          MessageFormat.format("Updated ''{0}'' with ''{1}={2}''",
+              configType, key, value),
+          "");
+    }
+
+    // !!! values are different and within the same stack.  create a new
+    // config and service config version
     String serviceVersionNote = "Stack Upgrade";
 
     String auditName = getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);
