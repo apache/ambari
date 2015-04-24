@@ -72,6 +72,8 @@ import com.google.inject.util.Modules;
  */
 public class UpgradeHelperTest {
 
+  private static final StackId HDP_21 = new StackId("HPD-2.1.1");
+  private static final StackId HDP_22 = new StackId("HPD-2.2.0");
   private static final String UPGRADE_VERSION = "2.2.1.0-1234";
   private static final String DOWNGRADE_VERSION = "2.2.0.0-1234";
 
@@ -135,8 +137,8 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -204,8 +206,8 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -253,8 +255,8 @@ public class UpgradeHelperTest {
     assertEquals(1, schs.size());
     assertEquals(HostState.HEARTBEAT_LOST, schs.get(0).getHostState());
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -289,8 +291,8 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        DOWNGRADE_VERSION, Direction.DOWNGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, DOWNGRADE_VERSION, Direction.DOWNGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -329,8 +331,8 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -349,8 +351,8 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -378,8 +380,8 @@ public class UpgradeHelperTest {
 
     Cluster cluster = makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade,
         context);
@@ -461,8 +463,8 @@ public class UpgradeHelperTest {
       numServiceChecksExpected++;
     }
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        UPGRADE_VERSION, Direction.UPGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_22, UPGRADE_VERSION, Direction.UPGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 
@@ -505,8 +507,8 @@ public class UpgradeHelperTest {
 
     makeCluster();
 
-    UpgradeContext context = new UpgradeContext(m_masterHostResolver,
-        DOWNGRADE_VERSION, Direction.DOWNGRADE);
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21,
+        HDP_21, DOWNGRADE_VERSION, Direction.DOWNGRADE);
 
     List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
 

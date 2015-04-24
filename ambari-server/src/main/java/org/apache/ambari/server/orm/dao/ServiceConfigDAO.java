@@ -32,6 +32,8 @@ import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -42,6 +44,9 @@ import com.google.inject.persist.Transactional;
 public class ServiceConfigDAO {
   @Inject
   private Provider<EntityManager> entityManagerProvider;
+
+  @Inject
+  private StackDAO stackDAO;
 
   @Inject
   private DaoUtils daoUtils;
@@ -108,6 +113,60 @@ public class ServiceConfigDAO {
         ServiceConfigEntity.class);
 
     return daoUtils.selectList(query, clusterId);
+  }
+
+  /**
+   * Get all service configurations for the specified cluster and stack. This
+   * will return different versions of the same configuration (HDFS v1 and v2)
+   * if they exist.
+   *
+   * @param clusterId
+   *          the cluster (not {@code null}).
+   * @param stackId
+   *          the stack (not {@code null}).
+   * @return all service configurations for the cluster and stack.
+   */
+  @RequiresSession
+  public List<ServiceConfigEntity> getAllServiceConfigs(Long clusterId,
+      StackId stackId) {
+
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ServiceConfigEntity.findAllServiceConfigsByStack",
+        ServiceConfigEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stack", stackEntity);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the latest service configurations for the specified cluster and stack.
+   *
+   * @param clusterId
+   *          the cluster (not {@code null}).
+   * @param stackId
+   *          the stack (not {@code null}).
+   * @return the latest service configurations for the cluster and stack.
+   */
+  @RequiresSession
+  public List<ServiceConfigEntity> getLatestServiceConfigs(Long clusterId,
+      StackId stackId) {
+
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ServiceConfigEntity.findLatestServiceConfigsByStack",
+        ServiceConfigEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stack", stackEntity);
+
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession

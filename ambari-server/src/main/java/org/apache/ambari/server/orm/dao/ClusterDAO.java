@@ -30,7 +30,10 @@ import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ClusterConfigEntity;
+import org.apache.ambari.server.orm.entities.ClusterConfigMappingEntity;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -41,9 +44,13 @@ import com.google.inject.persist.Transactional;
 public class ClusterDAO {
 
   @Inject
-  Provider<EntityManager> entityManagerProvider;
+  private Provider<EntityManager> entityManagerProvider;
+
   @Inject
-  DaoUtils daoUtils;
+  private DaoUtils daoUtils;
+
+  @Inject
+  private StackDAO stackDAO;
 
   /**
    * Looks for Cluster by ID
@@ -143,6 +150,58 @@ public class ClusterDAO {
   }
 
   /**
+   * Get all configurations for the specified cluster and stack. This will
+   * return different versions of the same configuration type (cluster-env v1
+   * and cluster-env v2) if they exist.
+   *
+   * @param clusterId
+   *          the cluster (not {@code null}).
+   * @param stackId
+   *          the stack (not {@code null}).
+   * @return all service configurations for the cluster and stack.
+   */
+  @RequiresSession
+  public List<ClusterConfigEntity> getAllConfigurations(Long clusterId,
+      StackId stackId) {
+
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findAllConfigsByStack", ClusterConfigEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stack", stackEntity);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
+   * Gets the latest configurations for a given stack for all of the
+   * configurations of the specified cluster.
+   *
+   * @param clusterId
+   *          the cluster that the service is a part of.
+   * @param stackId
+   *          the stack to get the latest configurations for (not {@code null}).
+   * @return the latest configurations for the specified cluster and stack.
+   */
+  public List<ClusterConfigEntity> getLatestConfigurations(long clusterId,
+      StackId stackId) {
+    StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
+        stackId.getStackVersion());
+
+    TypedQuery<ClusterConfigEntity> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findLatestConfigsByStack",
+        ClusterConfigEntity.class);
+
+    query.setParameter("clusterId", clusterId);
+    query.setParameter("stack", stackEntity);
+
+    return daoUtils.selectList(query);
+  }
+
+  /**
    * Create Cluster entity in Database
    * @param clusterEntity entity to create
    */
@@ -168,8 +227,18 @@ public class ClusterDAO {
   }
 
   /**
+   * Remove a cluster configuration mapping from the DB.
+   */
+  @Transactional
+  public void removeConfigMapping(ClusterConfigMappingEntity entity) {
+    entityManagerProvider.get().remove(entity);
+  }
+
+  /**
    * Retrieve entity data from DB
-   * @param clusterEntity entity to refresh
+   * 
+   * @param clusterEntity
+   *          entity to refresh
    */
   @Transactional
   public void refresh(ClusterEntity clusterEntity) {

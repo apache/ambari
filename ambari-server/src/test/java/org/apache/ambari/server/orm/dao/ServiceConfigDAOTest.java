@@ -31,6 +31,7 @@ import org.apache.ambari.server.orm.entities.ResourceEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.state.StackId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,6 +41,9 @@ import com.google.inject.Injector;
 import com.google.inject.persist.PersistService;
 
 public class ServiceConfigDAOTest {
+  private static final StackId HDP_01 = new StackId("HDP", "0.1");
+  private static final StackId HDP_02 = new StackId("HDP", "0.2");
+
   private Injector injector;
   private ServiceConfigDAO serviceConfigDAO;
   private ClusterDAO clusterDAO;
@@ -79,13 +83,14 @@ public class ServiceConfigDAOTest {
       resourceTypeEntity = resourceTypeDAO.merge(resourceTypeEntity);
     }
 
-    StackEntity stackEntity = stackDAO.find("HDP", "0.1");
-
     ResourceEntity resourceEntity = new ResourceEntity();
     resourceEntity.setResourceType(resourceTypeEntity);
 
     ClusterEntity  clusterEntity = clusterDAO.findByName("c1");
     if (clusterEntity == null) {
+      StackEntity stackEntity = stackDAO.find(HDP_01.getStackName(),
+          HDP_01.getStackVersion());
+
       clusterEntity = new ClusterEntity();
       clusterEntity.setClusterName("c1");
       clusterEntity.setResource(resourceEntity);
@@ -283,4 +288,49 @@ public class ServiceConfigDAOTest {
     }
   }
 
+  @Test
+  public void testGetAllServiceConfigs() throws Exception {
+    ServiceConfigEntity serviceConfigEntity = null;
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 1L, 1L, 10L, null);
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 2L, 2L, 20L, null);
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 3L, 3L, 30L, null);
+    serviceConfigEntity = createServiceConfig("YARN", "admin", 1L, 4L, 40L, null);
+
+    long clusterId = serviceConfigEntity.getClusterId();
+
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigs(clusterId, HDP_01);
+    Assert.assertEquals(4, serviceConfigs.size());
+
+    serviceConfigs = serviceConfigDAO.getAllServiceConfigs(clusterId, HDP_02);
+    Assert.assertEquals(0, serviceConfigs.size());
+  }
+
+  @Test
+  public void testGetLatestServiceConfigs() throws Exception {
+    ServiceConfigEntity serviceConfigEntity = null;
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 1L, 1L, 10L, null);
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 2L, 2L, 20L, null);
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 3L, 3L, 30L, null);
+    serviceConfigEntity = createServiceConfig("YARN", "admin", 1L, 4L, 40L, null);
+
+    StackEntity stackEntity = stackDAO.find(HDP_02.getStackName(),
+        HDP_02.getStackVersion());
+
+    ClusterEntity clusterEntity = serviceConfigEntity.getClusterEntity();
+    clusterEntity.setDesiredStack(stackEntity);
+    clusterDAO.merge(clusterEntity);
+
+    // create some for HDP 0.2
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 4L, 5L, 50L, null);
+    serviceConfigEntity = createServiceConfig("HDFS", "admin", 5L, 6L, 60L, null);
+    serviceConfigEntity = createServiceConfig("YARN", "admin", 2L, 7L, 70L, null);
+
+    long clusterId = serviceConfigEntity.getClusterId();
+
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getLatestServiceConfigs(clusterId, HDP_01);
+    Assert.assertEquals(2, serviceConfigs.size());
+
+    serviceConfigs = serviceConfigDAO.getLatestServiceConfigs(clusterId, HDP_02);
+    Assert.assertEquals(2, serviceConfigs.size());
+  }
 }

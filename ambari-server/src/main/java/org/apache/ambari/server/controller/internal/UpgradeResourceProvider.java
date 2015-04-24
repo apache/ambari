@@ -142,6 +142,20 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   private static final String COMMAND_PARAM_TASKS = "tasks";
   private static final String COMMAND_PARAM_STRUCT_OUT = "structured_out";
 
+  /**
+   * The original "current" stack of the cluster before the upgrade started.
+   * This is the same regardless of whether the current direction is
+   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
+   */
+  private static final String COMMAND_PARAM_ORIGINAL_STACK = "original_stack";
+
+  /**
+   * The target upgrade stack before the upgrade started. This is the same
+   * regardless of whether the current direction is {@link Direction#UPGRADE} or
+   * {@link Direction#DOWNGRADE}.
+   */
+  private static final String COMMAND_PARAM_TARGET_STACK = "target_stack";
+
   private static final String DEFAULT_REASON_TEMPLATE = "Aborting upgrade %s";
 
   private static final Map<Resource.Type, String> KEY_PROPERTY_IDS = new HashMap<Resource.Type, String>();
@@ -514,10 +528,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     // the version being upgraded or downgraded to (ie hdp-2.2.1.0-1234)
     final String version = (String) requestMap.get(UPGRADE_VERSION);
 
-    MasterHostResolver resolver = direction.isUpgrade() ?
-        new MasterHostResolver(configHelper, cluster) : new MasterHostResolver(configHelper, cluster, version);
+    MasterHostResolver resolver = direction.isUpgrade() ? new MasterHostResolver(
+        configHelper, cluster) : new MasterHostResolver(configHelper, cluster,
+        version);
 
-    UpgradeContext ctx = new UpgradeContext(resolver, version, direction);
+    StackId sourceStackId = null;
+    StackId targetStackId = null;
+
+    switch( direction ){
+      case UPGRADE:
+        sourceStackId = cluster.getCurrentStackVersion();
+
+        RepositoryVersionEntity targetRepositoryVersion = s_repoVersionDAO.findMaxByVersion(version);
+        targetStackId = targetRepositoryVersion.getStackId();
+        break;
+      case DOWNGRADE:
+        sourceStackId = cluster.getCurrentStackVersion();
+        targetStackId = cluster.getDesiredStackVersion();
+        break;
+    }
+
+    UpgradeContext ctx = new UpgradeContext(resolver, sourceStackId, targetStackId, version, direction);
 
     List<UpgradeGroupHolder> groups = s_upgradeHelper.createSequence(pack, ctx);
 
@@ -571,9 +602,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
 
       groupEntity.setItems(itemEntities);
-
       groupEntities.add(groupEntity);
-
     }
 
     UpgradeEntity entity = new UpgradeEntity();
@@ -588,7 +617,7 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     entity.setRequestId(req.getId());
 
     // !!! in case persist() starts creating tasks right away, square away the configs
-    createConfigs(cluster, version, direction);
+    processConfigurations(cluster, version, direction);
 
     req.persist();
 
@@ -598,13 +627,31 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
   }
 
   /**
-   * Merges and creates configs for the new stack.  No-op when the target stack version
-   * is the same as the cluster's current stack version.
-   * @param cluster the cluster
-   * @param version the version
+   * Handles the creation or resetting of configurations based on whether an
+   * upgrade or downgrade is occurring. This method will not do anything when
+   * the target stack version is the same as the cluster's current stack version
+   * since, by definition, no new configurations are automatically created when
+   * upgrading with the same stack (ie HDP 2.2.0.0 -> HDP 2.2.1.0).
+   * <p/>
+   * When upgrading or downgrade between stacks (HDP 2.2.0.0 -> HDP 2.3.0.0)
+   * then this will perform the following:
+   * <ul>
+   * <li>Upgrade: Create new configurations that are a merge between the current
+   * stack and the desired stack.</li>
+   * <li>Downgrade: Reset the latest configurations from the cluster's original
+   * stack. The new configurations that were created on upgrade must be left
+   * intact until all components have been reverted, otherwise heartbeats will
+   * fail due to missing configurations.</li>
+   * </ul>
+   *
+   *
+   * @param cluster
+   *          the cluster
+   * @param version
+   *          the version
    * @throws AmbariException
    */
-  private void createConfigs(Cluster cluster, String version, Direction direction) throws AmbariException {
+  private void processConfigurations(Cluster cluster, String version, Direction direction) throws AmbariException {
     RepositoryVersionEntity targetRve = s_repoVersionDAO.findMaxByVersion(version);
     if (null == targetRve) {
       LOG.info("Could not find version entity for {}; not setting new configs",
@@ -612,24 +659,37 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       return;
     }
 
-    StackEntity oldStack = cluster.getCurrentClusterVersion().getRepositoryVersion().getStack();
-    StackEntity newStack = targetRve.getStack();
-
-    if (oldStack.equals(newStack)) {
-      return;
+    // if the current and target stacks are the same (ie HDP 2.2.0.0 -> 2.2.1.0)
+    // then we should never do anything with configs on either upgrade or
+    // downgrade; however if we are going across stacks, we have to do the stack
+    // checks differently depending on whether this is an upgrade or downgrade
+    StackEntity targetStack = targetRve.getStack();
+    StackId currentStackId = cluster.getCurrentStackVersion();
+    StackId desiredStackId = cluster.getDesiredStackVersion();
+    StackId targetStackId = new StackId(targetStack);
+    switch (direction) {
+      case UPGRADE:
+        if (currentStackId.equals(targetStackId)) {
+          return;
+        }
+        break;
+      case DOWNGRADE:
+        if (desiredStackId.equals(targetStackId)) {
+          return;
+        }
+        break;
     }
 
-    ConfigHelper configHelper = getManagementController().getConfigHelper();
 
     Map<String, Map<String, String>> clusterConfigs = null;
+    ConfigHelper configHelper = getManagementController().getConfigHelper();
 
     if (direction == Direction.UPGRADE) {
-
       clusterConfigs = new HashMap<String, Map<String, String>>();
 
       // !!! stack
-      Set<org.apache.ambari.server.state.PropertyInfo> pi = s_metaProvider.get().getStackProperties(newStack.getStackName(),
-          newStack.getStackVersion());
+      Set<org.apache.ambari.server.state.PropertyInfo> pi = s_metaProvider.get().getStackProperties(
+          targetStack.getStackName(), targetStack.getStackVersion());
 
       for (PropertyInfo stackProperty : pi) {
         String type = ConfigHelper.fileNameToConfigType(stackProperty.getFilename());
@@ -644,8 +704,9 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
       // !!! by service
       for (String serviceName : cluster.getServices().keySet()) {
-        pi = s_metaProvider.get().getServiceProperties(newStack.getStackName(),
-            newStack.getStackVersion(), serviceName);
+        pi = s_metaProvider.get().getServiceProperties(
+            targetStack.getStackName(), targetStack.getStackVersion(),
+            serviceName);
 
         // !!! use new stack as the basis
         for (PropertyInfo stackProperty : pi) {
@@ -668,12 +729,13 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         }
       }
     } else {
-      // !!! remove configs
+      // downgrade
+      cluster.applyLatestConfigurations(cluster.getCurrentStackVersion());
     }
 
     // !!! update the stack
-    cluster.setDesiredStackVersion(
-        new StackId(newStack.getStackName(), newStack.getStackVersion()), true);
+    cluster.setDesiredStackVersion(new StackId(targetStack.getStackName(),
+        targetStack.getStackVersion()), true);
 
     // !!! configs must be created after setting the stack version
     if (null != clusterConfigs) {
@@ -681,7 +743,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           clusterConfigs, getManagementController().getAuthName(),
           "Configuration created for Upgrade");
     }
-
   }
 
 
@@ -734,6 +795,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     params.put(COMMAND_PARAM_TASKS, entity.getTasks());
     params.put(COMMAND_PARAM_VERSION, context.getVersion());
     params.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
+    params.put(COMMAND_PARAM_ORIGINAL_STACK, context.getOriginalStackId().getStackId());
+    params.put(COMMAND_PARAM_TARGET_STACK, context.getTargetStackId().getStackId());
 
     // Because custom task may end up calling a script/function inside a service, it is necessary to set the
     // service_package_folder and hooks_folder params.
@@ -806,6 +869,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     restartCommandParams.put(COMMAND_PARAM_RESTART_TYPE, "rolling_upgrade");
     restartCommandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
     restartCommandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
+    restartCommandParams.put(COMMAND_PARAM_ORIGINAL_STACK,
+        context.getOriginalStackId().getStackId());
+    restartCommandParams.put(COMMAND_PARAM_TARGET_STACK,
+        context.getTargetStackId().getStackId());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "RESTART",
@@ -858,6 +925,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
     commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
+    commandParams.put(COMMAND_PARAM_ORIGINAL_STACK,
+        context.getOriginalStackId().getStackId());
+    commandParams.put(COMMAND_PARAM_TARGET_STACK,
+        context.getTargetStackId().getStackId());
 
     ActionExecutionContext actionContext = new ActionExecutionContext(
         cluster.getClusterName(), "SERVICE_CHECK",
@@ -904,6 +975,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     commandParams.put(COMMAND_PARAM_CLUSTER_NAME, cluster.getClusterName());
     commandParams.put(COMMAND_PARAM_VERSION, context.getVersion());
     commandParams.put(COMMAND_PARAM_DIRECTION, context.getDirection().name().toLowerCase());
+    commandParams.put(COMMAND_PARAM_ORIGINAL_STACK,
+        context.getOriginalStackId().getStackId());
+    commandParams.put(COMMAND_PARAM_TARGET_STACK,
+        context.getTargetStackId().getStackId());
 
     String itemDetail = entity.getText();
     String stageText = StringUtils.abbreviate(entity.getText(), 255);

@@ -259,24 +259,13 @@ public class ClusterImpl implements Cluster {
 
     serviceComponentHosts = new HashMap<String,
       Map<String, Map<String, ServiceComponentHost>>>();
+
     serviceComponentHostsByHost = new HashMap<String,
       List<ServiceComponentHost>>();
 
     desiredStackVersion = new StackId(clusterEntity.getDesiredStack());
 
-    allConfigs = new HashMap<String, Map<String, Config>>();
-    if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
-      for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
-
-        if (!allConfigs.containsKey(entity.getType())) {
-          allConfigs.put(entity.getType(), new HashMap<String, Config>());
-        }
-
-        Config config = configFactory.createExisting(this, entity);
-
-        allConfigs.get(entity.getType()).put(entity.getTag(), config);
-      }
-    }
+    cacheConfigurations();
 
     if (desiredStackVersion != null && !StringUtils.isEmpty(desiredStackVersion.getStackName()) && !
       StringUtils.isEmpty(desiredStackVersion.getStackVersion())) {
@@ -2676,5 +2665,137 @@ public class ClusterImpl implements Cluster {
    */
   private String getClusterSessionAttributeName() {
     return CLUSTER_SESSION_ATTRIBUTES_PREFIX + getClusterName();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void applyLatestConfigurations(StackId stackId) {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+
+      // disable previous config
+      for (ClusterConfigMappingEntity e : configMappingEntities) {
+        e.setSelected(0);
+      }
+
+      List<ClusterConfigEntity> clusterConfigsToMakeSelected = clusterDAO.getLatestConfigurations(
+          clusterEntity.getClusterId(), stackId);
+
+      for( ClusterConfigEntity clusterConfigToMakeSelected : clusterConfigsToMakeSelected ){
+        for (ClusterConfigMappingEntity configMappingEntity : configMappingEntities) {
+          String tag = configMappingEntity.getTag();
+          String type = configMappingEntity.getType();
+
+          if (clusterConfigToMakeSelected.getTag().equals(tag)
+              && clusterConfigToMakeSelected.getType().equals(type)) {
+            configMappingEntity.setSelected(1);
+          }
+        }
+      }
+
+      clusterDAO.merge(clusterEntity);
+
+      cacheConfigurations();
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  @Transactional
+  public void removeConfigurations(StackId stackId) {
+    clusterGlobalLock.writeLock().lock();
+    try {
+      long clusterId = clusterEntity.getClusterId();
+
+      // this will keep track of cluster config mappings that need removal
+      // since there is no relationship between configs and their mappings, we
+      // have to do it manually
+      List<ClusterConfigEntity> removedClusterConfigs = new ArrayList<ClusterConfigEntity>(50);
+      Collection<ClusterConfigEntity> clusterConfigEntities = clusterEntity.getClusterConfigEntities();
+
+      List<ClusterConfigEntity> clusterConfigs = clusterDAO.getAllConfigurations(
+          clusterId, stackId);
+
+      // remove any lefover cluster configurations that don't have a service
+      // configuration (like cluster-env)
+      for (ClusterConfigEntity clusterConfig : clusterConfigs) {
+        clusterDAO.removeConfig(clusterConfig);
+        clusterConfigEntities.remove(clusterConfig);
+
+        removedClusterConfigs.add(clusterConfig);
+      }
+
+      clusterEntity = clusterDAO.merge(clusterEntity);
+
+      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigs(
+          clusterId, stackId);
+
+      // remove all service configurations
+      Collection<ServiceConfigEntity> serviceConfigEntities = clusterEntity.getServiceConfigEntities();
+      for (ServiceConfigEntity serviceConfig : serviceConfigs) {
+        serviceConfigDAO.remove(serviceConfig);
+        serviceConfigEntities.remove(serviceConfig);
+      }
+
+      clusterEntity = clusterDAO.merge(clusterEntity);
+
+      // remove config mappings
+      Collection<ClusterConfigMappingEntity> configMappingEntities = clusterEntity.getConfigMappingEntities();
+      for (ClusterConfigEntity removedClusterConfig : removedClusterConfigs) {
+        String removedClusterConfigType = removedClusterConfig.getType();
+        String removedClusterConfigTag = removedClusterConfig.getTag();
+
+        Iterator<ClusterConfigMappingEntity> clusterConfigMappingIterator = configMappingEntities.iterator();
+        while (clusterConfigMappingIterator.hasNext()) {
+          ClusterConfigMappingEntity clusterConfigMapping = clusterConfigMappingIterator.next();
+          String mappingType = clusterConfigMapping.getType();
+          String mappingTag = clusterConfigMapping.getTag();
+
+          if (removedClusterConfigTag.equals(mappingTag)
+              && removedClusterConfigType.equals(mappingType)) {
+            clusterConfigMappingIterator.remove();
+            clusterDAO.removeConfigMapping(clusterConfigMapping);
+          }
+        }
+      }
+
+      clusterEntity = clusterDAO.merge(clusterEntity);
+
+      cacheConfigurations();
+    } finally {
+      clusterGlobalLock.writeLock().unlock();
+    }
+  }
+
+  /**
+   * Caches all of the {@link ClusterConfigEntity}s in {@link #allConfigs}.
+   */
+  private void cacheConfigurations() {
+    if (null == allConfigs) {
+      allConfigs = new HashMap<String, Map<String, Config>>();
+    }
+
+    allConfigs.clear();
+
+    if (!clusterEntity.getClusterConfigEntities().isEmpty()) {
+      for (ClusterConfigEntity entity : clusterEntity.getClusterConfigEntities()) {
+
+        if (!allConfigs.containsKey(entity.getType())) {
+          allConfigs.put(entity.getType(), new HashMap<String, Config>());
+        }
+
+        Config config = configFactory.createExisting(this, entity);
+
+        allConfigs.get(entity.getType()).put(entity.getTag(), config);
+      }
+    }
   }
 }

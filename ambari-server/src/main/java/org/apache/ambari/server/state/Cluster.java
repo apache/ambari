@@ -42,43 +42,43 @@ public interface Cluster {
   /**
    * Get the cluster ID
    */
-  public long getClusterId();
+  long getClusterId();
 
   /**
    * Get the Cluster Name
    */
-  public String getClusterName();
+  String getClusterName();
 
   /**
    * Set the Cluster Name
    */
-  public void setClusterName(String clusterName);
+  void setClusterName(String clusterName);
 
   /**
    * Add a service to a cluster
    * @param service
    */
-  public void addService(Service service) throws AmbariException;
+  void addService(Service service) throws AmbariException;
 
   /**
    * Get a service
    * @param serviceName
    * @return
    */
-  public Service getService(String serviceName) throws AmbariException;
+  Service getService(String serviceName) throws AmbariException;
 
   /**
    * Get all services
    * @return
    */
-  public Map<String, Service> getServices();
+  Map<String, Service> getServices();
 
   /**
    * Get all ServiceComponentHosts on a given host
    * @param hostname
    * @return
    */
-  public List<ServiceComponentHost> getServiceComponentHosts(String hostname);
+  List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
 
   /**
@@ -87,39 +87,40 @@ public interface Cluster {
    * @param componentName
    * @return
    */
-  public Set<String> getHosts(String serviceName, String componentName);
+  Set<String> getHosts(String serviceName, String componentName);
 
 
   /**
    * Remove ServiceComponentHost from cluster
    * @param svcCompHost
    */
-  public void removeServiceComponentHost(ServiceComponentHost svcCompHost) throws AmbariException;
+  void removeServiceComponentHost(ServiceComponentHost svcCompHost)
+      throws AmbariException;
 
 
   /**
    * Get the ClusterVersionEntity object whose state is CURRENT.
    * @return
    */
-  public ClusterVersionEntity getCurrentClusterVersion();
+  ClusterVersionEntity getCurrentClusterVersion();
 
   /**
    * Get all of the ClusterVersionEntity objects for the cluster.
    * @return
    */
-  public Collection<ClusterVersionEntity> getAllClusterVersions();
+  Collection<ClusterVersionEntity> getAllClusterVersions();
 
   /**
    * Get desired stack version
    * @return
    */
-  public StackId getDesiredStackVersion();
+  StackId getDesiredStackVersion();
 
   /**
    * Set desired stack version
    * @param stackVersion
    */
-  public void setDesiredStackVersion(StackId stackVersion) throws AmbariException;
+  void setDesiredStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
    * Sets the desired stack version, optionally setting all owned services,
@@ -134,13 +135,13 @@ public interface Cluster {
    * Get current stack version
    * @return
    */
-  public StackId getCurrentStackVersion();
+  StackId getCurrentStackVersion();
 
   /**
    * Set current stack version
    * @param stackVersion
    */
-  public void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
+  void setCurrentStackVersion(StackId stackVersion) throws AmbariException;
 
   /**
    * Create host versions for all of the hosts that don't already have the stack version.
@@ -149,7 +150,9 @@ public interface Cluster {
    * @param desiredState Desired state must be {@link RepositoryVersionState#CURRENT} or {@link RepositoryVersionState#UPGRADING}
    * @throws AmbariException
    */
-  public void mapHostVersions(Set<String> hostNames, ClusterVersionEntity currentClusterVersion, RepositoryVersionState desiredState) throws AmbariException;
+  void mapHostVersions(Set<String> hostNames,
+      ClusterVersionEntity currentClusterVersion,
+      RepositoryVersionState desiredState) throws AmbariException;
 
   /**
    * Create/update host versions for all of the hosts within a cluster based on state of cluster stack version.
@@ -160,7 +163,8 @@ public interface Cluster {
    * of a cluster version is {@link RepositoryVersionState#INSTALLING}
    * @throws AmbariException
    */
-  public void inferHostVersions(ClusterVersionEntity sourceClusterVersion) throws AmbariException;
+  void inferHostVersions(ClusterVersionEntity sourceClusterVersion)
+      throws AmbariException;
 
   /**
    * For a given host, will either either update an existing Host Version Entity for the given version, or create
@@ -172,7 +176,9 @@ public interface Cluster {
    * @return Returns either the newly created or the updated Host Version Entity.
    * @throws AmbariException
    */
-  public HostVersionEntity transitionHostVersionState(HostEntity host, final RepositoryVersionEntity repositoryVersion, final StackId stack) throws AmbariException;
+  HostVersionEntity transitionHostVersionState(HostEntity host,
+      final RepositoryVersionEntity repositoryVersion, final StackId stack)
+      throws AmbariException;
 
   /**
    * Update state of a cluster stack version for cluster based on states of host versions and stackids.
@@ -186,7 +192,7 @@ public interface Cluster {
    * Update state of all cluster stack versions for cluster based on states of host versions.
    * @throws AmbariException
    */
-  public void recalculateAllClusterVersionStates() throws AmbariException;
+  void recalculateAllClusterVersionStates() throws AmbariException;
 
   /**
    * Create a cluster version for the given stack and version, whose initial
@@ -204,7 +210,7 @@ public interface Cluster {
    *          Initial state
    * @throws AmbariException
    */
-  public void createClusterVersion(StackId stackId, String version,
+  void createClusterVersion(StackId stackId, String version,
       String userName, RepositoryVersionState state) throws AmbariException;
 
   /**
@@ -218,7 +224,7 @@ public interface Cluster {
    *          Desired state
    * @throws AmbariException
    */
-  public void transitionClusterVersion(StackId stackId, String version,
+  void transitionClusterVersion(StackId stackId, String version,
       RepositoryVersionState state) throws AmbariException;
 
   /**
@@ -228,7 +234,7 @@ public interface Cluster {
    * @return either {@link State#INIT} or {@link State#INSTALLED}, never
    *         {@code null}.
    */
-  public State getProvisioningState();
+  State getProvisioningState();
 
   /**
    * Sets the provisioning state of the cluster.
@@ -236,21 +242,21 @@ public interface Cluster {
    * @param provisioningState
    *          the provisioning state, not {@code null}.
    */
-  public void setProvisioningState(State provisioningState);
+  void setProvisioningState(State provisioningState);
 
   /**
    * Gets the cluster's security type.
    *
    * @return this Cluster's security type
    */
-  public SecurityType getSecurityType();
+  SecurityType getSecurityType();
 
   /**
    * Sets this Cluster's security type.
    *
    * @param securityType a SecurityType to set
    */
-  public void setSecurityType(SecurityType securityType);
+  void setSecurityType(SecurityType securityType);
 
   /**
    * Gets all configs that match the specified type.  Result is not the
@@ -258,7 +264,7 @@ public interface Cluster {
    * @param configType  the config type to return
    * @return  a map of configuration objects that have been set for the given type
    */
-  public Map<String, Config> getConfigsByType(String configType);
+  Map<String, Config> getConfigsByType(String configType);
 
   /**
    * Gets the specific config that matches the specified type and tag.  This not
@@ -268,20 +274,20 @@ public interface Cluster {
    * @return  a {@link Config} object, or <code>null</code> if the specific type
    *          and version have not been set.
    */
-  public Config getConfig(String configType, String versionTag);
+  Config getConfig(String configType, String versionTag);
 
   /**
    * Sets a specific config.  NOTE:  This is not a DESIRED configuration that
    * applies to a cluster.
    * @param config  the config instance to add
    */
-  public void addConfig(Config config);
+  void addConfig(Config config);
 
   /**
    * Gets all configurations defined for a cluster.
    * @return  the collection of all configs that have been defined.
    */
-  public Collection<Config> getAllConfigs();
+  Collection<Config> getAllConfigs();
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
@@ -291,7 +297,7 @@ public interface Cluster {
    * @return <code>true</code> if the config was added, or <code>false</code>
    * if the config is already set as the current
    */
-  public ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs);
+  ServiceConfigVersionResponse addDesiredConfig(String user, Set<Config> configs);
 
   /**
    * Adds and sets a DESIRED configuration to be applied to a cluster.  There
@@ -338,13 +344,13 @@ public interface Cluster {
    * @return  the {@link Config} instance, or <code>null</code> if the type has
    * not been set.
    */
-  public Config getDesiredConfigByType(String configType);
+  Config getDesiredConfigByType(String configType);
 
   /**
    * Gets the desired configurations for the cluster.
    * @return a map of type-to-configuration information.
    */
-  public Map<String, DesiredConfig> getDesiredConfigs();
+  Map<String, DesiredConfig> getDesiredConfigs();
 
 
   /**
@@ -352,43 +358,43 @@ public interface Cluster {
    * @return
    * @throws AmbariException
    */
-  public ClusterResponse convertToResponse() throws AmbariException;
+  ClusterResponse convertToResponse() throws AmbariException;
 
   /**
    * Refreshes the cluster details
    */
-  public void refresh();
+  void refresh();
 
   /**
    * Creates a debug dump based on the current cluster state
    * @param sb
    */
-  public void debugDump(StringBuilder sb);
+  void debugDump(StringBuilder sb);
 
   /**
    * Delete all the services associated with this cluster
    * @throws AmbariException
    */
-  public void deleteAllServices() throws AmbariException;
+  void deleteAllServices() throws AmbariException;
 
   /**
    * Delete the named service associated with this cluster
    * @param serviceName
    * @throws AmbariException
    */
-  public void deleteService(String serviceName) throws AmbariException;
+  void deleteService(String serviceName) throws AmbariException;
 
   /**
    * Gets if the cluster can be deleted
    * @return
    */
-  public boolean canBeRemoved();
+  boolean canBeRemoved();
 
   /**
    * Delete the cluster
    * @throws AmbariException
    */
-  public void delete() throws AmbariException;
+  void delete() throws AmbariException;
 
   /**
    * Add service to the cluster
@@ -423,47 +429,49 @@ public interface Cluster {
    * @param configGroup
    * @throws AmbariException
    */
-  public void addConfigGroup(ConfigGroup configGroup) throws AmbariException;
+  void addConfigGroup(ConfigGroup configGroup) throws AmbariException;
 
   /**
    * Get config groups associated with this cluster
    * @return unmodifiable map of config group id to config group.  Will not return null.
    */
-  public Map<Long, ConfigGroup> getConfigGroups();
+  Map<Long, ConfigGroup> getConfigGroups();
 
   /**
    * Delete this config group identified by the config group id
    * @param id
    * @throws AmbariException
    */
-  public void deleteConfigGroup(Long id) throws AmbariException;
+  void deleteConfigGroup(Long id) throws AmbariException;
 
   /**
    * Find all config groups associated with the give hostname
    * @param hostname
    * @return Map of config group id to config group
    */
-  public Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname) throws AmbariException;
+  Map<Long, ConfigGroup> getConfigGroupsByHostname(String hostname)
+      throws AmbariException;
 
   /**
    * Add a @RequestExecution to the cluster
    * @param requestExecution
    * @throws AmbariException
    */
-  public void addRequestExecution(RequestExecution requestExecution) throws AmbariException;
+  void addRequestExecution(RequestExecution requestExecution)
+      throws AmbariException;
 
   /**
    * Get all @RequestExecution objects associated with the cluster
    * @return
    */
-  public Map<Long, RequestExecution> getAllRequestExecutions();
+  Map<Long, RequestExecution> getAllRequestExecutions();
 
   /**
    * Delete a @RequestExecution associated with the cluster
    * @param id
    * @throws AmbariException
    */
-  public void deleteRequestExecution(Long id) throws AmbariException;
+  void deleteRequestExecution(Long id) throws AmbariException;
 
   /**
    * Get next version of specified config type
@@ -489,14 +497,14 @@ public interface Cluster {
    *
    * @return true if the access to this cluster is allowed
    */
-  public boolean checkPermission(PrivilegeEntity privilegeEntity, boolean readOnly);
+  boolean checkPermission(PrivilegeEntity privilegeEntity, boolean readOnly);
 
   /**
    * Add the given map of attributes to the session for this cluster.
    *
    * @param attributes  the session attributes
    */
-  public void addSessionAttributes(Map<String, Object> attributes);
+  void addSessionAttributes(Map<String, Object> attributes);
 
   /**
    * Sets or adds an attribute in the session for this cluster
@@ -504,20 +512,43 @@ public interface Cluster {
    * @param key   the name of the key which identifies the attribute in the map
    * @param value the value to set
    */
-  public void setSessionAttribute(String key, Object value);
+  void setSessionAttribute(String key, Object value);
 
   /**
    * Removes an attribute from the session for this cluster
    *
    * @param key the name of the key which identifies the attribute in the map
    */
-  public void removeSessionAttribute(String key);
+  void removeSessionAttribute(String key);
 
   /**
    * Get the map of session attributes for this cluster.
    *
    * @return the map of session attributes for this cluster; never null
    */
-  public Map<String, Object> getSessionAttributes();
+  Map<String, Object> getSessionAttributes();
 
+  /**
+   * Makes the most recent configurations in the specified stack the current set
+   * of configurations. This method will first ensure that the cluster's current
+   * stack matches that of the configuration stack specified.
+   * <p/>
+   * When completed, all other configurations for any other stack will remain,
+   * but will not be marked as selected.
+   *
+   * @param stackId
+   *          the stack to use when finding the latest configurations (not
+   *          {@code null}).
+   */
+  void applyLatestConfigurations(StackId stackId);
+
+  /**
+   * Removes all cluster configurations and service configurations that belong
+   * to the specified stack.
+   *
+   * @param stackId
+   *          the stack to use when finding the configurations to remove (not
+   *          {@code null}).
+   */
+  void removeConfigurations(StackId stackId);
 }

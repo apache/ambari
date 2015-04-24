@@ -49,6 +49,7 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.UpgradeState;
+import org.apache.ambari.server.state.stack.upgrade.Direction;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostSummary;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.text.StrBuilder;
@@ -63,6 +64,20 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
   public static final String CLUSTER_NAME_KEY = "cluster_name";
   public static final String UPGRADE_DIRECTION_KEY = "upgrade_direction";
   public static final String VERSION_KEY = "version";
+
+  /**
+   * The original "current" stack of the cluster before the upgrade started.
+   * This is the same regardless of whether the current direction is
+   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
+   */
+  public static final String ORIGINAL_STACK_KEY = "original_stack";
+
+  /**
+   * The target upgrade stack before the upgrade started. This is the same
+   * regardless of whether the current direction is {@link Direction#UPGRADE} or
+   * {@link Direction#DOWNGRADE}.
+   */
+  public static final String TARGET_STACK_KEY = "target_stack";
 
   /**
    * The Cluster that this ServerAction implementation is executing on
@@ -92,11 +107,14 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
         "downgrade".equals(commandParams.get(UPGRADE_DIRECTION_KEY).toLowerCase());
 
     String version = commandParams.get(VERSION_KEY);
+    StackId originalStackId = new StackId(commandParams.get(ORIGINAL_STACK_KEY));
+    StackId targetStackId = new StackId(commandParams.get(TARGET_STACK_KEY));
 
     String clusterName = getExecutionCommand().getClusterName();
 
     if (isDowngrade) {
-      return executeDowngrade(clusterName, version);
+      return executeDowngrade(clusterName, originalStackId, targetStackId,
+          version);
     } else {
       return executeUpgrade(clusterName, version);
     }
@@ -230,11 +248,17 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
 
   /**
    * Execution path for downgrade.
-   * @param clusterName the name of the cluster the downgrade is for
-   * @param version     the target version of the downgrade
+   *
+   * @param clusterName
+   *          the name of the cluster the downgrade is for
+   * @paran originalStackId the stack ID of the cluster before the upgrade.
+   * @paran targetStackId the stack ID that was desired for this upgrade.
+   * @param version
+   *          the target version of the downgrade
    * @return the command report
    */
-  private CommandReport executeDowngrade(String clusterName, String version)
+  private CommandReport executeDowngrade(String clusterName,
+      StackId originalStackId, StackId targetStackId, String version)
       throws AmbariException, InterruptedException {
 
     StringBuilder out = new StringBuilder();
@@ -245,8 +269,16 @@ public class FinalizeUpgradeAction extends AbstractServerAction {
       StackId desiredClusterStackId = cluster.getDesiredStackVersion();
       StackId currentClusterStackId = cluster.getCurrentStackVersion();
 
+      // this was a cross-stack upgrade, meaning that configurations were
+      // created that now need to be removed
+      if (!originalStackId.equals(targetStackId)) {
+        cluster.removeConfigurations(targetStackId);
+      }
+
       // !!! find and make sure the cluster_version EXCEPT current are set back
-      out.append(String.format("Searching for current version for %s\n", clusterName));
+      out.append(String.format("Searching for current version for %s\n",
+          clusterName));
+
       ClusterVersionEntity clusterVersion = clusterVersionDAO.findByClusterAndStateCurrent(clusterName);
       if (null == clusterVersion) {
         throw new AmbariException("Could not find current cluster version");

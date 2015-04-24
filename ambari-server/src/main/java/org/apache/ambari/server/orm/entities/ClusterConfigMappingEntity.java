@@ -19,14 +19,11 @@ package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
-import javax.persistence.TableGenerator;
 
 /**
  * Entity that maps to a cluster config mapping.
@@ -53,22 +50,22 @@ public class ClusterConfigMappingEntity {
 
   @Column(name = "selected", insertable = true, updatable = true, nullable = false)
   private int selectedInd = 0;
-  
+
   @Column(name = "user_name", insertable = true, updatable = true, nullable = false)
   private String user;
 
   @ManyToOne
   @JoinColumn(name = "cluster_id", referencedColumnName = "cluster_id", nullable = false)
   private ClusterEntity clusterEntity;
-  
+
   public Long getClusterId() {
     return clusterId;
   }
-  
+
   public void setClusterId(Long id) {
     clusterId = id;
   }
-  
+
   public String getType() {
     return typeName;
   }
@@ -83,15 +80,15 @@ public class ClusterConfigMappingEntity {
   public void setCreateTimestamp(Long timestamp) {
     createTimestamp = timestamp;
   }
-  
+
   public String getTag() {
     return tag;
   }
-  
+
   public void setTag(String version) {
     tag = version;
   }
- 
+
   public int isSelected() {
     return selectedInd;
   }
@@ -99,21 +96,21 @@ public class ClusterConfigMappingEntity {
   public void setSelected(int selected) {
     selectedInd = selected;
   }
-  
+
   /**
    * @return the user
    */
   public String getUser() {
     return user;
   }
-  
+
   /**
    * @param userName the user
    */
   public void setUser(String userName) {
     user = userName;
   }
-  
+
   public ClusterEntity getClusterEntity() {
     return clusterEntity;
   }
@@ -122,5 +119,70 @@ public class ClusterConfigMappingEntity {
     clusterEntity = entity;
   }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((clusterId == null) ? 0 : clusterId.hashCode());
+    result = prime * result + ((createTimestamp == null) ? 0 : createTimestamp.hashCode());
+    result = prime * result + ((tag == null) ? 0 : tag.hashCode());
+    result = prime * result + ((typeName == null) ? 0 : typeName.hashCode());
+    return result;
+  }
 
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ClusterConfigMappingEntity other = (ClusterConfigMappingEntity) obj;
+    if (clusterId == null) {
+      if (other.clusterId != null) {
+        return false;
+      }
+    } else if (!clusterId.equals(other.clusterId)) {
+      return false;
+    }
+
+    if (createTimestamp == null) {
+      if (other.createTimestamp != null) {
+        return false;
+      }
+    } else if (!createTimestamp.equals(other.createTimestamp)) {
+      return false;
+    }
+
+    if (tag == null) {
+      if (other.tag != null) {
+        return false;
+      }
+    } else if (!tag.equals(other.tag)) {
+      return false;
+    }
+
+    if (typeName == null) {
+      if (other.typeName != null) {
+        return false;
+      }
+    } else if (!typeName.equals(other.typeName)) {
+      return false;
+    }
+
+    return true;
+  }
 }

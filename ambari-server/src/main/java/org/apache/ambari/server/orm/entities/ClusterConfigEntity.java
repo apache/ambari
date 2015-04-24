@@ -48,7 +48,10 @@ import javax.persistence.UniqueConstraint;
   , pkColumnValue = "config_id_seq"
   , initialValue = 1
 )
-@NamedQueries({ @NamedQuery(name = "ClusterConfigEntity.findNextConfigVersion", query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId") })
+@NamedQueries({
+    @NamedQuery(name = "ClusterConfigEntity.findNextConfigVersion", query = "SELECT COALESCE(MAX(clusterConfig.version),0) + 1 as nextVersion FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.type=:configType AND clusterConfig.clusterId=:clusterId"),
+    @NamedQuery(name = "ClusterConfigEntity.findAllConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.stack=:stack"),
+    @NamedQuery(name = "ClusterConfigEntity.findLatestConfigsByStack", query = "SELECT clusterConfig FROM ClusterConfigEntity clusterConfig WHERE clusterConfig.clusterId=:clusterId AND clusterConfig.timestamp = (SELECT MAX(clusterConfig2.timestamp) FROM ClusterConfigEntity clusterConfig2 WHERE clusterConfig2.clusterId=:clusterId AND clusterConfig2.stack=:stack AND clusterConfig2.type = clusterConfig.type)") })
 public class ClusterConfigEntity {
 
   @Id

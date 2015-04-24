@@ -32,6 +32,21 @@ import org.apache.ambari.server.state.stack.upgrade.Direction;
 public class UpgradeContext {
 
   private String m_version;
+
+  /**
+   * The original "current" stack of the cluster before the upgrade started.
+   * This is the same regardless of whether the current direction is
+   * {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE}.
+   */
+  private StackId m_originalStackId;
+
+  /**
+   * The target upgrade stack before the upgrade started. This is the same
+   * regardless of whether the current direction is {@link Direction#UPGRADE} or
+   * {@link Direction#DOWNGRADE}.
+   */
+  private StackId m_targetStackId;
+
   private Direction m_direction;
   private MasterHostResolver m_resolver;
   private AmbariMetaInfo m_metaInfo;
@@ -41,13 +56,30 @@ public class UpgradeContext {
 
   /**
    * Constructor.
-   * @param resolver  the resolver that also references the required cluster
-   * @param version   the target version to upgrade to
-   * @param direction the direction for the upgrade
+   *
+   * @param resolver
+   *          the resolver that also references the required cluster
+   * @param sourceStackId
+   *          the original "current" stack of the cluster before the upgrade
+   *          started. This is the same regardless of whether the current
+   *          direction is {@link Direction#UPGRADE} or
+   *          {@link Direction#DOWNGRADE} (not {@code null}).
+   * @param targetStackId
+   *          The target upgrade stack before the upgrade started. This is the
+   *          same regardless of whether the current direction is
+   *          {@link Direction#UPGRADE} or {@link Direction#DOWNGRADE} (not
+   *          {@code null}).
+   * @param version
+   *          the target version to upgrade to
+   * @param direction
+   *          the direction for the upgrade
    */
-  public UpgradeContext(MasterHostResolver resolver, String version,
+  public UpgradeContext(MasterHostResolver resolver, StackId sourceStackId,
+      StackId targetStackId, String version,
       Direction direction) {
     m_version = version;
+    m_originalStackId = sourceStackId;
+    m_targetStackId = targetStackId;
     m_direction = direction;
     m_resolver = resolver;
   }
@@ -99,6 +131,36 @@ public class UpgradeContext {
    */
   public void addUnhealthy(List<ServiceComponentHost> unhealthy) {
     m_unhealthy.addAll(unhealthy);
+  }
+
+  /**
+   * @return the originalStackId
+   */
+  public StackId getOriginalStackId() {
+    return m_originalStackId;
+  }
+
+  /**
+   * @param originalStackId
+   *          the originalStackId to set
+   */
+  public void setOriginalStackId(StackId originalStackId) {
+    m_originalStackId = originalStackId;
+  }
+
+  /**
+   * @return the targetStackId
+   */
+  public StackId getTargetStackId() {
+    return m_targetStackId;
+  }
+
+  /**
+   * @param targetStackId
+   *          the targetStackId to set
+   */
+  public void setTargetStackId(StackId targetStackId) {
+    m_targetStackId = targetStackId;
   }
 
   /**

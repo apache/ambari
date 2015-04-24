@@ -21,6 +21,7 @@ package org.apache.ambari.server.orm.entities;
 import java.util.List;
 
 import javax.persistence.Basic;
+import javax.persistence.CascadeType;
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
 import javax.persistence.ElementCollection;
@@ -45,7 +46,10 @@ import javax.persistence.TableGenerator;
   , pkColumnValue = "service_config_id_seq"
   , initialValue = 1
 )
-@NamedQueries({ @NamedQuery(name = "ServiceConfigEntity.findNextServiceConfigVersion", query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId") })
+@NamedQueries({
+    @NamedQuery(name = "ServiceConfigEntity.findNextServiceConfigVersion", query = "SELECT COALESCE(MAX(serviceConfig.version), 0) + 1 AS nextVersion FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.serviceName=:serviceName AND serviceConfig.clusterId=:clusterId"),
+    @NamedQuery(name = "ServiceConfigEntity.findAllServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId=:clusterId AND serviceConfig.stack=:stack"),
+    @NamedQuery(name = "ServiceConfigEntity.findLatestServiceConfigsByStack", query = "SELECT serviceConfig FROM ServiceConfigEntity serviceConfig WHERE serviceConfig.clusterId = :clusterId AND serviceConfig.createTimestamp = (SELECT MAX(serviceConfig2.createTimestamp) FROM ServiceConfigEntity serviceConfig2 WHERE serviceConfig2.clusterId=:clusterId AND serviceConfig2.stack=:stack AND serviceConfig2.serviceName = serviceConfig.serviceName)") })
 public class ServiceConfigEntity {
   @Id
   @Column(name = "service_config_id")
@@ -85,12 +89,12 @@ public class ServiceConfigEntity {
   @Column(name = "host_id")
   private List<Long> hostIds;
 
-  @ManyToMany
   @JoinTable(
     name = "serviceconfigmapping",
     joinColumns = {@JoinColumn(name = "service_config_id", referencedColumnName = "service_config_id")},
     inverseJoinColumns = {@JoinColumn(name = "config_id", referencedColumnName = "config_id")}
   )
+  @ManyToMany(cascade = { CascadeType.REMOVE })
   private List<ClusterConfigEntity> clusterConfigEntities;
 
   @ManyToOne
@@ -209,5 +213,47 @@ public class ServiceConfigEntity {
    */
   public void setStack(StackEntity stack) {
     this.stack = stack;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public int hashCode() {
+    final int prime = 31;
+    int result = 1;
+
+    result = prime * result
+        + ((serviceConfigId == null) ? 0 : serviceConfigId.hashCode());
+
+    return result;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) {
+      return true;
+    }
+
+    if (obj == null) {
+      return false;
+    }
+
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
+
+    ServiceConfigEntity other = (ServiceConfigEntity) obj;
+    if (serviceConfigId == null) {
+      if (other.serviceConfigId != null) {
+        return false;
+      }
+    } else if (!serviceConfigId.equals(other.serviceConfigId)) {
+      return false;
+    }
+    return true;
   }
 }
