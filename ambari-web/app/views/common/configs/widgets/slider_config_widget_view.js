@@ -55,6 +55,12 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   unitLabel: '',
 
   /**
+   * List of widget's properties which <code>changeBoundaries</code>-method should observe
+   * @type {string[]}
+   */
+  changeBoundariesProperties: ['maxMirrorValue', 'widgetRecommendedValue','minMirrorValue', 'mirrorStep'],
+
+  /**
    * max allowed value transformed form config unit to widget unit
    * @type {Number}
    */
@@ -169,17 +175,17 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this.initSlider();
     this.toggleWidgetState();
     this.initPopover();
-    this.addObserver('maxMirrorValue', this, this.changeBoundaries);
-    this.addObserver('widgetRecommendedValue', this, this.changeBoundaries);
-    this.addObserver('minMirrorValue', this, this.changeBoundaries);
-    this.addObserver('mirrorStep', this, this.changeBoundaries);
+    var self = this;
+    this.get('changeBoundariesProperties').forEach(function(property) {
+      self.addObserver(property, self, self.changeBoundaries);
+    });
   },
 
   willDestroyElement: function() {
-    this.removeObserver('maxMirrorValue', this, this.changeBoundaries);
-    this.removeObserver('widgetRecommendedValue', this, this.changeBoundaries);
-    this.removeObserver('minMirrorValue', this, this.changeBoundaries);
-    this.removeObserver('mirrorStep', this, this.changeBoundaries);
+    var self = this;
+    this.get('changeBoundariesProperties').forEach(function(property) {
+      self.removeObserver(property, self, self.changeBoundaries);
+    });
   },
 
   /**
@@ -198,15 +204,24 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       var parsed = parseFunction(mirrorValue);
       if (parsed > max) {
         this.set('isMirrorValueValid', false);
-        this.set('config.warnMessage', Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max));
+        this.get('config').setProperties({
+          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format(max),
+          warn: true
+        });
       } else if (parsed < min) {
         this.set('isMirrorValueValid', false);
-        this.set('config.warnMessage', Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min));
+        this.get('config').setProperties({
+          warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.less').format(min),
+          warn: true
+        });
       } else {
         this.set('isMirrorValueValid', true);
-        this.set('config.warnMessage', '');
-        this.set('config.errorMessage', '');
-        this.set('config.value', '' + this.configValueByWidget(parsed));
+        this.get('config').setProperties({
+          warnMessage: '',
+          errorMessage: '',
+          value: '' + this.configValueByWidget(parsed),
+          warn: false
+        });
         if (slider) {
           slider.setValue(parsed);
         }

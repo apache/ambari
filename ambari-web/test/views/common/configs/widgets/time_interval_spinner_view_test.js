@@ -27,7 +27,7 @@ describe('App.TimeIntervalSpinnerView', function () {
         removeCurrentFromDependentList: Em.K
       }),
       initPopover: Em.K,
-      checkErrors: Em.K
+      setProperties: Em.K
     });
   });
 
@@ -173,6 +173,72 @@ describe('App.TimeIntervalSpinnerView', function () {
             return App.permit(c, ['label', 'value', 'incrementStep', 'enabled']);
           });
           expect(result).to.eql(test.e);
+        });
+      });
+
+  });
+
+  describe('#checkErrors', function () {
+
+    Em.A([
+        {
+          config: Em.Object.create({
+            value: "540",
+            stackConfigProperty: Em.Object.create({
+              widget: {
+                units: [
+                  { unit: "hours,minutes" }
+                ]
+              },
+              valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+            })
+          }),
+          e: {
+            warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.less').format("10 Minutes"),
+            warn: true
+          }
+        },
+        {
+          config: Em.Object.create({
+            value: "86460",
+            stackConfigProperty: Em.Object.create({
+              widget: {
+                units: [
+                  { unit: "hours,minutes" }
+                ]
+              },
+              valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+            })
+          }),
+          e: {
+            warnMessage: Em.I18n.t('config.warnMessage.outOfBoundaries.greater').format("24 Hours"),
+            warn: true
+          }
+        },
+        {
+          config: Em.Object.create({
+            value: "12000",
+            stackConfigProperty: Em.Object.create({
+              widget: {
+                units: [
+                  { unit: "hours,minutes" }
+                ]
+              },
+              valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+            })
+          }),
+          e: {
+            warnMessage:'',
+            warn: false
+          }
+        }
+      ]).forEach(function (test) {
+        it('', function () {
+          view.set('config', test.config);
+          view.prepareContent();
+          view.checkErrors();
+          expect(view.get('config.warnMessage')).to.equal(test.e.warnMessage);
+          expect(view.get('config.warn')).to.equal(test.e.warn);
         });
       });
 
