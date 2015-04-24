@@ -133,13 +133,13 @@ public class ClusterDAO {
    * @return the highest existing value of the version column + 1
    */
   public Long findNextConfigVersion(long clusterId, String configType) {
-    TypedQuery<Long> query = entityManagerProvider.get().createNamedQuery(
-        "ClusterConfigEntity.findNextConfigVersion", Long.class);
+    TypedQuery<Number> query = entityManagerProvider.get().createNamedQuery(
+        "ClusterConfigEntity.findNextConfigVersion", Number.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("configType", configType);
 
-    return daoUtils.selectSingle(query);
+    return daoUtils.selectSingle(query).longValue();
   }
 
   /**
