@@ -375,7 +375,8 @@
             "hive.server2.enable.doAs": "true",
             "hive.server2.authentication": "NOSASL",
             "hive.server2.transport.mode": "binary",
-            "hive.optimize.mapjoin.mapreduce": "true"
+            "hive.optimize.mapjoin.mapreduce": "true",
+            "hive.exec.scratchdir" : "/custompath/tmp/hive"
         }, 
         "ranger-hive-plugin-properties": {
             "ranger-hive-plugin-enabled":"yes"

@@ -82,6 +82,7 @@ def hive(name=None):
                          owner=params.hive_user,
                          mode=params.hive_hdfs_user_mode
     )
+    setup_custom_scratchdir()
     params.HdfsDirectory(None, action="create")
 
   Directory(params.hive_conf_dir_prefix,
@@ -274,3 +275,15 @@ def jdbc_connector():
   File(params.target,
        mode = 0644,
   )
+
+# In case Hive has a custom path for its HDFS temporary directory,
+# recursive directory creation will be a prerequisite as 'hive' user cannot write on the root of the HDFS
+def setup_custom_scratchdir():
+  import params
+  if not is_empty(params.hive_exec_scratchdir) and not params.hive_exec_scratchdir.startswith("/tmp"): # If this property is custom and not a variation of the writable temp dir
+    params.HdfsDirectory(params.hive_exec_scratchdir,
+                         action="create_delayed",
+                         owner=params.hive_user,
+                         group=params.hdfs_user,
+                         mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
+

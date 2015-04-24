@@ -418,7 +418,8 @@
             "hive.server2.enable.doAs": "true", 
             "hive.optimize.mapjoin.mapreduce": "true",
             "hive.server2.transport.mode": "binary",
-            "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab"
+            "hive.server2.authentication.kerberos.keytab": "/etc/security/keytabs/hive.service.keytab",
+            "hive.exec.scratchdir" : "/custompath/tmp/hive"
         }, 
         "yarn-site": {
             "yarn.nodemanager.disk-health-checker.min-healthy-disks": "0.25", 

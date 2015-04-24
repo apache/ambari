@@ -267,6 +267,7 @@ hive_env_sh_template = config['configurations']['hive-env']['content']
 hive_hdfs_user_dir = format("/user/{hive_user}")
 hive_hdfs_user_mode = 0700
 hive_apps_whs_dir = config['configurations']['hive-site']["hive.metastore.warehouse.dir"]
+hive_exec_scratchdir = config['configurations']['hive-site']["hive.exec.scratchdir"]
 #for create_hdfs_directory
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = default('/configurations/hadoop-env/hdfs_principal_name', 'missing_principal').replace("_HOST", hostname)

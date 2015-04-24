@@ -156,3 +156,4 @@ def check_fs_root():
             user=params.hive_user,
             environment={'PATH': params.execute_path}
     )
+
