@@ -80,4 +80,16 @@
     <description>Oracle Home needs to be set to path where oracle is installed, this will help install Ranger Admin when used with Oracle as database.</description>
   </property>  
 
+  <property><!-- #for DB Test connection command -->
+    <name>ranger_jdbc_connection_url</name>
+    <value>jdbc:mysql://localhost</value>
+    <description>Ranger JDBC connection url, mainly used for database test connection</description>
+  </property>
+
+  <property>
+    <name>ranger_jdbc_driver</name>
+    <value>com.mysql.jdbc.Driver</value>
+    <description>Ranger JDBC driver, mainly used for database test connection</description>
+  </property>
+
 </configuration>
