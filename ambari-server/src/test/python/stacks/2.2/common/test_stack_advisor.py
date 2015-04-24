@@ -635,6 +635,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "256",
           "yarn.scheduler.maximum-allocation-mb": "1280",
+          "yarn.scheduler.maximum-allocation-vcores": "4",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "4"
         }
       }
@@ -674,6 +676,8 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-vcores": "2",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
           "yarn.nodemanager.resource.cpu-vcores": "2"
         },
@@ -1095,6 +1099,8 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "100",
+          "yarn.scheduler.maximum-allocation-vcores": "4",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
           "yarn.nodemanager.resource.cpu-vcores": "2"
         },
@@ -1800,6 +1806,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
           "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.scheduler.maximum-allocation-vcores": "6",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "12",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
@@ -1851,6 +1859,8 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
           "yarn.scheduler.minimum-allocation-mb": "3584",
+          "yarn.scheduler.maximum-allocation-vcores": "6",
+          "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.nodemanager.resource.cpu-vcores": "12",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",

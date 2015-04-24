@@ -39,6 +39,8 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     super(HDP22StackAdvisor, self).recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
     putYarnProperty('yarn.nodemanager.resource.cpu-vcores', clusterData['cpu'])
+    putYarnProperty('yarn.scheduler.minimum-allocation-vcores', 1)
+    putYarnProperty('yarn.scheduler.maximum-allocation-vcores', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
     # Property Attributes
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
