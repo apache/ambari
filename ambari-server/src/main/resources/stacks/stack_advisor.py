@@ -737,16 +737,16 @@ class DefaultStackAdvisor(StackAdvisor):
       allDependencies.extend(item['configurations'])
 
     dependencies = []
-    dependencies.extend(changedConfigs)
 
-    size = 0
+    size = -1
     while size != len(dependencies):
       size = len(dependencies)
       for config in allDependencies:
-        type = re.sub('\.xml$', '', config['StackConfigurations']['type'])
-        name = config['StackConfigurations']['property_name']
-
-        if {"type": type, "name": name} in dependencies:
+        property = {
+          "type": re.sub('\.xml$', '', config['StackConfigurations']['type']),
+          "name": config['StackConfigurations']['property_name']
+        }
+        if property in dependencies or property in changedConfigs:
           for dependedConfig in config['StackConfigurations']['property_depended_by']:
             if dependedConfig not in dependencies:
               dependencies.append(dependedConfig)
