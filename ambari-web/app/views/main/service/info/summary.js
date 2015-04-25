@@ -543,7 +543,7 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
 
     if (App.get('supports.customizedWidgets')) {
-        this.get('controller').loadActiveWidgetLayout();
+        this.get('controller').getActiveWidgetLayout();
       if (App.get('supports.customizedWidgetLayout')) {
         this.get('controller').loadWidgetLayouts();
       }

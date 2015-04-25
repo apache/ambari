@@ -33,16 +33,37 @@ App.WidgetSectionMixin = Ember.Mixin.create({
   }.property('content.serviceName'),
 
   /**
+   * UI user default layout name
+   */
+  userLayoutName: function () {
+    var heatmapType;
+    var loginName = App.router.get('loginName');
+    if (this.get('content.serviceName')) {
+      heatmapType = this.get('content.serviceName').toLowerCase();
+    } else {
+      heatmapType = "system";
+    }
+    return loginName + "_" + heatmapType + this.layoutNameSuffix;
+  }.property('content.serviceName'),
+
+  /**
    * UI section name
    */
   sectionName: function () {
     if (this.get('content.serviceName')) {
       return this.get('content.serviceName') + this.sectionNameSuffix;
     } else {
-      return "SYSTEM"  + this.sectionNameSuffix
+      return "SYSTEM" + this.sectionNameSuffix
     }
   }.property('content.serviceName'),
 
+
+  /**
+   * @type {Em.A}
+   */
+  widgetLayouts: function () {
+    return App.WidgetLayout.find();
+  }.property('isWidgetLayoutsLoaded'),
 
 
   /**
@@ -57,7 +78,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     } else if (this.get('sectionName') === 'SYSTEM_HEATMAPS') {
       isServiceWithWidgetdescriptor = true;
     }
-    return isServiceWithWidgetdescriptor && App.supports.customizedWidgets;
+    return isServiceWithWidgetdescriptor && (App.supports.customizedWidgets || this.sectionNameSuffix === "_HEATMAPS");
   }.property('content.serviceName'),
 
   /**
@@ -73,27 +94,31 @@ App.WidgetSectionMixin = Ember.Mixin.create({
       if (this.get('activeWidgetLayout.widgets')) {
         return this.get('activeWidgetLayout.widgets').toArray();
       } else {
-        return  [];
+        return [];
       }
     }
   }.property('isWidgetsLoaded'),
+
 
   /**
    * load widgets defined by user
    * @returns {$.ajax}
    */
-  loadActiveWidgetLayout: function () {
+  getActiveWidgetLayout: function () {
+    var sectionName = this.get('sectionName');
+    var urlParams = 'WidgetLayoutInfo/section_name=' + sectionName;
     this.set('activeWidgetLayout', {});
     this.set('isWidgetsLoaded', false);
     if (this.get('isServiceWithEnhancedWidgets')) {
       return App.ajax.send({
-        name: 'widget.layout.get',
+        name: 'widgets.layouts.active.get',
         sender: this,
         data: {
-          layoutName: this.get('defaultLayoutName'),
-          serviceName: this.get('content.serviceName')
+          userName: App.router.get('loginName'),
+          sectionName: sectionName,
+          urlParams: urlParams
         },
-        success: 'loadActiveWidgetLayoutSuccessCallback'
+        success: 'getActiveWidgetLayoutSuccessCallback'
       });
     } else {
       this.set('isWidgetsLoaded', true);
@@ -102,17 +127,111 @@ App.WidgetSectionMixin = Ember.Mixin.create({
 
 
   /**
-   * success callback of <code>loadActiveWidgetLayout()</code>
+   * success callback of <code>getActiveWidgetLayout()</code>
    * @param {object|null} data
    */
-  loadActiveWidgetLayoutSuccessCallback: function (data) {
+  getActiveWidgetLayoutSuccessCallback: function (data) {
+    var self = this;
     if (data.items[0]) {
+      self.getWidgetLayoutSuccessCallback(data);
+    } else {
+      self.getAllActiveWidgetLayouts().done(function (activeWidgetLayoutsData) {
+        self.getDefaultWidgetLayoutByName(self.get('defaultLayoutName')).done(function (defaultWidgetLayoutData) {
+          self.createUserWidgetLayout(defaultWidgetLayoutData).done(function (userLayoutIdData) {
+            var activeWidgetLayouts;
+            var widgetLayouts = [];
+            if (!!activeWidgetLayoutsData.items.length) {
+              widgetLayouts = activeWidgetLayoutsData.items.map(function (item) {
+                return {
+                  "id": item.WidgetLayoutInfo.id
+                }
+              });
+            }
+            widgetLayouts.push({id: userLayoutIdData.resources[0].WidgetLayoutInfo.id});
+            activeWidgetLayouts = {
+              "WidgetLayouts": widgetLayouts
+            };
+            self.saveActiveWidgetLayouts(activeWidgetLayouts).done(function () {
+              self.getActiveWidgetLayout();
+            });
+          });
+        });
+      });
+    }
+  },
+
+  getAllActiveWidgetLayouts: function () {
+    return App.ajax.send({
+      name: 'widgets.layouts.all.active.get',
+      sender: this,
+      data: {
+        userName: App.router.get('loginName')
+      }
+    });
+  },
+
+  /**
+   * success callback of <code>getWidgetLayout()</code>
+   * @param {object|null} data
+   */
+  getWidgetLayoutSuccessCallback: function (data) {
+    if (data) {
       App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
       App.widgetLayoutMapper.map(data);
-      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('defaultLayoutName')));
+      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('id', data.items[0].WidgetLayoutInfo.id));
       this.set('isWidgetsLoaded', true);
     }
   },
+
+
+  getDefaultWidgetLayoutByName: function (layoutName) {
+    var urlParams = 'WidgetLayoutInfo/layout_name=' + layoutName;
+    return App.ajax.send({
+      name: 'widget.layout.get',
+      sender: this,
+      data: {
+        urlParams: urlParams
+      }
+    });
+  },
+
+  createUserWidgetLayout: function (defaultWidgetLayoutData) {
+    var layout = defaultWidgetLayoutData.items[0].WidgetLayoutInfo;
+    var layoutName = this.get('userLayoutName');
+    var data = {
+      "WidgetLayoutInfo": {
+        "display_name": layout.display_name,
+        "layout_name": layoutName,
+        "scope": "USER",
+        "section_name": layout.section_name,
+        "user_name": App.router.get('loginName'),
+        "widgets": layout.widgets.map(function (widget) {
+          return {
+            "id": widget.WidgetInfo.id
+          }
+        })
+      }
+    };
+    return App.ajax.send({
+      name: 'widget.layout.create',
+      sender: this,
+      data: {
+        data: data
+      }
+    });
+  },
+
+  saveActiveWidgetLayouts: function (activeWidgetLayouts) {
+    return App.ajax.send({
+      name: 'widget.activelayouts.edit',
+      sender: this,
+      data: {
+        data: activeWidgetLayouts,
+        userName: App.router.get('loginName')
+      }
+    });
+  },
+
 
   /**
    * save layout after re-order widgets

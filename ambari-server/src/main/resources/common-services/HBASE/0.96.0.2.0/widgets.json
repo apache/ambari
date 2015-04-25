@@ -6,8 +6,8 @@
       "section_name": "HBASE_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "RS_READS_WRITES",
-          "display_name": "RegionServer Reads and Writes",
+          "widget_name": "Reads and Writes",
+          "display_name": "Reads and Writes",
           "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -62,14 +62,14 @@
           "properties": {
             "display_unit": "Requests",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "READ_LATENCY_95",
-          "display_name": "95% Read Latency",
-          "description": "This widget shows 95th percentile of the read latency.",
-          "widget_type": "NUMBER",
+          "widget_name": "Read Latency",
+          "display_name": "Read Latency",
+          "description": "Widget shows 95% Read Latency",
+          "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
@@ -81,19 +81,29 @@
           ],
           "values": [
             {
-              "name": "95% Read Latency",
+              "name": "Cluster wide minimum of 95% Read Latency",
+              "value": "${regionserver.Server.Get_95th_percentile}"
+            },
+            {
+              "name": "Weighted average of 95% read Latency",
+              "value": "${regionserver.Server.Get_95th_percentile}"
+            },
+            {
+              "name": "Cluster wide maximum of 95% read Latency",
               "value": "${regionserver.Server.Get_95th_percentile}"
             }
           ],
           "properties": {
-            "display_unit": ""
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "WRITE_LATENCY_95",
-          "display_name": "95% Write Latency",
+          "widget_name": "Write Latency",
+          "display_name": "Write Latency",
           "description": "This widget shows 95th percentile of the write latency.",
-          "widget_type": "NUMBER",
+          "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
@@ -123,16 +133,26 @@
           ],
           "values": [
             {
-              "name": "95% Write Latency",
+              "name": "Cluster wide minimum of 95% write Latency",
+              "value": "${regionserver.Server.Mutate_95th_percentile + regionserver.Server.Increment_95th_percentile + regionserver.Server.Append_95th_percentile + regionserver.Server.Delete_95th_percentile}"
+            },
+            {
+              "name": "Weighted average of 95% write Latency",
+              "value": "${regionserver.Server.Mutate_95th_percentile + regionserver.Server.Increment_95th_percentile + regionserver.Server.Append_95th_percentile + regionserver.Server.Delete_95th_percentile}"
+            },
+            {
+              "name": "Cluster wide maximum of 95% write Latency",
               "value": "${regionserver.Server.Mutate_95th_percentile + regionserver.Server.Increment_95th_percentile + regionserver.Server.Append_95th_percentile + regionserver.Server.Delete_95th_percentile}"
             }
           ],
           "properties": {
-            "display_unit": ""
+            "display_unit": "ms",
+            "graph_type": "LINE",
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "OPEN_CONNECTIONS",
+          "widget_name": "Open Connections",
           "display_name": "Open Connections",
           "description": "This widget shows number of current open connections",
           "widget_type": "GRAPH",
@@ -155,12 +175,12 @@
           "properties": {
             "display_unit": "Connections",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "ACTIVE_HANDLER",
-          "display_name": "Active Handlers vs Calls in General Queue",
+          "widget_name": "Request Handlers",
+          "display_name": "Request Handlers",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -189,13 +209,13 @@
           ],
           "properties": {
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "FILES_LOCAL",
+          "widget_name": "Files Local",
           "display_name": "Files Local",
-          "description": "This widget shows percentage of files local.",
+          "description": "This widget shows weighted average for local files.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -217,8 +237,8 @@
           }
         },
         {
-          "widget_name": "UPDATES_BLOCKED_TIME",
-          "display_name": "Updates Blocked Time",
+          "widget_name": "Blocked Updates",
+          "display_name": "Blocked Updates",
           "description": "Number of milliseconds updates have been blocked so the memstore can be flushed",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -239,13 +259,13 @@
           "properties": {
             "display_unit": "ms",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "RS_HOST_METRICS",
-          "display_name": "ReqionServer System Metrics",
-          "description": "ReqionServer widget for Host CPU, Network and Disk Utilization",
+          "widget_name": "Cluster CPU",
+          "display_name": "Cluster CPU",
+          "description": "ReqionServer widget for CPU utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -254,13 +274,26 @@
               "metric_path": "metrics/cpu/cpu_idle",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
-            },
+            }
+          ],
+          "values": [
             {
-              "name": "disk_free",
-              "metric_path": "metrics/disk/disk_free",
-              "service_name": "HBASE",
-              "component_name": "HBASE_REGIONSERVER"
-            },
+              "name": "CPU Idle",
+              "value": "${cpu_idle}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster Network",
+          "display_name": "Cluster Network",
+          "description": "ReqionServer widget for network utilization",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
             {
               "name": "pkts_in",
               "metric_path": "metrics/network/pkts_in",
@@ -276,21 +309,42 @@
           ],
           "values": [
             {
-              "name": "CPU Idle",
-              "value": "${cpu_idle}"
+              "name": "Packets In",
+              "value": "${pkts_in}"
             },
             {
-              "name": "Disk Free",
+              "name": "Packets Out",
               "value": "${disk_free}"
-            },
-            {
-              "name": "Network Packets In/Out",
-              "value": "${pkts_in + pkts_out}"
             }
           ],
           "properties": {
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster Disk",
+          "display_name": "Cluster Disk",
+          "description": "ReqionServer widget for disk utilization",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "disk_free",
+              "metric_path": "metrics/disk/disk_free",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Disk Free",
+              "value": "${disk_free}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
           }
         }
       ]

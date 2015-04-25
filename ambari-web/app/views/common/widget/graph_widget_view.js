@@ -95,7 +95,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
         dataLength = metrics.findProperty('name', match).data.length;
       } else {
         validExpression = false;
-        console.warn('Metrics not found to compute expression');
+        console.error('Metrics with name "' + match + '" not found to compute expression');
       }
     });
 

@@ -74,7 +74,7 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
       });
       var categories = self.categorizeByServiceName(self.get('allHeatmaps'));
       self.set('heatmapCategories', categories);
-      self.loadActiveWidgetLayout();
+      self.getActiveWidgetLayout();
     });
   },
 
@@ -112,20 +112,6 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
   },
 
   /**
-   * success callback of <code>loadActiveWidgetLayout()</code>
-   * @overrriden
-   * @param {object|null} data
-   */
-  loadActiveWidgetLayoutSuccessCallback: function (data) {
-    if (data.items[0]) {
-      App.widgetMapper.map(data.items[0].WidgetLayoutInfo);
-      App.widgetLayoutMapper.map(data);
-      this.set('activeWidgetLayout', App.WidgetLayout.find().findProperty('layoutName', this.get('defaultLayoutName')));
-      this.set('isWidgetsLoaded', true);
-    }
-  },
-
-  /**
    *  Gets all heatmap widgets that should be available in select metrics dropdown on heatmap page
    * @return {$.ajax}
    */
@@ -136,7 +122,8 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
       name: 'widgets.get',
       sender: this,
       data: {
-        urlParams: urlParams
+        urlParams: urlParams,
+        sectionName: this.get('sectionName')
       }
     });
   },
@@ -250,7 +237,7 @@ App.MainChartsHeatmapController = Em.Controller.extend(App.WidgetSectionMixin, {
     var self = this;
     var metricItem = Em.Object.create(event.context);
     this.saveWidgetLayout([metricItem]).done(function(){
-      self.loadActiveWidgetLayout();
+      self.getActiveWidgetLayout();
     });
   },
 

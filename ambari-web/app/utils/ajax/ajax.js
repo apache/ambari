@@ -2408,7 +2408,7 @@ var urls = {
 
   'widgets.get': {
     real: '/clusters/{clusterName}/widgets?{urlParams}',
-    mock: '/data/widget_layouts/all_heatmaps.json'
+    mock: '/data/widget_layouts/{sectionName}_WIDGETS.json'
   },
 
   'widgets.all.shared.get': {
@@ -2426,8 +2426,13 @@ var urls = {
     mock: '/data/widget_layouts/HBASE/stack_layout.json'
   },
 
+  'widget.layout.id.get': {
+    real: '/clusters/{clusterName}/widget_layouts/{layoutId}',
+    mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
+  },
+
   'widget.layout.get': {
-    real: '/clusters/{clusterName}/widget_layouts?WidgetLayoutInfo/layout_name={layoutName}',
+    real: '/clusters/{clusterName}/widget_layouts?{urlParams}',
     mock: '/data/widget_layouts/{serviceName}/default_dashboard.json'
   },
 
@@ -2442,6 +2447,17 @@ var urls = {
     }
   },
 
+  'widget.layout.create': {
+    real: '/clusters/{clusterName}/widget_layouts',
+    mock: '',
+    format: function (data) {
+      return {
+        type: 'POST',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+
   'widgets.layout.userDefined.get': {
     real: '/users/{loginName}/widget_layouts?section_name={sectionName}',
     mock: '/data/widget_layouts/HBASE/empty_user_layout.json'
@@ -2451,6 +2467,29 @@ var urls = {
     real: '/users?widget_layouts/section_name={sectionName}&widget_layouts/scope=CLUSTER',
     mock: '/data/widget_layouts/HBASE/layouts.json'
   },
+
+  'widgets.layouts.active.get': {
+    real: '/users/{userName}/activeWidgetLayouts?{urlParams}',
+    mock: '/data/widget_layouts/{sectionName}.json'
+  },
+
+  'widgets.layouts.all.active.get': {
+    real: '/users/{userName}/activeWidgetLayouts',
+    mock: ''
+  },
+
+
+  'widget.activelayouts.edit': {
+    real: '/users/{userName}/activeWidgetLayouts/',
+    mock: '',
+    format: function (data) {
+      return {
+        type: 'PUT',
+        data: JSON.stringify(data.data)
+      }
+    }
+  },
+
 
   'widget.action.delete': {
     real: '/clusters/{clusterName}/widgets/{id}',

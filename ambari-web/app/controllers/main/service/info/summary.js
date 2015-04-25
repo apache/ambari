@@ -315,13 +315,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
 
 
   /**
-   * @type {Em.A}
-   */
-  widgetLayouts: function () {
-    return App.WidgetLayout.find();
-  }.property('isWidgetLayoutsLoaded'),
-
-  /**
    * load widget layouts across all users in CLUSTER scope
    * @returns {$.ajax}
    */
@@ -513,7 +506,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * update current active widget layout
    */
   updateActiveLayout: function () {
-    this.loadActiveWidgetLayout();
+    this.getActiveWidgetLayout();
   },
 
   /**

@@ -227,7 +227,7 @@ describe('App.MainServiceInfoSummaryController', function () {
 
   });
 
-  describe("#loadActiveWidgetLayout() for Enhanced Dashboard", function () {
+  describe("#getActiveWidgetLayout() for Enhanced Dashboard", function () {
     before(function () {
       sinon.stub(App.ajax, 'send');
     });
@@ -239,12 +239,12 @@ describe('App.MainServiceInfoSummaryController', function () {
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.loadActiveWidgetLayout();
-      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widget.layout.get');
+      controller.getActiveWidgetLayout();
+      expect(App.ajax.send.getCall(0).args[0].name).to.equal('widgets.layouts.active.get');
     });
   });
 
-  describe("#loadActiveWidgetLayoutSuccessCallback()", function () {
+  describe("#getActiveWidgetLayoutSuccessCallback()", function () {
     beforeEach(function () {
       sinon.stub( App.widgetLayoutMapper, 'map');
       sinon.stub( App.widgetMapper, 'map');
@@ -258,7 +258,7 @@ describe('App.MainServiceInfoSummaryController', function () {
         isServiceWithEnhancedWidgets: true,
         content: Em.Object.create({serviceName: 'HDFS'})
       });
-      controller.loadActiveWidgetLayoutSuccessCallback({items:[{
+      controller.getActiveWidgetLayoutSuccessCallback({items:[{
         WidgetLayoutInfo: {}
       }]});
       expect(controller.get('isWidgetsLoaded')).to.be.true;

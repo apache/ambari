@@ -6,7 +6,7 @@
       "section_name": "HDFS_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "GC_STATISTICS",
+          "widget_name": "GC Statistics",
           "display_name": "GC Statistics",
           "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
           "widget_type": "GRAPH",
@@ -51,11 +51,11 @@
           "properties": {
             "display_unit": "Requests",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "NUM_OPEN_CONNECTIONS",
+          "widget_name": "Client connections",
           "display_name": "Client connections",
           "description": "Number of open connections for Active NameNode.",
           "widget_type": "GRAPH",
@@ -79,11 +79,11 @@
           "properties": {
             "display_unit": "Connections",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "JVM_HEAP_STATISTICS",
+          "widget_name": "NameNode JVM Heap Statistics",
           "display_name": "NameNode JVM Heap Statistics",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -115,11 +115,11 @@
           ],
           "properties": {
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "NN_CPU_RAM_UTILIZATION",
+          "widget_name": "NameNode CPU and RAM Utilization",
           "display_name": "NameNode CPU and RAM Utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -151,11 +151,11 @@
           ],
           "properties": {
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "RPC_QUEUE_WAIT",
+          "widget_name": "RPC Queue Wait time",
           "display_name": "RPC Queue Wait time",
           "widget_type": "NUMBER",
           "is_visible": true,
@@ -203,7 +203,7 @@
           }
         },
         {
-          "widget_name": "CORRUPTED_BLOCKS",
+          "widget_name": "Corrupted Blocks",
           "display_name": "Corrupted Blocks",
           "widget_type": "NUMBER",
           "is_visible": true,
@@ -225,7 +225,7 @@
           }
         },
         {
-          "widget_name": "UNDER_REPLICATED_BLOCKS",
+          "widget_name": "Under Replicated Blocks",
           "display_name": "Under Replicated Blocks",
           "widget_type": "NUMBER",
           "is_visible": true,
@@ -254,7 +254,7 @@
       "section_name": "HDFS_HEATMAPS",
       "widgetLayoutInfo": [
         {
-          "widget_name": "HDFS_BYTES_READ",
+          "widget_name": "HDFS Bytes Read",
           "display_name": "HDFS Bytes Read",
           "description": "",
           "widget_type": "HEATMAP",
@@ -279,7 +279,7 @@
           }
         },
         {
-          "widget_name": "HDFS_BYTES_WRITE",
+          "widget_name": "HDFS Bytes Written",
           "display_name": "HDFS Bytes Written",
           "description": "",
           "widget_type": "HEATMAP",
@@ -304,7 +304,7 @@
           }
         },
         {
-          "widget_name": "DN_GC_TIME",
+          "widget_name": "DataNode Garbage Collection Time",
           "display_name": "DataNode Garbage Collection Time",
           "description": "",
           "widget_type": "HEATMAP",
@@ -329,7 +329,7 @@
           }
         },
         {
-          "widget_name": "DN_JVM_HEAP_USED",
+          "widget_name": "DataNode JVM Heap Memory Used",
           "display_name": "DataNode JVM Heap Memory Used",
           "description": "",
           "widget_type": "HEATMAP",
@@ -354,7 +354,7 @@
           }
         },
         {
-          "widget_name": "DN_JVM_HEAP_COMMITTED",
+          "widget_name": "DataNode JVM Heap Memory Committed",
           "display_name": "DataNode JVM Heap Memory Committed",
           "description": "",
           "widget_type": "HEATMAP",
@@ -379,7 +379,7 @@
           }
         },
         {
-          "widget_name": "DN_DISK_IO",
+          "widget_name": "DataNode Process Disk I/O Utilization",
           "display_name": "DataNode Process Disk I/O Utilization",
           "description": "",
           "widget_type": "HEATMAP",
@@ -422,7 +422,7 @@
           }
         },
         {
-          "widget_name": "DN_NETWORK_IO",
+          "widget_name": "DataNode Process Network I/O Utilization",
           "display_name": "DataNode Process Network I/O Utilization",
           "description": "",
           "widget_type": "HEATMAP",

@@ -6,7 +6,7 @@
       "section_name": "YARN_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "NM_RAM_UTILIZATION",
+          "widget_name": "NodeManager RAM Utilization",
           "display_name": "NodeManager RAM Utilization",
           "description": "",
           "widget_type": "GRAPH",
@@ -38,11 +38,11 @@
           "properties": {
             "display_unit": "",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "NM_CPU_UTILIZATION",
+          "widget_name": "NodeManager CPU Utilization",
           "display_name": "NodeManager CPU Utilization",
           "description": "",
           "widget_type": "GRAPH",
@@ -74,11 +74,11 @@
           "properties": {
             "display_unit": "",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "NM_DISK_NETWORK_IO",
+          "widget_name": "NodeManager Disk and Network Utilization",
           "display_name": "NodeManager Disk and Network Utilization",
           "description": "",
           "widget_type": "GRAPH",
@@ -122,11 +122,11 @@
           "properties": {
             "display_unit": "",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         },
         {
-          "widget_name": "NM_CONTAINER_FAILURES",
+          "widget_name": "NodeManager Container Failures",
           "display_name": "NodeManager Container Failures",
           "description": "",
           "widget_type": "GRAPH",
@@ -148,7 +148,7 @@
           "properties": {
             "display_unit": "",
             "graph_type": "LINE",
-            "time_range": "86400000"
+            "time_range": "1"
           }
         }
       ]
@@ -159,8 +159,8 @@
       "section_name": "YARN_HEATMAPS",
       "widgetLayoutInfo": [
         {
-          "widget_name": "NM_GC_TIME",
-          "display_name": "NodeManager Garbage Collection Time",
+          "widget_name": "NodeManager GC Time",
+          "display_name": "NodeManager GC Time",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
@@ -184,7 +184,7 @@
           }
         },
         {
-          "widget_name": "NM_JVM_Heap_Used",
+          "widget_name": "NodeManager JVM Heap Memory Used",
           "display_name": "NodeManager JVM Heap Memory Used",
           "description": "",
           "widget_type": "HEATMAP",
@@ -209,7 +209,7 @@
           }
         },
         {
-          "widget_name": "YARN_MEMORY_USED",
+          "widget_name": "NodeManager Memory used %",
           "display_name": "NodeManager Memory used %",
           "description": "",
           "widget_type": "HEATMAP",
@@ -240,7 +240,7 @@
           }
         },
         {
-          "widget_name": "ALLOCATED_CONTAINER",
+          "widget_name": "Allocated Containers",
           "display_name": "Allocated Containers",
           "description": "",
           "widget_type": "HEATMAP",
@@ -265,7 +265,7 @@
           }
         },
         {
-          "widget_name": "NM_RAM_UTILIZED",
+          "widget_name": "NodeManager RAM Utilized",
           "display_name": "NodeManager RAM Utilized",
           "description": "",
           "widget_type": "HEATMAP",
@@ -290,7 +290,7 @@
           }
         },
         {
-          "widget_name": "NM_CPU_UTILIZED",
+          "widget_name": "NodeManager CPU Utilized",
           "display_name": "NodeManager CPU Utilized",
           "description": "",
           "widget_type": "HEATMAP",
