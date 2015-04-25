@@ -114,6 +114,14 @@
   </property>
 
   <property>
+    <name>mapreduce.job.counters.max</name>
+    <value>130</value>
+    <description>
+      Limit on the number of counters allowed per job.
+    </description>
+  </property>
+
+  <property>
     <name>mapreduce.reduce.shuffle.merge.percent</name>
     <value>0.66</value>
     <description>
