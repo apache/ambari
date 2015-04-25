@@ -111,7 +111,12 @@ def execute(parameters=None, host_name=None):
         metastore_uri = uri
 
     cmd = format("export HIVE_CONF_DIR='/etc/hive/conf.server/' ; "
-                 "hive --hiveconf hive.metastore.uris={metastore_uri} --hiveconf hive.execution.engine=mr -e 'show databases;'")
+                 "hive --hiveconf hive.metastore.uris={metastore_uri}\
+                 --hiveconf hive.metastore.client.connect.retry.delay=1s\
+                 --hiveconf hive.metastore.failure.retries=1\
+                 --hiveconf hive.metastore.connect.retries=1\
+                 --hiveconf hive.metastore.client.socket.timeout=14s\
+                 --hiveconf hive.execution.engine=mr -e 'show databases;'")
 
     start_time = time.time()
 
