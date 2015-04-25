@@ -42,9 +42,7 @@
 @toggle-widget-off-background-color: @green;
 
 .widget-config {
-  .widget-config {
-    margin-bottom: 0;
-  }
+  margin-bottom: 11px;
   .widget-config-label {
     font-size: 90%;
     &.text-success {
@@ -58,18 +56,39 @@
     float: right;
     display: inline-block;
     margin-left: 10px;
-    min-height: 60px;
+    min-height: 50px;
+    min-width: 39px;
+    .widget-col {
+      width: 18px;
+      &.left {
+        float: left;
+      }
+      &.right {
+        float: right;
+      }
+    }
     .widget-action {
       text-decoration: none;
       display: block;
     }
     .widget-action-final {
+      padding-left: 1px;
       color: @widget-config-override-action-color;
       &.active {
         color: @widget-config-override-action-active-color;
       }
     }
+    .icon-warning-sign {
+      &.warning {
+        color: @health-status-yellow
+      }
+    }
   }
+}
+
+.directory-textarea-wrapper {
+  float: left;
+  width: 80%;
 }
 
 .list-widget {
@@ -187,7 +206,7 @@
 
   .ui-slider-wrapper {
     .ui-slider-wrapper-inner {
-      width: 75%;
+      width: 68%;
       .slider.slider-horizontal {
         width: 100%;
       }

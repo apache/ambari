@@ -18,41 +18,47 @@
 
 {{#if view.canEdit}}
   <div class="widget-config-controls">
-    {{#if view.config.supportsFinal}}
-      <a href="#" data-toggle="tooltip"
-        {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:hide" disabled="view.config.isNotEditable"}}
-        {{action "toggleFinalFlag" view.config target="view"}}
-        {{translateAttr data-original-title="services.service.config.final"}}>
-        <i class="icon-lock"></i>
-      </a>
-    {{/if}}
-    {{#if view.overrideAllowed}}
-      {{#isAccessible ADMIN}}
-        <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:hide"}}>
-          <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
-            {{action "createOverrideProperty" view.config target="view.parentView"}}
-            {{translateAttr data-original-title="common.override"}}>
-            <i class="icon-plus-sign"></i>
+    <div class="widget-col left">
+      {{view view.issueView configBinding="view.config"}}
+      {{#if view.config.isNotDefaultValue}}
+        {{#if view.undoAllowed}}
+          <a class="widget-action widget-action-undo" href="#" {{action "restoreValue" target="view"}}>
+            <i class="icon-undo"></i>
           </a>
-        </div>
-      {{/isAccessible}}
-    {{/if}}
-    {{#unless view.isOriginalSCP}}
-      {{#isAccessible ADMIN}}
-        <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#" data-toggle="tooltip"
-          {{action "removeOverride" view.config target="view.parentView"}}
-          {{translateAttr data-original-title="common.remove"}}>
-          <i class="icon-minus-sign"></i>
-        </a>
-      {{/isAccessible}}
-    {{/unless}}
-    {{#if view.config.isNotDefaultValue}}
-      {{#if view.undoAllowed}}
-        <a class="widget-action widget-action-undo" href="#" {{action "restoreValue" target="view"}}>
-          <i class="icon-undo"></i>
+        {{/if}}
+      {{/if}}
+    </div>
+    <div class="widget-col right">
+      {{#if view.config.supportsFinal}}
+        <a href="#" data-toggle="tooltip"
+          {{bindAttr class=":widget-action :widget-action-final view.config.isFinal:active view.showFinalConfig:show:hide" disabled="view.config.isNotEditable"}}
+          {{action "toggleFinalFlag" view.config target="view"}}
+          {{translateAttr data-original-title="services.service.config.final"}}>
+          <i class="icon-lock"></i>
         </a>
       {{/if}}
-    {{/if}}
+      {{#unless view.isOriginalSCP}}
+        {{#isAccessible ADMIN}}
+          <a {{bindAttr class=":widget-action :widget-action-remove view.isHover:show:hide"}} href="#"
+                                                                                              data-toggle="tooltip"
+            {{action "removeOverride" view.config target="view.parentView"}}
+            {{translateAttr data-original-title="common.remove"}}>
+            <i class="icon-minus-sign"></i>
+          </a>
+        {{/isAccessible}}
+      {{/unless}}
+      {{#if view.overrideAllowed}}
+        {{#isAccessible ADMIN}}
+          <div {{bindAttr class=":widget-action :widget-action-override view.isHover:show:hide"}}>
+            <a class="widget-action widget-action-override" href="#" data-toggle="tooltip"
+              {{action "createOverrideProperty" view.config target="view.parentView"}}
+              {{translateAttr data-original-title="common.override"}}>
+              <i class="icon-plus-sign"></i>
+            </a>
+          </div>
+        {{/isAccessible}}
+      {{/if}}
+    </div>
   </div>
   <div class="clearfix"></div>
 {{/if}}
@@ -66,31 +72,18 @@
   {{/if}}
 {{/if}}
 
-{{#unless controller.isCompareMode}}
-  {{#if view.config.errorMessage}}
-    <p class="text-error">{{view.config.errorMessage}}</p>
-  {{else}}
-    {{#if view.config.warnMessage}}
-      <p class="text-warning">{{view.config.warnMessage}}</p>
-    {{else}}
-      <p>&nbsp;</p>
-    {{/if}}
-  {{/if}}
-{{/unless}}
-
 {{#if view.isComparison}}
   <div class="widget-config-controls">
-  {{#if controller.selectedConfigGroup.isDefault}}
-    <span
+    {{#if controller.selectedConfigGroup.isDefault}}
+      <span
         class="label label-info pull-right">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
-    {{#if controller.isCurrentSelected}}
-      <div class="clearfix"></div>
-      <span class="label label-success">{{t common.current}}</span>
+      {{#if controller.isCurrentSelected}}
+        <span class="label label-success">{{t common.current}}</span>
+      {{/if}}
+    {{else}}
+      <span class="label label-info">{{t common.default}}
+        &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
     {{/if}}
-  {{else}}
-    <span class="label label-info">{{t common.default}}
-      &nbsp;{{t services.service.config.configHistory.configGroup}}</span>
-  {{/if}}
   </div>
 {{/if}}
 

@@ -21,7 +21,7 @@ require('views/common/controls_view');
 var App = require('app');
 
 App.DirectoryConfigWidgetView = App.ConfigWidgetView.extend({
-  templateName: require('templates/common/configs/widgets/textfield_config_widget'),
+  templateName: require('templates/common/configs/widgets/directory_config_widget'),
   classNames: ['widget-config', 'directory-widget'],
 
   /**

@@ -21,6 +21,13 @@
     <div class="clearfix"></div>
     <span class="widget-config-label">{{view.config.displayName}}</span>
   {{/if}}
-  {{view view.configView}}
+    {{#if view.isOriginalSCP}}
+      <span class="widget-config-label">{{view.config.displayName}}</span>
+    {{/if}}
+   <div class="directory-textarea-wrapper">
+     {{view view.configView}}
+   </div>
+   <div class="right">
+     {{template "templates/common/configs/widgets/controls"}}
+   </div>
 </div>
-{{template "templates/common/configs/widgets/controls"}}

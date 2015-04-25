@@ -87,6 +87,31 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   isComparisonBinding: 'config.isComparison',
 
+  issueView: Em.View.extend({
+
+    tagName: 'i',
+
+    classNames: ['icon-warning-sign'],
+
+    classNameBindings: ['issueIconClass'],
+
+    attributeBindings:['issueMessage:data-original-title'],
+
+    config: null,
+
+    didInsertElement: function() {
+      App.tooltip($(this.get('element')));
+    },
+
+    issueIconClass: function() {
+      return this.get('config.errorMessage') ? '': this.get('config.warnMessage') ? 'warning' : 'not-show';
+    }.property('config.warnMessage', 'config.errorMessage'),
+
+    issueMessage: function() {
+      return this.get('config.errorMessage') || this.get('config.warnMessage');
+    }.property('config.warnMessage', 'config.errorMessage')
+  }),
+
   /**
    * Config name to display.
    * @type {String}
