@@ -135,7 +135,7 @@
     <value>5120</value>
     <description>Amount of physical memory, in MB, that can be allocated
       for containers.</description>
-    <display-name>Total NM Physical Memory Available to Containers</display-name>
+    <display-name>Total RAM per NM</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>

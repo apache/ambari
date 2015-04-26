@@ -1710,6 +1710,49 @@ class TestHDP22StackAdvisor(TestCase):
     res = self.stackAdvisor.validateHDFSConfigurationsEnv(properties, recommendedDefaults, configurations, '', '')
     self.assertEquals(res, res_expected)
 
+  def test_validateYARNConfigurationsEnv(self):
+    configurations = {}
+
+    # 1) ok: No yarn_cgroups_enabled
+    recommendedDefaults = {'namenode_heapsize': '1024',
+                           'namenode_opt_newsize' : '256',
+                           'namenode_opt_maxnewsize' : '256'}
+    properties = {}
+    res_expected = []
+
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
+
+    # 2) ok: yarn_cgroups_enabled=false, but security enabled
+    properties['yarn_cgroups_enabled'] = 'false'
+    configurations = {
+      "core-site": {
+        "properties": {
+          "hadoop.security.authentication": "kerberos",
+          "hadoop.security.authorization": "true"
+        }
+      }
+    }
+    res_expected = []
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
+
+    # 3) ok: yarn_cgroups_enabled=true, but security enabled
+    properties['yarn_cgroups_enabled'] = 'true'
+    res_expected = []
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
+
+    # 4) fail: yarn_cgroups_enabled=true, but security disabled
+    configurations['core-site']['properties']['hadoop.security.authorization'] = 'false'
+    res_expected = [{'config-type': 'yarn-env',
+                     'message': 'CPU Isolation should only be enabled if security is enabled',
+                     'type': 'configuration',
+                     'config-name': 'yarn_cgroups_enabled',
+                     'level': 'WARN'}]
+    res = self.stackAdvisor.validateYARNEnvConfigurations(properties, recommendedDefaults, configurations, '', '')
+    self.assertEquals(res, res_expected)
+
   def test_validateMR2XmxOptsEnv(self):
 
     recommendedDefaults = {'mapreduce.map.java.opts': '-Xmx500m',

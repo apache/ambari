@@ -187,7 +187,7 @@
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>8</value>
     <description></description>
-    <display-name>Total NM CPU vCores available to Containers</display-name>
+    <display-name>Total NM CPU vCores</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -198,7 +198,7 @@
     <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
     <value>80</value>
     <description>The amount of CPU allocated for YARN containers - only effective when used with CGroups</description>
-    <display-name>% of Total NM CPU available to Containers</display-name>
+    <display-name>%ge of Total NM CPU</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -375,5 +375,52 @@
         <name>yarn.nodemanager.resource.cpu-vcores</name>
       </property>
     </depends-on>
+  </property>
+  <property>
+    <name>yarn.node-labels.enabled</name>
+    <value>false</value>
+    <description>
+      Enabled node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
+    </description>
+    <display-name>Enable Node Labels</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>yarn.node-labels.manager-class</name>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.nodelabels.MemoryRMNodeLabelsManager</value>
+    <description>If user want to enable this feature, specify it to "org.apache.hadoop.yarn.server.resourcemanager.nodelabels.RMNodeLabelsManager</description>
+    <deleted>true</deleted>
+  </property>
+  <property>
+    <name>yarn.nodemanager.container-executor.class</name>
+    <value>org.apache.hadoop.yarn.server.nodemanager.DefaultContainerExecutor</value>
+    <description>ContainerExecutor for launching containers</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>yarn.nodemanager.linux-container-executor.group</name>
+    <value>hadoop</value>
+    <description>Unix group of the NodeManager</description>
+    <depends-on>
+      <property>
+        <type>yarn-env</type>
+        <name>yarn_cgroups_enabled</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+    <value>false</value>
+    <display-name>Enable Pre-emption</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
 </configuration>

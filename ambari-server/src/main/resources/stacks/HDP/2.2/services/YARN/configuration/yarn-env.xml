@@ -25,7 +25,7 @@
     <name>yarn_cgroups_enabled</name>
     <value>false</value>
     <description>You can use CGroups to isolate CPU-heavy processes in a Hadoop cluster.</description>
-    <display-name>Enable CGroup Isolation</display-name>
+    <display-name>Enable CPU Isolation</display-name>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>

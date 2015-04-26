@@ -407,6 +407,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     childValidators = {
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations,
                "hadoop-env": self.validateHDFSConfigurationsEnv},
+      "YARN": {"yarn-env": self.validateYARNEnvConfigurations},
       "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations, "hive-site": self.validateHiveConfigurations},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations,
                 "hbase-env": self.validateHBASEEnvConfigurations},
@@ -757,6 +758,19 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name))})
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
+
+  def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    if "yarn_cgroups_enabled" in properties:
+      yarn_cgroups_enabled = properties["yarn_cgroups_enabled"].lower() == "true"
+      core_site_properties = getSiteProperties(configurations, "core-site")
+      security_enbaled = False
+      if core_site_properties:
+        security_enabled = core_site_properties['hadoop.security.authentication'] == 'kerberos' and core_site_properties['hadoop.security.authorization'] == 'true'
+      if not security_enabled and yarn_cgroups_enabled:
+        validationItems.append({"config-name": "yarn_cgroups_enabled",
+                              "item": self.getWarnItem("CPU Isolation should only be enabled if security is enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "yarn-env")
 
   def getMastersWithMultipleInstances(self):
     result = super(HDP22StackAdvisor, self).getMastersWithMultipleInstances()

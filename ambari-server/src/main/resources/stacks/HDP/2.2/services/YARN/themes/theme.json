@@ -15,7 +15,7 @@
               "sections": [
                 {
                   "name": "section-nm-sizing",
-                  "display-name": "NodeManager Sizing",
+                  "display-name": "Memory Sizing",
                   "row-index": "0",
                   "column-index": "0",
                   "row-span": "1",
@@ -60,7 +60,7 @@
                 },
                 {
                   "name": "section-container-sizing",
-                  "display-name": "Container Sizing",
+                  "display-name": "CPU Sizing",
                   "row-index": "1",
                   "column-index": "0",
                   "row-span": "1",
@@ -98,23 +98,35 @@
           "subsection-name": "subsection-nm-sizing-col1"
         },
         {
-          "config": "yarn-site/yarn.nodemanager.vmem-pmem-ratio",
-          "subsection-name": "subsection-nm-sizing-col1"
-        },
-        {
-          "config": "yarn-site/yarn.nodemanager.resource.percentage-physical-cpu-limit",
-          "subsection-name": "subsection-nm-sizing-col2"
-        },
-        {
-          "config": "yarn-site/yarn.nodemanager.resource.cpu-vcores",
-          "subsection-name": "subsection-nm-sizing-col2"
-        },
-        {
           "config": "yarn-site/yarn.scheduler.minimum-allocation-mb",
-          "subsection-name": "subsection-container-sizing-col1"
+          "subsection-name": "subsection-nm-sizing-col2"
         },
         {
           "config": "yarn-site/yarn.scheduler.maximum-allocation-mb",
+          "subsection-name": "subsection-nm-sizing-col2"
+        },
+        {
+          "config": "yarn-site/yarn.node-labels.enabled",
+          "subsection-name": "subsection-yarn-platform-features-col1"
+        },
+        {
+          "config": "yarn-site/yarn.resourcemanager.scheduler.monitor.enable",
+          "subsection-name": "subsection-yarn-platform-features-col1"
+        },
+        {
+          "config": "capacity-scheduler/yarn.scheduler.capacity.resource-calculator",
+          "subsection-name": "subsection-container-sizing-col1"
+        },
+        {
+          "config": "yarn-env/yarn_cgroups_enabled",
+          "subsection-name": "subsection-container-sizing-col1"
+        },
+        {
+          "config": "yarn-site/yarn.nodemanager.resource.cpu-vcores",
+          "subsection-name": "subsection-container-sizing-col1"
+        },
+        {
+          "config": "yarn-site/yarn.nodemanager.resource.percentage-physical-cpu-limit",
           "subsection-name": "subsection-container-sizing-col1"
         },
         {
@@ -124,14 +136,6 @@
         {
           "config": "yarn-site/yarn.scheduler.maximum-allocation-vcores",
           "subsection-name": "subsection-container-sizing-col2"
-        },
-        {
-          "config": "yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
-          "subsection-name": "subsection-yarn-platform-features-col1"
-        },
-        {
-          "config": "yarn-site/yarn.log-aggregation-enable",
-          "subsection-name": "subsection-yarn-platform-features-col1"
         }
       ]
     },
@@ -143,17 +147,6 @@
           "units": [
             {
               "unit-name": "MB"
-            }
-          ]
-        }
-      },
-      {
-        "config": "yarn-site/yarn.nodemanager.vmem-pmem-ratio",
-        "widget": {
-          "type": "slider",
-          "units": [
-            {
-              "unit-name": "float"
             }
           ]
         }
@@ -225,15 +218,27 @@
         }
       },
       {
-        "config": "yarn-site/yarn.log-aggregation-enable",
+        "config": "yarn-site/yarn.node-labels.enabled",
         "widget": {
           "type": "checkbox"
         }
       },
       {
-        "config": "yarn-site/yarn.resourcemanager.work-preserving-recovery.enabled",
+        "config": "yarn-env/yarn_cgroups_enabled",
         "widget": {
           "type": "checkbox"
+        }
+      },
+      {
+        "config": "yarn-site/yarn.resourcemanager.scheduler.monitor.enable",
+        "widget": {
+          "type": "checkbox"
+        }
+      },
+      {
+        "config": "capacity-scheduler/yarn.scheduler.capacity.resource-calculator",
+        "widget": {
+          "type": "toggle"
         }
       }
     ]
