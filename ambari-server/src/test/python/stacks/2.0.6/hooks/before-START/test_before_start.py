@@ -34,6 +34,7 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled('Execute', ('setenforce', '0'),
                               only_if = 'test -f /selinux/enforce',
+                              not_if = "(! which getenforce ) || (which getenforce && getenforce | grep -q Disabled)",
                               sudo=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
@@ -104,6 +105,7 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled('Execute', ('setenforce', '0'),
                               only_if = 'test -f /selinux/enforce',
+                              not_if = "(! which getenforce ) || (which getenforce && getenforce | grep -q Disabled)",
                               sudo=True,
                               )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
@@ -170,6 +172,7 @@ class TestHookBeforeStart(RMFTestCase):
     )
     self.assertResourceCalled('Execute', ('setenforce', '0'),
                               only_if = 'test -f /selinux/enforce',
+                              not_if = "(! which getenforce ) || (which getenforce && getenforce | grep -q Disabled)",
                               sudo=True,
                               )
     self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',

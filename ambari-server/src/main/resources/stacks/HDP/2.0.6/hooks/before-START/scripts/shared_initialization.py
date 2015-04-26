@@ -29,6 +29,7 @@ def setup_hadoop():
 
   Execute(("setenforce","0"),
           only_if="test -f /selinux/enforce",
+          not_if="(! which getenforce ) || (which getenforce && getenforce | grep -q Disabled)",
           sudo=True,
   )
 
