@@ -214,7 +214,12 @@ start_hiveserver2_path = format("{tmp_dir}/start_hiveserver2_script")
 start_metastore_path = format("{tmp_dir}/start_metastore_script")
 
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
-hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
+
+if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
+  hive_heapsize = config['configurations']['hive-site']['hive.heapsize']
+else:
+  hive_heapsize = config['configurations']['hive-env']['hive.client.heapsize']
+
 java64_home = config['hostLevelParams']['java_home']
 
 ##### MYSQL

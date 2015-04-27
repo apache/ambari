@@ -22,6 +22,12 @@
 
 <configuration>
   <property>
+    <name>hive.client.heapsize</name>
+    <value>512</value>
+    <description>Hive Client Java heap size</description>
+  </property>
+
+  <property>
     <name>hive_database_type</name>
     <value>mysql</value>
     <description>Default HIVE DB type.</description>

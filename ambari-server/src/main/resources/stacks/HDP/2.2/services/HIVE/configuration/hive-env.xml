@@ -21,6 +21,11 @@
 -->
 
 <configuration>
+  <property>
+    <name>hive.client.heapsize</name>
+    <deleted>true</deleted>
+  </property>
+
   <!-- hive-env.sh -->
   <property>
     <name>content</name>
