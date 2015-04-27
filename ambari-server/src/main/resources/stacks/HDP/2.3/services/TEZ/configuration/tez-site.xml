@@ -27,6 +27,24 @@
   </property>
 
   <property>
+    <name>tez.runtime.optimize.local.fetch</name>
+    <value>true</value>
+    <description>If the shuffle input is on the local host bypass the http fetch and access the files directly.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>tez.task.generate.counters.per.io</name>
+    <value>true</value>
+    <description>Whether to generate counters on a per-edge basis for a Tez DAG. Helpful for in-depth analysis.</description>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+  </property>
+
+  <property>
     <name>tez.runtime.sorter.class</name>
     <value>PIPELINED</value>
     <description>Which sorter implementation to use</description>
