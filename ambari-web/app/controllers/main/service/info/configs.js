@@ -1037,6 +1037,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     if (defaultGroupSelected) {
       newSCP.set('isEditable', false);
     }
+    newSCP.validate();
     return newSCP;
   },
 
@@ -1352,6 +1353,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         isNotSaved: isNotSaved
       });
       console.debug("createOverrideProperty(): Added:", newSCP, " to main-property:", serviceConfigProperty);
+      newSCP.validate();
       overrides.pushObject(newSCP);
     }
   },

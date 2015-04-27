@@ -384,6 +384,8 @@ Em.I18n.translations = {
   'users.userName.validationFail': 'Only lowercase letters and numbers are recommended; must start with a letter',
   'host.spacesValidation': 'Cannot contain whitespace',
   'host.trimspacesValidation': 'Cannot contain leading or trailing whitespace',
+  'config.override.valueEqualToParentConfig': 'Configuration overrides must have different value',
+  'config.override.valueEqualToAnotherOverrideConfig': 'Multiple configuration overrides cannot have same value',
 
   'services.hdfs.rebalance.title' : 'HDFS Rebalance',
   'services.ganglia.description':'Ganglia Metrics Collection system',

@@ -1071,16 +1071,16 @@ App.ServiceConfigProperty = Em.Object.extend({
       var isOriginalSCP = this.get('isOriginalSCP');
       var parentSCP = this.get('parentSCP');
       if (!isOriginalSCP) {
-        if (!isError && parentSCP != null) {
+        if (!Em.isNone(parentSCP)) {
           if (value === parentSCP.get('value') && supportsFinal && isFinal === parentSCP.get('isFinal')) {
-            this.set('errorMessage', 'Configuration overrides must have different value');
+            this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
             isError = true;
           } else {
             var overrides = parentSCP.get('overrides');
             if (overrides) {
               overrides.forEach(function (override) {
                 if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
-                  self.set('errorMessage', 'Multiple configuration overrides cannot have same value');
+                  self.set('errorMessage', Em.I18n.t('config.override.valueEqualToAnotherOverrideConfig'));
                   isError = true;
                 }
               });

@@ -26,10 +26,13 @@ describe('App.ListConfigWidgetView', function () {
     view = App.ListConfigWidgetView.create({
       initPopover: Em.K,
       config: Em.Object.create({
+        validate: App.ServiceConfigProperty.prototype.validate,
         name: 'a.b.c',
         defaultValue: '2,1',
         value: '2,1',
         filename: 'f1',
+        isFinal: false,
+        supportsFinal: true,
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
             entries: [
@@ -188,6 +191,20 @@ describe('App.ListConfigWidgetView', function () {
       expect(view.get('config.errorMessage')).to.have.property('length').that.is.least(1);
       view.get('options').setEach('isSelected', true);
       expect(view.get('config.errorMessage')).to.equal('');
+    });
+
+    it('check override', function () {
+
+      view.get('config').setProperties({
+        isOriginalSCP: false,
+        parentSCP: Em.Object.create({
+          value: '2,1',
+          isFinal: false
+        })
+      });
+      view.checkSelectedItemsCount();
+      expect(view.get('config.errorMessage')).to.equal(Em.I18n.t('config.override.valueEqualToParentConfig'));
+
     });
 
   });

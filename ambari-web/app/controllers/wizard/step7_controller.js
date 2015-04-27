@@ -1097,6 +1097,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     newSCP.set('isEditable', true);
     group.get('properties').pushObject(newSCP);
     overrides.pushObject(newSCP);
+    newSCP.validate();
     return newSCP;
   },
 
