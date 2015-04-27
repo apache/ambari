@@ -782,8 +782,13 @@ def update_ambari_properties():
 
   # Previous config file does not exist
   if (not prev_conf_file) or (prev_conf_file is None):
-    print_warning_msg("Can not find ambari.properties.backup file from previous version, skipping import of settings")
+    print_warning_msg("Can not find %s file from previous version, skipping import of settings" % configDefaults.AMBARI_PROPERTIES_BACKUP_FILE)
     return 0
+
+  # ambari.properties file does not exists
+  if conf_file is None:
+    print_error_msg("Can't find %s file" % AMBARI_PROPERTIES_FILE)
+    return -1
 
   try:
     old_properties = Properties()
