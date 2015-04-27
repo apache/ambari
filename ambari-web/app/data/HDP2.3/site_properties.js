@@ -28,35 +28,46 @@ var hdp23properties = hdp22properties.filter(function (item) {
   return !excludedConfigs.contains(item.name);
 });
 
-hdp23properties.push({
-  "id": "site property",
-  "name": "DB_FLAVOR",
-  "displayName": "DB FLAVOR",
-  "value": "MYSQL",
-  "defaultValue": "MYSQL",
-  "isReconfigurable": true,
-  "options": [
-    {
-      displayName: 'MYSQL'
-    },
-    {
-      displayName: 'ORACLE'
-    },
-    {
-      displayName: 'POSTGRES'
-    },
-    {
-      displayName: 'SQLSERVER'
-    }
-  ],
-  "displayType": "radio button",
-  "radioName": "RANGER DB_FLAVOR",
-  "isOverridable": false,
-  "isVisible": true,
-  "serviceName": "RANGER",
-  "filename": "admin-properties.xml",
-  "category": "DBSettings"
-});
+hdp23properties.push(
+  {
+    "id": "site property",
+    "name": "DB_FLAVOR",
+    "displayName": "DB FLAVOR",
+    "value": "MYSQL",
+    "defaultValue": "MYSQL",
+    "isReconfigurable": true,
+    "options": [
+      {
+        displayName: 'MYSQL'
+      },
+      {
+        displayName: 'ORACLE'
+      },
+      {
+        displayName: 'POSTGRES'
+      },
+      {
+        displayName: 'SQLSERVER'
+      }
+    ],
+    "displayType": "radio button",
+    "radioName": "RANGER DB_FLAVOR",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "admin-properties.xml",
+    "category": "DBSettings"
+  },
+  {
+    "id": "site property",
+    "name": "tez.am.view-acls",
+    "displayName": "tez.am.view-acls",
+    "isRequired": false,
+    "serviceName": "TEZ",
+    "filename": "tez-site.xml",
+    "category": "Advanced tez-site"
+  }
+);
 
 module.exports =
 {
