@@ -17,57 +17,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import sys
-import fileinput
-import subprocess
-import json
-import re
-import os
 from resource_management import *
-from resource_management.libraries.functions.ranger_functions import Rangeradmin
-from resource_management.core.logger import Logger
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 
 def setup_ranger_hdfs():
   import params
   
   if params.has_ranger_admin:
-    File(params.downloaded_custom_connector,
-         content = DownloadSource(params.driver_curl_source)
-    )
-
-    Execute(('cp', '--remove-destination', params.downloaded_custom_connector, params.driver_curl_target),
-            path=["/bin", "/usr/bin/"],
-            not_if=format("test -f {driver_curl_target}"),
-            sudo=True)
-
-    hdp_version = get_hdp_version('hadoop-client')
-    file_path = format('/usr/hdp/{hdp_version}/ranger-hdfs-plugin/install.properties')
-    
-    if not os.path.isfile(file_path):
-      raise Fail(format('Ranger HBase plugin install.properties file does not exist at {file_path}'))
-    
-    ModifyPropertiesFile(file_path,
-      properties = params.config['configurations']['ranger-hdfs-plugin-properties']
-    )
-
-    if params.enable_ranger_hdfs:
-      cmd = ('enable-hdfs-plugin.sh',)
-      
-      ranger_adm_obj = Rangeradmin(url=params.policymgr_mgr_url)
-      ranger_adm_obj.create_ranger_repository('hdfs', params.repo_name, params.hdfs_ranger_plugin_repo,
-                                              params.ambari_ranger_admin, params.ambari_ranger_password, 
-                                              params.admin_uname, params.admin_password, 
-                                              params.policy_user)
-    else:
-      cmd = ('disable-hdfs-plugin.sh',)
-      
-    cmd_env = {'JAVA_HOME': params.java_home, 'PWD': format('/usr/hdp/{hdp_version}/ranger-hdfs-plugin'), 'PATH': format('/usr/hdp/{hdp_version}/ranger-hdfs-plugin')}
-    
-    Execute(cmd, 
-          environment=cmd_env, 
-          logoutput=True,
-          sudo=True,
-    )                    
+    setup_ranger_plugin('hadoop-client', 'hdfs', 
+                        params.downloaded_custom_connector, params.driver_curl_source,
+                        params.driver_curl_target, params.java_home,
+                        params.repo_name, params.hdfs_ranger_plugin_repo,
+                        params.ranger_env, params.ranger_plugin_properties,
+                        params.policy_user, params.policymgr_mgr_url,
+                        params.enable_ranger_hdfs
+    )                 
   else:
     Logger.info('Ranger admin not installed')

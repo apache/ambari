@@ -176,13 +176,7 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     hbase_cmd = format("/usr/hdp/current/hbase-{role_root}/bin/hbase")
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  # Setting Flag value for ranger hbase plugin
-  enable_ranger_hbase = False
-  ranger_plugin_enable = config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled']
-  if ranger_plugin_enable.lower() == 'yes':
-    enable_ranger_hbase = True
-  elif ranger_plugin_enable.lower() == 'no':
-    enable_ranger_hbase = False
+  enable_ranger_hive = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
@@ -211,11 +205,8 @@ hadoop_security_authentication = config['configurations']['core-site']['hadoop.s
 repo_config_username = config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
 repo_config_password = config['configurations']['ranger-hbase-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
-admin_uname = config['configurations']['ranger-env']['admin_username']
-admin_password = config['configurations']['ranger-env']['admin_password']
-
-ambari_ranger_admin = config['configurations']['ranger-env']['ranger_admin_username']
-ambari_ranger_password = config['configurations']['ranger-env']['ranger_admin_password']
+ranger_env = config['configurations']['ranger-env']
+ranger_plugin_properties = config['configurations']['ranger-hbase-plugin-properties']
 policy_user = config['configurations']['ranger-hbase-plugin-properties']['policy_user']
 
 #For curl command in ranger plugin to get db connector

@@ -23,8 +23,8 @@ from StringIO import StringIO as BytesIO
 import json
 from resource_management.core.logger import Logger
 import urllib2, base64, httplib
-from resource_management import *
-
+from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.format import format
 
 class Rangeradmin:
   sInstance = None

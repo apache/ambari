@@ -325,13 +325,7 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  # setting flag value for ranger hdfs plugin
-  enable_ranger_hdfs = False
-  ranger_plugin_enable = default("/configurations/ranger-hdfs-plugin-properties/ranger-hdfs-plugin-enabled", "no")
-  if ranger_plugin_enable.lower() == 'yes':
-    enable_ranger_hdfs = True
-  elif ranger_plugin_enable.lower() == 'no':
-    enable_ranger_hdfs = False
+  enable_ranger_hive = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
@@ -359,12 +353,9 @@ if security_enabled:
   sn_principal_name = default("/configurations/hdfs-site/dfs.secondary.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
   sn_principal_name = sn_principal_name.replace('_HOST',hostname.lower())
 
-admin_uname = config['configurations']['ranger-env']['admin_username']
-admin_password = config['configurations']['ranger-env']['admin_password']
-
-ambari_ranger_admin = config['configurations']['ranger-env']['ranger_admin_username']
-ambari_ranger_password = config['configurations']['ranger-env']['ranger_admin_password']
-policy_user = config['configurations']['ranger-hbase-plugin-properties']['policy_user']
+ranger_env = config['configurations']['ranger-env']
+ranger_plugin_properties = config['configurations']['ranger-hdfs-plugin-properties']
+policy_user = config['configurations']['ranger-hdfs-plugin-properties']['policy_user']
 
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']

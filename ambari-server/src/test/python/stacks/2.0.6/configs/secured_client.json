@@ -77,6 +77,36 @@
             "mapreduce.jobhistory.webapp.spnego-principal": "HTTP/_HOST@EXAMPLE.COM", 
             "yarn.app.mapreduce.am.command-opts": "-Xmx546m", 
             "mapreduce.admin.map.child.java.opts": "-Djava.net.preferIPv4Stack=true -Dhadoop.metrics.log.level=WARN"
+        },
+        "ranger-hive-plugin-properties": {
+            "XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS": "900", 
+            "XAAUDIT.HDFS.DESTINATION_DIRECTORY": "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/%app-type%/%time:yyyyMMdd%", 
+            "XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY": "__REPLACE__LOG_DIR/hadoop/%app-type%/audit", 
+            "common.name.for.certificate": "-", 
+            "XAAUDIT.HDFS.IS_ENABLED": "false", 
+            "XAAUDIT.HDFS.LOCAL_BUFFER_FILE": "%time:yyyyMMdd-HHmm.ss%.log", 
+            "SSL_KEYSTORE_PASSWORD": "myKeyFilePassword", 
+            "XAAUDIT.DB.IS_ENABLED": "true", 
+            "XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS": "600", 
+            "XAAUDIT.SOLR.SOLR_URL": "http://localhost:6083/solr/ranger_audits", 
+            "XAAUDIT.SOLR.IS_ENABLED": "false", 
+            "SSL_KEYSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-keystore.jks", 
+            "XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS": "60", 
+            "policy_user": "ambari-qa", 
+            "UPDATE_XAPOLICIES_ON_GRANT_REVOKE": "true", 
+            "XAAUDIT.HDFS.DESTINTATION_FILE": "%hostname%-audit.log", 
+            "XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS": "86400", 
+            "XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT": "10", 
+            "SSL_TRUSTSTORE_PASSWORD": "changeit", 
+            "XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY": "__REPLACE__LOG_DIR/hadoop/%app-type%/audit/archive", 
+            "ranger-hive-plugin-enabled": "No", 
+            "jdbc.driverClassName": "org.apache.hive.jdbc.HiveDriver", 
+            "REPOSITORY_CONFIG_USERNAME": "hive", 
+            "XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS": "1000", 
+            "XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS": "60", 
+            "SSL_TRUSTSTORE_FILE_PATH": "/etc/hadoop/conf/ranger-plugin-truststore.jks", 
+            "REPOSITORY_CONFIG_PASSWORD": "hive", 
+            "XAAUDIT.SOLR.MAX_QUEUE_SIZE": "1"
         }, 
         "oozie-site": {
             "oozie.service.PurgeService.purge.interval": "3600", 
@@ -367,9 +397,6 @@
             "hadoop.proxyuser.oozie.hosts": "c6402.ambari.apache.org", 
             "ipc.client.connection.maxidletime": "30000"
         }, 
-        "ranger-hive-plugin-properties" : {
-            "ranger-hive-plugin-enabled":"yes"
-        },
         "hive-site": {
             "hive.enforce.sorting": "true", 
             "javax.jdo.option.ConnectionPassword": "!`\"' 1", 
