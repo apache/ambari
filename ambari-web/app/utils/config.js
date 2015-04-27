@@ -332,7 +332,7 @@ App.config = Em.Object.create({
           showLabel: true,
           serviceName: serviceName,
           belongsToService: [],
-          supportsFinal: advancedConfig ? Em.get(advancedConfig, 'supportsFinal') : false
+          supportsFinal: advancedConfig ? Em.get(advancedConfig, 'supportsFinal') : this.shouldSupportFinal(serviceName, _tag.siteName)
 
         });
 
@@ -1552,6 +1552,25 @@ App.config = Em.Object.create({
    */
   saveConfigsToModel: function (data) {
     App.stackConfigPropertiesMapper.map(data);
+  },
+
+  /**
+   * Check if config filename supports final attribute
+   * @param serviceName
+   * @param filename
+   * @returns {boolean}
+   */
+  shouldSupportFinal: function (serviceName, filename) {
+    if (!serviceName || serviceName == 'MISC' || !filename) {
+      return false;
+    } else {
+      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
+      var supportsFinal = this.getConfigTypesInfoFromService(stackService).supportsFinal;
+      var matchingConfigType = supportsFinal.find(function (configType) {
+        return filename.startsWith(configType);
+      });
+      return !!matchingConfigType;
+    }
   }
 
 });

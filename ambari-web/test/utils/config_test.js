@@ -632,6 +632,9 @@ describe('App.config', function () {
 
     before(function() {
       sinon.stub(App.config, 'parseValue', function(value) {return value});
+      sinon.stub(App.config, 'getConfigTypesInfoFromService').returns({
+        supportsFinal: ['hdfs-site']
+      });
       setups.setupStackVersion(this, 'HDP-2.2');
       loadServiceModelsData(['HDFS', 'STORM']);
       App.config.loadAdvancedConfigSuccess(modelSetup.advancedConfigs, { url: '/serviceName/configurations'}, {
@@ -655,6 +658,7 @@ describe('App.config', function () {
 
     after(function() {
       App.config.parseValue.restore();
+      App.config.getConfigTypesInfoFromService.restore();
       setups.restoreStackVersion(this);
       removeServiceModelData(['HDFS', 'STORM']);
     });
@@ -1212,6 +1216,61 @@ describe('App.config', function () {
             });
           });
 
+    });
+
+  });
+
+  describe('#shouldSupportFinal', function () {
+
+    var cases = [
+      {
+        shouldSupportFinal: false,
+        title: 'no service name specified'
+      },
+      {
+        serviceName: 's0',
+        shouldSupportFinal: false,
+        title: 'no filename specified'
+      },
+      {
+        serviceName: 'MISC',
+        shouldSupportFinal: false,
+        title: 'MISC'
+      },
+      {
+        serviceName: 's0',
+        filename: 's0-site',
+        shouldSupportFinal: true,
+        title: 'final attribute supported'
+      },
+      {
+        serviceName: 's0',
+        filename: 's0-env',
+        shouldSupportFinal: false,
+        title: 'final attribute not supported'
+      }
+    ];
+
+    beforeEach(function () {
+      sinon.stub(App.StackService, 'find').returns([
+        {
+          serviceName: 's0'
+        }
+      ]);
+      sinon.stub(App.config, 'getConfigTypesInfoFromService').returns({
+        supportsFinal: ['s0-site']
+      });
+    });
+
+    afterEach(function () {
+      App.StackService.find.restore();
+      App.config.getConfigTypesInfoFromService.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(App.config.shouldSupportFinal(item.serviceName, item.filename)).to.equal(item.shouldSupportFinal);
+      });
     });
 
   });

@@ -378,16 +378,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
         var siteFileProperties = App.config.get('configMapping').all().filterProperty('filename', siteFileName);
 
-        function shouldSupportFinal(filename) {
-          var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-          var supportsFinal = App.config.getConfigTypesInfoFromService(stackService).supportsFinal;
-          var matchingConfigType = supportsFinal.find(function (configType) {
-            return filename.startsWith(configType);
-          });
-          return !!matchingConfigType;
-        }
-
-        var supportsFinal = (serviceName == 'MISC') ? false: (siteFileName ? shouldSupportFinal(siteFileName) : false);
+        var supportsFinal = App.config.shouldSupportFinal(serviceName, siteFileName);
 
         function isDuplicatedConfigKey(name) {
           return siteFileProperties.findProperty('name', name) || configsOfFile.findProperty('name', name);
