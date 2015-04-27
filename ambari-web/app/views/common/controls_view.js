@@ -132,10 +132,11 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
  */
 App.ServiceConfigCalculateId = Ember.Mixin.create({
   idClass: Ember.computed(function () {
-    var label = Em.get(this, 'serviceConfig.name') ? Em.get(this, 'serviceConfig.name').toLowerCase().replace(/\./g, '-') : '',
-        fileName = Em.get(this, 'serviceConfig.filename') ? Em.get(this, 'serviceConfig.filename').toLowerCase().replace(/\./g, '-') : '',
-        group = Em.get(this, 'serviceConfig.group.name') || 'default';
-        isOrigin = Em.get(this, 'serviceConfig.compareConfigs.length') > 0 ? '-origin' : '';
+    var config = this.get('config') && this.get('config.widget') ? this.get('config') : this.get('serviceConfig') || {};
+    var label = Em.get(config, 'name') ? Em.get(config, 'name').toLowerCase().replace(/\./g, '-') : '',
+        fileName = Em.get(config, 'filename') ? Em.get(config, 'filename').toLowerCase().replace(/\./g, '-') : '',
+        group = Em.get(config, 'group.name') || 'default',
+        isOrigin = Em.getWithDefault(config, 'compareConfigs.length', 0) > 0 ? '-origin' : '';
     return 'service-config-' + label + '-' + fileName + '-' + group + isOrigin;
   }),
   classNameBindings: 'idClass'
