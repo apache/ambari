@@ -19,7 +19,6 @@ package org.apache.ambari.server.controller;
 
 import java.io.IOException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -40,13 +39,12 @@ import org.apache.ambari.view.ViewContext;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.SessionManager;
+import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.session.SessionHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.GenericWebApplicationContext;
 import org.springframework.web.filter.DelegatingFilterProxy;
 
 /**
@@ -54,7 +52,7 @@ import org.springframework.web.filter.DelegatingFilterProxy;
  * of view instances as handlers.
  */
 @Singleton
-public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstanceHandlerList {
+public class AmbariHandlerList extends HandlerCollection implements ViewInstanceHandlerList {
 
   /**
    * The target pattern for a view resource request.
@@ -88,11 +86,6 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
   private final Map<ViewInstanceEntity, Handler> handlerMap = new HashMap<ViewInstanceEntity, Handler>();
 
   /**
-   * Spring web app context.
-   */
-  private GenericWebApplicationContext springWebAppContext;
-
-  /**
    * The logger.
    */
   protected final static Logger LOG = LoggerFactory.getLogger(AmbariHandlerList.class);
@@ -113,9 +106,7 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
 
         context.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
         context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
-
         context.setSessionHandler(new SharedSessionHandler(sessionManager));
-        context.getServletContext().setAttribute(WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE, springWebAppContext);
         context.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
 
         return context;
@@ -133,28 +124,19 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
     this.handlerFactory = handlerFactory;
   }
 
-  /**
-   * Sets the spring web app context.
-   *
-   * @param springWebAppContext the spring web app context
-   */
-  public void setSpringWebAppContext(
-      GenericWebApplicationContext springWebAppContext) {
-    this.springWebAppContext = springWebAppContext;
-  }
 
 
-  // ----- FailsafeHandlerList -----------------------------------------------
+  // ----- HandlerCollection -------------------------------------------------
 
   @Override
-  protected void handleNonFailSafe(String target, Request baseRequest,
-                                   HttpServletRequest request, HttpServletResponse response,
-                                   List<Handler> handlers) throws IOException, ServletException {
+  public void handle(String target, Request baseRequest,
+                     HttpServletRequest request, HttpServletResponse response)
+      throws IOException, ServletException {
 
     ViewEntity viewEntity = getTargetView(target);
 
     if (viewEntity == null) {
-      super.handleNonFailSafe(target, baseRequest, request, response, handlers);
+      processHandlers(target, baseRequest, request, response);
     } else {
       // if there is a view target (as in a view resource request) then set the view class loader
       ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
@@ -163,11 +145,11 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
       try {
         viewClassLoader = viewEntity.getClassLoader();
         if (viewClassLoader == null) {
-          LOG.warn("No class loader associated with view " + viewEntity.getName() + ".");
+          LOG.debug("No class loader associated with view " + viewEntity.getName() + ".");
         } else {
           Thread.currentThread().setContextClassLoader(viewClassLoader);
         }
-        super.handleNonFailSafe(target, baseRequest, request, response, handlers);
+        processHandlers(target, baseRequest, request, response);
       } finally {
         if (viewClassLoader != null) {
           Thread.currentThread().setContextClassLoader(contextClassLoader);
@@ -183,7 +165,7 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
   public void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException {
     Handler handler = getHandler(viewInstanceDefinition);
     handlerMap.put(viewInstanceDefinition, handler);
-    addFailsafeHandler(handler);
+    addHandler(handler);
     // if this is running then start the handler being added...
     if(!isStopped() && !isStopping()) {
       try {
@@ -206,6 +188,23 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
 
   // ----- helper methods ----------------------------------------------------
 
+  // call the handlers until the request is handled
+  private void processHandlers(String target, Request baseRequest,
+                               HttpServletRequest request, HttpServletResponse response)
+      throws IOException, ServletException {
+
+    final Handler[] handlers = getHandlers();
+
+    if (handlers != null && isStarted()) {
+      for (Handler handler : handlers) {
+        handler.handle(target, baseRequest, request, response);
+        if (baseRequest.isHandled()) {
+          return;
+        }
+      }
+    }
+  }
+
   /**
    * Get a Handler for the given view instance.
    *
@@ -220,7 +219,6 @@ public class AmbariHandlerList extends FailsafeHandlerList implements ViewInstan
     ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
     return handlerFactory.create(viewInstanceDefinition, viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
   }
-
 
   /**
    * Get the view that is the target of the request; null if not a view request.

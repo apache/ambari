@@ -27,7 +27,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.jar.JarEntry;
@@ -210,7 +209,7 @@ public class ViewExtractor {
     // include the archive directory
     urlList.add(archiveDir.toURI().toURL());
 
-    return URLClassLoader.newInstance(urlList.toArray(new URL[urlList.size()]));
+    return new ViewClassLoader(urlList.toArray(new URL[urlList.size()]));
   }
 
 

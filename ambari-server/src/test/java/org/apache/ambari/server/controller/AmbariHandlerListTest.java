@@ -35,8 +35,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
 
 import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.expect;
@@ -116,7 +114,7 @@ public class AmbariHandlerListTest {
   }
 
   @Test
-  public void testHandleNonFailSafe() throws Exception {
+  public void testHandle() throws Exception {
     TestHandler handler = new TestHandler();
     AmbariHandlerList.HandlerFactory handlerFactory = createNiceMock(AmbariHandlerList.HandlerFactory.class);
     ViewRegistry viewRegistry = createNiceMock(ViewRegistry.class);
@@ -128,9 +126,6 @@ public class AmbariHandlerListTest {
     HttpServletRequest request = createNiceMock(HttpServletRequest.class);
     HttpServletResponse response = createNiceMock(HttpServletResponse.class);
 
-    List <Handler> handlers = new LinkedList<Handler>();
-    handlers.add(handler);
-
     expect(viewRegistry.getDefinition("TEST", "1.0.0")).andReturn(viewEntity).anyTimes();
     expect(viewEntity.getClassLoader()).andReturn(classLoader).anyTimes();
 
@@ -139,8 +134,10 @@ public class AmbariHandlerListTest {
     AmbariHandlerList handlerList = new AmbariHandlerList(handlerFactory);
     handlerList.viewRegistry = viewRegistry;
 
-    handlerList.handleNonFailSafe("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
-        baseRequest, request, response, handlers);
+    handlerList.addHandler(handler);
+    handlerList.start();
+    handlerList.handle("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test",
+        baseRequest, request, response);
 
     Assert.assertEquals("/api/v1/views/TEST/versions/1.0.0/instances/INSTANCE_1/resources/test", handler.getTarget());
     Assert.assertEquals(classLoader, handler.getClassLoader());
