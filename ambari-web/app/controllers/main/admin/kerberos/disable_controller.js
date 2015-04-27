@@ -24,7 +24,7 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
 
   name: 'kerberosDisableController',
   clusterDeployState: 'DEFAULT',
-  commands: ['stopServices', 'unkerberize', 'deleteKerberos', 'startServices'],
+  commands: ['stopServices', 'unkerberize', 'deleteKerberos', 'startAllServices'],
 
   tasksMessagesPrefix: 'admin.kerberos.disable.step',
 
@@ -34,21 +34,6 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
     this.loadTasksRequestIds();
     this.loadRequestIds();
     this._super();
-  },
-
-  stopServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      sender: this,
-      data: {
-        context: "Stop services",
-        "ServiceInfo": {
-          "state": "INSTALLED"
-        }
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
   },
 
   unkerberize: function () {
@@ -72,20 +57,8 @@ App.KerberosDisableController = App.KerberosProgressPageController.extend(App.Wi
     });
   },
 
-  startServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      sender: this,
-      data: {
-        "context": "Start services",
-        "ServiceInfo": {
-          "state": "STARTED"
-        },
-        urlParams: "params/run_smoke_test=true"
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+  startAllServices: function () {
+    this.startServices(true);
   }
 
 });

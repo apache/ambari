@@ -22,8 +22,6 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  isHA: true,
-
   commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'deleteSNameNode', 'startAllServices'],
 
   hbaseSiteTag: "",
@@ -61,7 +59,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   reconfigureHBase: function () {
     var data = this.get('content.serviceConfigProperties');
-    var configData = this.reconfigureSites(['hbase-site'],data);
+    var configData = this.reconfigureSites(['hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,
@@ -84,18 +82,7 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   },
 
   startAllServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      data: {
-        context: "Start all services",
-        "ServiceInfo": {
-          "state": "STARTED"
-        }
-      },
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+    this.startServices(false);
   },
 
   deleteSNameNode: function () {

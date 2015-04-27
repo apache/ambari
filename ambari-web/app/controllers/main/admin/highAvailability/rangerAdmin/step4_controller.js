@@ -18,7 +18,71 @@
 
 var App = require('app');
 
-App.RAHighAvailabilityWizardStep4Controller = Em.Controller.extend({
-  name: "rAHighAvailabilityWizardStep4Controller"
+App.RAHighAvailabilityWizardStep4Controller = App.HighAvailabilityProgressPageController.extend({
+
+  name: "rAHighAvailabilityWizardStep4Controller",
+
+  clusterDeployState: 'RA_HIGH_AVAILABILITY_DEPLOY',
+
+  commands: ['stopRequiredServices', 'installRangerAdmin', 'reconfigureRanger', 'startAllServices'],
+
+  tasksMessagesPrefix: 'admin.ra_highAvailability.wizard.step',
+
+  stopRequiredServices: function () {
+    this.stopServices(['HDFS']);
+  },
+
+  installRangerAdmin: function () {
+    var hostNames = this.get('content.raHosts.additionalRA');
+    this.createComponent('RANGER_ADMIN', hostNames, "RANGER");
+  },
+
+  reconfigureRanger: function () {
+    this.loadConfigsTags();
+  },
+
+  loadConfigsTags: function () {
+    App.ajax.send({
+      name: 'config.tags',
+      sender: this,
+      success: 'onLoadConfigsTags',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigsTags: function (data) {
+    App.ajax.send({
+      name: 'reassign.load_configs',
+      sender: this,
+      data: {
+        urlParams: '(type=admin-properties&tag=' + data.Clusters.desired_configs['admin-properties'].tag + ')'
+      },
+      success: 'onLoadConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  onLoadConfigs: function (data) {
+    data.items.findProperty('type', 'admin-properties').properties['policymgr_external_url'] = this.get('content.loadBalancerURL');
+    var configData = this.reconfigureSites(['admin-properties'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('RANGER_ADMIN')));
+
+    App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      success: 'onSaveConfigs',
+      error: 'onTaskError'
+    });
+  },
+
+  onSaveConfigs: function () {
+    this.onTaskCompleted();
+  },
+
+  startAllServices: function () {
+    this.startServices(true);
+  }
 });
 

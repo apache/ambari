@@ -21,21 +21,6 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
   clusterDeployState: 'KERBEROS_DEPLOY',
   commands: ['stopServices'],
 
-  stopServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      data: {
-        context: "Stop services",
-        "ServiceInfo": {
-          "state": "INSTALLED"
-        }
-      },
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
-  },
-
   loadStep: function() {
     this.checkComponentsRemoval();
     this._super();

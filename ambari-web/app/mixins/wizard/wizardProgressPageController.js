@@ -387,7 +387,74 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     });
   },
 
-  
+  /**
+   * make server call to stop all services, except <code>excludedServices</code>
+   * @param excludedServices
+   * @returns {$.ajax}
+   */
+  stopServices: function (excludedServices) {
+    var data = {
+      'ServiceInfo': {
+        'state': 'INSTALLED'
+      }
+    };
+
+    if (excludedServices && excludedServices.length) {
+      var servicesList =  App.Service.find().mapProperty("serviceName").filter(function (s) {
+        return !excludedServices.contains(s)
+      }).join(',');
+      data.context = "Stop required services";
+      data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
+    } else {
+      data.context = "Stop all services";
+    }
+
+    return App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: data,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
+  /**
+   * make server call to start all services, except <code>excludedServices</code>
+   * and run smoke tests if <code>runSmokeTest</code> is true
+   * @param runSmokeTest
+   * @param excludedServices
+   * @returns {$.ajax}
+   */
+  startServices: function (runSmokeTest, excludedServices) {
+    var data = {
+      'ServiceInfo': {
+        'state': 'STARTED'
+      }
+    };
+
+    if (excludedServices && excludedServices.length) {
+      var servicesList = App.Service.find().mapProperty("serviceName").filter(function (s) {
+        return !excludedServices.contains(s)
+      }).join(',');
+      data.context = "Start required services";
+      data.urlParams = "ServiceInfo/service_name.in(" + servicesList + ")";
+    } else {
+      data.context = "Start all services";
+    }
+
+    if (runSmokeTest) {
+      data.urlParams = data.urlParams ? data.urlParams + '&params/run_smoke_test=true' : 'params/run_smoke_test=true';
+    }
+
+    return App.ajax.send({
+      name: 'common.services.update',
+      sender: this,
+      data: data,
+      success: 'startPolling',
+      error: 'onTaskError'
+    });
+  },
+
   /**
    * Create component on single or multiple hosts.
    *

@@ -1238,6 +1238,10 @@ Em.I18n.translations = {
   'admin.rm_highAvailability.wizard.step3.configs_changes': '<b>Review Configuration Changes.</b></br>' +
   '<i>policymgr_external_url</i> in admin-properties.xml will be changed by the Wizard to enable Ranger Admin HA',
   'admin.ra_highAvailability.wizard.step4.header': 'Install, Start and Test',
+  'admin.ra_highAvailability.wizard.step4.task0.title': 'Stop Required Services',
+  'admin.ra_highAvailability.wizard.step4.task1.title': 'Install Additional Ranger Admin',
+  'admin.ra_highAvailability.wizard.step4.task2.title': 'Reconfigure Ranger',
+  'admin.ra_highAvailability.wizard.step4.task3.title': 'Start All Services',
   'admin.ra_highAvailability.closePopup':'Enable Ranger Admin HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +
   'If you choose to quit, you must follow manual instructions to complete or revert enabling Ranger Admin HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
@@ -1792,7 +1796,7 @@ Em.I18n.translations = {
   'services.reassign.step3.component':'Component name:',
   'services.reassign.step4.header':'Configure Component',
 
-  'services.reassign.step4.tasks.stopServices.title':'Stop Required Services',
+  'services.reassign.step4.tasks.stopRequiredServices.title':'Stop Required Services',
   'services.reassign.step4.tasks.createHostComponents.title':'Create {0}',
   'services.reassign.step4.tasks.putHostComponentsInMaintenanceMode.title':'Disable {0}',
   'services.reassign.step4.tasks.reconfigure.title':'Reconfigure {0}',
@@ -1801,7 +1805,7 @@ Em.I18n.translations = {
   'services.reassign.step4.tasks.startZooKeeperServers.title':'Start ZooKeeper Servers',
   'services.reassign.step4.tasks.startNameNode.title':'Start NameNode',
   'services.reassign.step4.tasks.deleteHostComponents.title':'Delete disabled {0}',
-  'services.reassign.step4.tasks.startServices.title':'Start Required Services',
+  'services.reassign.step4.tasks.startRequiredServices.title':'Start Required Services',
   'services.reassign.step4.tasks.cleanMySqlServer.title':'Clean MYSQL Server',
   'services.reassign.step4.tasks.testHiveMysqlConnection.title':'Test MYSQL Connection',
   'services.reassign.step4.tasks.configureMySqlServer.title':'Configure MYSQL Server',
@@ -1911,7 +1915,7 @@ Em.I18n.translations = {
   'services.reassign.step6.header': 'Start and Test services',
   'services.reassign.step6.tasks.putHostComponentsInMaintenanceMode.title':'Disable {0}',
   'services.reassign.step6.tasks.deleteHostComponents.title': 'Delete disabled {0}',
-  'services.reassign.step6.tasks.startServices.title': 'Start All Services',
+  'services.reassign.step6.tasks.startAllServices.title': 'Start All Services',
   'services.reassign.step6.tasks.stopMysqlService.title': 'Stop Mysql Server',
   'services.reassign.step6.status.success': 'Successfully moved <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',
   'services.reassign.step6.status.failed': 'Failed to move <b>{0}</b> from <b>{1}</b> host to <b>{2}</b> host.',

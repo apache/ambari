@@ -47,5 +47,7 @@ App.ReassignMasterWizardStep4View = App.HighAvailabilityProgressPageView.extend(
     }
   }.property('controller.content.hasManualSteps'),
 
-  templateName: require('templates/main/service/reassign/step4')
+  templateName: require('templates/main/service/reassign/step4'),
+
+  labelWidth: 'span5'
 });

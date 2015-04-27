@@ -86,6 +86,16 @@ App.RAHighAvailabilityWizardController = App.WizardController.extend({
           this.load('raHosts');
         }
       }
+    ],
+    '4': [
+      {
+        type: 'sync',
+        callback: function () {
+          this.loadTasksStatuses();
+          this.loadTasksRequestIds();
+          this.loadRequestIds();
+        }
+      }
     ]
   },
 

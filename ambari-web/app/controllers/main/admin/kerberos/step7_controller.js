@@ -19,22 +19,10 @@
 App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep7Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
-  commands: ['startServices'],
+  commands: ['startAllServices'],
 
-  startServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      sender: this,
-      data: {
-        "context": "Start services",
-        "ServiceInfo": {
-          "state": "STARTED"
-        },
-        urlParams: "params/run_smoke_test=true"
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+  startAllServices: function () {
+    this.startServices(true);
   },
 
   isSubmitDisabled: function () {

@@ -30,9 +30,6 @@ describe('App.HighAvailabilityProgressPageController', function () {
   describe('#reconfigureSites()', function () {
     var tests = [
       {
-        content: {
-          controllerName: "rMHighAvailabilityWizardController"
-        },
         siteNames: ["site1", "site2"],
         data: {
           items: [
@@ -63,6 +60,7 @@ describe('App.HighAvailabilityProgressPageController', function () {
             }
           ]
         },
+        note: 'note1',
         result: [
           {
             type: "site1",
@@ -71,7 +69,7 @@ describe('App.HighAvailabilityProgressPageController', function () {
               site1_property1: "site1_property1_value",
               site1_property2: "site1_property2_value"
             },
-            service_config_version_note: Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format("ResourceManager"),
+            service_config_version_note: 'note1',
             properties_attributes: {
               final: {
                 site1_property1: "true"
@@ -85,14 +83,11 @@ describe('App.HighAvailabilityProgressPageController', function () {
               site2_property1: "site2_property1_value",
               site2_property2: "site2_property2_value"
             },
-            service_config_version_note: Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format("ResourceManager")
+            service_config_version_note: 'note1'
           }
         ]
       },
       {
-        content: {
-          controllerName: "anyOther"
-        },
         siteNames: ["site1"],
         data: {
           items: [
@@ -110,6 +105,7 @@ describe('App.HighAvailabilityProgressPageController', function () {
             }
           ]
         },
+        note: 'note2',
         result: [
           {
             type: "site1",
@@ -118,7 +114,7 @@ describe('App.HighAvailabilityProgressPageController', function () {
               site1_property1: "site1_property1_value",
               site1_property2: "site1_property2_value"
             },
-            service_config_version_note: Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format("NameNode"),
+            service_config_version_note: 'note2',
             properties_attributes: {
               final: {
                 site1_property1: "true"
@@ -136,7 +132,7 @@ describe('App.HighAvailabilityProgressPageController', function () {
     it("reconfigures configs after HA", function() {
       tests.forEach(function(t) {
         controller.set('content', t.content);
-        expect(controller.reconfigureSites(t.siteNames, t.data)).to.eql(t.result);
+        expect(controller.reconfigureSites(t.siteNames, t.data, t.note)).to.eql(t.result);
       });
     });
   });

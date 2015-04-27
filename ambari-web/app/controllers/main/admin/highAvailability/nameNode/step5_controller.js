@@ -22,27 +22,10 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep5Controller",
 
-  isHA: true,
-
-  commands: ['stopAllServices', 'installNameNode', 'installJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
+  commands: ['stopServices', 'installNameNode', 'installJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
 
   hdfsSiteTag : "",
   coreSiteTag : "",
-
-  stopAllServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      data: {
-        context: "Stop all services",
-        "ServiceInfo": {
-          "state": "INSTALLED"
-        }
-      },
-      sender: this,
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
-  },
 
   installNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
@@ -98,7 +81,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
    */
   updateConfigProperties: function(data) {
     var siteNames = ['hdfs-site','core-site'];
-    var configData = this.reconfigureSites(siteNames, data);
+    var configData = this.reconfigureSites(siteNames, data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,

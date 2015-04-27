@@ -39,5 +39,7 @@ App.ReassignMasterWizardStep7View = App.HighAvailabilityProgressPageView.extend(
     return Em.I18n.t('common.complete') + ' &rarr;';
   }.property(),
 
-  templateName: require('templates/main/service/reassign/step7')
+  templateName: require('templates/main/service/reassign/step7'),
+
+  labelWidth: 'span5'
 });

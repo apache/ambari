@@ -22,8 +22,6 @@ App.HighAvailabilityWizardStep7Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep7Controller",
 
-  isHA: true,
-
   commands: ['startZooKeeperServers', 'startNameNode'],
 
   startZooKeeperServers: function () {

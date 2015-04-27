@@ -72,27 +72,22 @@ App.HighAvailabilityProgressPageController = App.HighAvailabilityWizardControlle
   },
 
   /**
-   *
+   * Prepare object to send to the server to save configs
+   * Split all configs by site names and tag and note
    * @param siteNames Array
+   * @param data Object
+   * @param note String
    */
-  reconfigureSites: function(siteNames, data) {
+  reconfigureSites: function(siteNames, data, note) {
     var tagName = App.get('testMode') ? 'version1' : 'version' + (new Date).getTime();
-    var componentName;
-    switch (this.get('content.controllerName')) {
-      case 'rMHighAvailabilityWizardController':
-        componentName =  'RESOURCEMANAGER';
-        break;
-      default:
-        componentName =  'NAMENODE';
-    }
     return siteNames.map(function(_siteName) {
       var config = data.items.findProperty('type', _siteName);
       var configToSave = {
         type: _siteName,
         tag: tagName,
         properties: config && config.properties,
-        service_config_version_note: Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role(componentName))
-      }
+        service_config_version_note: note || ''
+      };
       if (config && config.properties_attributes) {
         configToSave.properties_attributes = config.properties_attributes;
       }

@@ -67,6 +67,12 @@ App.wizardProgressPageViewMixin = Em.Mixin.create({
 
   noticeClass: 'alert alert-info',
 
+  /**
+   * Class to define task label width
+   * @type {String}
+   */
+  labelWidth: 'span4',
+
   onStatusChange: function () {
     var status = this.get('controller.status');
     if (status === 'COMPLETED') {

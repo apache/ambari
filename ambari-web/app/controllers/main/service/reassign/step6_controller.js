@@ -20,9 +20,7 @@ var App = require('app');
 
 App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageController.extend(App.WizardEnableDone, {
 
-  isReassign: true,
-
-  commands: ['stopMysqlService', 'putHostComponentsInMaintenanceMode', 'deleteHostComponents', 'startServices'],
+  commands: ['stopMysqlService', 'putHostComponentsInMaintenanceMode', 'deleteHostComponents', 'startAllServices'],
 
   clusterDeployState: 'REASSIGN_MASTER_INSTALLING',
 
@@ -109,20 +107,8 @@ App.ReassignMasterWizardStep6Controller = App.HighAvailabilityProgressPageContro
     }
   },
 
-  startServices: function () {
-    App.ajax.send({
-      name: 'common.services.update',
-      sender: this,
-      data: {
-        "context": "Start all services",
-        "ServiceInfo": {
-          "state": "STARTED"
-        },
-        urlParams: "params/run_smoke_test=true"
-      },
-      success: 'startPolling',
-      error: 'onTaskError'
-    });
+  startAllServices: function () {
+    this.startServices(true);
   },
 
   deleteHostComponents: function () {

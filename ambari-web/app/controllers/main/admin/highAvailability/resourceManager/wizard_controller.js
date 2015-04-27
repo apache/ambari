@@ -83,36 +83,6 @@ App.RMHighAvailabilityWizardController = App.WizardController.extend({
     this.set('content.configs', configs);
   },
 
-  saveTasksStatuses: function (tasksStatuses) {
-    this.set('content.tasksStatuses', tasksStatuses);
-    this.setDBProperty('tasksStatuses', tasksStatuses);
-  },
-
-  loadTasksStatuses: function() {
-    var tasksStatuses = this.getDBProperty('tasksStatuses');
-    this.set('content.tasksStatuses', tasksStatuses);
-  },
-
-  saveTasksRequestIds: function (tasksRequestIds) {
-    this.set('content.tasksRequestIds', tasksRequestIds);
-    this.setDBProperty('tasksRequestIds', tasksRequestIds);
-  },
-
-  loadTasksRequestIds: function() {
-    var tasksRequestIds = this.getDBProperty('tasksRequestIds');
-    this.set('content.tasksRequestIds', tasksRequestIds);
-  },
-
-  saveRequestIds: function (requestIds) {
-    this.set('content.requestIds', requestIds);
-    this.setDBProperty('requestIds', requestIds);
-  },
-
-  loadRequestIds: function() {
-    var requestIds = this.getDBProperty('requestIds');
-    this.set('content.requestIds', requestIds);
-  },
-
   /**
    * Load data for all steps until <code>current step</code>
    */

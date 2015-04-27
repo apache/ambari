@@ -106,7 +106,7 @@ module.exports = App.WizardRoute.extend({
         controller.loadAllPriorSteps().done(function(){
           controller.connectOutlet('rAHighAvailabilityWizardStep1', controller.get('content'));
         });
-      })
+      });
     },
     next: function (router) {
       router.get('rAHighAvailabilityWizardController').save('loadBalancerURL');
@@ -123,7 +123,7 @@ module.exports = App.WizardRoute.extend({
         controller.loadAllPriorSteps().done(function(){
           controller.connectOutlet('rAHighAvailabilityWizardStep2', controller.get('content'));
         });
-      })
+      });
     },
     next: function (router) {
       var wizardController = router.get('rAHighAvailabilityWizardController');
@@ -151,7 +151,7 @@ module.exports = App.WizardRoute.extend({
         controller.setCurrentStep('3');
         controller.loadAllPriorSteps().done(function () {
           controller.connectOutlet('rAHighAvailabilityWizardStep3', controller.get('content'));
-        })
+        });
       });
     },
     next: function (router) {
@@ -168,8 +168,11 @@ module.exports = App.WizardRoute.extend({
       var controller = router.get('rAHighAvailabilityWizardController');
       controller.dataLoading().done(function () {
         controller.setCurrentStep('4');
-        controller.connectOutlet('rAHighAvailabilityWizardStep4', controller.get('content'));
-      })
+        controller.setLowerStepsDisable(4);
+        controller.loadAllPriorSteps().done(function () {
+          controller.connectOutlet('rAHighAvailabilityWizardStep4', controller.get('content'));
+        });
+      });
     },
     next: function (router) {
       router.get('updateController').set('isWorking', true);
@@ -186,9 +189,6 @@ module.exports = App.WizardRoute.extend({
           //location.reload();
         }
       });
-    },
-    back: function (router) {
-      router.transitionTo('step3');
     }
   })
 });
