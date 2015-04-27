@@ -634,25 +634,23 @@ public class Stack {
 
     // shouldn't have any required properties in stack level configuration
     for (StackConfigurationResponse config : serviceConfigs) {
-      String type = config.getType();
-      //strip .xml from type
-      if (type.endsWith(".xml")) {
-        type = type.substring(0, type.length() - 4);
-      }
+      ConfigProperty configProperty = new ConfigProperty(config);
+      String type = configProperty.getType();
+
       Map<String, ConfigProperty> mapTypeConfig = mapServiceConfig.get(type);
       if (mapTypeConfig == null) {
         mapTypeConfig = new HashMap<String, ConfigProperty>();
         mapServiceConfig.put(type, mapTypeConfig);
       }
-      ConfigProperty property = new ConfigProperty(config);
-      mapTypeConfig.put(config.getPropertyName(), property);
+
+      mapTypeConfig.put(config.getPropertyName(), configProperty);
       if (config.isRequired()) {
         Map<String, ConfigProperty> requiredTypeConfig = mapRequiredServiceConfig.get(type);
         if (requiredTypeConfig == null) {
           requiredTypeConfig = new HashMap<String, ConfigProperty>();
           mapRequiredServiceConfig.put(type, requiredTypeConfig);
         }
-        requiredTypeConfig.put(config.getPropertyName(), property);
+        requiredTypeConfig.put(config.getPropertyName(), configProperty);
       }
     }
   }
@@ -663,18 +661,17 @@ public class Stack {
         Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
 
     for (StackConfigurationResponse config : stackLevelConfigs) {
-      String type = config.getType();
-      //strip .xml from type
-      if (type.endsWith(".xml")) {
-        type = type.substring(0, type.length() - 4);
-      }
+      ConfigProperty configProperty = new ConfigProperty(config);
+      String type = configProperty.getType();
+
       Map<String, ConfigProperty> mapTypeConfig = stackConfigurations.get(type);
       if (mapTypeConfig == null) {
         mapTypeConfig = new HashMap<String, ConfigProperty>();
         stackConfigurations.put(type, mapTypeConfig);
       }
+
       mapTypeConfig.put(config.getPropertyName(),
-          new ConfigProperty(config));
+          configProperty);
     }
   }
 
@@ -710,7 +707,7 @@ public class Stack {
       this.value = config.getPropertyValue();
       this.attributes = config.getPropertyAttributes();
       this.propertyTypes = config.getPropertyType();
-      this.type = config.getType();
+      this.type = normalizeType(config.getType());
     }
 
     public ConfigProperty(String type, String name, String value) {
@@ -749,6 +746,14 @@ public class Stack {
 
     public void setAttributes(Map<String, String> attributes) {
       this.attributes = attributes;
+    }
+
+    private String normalizeType(String type) {
+      //strip .xml from type
+      if (type.endsWith(".xml")) {
+        type = type.substring(0, type.length() - 4);
+      }
+      return type;
     }
   }
 }
