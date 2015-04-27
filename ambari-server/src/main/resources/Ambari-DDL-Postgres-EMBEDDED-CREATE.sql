@@ -334,7 +334,7 @@ CREATE TABLE ambari.requestoperationlevel (
   cluster_name VARCHAR(255),
   service_name VARCHAR(255),
   host_component_name VARCHAR(255),
-  host_id BIGINT NOT NULL,
+  host_id BIGINT NULL,      -- unlike most host_id columns, this one allows NULLs because the request can be at the service level
   PRIMARY KEY (operation_level_id));
 GRANT ALL PRIVILEGES ON TABLE ambari.requestoperationlevel TO :username;
 

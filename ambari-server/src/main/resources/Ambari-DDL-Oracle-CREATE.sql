@@ -281,7 +281,7 @@ CREATE TABLE requestoperationlevel (
   cluster_name VARCHAR2(255),
   service_name VARCHAR2(255),
   host_component_name VARCHAR2(255),
-  host_id NUMBER(19) NOT NULL,
+  host_id NUMBER(19) NULL,      -- unlike most host_id columns, this one allows NULLs because the request can be at the service level
   PRIMARY KEY (operation_level_id));
 
 CREATE TABLE key_value_store (
