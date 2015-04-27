@@ -80,6 +80,12 @@ public interface Cluster {
    */
   List<ServiceComponentHost> getServiceComponentHosts(String hostname);
 
+  /**
+   * Get all hosts associated with this cluster.
+   *
+   * @return collection of hosts that are associated with this cluster
+   */
+  public Collection<Host> getHosts();
 
   /**
    * Get all of the hosts running the provided service and component.

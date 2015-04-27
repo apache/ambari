@@ -332,131 +332,13 @@ public class HostComponentResourceProviderTest {
     Resource responseResource = requestStatus.getRequestResource();
     assertEquals("response msg", responseResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "message")));
     assertEquals(1000L, responseResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "id")));
-    assertEquals("InProgress", responseResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
+    assertEquals("Accepted", responseResource.getPropertyValue(PropertyHelper.getPropertyId("Requests", "status")));
     assertTrue(requestStatus.getAssociatedResources().isEmpty());
 
     // verify
     verify(managementController, response, resourceProviderFactory, stageContainer);
   }
 
-  @Test
-  public void testInstallAndStart() throws Exception {
-    Resource.Type type = Resource.Type.HostComponent;
-
-    AmbariManagementController managementController = createMock(AmbariManagementController.class);
-    RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
-    ResourceProviderFactory resourceProviderFactory = createNiceMock(ResourceProviderFactory.class);
-    Injector injector = createNiceMock(Injector.class);
-    Clusters clusters = createNiceMock(Clusters.class);
-    Cluster cluster = createNiceMock(Cluster.class);
-    Service service = createNiceMock(Service.class);
-    ServiceComponent component = createNiceMock(ServiceComponent.class);
-    ServiceComponent clientComponent = createNiceMock(ServiceComponent.class);
-    ServiceComponentHost componentHost = createNiceMock(ServiceComponentHost.class);
-    ServiceComponentHost clientComponentHost = createNiceMock(ServiceComponentHost.class);
-    RequestStageContainer stageContainer = createNiceMock(RequestStageContainer.class);
-    MaintenanceStateHelper maintenanceStateHelper = createNiceMock(MaintenanceStateHelper.class);
-    HostVersionDAO hostVersionDAO = createMock(HostVersionDAO.class);
-
-    Collection<String> hosts = new HashSet<String>();
-    hosts.add("Host100");
-
-    Map<String, String> mapRequestProps = new HashMap<String, String>();
-    mapRequestProps.put("context", "Install and start components on added hosts");
-
-    Set<ServiceComponentHostResponse> nameResponse = new HashSet<ServiceComponentHostResponse>();
-    nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", "INIT", "", "INIT", "", null));
-    nameResponse.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "some-client", "Host100", "INIT", "", "INIT", "", null));
-    Set<ServiceComponentHostResponse> nameResponse2 = new HashSet<ServiceComponentHostResponse>();
-    nameResponse2.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "Component100", "Host100", "INIT", "", "INSTALLED", "", null));
-    nameResponse2.add(new ServiceComponentHostResponse(
-        "Cluster102", "Service100", "some-client", "Host100", "INIT", "", "INSTALLED", "", null));
-
-
-    // set expectations
-    expect(managementController.getClusters()).andReturn(clusters).anyTimes();
-    expect(managementController.findServiceName(cluster, "Component100")).andReturn("Service100").anyTimes();
-    expect(managementController.findServiceName(cluster, "some-client")).andReturn("Service100").anyTimes();
-    expect(clusters.getCluster("Cluster102")).andReturn(cluster).anyTimes();
-    expect(cluster.getService("Service100")).andReturn(service).anyTimes();
-    expect(service.getServiceComponent("Component100")).andReturn(component).anyTimes();
-    expect(service.getServiceComponent("some-client")).andReturn(clientComponent).anyTimes();
-    expect(component.getServiceComponentHost("Host100")).andReturn(componentHost).anyTimes();
-    expect(component.getName()).andReturn("Component100").anyTimes();
-    expect(clientComponent.getServiceComponentHost("Host100")).andReturn(clientComponentHost).anyTimes();
-    expect(clientComponent.getName()).andReturn("some-client").anyTimes();
-    expect(clientComponent.isClientComponent()).andReturn(true).anyTimes();
-    // actual state is always INIT until stages actually execute
-    expect(componentHost.getState()).andReturn(State.INIT).anyTimes();
-    expect(componentHost.getHostName()).andReturn("Host100").anyTimes();
-    expect(componentHost.getServiceComponentName()).andReturn("Component100").anyTimes();
-    expect(clientComponentHost.getState()).andReturn(State.INIT).anyTimes();
-    expect(clientComponentHost.getHostName()).andReturn("Host100").anyTimes();
-    expect(clientComponentHost.getServiceComponentName()).andReturn("some-client").anyTimes();
-    expect(response.getMessage()).andReturn("response msg").anyTimes();
-    expect(hostVersionDAO.findByHostAndStateCurrent(anyObject(String.class), anyObject(String.class))).andReturn(null).anyTimes();
-
-    //Cluster is default type.  Maintenance mode is not being tested here so the default is returned.
-    expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, componentHost)).andReturn(true).anyTimes();
-    expect(maintenanceStateHelper.isOperationAllowed(Resource.Type.Cluster, clientComponentHost)).andReturn(true).anyTimes();
-
-    //todo: can we change to prevent having to call twice?
-    expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse);
-    expect(managementController.getHostComponents(
-        EasyMock.<Set<ServiceComponentHostRequest>>anyObject())).andReturn(nameResponse2);
-
-    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts =
-        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-
-    changedHosts.put("Component100", Collections.singletonMap(State.INSTALLED, Collections.singletonList(componentHost)));
-    changedHosts.put("some-client", Collections.singletonMap(State.INSTALLED, Collections.singletonList(clientComponentHost)));
-
-    Map<String, Map<State, List<ServiceComponentHost>>> changedHosts2 =
-        new HashMap<String, Map<State, List<ServiceComponentHost>>>();
-    List<ServiceComponentHost> changedComponentHosts2 = Collections.singletonList(componentHost);
-    changedHosts2.put("Component100", Collections.singletonMap(State.STARTED, changedComponentHosts2));
-
-    expect(managementController.addStages(null, cluster, mapRequestProps, null, null, null, changedHosts,
-        Collections.<ServiceComponentHost>emptyList(), false, false)).andReturn(stageContainer).once();
-
-    expect(managementController.addStages(stageContainer, cluster, mapRequestProps, null, null, null, changedHosts2,
-        Collections.<ServiceComponentHost>emptyList(), false, false)).andReturn(stageContainer).once();
-
-    stageContainer.persist();
-    expect(stageContainer.getProjectedState("Host100", "Component100")).andReturn(State.INSTALLED).once();
-    expect(stageContainer.getRequestStatusResponse()).andReturn(response).once();
-
-    TestHostComponentResourceProvider provider =
-        new TestHostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
-            PropertyHelper.getKeyPropertyIds(type),
-            managementController, injector);
-    provider.setFieldValue("maintenanceStateHelper", maintenanceStateHelper);
-    provider.setFieldValue("hostVersionDAO", hostVersionDAO);
-
-    expect(resourceProviderFactory.getHostComponentResourceProvider(anyObject(Set.class),
-            anyObject(Map.class),
-            eq(managementController))).
-        andReturn(provider).anyTimes();
-
-    // replay
-    replay(managementController, response, resourceProviderFactory, clusters, cluster, service,
-        component, componentHost, stageContainer, maintenanceStateHelper, clientComponent,
-        clientComponentHost, hostVersionDAO);
-
-    Map<String, Object> properties = new LinkedHashMap<String, Object>();
-    properties.put(HostComponentResourceProvider.HOST_COMPONENT_STATE_PROPERTY_ID, "STARTED");
-
-    RequestStatusResponse requestResponse = provider.installAndStart("Cluster102", hosts);
-
-    assertSame(response, requestResponse);
-    // verify
-    verify(managementController, response, resourceProviderFactory, stageContainer,
-        clientComponent, clientComponentHost);
-  }
 
   @Test
   public void testDeleteResources() throws Exception {
@@ -465,8 +347,8 @@ public class HostComponentResourceProviderTest {
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
     Injector injector = createNiceMock(Injector.class);
-    
-    HostComponentResourceProvider provider = 
+
+    HostComponentResourceProvider provider =
         new HostComponentResourceProvider(PropertyHelper.getPropertyIds(type),
         PropertyHelper.getKeyPropertyIds(type),
         managementController, injector);

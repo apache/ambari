@@ -34,6 +34,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.codehaus.jackson.JsonGenerationException;
@@ -49,6 +50,7 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
@@ -82,6 +84,9 @@ public class StageUtils {
   private static StageFactory stageFactory;
 
   @Inject
+  private static TopologyManager topologyManager;
+
+  @Inject
   public StageUtils(StageFactory stageFactory) {
     StageUtils.stageFactory = stageFactory;
   }
@@ -113,6 +118,11 @@ public class StageUtils {
     if (gson == null) {
       StageUtils.gson = gson;
     }
+  }
+
+  //todo: proper static injection
+  public static void setTopologyManager(TopologyManager topologyManager) {
+    StageUtils.topologyManager = topologyManager;
   }
 
   static {
@@ -234,20 +244,15 @@ public class StageUtils {
     return actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
   }
 
-  public static Map<String, Set<String>> getClusterHostInfo(
-      Map<String, Host> allHosts, Cluster cluster) throws AmbariException {
-
-    Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<String, SortedSet<Integer>>();
-
-    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
-
+  public static Map<String, Set<String>> getClusterHostInfo(Cluster cluster) throws AmbariException {
     //Fill hosts and ports lists
     Set<String>   hostsSet  = new LinkedHashSet<String>();
     List<Integer> portsList = new ArrayList<Integer>();
     List<String>  rackList  = new ArrayList<String>();
     List<String>  ipV4List  = new ArrayList<String>();
 
-    for (Host host : allHosts.values()) {
+    Collection<Host> allHosts = cluster.getHosts();
+    for (Host host : allHosts) {
 
       hostsSet.add(host.getHostName());
 
@@ -261,15 +266,25 @@ public class StageUtils {
       ipV4List.add(iPv4 == null ? DEFAULT_IPV4_ADDRESS : iPv4 );
     }
 
+    // add hosts from topology manager
+    Map<String, Collection<String>> pendingHostComponents = topologyManager.getProjectedTopology();
+    for (String hostname : pendingHostComponents.keySet()) {
+      if (! hostsSet.contains(hostname)) {
+        hostsSet.add(hostname);
+        // this is only set in heartbeat handler and since these hosts haven't yet been provisioned, set the default
+        portsList.add(DEFAULT_PING_PORT);
+      }
+    }
+
     List<String> hostsList = new ArrayList<String>(hostsSet);
 
-    //     Fill host roles
     // Fill hosts for services
-    for (Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
+    Map<String, SortedSet<Integer>> hostRolesInfo = new HashMap<String, SortedSet<Integer>>();
+    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
 
       Service service = serviceEntry.getValue();
 
-      for (Entry<String, ServiceComponent> serviceComponentEntry : service.getServiceComponents().entrySet()) {
+      for (Map.Entry<String, ServiceComponent> serviceComponentEntry : service.getServiceComponents().entrySet()) {
 
         ServiceComponent serviceComponent = serviceComponentEntry.getValue();
         String componentName = serviceComponent.getName();
@@ -319,7 +334,37 @@ public class StageUtils {
       }
     }
 
-    for (Entry<String, SortedSet<Integer>> entry : hostRolesInfo.entrySet()) {
+    // add components from topology manager
+    for (Map.Entry<String, Collection<String>> entry : pendingHostComponents.entrySet()) {
+      String hostname = entry.getKey();
+      Collection<String> hostComponents = entry.getValue();
+
+      for (String hostComponent : hostComponents) {
+        String roleName = componentToClusterInfoKeyMap.get(hostComponent);
+        SortedSet<Integer> hostsForComponentsHost = hostRolesInfo.get(roleName);
+
+        if (hostsForComponentsHost == null) {
+          hostsForComponentsHost = new TreeSet<Integer>();
+          hostRolesInfo.put(roleName, hostsForComponentsHost);
+        }
+
+        int hostIndex = hostsList.indexOf(hostname);
+        if (hostIndex != -1) {
+          if (! hostsForComponentsHost.contains(hostIndex)) {
+            hostsForComponentsHost.add(hostIndex);
+          }
+        } else {
+          //todo: I don't think that this can happen
+          //todo: determine if it can and if so, handle properly
+          //todo: if it 'cant' should probably enforce invariant
+          throw new RuntimeException("Unable to get host index for host: " + hostname);
+        }
+      }
+    }
+
+    Map<String, Set<String>> clusterHostInfo = new HashMap<String, Set<String>>();
+
+    for (Map.Entry<String, SortedSet<Integer>> entry : hostRolesInfo.entrySet()) {
       TreeSet<Integer> sortedSet = new TreeSet<Integer>(entry.getValue());
 
       Set<String> replacedRangesSet = replaceRanges(sortedSet);

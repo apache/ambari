@@ -58,7 +58,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
 
   protected final static Logger LOG = LoggerFactory.getLogger(AbstractResourceProvider.class);
   protected final static String PROPERTIES_ATTRIBUTES_REGEX = "properties_attributes/[a-zA-Z][a-zA-Z._-]*$";
-  private static Pattern propertiesAttributesPattern = Pattern.compile(".*/" + PROPERTIES_ATTRIBUTES_REGEX);
+  public static Pattern propertiesAttributesPattern = Pattern.compile(".*/" + PROPERTIES_ATTRIBUTES_REGEX);
 
 
   // ----- Constructors ------------------------------------------------------
@@ -210,7 +210,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
         requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "message"), response.getMessage());
       }
       requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "id"), response.getRequestId());
-      requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "InProgress");
+      requestResource.setProperty(PropertyHelper.getPropertyId("Requests", "status"), "Accepted");
       return new RequestStatusImpl(requestResource, associatedResources);
     }
     return new RequestStatusImpl(null, associatedResources);
@@ -347,7 +347,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
    *    whose category is the parent and marked as a desired config.
    * @param properties  the properties on the request.
    */
-  protected List<ConfigurationRequest> getConfigurationRequests(String parentCategory, Map<String, Object> properties) {
+  public static List<ConfigurationRequest> getConfigurationRequests(String parentCategory, Map<String, Object> properties) {
 
     List<ConfigurationRequest> configs = new LinkedList<ConfigurationRequest>();
 
@@ -392,7 +392,7 @@ public abstract class AbstractResourceProvider extends BaseProvider implements R
     return configs;
   }
 
-  private void parseProperties(ConfigurationRequest config, String absCategory, String propName, String propValue) {
+  public static void parseProperties(ConfigurationRequest config, String absCategory, String propName, String propValue) {
     if (propName.equals("type"))
       config.setType(propValue);
     else if (propName.equals("tag"))

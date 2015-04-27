@@ -31,6 +31,7 @@ import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
 import org.apache.ambari.server.agent.HeartBeatHandler;
 import org.apache.ambari.server.agent.rest.AgentResource;
 import org.apache.ambari.server.api.AmbariErrorHandler;
@@ -50,8 +51,11 @@ import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvi
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
+import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
+import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.StackAdvisorResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
@@ -68,7 +72,6 @@ import org.apache.ambari.server.orm.dao.PermissionDAO;
 import org.apache.ambari.server.orm.dao.PrincipalDAO;
 import org.apache.ambari.server.orm.dao.PrivilegeDAO;
 import org.apache.ambari.server.orm.dao.ResourceDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.dao.UserDAO;
 import org.apache.ambari.server.orm.dao.ViewInstanceDAO;
 import org.apache.ambari.server.orm.entities.MetainfoEntity;
@@ -87,7 +90,10 @@ import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.HostRequest;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.topology.TopologyRequestFactoryImpl;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.apache.velocity.app.Velocity;
@@ -598,16 +604,22 @@ public class AmbariServer {
     BootStrapResource.init(injector.getInstance(BootStrapImpl.class));
     StackAdvisorResourceProvider.init(injector.getInstance(StackAdvisorHelper.class));
     StageUtils.setGson(injector.getInstance(Gson.class));
+    StageUtils.setTopologyManager(injector.getInstance(TopologyManager.class));
     WorkflowJsonService.setDBProperties(
         injector.getInstance(Configuration.class));
     SecurityFilter.init(injector.getInstance(Configuration.class));
     StackDefinedPropertyProvider.init(injector);
     AbstractControllerResourceProvider.init(injector.getInstance(ResourceProviderFactory.class));
-    BlueprintResourceProvider.init(injector.getInstance(BlueprintDAO.class),
-        injector.getInstance(StackDAO.class),
-        injector.getInstance(Gson.class), ambariMetaInfo);
+    BlueprintResourceProvider.init(injector.getInstance(BlueprintFactory.class),
+        injector.getInstance(BlueprintDAO.class), injector.getInstance(Gson.class));
     StackDependencyResourceProvider.init(ambariMetaInfo);
-    ClusterResourceProvider.init(injector.getInstance(BlueprintDAO.class), ambariMetaInfo, injector.getInstance(ConfigHelper.class));
+    ClusterResourceProvider.init(injector.getInstance(TopologyManager.class),
+        injector.getInstance(TopologyRequestFactoryImpl.class));
+    HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
+    BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
+    ProvisionClusterRequest.init(injector.getInstance(BlueprintFactory.class));
+    ScaleClusterRequest.init(injector.getInstance(BlueprintFactory.class));
+    HostRequest.init(injector.getInstance(HostRoleCommandFactory.class));
 
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
@@ -618,6 +630,7 @@ public class AmbariServer {
         injector.getInstance(GroupDAO.class), injector.getInstance(ViewInstanceDAO.class));
     ClusterPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
     AmbariPrivilegeResourceProvider.init(injector.getInstance(ClusterDAO.class));
+    ActionManager.setTopologyManager(injector.getInstance(TopologyManager.class));
   }
 
   /**

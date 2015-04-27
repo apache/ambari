@@ -76,6 +76,8 @@ import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.Direction;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 import org.apache.ambari.server.view.ViewRegistry;
 import org.easymock.EasyMock;
 import org.junit.After;
@@ -198,6 +200,10 @@ public class UpgradeResourceProviderTest {
     component = service.addServiceComponent("ZOOKEEPER_CLIENT");
     sch = component.addServiceComponentHost("h1");
     sch.setVersion("2.1.1.0");
+
+    TopologyManager topologyManager = new TopologyManager();
+    StageUtils.setTopologyManager(topologyManager);
+    ActionManager.setTopologyManager(topologyManager);
   }
 
   @After

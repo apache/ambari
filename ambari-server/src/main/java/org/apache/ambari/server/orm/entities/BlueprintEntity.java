@@ -19,10 +19,9 @@
 package org.apache.ambari.server.orm.entities;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import com.google.gson.Gson;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -35,12 +34,6 @@ import javax.persistence.OneToOne;
 import javax.persistence.Table;
 import javax.persistence.Transient;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.state.PropertyInfo;
-import org.apache.ambari.server.state.ServiceInfo;
-
-import com.google.gson.Gson;
 
 /**
  * Entity representing a Blueprint.
@@ -71,7 +64,7 @@ public class BlueprintEntity {
   private Collection<BlueprintConfigEntity> configurations;
 
   @Transient
-  private Gson jsonSerializer = new Gson();
+  private static Gson jsonSerializer = new Gson();
 
 
   /**
@@ -145,117 +138,5 @@ public class BlueprintEntity {
    */
   public void setConfigurations(Collection<BlueprintConfigEntity> configurations) {
     this.configurations = configurations;
-  }
-
-  /**
-   * Validate all configurations.  Validation is done on the operational configuration of each
-   * host group.  An operational configuration is achieved by overlaying host group configuration
-   * on top of cluster configuration which overlays the default stack configurations.
-   *
-   * @param stackInfo          stack information
-   * @param validatePasswords  whether password properties should be validated
-   * @return map of required properties which are missing.  Empty map if none are missing.
-   *
-   * @throws IllegalArgumentException if blueprint contains invalid information
-   */
-  public Map<String, Map<String, Collection<String>>> validateConfigurations(
-      AmbariMetaInfo stackInfo, boolean validatePasswords) {
-
-    StackEntity stack = getStack();
-    String stackName = stack.getStackName();
-    String stackVersion = stack.getStackVersion();
-
-    Map<String, Map<String, Collection<String>>> missingProperties =
-        new HashMap<String, Map<String, Collection<String>>>();
-    Map<String, Map<String, String>> clusterConfigurations = getConfigurationAsMap(getConfigurations());
-
-    for (HostGroupEntity hostGroup : getHostGroups()) {
-      Collection<String> processedServices = new HashSet<String>();
-      Map<String, Collection<String>> allRequiredProperties = new HashMap<String, Collection<String>>();
-      Map<String, Map<String, String>> operationalConfiguration =
-          new HashMap<String, Map<String, String>>(clusterConfigurations);
-
-      operationalConfiguration.putAll(getConfigurationAsMap(hostGroup.getConfigurations()));
-      for (HostGroupComponentEntity component : hostGroup.getComponents()) {
-        //check that MYSQL_SERVER component is not available while hive using existing db
-        if (component.getName().equals("MYSQL_SERVER")) {
-          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
-          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
-                  && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
-            throw new IllegalArgumentException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
-                    " using existing db!");
-          }
-        }
-
-        //for now, AMBARI is not recognized as a service in Stacks
-        if (! component.getName().equals("AMBARI_SERVER")) {
-          ServiceInfo service;
-          String serviceName;
-          try {
-            serviceName = stackInfo.getComponentToService(stackName, stackVersion, component.getName());
-            service = stackInfo.getService(stackName, stackVersion, serviceName);
-          } catch (AmbariException e) {
-            throw new IllegalArgumentException("Unable to determine the service associated with the" +
-                " component: " + component.getName());
-          }
-          if (processedServices.add(serviceName)) {
-            Map<String, PropertyInfo> serviceRequirements = service.getRequiredProperties();
-            for (PropertyInfo propertyInfo : serviceRequirements.values()) {
-              if (! (validatePasswords ^ propertyInfo.getPropertyTypes().contains(PropertyInfo.PropertyType.PASSWORD))) {
-                String configCategory = propertyInfo.getFilename();
-                if (configCategory.endsWith(".xml")) {
-                  configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));
-                }
-                Collection<String> typeRequirements = allRequiredProperties.get(configCategory);
-                if (typeRequirements == null) {
-                  typeRequirements = new HashSet<String>();
-                  allRequiredProperties.put(configCategory, typeRequirements);
-                }
-                typeRequirements.add(propertyInfo.getName());
-              }
-            }
-          }
-        }
-      }
-      for (Map.Entry<String, Collection<String>> requiredTypeProperties : allRequiredProperties.entrySet()) {
-        String requiredCategory = requiredTypeProperties.getKey();
-        Collection<String> requiredProperties = requiredTypeProperties.getValue();
-        Collection<String> operationalTypeProps = operationalConfiguration.containsKey(requiredCategory) ?
-            operationalConfiguration.get(requiredCategory).keySet() :
-            Collections.<String>emptyList();
-
-        requiredProperties.removeAll(operationalTypeProps);
-        if (! requiredProperties.isEmpty()) {
-          String hostGroupName = hostGroup.getName();
-          Map<String, Collection<String>> hostGroupMissingProps = missingProperties.get(hostGroupName);
-          if (hostGroupMissingProps == null) {
-            hostGroupMissingProps = new HashMap<String, Collection<String>>();
-            missingProperties.put(hostGroupName, hostGroupMissingProps);
-          }
-          hostGroupMissingProps.put(requiredCategory, requiredProperties);
-        }
-      }
-    }
-    return missingProperties;
-  }
-
-  /**
-   * Obtain configuration as a map of config type to corresponding properties.
-   *
-   * @param configurations  configuration to include in map
-   *
-   * @return map of config type to map of properties
-   */
-  private Map<String, Map<String, String>> getConfigurationAsMap(
-      Collection<? extends BlueprintConfiguration> configurations) {
-
-    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-    for (BlueprintConfiguration config : configurations) {
-      String type = config.getType();
-      Map<String, String> typeProperties = jsonSerializer.<Map<String, String>>fromJson(
-          config.getConfigData(), Map.class);
-      properties.put(type, typeProperties);
-    }
-    return properties;
   }
 }

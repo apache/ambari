@@ -19,7 +19,6 @@
 package org.apache.ambari.server.controller;
 
 import com.google.inject.Inject;
-import com.google.inject.Injector;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.Role;
@@ -887,7 +886,7 @@ public class KerberosHelper {
         // Always set up the necessary stages to perform the tasks needed to complete the operation.
         // Some stages may be no-ops, this is expected.
         // Gather data needed to create stages and tasks...
-        Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(hosts, cluster);
+        Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
         String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
         Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster);
         String hostParamsJson = StageUtils.getGson().toJson(hostParams);
@@ -1131,7 +1130,7 @@ public class KerberosHelper {
           // Always set up the necessary stages to perform the tasks needed to complete the operation.
           // Some stages may be no-ops, this is expected.
           // Gather data needed to create stages and tasks...
-          Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(hosts, cluster);
+          Map<String, Set<String>> clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
           String clusterHostInfoJson = StageUtils.getGson().toJson(clusterHostInfo);
           Map<String, String> hostParams = customCommandExecutionHelper.createDefaultHostParams(cluster);
           String hostParamsJson = StageUtils.getGson().toJson(hostParams);
@@ -1155,6 +1154,7 @@ public class KerberosHelper {
           handler.createStages(cluster, hosts, Collections.<String, Map<String, String>>emptyMap(),
               clusterHostInfoJson, hostParamsJson, event, roleCommandOrder, kerberosDetails,
               dataDirectory, requestStageContainer, serviceComponentHostsToProcess, hostsWithValidKerberosClient);
+
 
           handler.addFinalizeOperationStage(cluster, clusterHostInfoJson, hostParamsJson, event,
               dataDirectory, roleCommandOrder, requestStageContainer);

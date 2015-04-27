@@ -18,22 +18,28 @@
 
 package org.apache.ambari.server.api.query.render;
 
-import junit.framework.Assert;
 import org.apache.ambari.server.api.query.QueryInfo;
 import org.apache.ambari.server.api.resources.ClusterResourceDefinition;
 import org.apache.ambari.server.api.resources.HostComponentResourceDefinition;
 import org.apache.ambari.server.api.resources.HostResourceDefinition;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
 import org.apache.ambari.server.api.util.TreeNode;
 import org.apache.ambari.server.api.util.TreeNodeImpl;
-import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.net.InetAddress;
@@ -56,7 +62,83 @@ import static org.junit.Assert.assertTrue;
 /**
  * ClusterBlueprintRenderer unit tests.
  */
+@SuppressWarnings("unchecked")
 public class ClusterBlueprintRendererTest {
+
+  private static final ClusterTopology topology = createNiceMock(ClusterTopology.class);
+  private static final Blueprint blueprint = createNiceMock(Blueprint.class);
+  private static final Stack stack = createNiceMock(Stack.class);
+  private static final HostGroup group1 = createNiceMock(HostGroup.class);
+  private static final HostGroup group2 = createNiceMock(HostGroup.class);
+
+  private static final Configuration emptyConfiguration = new Configuration(new HashMap<String, Map<String, String>>(),
+      new HashMap<String, Map<String, Map<String, String>>>());
+
+  private static final Map<String, Map<String, String>> clusterProps = new HashMap<String, Map<String, String>>();
+  private static final Map<String, Map<String, Map<String, String>>> clusterAttributes =
+      new HashMap<String, Map<String, Map<String, String>>>();
+
+  private static final Configuration clusterConfig = new Configuration(clusterProps, clusterAttributes);
+  @Before
+  public void setup() throws Exception {
+
+    Map<String, String> clusterTypeProps = new HashMap<String, String>();
+    clusterProps.put("test-type-one", clusterTypeProps);
+    clusterTypeProps.put("propertyOne", "valueOne");
+
+    Map<String, Map<String, String>> clusterTypeAttributes = new HashMap<String, Map<String, String>>();
+    clusterAttributes.put("test-type-one", clusterTypeAttributes);
+    Map<String, String> clusterAttributeProps = new HashMap<String, String>();
+    clusterAttributeProps.put("propertyOne", "true");
+    clusterTypeAttributes.put("final", clusterAttributeProps);
+
+    Collection<String> group1Components = Arrays.asList(
+        "JOBTRACKER", "TASKTRACKER", "NAMENODE", "DATANODE", "AMBARI_SERVER");
+
+    Collection<String> group2Components = Arrays.asList("TASKTRACKER", "DATANODE");
+
+    Map<String, Configuration> hostGroupConfigs = new HashMap<String, Configuration>();
+    hostGroupConfigs.put("host_group_1", emptyConfiguration);
+    hostGroupConfigs.put("host_group_2", emptyConfiguration);
+
+    Map<String, HostGroup> hostGroups = new HashMap<String, HostGroup>();
+    hostGroups.put("host_group_1", group1);
+    hostGroups.put("host_group_2", group2);
+
+    HostGroupInfo group1Info = new HostGroupInfo("host_group_1");
+    group1Info.addHost("host1");
+    group1Info.setConfiguration(emptyConfiguration);
+    HostGroupInfo group2Info = new HostGroupInfo("host_group_2");
+    Map<String, HostGroupInfo> groupInfoMap = new HashMap<String, HostGroupInfo>();
+    group2Info.addHosts(Arrays.asList("host2", "host3"));
+    group2Info.setConfiguration(emptyConfiguration);
+    groupInfoMap.put("host_group_1", group1Info);
+    groupInfoMap.put("host_group_2", group2Info);
+
+    expect(topology.isNameNodeHAEnabled()).andReturn(false).anyTimes();
+    expect(topology.getConfiguration()).andReturn(clusterConfig).anyTimes();
+    expect(topology.getBlueprint()).andReturn(blueprint).anyTimes();
+    expect(topology.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
+    expect(blueprint.getStack()).andReturn(stack).anyTimes();
+    expect(blueprint.getHostGroups()).andReturn(hostGroups).anyTimes();
+    expect(blueprint.getHostGroup("host_group_1")).andReturn(group1).anyTimes();
+    expect(blueprint.getHostGroup("host_group_2")).andReturn(group2).anyTimes();
+    expect(stack.getName()).andReturn("HDP").anyTimes();
+    expect(stack.getVersion()).andReturn("1.3.3").anyTimes();
+    expect(group1.getName()).andReturn("host_group_1").anyTimes();
+    expect(group2.getName()).andReturn("host_group_2").anyTimes();
+    expect(group1.getComponents()).andReturn(group1Components).anyTimes();
+    expect(group2.getComponents()).andReturn(group2Components).anyTimes();
+
+    replay(topology, blueprint, stack, group1, group2);
+  }
+
+  @After
+  public void tearDown() {
+    verify(topology, blueprint, stack, group1, group2);
+    reset(topology, blueprint, stack, group1, group2);
+  }
+
   @Test
   public void testFinalizeProperties__instance() {
     QueryInfo rootQuery = new QueryInfo(new ClusterResourceDefinition(), new HashSet<String>());
@@ -104,20 +186,10 @@ public class ClusterBlueprintRendererTest {
   @Test
   public void testFinalizeResult() throws Exception{
 
-    AmbariManagementController controller = createMock(AmbariManagementController.class);
-    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
-    StackInfo stack = new StackInfo();
-    stack.setName("HDP");
-    stack.setVersion("1.3.3");
-
-    expect(controller.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
-    expect(ambariMetaInfo.getStack("HDP", "1.3.3")).andReturn(stack).anyTimes();
-    replay(controller, ambariMetaInfo);
-
     Result result = new ResultImpl(true);
     createClusterResultTree(result.getResultTree());
 
-    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(controller);
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
@@ -179,18 +251,10 @@ public class ClusterBlueprintRendererTest {
 
   @Test
   public void testFinalizeResultWithAttributes() throws Exception{
-
-    AmbariManagementController controller = createMock(AmbariManagementController.class);
-    AmbariMetaInfo stackInfo = createNiceMock(AmbariMetaInfo.class);
     ServiceInfo hdfsService = new ServiceInfo();
     hdfsService.setName("HDFS");
     ServiceInfo mrService = new ServiceInfo();
     mrService.setName("MAPREDUCE");
-
-    expect(controller.getAmbariMetaInfo()).andReturn(stackInfo).atLeastOnce();
-    expect(stackInfo.getStack("HDP", "1.3.3")).andReturn(new StackInfo()).atLeastOnce();
-
-    replay(controller, stackInfo);
 
     Result result = new ResultImpl(true);
     Map<String, Object> testDesiredConfigMap =
@@ -204,7 +268,7 @@ public class ClusterBlueprintRendererTest {
 
     createClusterResultTree(result.getResultTree(), testDesiredConfigMap);
 
-    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(controller);
+    ClusterBlueprintRenderer renderer = new TestBlueprintRenderer(topology);
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
@@ -309,7 +373,6 @@ public class ClusterBlueprintRendererTest {
     assertEquals("Attribute value is not correct",
         "true", finalMap.get("propertyOne"));
 
-    verify(controller, stackInfo);
   }
 
   //todo: collection resource
@@ -335,7 +398,7 @@ public class ClusterBlueprintRendererTest {
 
 
         return originalMap;
-      };
+      }
 
     };
 
@@ -452,15 +515,17 @@ public class ClusterBlueprintRendererTest {
 
   private static class TestBlueprintRenderer extends ClusterBlueprintRenderer {
 
-    private AmbariManagementController testController;
+    private ClusterTopology topology;
 
-    private TestBlueprintRenderer(AmbariManagementController controller) {
-      testController = controller;
+    public TestBlueprintRenderer(ClusterTopology topology) {
+      this.topology = topology;
     }
 
     @Override
-    protected AmbariManagementController getController() {
-      return testController;
+    protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
+        throws InvalidTopologyTemplateException, InvalidTopologyException {
+
+      return topology;
     }
   }
 }

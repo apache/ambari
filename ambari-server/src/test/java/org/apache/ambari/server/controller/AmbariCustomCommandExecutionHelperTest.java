@@ -48,6 +48,8 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -91,6 +93,7 @@ public class AmbariCustomCommandExecutionHelperTest {
     controller = injector.getInstance(AmbariManagementController.class);
     clusters = injector.getInstance(Clusters.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    StageUtils.setTopologyManager(new TopologyManager());
   }
   @After
   public void teardown() {

@@ -2500,6 +2500,25 @@ public class ClusterImpl implements Cluster {
     return components.get(componentName).getServiceComponentHosts().keySet();
   }
 
+  @Override
+  public Collection<Host> getHosts() {
+    //todo: really, this class doesn't have a getName() method???
+    String clusterName = clusterEntity.getClusterName();
+
+    Map<String, Host> hosts;
+
+    try {
+      //todo: why the hell does this method throw AmbariException???
+      //todo: this is ridiculous that I need to get hosts for this cluster from Clusters!!!
+      //todo: should I getHosts using the same logic as the other getHosts call?  At least that doesn't throw AmbariException.
+      hosts =  clusters.getHostsForCluster(clusterName);
+    } catch (AmbariException e) {
+      //todo: in what conditions is AmbariException thrown?
+      throw new RuntimeException("Unable to get hosts for cluster: " + clusterName, e);
+    }
+    return hosts == null ? Collections.<Host>emptyList() : hosts.values();
+  }
+
   private ClusterHealthReport getClusterHealthReport(
       Map<String, Host> clusterHosts) throws AmbariException {
 

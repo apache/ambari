@@ -32,7 +32,6 @@ import org.apache.ambari.server.DuplicateResourceException;
 import org.apache.ambari.server.ObjectNotFoundException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
-import org.apache.ambari.server.StackAccessException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.MaintenanceStateHelper;
@@ -51,7 +50,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentFactory;
@@ -211,7 +209,6 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
       for (Map<String, Object> propertyMap : getPropertyMaps(predicate)) {
         requests.add(getRequest(propertyMap));
       }
-    final Predicate finalPredicate = predicate;
     RequestStatusResponse response = modifyResources(new Command<RequestStatusResponse>() {
       @Override
       public RequestStatusResponse invoke() throws AmbariException {
@@ -251,7 +248,7 @@ public class ComponentResourceProvider extends AbstractControllerResourceProvide
   }
 
   // Create the components for the given requests.
-  protected synchronized void createComponents(
+  public synchronized void createComponents(
       Set<ServiceComponentRequest> requests) throws AmbariException {
 
     if (requests.isEmpty()) {

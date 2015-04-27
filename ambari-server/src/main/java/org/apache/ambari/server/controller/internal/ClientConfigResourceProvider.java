@@ -270,7 +270,7 @@ public class ClientConfigResourceProvider extends AbstractControllerResourceProv
       Map<String, Set<String>> clusterHostInfo = null;
       ServiceInfo serviceInfo = null;
       String osFamily = null;
-      clusterHostInfo = StageUtils.getClusterHostInfo(managementController.getClusters().getHostsForCluster(cluster.getClusterName()), cluster);
+      clusterHostInfo = StageUtils.getClusterHostInfo(cluster);
       serviceInfo = managementController.getAmbariMetaInfo().getService(stackId.getStackName(),
               stackId.getStackVersion(), serviceName);
       clusterHostInfo = substituteHostIndexes(clusterHostInfo);

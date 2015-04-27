@@ -384,7 +384,7 @@ public class AmbariActionExecutionHelper {
       // Generate cluster host info
       if (null != cluster) {
         execCmd.setClusterHostInfo(
-          StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
+          StageUtils.getClusterHostInfo(cluster));
       }
     }
   }

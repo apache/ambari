@@ -109,6 +109,8 @@ import org.apache.ambari.server.state.scheduler.RequestExecutionFactory;
 import org.apache.ambari.server.state.scheduler.RequestExecutionImpl;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostImpl;
+import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.view.ViewInstanceHandlerList;
 import org.eclipse.jetty.server.SessionIdManager;
 import org.eclipse.jetty.server.SessionManager;
@@ -321,6 +323,7 @@ public class ControllerModule extends AbstractModule {
     bind(ExecutionScheduler.class).to(ExecutionSchedulerImpl.class);
     bind(DBAccessor.class).to(DBAccessorImpl.class);
     bind(ViewInstanceHandlerList.class).to(AmbariHandlerList.class);
+    bind(TopologyManager.class);
 
     requestStaticInjection(ExecutionCommandWrapper.class);
     requestStaticInjection(DatabaseChecker.class);
@@ -408,6 +411,7 @@ public class ControllerModule extends AbstractModule {
     
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
+    bind(BlueprintFactory.class);
   }
 
   /**

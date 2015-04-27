@@ -10,7 +10,8 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
+ * distributed under the License is distribut
+ * ed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -19,38 +20,20 @@
 package org.apache.ambari.server.controller.internal;
 
 import java.util.Collection;
-import java.util.Map;
 
 /**
- * Host Group definition.
+ * Indicates that there is a problem with the cluster topology configuration.
  */
-public interface HostGroup {
+public class ConfigurationTopologyException extends Exception {
+  public ConfigurationTopologyException(Collection<String> properties) {
+    super(String.format("Unable to resolve host names for the following configuration properties %s", properties));
+  }
 
-  /**
-   * Get the host group name.
-   *
-   * @return host group name
-   */
-  public String getName();
+  public ConfigurationTopologyException(String s) {
+    super(s);
+  }
 
-  /**
-   * Get associated host information.
-   *
-   * @return collection of hosts associated with the host group
-   */
-  public Collection<String> getHostInfo();
-
-  /**
-   * Get the components associated with the host group.
-   *
-   * @return  collection of component names for the host group
-   */
-  public Collection<String> getComponents();
-
-  /**
-   * Get the configurations associated with the host group.
-   *
-   * @return map of configuration type to a map of properties
-   */
-  public Map<String, Map<String, String>> getConfigurationProperties();
+  public ConfigurationTopologyException(String s, Throwable throwable) {
+    super(s, throwable);
+  }
 }

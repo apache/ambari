@@ -47,6 +47,8 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostState;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.State;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -98,6 +100,7 @@ public class BackgroundCustomCommandExecutionTest {
     Assert.assertEquals("src/main/resources/custom_action_definitions", configuration.getCustomActionDefinitionPath());
     
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
+    StageUtils.setTopologyManager(new TopologyManager());
   }
   @After
   public void teardown() {

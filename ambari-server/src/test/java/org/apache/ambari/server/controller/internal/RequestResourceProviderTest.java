@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.controller.internal;
 
+import static org.easymock.EasyMock.and;
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -63,7 +65,10 @@ import org.apache.ambari.server.orm.dao.RequestDAO;
 import org.apache.ambari.server.orm.entities.RequestEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.LogicalRequest;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.easymock.Capture;
+import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -75,14 +80,26 @@ public class RequestResourceProviderTest {
 
   private RequestDAO requestDAO;
   private HostRoleCommandDAO hrcDAO;
+  private TopologyManager topologyManager;
 
   @Before
   public void before() throws Exception {
 
     requestDAO = createNiceMock(RequestDAO.class);
     hrcDAO = createNiceMock(HostRoleCommandDAO.class);
+    topologyManager = createNiceMock(TopologyManager.class);
 
-    // !!! don't mess with injectors for this test
+    //todo: add assertions for topology manager interactions
+    expect(topologyManager.getStageSummaries(EasyMock.<Long>anyObject())).andReturn(
+        Collections.<Long, HostRoleCommandStatusSummaryDTO>emptyMap()).anyTimes();
+
+    expect(topologyManager.getRequests(EasyMock.<Collection<Long>>anyObject())).andReturn(
+        Collections.<LogicalRequest>emptyList()).anyTimes();
+
+    replay(topologyManager);
+
+
+        // !!! don't mess with injectors for this test
     Field field = RequestResourceProvider.class.getDeclaredField("s_requestDAO");
     field.setAccessible(true);
     field.set(null, requestDAO);
@@ -90,6 +107,10 @@ public class RequestResourceProviderTest {
     field = RequestResourceProvider.class.getDeclaredField("s_hostRoleCommandDAO");
     field.setAccessible(true);
     field.set(null, hrcDAO);
+
+    field = RequestResourceProvider.class.getDeclaredField("topologyManager");
+    field.setAccessible(true);
+    field.set(null, topologyManager);
   }
 
 
@@ -99,6 +120,7 @@ public class RequestResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     RequestStatusResponse response = createNiceMock(RequestStatusResponse.class);
+
 
     // replay
     replay(managementController, response);

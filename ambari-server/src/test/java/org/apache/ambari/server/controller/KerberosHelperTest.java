@@ -92,6 +92,8 @@ import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalType;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.stack.OsFamily;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.ambari.server.utils.StageUtils;
 import org.easymock.Capture;
 import org.easymock.EasyMockSupport;
 import org.easymock.IAnswer;
@@ -111,6 +113,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   private final KerberosDescriptorFactory kerberosDescriptorFactory = createStrictMock(KerberosDescriptorFactory.class);
   private final KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory = createStrictMock(KerberosConfigDataFileWriterFactory.class);
   private final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
+  private final TopologyManager topologyManager = createNiceMock(TopologyManager.class);
 
   @Before
   public void setUp() throws Exception {
@@ -184,6 +187,10 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     //todo: currently don't bind ClusterController due to circular references so can't use @Inject
     setClusterController();
+    //todo: StageUtils shouldn't be called for this test
+    StageUtils.setTopologyManager(topologyManager);
+    expect(topologyManager.getProjectedTopology()).andReturn(
+        Collections.<String, Collection<String>>emptyMap()).anyTimes();
   }
 
   @After
@@ -517,6 +524,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getHosts()).andReturn(Arrays.asList(host)).anyTimes();
     expect(cluster.getClusterId()).andReturn(1L).anyTimes();
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
@@ -814,6 +822,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getHosts()).andReturn(Collections.singleton(host)).anyTimes();
     expect(cluster.getSecurityType()).andReturn(SecurityType.NONE).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).anyTimes();
@@ -1100,6 +1109,11 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
+    if (testInvalidHost) {
+      expect(cluster.getHosts()).andReturn(Arrays.asList(host, hostInvalid)).anyTimes();
+    } else {
+      expect(cluster.getHosts()).andReturn(Arrays.asList(host)).anyTimes();
+    }
     expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).anyTimes();
@@ -1520,6 +1534,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getHosts()).andReturn(Arrays.asList(hostA, hostB, hostC)).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
@@ -1832,6 +1847,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getHosts()).andReturn(Collections.singleton(host)).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();
@@ -2088,6 +2104,8 @@ public class KerberosHelperTest extends EasyMockSupport {
       expect(host.getHostName()).andReturn("host1").anyTimes();
       expect(host.getState()).andReturn(HostState.HEALTHY).anyTimes();
 
+      expect(cluster.getHosts()).andReturn(Collections.singleton(host)).anyTimes();
+
       final ServiceComponentHost schKerberosClient = createMock(ServiceComponentHost.class);
       expect(schKerberosClient.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
       expect(schKerberosClient.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
@@ -2329,6 +2347,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(krb5ConfConfig.getProperties()).andReturn(krb5ConfProperties).anyTimes();
 
     final Cluster cluster = createNiceMock(Cluster.class);
+    expect(cluster.getHosts()).andReturn(Collections.singleton(host)).anyTimes();
     expect(cluster.getDesiredConfigByType("krb5-conf")).andReturn(krb5ConfConfig).anyTimes();
     expect(cluster.getDesiredConfigByType("kerberos-env")).andReturn(kerberosEnvConfig).anyTimes();
     expect(cluster.getClusterName()).andReturn("c1").anyTimes();

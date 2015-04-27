@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.ambari.server.controller.internal;
+package org.apache.ambari.server.topology;
 
 /**
  * Component cardinality representation.
  */
-class Cardinality {
+public class Cardinality {
   String cardinality;
   int min = 0;
   int max = Integer.MAX_VALUE;
@@ -82,5 +82,9 @@ class Cardinality {
    */
   public boolean supportsAutoDeploy() {
     return isValidCount(1) || isAll;
+  }
+
+  public String getValue() {
+    return cardinality;
   }
 }

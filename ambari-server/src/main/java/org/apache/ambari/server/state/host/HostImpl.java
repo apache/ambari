@@ -27,6 +27,7 @@ import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.HostNotFoundException;
 import org.apache.ambari.server.agent.AgentEnv;
 import org.apache.ambari.server.agent.DiskInfo;
 import org.apache.ambari.server.agent.HostInfo;
@@ -63,6 +64,7 @@ import org.apache.ambari.server.state.fsm.InvalidStateTransitionException;
 import org.apache.ambari.server.state.fsm.SingleArcTransition;
 import org.apache.ambari.server.state.fsm.StateMachine;
 import org.apache.ambari.server.state.fsm.StateMachineFactory;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 
@@ -138,6 +140,8 @@ public class HostImpl implements Host {
    */
   @Inject
   private AmbariEventPublisher eventPublisher;
+
+  private static TopologyManager topologyManager;
 
   private static final StateMachineFactory
     <HostImpl, HostState, HostEventType, HostEvent>
@@ -241,6 +245,8 @@ public class HostImpl implements Host {
     clusterDAO = injector.getInstance(ClusterDAO.class);
     clusters = injector.getInstance(Clusters.class);
     hostConfigMappingDAO = injector.getInstance(HostConfigMappingDAO.class);
+    //todo: proper static injection
+    HostImpl.topologyManager = injector.getInstance(TopologyManager.class);
 
     hostStateEntity = hostEntity.getHostStateEntity();
     if (hostStateEntity == null) {
@@ -281,6 +287,18 @@ public class HostImpl implements Host {
         + ", registrationTime=" + e.registrationTime
         + ", agentVersion=" + agentVersion);
       host.persist();
+      //todo: proper host joined notification
+      boolean associatedWithCluster = false;
+      try {
+        associatedWithCluster = host.clusters.getClustersForHost(host.getPublicHostName()).size() > 0;
+      } catch (HostNotFoundException e1) {
+        associatedWithCluster = false;
+      } catch (AmbariException e1) {
+        // only HostNotFoundException is thrown
+        e1.printStackTrace();
+      }
+
+      topologyManager.onHostRegistered(host, associatedWithCluster);
     }
   }
 

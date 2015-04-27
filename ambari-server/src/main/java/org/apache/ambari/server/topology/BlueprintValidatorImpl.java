@@ -1,0 +1,318 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.topology;
+
+import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.DependencyInfo;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+
+/**
+ * Default blueprint validator.
+ */
+public class BlueprintValidatorImpl implements BlueprintValidator {
+
+  private final Blueprint blueprint;
+  private final Stack stack;
+
+  public BlueprintValidatorImpl(Blueprint blueprint) {
+    this.blueprint = blueprint;
+    this.stack = blueprint.getStack();
+  }
+  @Override
+  public void validateTopology() throws InvalidTopologyException {
+    Collection<HostGroup> hostGroups = blueprint.getHostGroups().values();
+    Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies =
+        new HashMap<String, Map<String, Collection<DependencyInfo>>>();
+
+    Collection<String> services = blueprint.getServices();
+    for (HostGroup group : hostGroups) {
+      Map<String, Collection<DependencyInfo>> missingGroupDependencies = validateHostGroup(group);
+      if (! missingGroupDependencies.isEmpty()) {
+        missingDependencies.put(group.getName(), missingGroupDependencies);
+      }
+    }
+
+    Collection<String> cardinalityFailures = new HashSet<String>();
+    for (String service : services) {
+      for (String component : stack.getComponents(service)) {
+        Cardinality cardinality = stack.getCardinality(component);
+        AutoDeployInfo autoDeploy = stack.getAutoDeployInfo(component);
+        if (cardinality.isAll()) {
+          cardinalityFailures.addAll(verifyComponentInAllHostGroups(component, autoDeploy));
+        } else {
+          cardinalityFailures.addAll(verifyComponentCardinalityCount(
+              component, cardinality, autoDeploy));
+        }
+      }
+    }
+
+    if (! missingDependencies.isEmpty() || ! cardinalityFailures.isEmpty()) {
+      generateInvalidTopologyException(missingDependencies, cardinalityFailures);
+    }
+  }
+
+  @Override
+  public void validateRequiredProperties() throws InvalidTopologyException {
+    //todo: combine with RequiredPasswordValidator
+    Map<String, Map<String, Collection<String>>> missingProperties =
+        new HashMap<String, Map<String, Collection<String>>>();
+
+    // we don't want to include default stack properties so we can't just use hostGroup full properties
+    Map<String, Map<String, String>> clusterConfigurations = blueprint.getConfiguration().getProperties();
+
+    for (HostGroup hostGroup : blueprint.getHostGroups().values()) {
+      Collection<String> processedServices = new HashSet<String>();
+      Map<String, Collection<String>> allRequiredProperties = new HashMap<String, Collection<String>>();
+      Map<String, Map<String, String>> operationalConfiguration = new HashMap<String, Map<String, String>>(clusterConfigurations);
+
+      operationalConfiguration.putAll(hostGroup.getConfiguration().getProperties());
+      for (String component : hostGroup.getComponents()) {
+        //check that MYSQL_SERVER component is not available while hive is using existing db
+        if (component.equals("MYSQL_SERVER")) {
+          Map<String, String> hiveEnvConfig = clusterConfigurations.get("hive-env");
+          if (hiveEnvConfig != null && !hiveEnvConfig.isEmpty() && hiveEnvConfig.get("hive_database") != null
+              && hiveEnvConfig.get("hive_database").startsWith("Existing")) {
+            throw new IllegalArgumentException("Incorrect configuration: MYSQL_SERVER component is available but hive" +
+                " using existing db!");
+          }
+        }
+
+        //for now, AMBARI is not recognized as a service in Stacks
+        if (! component.equals("AMBARI_SERVER")) {
+          String serviceName = stack.getServiceForComponent(component);
+          if (processedServices.add(serviceName)) {
+            Collection<Stack.ConfigProperty> requiredServiceConfigs =
+                stack.getRequiredConfigurationProperties(serviceName);
+
+            for (Stack.ConfigProperty requiredConfig : requiredServiceConfigs) {
+              String configCategory = requiredConfig.getType();
+              String propertyName = requiredConfig.getName();
+              if (! stack.isPasswordProperty(serviceName, configCategory, propertyName)) {
+                Collection<String> typeRequirements = allRequiredProperties.get(configCategory);
+                if (typeRequirements == null) {
+                  typeRequirements = new HashSet<String>();
+                  allRequiredProperties.put(configCategory, typeRequirements);
+                }
+                typeRequirements.add(propertyName);
+              }
+            }
+          }
+        }
+      }
+      for (Map.Entry<String, Collection<String>> requiredTypeProperties : allRequiredProperties.entrySet()) {
+        String requiredCategory = requiredTypeProperties.getKey();
+        Collection<String> requiredProperties = requiredTypeProperties.getValue();
+        Collection<String> operationalTypeProps = operationalConfiguration.containsKey(requiredCategory) ?
+            operationalConfiguration.get(requiredCategory).keySet() :
+            Collections.<String>emptyList();
+
+        requiredProperties.removeAll(operationalTypeProps);
+        if (! requiredProperties.isEmpty()) {
+          String hostGroupName = hostGroup.getName();
+          Map<String, Collection<String>> hostGroupMissingProps = missingProperties.get(hostGroupName);
+          if (hostGroupMissingProps == null) {
+            hostGroupMissingProps = new HashMap<String, Collection<String>>();
+            missingProperties.put(hostGroupName, hostGroupMissingProps);
+          }
+          hostGroupMissingProps.put(requiredCategory, requiredProperties);
+        }
+      }
+    }
+
+    if (! missingProperties.isEmpty()) {
+      throw new InvalidTopologyException("Missing required properties.  Specify a value for these " +
+          "properties in the blueprint configuration. " + missingProperties);
+    }
+  }
+
+  /**
+   * Verify that a component is included in all host groups.
+   * For components that are auto-install enabled, will add component to topology if needed.
+   *
+   * @param component   component to validate
+   * @param autoDeploy  auto-deploy information for component
+   *
+   * @return collection of missing component information
+   */
+  private Collection<String> verifyComponentInAllHostGroups(String component, AutoDeployInfo autoDeploy) {
+
+    Collection<String> cardinalityFailures = new HashSet<String>();
+    int actualCount = blueprint.getHostGroupsForComponent(component).size();
+    Map<String, HostGroup> hostGroups = blueprint.getHostGroups();
+    if (actualCount != hostGroups.size()) {
+      if (autoDeploy != null && autoDeploy.isEnabled()) {
+        for (HostGroup group : hostGroups.values()) {
+          group.addComponent(component);
+        }
+      } else {
+        cardinalityFailures.add(component + "(actual=" + actualCount + ", required=ALL)");
+      }
+    }
+    return cardinalityFailures;
+  }
+
+  private Map<String, Collection<DependencyInfo>> validateHostGroup(HostGroup group) {
+    Map<String, Collection<DependencyInfo>> missingDependencies =
+        new HashMap<String, Collection<DependencyInfo>>();
+
+    Collection<String> blueprintServices = blueprint.getServices();
+    Collection<String> groupComponents = group.getComponents();
+    for (String component : new HashSet<String>(groupComponents)) {
+      Collection<DependencyInfo> dependenciesForComponent = stack.getDependenciesForComponent(component);
+      for (DependencyInfo dependency : dependenciesForComponent) {
+        String conditionalService = stack.getConditionalServiceForDependency(dependency);
+        if (conditionalService != null && ! blueprintServices.contains(conditionalService)) {
+          continue;
+        }
+
+        String         dependencyScope = dependency.getScope();
+        String         componentName   = dependency.getComponentName();
+        AutoDeployInfo autoDeployInfo  = dependency.getAutoDeploy();
+        boolean        resolved        = false;
+
+        if (dependencyScope.equals("cluster")) {
+          Collection<String> missingDependencyInfo = verifyComponentCardinalityCount(
+              componentName, new Cardinality("1+"), autoDeployInfo);
+
+          resolved = missingDependencyInfo.isEmpty();
+        } else if (dependencyScope.equals("host")) {
+          if (groupComponents.contains(component) || (autoDeployInfo != null && autoDeployInfo.isEnabled())) {
+            resolved = true;
+            group.addComponent(componentName);
+          }
+        }
+
+        if (! resolved) {
+          Collection<DependencyInfo> missingCompDependencies = missingDependencies.get(component);
+          if (missingCompDependencies == null) {
+            missingCompDependencies = new HashSet<DependencyInfo>();
+            missingDependencies.put(component, missingCompDependencies);
+          }
+          missingCompDependencies.add(dependency);
+        }
+      }
+    }
+    return missingDependencies;
+  }
+
+  /**
+   * Verify that a component meets cardinality requirements.  For components that are
+   * auto-install enabled, will add component to topology if needed.
+   *
+   * @param component    component to validate
+   * @param cardinality  required cardinality
+   * @param autoDeploy   auto-deploy information for component
+   *
+   * @return collection of missing component information
+   */
+  public Collection<String> verifyComponentCardinalityCount(String component,
+                                                            Cardinality cardinality,
+                                                            AutoDeployInfo autoDeploy) {
+
+    Map<String, Map<String, String>> configProperties = blueprint.getConfiguration().getProperties();
+    Collection<String> cardinalityFailures = new HashSet<String>();
+    //todo: don't hard code this HA logic here
+    if (ClusterTopologyImpl.isNameNodeHAEnabled(configProperties) &&
+        (component.equals("SECONDARY_NAMENODE"))) {
+      // override the cardinality for this component in an HA deployment,
+      // since the SECONDARY_NAMENODE should not be started in this scenario
+      cardinality = new Cardinality("0");
+    }
+
+    int actualCount = blueprint.getHostGroupsForComponent(component).size();
+    if (! cardinality.isValidCount(actualCount)) {
+      boolean validated = ! isDependencyManaged(stack, component, configProperties);
+      if (! validated && autoDeploy != null && autoDeploy.isEnabled() && cardinality.supportsAutoDeploy()) {
+        String coLocateName = autoDeploy.getCoLocate();
+        if (coLocateName != null && ! coLocateName.isEmpty()) {
+          Collection<HostGroup> coLocateHostGroups = blueprint.getHostGroupsForComponent(coLocateName.split("/")[1]);
+          if (! coLocateHostGroups.isEmpty()) {
+            validated = true;
+            HostGroup group = coLocateHostGroups.iterator().next();
+            group.addComponent(component);
+
+          }
+        }
+      }
+      if (! validated) {
+        cardinalityFailures.add(component + "(actual=" + actualCount + ", required=" +
+            cardinality.getValue() + ")");
+      }
+    }
+    return cardinalityFailures;
+  }
+
+  /**
+   * Determine if a component is managed, meaning that it is running inside of the cluster
+   * topology.  Generally, non-managed dependencies will be database components.
+   *
+   * @param stack          stack instance
+   * @param component      component to determine if it is managed
+   * @param clusterConfig  cluster configuration
+   *
+   * @return true if the specified component managed by the cluster; false otherwise
+   */
+  protected boolean isDependencyManaged(Stack stack, String component, Map<String, Map<String, String>> clusterConfig) {
+    boolean isManaged = true;
+    String externalComponentConfig = stack.getExternalComponentConfig(component);
+    if (externalComponentConfig != null) {
+      String[] toks = externalComponentConfig.split("/");
+      String externalComponentConfigType = toks[0];
+      String externalComponentConfigProp = toks[1];
+      Map<String, String> properties = clusterConfig.get(externalComponentConfigType);
+      if (properties != null && properties.containsKey(externalComponentConfigProp)) {
+        if (properties.get(externalComponentConfigProp).startsWith("Existing")) {
+          isManaged = false;
+        }
+      }
+    }
+    return isManaged;
+  }
+
+  /**
+   * Generate an exception for topology validation failure.
+   *
+   * @param missingDependencies  missing dependency information
+   * @param cardinalityFailures  missing service component information
+   *
+   * @throws IllegalArgumentException  Always thrown and contains information regarding the topology validation failure
+   *                                   in the msg
+   */
+  private void generateInvalidTopologyException(Map<String, Map<String, Collection<DependencyInfo>>> missingDependencies,
+                                                Collection<String> cardinalityFailures) throws InvalidTopologyException {
+
+    //todo: encapsulate some of this in exception?
+    String msg = "Cluster Topology validation failed.";
+    if (! cardinalityFailures.isEmpty()) {
+      msg += "  Invalid service component count: " + cardinalityFailures;
+    }
+    if (! missingDependencies.isEmpty()) {
+      msg += "  Unresolved component dependencies: " + missingDependencies;
+    }
+    msg += ".  To disable topology validation and create the blueprint, " +
+        "add the following to the end of the url: '?validate_topology=false'";
+    throw new InvalidTopologyException(msg);
+  }
+}

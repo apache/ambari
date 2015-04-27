@@ -54,6 +54,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 
 import com.google.inject.Inject;
+import org.apache.ambari.server.topology.TopologyManager;
 
 /**
  * Resource provider for request resources.
@@ -66,6 +67,9 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static HostRoleCommandDAO s_hostRoleCommandDAO = null;
+
+  @Inject
+  private static TopologyManager topologyManager;
 
   // ----- Property ID constants ---------------------------------------------
   // Requests
@@ -433,6 +437,23 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
     Map<Long, Resource> resourceMap = new HashMap<Long, Resource>();
 
     List<RequestEntity> requests = s_requestDAO.findByPks(requestIds, true);
+
+
+    //todo: this was (and still is) in ActionManager but this class was changed to not use ActionManager recently
+    List<RequestEntity> topologyRequestEntities = new ArrayList<RequestEntity>();
+    Collection<? extends org.apache.ambari.server.actionmanager.Request> topologyRequests =
+        topologyManager.getRequests(requestIds);
+    for (org.apache.ambari.server.actionmanager.Request request : topologyRequests) {
+      topologyRequestEntities.add(request.constructNewPersistenceEntity());
+    }
+
+    // if requests is empty, map is Collections.emptyMap() which can't be added to so create a new map
+    if (requests.isEmpty()) {
+      requests = new ArrayList<RequestEntity>();
+    }
+
+    requests.addAll(topologyRequestEntities);
+
     for (RequestEntity re : requests) {
       if ((null == clusterId && (null == re.getClusterId() || -1L == re.getClusterId())) ||
           (null != clusterId && null != re.getRequestId() && re.getClusterId().equals(clusterId))) {
@@ -480,6 +501,10 @@ public class RequestResourceProvider extends AbstractControllerResourceProvider 
 
 
     Map<Long, HostRoleCommandStatusSummaryDTO> summary = s_hostRoleCommandDAO.findAggregateCounts(entity.getRequestId());
+
+    // get summaries from TopologyManager for logical requests
+    summary.putAll(topologyManager.getStageSummaries(entity.getRequestId()));
+
     CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, summary.keySet());
 
     setResourceProperty(resource, REQUEST_STATUS_PROPERTY_ID, status.getStatus().toString(), requestedPropertyIds);

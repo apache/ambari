@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 
 public class ShortTaskStatus {
+  protected long requestId;
   protected long taskId;
   protected long stageId;
   protected String hostName;
@@ -57,6 +58,14 @@ public class ShortTaskStatus {
     this.customCommandName = hostRoleCommand.getCustomCommandName();
     this.outputLog = hostRoleCommand.getOutputLog();
     this.errorLog = hostRoleCommand.getErrorLog();
+  }
+
+  public void setRequestId(long requestId) {
+    this.requestId = requestId;
+  }
+
+  public long getRequestId() {
+    return requestId;
   }
 
   public String getCustomCommandName() {

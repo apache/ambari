@@ -30,7 +30,6 @@ import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.DuplicateResourceException;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
@@ -43,16 +42,16 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
-import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.BlueprintConfigEntity;
 import org.apache.ambari.server.orm.entities.BlueprintConfiguration;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
 import org.apache.ambari.server.orm.entities.HostGroupComponentEntity;
-import org.apache.ambari.server.orm.entities.HostGroupConfigEntity;
 import org.apache.ambari.server.orm.entities.HostGroupEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
-import org.apache.ambari.server.state.ComponentInfo;
-import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.stack.NoSuchStackException;
+import org.apache.ambari.server.topology.Blueprint;
+import org.apache.ambari.server.topology.BlueprintFactory;
+import org.apache.ambari.server.topology.InvalidTopologyException;
 
 import com.google.gson.Gson;
 
@@ -60,38 +59,48 @@ import com.google.gson.Gson;
 /**
  * Resource Provider for Blueprint resources.
  */
-public class BlueprintResourceProvider extends BaseBlueprintProcessor {
+public class BlueprintResourceProvider extends AbstractControllerResourceProvider {
 
   // ----- Property ID constants ---------------------------------------------
 
   // Blueprints
-  protected static final String BLUEPRINT_NAME_PROPERTY_ID =
+  public static final String BLUEPRINT_NAME_PROPERTY_ID =
       PropertyHelper.getPropertyId("Blueprints", "blueprint_name");
-  protected static final String STACK_NAME_PROPERTY_ID =
+  public static final String STACK_NAME_PROPERTY_ID =
       PropertyHelper.getPropertyId("Blueprints", "stack_name");
-  protected static final String STACK_VERSION_PROPERTY_ID =
+  public static final String STACK_VERSION_PROPERTY_ID =
       PropertyHelper.getPropertyId("Blueprints", "stack_version");
 
   // Host Groups
-  protected static final String HOST_GROUP_PROPERTY_ID = "host_groups";
-  protected static final String HOST_GROUP_NAME_PROPERTY_ID = "name";
-  protected static final String HOST_GROUP_CARDINALITY_PROPERTY_ID = "cardinality";
+  public static final String HOST_GROUP_PROPERTY_ID = "host_groups";
+  public static final String HOST_GROUP_NAME_PROPERTY_ID = "name";
+  public static final String HOST_GROUP_CARDINALITY_PROPERTY_ID = "cardinality";
 
   // Host Group Components
-  protected static final String COMPONENT_PROPERTY_ID ="components";
-  protected static final String COMPONENT_NAME_PROPERTY_ID ="name";
+  public static final String COMPONENT_PROPERTY_ID ="components";
+  public static final String COMPONENT_NAME_PROPERTY_ID ="name";
 
   // Configurations
-  protected static final String CONFIGURATION_PROPERTY_ID = "configurations";
-  protected static final String PROPERTIES_PROPERTY_ID = "properties";
-  protected static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
-  protected static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
+  public static final String CONFIGURATION_PROPERTY_ID = "configurations";
+  public static final String PROPERTIES_PROPERTY_ID = "properties";
+  public static final String PROPERTIES_ATTRIBUTES_PROPERTY_ID = "properties_attributes";
+  public static final String SCHEMA_IS_NOT_SUPPORTED_MESSAGE =
       "Configuration format provided in Blueprint is not supported";
 
   // Primary Key Fields
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
           BLUEPRINT_NAME_PROPERTY_ID}));
+
+  /**
+   * Used to create Blueprint instances
+   */
+  private static BlueprintFactory blueprintFactory;
+
+  /**
+   * Blueprint Data Access Object
+   */
+  private static BlueprintDAO blueprintDAO;
 
   /**
    * Used to serialize to/from json.
@@ -118,19 +127,14 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   /**
    * Static initialization.
    *
-   * @param dao
-   *          blueprint data access object
-   * @param gson
-   *          json serializer
-   * @param metaInfo
-   *          stack related information
+   * @param factory   blueprint factory
+   * @param dao       blueprint data access object
+   * @param gson      json serializer
    */
-  public static void init(BlueprintDAO dao, StackDAO stacks, Gson gson,
-      AmbariMetaInfo metaInfo) {
+  public static void init(BlueprintFactory factory, BlueprintDAO dao, Gson gson) {
+    blueprintFactory = factory;
     blueprintDAO = dao;
-    stackDAO = stacks;
     jsonSerializer = gson;
-    stackInfo = metaInfo;
   }
 
   // ----- ResourceProvider ------------------------------------------------
@@ -154,6 +158,7 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   }
 
   @Override
+  //todo: continue to use dao/entity directly or use blueprint factory?
   public Set<Resource> getResources(Request request, Predicate predicate)
       throws SystemException, UnsupportedPropertyException,
              NoSuchResourceException, NoSuchParentResourceException {
@@ -278,172 +283,6 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
   }
 
   /**
-   * Convert a map of properties to a blueprint entity.
-   *
-   * @param properties  property map
-   * @return new blueprint entity
-   */
-  @SuppressWarnings("unchecked")
-  protected BlueprintEntity toBlueprintEntity(Map<String, Object> properties) {
-    String name = (String) properties.get(BLUEPRINT_NAME_PROPERTY_ID);
-    if (name == null || name.isEmpty()) {
-      throw new IllegalArgumentException("Blueprint name must be provided");
-    }
-
-    String stackName = (String) properties.get(STACK_NAME_PROPERTY_ID);
-    String stackVersion = (String) properties.get(STACK_VERSION_PROPERTY_ID);
-    StackEntity stackEntity = stackDAO.find(stackName, stackVersion);
-
-    BlueprintEntity blueprint = new BlueprintEntity();
-    blueprint.setBlueprintName(name);
-    blueprint.setStack(stackEntity);
-
-    createHostGroupEntities(blueprint,
-        (HashSet<HashMap<String, Object>>) properties.get(HOST_GROUP_PROPERTY_ID));
-
-    createBlueprintConfigEntities((Collection<Map<String, String>>)
-        properties.get(CONFIGURATION_PROPERTY_ID), blueprint);
-
-    return blueprint;
-  }
-
-  /**
-   * Create host group entities and add to the parent blueprint entity.
-   *
-   * @param blueprint      parent blueprint entity
-   * @param setHostGroups  set of host group property maps
-   */
-  @SuppressWarnings("unchecked")
-  private void createHostGroupEntities(BlueprintEntity blueprint,
-                                       HashSet<HashMap<String, Object>> setHostGroups) {
-
-    if (setHostGroups == null || setHostGroups.isEmpty()) {
-      throw new IllegalArgumentException("At least one host group must be specified in a blueprint");
-    }
-
-    Collection<HostGroupEntity> entities = new ArrayList<HostGroupEntity>();
-
-    StackEntity stackEntity = blueprint.getStack();
-
-    Collection<String> stackComponentNames = getAllStackComponents(
-        stackEntity.getStackName(), stackEntity.getStackVersion());
-
-    for (HashMap<String, Object> hostGroupProperties : setHostGroups) {
-      HostGroupEntity hostGroup = new HostGroupEntity();
-      entities.add(hostGroup);
-
-      String hostGroupName = (String) hostGroupProperties.get(HOST_GROUP_NAME_PROPERTY_ID);
-      if (hostGroupName == null || hostGroupName.isEmpty()) {
-        throw new IllegalArgumentException("Every host group must include a non-null 'name' property");
-      }
-
-      hostGroup.setName(hostGroupName);
-      hostGroup.setBlueprintEntity(blueprint);
-      hostGroup.setBlueprintName(blueprint.getBlueprintName());
-      hostGroup.setCardinality((String) hostGroupProperties.get(HOST_GROUP_CARDINALITY_PROPERTY_ID));
-
-      createHostGroupConfigEntities((Collection<Map<String,
-          String>>) hostGroupProperties.get(CONFIGURATION_PROPERTY_ID), hostGroup);
-
-      createComponentEntities(hostGroup, (HashSet<HashMap<String, String>>)
-          hostGroupProperties.get(COMPONENT_PROPERTY_ID), stackComponentNames);
-    }
-    blueprint.setHostGroups(entities);
-  }
-
-  /**
-   * Create component entities and add to parent host group.
-   *
-   * @param group           parent host group
-   * @param setComponents   set of component property maps
-   * @param componentNames  set of all component names for the associated stack
-   */
-  @SuppressWarnings("unchecked")
-  private void createComponentEntities(HostGroupEntity group, HashSet<HashMap<String, String>> setComponents,
-                                       Collection<String> componentNames) {
-
-    Collection<HostGroupComponentEntity> components = new ArrayList<HostGroupComponentEntity>();
-    String groupName = group.getName();
-    group.setComponents(components);
-
-    if (setComponents == null || setComponents.isEmpty()) {
-      throw new IllegalArgumentException("Host group '" + groupName + "' must contain at least one component");
-    }
-
-    for (HashMap<String, String> componentProperties : setComponents) {
-      HostGroupComponentEntity component = new HostGroupComponentEntity();
-      components.add(component);
-
-      String componentName = componentProperties.get(COMPONENT_NAME_PROPERTY_ID);
-      if (componentName == null || componentName.isEmpty()) {
-        throw new IllegalArgumentException("Host group '" + groupName +
-            "' contains a component with no 'name' property");
-      }
-
-      if (! componentNames.contains(componentName)) {
-        throw new IllegalArgumentException("The component '" + componentName + "' in host group '" +
-            groupName + "' is not valid for the specified stack");
-      }
-
-      component.setName(componentName);
-      component.setBlueprintName(group.getBlueprintName());
-      component.setHostGroupEntity(group);
-      component.setHostGroupName(group.getName());
-    }
-    group.setComponents(components);
-  }
-
-  /**
-   * Obtain all component names for the specified stack.
-   *
-   * @param stackName     stack name
-   * @param stackVersion  stack version
-   *
-   * @return collection of component names for the specified stack
-   * @throws IllegalArgumentException if the specified stack doesn't exist
-   */
-  private Collection<String> getAllStackComponents(String stackName, String stackVersion) {
-    Collection<String> componentNames = new HashSet<String>();
-    componentNames.add("AMBARI_SERVER");
-    Collection<ComponentInfo> components;
-    try {
-      components = getComponents(stackName, stackVersion);
-    } catch (AmbariException e) {
-      throw new IllegalArgumentException("The specified stack doesn't exist.  Name='" +
-          stackName + "', Version='" + stackVersion + "'");
-    }
-    if (components != null) {
-      for (ComponentInfo component : components) {
-        componentNames.add(component.getName());
-      }
-    }
-    return componentNames;
-  }
-
-  /**
-   * Get all the components for the specified stack.
-   *
-   * @param stackName  stack name
-   * @param version    stack version
-   *
-   * @return all components for the specified stack
-   * @throws AmbariException if the stack doesn't exist
-   */
-  private Collection<ComponentInfo> getComponents(String stackName, String version) throws AmbariException {
-    Collection<ComponentInfo> components = new HashSet<ComponentInfo>();
-    Map<String, ServiceInfo> services = stackInfo.getServices(stackName, version);
-
-    for (ServiceInfo service : services.values()) {
-      List<ComponentInfo> serviceComponents = stackInfo.getComponentsByService(
-          stackName, version, service.getName());
-      for (ComponentInfo component : serviceComponents) {
-        components.add(component);
-      }
-    }
-    return components;
-  }
-
-  /**
    * Populate a list of configuration property maps from a collection of configuration entities.
    *
    * @param configurations  collection of configuration entities
@@ -495,28 +334,6 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
     blueprint.setConfigurations(configurations);
   }
 
-  /**
-   * Populate host group configurations.
-   *
-   * @param propertyMaps  collection of configuration property maps
-   * @param hostGroup     host group entity to set configurations on
-   */
-  private void createHostGroupConfigEntities(Collection<Map<String, String>> propertyMaps,
-                                             HostGroupEntity hostGroup) {
-
-    Collection<HostGroupConfigEntity> configurations = new ArrayList<HostGroupConfigEntity>();
-    if (propertyMaps != null) {
-      for (Map<String, String> configuration : propertyMaps) {
-        HostGroupConfigEntity configEntity = new HostGroupConfigEntity();
-        configEntity.setHostGroupEntity(hostGroup);
-        configEntity.setHostGroupName(hostGroup.getName());
-        configEntity.setBlueprintName(hostGroup.getBlueprintName());
-        populateConfigurationEntity(configuration, configEntity);
-        configurations.add(configEntity);
-      }
-    }
-    hostGroup.setConfigurations(configurations);
-  }
 
   /**
    * Populate a configuration entity from properties.
@@ -560,31 +377,39 @@ public class BlueprintResourceProvider extends BaseBlueprintProcessor {
     return new Command<Void>() {
       @Override
       public Void invoke() throws AmbariException {
-        BlueprintEntity blueprint = toBlueprintEntity(properties);
+        Blueprint blueprint;
+        try {
+          blueprint = blueprintFactory.createBlueprint(properties);
+        } catch (NoSuchStackException e) {
+          throw new IllegalArgumentException("Specified stack doesn't exist: " + e, e);
+        }
 
-        if (blueprintDAO.findByName(blueprint.getBlueprintName()) != null) {
+        if (blueprintDAO.findByName(blueprint.getName()) != null) {
           throw new DuplicateResourceException(
               "Attempted to create a Blueprint which already exists, blueprint_name=" +
-              blueprint.getBlueprintName());
+              blueprint.getName());
         }
-        Map<String, Map<String, Collection<String>>> missingProperties = blueprint.validateConfigurations(
-            stackInfo, false);
 
-        if (! missingProperties.isEmpty()) {
-          throw new IllegalArgumentException("Required configurations are missing from the specified host groups: " +
-                                             missingProperties);
+        try {
+          blueprint.validateRequiredProperties();
+        } catch (InvalidTopologyException e) {
+          throw new IllegalArgumentException("Blueprint configuration validation failed: " + e.getMessage(), e);
         }
 
         String validateTopology =  requestInfoProps.get("validate_topology");
         if (validateTopology == null || ! validateTopology.equalsIgnoreCase("false")) {
-          validateTopology(blueprint);
+          try {
+            blueprint.validateTopology();
+          } catch (InvalidTopologyException e) {
+            throw new IllegalArgumentException(e.getMessage());
+          }
         }
 
         if (LOG.isDebugEnabled()) {
-          LOG.debug("Creating Blueprint, name=" + blueprint.getBlueprintName());
+          LOG.debug("Creating Blueprint, name=" + blueprint.getName());
         }
         try {
-          blueprintDAO.create(blueprint);
+          blueprintDAO.create(blueprint.toEntity());
         } catch (Exception e) {
           throw new RuntimeException(e);
         }

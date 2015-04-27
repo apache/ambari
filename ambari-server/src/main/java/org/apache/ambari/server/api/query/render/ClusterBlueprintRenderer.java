@@ -18,9 +18,7 @@
 
 package org.apache.ambari.server.api.query.render;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.query.QueryInfo;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.api.services.Request;
 import org.apache.ambari.server.api.services.Result;
 import org.apache.ambari.server.api.services.ResultImpl;
@@ -31,25 +29,26 @@ import org.apache.ambari.server.api.util.TreeNodeImpl;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
-import org.apache.ambari.server.controller.internal.HostGroup;
+import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
+import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.utilities.PropertyHelper;
-import org.apache.ambari.server.state.DesiredConfig;
-import org.apache.ambari.server.state.HostConfig;
-import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.topology.ClusterTopology;
+import org.apache.ambari.server.topology.ClusterTopologyImpl;
+import org.apache.ambari.server.topology.Configuration;
+import org.apache.ambari.server.topology.HostGroup;
+import org.apache.ambari.server.topology.HostGroupInfo;
+import org.apache.ambari.server.topology.InvalidTopologyException;
+import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
+import org.apache.ambari.server.topology.NoSuchHostGroupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.apache.ambari.server.state.ServiceInfo;
-import org.apache.ambari.server.state.StackInfo;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,11 +63,11 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    */
   private AmbariManagementController controller = AmbariServer.getController();
 
-  /**
-   * Map of configuration type to configuration properties which are required that a user
-   * input.  These properties will be stripped from the exported blueprint.
-   */
-  private Map<String, Collection<String>> propertiesToStrip = new HashMap<String, Collection<String>>();
+//  /**
+//   * Map of configuration type to configuration properties which are required that a user
+//   * input.  These properties will be stripped from the exported blueprint.
+//   */
+//  private Map<String, Collection<String>> propertiesToStrip = new HashMap<String, Collection<String>>();
 
   private final static Logger LOG = LoggerFactory.getLogger(ClusterBlueprintRenderer.class);
 
@@ -145,189 +144,94 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * @return a new blueprint resource
    */
   private Resource createBlueprintResource(TreeNode<Resource> clusterNode) {
-    Resource clusterResource = clusterNode.getObject();
     Resource blueprintResource = new ResourceImpl(Resource.Type.Cluster);
 
-    String[] stackTokens = ((String) clusterResource.getPropertyValue(
-            PropertyHelper.getPropertyId("Clusters", "version"))).split("-");
+    ClusterTopology topology;
+    try {
+      topology = createClusterTopology(clusterNode);
+    } catch (InvalidTopologyTemplateException e) {
+      //todo
+      throw new RuntimeException("Unable to process blueprint export request: " + e, e);
+    } catch (InvalidTopologyException e) {
+      //todo:
+      throw new RuntimeException("Unable to process blueprint export request: " + e, e);
+    }
 
-    blueprintResource.setProperty("Blueprints/stack_name", stackTokens[0]);
-    blueprintResource.setProperty("Blueprints/stack_version", stackTokens[1]);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
 
-    Collection<HostGroupImpl> hostGroups =  processHostGroups(clusterNode.getChild("hosts"));
+    Stack stack = topology.getBlueprint().getStack();
+    blueprintResource.setProperty("Blueprints/stack_name", stack.getName());
+    blueprintResource.setProperty("Blueprints/stack_version", stack.getVersion());
 
-    List<Map<String, Object>> groupList = formatGroupsAsList(hostGroups);
+    List<Map<String, Object>> groupList = formatGroupsAsList(topology);
     blueprintResource.setProperty("host_groups", groupList);
 
-    determinePropertiesToStrip(clusterNode.getChild("services"), stackTokens[0], stackTokens[1]);
+    //todo: ensure that this is properly handled in config processor
+    //determinePropertiesToStrip(topology);
 
-    blueprintResource.setProperty("configurations", processConfigurations(clusterNode, hostGroups));
+    blueprintResource.setProperty("configurations", processConfigurations(topology));
 
     return blueprintResource;
   }
 
   /**
-   * Determine which configuration properties need to be stripped from the configuration prior to exporting.
-   * Stripped properties are any property which are marked as required in the stack definition.  For example,
-   * all passwords are required properties and are therefore not exported.
-   *
-   * @param servicesNode  services node
-   * @param stackName     stack name
-   * @param stackVersion  stack version
-   */
-  private void determinePropertiesToStrip(TreeNode<Resource> servicesNode, String stackName, String stackVersion) {
-    AmbariMetaInfo ambariMetaInfo = getController().getAmbariMetaInfo();
-    StackInfo stack;
-    try {
-      stack = ambariMetaInfo.getStack(stackName, stackVersion);
-    } catch (AmbariException e) {
-      // shouldn't ever happen.
-      // Exception indicates that stack is not defined
-      // but we are getting the stack name from a running cluster.
-      throw new RuntimeException("Unexpected exception occurred while generating a blueprint. "  +
-          "The stack '" + stackName + ":" + stackVersion + "' does not exist");
-    }
-    Map<String, PropertyInfo> requiredStackProperties = stack.getRequiredProperties();
-    updatePropertiesToStrip(requiredStackProperties);
-
-    for (TreeNode<Resource> serviceNode : servicesNode.getChildren()) {
-      String name = (String) serviceNode.getObject().getPropertyValue("ServiceInfo/service_name");
-      ServiceInfo service;
-      try {
-        service = ambariMetaInfo.getService(stackName, stackVersion, name);
-      } catch (AmbariException e) {
-        // shouldn't ever happen.
-        // Exception indicates that service is not in the stack
-        // but we are getting the name from a running cluster.
-        throw new RuntimeException("Unexpected exception occurred while generating a blueprint.  The service '" +
-            name + "' was not found in the stack: '" + stackName + ":" + stackVersion);
-      }
-
-      Map<String, PropertyInfo> requiredProperties = service.getRequiredProperties();
-      updatePropertiesToStrip(requiredProperties);
-    }
-  }
-
-  /**
-   * Helper method to update propertiesToStrip with properties that are marked as required
-   *
-   * @param requiredProperties  Properties marked as required
-   */
-  private void updatePropertiesToStrip(Map<String, PropertyInfo> requiredProperties) {
-
-    for (Map.Entry<String, PropertyInfo> entry : requiredProperties.entrySet()) {
-      String propertyName = entry.getKey();
-      PropertyInfo propertyInfo = entry.getValue();
-      String configCategory = propertyInfo.getFilename();
-      if (configCategory.endsWith(".xml")) {
-        configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));
-      }
-      Collection<String> categoryProperties = propertiesToStrip.get(configCategory);
-      if (categoryProperties == null) {
-        categoryProperties = new ArrayList<String>();
-        propertiesToStrip.put(configCategory, categoryProperties);
-      }
-      categoryProperties.add(propertyName);
-    }
-  }
-
-  /**
    * Process cluster scoped configurations.
    *
-   * @param clusterNode  cluster node
-   * @param hostGroups   all host groups
    *
    * @return cluster configuration
    */
-  private List<Map<String, Map<String, Map<String, ?>>>>  processConfigurations(TreeNode<Resource> clusterNode,
-                                                                        Collection<HostGroupImpl> hostGroups) {
+  private List<Map<String, Map<String, Map<String, ?>>>>  processConfigurations(ClusterTopology topology) {
 
     List<Map<String, Map<String, Map<String, ?>>>> configList = new ArrayList<Map<String, Map<String, Map<String, ?>>>>();
 
-    Map<String, Object> desiredConfigMap = clusterNode.getObject().getPropertiesMap().get("Clusters/desired_configs");
-    TreeNode<Resource> configNode = clusterNode.getChild("configurations");
-    for (TreeNode<Resource> config : configNode.getChildren()) {
-      Configuration configuration = new Configuration(config);
-      DesiredConfig desiredConfig = (DesiredConfig) desiredConfigMap.get(configuration.getType());
-      if (desiredConfig != null && desiredConfig.getTag().equals(configuration.getTag())) {
-        Map<String, Map<String, String>> properties = Collections.singletonMap(
-            configuration.getType(), configuration.getProperties());
-
-        BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(properties);
-        properties = updater.doUpdateForBlueprintExport(hostGroups);
-
-        // build up maps for properties and property attributes
-        Map<String, Map<String, ?>> typeMap =
-          new HashMap<String, Map<String, ?>>();
-        typeMap.put("properties", properties.get(configuration.getType()));
-        if ((configuration.getPropertyAttributes() != null) && !configuration.getPropertyAttributes().isEmpty()) {
-          typeMap.put("properties_attributes", configuration.getPropertyAttributes());
-        }
-
-        configList.add(Collections.singletonMap(configuration.getType(), typeMap));
+    Configuration configuration = topology.getConfiguration();
+    Collection<String> allTypes = new HashSet<String>();
+    allTypes.addAll(configuration.getFullProperties().keySet());
+    allTypes.addAll(configuration.getFullAttributes().keySet());
+    for (String type : allTypes) {
+      Map<String, Map<String, ?>> typeMap = new HashMap<String, Map<String, ?>>();
+      typeMap.put("properties", configuration.getFullProperties().get(type));
+      if (! configuration.getFullAttributes().isEmpty()) {
+        typeMap.put("properties_attributes", configuration.getFullAttributes().get(type));
       }
+
+      configList.add(Collections.singletonMap(type, typeMap));
     }
+
     return configList;
   }
 
   /**
-   * Process cluster host groups.
-   *
-   * @param hostNode  host node
-   *
-   * @return collection of host groups
-   */
-  private Collection<HostGroupImpl> processHostGroups(TreeNode<Resource> hostNode) {
-    Map<HostGroupImpl, HostGroupImpl> mapHostGroups = new HashMap<HostGroupImpl, HostGroupImpl>();
-    int count = 1;
-    for (TreeNode<Resource> host : hostNode.getChildren()) {
-      HostGroupImpl group = new HostGroupImpl(host);
-      String hostName = (String) host.getObject().getPropertyValue(
-          PropertyHelper.getPropertyId("Hosts", "host_name"));
-
-      if (mapHostGroups.containsKey(group)) {
-        HostGroupImpl hostGroup = mapHostGroups.get(group);
-        hostGroup.incrementCardinality();
-        hostGroup.addHost(hostName);
-      } else {
-        mapHostGroups.put(group, group);
-        group.setName("host_group_" + count++);
-        group.addHost(hostName);
-      }
-    }
-    return mapHostGroups.values();
-  }
-
-
-  /**
    * Process host group information for all hosts.
    *
-   * @param hostGroups all host groups
    *
    * @return list of host group property maps, one element for each host group
    */
-  private List<Map<String, Object>> formatGroupsAsList(Collection<HostGroupImpl> hostGroups) {
+  private List<Map<String, Object>> formatGroupsAsList(ClusterTopology topology) {
     List<Map<String, Object>> listHostGroups = new ArrayList<Map<String, Object>>();
-    for (HostGroupImpl group : hostGroups) {
+    for (HostGroupInfo group : topology.getHostGroupInfo().values()) {
       Map<String, Object> mapGroupProperties = new HashMap<String, Object>();
       listHostGroups.add(mapGroupProperties);
 
-      mapGroupProperties.put("name", group.getName());
-      mapGroupProperties.put("cardinality", String.valueOf(group.getCardinality()));
-      mapGroupProperties.put("components", processHostGroupComponents(group));
-      List<Map<String, Map<String, String>>> hostConfigurations = new ArrayList<Map<String, Map<String, String>>>();
-      for (Configuration configuration : group.getConfigurations()) {
-        Map<String, Map<String, String>> propertyMap = Collections.singletonMap(
-            configuration.getType(), configuration.properties);
-        BlueprintConfigurationProcessor configurationProcessor = new BlueprintConfigurationProcessor(propertyMap);
-        Map<String, Map<String, String>> updatedProps = configurationProcessor.doUpdateForBlueprintExport(hostGroups);
-        hostConfigurations.add(updatedProps);
+      String name = group.getHostGroupName();
+      mapGroupProperties.put("name", name);
+      mapGroupProperties.put("cardinality", String.valueOf(group.getHostNames().size()));
+      mapGroupProperties.put("components", processHostGroupComponents(topology.getBlueprint().getHostGroup(name)));
 
+      Configuration configuration = topology.getHostGroupInfo().get(name).getConfiguration();
+      List<Map<String, Map<String, String>>> configList = new ArrayList<Map<String, Map<String, String>>>();
+      for (Map.Entry<String, Map<String, String>> typeEntry : configuration.getProperties().entrySet()) {
+        Map<String, Map<String, String>> propertyMap = Collections.singletonMap(
+            typeEntry.getKey(), typeEntry.getValue());
+
+        configList.add(propertyMap);
       }
-      mapGroupProperties.put("configurations", hostConfigurations);
+      mapGroupProperties.put("configurations", configList);
     }
     return listHostGroups;
   }
+
 
   /**
    * Process host group component information for a specific host.
@@ -336,7 +240,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    *
    * @return list of component names for the host
    */
-  private List<Map<String, String>> processHostGroupComponents(HostGroupImpl group) {
+  private List<Map<String, String>> processHostGroupComponents(HostGroup group) {
     List<Map<String, String>> listHostGroupComponents = new ArrayList<Map<String, String>>();
     for (String component : group.getComponents()) {
       Map<String, String> mapComponentProperties = new HashMap<String, String>();
@@ -344,6 +248,12 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
       mapComponentProperties.put("name", component);
     }
     return listHostGroupComponents;
+  }
+
+  protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
+      throws InvalidTopologyTemplateException, InvalidTopologyException {
+
+    return new ClusterTopologyImpl(new ExportBlueprintRequest(clusterNode));
   }
 
   /**
@@ -367,320 +277,75 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
     return controller;
   }
 
-  // ----- Host Group inner class --------------------------------------------
 
-  /**
-   * Host Group representation.
-   */
-  private class HostGroupImpl implements HostGroup {
+  //  /**
+//   * Determine which configuration properties need to be stripped from the configuration prior to exporting.
+//   * Stripped properties are any property which are marked as required in the stack definition.  For example,
+//   * all passwords are required properties and are therefore not exported.
+//   *
+//   * @param servicesNode  services node
+//   * @param stackName     stack name
+//   * @param stackVersion  stack version
+//   */
+//  private void determinePropertiesToStrip(TreeNode<Resource> servicesNode, String stackName, String stackVersion) {
+//    AmbariMetaInfo ambariMetaInfo = getController().getAmbariMetaInfo();
+//    StackInfo stack;
+//    try {
+//      stack = ambariMetaInfo.getStack(stackName, stackVersion);
+//    } catch (AmbariException e) {
+//      // shouldn't ever happen.
+//      // Exception indicates that stack is not defined
+//      // but we are getting the stack name from a running cluster.
+//      throw new RuntimeException("Unexpected exception occurred while generating a blueprint. "  +
+//          "The stack '" + stackName + ":" + stackVersion + "' does not exist");
+//    }
+//    Map<String, PropertyInfo> requiredStackProperties = stack.getRequiredProperties();
+//    updatePropertiesToStrip(requiredStackProperties);
+//
+//    for (TreeNode<Resource> serviceNode : servicesNode.getChildren()) {
+//      String name = (String) serviceNode.getObject().getPropertyValue("ServiceInfo/service_name");
+//      ServiceInfo service;
+//      try {
+//        service = ambariMetaInfo.getService(stackName, stackVersion, name);
+//      } catch (AmbariException e) {
+//        // shouldn't ever happen.
+//        // Exception indicates that service is not in the stack
+//        // but we are getting the name from a running cluster.
+//        throw new RuntimeException("Unexpected exception occurred while generating a blueprint.  The service '" +
+//            name + "' was not found in the stack: '" + stackName + ":" + stackVersion);
+//      }
+//
+//      Map<String, PropertyInfo> requiredProperties = service.getRequiredProperties();
+//      updatePropertiesToStrip(requiredProperties);
+//    }
+//  }
 
-    /**
-     * Host Group name.
-     *
-     */
-    private String name;
+//  /**
+//   * Helper method to update propertiesToStrip with properties that are marked as required
+//   *
+//   * @param requiredProperties  Properties marked as required
+//   */
+//  private void updatePropertiesToStrip(Map<String, PropertyInfo> requiredProperties) {
+//
+//    for (Map.Entry<String, PropertyInfo> entry : requiredProperties.entrySet()) {
+//      String propertyName = entry.getKey();
+//      PropertyInfo propertyInfo = entry.getValue();
+//      String configCategory = propertyInfo.getFilename();
+//      if (configCategory.endsWith(".xml")) {
+//        configCategory = configCategory.substring(0, configCategory.indexOf(".xml"));
+//      }
+//      Collection<String> categoryProperties = propertiesToStrip.get(configCategory);
+//      if (categoryProperties == null) {
+//        categoryProperties = new ArrayList<String>();
+//        propertiesToStrip.put(configCategory, categoryProperties);
+//      }
+//      categoryProperties.add(propertyName);
+//    }
+//  }
 
-    /**
-     * Associated components.
-     */
-    private Set<String> components = new HashSet<String>();
 
-    /**
-     * Host group scoped configurations.
-     */
-    private Collection<Configuration> configurations = new HashSet<Configuration>();
 
-    /**
-     * Number of instances.
-     */
-    private int m_cardinality = 1;
 
-    /**
-     * Collection of associated hosts.
-     */
-    private Collection<String> hosts = new HashSet<String>();
-
-    /**
-     * Constructor.
-     *
-     * @param host  host node
-     */
-    public HostGroupImpl(TreeNode<Resource> host) {
-      TreeNode<Resource> components = host.getChild("host_components");
-      for (TreeNode<Resource> component : components.getChildren()) {
-        getComponents().add((String) component.getObject().getPropertyValue(
-            "HostRoles/component_name"));
-      }
-      addAmbariComponentIfLocalhost((String) host.getObject().getPropertyValue(
-          PropertyHelper.getPropertyId("Hosts", "host_name")));
-
-      processGroupConfiguration(host);
-    }
-
-    /**
-     * Preocess host group configuration.
-     *
-     * @param host  host node
-     */
-    private void processGroupConfiguration(TreeNode<Resource> host) {
-      Map<String, Object> desiredConfigMap = host.getObject().getPropertiesMap().get("Hosts/desired_configs");
-      if (desiredConfigMap != null) {
-        for (Map.Entry<String, Object> entry : desiredConfigMap.entrySet()) {
-          String type = entry.getKey();
-          HostConfig hostConfig = (HostConfig) entry.getValue();
-          Map<Long, String> overrides = hostConfig.getConfigGroupOverrides();
-
-          if (overrides != null && ! overrides.isEmpty()) {
-            Long version = Collections.max(overrides.keySet());
-            String tag = overrides.get(version);
-            TreeNode<Resource> clusterNode = host.getParent().getParent();
-            TreeNode<Resource> configNode = clusterNode.getChild("configurations");
-            for (TreeNode<Resource> config : configNode.getChildren()) {
-              Configuration configuration = new Configuration(config);
-              if (type.equals(configuration.getType()) && tag.equals(configuration.getTag())) {
-                getConfigurations().add(configuration);
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-
-    @Override
-    public String getName() {
-      return name;
-    }
-
-    @Override
-    public Set<String> getComponents() {
-      return components;
-    }
-
-    @Override
-    public Collection<String> getHostInfo() {
-      return hosts;
-    }
-
-    @Override
-    public Map<String, Map<String, String>> getConfigurationProperties() {
-      Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
-      for (Configuration configuration : configurations) {
-        properties.put(configuration.getType(), configuration.getProperties());
-      }
-
-      return properties;
-    }
-
-    /**
-     * Set the name.
-     *
-     * @param  name name of host group
-     */
-    public void setName(String name) {
-      this.name = name;
-    }
-
-    /**
-     * Add a host.
-     *
-     * @param host  host to add
-     */
-    public void addHost(String host) {
-      hosts.add(host);
-    }
-
-    /**
-     * Obtain associated host group scoped configurations.
-     *
-     * @return collection of host group scoped configurations
-     */
-    public Collection<Configuration> getConfigurations() {
-      return configurations;
-    }
-
-    /**
-     * Obtain the number of instances associated with this host group.
-     *
-     * @return number of hosts associated with this host group
-     */
-    public int getCardinality() {
-      return m_cardinality;
-    }
-
-    /**
-     * Increment the cardinality count by one.
-     */
-    public void incrementCardinality() {
-      m_cardinality += 1;
-    }
-
-    /**
-     * Add the AMBARI_SERVER component if the host is the local host.
-     *
-     * @param hostname  host to check
-     */
-    private void addAmbariComponentIfLocalhost(String hostname) {
-      try {
-        InetAddress hostAddress = InetAddress.getByName(hostname);
-        try {
-          if (hostAddress.equals(InetAddress.getLocalHost())) {
-            getComponents().add("AMBARI_SERVER");
-          }
-        } catch (UnknownHostException e) {
-          //todo: SystemException?
-          throw new RuntimeException("Unable to obtain local host name", e);
-        }
-      } catch (UnknownHostException e) {
-        // ignore
-      }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      HostGroupImpl hostGroup = (HostGroupImpl) o;
-
-      return components.equals(hostGroup.components) &&
-          configurations.equals(hostGroup.configurations);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = components.hashCode();
-      result = 31 * result + configurations.hashCode();
-      return result;
-    }
-  }
-
-  /**
-   * Encapsulates a configuration.
-   */
-  private class Configuration {
-    /**
-     * Configuration type such as hdfs-site.
-     */
-    private String type;
-
-    /**
-     * Configuration tag.
-     */
-    private String tag;
-
-    /**
-     * Properties of the configuration.
-     */
-    private Map<String, String> properties = new HashMap<String, String>();
-
-    /**
-     * Attributes for the properties in the cluster configuration.
-     */
-    private Map<String, ?> propertyAttributes =
-      new HashMap<String, Object>();
-
-    /**
-     * Constructor.
-     *
-     * @param configNode  configuration node
-     */
-    @SuppressWarnings("unchecked")
-    public Configuration(TreeNode<Resource> configNode) {
-      Resource configResource = configNode.getObject();
-      type = (String) configResource.getPropertyValue("type");
-      tag  = (String) configResource.getPropertyValue("tag");
-
-      // property map type is currently <String, Object>
-      properties = (Map) configNode.getObject().getPropertiesMap().get("properties");
-
-      // get the property attributes set in this configuration
-      propertyAttributes = (Map) configNode.getObject().getPropertiesMap().get("properties_attributes");
-
-      if (properties != null) {
-        stripRequiredProperties(properties);
-      } else {
-        LOG.warn("Empty configuration found for configuration type = " + type +
-          " during Blueprint export.  This may occur after an upgrade of Ambari, when" +
-          "attempting to export a Blueprint from a cluster started by an older version of " +
-          "Ambari.");
-      }
-
-    }
-
-    /**
-     * Get configuration type.
-     *
-     * @return configuration type
-     */
-    public String getType() {
-      return type;
-    }
-
-    /**
-     * Get configuration tag.
-     *
-     * @return configuration tag
-     */
-    public String getTag() {
-      return tag;
-    }
-
-    /**
-     * Get configuration properties.
-     *
-     * @return map of properties and values
-     */
-    public Map<String, String> getProperties() {
-      return properties;
-    }
-
-    /**
-     * Get property attributes.
-     *
-     * @return map of property attributes
-     */
-    public Map<String, ?> getPropertyAttributes() {
-      return propertyAttributes;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-      if (this == o) return true;
-      if (o == null || getClass() != o.getClass()) return false;
-
-      Configuration that = (Configuration) o;
-      return tag.equals(that.tag) && type.equals(that.type) && properties.equals(that.properties)
-        && propertyAttributes.equals(that.propertyAttributes);
-    }
-
-    @Override
-    public int hashCode() {
-      int result = type.hashCode();
-      result = 31 * result + tag.hashCode();
-      result = 31 * result + properties.hashCode();
-      result = 31 * result + propertyAttributes.hashCode();
-      return result;
-    }
-
-    /**
-     * Strip required properties from configuration.
-     *
-     * @param properties  property map
-     */
-    private void stripRequiredProperties(Map<String, String> properties) {
-      Iterator<Map.Entry<String, String>> iter = properties.entrySet().iterator();
-      while (iter.hasNext()) {
-        Map.Entry<String, String> entry = iter.next();
-        String property = entry.getKey();
-        String category = getType();
-        Collection<String> categoryProperties = propertiesToStrip.get(category);
-        if (categoryProperties != null && categoryProperties.contains(property)) {
-          iter.remove();
-        }
-      }
-    }
-  }
 
   // ----- Blueprint Post Processor inner class ------------------------------
 

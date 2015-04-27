@@ -556,7 +556,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     // Generate cluster host info
     execCmd.setClusterHostInfo(
-        StageUtils.getClusterHostInfo(clusters.getHostsForCluster(clusterName), cluster));
+        StageUtils.getClusterHostInfo(cluster));
 
     Map<String, String> commandParams = new TreeMap<String, String>();
 
@@ -809,7 +809,7 @@ public class AmbariCustomCommandExecutionHelper {
       );
 
       String clusterHostInfoJson = StageUtils.getGson().toJson(
-          StageUtils.getClusterHostInfo(clusters.getHostsForCluster(cluster.getClusterName()), cluster));
+          StageUtils.getClusterHostInfo(cluster));
 
       // Reset cluster host info as it has changed
       stage.setClusterHostInfo(clusterHostInfoJson);
@@ -1051,7 +1051,7 @@ public class AmbariCustomCommandExecutionHelper {
 
     if (null != cluster) {
       clusterHostInfo = StageUtils.getClusterHostInfo(
-        clusters.getHostsForCluster(cluster.getClusterName()), cluster);
+          cluster);
       hostParamsStage = createDefaultHostParams(cluster);
       StackId stackId = cluster.getDesiredStackVersion();
       String componentName = null;

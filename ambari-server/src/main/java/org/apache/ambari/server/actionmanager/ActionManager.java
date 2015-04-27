@@ -19,6 +19,7 @@ package org.apache.ambari.server.actionmanager;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,6 +33,7 @@ import org.apache.ambari.server.controller.ExecuteActionRequest;
 import org.apache.ambari.server.controller.HostsMap;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.utils.StageUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +55,7 @@ public class ActionManager {
   private final ActionQueue actionQueue;
   private final AtomicLong requestCounter;
   private final RequestFactory requestFactory;
+  private static TopologyManager topologyManager;
 
 
   @Inject
@@ -98,7 +101,10 @@ public class ActionManager {
   }
 
   public List<Request> getRequests(Collection<Long> requestIds) {
-    return db.getRequests(requestIds);
+    List<Request> requests =  db.getRequests(requestIds);
+    requests.addAll(topologyManager.getRequests(requestIds));
+
+    return requests;
   }
 
   public List<Stage> getRequestStatus(long requestId) {
@@ -197,7 +203,11 @@ public class ActionManager {
   }
 
   public List<HostRoleCommand> getTasksByRequestAndTaskIds(Collection<Long> requestIds, Collection<Long> taskIds) {
-    return db.getTasksByRequestAndTaskIds(requestIds, taskIds);
+    // wrapping in new list as returned list may be Collections.emptyList() which doesn't support add()
+    List<HostRoleCommand> tasks = new ArrayList<HostRoleCommand>(db.getTasksByRequestAndTaskIds(requestIds, taskIds));
+    tasks.addAll(topologyManager.getTasks(requestIds));
+
+    return tasks;
   }
 
   public Collection<HostRoleCommand> getTasks(Collection<Long> taskIds) {
@@ -217,7 +227,16 @@ public class ActionManager {
    *         respectively
    */
   public List<Long> getRequestsByStatus(RequestStatus status, int maxResults, boolean ascOrder) {
-    return db.getRequestsByStatus(status, maxResults, ascOrder);
+    List<Long> requests = db.getRequestsByStatus(status, maxResults, ascOrder);
+
+    for (Request logicalRequest : topologyManager.getRequests(Collections.<Long>emptySet())) {
+      //todo: Request.getStatus() returns HostRoleStatus and we are comparing to RequestStatus
+      //todo: for now just compare the names as RequestStatus names are a subset of HostRoleStatus names
+      if (status == null || logicalRequest.getStatus().name().equals(status.name())) {
+        requests.add(logicalRequest.getRequestId());
+      }
+    }
+    return requests;
   }
 
   public Map<Long, String> getRequestContext(List<Long> requestIds) {
@@ -231,5 +250,10 @@ public class ActionManager {
   public void cancelRequest(long requestId, String reason) {
     scheduler.scheduleCancellingRequest(requestId, reason);
     scheduler.awake();
+  }
+
+  //todo: proper static injection
+  public static void setTopologyManager(TopologyManager topologyManager) {
+    ActionManager.topologyManager = topologyManager;
   }
 }

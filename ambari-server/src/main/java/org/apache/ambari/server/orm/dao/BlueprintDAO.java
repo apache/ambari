@@ -25,6 +25,7 @@ import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.BlueprintEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -42,6 +43,9 @@ public class BlueprintDAO {
    */
   @Inject
   Provider<EntityManager> entityManagerProvider;
+
+  @Inject
+  StackDAO stackDAO;
 
   /**
    * Find a blueprint with a given name.
@@ -76,6 +80,7 @@ public class BlueprintDAO {
    */
   @Transactional
   public void refresh(BlueprintEntity blueprintEntity) {
+    ensureStackIdSet(blueprintEntity);
     entityManagerProvider.get().refresh(blueprintEntity);
   }
 
@@ -86,6 +91,7 @@ public class BlueprintDAO {
    */
   @Transactional
   public void create(BlueprintEntity blueprintEntity) {
+    ensureStackIdSet(blueprintEntity);
     entityManagerProvider.get().persist(blueprintEntity);
   }
 
@@ -97,6 +103,7 @@ public class BlueprintDAO {
    */
   @Transactional
   public BlueprintEntity merge(BlueprintEntity blueprintEntity) {
+    ensureStackIdSet(blueprintEntity);
     return entityManagerProvider.get().merge(blueprintEntity);
   }
 
@@ -107,6 +114,7 @@ public class BlueprintDAO {
    */
   @Transactional
   public void remove(BlueprintEntity blueprintEntity) {
+    ensureStackIdSet(blueprintEntity);
     entityManagerProvider.get().remove(merge(blueprintEntity));
   }
 
@@ -117,5 +125,12 @@ public class BlueprintDAO {
   @Transactional
   public void removeByName(String blueprint_name) {
     entityManagerProvider.get().remove(findByName(blueprint_name));
+  }
+
+  private void ensureStackIdSet(BlueprintEntity entity) {
+    StackEntity stack = entity.getStack();
+    if (stack != null && stack.getStackId() == null) {
+      entity.setStack(stackDAO.find(stack.getStackName(), stack.getStackVersion()));
+    }
   }
 }

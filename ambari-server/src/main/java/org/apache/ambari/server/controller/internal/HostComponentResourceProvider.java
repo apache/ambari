@@ -22,7 +22,6 @@ import com.google.inject.Injector;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
@@ -34,7 +33,6 @@ import org.apache.ambari.server.controller.ServiceComponentHostResponse;
 import org.apache.ambari.server.controller.predicate.AndPredicate;
 import org.apache.ambari.server.controller.predicate.EqualsPredicate;
 import org.apache.ambari.server.controller.predicate.NotPredicate;
-import org.apache.ambari.server.controller.predicate.OrPredicate;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.NoSuchResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -48,7 +46,6 @@ import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -344,33 +341,56 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     return unsupportedProperties;
   }
 
-  RequestStatusResponse installAndStart(String cluster, Collection<String> hosts) throws  SystemException,
+  public RequestStatusResponse install(String cluster, String hostname) throws  SystemException,
       UnsupportedPropertyException, NoSuchParentResourceException {
 
-    final RequestStageContainer requestStages;
+    RequestStageContainer requestStages;
+    //for (String host : hosts) {
+
     Map<String, Object> installProperties = new HashMap<String, Object>();
 
     installProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<String, String>();
-    requestInfo.put("context", "Install and start components on added hosts");
+    requestInfo.put("context", "Install components on added hosts");
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
-
-    Collection<EqualsPredicate> hostPredicates = new ArrayList<EqualsPredicate>();
-    for (String host : hosts) {
-      hostPredicates.add(new EqualsPredicate<String>(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, host));
-    }
 
     Predicate statePredicate = new EqualsPredicate<String>(HOST_COMPONENT_STATE_PROPERTY_ID, "INIT");
     Predicate clusterPredicate = new EqualsPredicate<String>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
-    Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
+    // single host
+    Predicate hostPredicate = new EqualsPredicate(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostname);
+    //Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
     Predicate hostAndStatePredicate = new AndPredicate(statePredicate, hostPredicate);
     Predicate installPredicate = new AndPredicate(hostAndStatePredicate, clusterPredicate);
 
     try {
-      LOG.info("Installing all components on added hosts");
+      LOG.info("Installing all components on host: " + hostname);
       requestStages = doUpdateResources(null, installRequest, installPredicate, true);
       notifyUpdate(Resource.Type.HostComponent, installRequest, installPredicate);
+      try {
+        requestStages.persist();
+      } catch (AmbariException e) {
+        throw new SystemException(e.getMessage(), e);
+      }
+    } catch (NoSuchResourceException e) {
+      // shouldn't encounter this exception here
+      throw new SystemException("An unexpected exception occurred while processing install hosts",  e);
+      }
 
+    return requestStages.getRequestStatusResponse();
+  }
+
+  public RequestStatusResponse start(String cluster, String hostName) throws  SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException {
+
+    Map<String, String> requestInfo = new HashMap<String, String>();
+    requestInfo.put("context", "Start components on added hosts");
+
+    Predicate clusterPredicate = new EqualsPredicate<String>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
+    Predicate hostPredicate = new EqualsPredicate(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostName);
+    //Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
+
+    RequestStageContainer requestStages;
+    try {
       Map<String, Object> startProperties = new HashMap<String, Object>();
       startProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "STARTED");
       Request startRequest = PropertyHelper.getUpdateRequest(startProperties, requestInfo);
@@ -381,24 +401,23 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       Predicate installedStatePredicate = new EqualsPredicate<String>(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
       Predicate notClientPredicate = new NotPredicate(new ClientComponentPredicate());
       Predicate clusterAndClientPredicate = new AndPredicate(clusterPredicate, notClientPredicate);
-      hostAndStatePredicate = new AndPredicate(installedStatePredicate, hostPredicate);
+      Predicate hostAndStatePredicate = new AndPredicate(installedStatePredicate, hostPredicate);
       Predicate startPredicate = new AndPredicate(clusterAndClientPredicate, hostAndStatePredicate);
 
-      LOG.info("Starting all non-client components on added hosts");
-      //todo: if a host in in state HEARTBEAT_LOST, no stage will be created, so if this occurs during INSTALL
-      //todo: then no INSTALL stage will exist which will result in invalid state transition INIT->STARTED
-      doUpdateResources(requestStages, startRequest, startPredicate, true);
+      LOG.info("Starting all non-client components on host: " + hostName);
+      requestStages = doUpdateResources(null, startRequest, startPredicate, true);
       notifyUpdate(Resource.Type.HostComponent, startRequest, startPredicate);
       try {
         requestStages.persist();
       } catch (AmbariException e) {
         throw new SystemException(e.getMessage(), e);
       }
-      return requestStages.getRequestStatusResponse();
     } catch (NoSuchResourceException e) {
       // shouldn't encounter this exception here
-      throw new SystemException("An unexpected exception occurred while processing add hosts",  e);
+      throw new SystemException("An unexpected exception occurred while processing start hosts",  e);
     }
+
+    return requestStages.getRequestStatusResponse();
   }
 
 
@@ -743,13 +762,15 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
    */
   private boolean isValidStateTransition(RequestStageContainer stages, State startState,
                                          State desiredState, ServiceComponentHost host) {
-
-    if (stages != null) {
-      State projectedState = stages.getProjectedState(host.getHostName(), host.getServiceComponentName());
-      startState = projectedState == null ? startState : projectedState;
-    }
-
-    return State.isValidStateTransition(startState, desiredState);
+    //todo: After separating install and start, the install stage is no longer included in the passed in request stage container
+    //todo: so we need to re-evaluate this getting projected state from topology manager
+    return true;
+//    if (stages != null) {
+//      State projectedState = stages.getProjectedState(host.getHostName(), host.getServiceComponentName());
+//      startState = projectedState == null ? startState : projectedState;
+//    }
+//
+//    return State.isValidStateTransition(startState, desiredState);
   }
 
   /**

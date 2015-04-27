@@ -37,11 +37,14 @@ import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
 import org.apache.ambari.server.state.DependencyInfo;
+import org.apache.ambari.server.state.PropertyInfo;
+import org.apache.ambari.server.topology.Cardinality;
+import org.apache.ambari.server.topology.Configuration;
 
 /**
  * Encapsulates stack information.
  */
-class Stack {
+public class Stack {
   /**
    * Stack name
    */
@@ -88,6 +91,10 @@ class Stack {
    */
   private Map<String, String> cardinalityRequirements = new HashMap<String, String>();
 
+  //todo: instead of all these maps from component -> * ,
+  //todo: we should use a Component object with all of these attributes
+  private Set<String> masterComponents = new HashSet<String>();
+
   /**
    * Map of component to auto-deploy information
    */
@@ -101,6 +108,18 @@ class Stack {
       new HashMap<String, Map<String, Map<String, ConfigProperty>>>();
 
   /**
+   * Map of service to required type properties
+   */
+  private Map<String, Map<String, Map<String, ConfigProperty>>> requiredServiceConfigurations =
+      new HashMap<String, Map<String, Map<String, ConfigProperty>>>();
+
+  /**
+   * Map of service to config type properties
+   */
+  private Map<String, Map<String, ConfigProperty>> stackConfigurations =
+      new HashMap<String, Map<String, ConfigProperty>>();
+
+  /**
    * Map of service to set of excluded config types
    */
   private Map<String, Set<String>> excludedConfigurationTypes =
@@ -109,37 +128,8 @@ class Stack {
   /**
    * Ambari Management Controller, used to obtain Stack definitions
    */
-  private final AmbariManagementController ambariManagementController;
+  private final AmbariManagementController controller;
 
-  /**
-   * Contains a configuration property's value and attributes.
-   */
-  private class ConfigProperty {
-
-    private ConfigProperty(String value, Map<String, String> attributes) {
-      this.value = value;
-      this.attributes = attributes;
-    }
-
-    private String value;
-    private Map<String, String> attributes;
-
-    public String getValue() {
-      return value;
-    }
-
-    public void setValue(String value) {
-      this.value = value;
-    }
-
-    public Map<String, String> getAttributes() {
-      return attributes;
-    }
-
-    public void setAttributes(Map<String, String> attributes) {
-      this.attributes = attributes;
-    }
-  }
 
   /**
    * Constructor.
@@ -163,15 +153,16 @@ class Stack {
    * @param name     stack name
    * @param version  stack version
    *
-   * @throws org.apache.ambari.server.AmbariException an exception occurred getting stack information
+   * @throws AmbariException an exception occurred getting stack information
    *                         for the specified name and version
    */
-  public Stack(String name, String version, AmbariManagementController ambariManagementController) throws AmbariException {
+  //todo: don't pass management controller in constructor
+  public Stack(String name, String version, AmbariManagementController controller) throws AmbariException {
     this.name = name;
     this.version = version;
-    this.ambariManagementController = ambariManagementController;
+    this.controller = controller;
 
-    Set<StackServiceResponse> stackServices = ambariManagementController.getStackServices(
+    Set<StackServiceResponse> stackServices = controller.getStackServices(
         Collections.singleton(new StackServiceRequest(name, version, null)));
 
     for (StackServiceResponse stackService : stackServices) {
@@ -181,6 +172,9 @@ class Stack {
       parseConfigurations(serviceName);
       registerConditionalDependencies();
     }
+
+    //todo: already done for each service
+    parseStackConfigurations();
   }
 
   /**
@@ -227,26 +221,57 @@ class Stack {
   }
 
   /**
-   * Get configuration types for the specified service.
+   * Get all service components
+   *
+   * @return map of service to associated components
+   */
+  public Map<String, Collection<String>> getComponents() {
+    Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
+    for (String service : getServices()) {
+      Collection<String> components = new HashSet<String>();
+      components.addAll(getComponents(service));
+      serviceComponents.put(service, components);
+    }
+    return serviceComponents;
+  }
+
+  /**
+   * Get all configuration types, including excluded types for the specified service.
    *
    * @param service  service name
    *
-   * @return collection of configuration types for the specified service
+   * @return collection of all configuration types for the specified service
    */
-  public Collection<String> getConfigurationTypes(String service) {
+  public Collection<String> getAllConfigurationTypes(String service) {
     return serviceConfigurations.get(service).keySet();
   }
 
   /**
-   * Get the set of excluded configuration types
-   *   for this service
+   * Get configuration types for the specified service.
+   * This doesn't include any service excluded types.
+   *
+   * @param service  service name
+   *
+   * @return collection of all configuration types for the specified service
+   */
+  public Collection<String> getConfigurationTypes(String service) {
+    Set<String> serviceTypes = new HashSet<String>(serviceConfigurations.get(service).keySet());
+    serviceTypes.removeAll(getExcludedConfigurationTypes(service));
+
+    return serviceTypes;
+  }
+
+  /**
+   * Get the set of excluded configuration types for this service.
    *
    * @param service service name
    *
-   * @return Set of names of excluded config types
+   * @return Set of names of excluded config types. Will not return null.
    */
   public Set<String> getExcludedConfigurationTypes(String service) {
-    return excludedConfigurationTypes.get(service);
+    return excludedConfigurationTypes.containsKey(service) ?
+        excludedConfigurationTypes.get(service) :
+        Collections.<String>emptySet();
   }
 
   /**
@@ -260,6 +285,62 @@ class Stack {
   public Map<String, String> getConfigurationProperties(String service, String type) {
     Map<String, String> configMap = new HashMap<String, String>();
     Map<String, ConfigProperty> configProperties = serviceConfigurations.get(service).get(type);
+    if (configProperties != null) {
+      for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
+        configMap.put(configProperty.getKey(), configProperty.getValue().getValue());
+      }
+    }
+    return configMap;
+  }
+
+  /**
+   * Get all required config properties for the specified service.
+   *
+   * @param service  service name
+   *
+   * @return collection of all required properties for the given service
+   */
+  public Collection<ConfigProperty> getRequiredConfigurationProperties(String service) {
+    Collection<ConfigProperty> requiredConfigProperties = new HashSet<ConfigProperty>();
+    Map<String, Map<String, ConfigProperty>> serviceProperties = requiredServiceConfigurations.get(service);
+    if (serviceProperties != null) {
+      for (Map.Entry<String, Map<String, ConfigProperty>> typePropertiesEntry : serviceProperties.entrySet()) {
+        requiredConfigProperties.addAll(typePropertiesEntry.getValue().values());
+      }
+    }
+    return requiredConfigProperties;
+  }
+
+  /**
+   * Get required config properties for the specified service and configuration type.
+   *
+   * @param service  service name
+   * @param type     configuration type
+   *
+   * @return collection of required properties for the given service and type
+   */
+  //todo: change type to PropertyInfo.PropertyType
+  public Collection<ConfigProperty> getRequiredConfigurationProperties(String service, String type) {
+    Collection<ConfigProperty> requiredConfigs = new HashSet<ConfigProperty>();
+    Map<String, ConfigProperty> configProperties = requiredServiceConfigurations.get(service).get(type);
+    if (configProperties != null) {
+      requiredConfigs.addAll(configProperties.values());
+    }
+    return requiredConfigs;
+  }
+
+  public boolean isPasswordProperty(String service, String type, String propertyName) {
+    return (serviceConfigurations.containsKey(service) &&
+            serviceConfigurations.get(service).containsKey(type) &&
+            serviceConfigurations.get(service).get(type).containsKey(propertyName) &&
+            serviceConfigurations.get(service).get(type).get(propertyName).getPropertyTypes().
+                contains(PropertyInfo.PropertyType.PASSWORD));
+  }
+
+  //todo
+  public Map<String, String> getStackConfigurationProperties(String type) {
+    Map<String, String> configMap = new HashMap<String, String>();
+    Map<String, ConfigProperty> configProperties = stackConfigurations.get(type);
     if (configProperties != null) {
       for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
         configMap.put(configProperty.getKey(), configProperty.getValue().getValue());
@@ -288,10 +369,37 @@ class Stack {
           for (Map.Entry<String, String> propertyAttribute : propertyAttributes.entrySet()) {
             String attributeName = propertyAttribute.getKey();
             String attributeValue = propertyAttribute.getValue();
+            if (attributeValue != null) {
+              Map<String, String> attributes = attributesMap.get(attributeName);
+              if (attributes == null) {
+                  attributes = new HashMap<String, String>();
+                  attributesMap.put(attributeName, attributes);
+              }
+              attributes.put(propertyName, attributeValue);
+            }
+          }
+        }
+      }
+    }
+    return attributesMap;
+  }
+
+  //todo:
+  public Map<String, Map<String, String>> getStackConfigurationAttributes(String type) {
+    Map<String, Map<String, String>> attributesMap = new HashMap<String, Map<String, String>>();
+    Map<String, ConfigProperty> configProperties = stackConfigurations.get(type);
+    if (configProperties != null) {
+      for (Map.Entry<String, ConfigProperty> configProperty : configProperties.entrySet()) {
+        String propertyName = configProperty.getKey();
+        Map<String, String> propertyAttributes = configProperty.getValue().getAttributes();
+        if (propertyAttributes != null) {
+          for (Map.Entry<String, String> propertyAttribute : propertyAttributes.entrySet()) {
+            String attributeName = propertyAttribute.getKey();
+            String attributeValue = propertyAttribute.getValue();
             Map<String, String> attributes = attributesMap.get(attributeName);
             if (attributes == null) {
-                attributes = new HashMap<String, String>();
-                attributesMap.put(attributeName, attributes);
+              attributes = new HashMap<String, String>();
+              attributesMap.put(attributeName, attributes);
             }
             attributes.put(propertyName, attributeValue);
           }
@@ -389,17 +497,90 @@ class Stack {
     return componentAutoDeployInfo.get(component);
   }
 
+  public boolean isMasterComponent(String component) {
+    return masterComponents.contains(component);
+  }
+
+  public Configuration getConfiguration(Collection<String> services) {
+    Map<String, Map<String, Map<String, String>>> attributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+
+    for (String service : services) {
+      Collection<String> serviceConfigTypes = getConfigurationTypes(service);
+      for (String type : serviceConfigTypes) {
+        Map<String, String> typeProps = properties.get(type);
+        if (typeProps == null) {
+          typeProps = new HashMap<String, String>();
+          properties.put(type, typeProps);
+        }
+        typeProps.putAll(getConfigurationProperties(service, type));
+
+        Map<String, Map<String, String>> stackTypeAttributes = getConfigurationAttributes(service, type);
+        if (!stackTypeAttributes.isEmpty()) {
+          if (! attributes.containsKey(type)) {
+            attributes.put(type, new HashMap<String, Map<String, String>>());
+          }
+          Map<String, Map<String, String>> typeAttributes = attributes.get(type);
+          for (Map.Entry<String, Map<String, String>> attribute : stackTypeAttributes.entrySet()) {
+            String attributeName = attribute.getKey();
+            Map<String, String> attributeProps = typeAttributes.get(attributeName);
+            if (attributeProps == null) {
+              attributeProps = new HashMap<String, String>();
+              typeAttributes.put(attributeName, attributeProps);
+            }
+            attributeProps.putAll(attribute.getValue());
+          }
+        }
+      }
+    }
+    return new Configuration(properties, attributes);
+  }
+
+  public Configuration getConfiguration() {
+    Map<String, Map<String, Map<String, String>>> stackAttributes = new HashMap<String, Map<String, Map<String, String>>>();
+    Map<String, Map<String, String>> stackConfigs = new HashMap<String, Map<String, String>>();
+
+    for (String service : getServices()) {
+      for (String type : getAllConfigurationTypes(service)) {
+        Map<String, String> typeProps = stackConfigs.get(type);
+        if (typeProps == null) {
+          typeProps = new HashMap<String, String>();
+          stackConfigs.put(type, typeProps);
+        }
+        typeProps.putAll(getConfigurationProperties(service, type));
+
+        Map<String, Map<String, String>> stackTypeAttributes = getConfigurationAttributes(service, type);
+        if (!stackTypeAttributes.isEmpty()) {
+          if (! stackAttributes.containsKey(type)) {
+            stackAttributes.put(type, new HashMap<String, Map<String, String>>());
+          }
+          Map<String, Map<String, String>> typeAttrs = stackAttributes.get(type);
+          for (Map.Entry<String, Map<String, String>> attribute : stackTypeAttributes.entrySet()) {
+            String attributeName = attribute.getKey();
+            Map<String, String> attributes = typeAttrs.get(attributeName);
+            if (attributes == null) {
+              attributes = new HashMap<String, String>();
+              typeAttrs.put(attributeName, attributes);
+            }
+            attributes.putAll(attribute.getValue());
+          }
+        }
+      }
+    }
+    return new Configuration(stackConfigs, stackAttributes);
+  }
+
   /**
    * Parse components for the specified service from the stack definition.
    *
    * @param service  service name
    *
-   * @throws org.apache.ambari.server.AmbariException an exception occurred getting components from the stack definition
+   * @throws AmbariException an exception occurred getting components from the stack definition
    */
   private void parseComponents(String service) throws AmbariException{
     Collection<String> componentSet = new HashSet<String>();
 
-    Set<StackServiceComponentResponse> components = ambariManagementController.getStackComponents(
+    Set<StackServiceComponentResponse> components = controller.getStackComponents(
         Collections.singleton(new StackServiceComponentRequest(name, version, service, null)));
 
     // stack service components
@@ -417,11 +598,15 @@ class Stack {
       }
 
       // populate component dependencies
-      Collection<DependencyInfo> componentDependencies = BaseBlueprintProcessor.stackInfo.getComponentDependencies(
+      //todo: remove usage of AmbariMetaInfo
+      Collection<DependencyInfo> componentDependencies = controller.getAmbariMetaInfo().getComponentDependencies(
           name, version, service, componentName);
 
       if (componentDependencies != null && ! componentDependencies.isEmpty()) {
         dependencies.put(componentName, componentDependencies);
+      }
+      if (component.isMaster()) {
+        masterComponents.add(componentName);
       }
     }
     serviceComponents.put(service, componentSet);
@@ -432,19 +617,22 @@ class Stack {
    *
    * @param service  service name
    *
-   * @throws org.apache.ambari.server.AmbariException an exception occurred getting configurations from the stack definition
+   * @throws AmbariException an exception occurred getting configurations from the stack definition
    */
   private void parseConfigurations(String service) throws AmbariException {
     Map<String, Map<String, ConfigProperty>> mapServiceConfig = new HashMap<String, Map<String, ConfigProperty>>();
+    Map<String, Map<String, ConfigProperty>> mapRequiredServiceConfig = new HashMap<String, Map<String, ConfigProperty>>();
 
     serviceConfigurations.put(service, mapServiceConfig);
+    requiredServiceConfigurations.put(service, mapRequiredServiceConfig);
 
-    Set<StackConfigurationResponse> serviceConfigs = ambariManagementController.getStackConfigurations(
+    Set<StackConfigurationResponse> serviceConfigs = controller.getStackConfigurations(
         Collections.singleton(new StackConfigurationRequest(name, version, service, null)));
-    Set<StackConfigurationResponse> stackLevelConfigs = ambariManagementController.getStackLevelConfigurations(
+    Set<StackConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
         Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
     serviceConfigs.addAll(stackLevelConfigs);
 
+    // shouldn't have any required properties in stack level configuration
     for (StackConfigurationResponse config : serviceConfigs) {
       String type = config.getType();
       //strip .xml from type
@@ -456,8 +644,37 @@ class Stack {
         mapTypeConfig = new HashMap<String, ConfigProperty>();
         mapServiceConfig.put(type, mapTypeConfig);
       }
+      ConfigProperty property = new ConfigProperty(config);
+      mapTypeConfig.put(config.getPropertyName(), property);
+      if (config.isRequired()) {
+        Map<String, ConfigProperty> requiredTypeConfig = mapRequiredServiceConfig.get(type);
+        if (requiredTypeConfig == null) {
+          requiredTypeConfig = new HashMap<String, ConfigProperty>();
+          mapRequiredServiceConfig.put(type, requiredTypeConfig);
+        }
+        requiredTypeConfig.put(config.getPropertyName(), property);
+      }
+    }
+  }
+
+  private void parseStackConfigurations () throws AmbariException {
+
+    Set<StackConfigurationResponse> stackLevelConfigs = controller.getStackLevelConfigurations(
+        Collections.singleton(new StackLevelConfigurationRequest(name, version, null)));
+
+    for (StackConfigurationResponse config : stackLevelConfigs) {
+      String type = config.getType();
+      //strip .xml from type
+      if (type.endsWith(".xml")) {
+        type = type.substring(0, type.length() - 4);
+      }
+      Map<String, ConfigProperty> mapTypeConfig = stackConfigurations.get(type);
+      if (mapTypeConfig == null) {
+        mapTypeConfig = new HashMap<String, ConfigProperty>();
+        stackConfigurations.put(type, mapTypeConfig);
+      }
       mapTypeConfig.put(config.getPropertyName(),
-          new ConfigProperty(config.getPropertyValue(), config.getPropertyAttributes()));
+          new ConfigProperty(config));
     }
   }
 
@@ -476,5 +693,62 @@ class Stack {
   //todo: This information should be specified in the stack definition.
   void registerConditionalDependencies() {
     dbDependencyInfo.put("MYSQL_SERVER", "global/hive_database");
+  }
+
+  /**
+   * Contains a configuration property's value and attributes.
+   */
+  public static class ConfigProperty {
+    private String name;
+    private String value;
+    private Map<String, String> attributes;
+    private Set<PropertyInfo.PropertyType> propertyTypes;
+    private String type;
+
+    private ConfigProperty(StackConfigurationResponse config) {
+      this.name = config.getPropertyName();
+      this.value = config.getPropertyValue();
+      this.attributes = config.getPropertyAttributes();
+      this.propertyTypes = config.getPropertyType();
+      this.type = config.getType();
+    }
+
+    public ConfigProperty(String type, String name, String value) {
+      this.type = type;
+      this.name = name;
+      this.value = value;
+    }
+
+    public String getName() {
+      return name;
+    }
+
+    public String getValue() {
+      return value;
+    }
+
+    public void setValue(String value) {
+      this.value = value;
+    }
+
+    public String getType() {
+      return type;
+    }
+
+    public Set<PropertyInfo.PropertyType> getPropertyTypes() {
+      return propertyTypes;
+    }
+
+    public void setPropertyTypes(Set<PropertyInfo.PropertyType> propertyTypes) {
+      this.propertyTypes = propertyTypes;
+    }
+
+    public Map<String, String> getAttributes() {
+      return attributes;
+    }
+
+    public void setAttributes(Map<String, String> attributes) {
+      this.attributes = attributes;
+    }
   }
 }

@@ -256,7 +256,7 @@ public class TestStageUtils {
 
     //Get cluster host info
     Map<String, Set<String>> info =
-        StageUtils.getClusterHostInfo(fsm.getHostsForCluster("c1"), fsm.getCluster("c1"));
+        StageUtils.getClusterHostInfo(fsm.getCluster("c1"));
 
     //All hosts present in cluster host info
     Set<String> allHosts = info.get(HOSTS_LIST);

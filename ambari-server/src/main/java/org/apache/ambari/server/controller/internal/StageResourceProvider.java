@@ -54,6 +54,7 @@ import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.TopologyManager;
 
 /**
  * ResourceProvider for Stage
@@ -80,6 +81,9 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
 
   @Inject
   private static Provider<Clusters> clustersProvider = null;
+
+  @Inject
+  private static TopologyManager topologyManager;
 
   /**
    * Stage property constants.
@@ -140,6 +144,9 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     manualTransitionMap.put(HostRoleStatus.HOLDING, EnumSet.of(HostRoleStatus.COMPLETED, HostRoleStatus.ABORTED));
     manualTransitionMap.put(HostRoleStatus.HOLDING_FAILED, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.FAILED, HostRoleStatus.ABORTED));
     manualTransitionMap.put(HostRoleStatus.HOLDING_TIMEDOUT, EnumSet.of(HostRoleStatus.PENDING, HostRoleStatus.TIMEDOUT, HostRoleStatus.ABORTED));
+    //todo: perhaps add a CANCELED status that just affects a stage and wont abort the request
+    //todo: so, if I scale 10 nodes and actually provision 5 and then later decide I don't want those
+    //todo: additional 5 nodes I can cancel them and the corresponding request will have a status of COMPLETED
   }
 
 
@@ -224,8 +231,15 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     for (StageEntity entity : entities) {
       results.add(toResource(cache, entity, propertyIds));
     }
-
     cache.clear();
+
+    Collection<StageEntity> topologyManagerStages = topologyManager.getStages();
+    for (StageEntity entity : topologyManagerStages) {
+      Resource stageResource = toResource(entity, propertyIds);
+      if (predicate.evaluate(stageResource)) {
+        results.add(stageResource);
+      }
+    }
 
     return results;
   }
@@ -335,6 +349,60 @@ public class StageResourceProvider extends AbstractControllerResourceProvider im
     }
 
     Map<Long, HostRoleCommandStatusSummaryDTO> summary = cache.get(entity.getRequestId());
+
+    setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
+    setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);
+    setResourceProperty(resource, STAGE_CONTEXT, entity.getRequestContext(), requestedIds);
+    setResourceProperty(resource, STAGE_CLUSTER_HOST_INFO, entity.getClusterHostInfo(), requestedIds);
+    setResourceProperty(resource, STAGE_COMMAND_PARAMS, entity.getCommandParamsStage(), requestedIds);
+    setResourceProperty(resource, STAGE_HOST_PARAMS, entity.getHostParamsStage(), requestedIds);
+    setResourceProperty(resource, STAGE_SKIPPABLE, entity.isSkippable(), requestedIds);
+
+    Long startTime = Long.MAX_VALUE;
+    Long endTime = 0L;
+    if (summary.containsKey(entity.getStageId())) {
+      startTime = summary.get(entity.getStageId()).getStartTime();
+      endTime = summary.get(entity.getStageId()).getEndTime();
+    }
+
+    setResourceProperty(resource, STAGE_START_TIME, startTime, requestedIds);
+    setResourceProperty(resource, STAGE_END_TIME, endTime, requestedIds);
+
+    CalculatedStatus status = CalculatedStatus.statusFromStageSummary(summary, Collections.singleton(entity.getStageId()));
+
+    setResourceProperty(resource, STAGE_PROGRESS_PERCENT, status.getPercent(), requestedIds);
+    setResourceProperty(resource, STAGE_STATUS, status.getStatus().toString(), requestedIds);
+
+    return resource;
+  }
+
+  /**
+   * Converts the {@link StageEntity} to a {@link Resource}.
+   *
+   * @param entity        the entity to convert (not {@code null})
+   * @param requestedIds  the properties requested (not {@code null})
+   *
+   * @return the new resource
+   */
+  //todo: almost exactly the same as other toResource except how summaries are obtained
+  //todo: refactor to combine the two with the summary logic extracted
+  private Resource toResource(StageEntity entity, Set<String> requestedIds) {
+
+    Resource resource = new ResourceImpl(Resource.Type.Stage);
+
+    Long clusterId = entity.getClusterId();
+    if (clusterId != null && !clusterId.equals(Long.valueOf(-1L))) {
+      try {
+        Cluster cluster = clusters.getClusterById(clusterId);
+
+        setResourceProperty(resource, STAGE_CLUSTER_NAME, cluster.getClusterName(), requestedIds);
+      } catch (Exception e) {
+        LOG.error("Can not get information for cluster " + clusterId + ".", e );
+      }
+    }
+
+    Map<Long, HostRoleCommandStatusSummaryDTO> summary =
+        topologyManager.getStageSummaries(entity.getRequestId());
 
     setResourceProperty(resource, STAGE_STAGE_ID, entity.getStageId(), requestedIds);
     setResourceProperty(resource, STAGE_REQUEST_ID, entity.getRequestId(), requestedIds);

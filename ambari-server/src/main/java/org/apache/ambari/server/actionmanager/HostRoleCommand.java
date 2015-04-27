@@ -131,7 +131,9 @@ public class HostRoleCommand {
     customCommandName = hostRoleCommandEntity.getCustomCommandName();
   }
 
-  HostRoleCommandEntity constructNewPersistenceEntity() {
+  //todo: why is this not symmetrical with the constructor which takes an entity
+  //todo: why are we only setting some fields in this constructor, 8 fields missing?????
+  public HostRoleCommandEntity constructNewPersistenceEntity() {
     HostRoleCommandEntity hostRoleCommandEntity = new HostRoleCommandEntity();
     hostRoleCommandEntity.setHostEntity(hostEntity);
     hostRoleCommandEntity.setRole(role);
@@ -164,18 +166,35 @@ public class HostRoleCommand {
     return taskId;
   }
 
+  public void setRequestId(long requestId) {
+    this.requestId = requestId;
+  }
+
+  public void setStageId(long stageId) {
+    this.stageId = stageId;
+  }
+
   public void setTaskId(long taskId) {
     if (this.taskId != -1) {
       throw new RuntimeException("Attempt to set taskId again, not allowed");
     }
     this.taskId = taskId;
-    executionCommandWrapper.getExecutionCommand().setTaskId(taskId);
-    //Need to invalidate json because taskId is updated.
-    executionCommandWrapper.invalidateJson();
+    //todo: do we need to have a wrapper?  This invariant isn't enforced in constructor.
+    //todo: for now, I am just going to wrap this in a null check
+    if (executionCommandWrapper != null) {
+      executionCommandWrapper.getExecutionCommand().setTaskId(taskId);
+      //Need to invalidate json because taskId is updated.
+      executionCommandWrapper.invalidateJson();
+    }
   }
 
   public String getHostName() {
     return hostEntity != null ? hostEntity.getHostName() : null;
+  }
+
+  public void setHostEntity(HostEntity entity) {
+    //todo: initial entity id and name may be null in case of 'logical' tasks
+    hostEntity = entity;
   }
 
   public Role getRole() {
