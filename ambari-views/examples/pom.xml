@@ -31,6 +31,7 @@
   <modules>
     <module>helloworld-view</module>
     <module>hello-servlet-view</module>
+    <module>hello-spring-view</module>
     <module>favorite-view</module>
     <module>phone-list-view</module>
     <module>calculator-view</module>
