@@ -73,7 +73,7 @@ App.ScrollManager = Em.Object.create({
       self.get('elements').forEach(function (element) {
         var defaultTop, defaultLeft;
         var infoBar = $(Em.get(element, 'updatedElementSelector'));
-        var versionSlider = $(Em.get(element, 'elementForLeftOffsetSelector'));
+        var elementForLeftOffset = $(Em.get(element, 'elementForLeftOffsetSelector'));
         var scrollTop = $(window).scrollTop();
         var scrollLeft = $(window).scrollLeft();
         if (!infoBar.length) {
@@ -81,7 +81,7 @@ App.ScrollManager = Em.Object.create({
         }
         defaultTop = (infoBar.get(0).getBoundingClientRect() && infoBar.get(0).getBoundingClientRect().top) || Em.get(element, 'defaultTop');
         // keep the version info bar always aligned to version slider
-        defaultLeft = (versionSlider.get(0).getBoundingClientRect() && versionSlider.get(0).getBoundingClientRect().left);
+        defaultLeft = elementForLeftOffset.get(0) && elementForLeftOffset.get(0).getBoundingClientRect() && elementForLeftOffset.get(0).getBoundingClientRect().left;
         infoBar.css(calculatePosition(Em.get(element, 'movedTop'), defaultTop, scrollTop, defaultLeft, scrollLeft));
       });
     });
