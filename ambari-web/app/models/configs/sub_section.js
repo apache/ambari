@@ -19,16 +19,57 @@
 var App = require('app');
 
 App.SubSection = DS.Model.extend({
+
   id: DS.attr('string'),
+
+  /**
+   * @type {string}
+   */
   name: DS.attr('string'),
+
+  /**
+   * @type {string}
+   */
   displayName: DS.attr('string'),
+
+  /**
+   * @type {boolean}
+   */
   border: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * @type {number}
+   */
   rowIndex: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   columnIndex: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   rowSpan: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   columnSpan: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {App.Section}
+   */
   section: DS.belongsTo('App.Section'),
+
+  /**
+   * @type {App.StackConfigProperty[]}
+   */
   configProperties: DS.hasMany('App.StackConfigProperty'),
+
+  /**
+   * @type {App.ServiceConfigProperty[]}
+   */
   configs: [],
 
   /**
@@ -39,29 +80,47 @@ App.SubSection = DS.Model.extend({
     return this.get('configs').filterProperty('isValid', false).length;
   }.property('configs.@each.isValid'),
 
+  /**
+   * @type {boolean}
+   */
   isFirstRow: function () {
     return this.get('rowIndex') == 0;
-  }.property(),
+  }.property('rowIndex'),
 
+  /**
+   * @type {boolean}
+   */
   isMiddleRow: function () {
     return this.get('rowIndex') != 0 && (this.get('rowIndex') + this.get('rowSpan') < this.get('section.sectionRows'));
-  }.property(),
+  }.property('rowIndex', 'rowSpan', 'section.sectionRows'),
 
+  /**
+   * @type {boolean}
+   */
   isLastRow: function () {
     return this.get('rowIndex') + this.get('rowSpan') == this.get('section.sectionRows');
-  }.property(),
+  }.property('rowIndex', 'rowSpan', 'section.sectionRows'),
 
+  /**
+   * @type {boolean}
+   */
   isFirstColumn: function () {
     return this.get('columnIndex') == 0;
-  }.property(),
+  }.property('columnIndex'),
 
+  /**
+   * @type {boolean}
+   */
   isMiddleColumn: function () {
     return this.get('columnIndex') != 0 && (this.get('columnIndex') + this.get('columnSpan') < this.get('section.sectionColumns'));
-  }.property(),
+  }.property('columnIndex', 'columnSpan', 'section.sectionColumns'),
 
+  /**
+   * @type {boolean}
+   */
   isLastColumn: function () {
     return this.get('columnIndex') + this.get('columnSpan') == this.get('section.sectionColumns');
-  }.property()
+  }.property('columnIndex', 'columnSpan', 'section.sectionColumns')
 });
 
 

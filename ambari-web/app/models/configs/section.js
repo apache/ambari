@@ -19,16 +19,57 @@
 var App = require('app');
 
 App.Section = DS.Model.extend({
+
   id: DS.attr('string'),
+
+  /**
+   * @type {string}
+   */
   name: DS.attr('string'),
+
+  /**
+   * @type {string}
+   */
   displayName: DS.attr('string'),
+
+  /**
+   * @type {number}
+   */
   rowIndex: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   rowSpan: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   columnIndex: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   columnSpan: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   sectionColumns: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {number}
+   */
   sectionRows: DS.attr('number', {defaultValue: 1}),
+
+  /**
+   * @type {App.SubSection[]}
+   */
   subSections: DS.hasMany('App.SubSection'),
+
+  /**
+   * @type {App.Tab}
+   */
   tab: DS.belongsTo('App.Tab'),
 
   /**
@@ -40,29 +81,48 @@ App.Section = DS.Model.extend({
     return errors.length ? errors.reduce(Em.sum) : 0;
   }.property('subSections.@each.errorsCount'),
 
+  /**
+   * @type {boolean}
+   */
   isFirstRow: function () {
     return this.get('rowIndex') == 0;
-  }.property(),
+  }.property('rowIndex'),
 
+  /**
+   * @type {boolean}
+   */
   isMiddleRow: function () {
     return this.get('rowIndex') != 0 && (this.get('rowIndex') + this.get('rowSpan') < this.get('tab.rows'));
-  }.property(),
+  }.property('rowIndex', 'rowSpan', 'tab.rows'),
 
+  /**
+   * @type {boolean}
+   */
   isLastRow: function () {
     return this.get('rowIndex') + this.get('rowSpan') == this.get('tab.rows');
-  }.property(),
+  }.property('rowIndex', 'rowSpan', 'tab.rows'),
 
+  /**
+   * @type {boolean}
+   */
   isFirstColumn: function () {
     return this.get('columnIndex') == 0;
-  }.property(),
+  }.property('columnIndex'),
 
+  /**
+   * @type {boolean}
+   */
   isMiddleColumn: function () {
     return this.get('columnIndex') != 0 && (this.get('columnIndex') + this.get('columnSpan') < this.get('tab.columns'));
-  }.property(),
+  }.property('columnIndex', 'columnSpan', 'tab.columns'),
 
+  /**
+   * @type {boolean}
+   */
   isLastColumn: function () {
     return this.get('columnIndex') + this.get('columnSpan') == this.get('tab.columns');
-  }.property()
+  }.property('columnIndex', 'columnSpan', 'tab.columns')
+
 });
 
 
