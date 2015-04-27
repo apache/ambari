@@ -450,14 +450,17 @@ App.ConfigHistoryFlowView = Em.View.extend({
       primary: Em.I18n.t('common.save'),
       secondary: Em.I18n.t('common.cancel'),
       onSave: function () {
-        self.get('controller').set('serviceConfigVersionNote', this.get('serviceConfigNote'));
-        self.get('controller').set('serviceConfigNote', this.get('serviceConfigNote'))
         var newVersionToBeCreated = App.ServiceConfigVersion.find().filterProperty('serviceName', self.get('serviceName')).get('length') + 1;
-        self.get('controller').set('preSelectedConfigVersion', Em.Object.create({
-          version: newVersionToBeCreated,
-          serviceName: self.get('displayedServiceVersion.serviceName'),
-          groupName: self.get('controller.selectedConfigGroup.name')
-        }));
+        self.get('controller').setProperties({
+          saveConfigsFlag: true,
+          serviceConfigVersionNote: this.get('serviceConfigNote'),
+          serviceConfigNote: this.get('serviceConfigNote'),
+          preSelectedConfigVersion: Em.Object.create({
+            version: newVersionToBeCreated,
+            serviceName: self.get('displayedServiceVersion.serviceName'),
+            groupName: self.get('controller.selectedConfigGroup.name')
+          })
+        });
         self.get('controller').saveStepConfigs();
         this.hide();
       },
