@@ -27,15 +27,19 @@
               {{#each subRow in section.subsectionRows}}
                 <tr>
                   {{#each subsection in subRow}}
-                    <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.isFirstColumn::vertical-splitter :config-subsection subsection.isLastRow:no-horizontal-splitter" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
-                      <h5>{{subsection.displayName}}&nbsp;</h5>
-                      {{#each config in subsection.configs}}
-                        {{#if config.widget}}
-                          {{#unless config.isHiddenByFilter}}
-                            {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
-                          {{/unless}}
-                        {{/if}}
-                      {{/each}}
+                    <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.showTopSplitter:top-horizontal-splitter:no-horizontal-splitter :config-subsection" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
+                      <div {{bindAttr class="subsection.addLeftVerticalSplitter:vertical-splitter-l subsection.addRightVerticalSplitter:vertical-splitter-r"}}>
+                        <div {{bindAttr class="subsection.border:with-border"}}>
+                          <h5>{{subsection.displayName}}&nbsp;</h5>
+                          {{#each config in subsection.configs}}
+                            {{#if config.widget}}
+                              {{#unless config.isHiddenByFilter}}
+                                {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
+                              {{/unless}}
+                            {{/if}}
+                          {{/each}}
+                        </div>
+                      </div>
                     </td>
                   {{/each}}
                 </tr>

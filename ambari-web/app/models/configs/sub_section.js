@@ -83,6 +83,27 @@ App.SubSection = DS.Model.extend({
   /**
    * @type {boolean}
    */
+  addLeftVerticalSplitter: function() {
+    return !this.get('isFirstColumn');
+  }.property('isFirstColumn'),
+
+  /**
+   * @type {boolean}
+   */
+  addRightVerticalSplitter: function() {
+    return !this.get('isLastColumn');
+  }.property('isLastColumn'),
+
+  /**
+   * @type {boolean}
+   */
+  showTopSplitter: function() {
+    return !this.get('isFirstRow') && !this.get('border');
+  }.property('isFirstRow', 'border'),
+
+  /**
+   * @type {boolean}
+   */
   isFirstRow: function () {
     return this.get('rowIndex') == 0;
   }.property('rowIndex'),
