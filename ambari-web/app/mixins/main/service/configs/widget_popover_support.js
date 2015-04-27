@@ -48,7 +48,9 @@ App.WidgetPopoverSupport = Em.Mixin.create({
 
   initPopover: function () {
     if (this.get('isPopoverEnabled') !== false) {
+      var leftPopoverTemplate = '<div class="popover config-widget-left-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>';
       App.popover(this.$('.original-widget'), {
+        template: this.get('popoverPlacement') == 'left'? leftPopoverTemplate : undefined,
         title: Em.I18n.t('installer.controls.serviceConfigPopover.title').format(
           this.get('configLabel'),
           (this.get('configLabel') == this.get('config.name')) ? '' : this.get('config.name')
