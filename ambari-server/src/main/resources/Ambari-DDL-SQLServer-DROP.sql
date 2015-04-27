@@ -147,6 +147,8 @@ IF OBJECT_ID('request', 'U') IS NOT NULL DROP TABLE request
 GO
 IF OBJECT_ID('requestschedule', 'U') IS NOT NULL DROP TABLE requestschedule
 GO
+IF OBJECT_ID('serviceconfighosts', 'U') IS NOT NULL DROP TABLE serviceconfighosts
+GO
 IF OBJECT_ID('hoststate', 'U') IS NOT NULL DROP TABLE hoststate
 GO
 IF OBJECT_ID('hostcomponentdesiredstate', 'U') IS NOT NULL DROP TABLE hostcomponentdesiredstate
@@ -184,8 +186,6 @@ GO
 IF OBJECT_ID('alert_history', 'U') IS NOT NULL DROP TABLE alert_history
 GO
 IF OBJECT_ID('alert_definition', 'U') IS NOT NULL DROP TABLE alert_definition
-GO
-IF OBJECT_ID('serviceconfighosts', 'U') IS NOT NULL DROP TABLE serviceconfighosts
 GO
 IF OBJECT_ID('serviceconfigmapping', 'U') IS NOT NULL DROP TABLE serviceconfigmapping
 GO
