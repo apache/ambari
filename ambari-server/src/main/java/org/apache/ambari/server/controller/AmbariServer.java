@@ -261,7 +261,6 @@ public class AmbariServer {
       root.getServletContext().setAttribute(
           WebApplicationContext.ROOT_WEB_APPLICATION_CONTEXT_ATTRIBUTE,
           springWebAppContext);
-      handlerList.setSpringWebAppContext(springWebAppContext);
 
       certMan.initRootCert();
 

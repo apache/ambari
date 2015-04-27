@@ -48,6 +48,7 @@ public class ViewArchiveUtility {
    * Constants
    */
   private static final String VIEW_XML = "view.xml";
+  private static final String WEB_INF_VIEW_XML = "WEB-INF/classes/" + VIEW_XML;
   private static final String VIEW_XSD = "view.xsd";
 
 
@@ -66,7 +67,11 @@ public class ViewArchiveUtility {
       throws MalformedURLException, JAXBException {
     ClassLoader cl = URLClassLoader.newInstance(new URL[]{archiveFile.toURI().toURL()});
 
-    InputStream configStream      = cl.getResourceAsStream(VIEW_XML);
+    InputStream configStream = cl.getResourceAsStream(VIEW_XML);
+    if (configStream == null) {
+      configStream = cl.getResourceAsStream(WEB_INF_VIEW_XML);
+    }
+
     JAXBContext jaxbContext       = JAXBContext.newInstance(ViewConfig.class);
     Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 
@@ -89,6 +94,10 @@ public class ViewArchiveUtility {
       throws JAXBException, IOException, SAXException {
 
     File configFile = new File(archivePath + File.separator + VIEW_XML);
+
+    if (!configFile.exists()) {
+      configFile = new File(archivePath + File.separator + WEB_INF_VIEW_XML);
+    }
 
     if (validate) {
       validateConfig(new FileInputStream(configFile));

@@ -251,6 +251,28 @@
         <artifactId>jetty-webapp</artifactId>
         <version>7.6.7.v20120910</version>
       </dependency>
+      <!--jsp support for jetty -->
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jsp-api-2.1-glassfish</artifactId>
+        <version>2.1.v20100127</version>
+      </dependency>
+      <dependency>
+        <groupId>org.mortbay.jetty</groupId>
+        <artifactId>jsp-2.1-glassfish</artifactId>
+        <version>2.1.v20100127</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant</artifactId>
+        <version>1.7.1</version>
+      </dependency>
+      <dependency>
+        <groupId>org.apache.ant</groupId>
+        <artifactId>ant-launcher</artifactId>
+        <version>1.7.1</version>
+      </dependency>
+
       <dependency>
         <groupId>commons-logging</groupId>
         <artifactId>commons-logging</artifactId>
