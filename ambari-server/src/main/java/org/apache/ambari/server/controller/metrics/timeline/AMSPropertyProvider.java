@@ -42,6 +42,7 @@ import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -63,6 +64,16 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private final static ObjectReader timelineObjectReader;
   private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
   private static final int COLLECTOR_DEFAULT_PORT = 6188;
+  protected static enum AGGREGATE_FUNCTION_IDENTIFIER {
+    SUM,
+    MIN,
+    MAX,
+    AVG
+  }
+  protected static final EnumMap<AGGREGATE_FUNCTION_IDENTIFIER, String> aggregateFunctionIdentifierMap =
+    new EnumMap<AGGREGATE_FUNCTION_IDENTIFIER, String>(AGGREGATE_FUNCTION_IDENTIFIER.class);
+  // Map to store aggregate functions that apply to metrics.
+  protected Map<String, String> propertyIdAggregateFunctionMap = new HashMap<String, String>();
 
   static {
     TIMELINE_APPID_MAP.put(HBASE_MASTER.name(), "HBASE");
@@ -75,6 +86,11 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     //noinspection deprecation
     mapper.getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
     timelineObjectReader = mapper.reader(TimelineMetrics.class);
+
+    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.SUM, "._sum");
+    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.MIN, "._min");
+    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.MAX, "._max");
+    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.AVG, "._avg");
   }
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
@@ -243,8 +259,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
           if (timelineMetrics != null) {
             for (TimelineMetric metric : timelineMetrics.getMetrics()) {
               if (metric.getMetricName() != null
-                && metric.getMetricValues() != null
-                && checkMetricName(patterns, metric.getMetricName())) {
+                  && metric.getMetricValues() != null
+                  && checkMetricName(patterns, metric.getMetricName())) {
                 populateResource(resource, metric);
               }
             }
@@ -411,8 +427,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   public Set<Resource> populateResourcesWithProperties(Set<Resource> resources,
                Request request, Set<String> propertyIds) throws SystemException {
 
-    Map<String, Map<TemporalInfo, MetricsRequest>> requestMap =
-      getMetricsRequests(resources, request, propertyIds);
+    Map<String, Map<TemporalInfo, MetricsRequest>> requestMap = getMetricsRequests(resources, request, propertyIds);
 
     // For each cluster
     for (Map.Entry<String, Map<TemporalInfo, MetricsRequest>> clusterEntry : requestMap.entrySet()) {
@@ -421,6 +436,9 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         metricsRequest.populateResources();
       }
     }
+
+    // Clear function map
+    propertyIdAggregateFunctionMap.clear();
 
     return resources;
   }
@@ -497,8 +515,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
           String propertyId = entry.getKey();
           PropertyInfo propertyInfo = entry.getValue();
-
-          TemporalInfo temporalInfo = request.getTemporalInfo(id);
+          // For regex properties this propertyId != id
+          String amsPropertyId = getPropertyIdWithAggregateFunctionId(propertyInfo, id, false);
+          String ambariPropertyId = getPropertyIdWithAggregateFunctionId(propertyInfo, id, true);
+          TemporalInfo temporalInfo = request.getTemporalInfo(ambariPropertyId);
 
           if ((temporalInfo == null && propertyInfo.isPointInTime()) ||
             (temporalInfo != null && propertyInfo.isTemporal())) {
@@ -511,10 +531,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               requests.put(temporalInfo, metricsRequest);
             }
             metricsRequest.putResource(getHostName(resource), resource);
-            metricsRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
+            metricsRequest.putPropertyId(amsPropertyId, propertyId);
             // If request is for a host metric we need to create multiple requests
             if (propertyInfo.isAmsHostMetric()) {
-              metricsRequest.putHosComponentHostMetric(propertyInfo.getPropertyId());
+              metricsRequest.putHosComponentHostMetric(amsPropertyId);
             }
           }
         }
@@ -522,6 +542,22 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
 
     return requestMap;
+  }
+
+  /**
+   * Return a property Id with aggregate function identifier.
+   * @param propertyInfo @PropertyInfo
+   * @param propertyId Property Id from request / predicate
+   * @param ambariPropertyId True: Return ambari property id,
+   *                         else return id using PropertyInfo
+   */
+  private String getPropertyIdWithAggregateFunctionId(PropertyInfo propertyInfo,
+                                  String propertyId, boolean ambariPropertyId) {
+    if (propertyIdAggregateFunctionMap.containsKey(propertyId)) {
+      return (ambariPropertyId ? propertyId : propertyInfo.getPropertyId()) +
+        propertyIdAggregateFunctionMap.get(propertyId);
+    }
+    return ambariPropertyId ? propertyId : propertyInfo.getPropertyId();
   }
 
   static URIBuilder getAMSUriBuilder(String hostname, int port) {
