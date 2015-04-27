@@ -351,6 +351,7 @@ App.config = Em.Object.create({
         if (!this.getBySiteName(serviceConfigObj.get('filename')).someProperty('name', index)) {
           if (configsPropertyDef) {
             if (Em.get(configsPropertyDef, 'isRequiredByAgent') === false) {
+              configs.push(serviceConfigObj);
               continue;
             }
             this.handleSpecialProperties(serviceConfigObj);
