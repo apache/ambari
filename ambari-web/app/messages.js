@@ -2534,6 +2534,8 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.selectComponent': 'Select a Component',
   'dashboard.widgets.wizard.step2.selectMetric': 'Select a Metric',
   'dashboard.widgets.wizard.step2.addMetric': 'Add Metric',
+  'dashboard.widgets.wizard.step2.aggregateFunction': 'Aggregator Function',
+  'dashboard.widgets.wizard.step2.aggregateTooltip': 'This mathematical function will be applied to compute single value for selected metric across all host components',
 
   'restart.service.all': 'Restart All',
   'restart.service.all.affected': 'Restart All Affected',

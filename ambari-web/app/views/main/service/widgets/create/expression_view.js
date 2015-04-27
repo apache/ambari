@@ -165,9 +165,20 @@ App.WidgetWizardExpressionView = Em.View.extend({
       expression: this.get('expression'),
 
       /**
+       * @type {Array}
+       * @const
+       */
+      AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max'],
+
+      /**
        * @type {object|null}
        */
       selectedMetric: null,
+
+      /**
+       * @type {string|null}
+       */
+      aggregateFunction: null,
 
       /**
        * @type {Ember.View}
@@ -184,6 +195,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
           $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
             $(this).hasClass('keep-open') && e.stopPropagation();
           });
+          App.tooltip($('#' + this.get('elementId') + ' .aggregator-select'));
+          this.propertyDidChange('selectedComponent');
 
           $(".chosen-select").chosen({
             placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
@@ -205,18 +218,40 @@ App.WidgetWizardExpressionView = Em.View.extend({
          */
         selectedComponent: null,
 
-        showMore: Em.K,
+        /**
+         * @type {boolean}
+         */
+        showAggregateSelect: function () {
+          return Boolean(this.get('selectedComponent') && this.get('selectedComponent.level') === 'COMPONENT');
+        }.property('selectedComponent.level'),
 
+        /**
+         * select component
+         * @param {object} event
+         */
         selectComponents: function (event) {
           var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))
             .get('components').findProperty('id', event.context.get('id'));
           $('#add-metric-popup .component-select').removeClass('open');
 
           this.set('selectedComponent', component);
+          if (this.get('showAggregateSelect')) {
+            this.set('parentView.aggregateFunction', this.get('parentView.AGGREGATE_FUNCTIONS').objectAt(0));
+          } else {
+            this.set('parentView.aggregateFunction', null);
+          }
           this.set('parentView.selectedMetric', null);
           Em.run.next(function () {
             $('.chosen-select').trigger('chosen:updated');
           });
+        },
+
+        /**
+         * select aggregation function
+         * @param {object} event
+         */
+        selectAggregation: function(event) {
+          this.set('parentView.aggregateFunction', event.context);
         },
 
         /**
@@ -292,10 +327,15 @@ App.WidgetWizardExpressionView = Em.View.extend({
       }),
       primary: Em.I18n.t('common.add'),
       onPrimary: function () {
-        var data = this.get('expression.data');
-        var id = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) + 1 : 1;
-        var selectedMetric = this.get('selectedMetric');
+        var data = this.get('expression.data'),
+            id = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) + 1 : 1,
+            selectedMetric = this.get('selectedMetric'),
+            aggregateFunction = this.get('aggregateFunction');
+
         selectedMetric.set('id', id);
+        if (aggregateFunction && aggregateFunction !== 'avg') {
+          selectedMetric.set('metricPath', selectedMetric.get('metricPath') + '._' + aggregateFunction);
+        }
         data.pushObject(selectedMetric);
         this.hide();
       }
