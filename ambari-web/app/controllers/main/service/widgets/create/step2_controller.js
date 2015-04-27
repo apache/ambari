@@ -76,6 +76,13 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   widgetPropertiesViews: [],
 
   /**
+   * @type {boolean}
+   */
+  isEditWidget: function () {
+    return this.get('content.controllerName') === 'widgetEditController';
+  }.property('content.controllerName'),
+
+  /**
    * metrics filtered by type
    * @type {Array}
    */

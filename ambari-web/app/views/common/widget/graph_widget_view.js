@@ -84,15 +84,19 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     var validExpression = true,
       value = [],
       dataLinks = {},
-      dataLength = 0,
+      dataLength = -1,
       beforeCompute,
-      result = {};
+      result = {},
+      isDataCorrupted = false;
 
     //replace values with metrics data
     expression.match(this.get('VALUE_NAME_REGEX')).forEach(function (match) {
       if (metrics.someProperty('name', match)) {
         dataLinks[match] = metrics.findProperty('name', match).data;
-        dataLength = metrics.findProperty('name', match).data.length;
+        if (!isDataCorrupted) {
+          isDataCorrupted = (dataLength !== -1 && dataLength !== dataLinks[match].length);
+        }
+        dataLength = (dataLinks[match].length > dataLength) ? dataLinks[match].length : dataLength;
       } else {
         validExpression = false;
         console.error('Metrics with name "' + match + '" not found to compute expression');
@@ -100,6 +104,9 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     });
 
     if (validExpression) {
+      if (isDataCorrupted) {
+        this.adjustData(dataLinks, dataLength);
+      }
       for (var i = 0, timestamp; i < dataLength; i++) {
         beforeCompute = expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
           timestamp = dataLinks[match][i][1];
@@ -111,6 +118,32 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
 
     result['${' + expression + '}'] = value;
     return result;
+  },
+
+  /**
+   *  add missing points, with zero value, to series
+   *
+   * @param {object} dataLinks
+   * @param {number} length
+   */
+  adjustData: function(dataLinks, length) {
+    //series with full data taken as original
+    var original = [];
+    var substituteValue = 0;
+
+    for (var i in dataLinks) {
+      if (dataLinks[i].length === length) {
+        original = dataLinks[i];
+        break;
+      }
+    }
+    original.forEach(function(point, index) {
+      for (var i in dataLinks) {
+        if (!dataLinks[i][index] || dataLinks[i][index][1] !== point[1]) {
+          dataLinks[i].splice(index, 0, [substituteValue, point[1]]);
+        }
+      }
+    }, this);
   },
 
   /**

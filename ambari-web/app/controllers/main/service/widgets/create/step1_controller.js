@@ -54,6 +54,10 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
     });
   }.property('widgetType'),
 
+  /**
+   * choose widget type and proceed to the next step
+   * @param {object} event
+   */
   chooseOption: function (event) {
     this.set('widgetType', event.context);
     this.next();
