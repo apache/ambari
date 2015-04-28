@@ -353,6 +353,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
     putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env")
 
+    hmaster_host = self.getHostWithComponent("HBASE", "HBASE_MASTER", services, hosts)
+    if hmaster_host is not None:
+      host_ram = hmaster_host["Hosts"]["total_mem"]
+      putHbaseEnvPropertyAttributes('hbase_master_heapsize', 'maximum', max(1024, int(host_ram/1024)))
+
     rs_hosts = self.getHostsWithComponent("HBASE", "HBASE_REGIONSERVER", services, hosts)
     if rs_hosts is not None and len(rs_hosts) > 0:
       min_ram = rs_hosts[0]["Hosts"]["total_mem"]

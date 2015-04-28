@@ -1437,6 +1437,39 @@ class TestHDP22StackAdvisor(TestCase):
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
+    # Test hbase_master_heapsize maximum
+    hosts['items'][0]['Hosts']['host_name'] = 'host1'
+    services['services'].append({"StackServices":
+                          {"service_name" : "HBASE",
+                           "service_version" : "2.6.0.2.2"
+                           },
+                      "components":[
+                        {
+                          "href":"/api/v1/stacks/HDP/versions/2.2/services/HBASE/components/HBASE_MASTER",
+                          "StackServiceComponents":{
+                            "advertise_version":"true",
+                            "cardinality":"1+",
+                            "component_name":"HBASE_MASTER",
+                            "custom_commands":[],
+                            "display_name":"DataNode",
+                            "is_client":"false",
+                            "is_master":"false",
+                            "service_name":"HBASE",
+                            "stack_name":"HDP",
+                            "stack_version":"2.2",
+                            "hostnames":[
+                              "host1"
+                            ]
+                          },
+                          "dependencies":[]
+                        }]})
+    services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
+    expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
+    expected['hbase-site']['property_attributes'] = {'hbase.regionserver.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}}
+    expected['hbase-env']['property_attributes'] = {'hbase_master_heapsize': {'maximum': '49152'}}
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
 
   def test_recommendHDFSConfigurations(self):
     configurations = {

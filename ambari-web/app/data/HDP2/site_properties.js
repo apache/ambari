@@ -743,7 +743,7 @@ var hdp2properties = [
   {
     "id": "site property",
     "name": "hbase.hregion.majorcompaction",
-    "displayName": "HBase Region Major Compaction",
+    "displayName": "HBase Region Major Compaction Interval",
     "displayType": "int",
     "unit": "ms",
     "category": "HBASE_REGIONSERVER",
