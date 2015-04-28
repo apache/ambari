@@ -398,6 +398,7 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     this.set('registrationStartedAt', null);
     this.set('isHostsWarningsLoaded', false);
     this.set('stopChecking', false);
+    this.set('isSubmitDisabled', true);
     if (this.get('content.installOptions.manualInstall')) {
       this.startRegistration();
     } else {
