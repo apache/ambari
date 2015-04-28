@@ -794,38 +794,16 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
           throw new AmbariException(reason.toString());
         }
-        okToRemove.add(hostRequest);
-
-      } else {
-        // check if host exists (throws exception if not found)
-        clusters.getHost(hostName);
-
-        // delete host outright
-        Set<Cluster> clusterSet = clusters.getClustersForHost(hostName);
-        if (0 != clusterSet.size()) {
-          StringBuilder reason = new StringBuilder("Cannot remove host ")
-              .append(hostName)
-              .append(".  It belongs to clusters: ");
-          int i = 0;
-          for (Cluster c : clusterSet) {
-            if ((i++) > 0) {
-              reason.append(", ");
-            }
-            reason.append(c.getClusterName());
-          }
-          throw new AmbariException(reason.toString());
-        }
-        okToRemove.add(hostRequest);
       }
+      okToRemove.add(hostRequest);
     }
 
     for (HostRequest hostRequest : okToRemove) {
+      // Assume the user also wants to delete it entirely, including all clusters.
+      clusters.deleteHost(hostRequest.getHostname());
+
       if (null != hostRequest.getClusterName()) {
-        clusters.unmapHostFromCluster(hostRequest.getHostname(),
-            hostRequest.getClusterName());
         clusters.getCluster(hostRequest.getClusterName()).recalculateAllClusterVersionStates();
-      } else {
-        clusters.deleteHost(hostRequest.getHostname());
       }
     }
   }

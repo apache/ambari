@@ -1954,7 +1954,7 @@ public class ClusterImpl implements Cluster {
         }
       }
 
-      // TODO AMBARI-10679, need efficient caching from hostId to hostName
+      // TODO AMBARI-10679, need efficient caching from hostId to hostName...
       Map<Long, String> hostIdToName = new HashMap<Long, String>();
 
       if (!map.isEmpty()) {
@@ -1988,29 +1988,27 @@ public class ClusterImpl implements Cluster {
   public ServiceConfigVersionResponse createServiceConfigVersion(
       String serviceName, String user, String note, ConfigGroup configGroup) {
 
-    // create next service config version
+    // Create next service config version
     ServiceConfigEntity serviceConfigEntity = new ServiceConfigEntity();
 
-    // set config group
-    if (configGroup != null) {
-      serviceConfigEntity.setGroupId(configGroup.getId());
-      Collection<Config> configs = configGroup.getConfigurations().values();
-      List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>(configs.size());
-      for (Config config : configs) {
-        configEntities.add(clusterDAO.findConfig(getClusterId(), config.getType(), config.getTag()));
+    clusterGlobalLock.writeLock().lock();
+    try {
+      // set config group
+      if (configGroup != null) {
+        serviceConfigEntity.setGroupId(configGroup.getId());
+        Collection<Config> configs = configGroup.getConfigurations().values();
+        List<ClusterConfigEntity> configEntities = new ArrayList<ClusterConfigEntity>(configs.size());
+        for (Config config : configs) {
+          configEntities.add(clusterDAO.findConfig(getClusterId(), config.getType(), config.getTag()));
+        }
+
+        serviceConfigEntity.setClusterConfigEntities(configEntities);
+      } else {
+        List<ClusterConfigEntity> configEntities = getClusterConfigEntitiesByService(serviceName);
+        serviceConfigEntity.setClusterConfigEntities(configEntities);
       }
 
-      serviceConfigEntity.setClusterConfigEntities(configEntities);
-      serviceConfigEntity.setHostIds(new ArrayList<Long>(configGroup.getHosts().keySet()));
 
-    } else {
-      List<ClusterConfigEntity> configEntities = getClusterConfigEntitiesByService(serviceName);
-      serviceConfigEntity.setClusterConfigEntities(configEntities);
-    }
-
-    clusterGlobalLock.writeLock().lock();
-
-    try {
       long nextServiceConfigVersion = serviceConfigDAO.findNextServiceConfigVersion(
           clusterEntity.getClusterId(), serviceName);
 
@@ -2022,6 +2020,10 @@ public class ClusterImpl implements Cluster {
       serviceConfigEntity.setStack(clusterEntity.getDesiredStack());
 
       serviceConfigDAO.create(serviceConfigEntity);
+      if (configGroup != null) {
+        serviceConfigEntity.setHostIds(new ArrayList<Long>(configGroup.getHosts().keySet()));
+        serviceConfigDAO.merge(serviceConfigEntity);
+      }
     } finally {
       clusterGlobalLock.writeLock().unlock();
     }
@@ -2754,7 +2756,7 @@ public class ClusterImpl implements Cluster {
 
       clusterEntity = clusterDAO.merge(clusterEntity);
 
-      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigs(
+      List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(
           clusterId, stackId);
 
       // remove all service configurations

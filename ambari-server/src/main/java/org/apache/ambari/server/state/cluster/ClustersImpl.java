@@ -45,15 +45,18 @@ import org.apache.ambari.server.events.HostRemovedEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.dao.HostConfigMappingDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.HostStateDAO;
 import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
 import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.ServiceConfigDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
 import org.apache.ambari.server.orm.entities.ResourceEntity;
@@ -100,25 +103,33 @@ public class ClustersImpl implements Clusters {
   private volatile boolean clustersLoaded = false;
 
   @Inject
-  ClusterDAO clusterDAO;
+  private ClusterDAO clusterDAO;
   @Inject
-  HostDAO hostDAO;
+  private HostDAO hostDAO;
   @Inject
-  ClusterVersionDAO clusterVersionDAO;
+  private ClusterVersionDAO clusterVersionDAO;
   @Inject
-  HostVersionDAO hostVersionDAO;
+  private HostVersionDAO hostVersionDAO;
   @Inject
-  ResourceTypeDAO resourceTypeDAO;
+  private HostStateDAO hostStateDAO;
   @Inject
-  KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
+  private HostRoleCommandDAO hostRoleCommandDAO;
   @Inject
-  ClusterFactory clusterFactory;
+  private ResourceTypeDAO resourceTypeDAO;
   @Inject
-  HostFactory hostFactory;
+  private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
   @Inject
-  Configuration configuration;
+  private HostConfigMappingDAO hostConfigMappingDAO;
   @Inject
-  AmbariMetaInfo ambariMetaInfo;
+  private ServiceConfigDAO serviceConfigDAO;
+  @Inject
+  private ClusterFactory clusterFactory;
+  @Inject
+  private HostFactory hostFactory;
+  @Inject
+  private Configuration configuration;
+  @Inject
+  private AmbariMetaInfo ambariMetaInfo;
   @Inject
   private SecurityHelper securityHelper;
 
@@ -680,39 +691,45 @@ public class ClustersImpl implements Clusters {
   }
 
   @Override
-  public void unmapHostFromCluster(String hostname, String clusterName)
-      throws AmbariException {
+  public void unmapHostFromCluster(String hostname, String clusterName) throws AmbariException {
+    final Cluster cluster = getCluster(clusterName);
+    this.unmapHostFromClusters(hostname, new HashSet<Cluster>() {{ add(cluster); }});
+  }
+
+  public void unmapHostFromClusters(String hostname, Set<Cluster> clusters) throws AmbariException {
     Host host = null;
-    Cluster cluster = null;
     HostEntity hostEntity = null;
 
     checkLoaded();
+    if (clusters.isEmpty()) {
+      return;
+    }
 
     r.lock();
     try {
       host = getHost(hostname);
-      cluster = getCluster(clusterName);
       hostEntity = hostDAO.findByName(hostname);
     } finally {
       r.unlock();
     }
 
-    long clusterId = cluster.getClusterId();
-    if (LOG.isDebugEnabled()) {
-      LOG.debug("Unmapping host {} from cluster {} (id={})", hostname,
-          clusterName, clusterId);
-    }
-
     w.lock();
-
     try {
-      unmapHostClusterEntities(hostname, cluster.getClusterId());
+      for (Cluster cluster : clusters) {
+        long clusterId = cluster.getClusterId();
+        if (LOG.isDebugEnabled()) {
+          LOG.debug("Unmapping host {} from cluster {} (id={})", hostname,
+              cluster.getClusterName(), clusterId);
+        }
 
-      hostClusterMap.get(hostname).remove(cluster);
-      clusterHostMap.get(clusterName).remove(host);
+        unmapHostClusterEntities(hostname, cluster.getClusterId());
 
-      host.refresh();
-      cluster.refresh();
+        hostClusterMap.get(hostname).remove(cluster);
+        clusterHostMap.get(cluster.getClusterName()).remove(host);
+
+        host.refresh();
+        cluster.refresh();
+      }
 
       deleteConfigGroupHostMapping(hostEntity.getHostId());
 
@@ -745,12 +762,19 @@ public class ClustersImpl implements Clusters {
     }
   }
 
+  /***
+   * Delete a host entirely from the cluster and all database tables, except AlertHistory.
+   * If the host is not found, throws {@link org.apache.ambari.server.HostNotFoundException}
+   * @param hostname
+   * @throws AmbariException
+   */
   @Override
+  @Transactional
   public void deleteHost(String hostname) throws AmbariException {
     checkLoaded();
 
     if (!hosts.containsKey(hostname)) {
-      return;
+      throw new HostNotFoundException("Could not find host " + hostname);
     }
 
     w.lock();
@@ -761,26 +785,33 @@ public class ClustersImpl implements Clusters {
       if (entity == null) {
         return;
       }
-
-      deleteConfigGroupHostMapping(entity.getHostId());
-
-      Collection<HostVersionEntity> hostVersions = hosts.get(hostname).getAllHostVersions();
-      for (HostVersionEntity hostVersion : hostVersions) {
-        hostVersionDAO.remove(hostVersion);
-      }
-
+      // Remove from all clusters in the cluster_host_mapping table.
+      // This will also remove from kerberos_principal_hosts, hostconfigmapping, and configgrouphostmapping 
+      Set<Cluster> clusters = hostClusterMap.get(hostname);
+      this.unmapHostFromClusters(hostname, clusters);
       hostDAO.refresh(entity);
-      hostDAO.remove(entity);
+
+      hostVersionDAO.removeByHostName(hostname);
+      entity.setHostRoleCommandEntities(null);
+      hostRoleCommandDAO.removeByHostId(entity.getHostId());
+
+      entity.setHostStateEntity(null);
+      hostStateDAO.removeByHostId(entity.getHostId());
+      hostConfigMappingDAO.removeByHostId(entity.getHostId());
+      serviceConfigDAO.removeHostFromServiceConfigs(entity.getHostId());
+
+      // Remove from dictionaries
       hosts.remove(hostname);
       hostsById.remove(entity.getHostId());
 
-      // Remove mapping of principals to deleted host
-      kerberosPrincipalHostDAO.removeByHost(entity.getHostId());
+      hostDAO.remove(entity);
 
-      // publish the event
+      // Publish the event
       HostRemovedEvent event = new HostRemovedEvent(hostname);
       eventPublisher.publish(event);
-
+      
+      // Note, if the host is still heartbeating, then new records will be re-inserted
+      // into the hosts and hoststate tables
     } catch (Exception e) {
       throw new AmbariException("Could not remove host", e);
     } finally {

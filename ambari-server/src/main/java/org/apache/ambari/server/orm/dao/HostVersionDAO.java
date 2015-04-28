@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.util.Collection;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -211,6 +212,14 @@ public class HostVersionDAO {
   @Transactional
   public void remove(HostVersionEntity hostVersionEntity) {
     entityManagerProvider.get().remove(merge(hostVersionEntity));
+  }
+
+  @Transactional
+  public void removeByHostName(String hostName) {
+    Collection<HostVersionEntity> hostVersions = this.findByHost(hostName);
+    for (HostVersionEntity hostVersion : hostVersions) {
+      this.remove(hostVersion);
+    }
   }
 
   @Transactional

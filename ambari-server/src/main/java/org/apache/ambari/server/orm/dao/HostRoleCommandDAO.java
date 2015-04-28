@@ -32,6 +32,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.HostEntity;
@@ -112,6 +113,16 @@ public class HostRoleCommandDAO {
     }
 
     return daoUtils.selectList(query, taskIds);
+  }
+
+  @RequiresSession
+  public List<HostRoleCommandEntity> findByHostId(Long hostId) {
+    TypedQuery<HostRoleCommandEntity> query = entityManagerProvider.get().createNamedQuery(
+        "HostRoleCommandEntity.findByHostId",
+        HostRoleCommandEntity.class);
+
+    query.setParameter("hostId", hostId);
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
@@ -360,6 +371,14 @@ public class HostRoleCommandDAO {
   public HostRoleCommandEntity merge(HostRoleCommandEntity stageEntity) {
     HostRoleCommandEntity entity = entityManagerProvider.get().merge(stageEntity);
     return entity;
+  }
+
+  @Transactional
+  public void removeByHostId(Long hostId) {
+    Collection<HostRoleCommandEntity> commands = this.findByHostId(hostId);
+    for (HostRoleCommandEntity cmd : commands) {
+      this.remove(cmd);
+    }
   }
 
   @Transactional

@@ -545,9 +545,11 @@ public class HostImpl implements Host {
 
       HostStateEntity hostStateEntity = getHostStateEntity();
 
-      hostStateEntity.setCurrentState(state);
-      hostStateEntity.setTimeInState(System.currentTimeMillis());
-      saveIfPersisted();
+      if (hostStateEntity != null) {
+        hostStateEntity.setCurrentState(state);
+        hostStateEntity.setTimeInState(System.currentTimeMillis());
+        saveIfPersisted();
+      }
     }
     finally {
       writeLock.unlock();
@@ -765,7 +767,8 @@ public class HostImpl implements Host {
   public long getAvailableMemBytes() {
     try {
       readLock.lock();
-      return getHostStateEntity().getAvailableMem();
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      return hostStateEntity != null ? hostStateEntity.getAvailableMem() : null;
     }
     finally {
       readLock.unlock();
@@ -776,8 +779,11 @@ public class HostImpl implements Host {
   public void setAvailableMemBytes(long availableMemBytes) {
     try {
       writeLock.lock();
-      getHostStateEntity().setAvailableMem(availableMemBytes);
-      saveIfPersisted();
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        getHostStateEntity().setAvailableMem(availableMemBytes);
+        saveIfPersisted();
+      }
     }
     finally {
       writeLock.unlock();
@@ -897,8 +903,11 @@ public class HostImpl implements Host {
   public HostHealthStatus getHealthStatus() {
     try {
       readLock.lock();
-      return gson.fromJson(getHostStateEntity().getHealthStatus(),
-          HostHealthStatus.class);
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        return gson.fromJson(hostStateEntity.getHealthStatus(), HostHealthStatus.class);
+      }
+      return null;
     } finally {
       readLock.unlock();
     }
@@ -908,13 +917,16 @@ public class HostImpl implements Host {
   public void setHealthStatus(HostHealthStatus healthStatus) {
     try {
       writeLock.lock();
-      getHostStateEntity().setHealthStatus(gson.toJson(healthStatus));
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        hostStateEntity.setHealthStatus(gson.toJson(healthStatus));
 
-      if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN)) {
-        setStatus(HealthStatus.UNKNOWN.name());
+        if (healthStatus.getHealthStatus().equals(HealthStatus.UNKNOWN)) {
+          setStatus(HealthStatus.UNKNOWN.name());
+        }
+
+        saveIfPersisted();
       }
-
-      saveIfPersisted();
     } finally {
       writeLock.unlock();
     }
@@ -1031,8 +1043,12 @@ public class HostImpl implements Host {
   public AgentVersion getAgentVersion() {
     try {
       readLock.lock();
-      return gson.fromJson(getHostStateEntity().getAgentVersion(),
-          AgentVersion.class);
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        return gson.fromJson(getHostStateEntity().getAgentVersion(),
+            AgentVersion.class);
+      }
+      return null;
     }
     finally {
       readLock.unlock();
@@ -1043,8 +1059,11 @@ public class HostImpl implements Host {
   public void setAgentVersion(AgentVersion agentVersion) {
     try {
       writeLock.lock();
-      getHostStateEntity().setAgentVersion(gson.toJson(agentVersion));
-      saveIfPersisted();
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        getHostStateEntity().setAgentVersion(gson.toJson(agentVersion));
+        saveIfPersisted();
+      }
     }
     finally {
       writeLock.unlock();
@@ -1053,15 +1072,19 @@ public class HostImpl implements Host {
 
   @Override
   public long getTimeInState() {
-    return getHostStateEntity().getTimeInState();
+    HostStateEntity hostStateEntity = getHostStateEntity();
+    return hostStateEntity != null ? hostStateEntity.getTimeInState() :  null;
   }
 
   @Override
   public void setTimeInState(long timeInState) {
     try {
       writeLock.lock();
-      getHostStateEntity().setTimeInState(timeInState);
-      saveIfPersisted();
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        getHostStateEntity().setTimeInState(timeInState);
+        saveIfPersisted();
+      }
     }
     finally {
       writeLock.unlock();
@@ -1335,14 +1358,17 @@ public class HostImpl implements Host {
 
   private void ensureMaintMap() {
     if (null == maintMap) {
-      String entity = getHostStateEntity().getMaintenanceState();
-      if (null == entity) {
-        maintMap = new HashMap<Long, MaintenanceState>();
-      } else {
-        try {
-          maintMap = gson.fromJson(entity, maintMapType);
-        } catch (Exception e) {
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        String entity = hostStateEntity.getMaintenanceState();
+        if (null == entity) {
           maintMap = new HashMap<Long, MaintenanceState>();
+        } else {
+          try {
+            maintMap = gson.fromJson(entity, maintMapType);
+          } catch (Exception e) {
+            maintMap = new HashMap<Long, MaintenanceState>();
+          }
         }
       }
     }
@@ -1358,12 +1384,15 @@ public class HostImpl implements Host {
       maintMap.put(clusterId, state);
       String json = gson.toJson(maintMap, maintMapType);
 
-      getHostStateEntity().setMaintenanceState(json);
-      saveIfPersisted();
+      HostStateEntity hostStateEntity = getHostStateEntity();
+      if (hostStateEntity != null) {
+        getHostStateEntity().setMaintenanceState(json);
+        saveIfPersisted();
 
-      // broadcast the maintenance mode change
-      MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
-      eventPublisher.publish(event);
+        // broadcast the maintenance mode change
+        MaintenanceModeEvent event = new MaintenanceModeEvent(state, this);
+        eventPublisher.publish(event);
+      }
     } finally {
       writeLock.unlock();
     }

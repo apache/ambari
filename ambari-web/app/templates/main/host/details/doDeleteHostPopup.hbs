@@ -39,4 +39,14 @@
   {{/if}}
   {{t hosts.delete.popup.body.msg1}}
 </div>
+
+{{#unless unknownComponents}}
+  <div class='alert'>
+  <!-- Agent is still online, so host record will be re-inserted on next heartbeat. -->
+  {{t hosts.delete.popup.body.msg5}}
+  <span style="color: red;">{{t hosts.delete.popup.body.msg6}}</span>
+  </div>
+{{/unless}}
+
+
 <div class='alert'>{{{t common.important}}} {{t hosts.delete.popup.body.msg3}}</div>

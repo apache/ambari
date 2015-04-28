@@ -298,10 +298,10 @@ public class ServiceConfigDAOTest {
 
     long clusterId = serviceConfigEntity.getClusterId();
 
-    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigs(clusterId, HDP_01);
+    List<ServiceConfigEntity> serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_01);
     Assert.assertEquals(4, serviceConfigs.size());
 
-    serviceConfigs = serviceConfigDAO.getAllServiceConfigs(clusterId, HDP_02);
+    serviceConfigs = serviceConfigDAO.getAllServiceConfigsForClusterAndStack(clusterId, HDP_02);
     Assert.assertEquals(0, serviceConfigs.size());
   }
 

@@ -251,10 +251,10 @@ public class AmbariManagementControllerTest {
   }
 
   private void addHost(String hostname) throws AmbariException {
-    addHost(hostname, null);
+    addHostToCluster(hostname, null);
   }
 
-  private void addHost(String hostname, String clusterName) throws AmbariException {
+  private void addHostToCluster(String hostname, String clusterName) throws AmbariException {
     clusters.addHost(hostname);
     setOsFamily(clusters.getHost(hostname), "redhat", "6.3");
     clusters.getHost(hostname).setState(HostState.HEALTHY);
@@ -1122,8 +1122,8 @@ public class AmbariManagementControllerTest {
       // Expected
     }
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     try {
       createServiceComponentHost(clusterName, serviceName, componentName1,
@@ -1207,8 +1207,8 @@ public class AmbariManagementControllerTest {
         State.INIT);
     String host1 = "h1";
     String host2 = "h2";
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -2502,8 +2502,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -2635,7 +2635,7 @@ public class AmbariManagementControllerTest {
     controller.createCluster(r);
     Cluster c1 = clusters.getCluster(clusterName);
     for (String host : hosts) {
-      addHost(host, clusterName);
+      addHostToCluster(host, clusterName);
     }
     return c1;
   }
@@ -3018,8 +3018,8 @@ public class AmbariManagementControllerTest {
         State.INIT);
     String host1 = "h1";
     String host2 = "h2";
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3257,8 +3257,8 @@ public class AmbariManagementControllerTest {
         State.INIT);
     String host1 = "h1";
     String host2 = "h2";
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3447,8 +3447,8 @@ public class AmbariManagementControllerTest {
         State.INIT);
     String host1 = "h1";
     String host2 = "h2";
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     Set<ServiceComponentHostRequest> set1 =
@@ -3618,8 +3618,8 @@ public class AmbariManagementControllerTest {
         State.INIT);
     String host1 = "h1";
     String host2 = "h2";
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -3768,8 +3768,8 @@ public class AmbariManagementControllerTest {
         State.INIT);
     String host1 = "h1";
     String host2 = "h2";
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =
         new HashSet<ServiceComponentHostRequest>();
@@ -4620,8 +4620,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
@@ -4694,8 +4694,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     // null service should work
@@ -4894,8 +4894,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     // null service should work
@@ -5042,8 +5042,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     // null service should work
@@ -5209,9 +5209,9 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     String host3 = "h3";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
-    addHost(host3, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    addHostToCluster(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName1, componentName1,
       host1, null);
@@ -5376,8 +5376,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -5460,8 +5460,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -5558,9 +5558,9 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     String host3 = "h3";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
-    addHost(host3, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    addHostToCluster(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -5696,9 +5696,9 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     String host3 = "h3";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
-    addHost(host3, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    addHostToCluster(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -5801,9 +5801,9 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     String host3 = "h3";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
-    addHost(host3, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    addHostToCluster(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -5866,9 +5866,9 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     String host3 = "h3";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
-    addHost(host3, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    addHostToCluster(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -5923,8 +5923,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName,
       host1, null);
@@ -5981,8 +5981,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
       host1, null);
@@ -6368,8 +6368,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     // null service should work
@@ -6450,8 +6450,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
 
     // null service should work
@@ -6523,8 +6523,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -6594,9 +6594,9 @@ public class AmbariManagementControllerTest {
     String host2 = "h2";
     String host3 = "h3";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
-    addHost(host3, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    addHostToCluster(host3, clusterName);
 
     createServiceComponentHost(clusterName, serviceName1, componentName1,
       host1, null);
@@ -6755,8 +6755,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1,
         host1, null);
@@ -6857,8 +6857,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     // null service should work
     createServiceComponentHost(clusterName, null, componentName1,
@@ -7194,8 +7194,8 @@ public class AmbariManagementControllerTest {
     createService(clusterName, serviceName, State.INIT);
     createServiceComponent(clusterName, serviceName, componentName, null);
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, null, componentName,
         host1, null);
@@ -7371,8 +7371,8 @@ public class AmbariManagementControllerTest {
     createService(clusterName, pigServiceName, State.INIT);
     createServiceComponent(clusterName, pigServiceName, pigComponentName, null);
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, null, pigComponentName,
         host1, null);
@@ -7646,8 +7646,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -7922,8 +7922,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     Map<String, String> mapRequestProps = new HashMap<String, String>();
     mapRequestProps.put("context", "Called from a test");
@@ -8020,7 +8020,7 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName1, componentName2, State.INIT);
     createServiceComponent(clusterName, serviceName1, componentName3, State.INIT);
     String host1 = "h1";
-    addHost(host1, clusterName);
+    addHostToCluster(host1, clusterName);
 
     Set<ServiceComponentHostRequest> set1 =  new HashSet<ServiceComponentHostRequest>();
     ServiceComponentHostRequest r1 = new ServiceComponentHostRequest(clusterName, serviceName1,
@@ -8302,7 +8302,7 @@ public class AmbariManagementControllerTest {
 
     String host1 = "h1";
 
-    addHost(host1, clusterName);
+    addHostToCluster(host1, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
@@ -8376,25 +8376,22 @@ public class AmbariManagementControllerTest {
     createServiceComponent(clusterName, serviceName, componentName2, State.INIT);
     createServiceComponent(clusterName, serviceName, componentName3, State.INIT);
 
-    String host1 = "h1";
+    String host1 = "h1";  // Host will belong to the cluster and contain components
+    String host2 = "h2";  // Host will belong to the cluster and not contain any components
 
-    String host2 = "h2";
-    clusters.addHost(host2);
-    setOsFamily(clusters.getHost("h2"), "redhat", "6.3");
-    clusters.getHost("h2").persist();
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
+    String host3 = "h3";  // Host is not registered
 
-    String host3 = "h3";
-
-    addHost(host1, clusterName);
-
-    createServiceComponentHost(clusterName, null, componentName1, host1, null);
+    // Add components to host1
+    createServiceComponentHost(clusterName, serviceName, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName3, host1, null);
 
     // Install
     installService(clusterName, serviceName, false, false);
 
-    // make them believe they are up
+    // Treat host components on host1 as up and healthy
     Map<String, ServiceComponentHost> hostComponents = cluster.getService(serviceName).getServiceComponent(componentName1).getServiceComponentHosts();
     for (Map.Entry<String, ServiceComponentHost> entry : hostComponents.entrySet()) {
       ServiceComponentHost cHost = entry.getValue();
@@ -8408,23 +8405,24 @@ public class AmbariManagementControllerTest {
       cHost.handleEvent(new ServiceComponentHostOpSucceededEvent(cHost.getServiceComponentName(), cHost.getHostName(), System.currentTimeMillis()));
     }
 
+    // Case 1: Attempt delete when components still exist
     Set<HostRequest> requests = new HashSet<HostRequest>();
-    // delete from cluster
     requests.clear();
     requests.add(new HostRequest(host1, clusterName, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
-      fail("Expect failure deleting hosts when components exist.");
+      fail("Expect failure deleting hosts when components exist and have not been deleted.");
     } catch (Exception e) {
     }
 
+    // Case 2: Delete host that is still part of cluster, but do not specify the cluster_name in the request
     Set<ServiceComponentHostRequest> schRequests = new HashSet<ServiceComponentHostRequest>();
-    // disable HC for non-clients
+    // Disable HC for non-clients
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, "DISABLED"));
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, "DISABLED"));
     updateHostComponents(schRequests, new HashMap<String,String>(), false);
 
-    // delete HC
+    // Delete HC
     schRequests.clear();
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName1, host1, null));
     schRequests.add(new ServiceComponentHostRequest(clusterName, serviceName, componentName2, host1, null));
@@ -8433,30 +8431,42 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals(0, cluster.getServiceComponentHosts(host1).size());
 
-    // delete, which should fail since it is part of a cluster
+    // Deletion without specifying cluster should be successful
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
     try {
       HostResourceProviderTest.deleteHosts(controller, requests);
-      fail("Expect failure when removing from host when it is part of a cluster.");
     } catch (Exception e) {
+      fail("Did not expect an error deleting the host from the cluster. Error: " + e.getMessage());
     }
-
-    // delete host from cluster
-    requests.clear();
-    requests.add(new HostRequest(host1, clusterName, null));
-    HostResourceProviderTest.deleteHosts(controller, requests);
-
-    // host is no longer part of the cluster
+    // Verify host is no longer part of the cluster
     Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host1));
     Assert.assertFalse(clusters.getClustersForHost(host1).contains(cluster));
 
-    // delete entirely
+
+    // Case 3: Delete host that is still part of the cluster, and specify the cluster_name in the request
+    requests.clear();
+    requests.add(new HostRequest(host2, clusterName, null));
+    try {
+      HostResourceProviderTest.deleteHosts(controller, requests);
+    } catch (Exception e) {
+      fail("Did not expect an error deleting the host from the cluster. Error: " + e.getMessage());
+    }
+    // Verify host is no longer part of the cluster
+    Assert.assertFalse(clusters.getHostsForCluster(clusterName).containsKey(host2));
+    Assert.assertFalse(clusters.getClustersForHost(host2).contains(cluster));
+
+    // Case 4: Attempt to delete a host that has already been deleted
     requests.clear();
     requests.add(new HostRequest(host1, null, null));
-    HostResourceProviderTest.deleteHosts(controller, requests);
+    try {
+      HostResourceProviderTest.deleteHosts(controller, requests);
+      Assert.fail("Expected a HostNotFoundException trying to remove a host that was already deleted.");
+    } catch (HostNotFoundException e) {
+      // expected
+    }
 
-    // verify host does not exist
+    // Verify host does not exist
     try {
       clusters.getHost(host1);
       Assert.fail("Expected a HostNotFoundException.");
@@ -8464,20 +8474,7 @@ public class AmbariManagementControllerTest {
       // expected
     }
 
-    // remove host2
-    requests.clear();
-    requests.add(new HostRequest(host2, null, null));
-    HostResourceProviderTest.deleteHosts(controller, requests);
-
-    // verify host does not exist
-    try {
-      clusters.getHost(host2);
-      Assert.fail("Expected a HostNotFoundException.");
-    } catch (HostNotFoundException e) {
-      // expected
-    }
-
-    // try removing a host that never existed
+    // Case 5: Attempt to delete a host that was never added to the cluster
     requests.clear();
     requests.add(new HostRequest(host3, null, null));
     try {
@@ -8486,7 +8483,6 @@ public class AmbariManagementControllerTest {
     } catch (HostNotFoundException e) {
       // expected
     }
-
   }
 
   @Test
@@ -8557,7 +8553,7 @@ public class AmbariManagementControllerTest {
 
     String host1 = "h1";
 
-    addHost(host1, clusterName);
+    addHostToCluster(host1, clusterName);
 
     createServiceComponentHost(clusterName, null, componentName1, host1, null);
     createServiceComponentHost(clusterName, serviceName, componentName2, host1, null);
@@ -9587,7 +9583,7 @@ public class AmbariManagementControllerTest {
 
     String host1 = "h1";
 
-    addHost(host1, clusterName);
+    addHostToCluster(host1, clusterName);
     createServiceComponentHost(clusterName, hdfsService, namenode, host1, null);
     createServiceComponentHost(clusterName, hdfsService, datanode, host1, null);
     createServiceComponentHost(clusterName, fakeMonitoringService, fakeServer, host1,
@@ -9639,7 +9635,7 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
+    addHostToCluster(host1, clusterName);
     createServiceComponentHost(clusterName, hdfsService, namenode, host1, null);
     createServiceComponentHost(clusterName, hdfsService, datanode, host1, null);
     createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host1,
@@ -9653,7 +9649,7 @@ public class AmbariManagementControllerTest {
     }
     assertFalse(zookeeperSch.isRestartRequired());
 
-    addHost(host2, clusterName);
+    addHostToCluster(host2, clusterName);
     createServiceComponentHost(clusterName, zookeeperService, zookeeperServer, host2, null);
 
     assertFalse(zookeeperSch.isRestartRequired());  //No restart required if adding host
@@ -9685,8 +9681,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName, componentName1, host1,
         null);
@@ -9918,8 +9914,8 @@ public class AmbariManagementControllerTest {
     String host1 = "h1";
     String host2 = "h2";
 
-    addHost(host1, clusterName);
-    addHost(host2, clusterName);
+    addHostToCluster(host1, clusterName);
+    addHostToCluster(host2, clusterName);
 
     createServiceComponentHost(clusterName, serviceName1, componentName1_1, host1, null);
     createServiceComponentHost(clusterName, serviceName1, componentName1_2, host1, null);
@@ -10436,8 +10432,6 @@ public class AmbariManagementControllerTest {
     return HostComponentResourceProviderTest.updateHostComponents(
         controller, injector, requests, requestProperties, runSmokeTest);
   }
-
-
 }
 
 

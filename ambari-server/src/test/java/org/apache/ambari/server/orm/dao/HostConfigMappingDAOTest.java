@@ -181,7 +181,7 @@ public class HostConfigMappingDAOTest {
     createEntity(1L, "h1", "global", "version1");
 
     HostEntity hostEntity = hostDAO.findByName("h1");
-    hostConfigMappingDAO.removeHost(1L, "h1");
+    hostConfigMappingDAO.removeByClusterAndHostName(1L, "h1");
     HostConfigMapping target = hostConfigMappingDAO.findSelectedByType(1L, hostEntity.getHostId(), "core-site");
     
     Assert.assertEquals(null, target);

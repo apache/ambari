@@ -21,6 +21,8 @@ import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.IdClass;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.Table;
 
 /**
@@ -29,6 +31,12 @@ import javax.persistence.Table;
 @Table(name = "hostconfigmapping")
 @Entity
 @IdClass(HostConfigMappingEntityPK.class)
+@NamedQueries({
+    @NamedQuery(name = "HostConfigMappingEntity.findAll",
+        query = "SELECT entity FROM HostConfigMappingEntity entity"),
+    @NamedQuery(name = "HostConfigMappingEntity.findByHostId",
+        query = "SELECT entity FROM HostConfigMappingEntity entity WHERE entity.hostId = :hostId")
+})
 public class HostConfigMappingEntity {
 
   @Id

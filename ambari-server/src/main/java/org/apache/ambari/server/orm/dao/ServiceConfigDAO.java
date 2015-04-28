@@ -32,6 +32,7 @@ import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Root;
 
 import org.apache.ambari.server.orm.RequiresSession;
+import org.apache.ambari.server.orm.cache.ConfigGroupHostMapping;
 import org.apache.ambari.server.orm.entities.ServiceConfigEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.StackId;
@@ -40,6 +41,8 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.Predicate;
 
 @Singleton
 public class ServiceConfigDAO {
@@ -128,7 +131,7 @@ public class ServiceConfigDAO {
    * @return all service configurations for the cluster and stack.
    */
   @RequiresSession
-  public List<ServiceConfigEntity> getAllServiceConfigs(Long clusterId,
+  public List<ServiceConfigEntity> getAllServiceConfigsForClusterAndStack(Long clusterId,
       StackId stackId) {
 
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),
@@ -191,6 +194,11 @@ public class ServiceConfigDAO {
     return daoUtils.selectSingle(query, clusterId, serviceName);
   }
 
+  /**
+   * Get all service configs for the given cluster.
+   * @param clusterId Cluster Id
+   * @return Collection of service configs in the given cluster.
+   */
   @RequiresSession
   public List<ServiceConfigEntity> getServiceConfigs(Long clusterId) {
     TypedQuery<ServiceConfigEntity> query = entityManagerProvider.get()
@@ -199,6 +207,15 @@ public class ServiceConfigDAO {
         "ORDER BY scv.createTimestamp DESC", ServiceConfigEntity.class);
 
     return daoUtils.selectList(query, clusterId);
+  }
+
+  /**
+   * Get all service configs
+   * @return Collection of all service configs.
+   */
+  @RequiresSession
+  public List<ServiceConfigEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), ServiceConfigEntity.class);
   }
 
   /**
@@ -220,6 +237,24 @@ public class ServiceConfigDAO {
     query.setParameter("serviceName", serviceName);
 
     return daoUtils.selectSingle(query).longValue();
+  }
+
+  @Transactional
+  public void removeHostFromServiceConfigs(final Long hostId) {
+    List<ServiceConfigEntity> allServiceConfigs = this.findAll();
+    for (ServiceConfigEntity serviceConfigEntity : allServiceConfigs) {
+      List<Long> hostIds = serviceConfigEntity.getHostIds();
+      if (hostIds != null && hostIds.contains(hostId)) {
+        // Remove the hostId
+        CollectionUtils.filter(hostIds, new Predicate() {
+          @Override
+          public boolean evaluate(Object arg0) {
+            return !((Long) arg0).equals(hostId);
+          }
+        });
+        serviceConfigEntity.setHostIds(hostIds);
+      }
+    }
   }
 
   @Transactional

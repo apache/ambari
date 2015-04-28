@@ -2214,6 +2214,8 @@ Em.I18n.translations = {
   'hosts.delete.popup.body.msg1':'By removing this host, Ambari will ignore future communications from this host. Software packages will not be removed from the host. The components on the host should not be restarted. If you wish to readd this host to the cluster, be sure to clean the host.',
   'hosts.delete.popup.body.msg3':'If this host was hosting a Zookeeper Server, the Zookeeper Service should be restarted. Go to the <i>Services</i> page.',
   'hosts.delete.popup.body.msg4':'<b>WARNING!</b> Delete the last <i>{0}</i> component[s] in the cluster?</br>Deleting the last components in the cluster could result in permanent loss of service data.',
+  'hosts.delete.popup.body.msg5':'<b>WARNING!</b> The agent is still heartbeating so the Host will still exist in the database.',
+  'hosts.delete.popup.body.msg6':'To completely delete the Host, first stop ambari-agent on it.',
   'hosts.delete.popup.body.msg.unknownComponents':'This host does not appear to be online and Ambari communication with the Agent has been lost.',
   'hosts.delete.popup.header':'Confirmation',
   'hosts.delete.popup.title':'Delete Host',

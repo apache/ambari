@@ -27,12 +27,19 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToOne;
 
 import org.apache.ambari.server.state.HostState;
 
 @javax.persistence.Table(name = "hoststate")
 @Entity
+@NamedQueries({
+    @NamedQuery(name = "hostStateByHostId", query =
+        "SELECT hostState FROM HostStateEntity hostState " +
+            "WHERE hostState.hostId=:hostId"),
+})
 public class HostStateEntity {
   
   @javax.persistence.Column(name = "host_id", nullable = false, insertable = false, updatable = false)
