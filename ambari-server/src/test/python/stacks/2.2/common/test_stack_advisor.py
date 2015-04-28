@@ -1406,6 +1406,8 @@ class TestHDP22StackAdvisor(TestCase):
       "hbase-site": {
         "properties": {
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
+          "hbase.regionserver.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
+          "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "hbase.bucketcache.size": "",
           "hbase.bucketcache.percentage.in.combinedcache": "",
           "hbase.regionserver.global.memstore.upperLimit": "0.4",
@@ -1431,6 +1433,7 @@ class TestHDP22StackAdvisor(TestCase):
     # Test when phoenix_sql_enabled = false
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
+    expected['hbase-site']['property_attributes'] = {'hbase.regionserver.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 

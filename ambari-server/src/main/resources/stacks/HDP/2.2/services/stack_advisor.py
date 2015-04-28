@@ -363,13 +363,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHbaseEnvPropertyAttributes('hbase_regionserver_heapsize', 'maximum', max(1024, int(min_ram*0.8/1024)))
 
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
+    putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
     putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
 
     if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
       if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
+        putHbaseSiteProperty("hbase.regionserver.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
+        putHbaseSiteProperty("hbase.rpc.controllerfactory.class", "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory")
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec')
       else:
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
+        putHbaseSitePropertyAttributes('hbase.regionserver.rpc.scheduler.factory.class', 'delete', 'true')
+        putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):

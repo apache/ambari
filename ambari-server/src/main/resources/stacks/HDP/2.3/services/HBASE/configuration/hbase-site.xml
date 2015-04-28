@@ -40,26 +40,4 @@
     <value>16030</value>
     <description>The port for the HBase RegionServer web UI.</description>
   </property> 
-  <property>
-    <name>hbase.regionserver.rpc.scheduler.factory.class</name>
-    <display-name>RegionServer RPC scheduler factory class</display-name>
-    <value>org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory</value>
-    <depends-on>
-      <property>
-        <type>hbase-env</type>
-        <name>phoenix_sql_enabled</name>
-      </property>
-    </depends-on>
-  </property>
-  <property>
-    <name>hbase.rpc.controllerfactory.class</name>
-    <display-name>RPC controller factory class</display-name>
-    <value>org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory</value>
-    <depends-on>
-      <property>
-        <type>hbase-env</type>
-        <name>phoenix_sql_enabled</name>
-      </property>
-    </depends-on>
-  </property>
 </configuration>
