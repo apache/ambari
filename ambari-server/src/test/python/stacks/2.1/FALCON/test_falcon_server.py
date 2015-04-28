@@ -77,6 +77,7 @@ class TestFalconServer(RMFTestCase):
   def assert_configure_default(self):
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
@@ -84,12 +85,15 @@ class TestFalconServer(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon',
-                              mode = 0755
+                              mode = 0755,
+                              recursive = True
     )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
@@ -114,6 +118,10 @@ class TestFalconServer(RMFTestCase):
                               properties = self.getConfig()['configurations']['falcon-startup.properties'],
                               owner = 'falcon'
                               )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/store',
+                              owner = 'falcon',
+                              recursive = True
+                              )
     self.assertResourceCalled('HdfsDirectory', '/apps/falcon',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
@@ -123,7 +131,11 @@ class TestFalconServer(RMFTestCase):
                               mode = 0777,
                               owner = 'falcon',
                               bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
+                              action = ['create_delayed']
+                              )
+    self.assertResourceCalled('Directory', '/hadoop/falcon/store',
+                              owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('HdfsDirectory', None,
                               security_enabled = False,
@@ -140,11 +152,12 @@ class TestFalconServer(RMFTestCase):
                               cd_access='a'
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq',
-                              owner = 'falcon'
+                              owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/hadoop/falcon/embeddedmq/data',
                               owner = 'falcon',
-                              recursive = True,
+                              recursive = True
                               )
 
 

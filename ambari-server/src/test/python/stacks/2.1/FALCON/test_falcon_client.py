@@ -37,6 +37,7 @@ class TestFalconClient(RMFTestCase):
     )
     self.assertResourceCalled('Directory', '/var/run/falcon',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/var/log/falcon',
                               owner = 'falcon',
@@ -44,12 +45,15 @@ class TestFalconClient(RMFTestCase):
                               )
     self.assertResourceCalled('Directory', '/var/lib/falcon/webapp',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/usr/lib/falcon',
                               owner = 'falcon',
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon',
-                              mode = 0755
+                              mode = 0755,
+                              recursive = True
                               )
     self.assertResourceCalled('Directory', '/etc/falcon/conf',
                               owner = 'falcon',
@@ -89,7 +93,7 @@ class TestFalconClient(RMFTestCase):
 
     put_structured_out_mock.assert_called_with({"securityState": "SECURED_KERBEROS"})
 
-     # Testing with security_enable = false
+    # Testing with security_enable = false
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/falcon_client.py",
                        classname="FalconClient",
                        command="security_status",

@@ -27,20 +27,24 @@ def falcon(type, action = None):
   import params
   if action == 'config':
     Directory(params.falcon_pid_dir,
-              owner=params.falcon_user
+              owner=params.falcon_user,
+              recursive=True
     )
     Directory(params.falcon_log_dir,
               owner=params.falcon_user,
               recursive=True
     )
     Directory(params.falcon_webapp_dir,
-              owner=params.falcon_user
+              owner=params.falcon_user,
+              recursive=True
     )
     Directory(params.falcon_home,
-              owner=params.falcon_user
+              owner=params.falcon_user,
+              recursive=True
     )
     Directory(params.falcon_conf_dir_prefix,
-              mode=0755
+              mode=0755,
+              recursive=True
     )
     Directory(params.falcon_conf_dir,
               owner=params.falcon_user,
@@ -72,7 +76,7 @@ def falcon(type, action = None):
                 group=params.user_group,
                 mode=0775,
                 recursive=True,
-                cd_access="a",
+                cd_access="a"
       )
 
     if params.falcon_graph_serialize_path:
@@ -81,7 +85,7 @@ def falcon(type, action = None):
                 group=params.user_group,
                 mode=0775,
                 recursive=True,
-                cd_access="a",
+                cd_access="a"
       )
 
   if type == 'server':
@@ -92,20 +96,37 @@ def falcon(type, action = None):
                              owner=params.falcon_user,
                              mode=0755
         )
+      if params.store_uri[0:4] == "file":
+        Directory(params.store_uri[7:],
+                  owner=params.falcon_user,
+                  recursive=True
+        )
       params.HdfsDirectory(params.flacon_apps_dir,
                            action="create_delayed",
                            owner=params.falcon_user,
                            mode=0777#TODO change to proper mode
       )
+      if params.falcon_store_uri[0:4] == "hdfs":
+        params.HdfsDirectory(params.falcon_store_uri,
+                             action="create_delayed",
+                             owner=params.falcon_user,
+                             mode=0755
+        )
+      if params.falcon_store_uri[0:4] == "file":
+        Directory(params.falcon_store_uri[7:],
+                  owner=params.falcon_user,
+                  recursive=True
+        )
       params.HdfsDirectory(None, action="create")
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
                 recursive=True,
-                cd_access="a",
+                cd_access="a"
       )
       if params.falcon_embeddedmq_enabled == True:
         Directory(os.path.abspath(os.path.join(params.falcon_embeddedmq_data, "..")),
-                  owner=params.falcon_user
+                  owner=params.falcon_user,
+                  recursive=True
         )
         Directory(params.falcon_embeddedmq_data,
                   owner=params.falcon_user,
