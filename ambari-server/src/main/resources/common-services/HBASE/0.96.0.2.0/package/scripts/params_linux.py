@@ -176,7 +176,7 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     hbase_cmd = format("/usr/hdp/current/hbase-{role_root}/bin/hbase")
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  enable_ranger_hive = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
+  enable_ranger_hbase = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
