@@ -24,6 +24,7 @@ from resource_management.libraries.script import Script
 from resource_management.libraries.functions import default, format
 import status_params
 import re
+import json
 
 def get_bare_principal(normalized_principal_name):
   """
@@ -93,6 +94,8 @@ else:
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
+storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
+
 if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   _storm_principal_name = config['configurations']['storm-env']['storm_principal_name']
@@ -102,7 +105,6 @@ if security_enabled:
   if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
-    storm_ui_host = default("/clusterHostInfo/storm_ui_server_hosts", [])
     storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
 
     storm_bare_jaas_principal = get_bare_principal(_storm_principal_name)
@@ -131,80 +133,65 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  # setting flag value for ranger hive plugin
-  enable_ranger_storm = False
-  ranger_plugin_enable = default("/configurations/ranger-storm-plugin-properties/ranger-storm-plugin-enabled", "no")
-  if ranger_plugin_enable.lower() == 'yes':
-    enable_ranger_storm = True
-  elif ranger_plugin_enable.lower() == 'no':
-    enable_ranger_storm = False
+  enable_ranger_storm = (config['configurations']['ranger-storm-plugin-properties']['ranger-storm-plugin-enabled'].lower() == 'yes')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 #ranger storm properties
-policymgr_mgr_url = default("/configurations/admin-properties/policymgr_external_url", "http://localhost:6080")
-sql_connector_jar = default("/configurations/admin-properties/SQL_CONNECTOR_JAR", "/usr/share/java/mysql-connector-java.jar")
-xa_audit_db_flavor = default("/configurations/admin-properties/DB_FLAVOR", "MYSQL")
-xa_audit_db_name = default("/configurations/admin-properties/audit_db_name", "ranger_audit")
-xa_audit_db_user = default("/configurations/admin-properties/audit_db_user", "rangerlogger")
-xa_audit_db_password = default("/configurations/admin-properties/audit_db_password", "rangerlogger")
-xa_db_host = default("/configurations/admin-properties/db_host", "localhost")
+policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
+xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_storm'
-db_enabled = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.DB.IS_ENABLED", "false")
-hdfs_enabled = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.IS_ENABLED", "false")
-hdfs_dest_dir = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.DESTINATION_DIRECTORY", "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/app-type/time:yyyyMMdd")
-hdfs_buffer_dir = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit")
-hdfs_archive_dir = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit/archive")
-hdfs_dest_file = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.DESTINTATION_FILE", "hostname-audit.log")
-hdfs_dest_flush_int_sec = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS", "900")
-hdfs_dest_rollover_int_sec = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS", "86400")
-hdfs_dest_open_retry_int_sec = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS", "60")
-hdfs_buffer_file = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FILE", "time:yyyyMMdd-HHmm.ss.log")
-hdfs_buffer_flush_int_sec = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS", "60")
-hdfs_buffer_rollover_int_sec = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS", "600")
-hdfs_archive_max_file_count = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT", "10")
-ssl_keystore_file = default("/configurations/ranger-storm-plugin-properties/SSL_KEYSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-keystore.jks")
-ssl_keystore_password = default("/configurations/ranger-storm-plugin-properties/SSL_KEYSTORE_PASSWORD", "myKeyFilePassword")
-ssl_truststore_file = default("/configurations/ranger-storm-plugin-properties/SSL_TRUSTSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-truststore.jks")
-ssl_truststore_password = default("/configurations/ranger-storm-plugin-properties/SSL_TRUSTSTORE_PASSWORD", "changeit")
 
-common_name_for_certificate = default("/configurations/ranger-storm-plugin-properties/common.name.for.certificate", "-")
+common_name_for_certificate = config['configurations']['ranger-storm-plugin-properties']['common.name.for.certificate']
 
-repo_config_username = default("/configurations/ranger-storm-plugin-properties/REPOSITORY_CONFIG_USERNAME", "hadoop")
-repo_config_password = default("/configurations/ranger-storm-plugin-properties/REPOSITORY_CONFIG_PASSWORD", "hadoop")
 storm_ui_port = config['configurations']['storm-site']['ui.port']
 
-admin_uname = default("/configurations/ranger-env/admin_username", "admin")
-admin_password = default("/configurations/ranger-env/admin_password", "admin")
-admin_uname_password = format("{admin_uname}:{admin_password}")
+repo_config_username = config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
+repo_config_password = config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
-ambari_ranger_admin = default("/configurations/ranger-env/ranger_admin_username", "amb_ranger_admin")
-ambari_ranger_password = default("/configurations/ranger-env/ranger_admin_password", "ambari123")
-policy_user = default("/configurations/ranger-storm-plugin-properties/policy_user", "storm")
+ranger_env = config['configurations']['ranger-env']
+ranger_plugin_properties = config['configurations']['ranger-storm-plugin-properties']
+policy_user = config['configurations']['ranger-storm-plugin-properties']['policy_user']
 
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
-if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
-  jdbc_jar_name = "mysql-connector-java.jar"
-elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
-  jdbc_jar_name = "ojdbc6.jar"
-  jdbc_symlink_name = "oracle-jdbc-driver.jar"
-elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'postgres':
-  jdbc_jar_name = "postgresql.jar"
-  jdbc_symlink_name = "postgres-jdbc-driver.jar"
-elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'sqlserver':
-  jdbc_jar_name = "sqljdbc4.jar"
-  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+if has_ranger_admin:
+  if xa_audit_db_flavor.lower() == 'mysql':
+    jdbc_symlink_name = "mysql-jdbc-driver.jar"
+    jdbc_jar_name = "mysql-connector-java.jar"
+  elif xa_audit_db_flavor.lower() == 'oracle':
+    jdbc_jar_name = "ojdbc6.jar"
+    jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  elif nxa_audit_db_flavor.lower() == 'postgres':
+    jdbc_jar_name = "postgresql.jar"
+    jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  elif xa_audit_db_flavor.lower() == 'sqlserver':
+    jdbc_jar_name = "sqljdbc4.jar"
+    jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
-downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+  
+  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+storm_ranger_plugin_config = {
+  'username': repo_config_username,
+  'password': repo_config_password,
+  'nimbus.url': 'http://' + storm_ui_host[0].lower() + ':' + str(storm_ui_port),
+  'commonNameForCertificate': common_name_for_certificate
+}
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0:
-  solr_enabled = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.IS_ENABLED", "false")
-  solr_max_queue_size = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.MAX_QUEUE_SIZE", "1")
-  solr_max_flush_interval = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS", "1000")
-  solr_url = default("/configurations/ranger-storm-plugin-properties/XAAUDIT.SOLR.SOLR_URL", "http://localhost:6083/solr/ranger_audits")
+storm_ranger_plugin_repo = {
+  'isActive': 'true',
+  'config': json.dumps(storm_ranger_plugin_config),
+  'description': 'storm repo',
+  'name': repo_name,
+  'repositoryType': 'storm',
+  'assetType': '6'
+}

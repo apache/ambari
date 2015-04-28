@@ -23,6 +23,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management import *
 import status_params
+import json
 from ambari_commons import OSCheck
 
 if OSCheck.is_windows_family():
@@ -107,8 +108,7 @@ has_oozie = not oozie_server_host == None
 oozie_server_port = "11000"
 
 if has_oozie:
-    if 'oozie.base.url' in config['configurations']['oozie-site']:
-        oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
+  oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 
 # Knox managed properties
 knox_managed_pid_symlink= "/usr/hdp/current/knox-server/pids"
@@ -141,80 +141,85 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  # Setting Flag value for ranger hbase plugin
-  enable_ranger_knox = False
-  ranger_plugin_enable = default("/configurations/ranger-knox-plugin-properties/ranger-knox-plugin-enabled", "no")
-  if ranger_plugin_enable.lower() == 'yes':
-    enable_ranger_knox = True
-  elif ranger_plugin_enable.lower() == 'no':
-    enable_ranger_knox = False
+  enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 # ranger knox properties
-policymgr_mgr_url = default("/configurations/admin-properties/policymgr_external_url", "http://localhost:6080")
-sql_connector_jar = default("/configurations/admin-properties/SQL_CONNECTOR_JAR", "/usr/share/java/mysql-connector-java.jar")
-xa_audit_db_flavor = default("/configurations/admin-properties/DB_FLAVOR", "MYSQL")
-xa_audit_db_name = default("/configurations/admin-properties/audit_db_name", "ranger_audit")
-xa_audit_db_user = default("/configurations/admin-properties/audit_db_user", "rangerlogger")
-xa_audit_db_password = default("/configurations/admin-properties/audit_db_password", "rangerlogger")
-xa_db_host = default("/configurations/admin-properties/db_host", "localhost")
+policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
+xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_knox'
-db_enabled = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.DB.IS_ENABLED", "false")
-hdfs_enabled = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.IS_ENABLED", "false")
-hdfs_dest_dir = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.DESTINATION_DIRECTORY", "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/app-type/time:yyyyMMdd")
-hdfs_buffer_dir = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit")
-hdfs_archive_dir = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit/archive")
-hdfs_dest_file = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.DESTINTATION_FILE", "hostname-audit.log")
-hdfs_dest_flush_int_sec = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS", "900")
-hdfs_dest_rollover_int_sec = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS", "86400")
-hdfs_dest_open_retry_int_sec = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS", "60")
-hdfs_buffer_file = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FILE", "time:yyyyMMdd-HHmm.ss.log")
-hdfs_buffer_flush_int_sec = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS", "60")
-hdfs_buffer_rollover_int_sec = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS", "600")
-hdfs_archive_max_file_count = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT", "10")
-ssl_keystore_file = default("/configurations/ranger-knox-plugin-properties/SSL_KEYSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-keystore.jks")
-ssl_keystore_password = default("/configurations/ranger-knox-plugin-properties/SSL_KEYSTORE_PASSWORD", "myKeyFilePassword")
-ssl_truststore_file = default("/configurations/ranger-knox-plugin-properties/SSL_TRUSTSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-truststore.jks")
-ssl_truststore_password = default("/configurations/ranger-knox-plugin-properties/SSL_TRUSTSTORE_PASSWORD", "changeit")
 
-knox_home = default("/configurations/ranger-knox-plugin-properties/KNOX_HOME", "/usr/hdp/current/knox-server")
-common_name_for_certificate = default("/configurations/ranger-knox-plugin-properties/common.name.for.certificate", "-")
+knox_home = config['configurations']['ranger-knox-plugin-properties']['KNOX_HOME']
+common_name_for_certificate = config['configurations']['ranger-knox-plugin-properties']['common.name.for.certificate']
 
-repo_config_username = default("/configurations/ranger-knox-plugin-properties/REPOSITORY_CONFIG_USERNAME", "hbase")
-repo_config_password = default("/configurations/ranger-knox-plugin-properties/REPOSITORY_CONFIG_PASSWORD", "hbase")
+repo_config_username = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
+repo_config_password = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
-admin_uname = default("/configurations/ranger-env/admin_username", "admin")
-admin_password = default("/configurations/ranger-env/admin_password", "admin")
-admin_uname_password = format("{admin_uname}:{admin_password}")
-
-ambari_ranger_admin = default("/configurations/ranger-env/ranger_admin_username", "amb_ranger_admin")
-ambari_ranger_password = default("/configurations/ranger-env/ranger_admin_password", "ambari123")
-policy_user = default("/configurations/ranger-knox-plugin-properties/policy_user", "ambari-qa")
+ranger_env = config['configurations']['ranger-env']
+ranger_plugin_properties = config['configurations']['ranger-knox-plugin-properties']
+policy_user = config['configurations']['ranger-knox-plugin-properties']['policy_user']
 
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
-if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
-  jdbc_jar_name = "mysql-connector-java.jar"
-elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
-  jdbc_jar_name = "ojdbc6.jar"
-  jdbc_symlink_name = "oracle-jdbc-driver.jar"
-elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'postgres':
-  jdbc_jar_name = "postgresql.jar"
-  jdbc_symlink_name = "postgres-jdbc-driver.jar"
-elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'sqlserver':
-  jdbc_jar_name = "sqljdbc4.jar"
-  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+if has_ranger_admin:
+  if xa_audit_db_flavor.lower() == 'mysql':
+    jdbc_symlink_name = "mysql-jdbc-driver.jar"
+    jdbc_jar_name = "mysql-connector-java.jar"
+  elif xa_audit_db_flavor.lower() == 'oracle':
+    jdbc_jar_name = "ojdbc6.jar"
+    jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  elif nxa_audit_db_flavor.lower() == 'postgres':
+    jdbc_jar_name = "postgresql.jar"
+    jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  elif xa_audit_db_flavor.lower() == 'sqlserver':
+    jdbc_jar_name = "sqljdbc4.jar"
+    jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
-downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+  
+  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
-driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+knox_ranger_plugin_config = {
+  'username': repo_config_username,
+  'password': repo_config_password,
+  'knox.url': format("https://{knox_host_name}:{knox_host_port}/gateway/admin/api/v1/topologies"),
+  'commonNameForCertificate': common_name_for_certificate
+}
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0:
-  solr_enabled = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.SOLR.IS_ENABLED", "false")
-  solr_max_queue_size = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.SOLR.MAX_QUEUE_SIZE", "1")
-  solr_max_flush_interval = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS", "1000")
-  solr_url = default("/configurations/ranger-knox-plugin-properties/XAAUDIT.SOLR.SOLR_URL", "http://localhost:6083/solr/ranger_audits")
+knox_ranger_plugin_repo = {
+  'isActive': 'true',
+  'config': json.dumps(knox_ranger_plugin_config),
+  'description': 'knox repo',
+  'name': repo_name,
+  'repositoryType': 'knox',
+  'assetType': '5',
+}
+
+def knox_repo_properties():
+  import params
+
+  config_dict = dict()
+  config_dict['username'] = params.repo_config_username
+  config_dict['password'] = params.repo_config_password
+  config_dict['knox.url'] = 'https://' + params.knox_host_name + ':' + str(params.knox_host_port) +'/gateway/admin/api/v1/topologies'
+  config_dict['commonNameForCertificate'] = params.common_name_for_certificate
+
+  repo= dict()
+  repo['isActive'] = "true"
+  repo['config'] = json.dumps(config_dict)
+  repo['description'] = "knox repo"
+  repo['name'] = params.repo_name
+  repo['repositoryType'] = "knox"
+  repo['assetType'] = '5'
+
+  data = json.dumps(repo)
+
+  return data

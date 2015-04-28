@@ -325,7 +325,7 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
 if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  enable_ranger_hive = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
+  enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
@@ -337,7 +337,7 @@ xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
 xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
 xa_db_host = config['configurations']['admin-properties']['db_host']
-repo_name = str(config['clusterName']) + '_hdfs'
+repo_name = str(config['clusterName']) + '_hadoop'
 
 hadoop_security_authentication = config['configurations']['core-site']['hadoop.security.authentication']
 hadoop_security_authorization = config['configurations']['core-site']['hadoop.security.authorization']
