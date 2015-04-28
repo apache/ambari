@@ -559,6 +559,10 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     List<UpgradeGroupEntity> groupEntities = new ArrayList<UpgradeGroupEntity>();
     RequestStageContainer req = createRequest(direction, version);
 
+    // desired configs must be set before creating stages because the config tag names
+    // are read and set on the command for filling in later
+    processConfigurations(cluster, version, direction);
+
     for (UpgradeGroupHolder group : groups) {
       UpgradeGroupEntity groupEntity = new UpgradeGroupEntity();
       groupEntity.setName(group.name);
@@ -615,9 +619,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
     req.getRequestStatusResponse();
 
     entity.setRequestId(req.getId());
-
-    // !!! in case persist() starts creating tasks right away, square away the configs
-    processConfigurations(cluster, version, direction);
 
     req.persist();
 
