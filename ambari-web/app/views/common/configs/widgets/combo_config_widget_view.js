@@ -26,6 +26,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/combo_config_widget'),
   classNames: ['widget-config', 'combo-widget'],
 
+  supportSwitchToCheckBox: true,
   /**
    * Object with following structure:
    * {String} .value - value in widget format
@@ -123,6 +124,14 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
       $(event.target).closest('.dropdown').toggleClass('open');
       return false;
     }
+  },
+
+  setValue: function() {
+    this.setConfigValue({ context: this.get('config.value') });
+  },
+
+  isValueCompatibleWithWidget: function() {
+    return this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
   }
 
 });

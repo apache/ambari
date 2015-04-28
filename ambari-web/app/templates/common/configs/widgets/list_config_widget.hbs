@@ -22,7 +22,7 @@
     <p class="widget-config-label">{{view.configLabel}}</p>
   {{/if}}
   <div class="pull-left btn-group">
-    <a {{bindAttr class=":btn :dropdown-toggle view.config.isEditable::disabled"}} data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
+    <a {{bindAttr class=":btn :dropdown-toggle view.config.isEditable::disabled view.showAsTextBox:hide"}} data-toggle="dropdown">{{view.displayVal}} <span class="caret"></span></a>
     <ul class="dropdown-menu">
       {{#each option in view.options}}
         <li>

@@ -41,6 +41,8 @@ var configOption = Em.Object.extend({
  */
 App.ListConfigWidgetView = App.ConfigWidgetView.extend({
 
+  supportSwitchToCheckBox: true,
+
   /**
    * Counter used to determine order of options selection (<code>order<code>-field in the <code>configOption</code>)
    * Greater number - later selection
@@ -252,6 +254,14 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
       var option = this.get('parentView.options').findProperty('value', this.get('value'));
       this.get('parentView').toggleOption({context: option});
     }
-  })
+  }),
+
+  setValue: function() {
+    this.calculateInitVal();
+  },
+
+  isValueCompatibleWithWidget: function() {
+    return this.get('options').someProperty('value', this.get('config.value'));
+  }
 
 });

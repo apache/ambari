@@ -20,7 +20,7 @@
   <div class="clearfix"></div>
   <p class="widget-config-label">{{view.configLabel}}</p>
 {{/if}}
-<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget"}}>
+<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget view.showAsTextBox:hide"}}>
   {{#each spinnerContent in view.content}}
     {{view App.SpinnerInputView contentBinding="spinnerContent" disabledBinding="view.disabled"}}
   {{/each}}

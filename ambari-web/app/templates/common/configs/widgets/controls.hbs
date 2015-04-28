@@ -17,8 +17,19 @@
 }}
 
 {{#if view.canEdit}}
+  {{#if view.supportSwitchToCheckBox}}
+    <div {{bindAttr class="view.showAsTextBox::hide :left"}}>
+      {{view App.PlainConfigTextField serviceConfigBinding="view.config"}}
+    </div>
+  {{/if}}
   <div class="widget-config-controls">
     <div class="widget-col left">
+      {{#if view.supportSwitchToCheckBox}}
+        <a href="#"
+          {{bindAttr class=":icon-pencil view.isHover::hide"}}
+          {{action "toggleWidgetView" target="view"}}>
+        </a>
+      {{/if}}
       {{view view.issueView configBinding="view.config"}}
       {{#if view.config.isNotDefaultValue}}
         {{#if view.undoAllowed}}

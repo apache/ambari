@@ -19,7 +19,7 @@
   <div class="clearfix"></div>
   <p class="widget-config-label">{{view.configLabel}}</p>
 {{/if}}
-<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget view.disabled:disabled"}}>
+<div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget view.disabled:disabled view.showAsTextBox:hide"}}>
   <div class="input-append">
     <div class="dropdown btn-group">
       {{view Em.TextField valueBinding="view.content.value" disabled="disabled"}}

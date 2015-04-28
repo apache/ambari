@@ -29,6 +29,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
   templateName: require('templates/common/configs/widgets/slider_config_widget'),
 
+  supportSwitchToCheckBox: true,
+
   /**
    * Slider-object created on the <code>initSlider</code>
    * @type {Object}
@@ -109,14 +111,20 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     return parseFunction(this.widgetValueByConfigAttributes(this.get('config.recommendedValue')));
   }.property('config.recommendedValue'),
 
+  units: ['b', 'kb', 'mb', 'gb', 'tb', 'pb'],
   /**
    * unit type of widget
    * @type {String}
    */
-  unitType: function() {
-    return this.get('config.stackConfigProperty.widget.units.length') && this.get('config.stackConfigProperty.widget.units')[0]['unit-name'];
-  }.property('config.stackConfigProperty.widget.units.@each.unit-name'),
-
+   unitType: function() {
+     var widgetUnit = this.get('config.stackConfigProperty.widget.units.length') && this.get('config.stackConfigProperty.widget.units')[0]['unit-name'].toLowerCase();
+     var configUnit = this.get('config.stackConfigProperty.valueAttributes.type').toLowerCase();
+     if (widgetUnit) {
+      return this.get('units').indexOf(widgetUnit) > this.get('units').indexOf(configUnit) ? 'float' : this.get('config.stackConfigProperty.valueAttributes.type')
+     } else {
+      return 'float';
+     }
+   }.property('config.stackConfigProperty.widget.units.@each.unit-name'),
   /**
    * Function used to parse widget mirror value
    * For integer - parseInt, for float - parseFloat
@@ -437,6 +445,22 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         self.changeBoundariesOnce();
       }, 10);
     }
-  }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive')
+  }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive'),
+
+  isValueCompatibleWithWidget: function() {
+    var configValue = this.get('parseFunction')(this.get('config.value'));
+    if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
+      var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+      if (configValue < min) return false;
+    }
+    if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
+      var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+      if (configValue > max) return false;
+    }
+    if (this.get('config.stackConfigProperty.valueAttributes.step')) {
+      if (configValue % this.get('config.stackConfigProperty.valueAttributes.increment_step') != 0) return false;
+    }
+    return true
+  }
 
 });

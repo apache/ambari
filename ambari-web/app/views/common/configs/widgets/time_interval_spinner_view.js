@@ -22,6 +22,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/time_interval_spinner'),
   classNames: ['widget-config', 'spinner-input-widget'],
 
+  supportSwitchToCheckBox: true,
+
   /**
    * @property isValid
    * @type {Boolean}
@@ -228,5 +230,25 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
     this._super();
     this.set('content', this.generateWidgetValue(this.get('config.defaultValue')));
     this.parseIncrement();
+  },
+
+  setValue: function() {
+    this.set('content', this.generateWidgetValue(this.get('config.value')));
+  },
+
+  isValueCompatibleWithWidget: function() {
+    var configValue = parseInt(this.get('config.value'));
+    if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
+      var min = parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+      if (configValue < min) return false;
+    }
+    if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
+      var max = parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+      if (configValue > max) return false;
+    }
+    if (this.get('config.stackConfigProperty.valueAttributes.step')) {
+      if (configValue % this.get('config.stackConfigProperty.valueAttributes.increment_step') != 0) return false;
+    }
+    return true
   }
 });

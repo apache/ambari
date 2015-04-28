@@ -21,8 +21,8 @@
     <div class="clearfix"></div>
     <p class="widget-config-label">{{formatWordBreak view.configLabel}}</p>
   {{/if}}
-  <div {{bindAttr class="view.isOriginalSCP:original-widget :ui-slider-wrapper"}}>
-    <div class="pull-left ui-slider-wrapper-inner">{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
-    {{template "templates/common/configs/widgets/controls"}}
+  <div {{bindAttr class="view.isOriginalSCP:original-widget view.showAsTextBox:hide :ui-slider-wrapper"}}>
+    <div {{bindAttr class=":pull-left :ui-slider-wrapper-inner"}}>{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
   </div>
+  {{template "templates/common/configs/widgets/controls"}}
 </div>

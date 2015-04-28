@@ -72,6 +72,17 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   subSection: null,
 
   /**
+   * true if text filed is shown
+   * @type {boolean}
+   */
+  showAsTextBox: false,
+
+  /**
+   * @type {boolean}
+   */
+  supportSwitchToCheckBox: false,
+
+  /**
    * Alias to <code>config.isOriginalSCP</code>
    * Should be used in the templates
    * Don't use original <code>config.isOriginalSCP</code> in the widget-templates!!!
@@ -231,6 +242,47 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   configGroup: function() {
     return !this.get('config.group') || this.get('config.group.isDefault') ? false : this.get('config.group');
-  }.property('config.group.name')
+  }.property('config.group.name'),
+
+  /**
+   * switcher to display config as widget or text field
+   * @method toggleWidgetView
+   */
+  toggleWidgetView: function() {
+    if (this.get('showAsTextBox')) {
+      this.textBoxToWidget();
+    } else {
+      this.widgetToTextBox();
+    }
+  },
+
+  /**
+   * switch display of config to text field
+   * @method widgetToTextBox
+   */
+  widgetToTextBox: function() {
+    this.set("showAsTextBox", true);
+  },
+
+  /**
+   * switch display of config to widget
+   * @method textBoxToWidget
+   */
+  textBoxToWidget: function() {
+    if (this.isValueCompatibleWithWidget()) {
+      this.setValue(this.get('config.value'));
+      this.set("showAsTextBox", false);
+    } else {
+      App.showAlertPopup(Em.I18n.t('common.warning'), Em.I18n.t('config.infoMessage.wrong.value.for.widget'));
+    }
+  },
+
+  /**
+   * check if config value can be converted to config widget value
+   * @returns {boolean}
+   */
+  isValueCompatibleWithWidget: function() {
+    return true
+  }
 
 });
