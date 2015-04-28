@@ -264,6 +264,15 @@ public class Configuration {
   public static final String PARALLEL_STAGE_EXECUTION_KEY = "server.stages.parallel";
   public static final String AGENT_TASK_TIMEOUT_KEY = "agent.task.timeout";
   public static final String AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_KEY = "agent.package.install.task.timeout";
+
+  /**
+   * Max number of tasks that may be executed within a single stage.
+   * This limitation is used for tasks that when executed in a 1000+ node cluster,
+   * may DDOS servers providing downloadable resources
+   */
+  public static final String AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY = "agent.package.parallel.commands.limit";
+  public static final String AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT = "100";
+
   public static final String AGENT_TASK_TIMEOUT_DEFAULT = "900";
   public static final String AGENT_PACKAGE_INSTALL_TASK_TIMEOUT_DEFAULT = "1800";
 
@@ -535,6 +544,8 @@ public class Configuration {
     configsMap.put(KDC_PORT_KEY, properties.getProperty(
         KDC_PORT_KEY, KDC_PORT_KEY_DEFAULT));
 
+    configsMap.put(AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, properties.getProperty(
+            AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
 
     File passFile = new File(configsMap.get(SRVR_KSTR_DIR_KEY) + File.separator
         + configsMap.get(SRVR_CRT_PASS_FILE_KEY));
@@ -1277,6 +1288,16 @@ public class Configuration {
                                   CUSTOM_ACTION_DEFINITION_DEF_VALUE);
   }
 
+  public int getAgentPackageParallelCommandsLimit() {
+    int value = Integer.parseInt(properties.getProperty(
+            AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY,
+            AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_DEFAULT));
+    if (value < 1) {
+      value = 1;
+    }
+    return value;
+  }
+  
   /**
    * @param isPackageInstallationTask true, if task is for installing packages
    * @return default task timeout in seconds (string representation). This value

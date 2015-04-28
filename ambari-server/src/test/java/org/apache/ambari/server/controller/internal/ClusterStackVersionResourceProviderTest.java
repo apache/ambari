@@ -36,21 +36,29 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import org.apache.ambari.server.actionmanager.ActionManager;
+import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.agent.ExecutionCommand;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ResourceProviderFactory;
 import org.apache.ambari.server.controller.spi.Request;
+import org.apache.ambari.server.controller.spi.RequestStatus;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.PersistenceType;
 import org.apache.ambari.server.orm.dao.ClusterDAO;
 import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
@@ -88,6 +96,7 @@ import com.google.inject.util.Modules;
  */
 public class ClusterStackVersionResourceProviderTest {
 
+  public static final int MAX_TASKS_PER_STAGE = 2;
   private Injector injector;
   private AmbariMetaInfo ambariMetaInfo;
   private RepositoryVersionDAO repositoryVersionDAOMock;
@@ -96,6 +105,8 @@ public class ClusterStackVersionResourceProviderTest {
   private ClusterDAO clusterDAO;
   private HostDAO hostDAO;
   private ConfigHelper configHelper;
+  private Configuration configuration;
+  private StageFactory stageFactory;
 
   private String operatingSystemsJson = "[\n" +
           "   {\n" +
@@ -115,15 +126,21 @@ public class ClusterStackVersionResourceProviderTest {
           "   }\n" +
           "]";
 
+
   @Before
   public void setup() throws Exception {
     // Create instances of mocks
     repositoryVersionDAOMock = createNiceMock(RepositoryVersionDAO.class);
     configHelper = createNiceMock(ConfigHelper.class);
+    InMemoryDefaultTestModule inMemoryModule = new InMemoryDefaultTestModule();
+    Properties properties = inMemoryModule.getProperties();
+    properties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY,
+            String.valueOf(MAX_TASKS_PER_STAGE));
+    configuration = new Configuration(properties);
+    stageFactory = createNiceMock(StageFactory.class);
 
     // Initialize injector
-    InMemoryDefaultTestModule module = new InMemoryDefaultTestModule();
-    injector = Guice.createInjector(Modules.override(module).with(new MockModule()));
+    injector = Guice.createInjector(Modules.override(inMemoryModule).with(new MockModule()));
     injector.getInstance(GuiceJpaInitializer.class);
     ambariMetaInfo = injector.getInstance(AmbariMetaInfo.class);
     resourceTypeDAO = injector.getInstance(ResourceTypeDAO.class);
@@ -146,17 +163,16 @@ public class ClusterStackVersionResourceProviderTest {
     Cluster cluster = createNiceMock(Cluster.class);
     StackId stackId = new StackId("HDP", "2.0.1");
 
-    final Host host1 = createNiceMock("host1", Host.class);
-    final Host host2 = createNiceMock("host2", Host.class);
-    expect(host1.getHostName()).andReturn("host1").anyTimes();
-    expect(host1.getOsFamily()).andReturn("redhat6").anyTimes();
-    expect(host2.getHostName()).andReturn("host2").anyTimes();
-    expect(host2.getOsFamily()).andReturn("redhat6").anyTimes();
-    replay(host1, host2);
-    Map<String, Host> hostsForCluster = new HashMap<String, Host>() {{
-      put(host1.getHostName(), host1);
-      put(host2.getHostName(), host2);
-    }};
+    Map<String, Host> hostsForCluster = new HashMap<String, Host>();
+    int hostCount = 10;
+    for (int i = 0; i < hostCount; i++) {
+      String hostname = "host" + i;
+      Host host = createNiceMock(hostname, Host.class);
+      expect(host.getHostName()).andReturn(hostname).anyTimes();
+      expect(host.getOsFamily()).andReturn("redhat6").anyTimes();
+      replay(host);
+      hostsForCluster.put(hostname, host);
+    }
 
     ServiceComponentHost sch = createMock(ServiceComponentHost.class);
     List<ServiceComponentHost> schs = Collections.singletonList(sch);
@@ -188,7 +204,7 @@ public class ClusterStackVersionResourceProviderTest {
             (Map<String, String>) anyObject(List.class), anyObject(String.class))).andReturn(packages).anyTimes();
 
     expect(resourceProviderFactory.getHostResourceProvider(anyObject(Set.class), anyObject(Map.class),
-        eq(managementController))).andReturn(csvResourceProvider).anyTimes();
+            eq(managementController))).andReturn(csvResourceProvider).anyTimes();
 
     expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster);
     expect(clusters.getHostsForCluster(anyObject(String.class))).andReturn(hostsForCluster);
@@ -198,16 +214,33 @@ public class ClusterStackVersionResourceProviderTest {
 
     expect(sch.getServiceName()).andReturn("HIVE").anyTimes();
 
+    ExecutionCommand executionCommand = createNiceMock(ExecutionCommand.class);
+    ExecutionCommandWrapper executionCommandWrapper = createNiceMock(ExecutionCommandWrapper.class);
+
+    expect(executionCommandWrapper.getExecutionCommand()).andReturn(executionCommand).anyTimes();
+
+    Stage stage = createNiceMock(Stage.class);
+    expect(stage.getExecutionCommandWrapper(anyObject(String.class), anyObject(String.class))).
+            andReturn(executionCommandWrapper).anyTimes();
+
+    // Check that we create proper stage count
+    expect(stageFactory.createNew(anyLong(), anyObject(String.class),
+            anyObject(String.class), anyLong(),
+            anyObject(String.class), anyObject(String.class), anyObject(String.class),
+            anyObject(String.class))).andReturn(stage).
+            times((int) Math.ceil(hostCount / MAX_TASKS_PER_STAGE));
+
     expect(
-        repositoryVersionDAOMock.findByStackAndVersion(
-            anyObject(StackId.class),
-            anyObject(String.class))).andReturn(repoVersion);
+            repositoryVersionDAOMock.findByStackAndVersion(
+                    anyObject(StackId.class),
+                    anyObject(String.class))).andReturn(repoVersion);
 
     expect(actionManager.getRequestTasks(anyLong())).andReturn(Collections.<HostRoleCommand>emptyList()).anyTimes();
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
-        cluster, repositoryVersionDAOMock, configHelper, sch, actionManager);
+        cluster, repositoryVersionDAOMock, configHelper, sch, actionManager,
+            executionCommand, executionCommandWrapper,stage, stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
         type,
@@ -233,10 +266,11 @@ public class ClusterStackVersionResourceProviderTest {
     // create the request
     Request request = PropertyHelper.getCreateRequest(propertySet, null);
 
-    provider.createResources(request);
+    RequestStatus status = provider.createResources(request);
 
     // verify
-    verify(managementController, response, clusters);
+    verify(managementController, response, clusters, stageFactory);
+
   }
 
 
@@ -356,7 +390,8 @@ public class ClusterStackVersionResourceProviderTest {
 
     // replay
     replay(managementController, response, clusters, resourceProviderFactory, csvResourceProvider,
-            cluster, repositoryVersionDAOMock, configHelper, sch, actionManager, finalizeUpgradeAction, report);
+            cluster, repositoryVersionDAOMock, configHelper, sch, actionManager, finalizeUpgradeAction, report,
+            stageFactory);
 
     ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
             type,
@@ -394,7 +429,8 @@ public class ClusterStackVersionResourceProviderTest {
     protected void configure() {
       bind(RepositoryVersionDAO.class).toInstance(repositoryVersionDAOMock);
       bind(ConfigHelper.class).toInstance(configHelper);
-      //bind(FinalizeUpgradeAction.class).toInstance(finalizeUpgradeAction);
+      bind(Configuration.class).toInstance(configuration);
+      bind(StageFactory.class).toInstance(stageFactory);
     }
   }
 }

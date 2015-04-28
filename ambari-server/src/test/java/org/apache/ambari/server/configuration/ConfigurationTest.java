@@ -441,4 +441,18 @@ public class ConfigurationTest {
     ambariProperties.setProperty(Configuration.SERVER_JDBC_URL_KEY, "jdbc:sqlserver://server");
     Assert.assertEquals( DatabaseType.SQL_SERVER, configuration.getDatabaseType() );
   }
+
+  @Test
+  public void testGetAgentPackageParallelCommandsLimit() throws Exception {
+    final Properties ambariProperties = new Properties();
+    final Configuration configuration = new Configuration(ambariProperties);
+
+    Assert.assertEquals(100, configuration.getAgentPackageParallelCommandsLimit());
+
+    ambariProperties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, "5");
+    Assert.assertEquals(5, configuration.getAgentPackageParallelCommandsLimit());
+
+    ambariProperties.setProperty(Configuration.AGENT_PACKAGE_PARALLEL_COMMANDS_LIMIT_KEY, "0");
+    Assert.assertEquals(1, configuration.getAgentPackageParallelCommandsLimit());
+  }
 }

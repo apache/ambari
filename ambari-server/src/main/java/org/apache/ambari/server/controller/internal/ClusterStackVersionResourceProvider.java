@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.internal;
 import static org.apache.ambari.server.agent.ExecutionCommand.KeyNames.JDK_LOCATION;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -327,82 +328,51 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     }
 
     RequestStageContainer req = createRequest();
-    String stageName = String.format(INSTALL_PACKAGES_FULL_NAME);
 
+    Iterator<Host> hostsForClusterIter = hostsForCluster.values().iterator();
     Map<String, String> hostLevelParams = new HashMap<String, String>();
     hostLevelParams.put(JDK_LOCATION, getManagementController().getJdkResourceUrl());
+    String hostParamsJson = StageUtils.getGson().toJson(hostLevelParams);
 
-    Stage stage = stageFactory.createNew(req.getId(),
-            "/tmp/ambari",
-            cluster.getClusterName(),
-            cluster.getClusterId(),
-            stageName,
-            "{}",
-            "{}",
-            StageUtils.getGson().toJson(hostLevelParams));
+    int maxTasks = configuration.getAgentPackageParallelCommandsLimit();
+    int hostCount = hostsForCluster.size();
+    int batchCount = (int) (Math.ceil((double)hostCount / maxTasks));
 
     long stageId = req.getLastStageId() + 1;
     if (0L == stageId) {
       stageId = 1L;
     }
-    stage.setStageId(stageId);
-    req.addStages(Collections.singletonList(stage));
 
-    for (Host host : hostsForCluster.values()) {
-      // Determine repositories for host
-      final List<RepositoryEntity> repoInfo = perOsRepos.get(host.getOsFamily());
-      if (repoInfo == null) {
-        throw new SystemException(String.format("Repositories for os type %s are " +
-                        "not defined. Repo version=%s, stackId=%s",
-                        host.getOsFamily(), desiredRepoVersion, stackId));
+    ArrayList<Stage> stages = new ArrayList<Stage>(batchCount);
+    for (int batchId = 1; batchId <= batchCount ; batchId++) {
+      // Create next stage
+      String stageName;
+      if (batchCount > 1) {
+        stageName = INSTALL_PACKAGES_FULL_NAME;
+      } else {
+        stageName = String.format(INSTALL_PACKAGES_FULL_NAME +
+                ". Batch %d of %d", batchId, batchCount);
       }
-      // For every host at cluster, determine packages for all installed services
-      List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
-      Set<String> servicesOnHost = new HashSet<String>();
-      List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
-      for (ServiceComponentHost component : components) {
-        servicesOnHost.add(component.getServiceName());
-      }
-
-      for (String serviceName : servicesOnHost) {
-        ServiceInfo info;
-        try {
-          info = ami.getService(stackName, stackVersion, serviceName);
-        } catch (AmbariException e) {
-          throw new SystemException("Cannot enumerate services", e);
-        }
-
-        List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
-                new HashMap<String, String>(), // Contents are ignored
-                host.getOsFamily());
-        packages.addAll(packagesForService);
-      }
-      final String packageList = gson.toJson(packages);
-      final String repoList = gson.toJson(repoInfo);
-
-      Map<String, String> params = new HashMap<String, String>() {{
-        put("stack_id", stackId.getStackId());
-        put("repository_version", desiredRepoVersion);
-        put("base_urls", repoList);
-        put("package_list", packageList);
-      }};
-
-      // add host to this stage
-      RequestResourceFilter filter = new RequestResourceFilter(null, null,
-              Collections.singletonList(host.getHostName()));
-
-      ActionExecutionContext actionContext = new ActionExecutionContext(
-              cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
-              Collections.singletonList(filter),
-              params);
-      actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
-
-      try {
-        actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, false);
-      } catch (AmbariException e) {
-        throw new SystemException("Can not modify stage", e);
+      Stage stage = stageFactory.createNew(req.getId(),
+              "/tmp/ambari",
+              cluster.getClusterName(),
+              cluster.getClusterId(),
+              stageName,
+              "{}",
+              "{}",
+              hostParamsJson
+      );
+      stage.setStageId(stageId);
+      stages.add(stage);
+      stageId++;
+      // Populate with commands for host
+      for (int i = 0; i < maxTasks && hostsForClusterIter.hasNext(); i++) {
+        Host host = hostsForClusterIter.next();
+        addHostVersionInstallCommandsToStage(desiredRepoVersion,
+                cluster, managementController, ami, stackId, perOsRepos, stage, host);
       }
     }
+    req.addStages(stages);
 
     try {
       ClusterVersionEntity existingCSVer = clusterVersionDAO.findByClusterAndStackAndVersion(
@@ -438,6 +408,66 @@ public class ClusterStackVersionResourceProvider extends AbstractControllerResou
     return getRequestStatus(req.getRequestStatusResponse());
   }
 
+  private void addHostVersionInstallCommandsToStage(final String desiredRepoVersion,
+                                                    Cluster cluster, AmbariManagementController managementController,
+                                                    AmbariMetaInfo ami,
+                                                    final StackId stackId,
+                                                    Map<String, List<RepositoryEntity>> perOsRepos,
+                                                    Stage stage, Host host) throws SystemException {
+    // Determine repositories for host
+    final List<RepositoryEntity> repoInfo = perOsRepos.get(host.getOsFamily());
+    if (repoInfo == null) {
+      throw new SystemException(String.format("Repositories for os type %s are " +
+                      "not defined. Repo version=%s, stackId=%s",
+              host.getOsFamily(), desiredRepoVersion, stackId));
+    }
+    // For every host at cluster, determine packages for all installed services
+    List<ServiceOsSpecific.Package> packages = new ArrayList<ServiceOsSpecific.Package>();
+    Set<String> servicesOnHost = new HashSet<String>();
+    List<ServiceComponentHost> components = cluster.getServiceComponentHosts(host.getHostName());
+    for (ServiceComponentHost component : components) {
+      servicesOnHost.add(component.getServiceName());
+    }
+
+    for (String serviceName : servicesOnHost) {
+      ServiceInfo info;
+      try {
+        info = ami.getService(stackId.getStackName(), stackId.getStackVersion(), serviceName);
+      } catch (AmbariException e) {
+        throw new SystemException("Cannot enumerate services", e);
+      }
+
+      List<ServiceOsSpecific.Package> packagesForService = managementController.getPackagesForServiceHost(info,
+              new HashMap<String, String>(), // Contents are ignored
+              host.getOsFamily());
+      packages.addAll(packagesForService);
+    }
+    final String packageList = gson.toJson(packages);
+    final String repoList = gson.toJson(repoInfo);
+
+    Map<String, String> params = new HashMap<String, String>() {{
+      put("stack_id", stackId.getStackId());
+      put("repository_version", desiredRepoVersion);
+      put("base_urls", repoList);
+      put("package_list", packageList);
+    }};
+
+    // add host to this stage
+    RequestResourceFilter filter = new RequestResourceFilter(null, null,
+            Collections.singletonList(host.getHostName()));
+
+    ActionExecutionContext actionContext = new ActionExecutionContext(
+            cluster.getClusterName(), INSTALL_PACKAGES_ACTION,
+            Collections.singletonList(filter),
+            params);
+    actionContext.setTimeout(Short.valueOf(configuration.getDefaultAgentTaskTimeout(true)));
+
+    try {
+      actionExecutionHelper.get().addExecutionCommandsToStage(actionContext, stage, false);
+    } catch (AmbariException e) {
+      throw new SystemException("Can not modify stage", e);
+    }
+  }
 
 
   private RequestStageContainer createRequest() {
