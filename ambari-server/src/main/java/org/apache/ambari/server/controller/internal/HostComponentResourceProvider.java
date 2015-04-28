@@ -17,12 +17,18 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import com.google.inject.Inject;
-import com.google.inject.Injector;
-import com.google.inject.assistedinject.Assisted;
-import com.google.inject.assistedinject.AssistedInject;
-import org.apache.ambari.server.orm.dao.HostVersionDAO;
-import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.AmbariManagementController;
@@ -44,6 +50,8 @@ import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.HostVersionDAO;
+import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.MaintenanceState;
@@ -56,17 +64,10 @@ import org.apache.ambari.server.state.svccomphost.ServiceComponentHostDisableEve
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostRestoreEvent;
 import org.apache.commons.lang.StringUtils;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import com.google.inject.Inject;
+import com.google.inject.Injector;
+import com.google.inject.assistedinject.Assisted;
+import com.google.inject.assistedinject.AssistedInject;
 
 /**
  * Resource provider for host component resources.
@@ -102,6 +103,7 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       = "HostRoles/maintenance_state";
   protected static final String HOST_COMPONENT_HDP_VERSION
       = PropertyHelper.getPropertyId("HostRoles", "hdp_version");
+  protected static final String HOST_COMPONENT_UPGRADE_STATE = "HostRoles/upgrade_state";
 
   //Component name mappings
   private final Map<String, PropertyProvider> HOST_COMPONENT_PROPERTIES_PROVIDER = new HashMap<String, PropertyProvider>();
@@ -247,6 +249,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
               response.getActualConfigs(), requestedIds);
       setResourceProperty(resource, HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID,
               response.isStaleConfig(), requestedIds);
+      setResourceProperty(resource, HOST_COMPONENT_UPGRADE_STATE,
+              response.getUpgradeState(), requestedIds);
 
       HostVersionEntity versionEntity = hostVersionDAO.
               findByHostAndStateCurrent(response.getClusterName(), response.getHostname());
@@ -473,8 +477,8 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
       logRequestInfo("Received a updateHostComponent request", request);
 
-      if((clusterName == null || clusterName.isEmpty()) 
-              && (request.getClusterName() != null 
+      if((clusterName == null || clusterName.isEmpty())
+              && (request.getClusterName() != null
               && !request.getClusterName().isEmpty())) {
         clusterNames.add(request.getClusterName());
       }
@@ -633,12 +637,12 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       serviceComponentHostRequest.setStaleConfig(
           properties.get(HOST_COMPONENT_STALE_CONFIGS_PROPERTY_ID).toString().toLowerCase());
     }
-    
+
     if (properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID) != null) {
       serviceComponentHostRequest.setAdminState(
           properties.get(HOST_COMPONENT_DESIRED_ADMIN_STATE_PROPERTY_ID).toString());
     }
-    
+
     Object o = properties.get(HOST_COMPONENT_MAINTENANCE_STATE_PROPERTY_ID);
     if (null != o) {
       serviceComponentHostRequest.setMaintenanceState (o.toString());

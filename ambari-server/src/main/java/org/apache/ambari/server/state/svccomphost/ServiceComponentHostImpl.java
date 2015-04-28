@@ -1138,6 +1138,7 @@ public class ServiceComponentHostImpl implements ServiceComponentHost {
           getDesiredStackVersion().getStackId(), getComponentAdminState());
 
       r.setActualConfigs(actualConfigs);
+      r.setUpgradeState(getStateEntity().getUpgradeState());
 
       try {
         r.setStaleConfig(helper.isStaleConfigs(this));

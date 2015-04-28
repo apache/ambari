@@ -18,10 +18,11 @@
 
 package org.apache.ambari.server.controller;
 
+import java.util.Map;
+
 import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.HostConfig;
-
-import java.util.Map;
+import org.apache.ambari.server.state.UpgradeState;
 
 public class ServiceComponentHostResponse {
 
@@ -38,6 +39,7 @@ public class ServiceComponentHostResponse {
   private boolean staleConfig = false;
   private String adminState = null;
   private String maintenanceState = null;
+  private UpgradeState upgradeState = UpgradeState.NONE;
 
 
   public ServiceComponentHostResponse(String clusterName, String serviceName,
@@ -259,12 +261,26 @@ public class ServiceComponentHostResponse {
   public String getMaintenanceState() {
     return maintenanceState;
   }
-  
+
   /**
    * @param state the maintenance state
    */
   public void setMaintenanceState(String state) {
     maintenanceState = state;
+  }
+
+  /**
+   * @param state  the upgrade state
+   */
+  public void setUpgradeState(UpgradeState state) {
+    upgradeState = state;
+  }
+
+  /**
+   * @return the upgrade state
+   */
+  public UpgradeState getUpgradeState() {
+    return upgradeState;
   }
 
 }
