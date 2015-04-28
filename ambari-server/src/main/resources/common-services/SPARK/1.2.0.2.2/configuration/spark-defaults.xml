@@ -118,7 +118,7 @@
 
   <property>
     <name>spark.driver.extraJavaOptions</name>
-    <value></value>
+    <value>-Dhdp.version={{hdp_full_version}}</value>
     <description>
       Specifies parameters that are passed to the JVM of the Spark driver.
     </description>
@@ -126,7 +126,7 @@
 
   <property>
     <name>spark.yarn.am.extraJavaOptions</name>
-    <value></value>
+    <value>-Dhdp.version={{hdp_full_version}}</value>
     <description>
       Specifies the parameters that are passed to the JVM of the Spark Application Master.
     </description>
@@ -146,6 +146,24 @@
     <description>
       Location of the kerberos keytab file for the Spark History Server.
     </description>
+  </property>
+  
+  <property>
+    <name>spark.history.provider</name>
+    <value>org.apache.spark.deploy.yarn.history.YarnHistoryProvider</value>
+    <description>Name of history provider class</description>
+  </property>
+  
+  <property>
+    <name>spark.yarn.historyServer.address</name>
+    <value>{{spark_history_server_host}}:{{spark_history_ui_port}}</value>
+    <description>The address of the Spark history server (i.e. host.com:18080). The address should not contain a scheme (http://). Defaults to not being set since the history server is an optional service. This address is given to the YARN ResourceManager when the Spark application finishes to link the application from the ResourceManager UI to the Spark history server UI.</description>
+  </property>
+  
+  <property>
+    <name>spark.yarn.max.executor.failures</name>
+    <value>3</value>
+    <description>The maximum number of executor failures before failing the application.</description>
   </property>
 
 </configuration>
