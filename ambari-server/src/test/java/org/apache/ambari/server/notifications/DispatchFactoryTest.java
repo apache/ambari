@@ -60,14 +60,22 @@ public class DispatchFactoryTest {
     Assert.assertEquals(dispatchFactory, dispatchFactory2);
 
     EmailDispatcher emailDispatcher = injector.getInstance(EmailDispatcher.class);
-    emailDispatcher = (EmailDispatcher) dispatchFactory.getDispatcher(emailDispatcher.getType());
+    EmailDispatcher emailDispatcher2 = (EmailDispatcher) dispatchFactory.getDispatcher(emailDispatcher.getType());
 
     Assert.assertNotNull(emailDispatcher);
+    Assert.assertNotNull(emailDispatcher2);
+
+    // verify singleton
+    Assert.assertEquals(emailDispatcher, emailDispatcher2);
 
     SNMPDispatcher snmpDispatcher = injector.getInstance(SNMPDispatcher.class);
-    snmpDispatcher = (SNMPDispatcher) dispatchFactory.getDispatcher(snmpDispatcher.getType());
+    SNMPDispatcher snmpDispatcher2 = (SNMPDispatcher) dispatchFactory.getDispatcher(snmpDispatcher.getType());
 
     Assert.assertNotNull(snmpDispatcher);
+    Assert.assertNotNull(snmpDispatcher2);
+
+    // verify singleton
+    Assert.assertEquals(snmpDispatcher, snmpDispatcher2);
   }
 
 }

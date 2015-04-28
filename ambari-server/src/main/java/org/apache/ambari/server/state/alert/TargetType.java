@@ -35,12 +35,13 @@ public enum TargetType {
   SNMP,
 
   /**
-   * Alerts will be distributed to Nagios.
-   */
-  NAGIOS,
-
-  /**
    * Alerts will be distributed to a logger.
    */
-  LOG;
+  LOG,
+
+  /**
+   * Alerts will be distributed to a custom script that understand the various
+   * parts of the alert passed via the command line.
+   */
+  ALERT_SCRIPT;
 }

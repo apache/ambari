@@ -1604,4 +1604,20 @@ public class Configuration {
         DEFAULT_JDBC_POOL_IDLE_TEST_INTERVAL));
   }
 
+  /**
+   * Sets a property on the configuration.
+   *
+   * @param key
+   *          the key (not {@code null}).
+   * @param value
+   *          the value, or {@code null} to remove it.
+   */
+  public void setProperty(String key, String value) {
+    if (null == value) {
+      properties.remove(key);
+    } else {
+      properties.setProperty(key, value);
+    }
+  }
+
 }

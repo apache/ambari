@@ -33,11 +33,11 @@ import javax.mail.Transport;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.notifications.DispatchCredentials;
 import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
+import org.apache.ambari.server.notifications.TargetConfigurationResult;
 import org.apache.ambari.server.state.alert.TargetType;
 import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
 import org.slf4j.Logger;
@@ -70,6 +70,14 @@ public class EmailDispatcher implements NotificationDispatcher {
   @Override
   public String getType() {
     return TargetType.EMAIL.name();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public boolean isNotificationContentGenerationRequired() {
+    return true;
   }
 
   /**

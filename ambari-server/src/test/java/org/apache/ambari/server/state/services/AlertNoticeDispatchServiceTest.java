@@ -467,6 +467,14 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
      * {@inheritDoc}
      */
     @Override
+    public boolean isNotificationContentGenerationRequired() {
+      return true;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public void dispatch(Notification notification) {
       m_notificaiton = notification;
     }
@@ -495,6 +503,14 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     @Override
     public String getType() {
       return "SNMP";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isNotificationContentGenerationRequired() {
+      return true;
     }
 
     /**
@@ -538,6 +554,14 @@ public class AlertNoticeDispatchServiceTest extends AlertNoticeDispatchService {
     @Override
     public String getType() {
       return "NO_CALLBACK";
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean isNotificationContentGenerationRequired() {
+      return true;
     }
 
     /**

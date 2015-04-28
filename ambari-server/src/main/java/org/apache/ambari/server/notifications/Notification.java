@@ -27,6 +27,22 @@ import java.util.Map;
 public class Notification {
 
   /**
+   * The {@link Type} enumeration represents the type of notification being sent
+   * to a {@link NotificationDispatcher}.
+   */
+  public enum Type {
+    /**
+     * The notification is generic.
+     */
+    GENERIC,
+
+    /**
+     * The notification is an alert type.
+     */
+    ALERT
+  }
+
+  /**
    * A short summary of the notification.
    */
   public String Subject;
@@ -66,10 +82,11 @@ public class Notification {
   public List<String> CallbackIds;
 
   /**
-   * Constructor.
+   * Gets the type of notificaton.
    *
+   * @return the type (never {@code null}).
    */
-  public Notification() {
+  public Type getType() {
+    return Type.GENERIC;
   }
-
 }

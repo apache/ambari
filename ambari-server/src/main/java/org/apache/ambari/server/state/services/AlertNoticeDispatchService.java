@@ -57,11 +57,13 @@ import org.apache.ambari.server.notifications.Notification;
 import org.apache.ambari.server.notifications.NotificationDispatcher;
 import org.apache.ambari.server.notifications.Recipient;
 import org.apache.ambari.server.orm.dao.AlertDispatchDAO;
+import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
 import org.apache.ambari.server.orm.entities.AlertTargetEntity;
 import org.apache.ambari.server.state.AlertState;
 import org.apache.ambari.server.state.NotificationState;
+import org.apache.ambari.server.state.alert.AlertNotification;
 import org.apache.commons.io.IOUtils;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.Velocity;
@@ -310,7 +312,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
 
       // create a single digest notification if supported
       if (dispatcher.isDigestSupported()) {
-        Notification notification = buildNotificationFromTarget(target);
+        AlertNotification notification = buildNotificationFromTarget(target);
         notification.CallbackIds = new ArrayList<String>(notices.size());
         List<AlertHistoryEntity> histories = new ArrayList<AlertHistoryEntity>(
             notices.size());
@@ -327,7 +329,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         // populate the subject and body fields; if there is a problem
         // generating the content, then mark the notices as FAILED
         try {
-          renderDigestNotificationContent(notification, histories, target);
+          renderDigestNotificationContent(dispatcher, notification, histories, target);
 
           // dispatch
           DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
@@ -344,14 +346,14 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
         // the dispatcher does not support digest, each notice must have a 1:1
         // notification created for it
         for (AlertNoticeEntity notice : notices) {
-          Notification notification = buildNotificationFromTarget(target);
+          AlertNotification notification = buildNotificationFromTarget(target);
           AlertHistoryEntity history = notice.getAlertHistory();
           notification.CallbackIds = Collections.singletonList(notice.getUuid());
 
           // populate the subject and body fields; if there is a problem
           // generating the content, then mark the notices as FAILED
           try {
-            renderNotificationContent(notification, history, target);
+            renderNotificationContent(dispatcher, notification, history, target);
 
             // dispatch
             DispatchRunnable runnable = new DispatchRunnable(dispatcher, notification);
@@ -390,7 +392,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    *          the alert target
    * @return the initialized notification
    */
-  private Notification buildNotificationFromTarget(AlertTargetEntity target) {
+  private AlertNotification buildNotificationFromTarget(AlertTargetEntity target) {
     String propertiesJson = target.getProperties();
 
     AlertTargetProperties targetProperties = m_gson.fromJson(propertiesJson,
@@ -399,7 +401,7 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     Map<String, String> properties = targetProperties.Properties;
 
     // create an initialize the notification
-    Notification notification = new Notification();
+    AlertNotification notification = new AlertNotification();
     notification.Callback = new AlertNoticeDispatchCallback();
     notification.DispatchProperties = properties;
 
@@ -434,6 +436,8 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    * {@link #m_alertTemplates} and the list of alerts passed in. If there is a
    * problem with the templates, this will fallback to non-formatted content.
    *
+   * @param dispatcher
+   *          the dispatcher for this notification type (not {@code null}).
    * @param notification
    *          the notification (not {@code null}).
    * @param histories
@@ -441,8 +445,8 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    * @param target
    *          the target of the {@link Notification}.
    */
-  private void renderDigestNotificationContent(Notification notification,
-      List<AlertHistoryEntity> histories, AlertTargetEntity target)
+  private void renderDigestNotificationContent(NotificationDispatcher dispatcher,
+      AlertNotification notification, List<AlertHistoryEntity> histories, AlertTargetEntity target)
       throws IOException {
     String targetType = target.getNotificationType();
 
@@ -456,35 +460,35 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     final Writer bodyWriter = new StringWriter();
     final AlertTemplate template = m_alertTemplates.getTemplate(targetType);
 
-    if (null != template) {
-      // create the velocity context for template rendering
-      VelocityContext velocityContext = new VelocityContext();
-      velocityContext.put(VELOCITY_AMBARI_KEY, ambari);
-      velocityContext.put(VELOCITY_SUMMARY_KEY, summary);
-      velocityContext.put(VELOCITY_DISPATCH_KEY, dispatch);
+    if (dispatcher.isNotificationContentGenerationRequired()) {
+      if (null != template) {
+        // create the velocity context for template rendering
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put(VELOCITY_AMBARI_KEY, ambari);
+        velocityContext.put(VELOCITY_SUMMARY_KEY, summary);
+        velocityContext.put(VELOCITY_DISPATCH_KEY, dispatch);
 
-      // render the template and assign the content to the notification
-      String subjectTemplate = template.getSubject();
-      String bodyTemplate = template.getBody();
+        // render the template and assign the content to the notification
+        String subjectTemplate = template.getSubject();
+        String bodyTemplate = template.getBody();
 
-      // render the subject
-      Velocity.evaluate(velocityContext, subjectWriter, VELOCITY_LOG_TAG,
-          subjectTemplate);
+        // render the subject
+        Velocity.evaluate(velocityContext, subjectWriter, VELOCITY_LOG_TAG, subjectTemplate);
 
-      // render the body
-      Velocity.evaluate(velocityContext, bodyWriter, VELOCITY_LOG_TAG,
-          bodyTemplate);
-    } else {
-      // a null template is possible from parsing incorrectly or not
-      // having the correct type defined for the target
-      for (AlertHistoryEntity alert : histories) {
-        subjectWriter.write("Apache Ambari Alert Summary");
-        bodyWriter.write(alert.getAlertState().name());
-        bodyWriter.write(" ");
-        bodyWriter.write(alert.getAlertDefinition().getLabel());
-        bodyWriter.write(" ");
-        bodyWriter.write(alert.getAlertText());
-        bodyWriter.write("\n");
+        // render the body
+        Velocity.evaluate(velocityContext, bodyWriter, VELOCITY_LOG_TAG, bodyTemplate);
+      } else {
+        // a null template is possible from parsing incorrectly or not
+        // having the correct type defined for the target
+        for (AlertHistoryEntity alert : histories) {
+          subjectWriter.write("Apache Ambari Alert Summary");
+          bodyWriter.write(alert.getAlertState().name());
+          bodyWriter.write(" ");
+          bodyWriter.write(alert.getAlertDefinition().getLabel());
+          bodyWriter.write(" ");
+          bodyWriter.write(alert.getAlertText());
+          bodyWriter.write("\n");
+        }
       }
     }
 
@@ -497,6 +501,8 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    * {@link #m_alertTemplates} and the single alert passed in. If there is a
    * problem with the templates, this will fallback to non-formatted content.
    *
+   * @param dispatcher
+   *          the dispatcher for this notification type (not {@code null}).
    * @param notification
    *          the notification (not {@code null}).
    * @param history
@@ -504,8 +510,9 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
    * @param target
    *          the target of the {@link Notification}.
    */
-  private void renderNotificationContent(Notification notification,
-      AlertHistoryEntity history, AlertTargetEntity target) throws IOException {
+  private void renderNotificationContent(NotificationDispatcher dispatcher,
+      AlertNotification notification, AlertHistoryEntity history, AlertTargetEntity target)
+      throws IOException {
     String targetType = target.getNotificationType();
 
     // build the velocity objects for template rendering
@@ -513,42 +520,46 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
     AlertInfo alert = new AlertInfo(history);
     DispatchInfo dispatch = new DispatchInfo(target);
 
+    // set the alert info on the notification subclass so that dispatchers
+    // can use it directly
+    notification.setAlertInfo(alert);
+
     // get the template for this target type
     final Writer subjectWriter = new StringWriter();
     final Writer bodyWriter = new StringWriter();
     final AlertTemplate template = m_alertTemplates.getTemplate(targetType);
 
-    if (null != template) {
-      // create the velocity context for template rendering
-      VelocityContext velocityContext = new VelocityContext();
-      velocityContext.put(VELOCITY_AMBARI_KEY, ambari);
-      velocityContext.put(VELOCITY_ALERT_KEY, alert);
-      velocityContext.put(VELOCITY_DISPATCH_KEY, dispatch);
+    if (dispatcher.isNotificationContentGenerationRequired()) {
+      if (null != template) {
+        // create the velocity context for template rendering
+        VelocityContext velocityContext = new VelocityContext();
+        velocityContext.put(VELOCITY_AMBARI_KEY, ambari);
+        velocityContext.put(VELOCITY_ALERT_KEY, alert);
+        velocityContext.put(VELOCITY_DISPATCH_KEY, dispatch);
 
-      // render the template and assign the content to the notification
-      String subjectTemplate = template.getSubject();
-      String bodyTemplate = template.getBody();
+        // render the template and assign the content to the notification
+        String subjectTemplate = template.getSubject();
+        String bodyTemplate = template.getBody();
 
-      // render the subject
-      Velocity.evaluate(velocityContext, subjectWriter, VELOCITY_LOG_TAG,
-          subjectTemplate);
+        // render the subject
+        Velocity.evaluate(velocityContext, subjectWriter, VELOCITY_LOG_TAG, subjectTemplate);
 
-      // render the body
-      Velocity.evaluate(velocityContext, bodyWriter, VELOCITY_LOG_TAG,
-          bodyTemplate);
-    } else {
-      // a null template is possible from parsing incorrectly or not
-      // having the correct type defined for the target
-      subjectWriter.write(alert.getAlertState().name());
-      subjectWriter.write(" ");
-      subjectWriter.write(alert.getAlertName());
+        // render the body
+        Velocity.evaluate(velocityContext, bodyWriter, VELOCITY_LOG_TAG, bodyTemplate);
+      } else {
+        // a null template is possible from parsing incorrectly or not
+        // having the correct type defined for the target
+        subjectWriter.write(alert.getAlertState().name());
+        subjectWriter.write(" ");
+        subjectWriter.write(alert.getAlertName());
 
-      bodyWriter.write(alert.getAlertState().name());
-      bodyWriter.write(" ");
-      bodyWriter.write(alert.getAlertName());
-      bodyWriter.write(" ");
-      bodyWriter.write(alert.getAlertText());
-      bodyWriter.write("\n");
+        bodyWriter.write(alert.getAlertState().name());
+        bodyWriter.write(" ");
+        bodyWriter.write(alert.getAlertName());
+        bodyWriter.write(" ");
+        bodyWriter.write(alert.getAlertText());
+        bodyWriter.write("\n");
+      }
     }
 
     notification.Subject = subjectWriter.toString();
@@ -768,6 +779,15 @@ public class AlertNoticeDispatchService extends AbstractScheduledService {
      */
     public String getAlertName() {
       return m_history.getAlertDefinition().getLabel();
+    }
+
+    /**
+     * Gets the alert definition for this alert.
+     *
+     * @return the alert definition.
+     */
+    public AlertDefinitionEntity getAlertDefinition() {
+      return m_history.getAlertDefinition();
     }
 
     /**

@@ -15,55 +15,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.ambari.server.notifications;
+package org.apache.ambari.server.state.alert;
 
-import java.util.Map;
+import org.apache.ambari.server.notifications.Notification;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService;
+import org.apache.ambari.server.state.services.AlertNoticeDispatchService.AlertInfo;
 
 /**
- *
+ * The {@link AlertNotification} represents a concrete {@link Notification} that
+ * is specific to the {@link AlertNoticeDispatchService}.
  */
-public class MockDispatcher implements NotificationDispatcher {
+public class AlertNotification extends Notification {
 
   /**
-   * Constructor.
-   *
+   * The alert information.
    */
-  public MockDispatcher() {
-  }
+  private AlertInfo m_alertInfo;
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public String getType() {
-    return "MOCK";
+  public Type getType() {
+    return Type.ALERT;
   }
 
   /**
-   * {@inheritDoc}
+   * @return the alertInfo
    */
-  @Override
-  public boolean isNotificationContentGenerationRequired() {
-    return true;
+  public AlertInfo getAlertInfo() {
+    return m_alertInfo;
   }
 
   /**
-   * {@inheritDoc}
+   * @param alertInfo
+   *          the alertInfo to set
    */
-  @Override
-  public boolean isDigestSupported() {
-    return true;
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public void dispatch(Notification notification) {
-  }
-
-  @Override
-  public TargetConfigurationResult validateTargetConfig(Map<String, Object> properties) {
-    return null;
+  public void setAlertInfo(AlertInfo alertInfo) {
+    m_alertInfo = alertInfo;
   }
 }

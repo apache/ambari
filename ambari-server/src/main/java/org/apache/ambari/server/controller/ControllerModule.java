@@ -408,7 +408,7 @@ public class ControllerModule extends AbstractModule {
     bind(RoleGraphFactory.class).to(RoleGraphFactoryImpl.class);
     install(new FactoryModuleBuilder().build(RequestFactory.class));
     install(new FactoryModuleBuilder().build(StackManagerFactory.class));
-    
+
     bind(HostRoleCommandFactory.class).to(HostRoleCommandFactoryImpl.class);
     bind(SecurityHelper.class).toInstance(SecurityHelperImpl.getInstance());
     bind(BlueprintFactory.class);
@@ -514,6 +514,7 @@ public class ControllerModule extends AbstractModule {
    * classpath and registers each as a singleton with the
    * {@link DispatchFactory}.
    */
+  @SuppressWarnings("unchecked")
   private void bindNotificationDispatchers() {
     ClassPathScanningCandidateComponentProvider scanner =
         new ClassPathScanningCandidateComponentProvider(false);
@@ -547,6 +548,7 @@ public class ControllerModule extends AbstractModule {
       try {
         NotificationDispatcher dispatcher = (NotificationDispatcher) clazz.newInstance();
         dispatchFactory.register(dispatcher.getType(), dispatcher);
+        bind((Class<NotificationDispatcher>) clazz).toInstance(dispatcher);
 
         LOG.info("Binding and registering notification dispatcher {}", clazz);
       } catch (Exception exception) {
