@@ -214,33 +214,15 @@ App.WidgetPropertyTypes = [
      * @returns {boolean}
      */
     validate: function (value) {
-      if (!this.get('isRequired') && !this.get('smallValue') && !this.get('bigValue')) {
+      if (!value) {
         return true;
-      } else if (!value) {
-        return false;
       }
       value = ('' + value).trim();
       return validator.isValidFloat(value) && value > this.get('MIN_VALUE') && value <= this.get('MAX_VALUE');
     },
 
-    thresholdError: function () {
-      if (this.get('isSmallValueValid') && this.get('isBigValueValid')) {
-        return Number(this.get('smallValue')) > Number(this.get('bigValue'));
-      } else {
-        return false;
-      }
-    }.property('smallValue', 'bigValue', 'isSmallValueValid', 'isBigValueValid'),
-
     isValid: function () {
-      return this.get('isSmallValueValid') && this.get('isBigValueValid') && (!this.get('thresholdError'));
-    }.property( 'isSmallValueValid', 'isBigValueValid', 'thresholdError'),
-
-    /**
-     * Define whether warning threshold < critical threshold
-     * @type {Boolean}
-     */
-    errorMsg: function () {
-      return this.get('thresholdError') ? "Threshold 1 should be smaller than threshold 2" : null;
-    }.property('thresholdError')
+      return this.get('isSmallValueValid') && this.get('isBigValueValid') ;
+    }.property( 'isSmallValueValid', 'isBigValueValid')
   }
 ];

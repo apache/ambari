@@ -81,10 +81,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
   /**
    * enable metric edit area
    */
-  startEdit: function () {
+  didInsertElement: function () {
     var self = this;
-    this.set('dataBefore', this.get('expression.data').slice(0));
-    this.set('expression.editMode', true);
     this.propertyDidChange('expression');
     Em.run.next(function () {
       $(self.get('element')).find('.metric-field').sortable({
@@ -102,16 +100,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
    * discard changes and disable metric edit area
    */
   cancelEdit: function () {
-    this.set('expression.data', this.get('dataBefore'));
-    this.set('expression.editMode', false);
-    this.propertyDidChange('expression');
-  },
-
-  /**
-   * save changes and disable metric edit area
-   */
-  saveMetrics: function () {
-    this.set('expression.editMode', false);
+    this.set('expression.data', []);
     this.propertyDidChange('expression');
   },
 
@@ -148,6 +137,8 @@ App.WidgetWizardExpressionView = Em.View.extend({
     }
 
     this.set('isInvalid', isInvalid);
+    this.set('expression.isInvalid', isInvalid);
+    this.set('expression.isEmpty', this.get('expression.data.length') == 0);
     if (!isInvalid) this.get('controller').updateExpressions();
   }.observes('expression.data.length'),
 

@@ -108,22 +108,22 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       case "NUMBER":
       case "GAUGE":
         return this.get('expressions')[0] &&
-          (this.get('expressions')[0].get('editMode') ||
-          this.get('expressions')[0].get('data.length') === 0);
+          (this.get('expressions')[0].get('isInvalid') ||
+            this.get('expressions')[0].get('isEmpty'));
       case "GRAPH":
         return this.get('dataSets.length') > 0 &&
-          (this.get('dataSets').someProperty('expression.editMode') ||
-          this.get('dataSets').someProperty('expression.data.length', 0));
+          (this.get('dataSets').someProperty('expression.isInvalid') ||
+            this.get('dataSets').someProperty('expression.isEmpty'));
       case "TEMPLATE":
         return !this.get('templateValue') ||
           this.get('expressions.length') > 0 &&
-          (this.get('expressions').someProperty('editMode') ||
-          this.get('expressions').someProperty('data.length', 0));
+            (this.get('expressions').someProperty('isInvalid') ||
+              this.get('expressions').someProperty('isEmpty'));
     }
     return false;
-  }.property('widgetPropertiesViews.@each.isValid',
-    'expressions.@each.editMode',
-    'dataSets.@each.expression'),
+  }.property('widgetPropertiesViews.@each.isValid', 'templateValue',
+    'dataSets.@each.expression', 'dataSets.@each.isInvalid', 'dataSets.@each.isExpressionEmpty',
+    'expressions.@each.isInvalid', 'expressions.@each.isEmpty'),
 
   /**
    * Add data set
@@ -140,8 +140,15 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       isRemovable: !isDefault,
       expression: {
         data: [],
-        editMode: false
-      }
+        isInvalid: false,
+        isEmpty: true
+      },
+      isInvalid: function() {
+        return this.get('expression.isInvalid');
+      }.property('expression.isInvalid'),
+      isExpressionEmpty: function() {
+        return this.get('expression.isEmpty');
+      }.property('expression.isEmpty')
     }));
     return id;
   },
@@ -168,7 +175,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       isRemovable: !isDefault,
       data: [],
       alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
-      editMode: false
+      isInvalid: false,
+      isEmpty: true
     }));
     return id;
   },

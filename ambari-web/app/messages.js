@@ -2527,8 +2527,8 @@ Em.I18n.translations = {
   'widget.clone.body': 'Are you sure you want to clone current widget {0}?',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
-  'dashboard.widgets.wizard.step2.newMetric': '+ New Metric',
-  'dashboard.widgets.wizard.step2.newOperator': '+ New Operator',
+  'dashboard.widgets.wizard.step2.newMetric': '+ Add Metric',
+  'dashboard.widgets.wizard.step2.newOperator': '+ Add Operator',
   'dashboard.widgets.wizard.step2.Component': 'Component',
   'dashboard.widgets.wizard.step2.Metric': 'Metric',
   'dashboard.widgets.wizard.step2.selectComponent': 'Select a Component',
@@ -2536,6 +2536,8 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.addMetric': 'Add Metric',
   'dashboard.widgets.wizard.step2.aggregateFunction': 'Aggregator Function',
   'dashboard.widgets.wizard.step2.aggregateTooltip': 'This mathematical function will be applied to compute single value for selected metric across all host components',
+  'dashboard.widgets.wizard.step2.threshold.ok.tooltip': 'This is the threshold value at which the widget color changes from green (OK) to orange (Warning)',
+  'dashboard.widgets.wizard.step2.threshold.warning.tooltip': 'This is the threshold value at which the widget color changes from orange (Warning) to red (Critical)',
 
   'restart.service.all': 'Restart All',
   'restart.service.all.affected': 'Restart All Affected',

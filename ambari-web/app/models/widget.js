@@ -93,7 +93,7 @@ App.WidgetType.FIXTURES = [
     properties: [
       {
         name : 'threshold',
-        isRequired: true,
+        isRequired: false,
         smallValue: '0.7',
         bigValue: '0.9'
       }
@@ -116,7 +116,8 @@ App.WidgetType.FIXTURES = [
       {
         name : 'display_unit',
         isRequired: false,
-        value: 'MB'
+        value: '',
+        placeholder: 'Optional: MB, ms, etc.'
       }
     ]
   },
@@ -140,7 +141,8 @@ App.WidgetType.FIXTURES = [
       {
         name : 'display_unit',
         isRequired: false,
-        value: 'MB'
+        value: '',
+        placeholder: 'Optional: MB, ms, etc.'
       }
     ]
   },
@@ -154,7 +156,8 @@ App.WidgetType.FIXTURES = [
       {
         name : 'display_unit',
         isRequired: false,
-        value: 'MB'
+        value: '',
+        placeholder: 'Optional: MB, ms, etc.'
       }
     ]
   }

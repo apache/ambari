@@ -41,8 +41,15 @@ App.WidgetWizardStep2View = Em.View.extend({
     }
   }.property('controller.content.widgetType'),
 
+  ensureTooltip: function () {
+    Em.run.later(this, function () {
+      App.tooltip($("[rel='threshold-tooltip']"));
+    }, 500);
+  }.observes(''),
+
   didInsertElement: function () {
     var controller = this.get('controller');
+    this.ensureTooltip();
     controller.initWidgetData();
     controller.renderProperties();
     controller.updateExpressions();
@@ -52,6 +59,7 @@ App.WidgetWizardStep2View = Em.View.extend({
 
 App.WidgetPropertyTextFieldView = Em.TextField.extend({
   valueBinding: 'property.value',
+  placeholderBinding: 'property.placeholder',
   classNameBindings: ['property.classNames', 'parentView.basicClass']
 });
 
