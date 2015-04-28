@@ -305,6 +305,7 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
           propertyInfo.isTemporal(), propertyInfo.isPointInTime());
         compPropertyInfo.setAmsHostMetric(propertyInfo.isAmsHostMetric());
         compPropertyInfo.setAmsId(propertyInfo.getAmsId());
+        compPropertyInfo.setUnit(propertyInfo.getUnit());
         componentMetricMap.put(propertyId, compPropertyInfo);
       }
 

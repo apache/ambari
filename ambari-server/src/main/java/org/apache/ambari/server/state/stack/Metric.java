@@ -22,16 +22,18 @@ public class Metric {
   private boolean pointInTime = false;
   private boolean temporal = false;
   private boolean amsHostMetric = false;
+  private String unit = "unitless";
 
   public Metric() {
   }
 
   public Metric(String metric, boolean pointInTime, boolean temporal,
-                boolean amsHostMetric) {
+                boolean amsHostMetric, String unit) {
     this.metric = metric;
     this.pointInTime = pointInTime;
     this.temporal = temporal;
     this.amsHostMetric = amsHostMetric;
+    this.unit = unit;
   }
 
   public String getName() {
@@ -51,5 +53,9 @@ public class Metric {
    */
   public boolean isAmsHostMetric() {
     return amsHostMetric;
+  }
+
+  public String getUnit() {
+    return unit;
   }
 }

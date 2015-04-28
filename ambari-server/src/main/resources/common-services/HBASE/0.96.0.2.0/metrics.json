@@ -317,31 +317,37 @@
             },
             "metrics/hbase/regionserver/Server/Get_95th_percentile": {
               "metric": "regionserver.Server.Get_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/ScanNext_95th_percentile": {
               "metric": "regionserver.Server.ScanNext_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Mutate_95th_percentile": {
               "metric": "regionserver.Server.Mutate_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Increment_95th_percentile": {
               "metric": "regionserver.Server.Increment_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Append_95th_percentile": {
               "metric": "regionserver.Server.Append_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/Delete_95th_percentile": {
               "metric": "regionserver.Server.Delete_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": true
             },
@@ -637,6 +643,7 @@
             },
             "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile": {
               "metric": "regionserver.Server.Delete_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
@@ -1399,6 +1406,7 @@
             },
             "metrics/hbase/regionserver/putRequestLatency_95th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": false
             },
@@ -1519,11 +1527,13 @@
             },
             "metrics/hbase/regionserver/getRequestLatency_95th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": false
             },
             "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Delete_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": false
             },
@@ -1792,6 +1802,7 @@
             },
             "metrics/hbase/regionserver/putRequestLatency_95th_percentile": {
               "metric": "regionserver.Server.Mutate_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
@@ -2162,11 +2173,13 @@
             },
             "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile": {
               "metric": "regionserver.Server.Delete_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
             "metrics/hbase/regionserver/getRequestLatency_95th_percentile": {
               "metric": "regionserver.Server.Get_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
@@ -2477,6 +2490,7 @@
             },
             "metrics/regionserver/Server/Append_95th_percentile": {
               "metric": "regionserver.Server.Append_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
@@ -2597,6 +2611,7 @@
             },
             "metrics/regionserver/Server/Increment_95th_percentile": {
               "metric": "regionserver.Server.Increment_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
@@ -2697,6 +2712,7 @@
             },
             "metrics/regionserver/Server/ScanNext_95th_percentile": {
               "metric": "regionserver.Server.ScanNext_95th_percentile",
+              "unit": "ms",
               "pointInTime": false,
               "temporal": true
             },
@@ -3034,6 +3050,7 @@
             },
             "metrics/hbase/regionserver/putRequestLatency_95th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Mutate_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": false
             },
@@ -3154,11 +3171,13 @@
             },
             "metrics/hbase/regionserver/getRequestLatency_95th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": false
             },
             "metrics/hbase/regionserver/deleteRequestLatency_95th_percentile": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Delete_95th_percentile",
+              "unit": "ms",
               "pointInTime": true,
               "temporal": false
             },

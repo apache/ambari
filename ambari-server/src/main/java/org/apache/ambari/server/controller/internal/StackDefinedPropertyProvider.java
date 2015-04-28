@@ -251,6 +251,7 @@ public class StackDefinedPropertyProvider implements PropertyProvider {
       PropertyInfo propertyInfo = new PropertyInfo(metric.getName(),
         metric.isTemporal(), metric.isPointInTime());
       propertyInfo.setAmsHostMetric(metric.isAmsHostMetric());
+      propertyInfo.setUnit(metric.getUnit());
       defs.put(entry.getKey(), propertyInfo);
     }
 
