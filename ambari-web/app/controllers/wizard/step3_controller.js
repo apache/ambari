@@ -745,8 +745,11 @@ App.WizardStep3Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   getJDKName: function () {
     return App.ajax.send({
-      name: 'ambari.service.load_jdk_name',
+      name: 'ambari.service',
       sender: this,
+      data: {
+        fields : '?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location'
+      },
       success: 'getJDKNameSuccessCallback'
     });
   },

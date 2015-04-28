@@ -97,6 +97,8 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   status: 'info',
 
+  skipServiceChecks: false,
+
   /**
    * This computed property is used to determine if the Next button and back button on the page should be disabled. The property is
    * used in the template to grey out Next and Back buttons. Although clicking on the greyed out button do trigger the event and
@@ -497,7 +499,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         data = {
           "context": Em.I18n.t("requestInfo.startServices"),
           "ServiceInfo": { "state": "STARTED" },
-          "urlParams": "ServiceInfo/state=INSTALLED&params/run_smoke_test=true&params/reconfigure_client=false"
+          "urlParams": "ServiceInfo/state=INSTALLED&params/run_smoke_test=" + !this.get('skipServiceChecks') + "&params/reconfigure_client=false"
         };
     }
 
@@ -1101,7 +1103,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
         error: 'isAllComponentsInstalledErrorCallback'
       }).complete(function(){
           dfd.resolve();
-        });
+      });
     }
     return dfd.promise();
   },
@@ -1188,6 +1190,36 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
   saveInstalledHosts: function (context) {
     if (!App.get('testMode')) {
       App.router.get(this.get('content.controllerName')).saveInstalledHosts(context);
+    }
+  },
+
+  /**
+   * Load ambari property to determine if we should run service checks on deploy
+   */
+  loadDoServiceChecksFlag: function () {
+    var def = $.Deferred();
+    App.ajax.send({
+      name: 'ambari.service',
+      sender: this,
+      data: {
+        fields: '?fields=RootServiceComponents/properties/skip.service.checks'
+      },
+      success: 'loadDoServiceChecksFlagSuccessCallback'
+    }).complete(function(){
+      def.resolve();
+    });
+    return def.promise();
+  },
+
+  /**
+   *  Callback function Load ambari property to determine if we should run service checks on deploy
+   * @param {Object} data
+   * @method loadDoServiceChecksFlagSuccessCallback
+   */
+  loadDoServiceChecksFlagSuccessCallback: function (data) {
+    var properties = Em.get(data, 'RootServiceComponents.properties');
+    if(properties.hasOwnProperty('skip.service.checks')){
+      this.set('skipServiceChecks', properties['skip.service.checks'] === 'true');
     }
   }
 

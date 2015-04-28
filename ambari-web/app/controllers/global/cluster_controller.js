@@ -126,8 +126,11 @@ App.ClusterController = Em.Controller.extend({
 
   getServerClock: function () {
     return App.ajax.send({
-      name: 'ambari.service.load_server_clock',
+      name: 'ambari.service',
       sender: this,
+      data: {
+        fields: '?fields=RootServiceComponents/server_clock'
+      },
       success: 'getServerClockSuccessCallback',
       error: 'getServerClockErrorCallback'
     });

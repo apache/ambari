@@ -331,8 +331,11 @@ App.InstallerController = App.WizardController.extend({
   },
   getServerVersion: function () {
     return App.ajax.send({
-      name: 'ambari.service.load_server_version',
+      name: 'ambari.service',
       sender: this,
+      data: {
+        fields: '?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true'
+      },
       success: 'getServerVersionSuccessCallback',
       error: 'getServerVersionErrorCallback'
     });

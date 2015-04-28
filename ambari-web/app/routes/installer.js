@@ -351,15 +351,17 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
     route: '/step9',
     connectOutlets: function (router, context) {
       console.log('in installer.step9:connectOutlets');
-      var controller = router.get('installerController');
+      var controller = router.get('installerController'),
+          wizardStep9Controller = router.get('wizardStep9Controller');
       controller.setCurrentStep('9');
       controller.loadAllPriorSteps().done(function () {
-        if (!App.get('testMode')) {
-          controller.setLowerStepsDisable(9);
-        }
-        var wizardStep9Controller = router.get('wizardStep9Controller');
-        wizardStep9Controller.set('wizardController', controller);
-        controller.connectOutlet('wizardStep9', controller.get('content'));
+        wizardStep9Controller.loadDoServiceChecksFlag().done(function () {
+          if (!App.get('testMode')) {
+            controller.setLowerStepsDisable(9);
+          }
+          wizardStep9Controller.set('wizardController', controller);
+          controller.connectOutlet('wizardStep9', controller.get('content'));
+        });
       });
     },
     back: Em.Router.transitionTo('step8'),

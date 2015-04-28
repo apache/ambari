@@ -1137,7 +1137,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   checkMySQLHost: function () {
     // get ambari database type and hostname
     return App.ajax.send({
-      name: 'config.ambari.database.info',
+      name: 'ambari.service',
+      data: {
+        fields : "?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url"
+      },
       sender: this,
       success: 'getAmbariDatabaseSuccess'
     });

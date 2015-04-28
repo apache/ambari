@@ -725,10 +725,6 @@ var urls = {
     'real': '/clusters/{clusterName}?fields=Clusters/desired_configs,config_groups/*{urlParams}',
     'mock': '/data/clusters/tags_and_groups.json'
   },
-  'config.ambari.database.info': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=hostComponents/RootServiceHostComponents/properties/server.jdbc.database_name,hostComponents/RootServiceHostComponents/properties/server.jdbc.url',
-    'mock': ''
-  },
   'config_groups.all_fields': {
     'real': '/clusters/{clusterName}/config_groups?fields=*',
     'mock': ''
@@ -1937,21 +1933,9 @@ var urls = {
     'real': '/logout',
     'mock': ''
   },
-  'ambari.service.load_jdk_name': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/properties/jdk.name,RootServiceComponents/properties/java.home,RootServiceComponents/properties/jdk_location',
-    'mock': '/data/requests/host_check/jdk_name.json'
-  },
-  'ambari.service.load_server_version': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true',
-    'mock': '/data/ambari_components/component_version.json'
-  },
   'ambari.service': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER',
+    'real': '/services/AMBARI/components/AMBARI_SERVER{fields}',
     'mock': '/data/services/ambari_server.json'
-  },
-  'ambari.service.load_server_clock': {
-    'real': '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/server_clock',
-    'mock': ''
   },
 
   'config_groups.create': {
