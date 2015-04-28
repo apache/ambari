@@ -335,6 +335,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
         selectedMetric.set('id', id);
         if (aggregateFunction && aggregateFunction !== 'avg') {
           selectedMetric.set('metricPath', selectedMetric.get('metricPath') + '._' + aggregateFunction);
+          selectedMetric.set('name', selectedMetric.get('name') + '._' + aggregateFunction);
         }
         data.pushObject(selectedMetric);
         this.hide();
