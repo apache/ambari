@@ -94,7 +94,7 @@ public class StageUtils {
   private static String server_hostname;
   static {
     try {
-      server_hostname = InetAddress.getLocalHost().getCanonicalHostName();
+      server_hostname = InetAddress.getLocalHost().getCanonicalHostName().toLowerCase();
     } catch (UnknownHostException e) {
       LOG.warn("Could not find canonical hostname ", e);
       server_hostname = "localhost";
