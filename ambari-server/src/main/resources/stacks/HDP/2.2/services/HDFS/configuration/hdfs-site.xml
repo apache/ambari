@@ -34,4 +34,19 @@
     <description>The path where the JournalNode daemon will store its local state. </description>
   </property>
 
+  <property>
+    <name>dfs.encryption.key.provider.uri</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>keyserver_host</name>
+      </property>
+      <property>
+        <type>hadoop-env</type>
+        <name>keyserver_port</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>

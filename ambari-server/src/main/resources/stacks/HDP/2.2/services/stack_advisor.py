@@ -173,6 +173,33 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
     putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'maximum', dataDirsCount)
 
+    keyserverHostsString = None
+    keyserverPortString = None
+    if "keyserver_host" in services["configurations"]["hadoop-env"]["properties"] and "keyserver_port" in services["configurations"]["hadoop-env"]["properties"]:
+      keyserverHostsString = services["configurations"]["hadoop-env"]["properties"]["keyserver_host"]
+      keyserverPortString = services["configurations"]["hadoop-env"]["properties"]["keyserver_port"]
+
+    if keyserverHostsString is None:
+      # Caller did not specify any value - so we recommend where they are installed
+      rangerKMSServerHosts = self.getHostsWithComponent("RANGER_KMS", "RANGER_KMS_SERVER", services, hosts)
+      if rangerKMSServerHosts is not None and len(rangerKMSServerHosts) > 0:
+        rangerKMSServerHostsArray = []
+        for rangeKMSServerHost in rangerKMSServerHosts:
+          rangerKMSServerHostsArray.append(rangeKMSServerHost["Hosts"]["host_name"])
+        keyserverHostsString = ",".join(rangerKMSServerHostsArray)
+        if "kms-env" in services["configurations"] and "kms_port" in services["configurations"]["kms-env"]["properties"]:
+          keyserverPortString = services["configurations"]["kms-env"]["properties"]["kms_port"]
+
+    if keyserverHostsString is not None and len(keyserverHostsString.strip()) > 0:
+      if keyserverPortString is None or len(keyserverPortString.strip()) < 1:
+        keyserverPortString = ":9292"
+      else:
+        keyserverPortString = ":" + keyserverPortString.strip()
+      putCoreSiteProperty = self.putProperty(configurations, "core-site", services)
+      kmsPath = "kms://http@" + keyserverHostsString.strip() + keyserverPortString + "/kms"
+      putCoreSiteProperty("hadoop.security.key.provider.path", kmsPath)
+      putHdfsSiteProperty("dfs.encryption.key.provider.uri", kmsPath)
+
   def recommendHIVEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHiveConfigurations(configurations, clusterData, services, hosts)
 

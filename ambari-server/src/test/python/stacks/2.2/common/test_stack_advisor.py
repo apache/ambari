@@ -1677,6 +1677,60 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "5000")
     self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1250")
     self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1250")
+    
+    # Test 4 - KMS empty test from previous call
+    self.assertTrue("dfs.encryption.key.provider.uri" not in configurations["hdfs-site"]["properties"])
+    
+    # Test 5 - Calculated from hosts install location
+    services["services"].append(
+                    {"StackServices":
+                          {"service_name" : "RANGER_KMS",
+                           "service_version" : "2.6.0.2.2"
+                           },
+                      "components":[
+                        {
+                          "href":"/api/v1/stacks/HDP/versions/2.2/services/RANGER_KMS/components/RANGER_KMS_SERVER",
+                          "StackServiceComponents":{
+                            "advertise_version":"true",
+                            "cardinality":"1+",
+                            "component_category":"SLAVE",
+                            "component_name":"RANGER_KMS_SERVER",
+                            "custom_commands":[
+
+                            ],
+                            "display_name":"RANGER_KMS_SERVER",
+                            "is_client":"false",
+                            "is_master":"false",
+                            "service_name":"RANGER_KMS",
+                            "stack_name":"HDP",
+                            "stack_version":"2.2",
+                            "hostnames":[
+                              "host1"
+                            ]
+                          },
+                          "dependencies":[
+
+                          ]
+                        }
+                       ]
+                     })
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEqual("kms://http@host1:9292/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+
+    # Test 6 - Multiple RANGER_KMS_SERVERs
+    services["services"][len(services["services"])-1]["components"][0]["StackServiceComponents"]["hostnames"].append("host2")
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEqual("kms://http@host1,host2:9292/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+
+    # Test 6 - Multiple RANGER_KMS_SERVERs and custom port
+    configurations["kms-env"] = {"properties": {"kms_port": "1111"}}
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEqual("kms://http@host1,host2:1111/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
+
+    # Test 7 - Override by API caller
+    configurations["hadoop-env"] = {"properties": {"keyserver_host": "myhost1", "keyserver_port": "2222"}}
+    self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+    self.assertEqual("kms://http@myhost1:2222/kms", configurations["hdfs-site"]["properties"]["dfs.encryption.key.provider.uri"])
 
   def test_validateHDFSConfigurationsEnv(self):
     configurations = {}

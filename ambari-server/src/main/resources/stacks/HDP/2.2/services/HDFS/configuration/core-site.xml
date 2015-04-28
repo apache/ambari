@@ -28,4 +28,19 @@
     <description></description>
   </property>
 
+  <property>
+    <name>hadoop.security.key.provider.path</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>keyserver_host</name>
+      </property>
+      <property>
+        <type>hadoop-env</type>
+        <name>keyserver_port</name>
+      </property>
+    </depends-on>
+  </property>
+
 </configuration>

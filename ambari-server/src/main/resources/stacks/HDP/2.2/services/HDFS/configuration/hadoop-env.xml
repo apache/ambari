@@ -23,6 +23,22 @@
 <configuration>
   <!-- hadoop-env.sh -->
   <property>
+    <name>keyserver_host</name>
+    <value> </value>
+    <description>Hostnames where Key Management Server is installed</description>
+    <value-attributes>
+      <type>string</type>
+    </value-attributes>
+  </property>
+  <property>
+    <name>keyserver_port</name>
+    <value> </value>
+    <description>Port number where Key Management Server is available</description>
+    <value-attributes>
+      <type>int</type>
+    </value-attributes>
+  </property>
+  <property>
     <name>content</name>
     <description>This is the jinja template for hadoop-env.sh file</description>
     <value>
