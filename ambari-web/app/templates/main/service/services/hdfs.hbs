@@ -19,7 +19,7 @@
 {{view view.dashboardMasterComponentView}}
 <!-- Data Nodes -->
 <tr>
-  <td><a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a></td>
+  <td class="summary-label"><a href="#" {{action filterHosts view.dataNodeComponent}}>{{t dashboard.services.hdfs.datanodes}}</a></td>
   <td>
     <span>
       {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.dataNodesStarted" totalComponentsBinding="view.service.dataNodesTotal"}}
@@ -31,7 +31,7 @@
 </tr>
 <!-- NFS Gateway -->
 <tr>
-  <td><a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
+  <td class="summary-label"><a href="#" {{action filterHosts view.nfsGatewayComponent}}>{{t dashboard.services.hdfs.nfsgateways}}</a></td>
   <td>
     <span>
       {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nfsGatewaysStarted" totalComponentsBinding="view.service.nfsGatewaysTotal"}}
@@ -43,7 +43,7 @@
 </tr>
 <!-- Data Node Counts -->
 <tr>
-  <td>{{t dashboard.services.hdfs.datanodecounts}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.datanodecounts}}</td>
   <td>
     <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.live" }} rel="tooltip">{{view.service.liveDataNodes.length}} {{t dashboard.services.hdfs.nodes.live}} </span> /
     <span {{translateAttr data-original-title="dashboard.services.hdfs.datanode.status.tooltip.dead" }} rel="tooltip">{{view.service.deadDataNodes.length}} {{t dashboard.services.hdfs.nodes.dead}} </span> /
@@ -53,7 +53,7 @@
 <!-- JournalNodes -->
 {{#if view.showJournalNodes}}
   <tr>
-    <td><a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
+    <td class="summary-label"><a href="#" {{action filterHosts view.journalNodeComponent}}>{{t dashboard.services.hdfs.journalnodes}}</a>
     </td>
     <td>
       <span>
@@ -67,21 +67,21 @@
 {{/if}}
 <!-- NameNode Uptime -->
 <tr>
-  <td>{{t dashboard.services.hdfs.nodes.uptime}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.nodes.uptime}}</td>
   <td>{{view.nodeUptime}}</td>
 </tr>
 <!-- NameNode Heap -->
 <tr>
-  <td>{{t dashboard.services.hdfs.nodes.heap}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.nodes.heap}}</td>
   <td>{{view.nodeHeap}}</td>
 </tr>
 <!-- HDFS Capacity (Disk Usage)-->
 <tr>
-  <td>{{t dashboard.services.hdfs.capacity.dfsUsed}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.capacity.dfsUsed}}</td>
   <td>{{view.dfsUsedDisk}}</td>
 </tr>
 <tr>
-  <td>{{t dashboard.services.hdfs.capacity.nonDfsUsed}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.capacity.nonDfsUsed}}</td>
   <td>{{view.nonDfsUsedDisk}}</td>
 </tr>
 
@@ -94,36 +94,36 @@
     <tbody>
 
 <tr>
-  <td>{{t dashboard.services.hdfs.capacity.remaining}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.capacity.remaining}}</td>
   <td>{{view.remainingDisk}}</td>
 </tr>
 <!-- Blocks Total -->
 <tr>
-  <td>{{t services.service.summary.blocksTotal}}</td>
+  <td class="summary-label">{{t services.service.summary.blocksTotal}}</td>
   <td>{{view.dfsTotalBlocks}}</td>
 </tr>
 <!-- Block Errors -->
 <tr>
-  <td>{{t services.service.summary.blockErrors}}</td>
+  <td class="summary-label">{{t services.service.summary.blockErrors}}</td>
   <td>
     {{view.blockErrorsMessage}}
   </td>
 </tr>
 <!-- Total Files And Directories -->
 <tr>
-  <td>{{t dashboard.services.hdfs.totalFilesAndDirs}}</td>
+  <td class="summary-label">{{t dashboard.services.hdfs.totalFilesAndDirs}}</td>
   <td>{{view.dfsTotalFiles}}</td>
 </tr>
 <!-- Upgrade Status -->
 <tr>
-  <td>{{t services.service.summary.pendingUpgradeStatus}}</td>
+  <td class="summary-label">{{t services.service.summary.pendingUpgradeStatus}}</td>
   <td>
     <span {{bindAttr class="view.isUpgradeStatusWarning:upgrade-status-warning"}}>{{view.upgradeStatus}}</span>
   </td>
 </tr>
 <!-- Safe Mode Status -->
 <tr>
-  <td>{{t services.service.summary.safeModeStatus}}</td>
+  <td class="summary-label">{{t services.service.summary.safeModeStatus}}</td>
   <td>
     {{view.safeModeStatus}}
   </td>

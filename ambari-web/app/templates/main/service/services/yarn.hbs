@@ -19,7 +19,7 @@
 
 <!-- NodeManagers -->
 <tr>
-  <td><a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
+  <td class="summary-label"><a href="#" {{action filterHosts view.nodeManagerComponent}}>{{t dashboard.services.yarn.nodeManagers}}</a></td>
   <td>
     <span>
       {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.nodeManagersStarted" totalComponentsBinding="view.service.nodeManagersTotal"}}
@@ -30,7 +30,7 @@
 </tr>
 <!-- NodeManagers status -->
 <tr>
-  <td>{{t dashboard.services.yarn.nodeManagers.status}}</td>
+  <td class="summary-label">{{t dashboard.services.yarn.nodeManagers.status}}</td>
   <td>{{view.nodeManagersStatus}}</td>
 </tr>
 <!-- YARN Clients -->
@@ -45,7 +45,7 @@
 </tr>
 <!-- ResourceManager Uptime -->
 <tr>
-  <td>{{t dashboard.services.yarn.resourceManager.uptime}}</td>
+  <td class="summary-label">{{t dashboard.services.yarn.resourceManager.uptime}}</td>
   <td>{{view.nodeUptime}}</td>
 </tr>
 
@@ -59,27 +59,27 @@
 
 <!-- ResourceManager Heap -->
 <tr>
-  <td>{{t dashboard.services.resourceManager.nodes.heap}}</td>
+  <td class="summary-label">{{t dashboard.services.resourceManager.nodes.heap}}</td>
   <td>{{view.nodeHeap}}</td>
 </tr>
 <!-- Containers -->
 <tr>
-  <td>{{t dashboard.services.yarn.containers}}</td>
+  <td class="summary-label">{{t dashboard.services.yarn.containers}}</td>
   <td>{{view.containers}}</td>
 </tr>
 <!-- Applications -->
 <tr>
-  <td>{{t dashboard.services.yarn.apps}}</td>
+  <td class="summary-label">{{t dashboard.services.yarn.apps}}</td>
   <td>{{view.apps}}</td>
 </tr>
 <!-- Memory -->
 <tr>
-  <td>{{t dashboard.services.yarn.memory}}</td>
+  <td class="summary-label">{{t dashboard.services.yarn.memory}}</td>
   <td>{{view.memory}}</td>
 </tr>
 <!-- Queues -->
 <tr>
-  <td>{{t dashboard.services.yarn.queues}}</td>
+  <td class="summary-label">{{t dashboard.services.yarn.queues}}</td>
   <td><span rel="queue-tooltip"
             class="text-tooltip" {{bindAttr data-original-title="view.service.queueFormatted" }}>{{view.queues}}</span>
   </td>

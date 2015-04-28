@@ -18,7 +18,7 @@
 
 {{view App.SummaryMasterComponentsView mastersCompBinding="view.parentView.mastersObj"}}
 <tr>
-  <td>
+  <td class="summary-label">
     <a href="#" {{action filterHosts view.filterComponent}}>
       {{t dashboard.services.storm.supervisors}}
     </a>
@@ -41,7 +41,7 @@
     <tbody>
 
 <tr>
-  <td>
+  <td class="summary-label">
     {{t services.service.summary.storm.freeslots}}
   </td>
   <td>
@@ -49,7 +49,7 @@
   </td>
 </tr>
 <tr>
-  <td>
+  <td class="summary-label">
     {{t services.service.summary.storm.tasks}}
   </td>
   <td>
@@ -57,7 +57,7 @@
   </td>
 </tr>
 <tr>
-  <td>
+  <td class="summary-label">
     {{t services.service.summary.storm.executors}}
   </td>
   <td>
@@ -65,7 +65,7 @@
   </td>
 </tr>
 <tr>
-  <td>
+  <td class="summary-label">
     {{t services.service.summary.storm.topologies}}
   </td>
   <td>
@@ -73,7 +73,7 @@
   </td>
 </tr>
 <tr>
-  <td>
+  <td class="summary-label">
     {{t services.service.summary.storm.nimbus.uptime}}
   </td>
   <td>

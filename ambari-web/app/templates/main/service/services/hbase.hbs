@@ -20,7 +20,7 @@
   {{view view.dashboardMasterComponentView}}
 <!-- RegionServers -->
 <tr>
-  <td><a href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
+  <td class="summary-label"><a href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.regionServers}}</a>
   </td>
   <td>
     <span>
@@ -33,7 +33,7 @@
 </tr>
 <!-- Regions in Transition -->
 <tr>
-  <td>{{t dashboard.services.hbase.regions.transition}}</td>
+  <td class="summary-label">{{t dashboard.services.hbase.regions.transition}}</td>
   <td>{{view.service.regionsInTransition}}</td>
 </tr>
 
@@ -47,22 +47,22 @@
 
 <!-- HBase Master Started Time -->
 <tr>
-  <td>{{t dashboard.services.hbase.masterStarted}}</td>
+  <td class="summary-label">{{t dashboard.services.hbase.masterStarted}}</td>
   <td>{{view.masterStartedTime}}</td>
 </tr>
 <!-- HBase Master Activated Time -->
 <tr>
-  <td>{{t dashboard.services.hbase.masterActivated}}</td>
+  <td class="summary-label">{{t dashboard.services.hbase.masterActivated}}</td>
   <td>{{view.masterStartedTime}}</td>
 </tr>
 <!-- Average Load -->
 <tr>
-  <td>{{t dashboard.services.hbase.averageLoad}}</td>
+  <td class="summary-label">{{t dashboard.services.hbase.averageLoad}}</td>
   <td>{{view.averageLoad}}</td>
 </tr>
 <!-- Master Server Heap -->
 <tr>
-  <td>{{t dashboard.services.hbase.masterServerHeap}}</td>
+  <td class="summary-label">{{t dashboard.services.hbase.masterServerHeap}}</td>
   <td>{{view.masterServerHeapSummary}}</td>
 </tr>
 

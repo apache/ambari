@@ -18,7 +18,7 @@
 <tr class="hidden"><td></td></tr>
 {{#each comp in view.mastersComp}}
   <tr {{bindAttr class="comp.isSubComponent:component-small"}}>
-    <td>
+    <td class="summary-label">
       <a href="#" {{action showDetails comp.host}} title="{{unbound comp.host.publicHostName}}" rel="UsageTooltip">
         {{#if comp.displayNameAdvanced}}
           {{comp.displayNameAdvanced}}
