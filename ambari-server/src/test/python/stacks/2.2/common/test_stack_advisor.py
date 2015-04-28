@@ -874,7 +874,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-site': {
         'properties': {
-          'hive.auto.convert.join.noconditionaltask.size': '2147483648',
+          'hive.auto.convert.join.noconditionaltask.size': '89128960',
           'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',

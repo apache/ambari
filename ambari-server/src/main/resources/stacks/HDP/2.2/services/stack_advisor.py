@@ -233,7 +233,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.vectorized.execution.reduce.enabled", "false")
 
     # Memory
-    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", "2147483648")
     putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # Transactions
@@ -297,6 +296,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "yarn.scheduler.minimum-allocation-mb" in configurations["yarn-site"]["properties"]:
       container_size = configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]
     putHiveSiteProperty("hive.tez.container.size", container_size)
+    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", str(int(int(container_size)/3)*1024*1024))
     putHiveSiteProperty("hive.prewarm.enabled", "false")
     putHiveSiteProperty("hive.prewarm.numcontainers", "3")
     putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")

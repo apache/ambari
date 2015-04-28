@@ -175,7 +175,7 @@ limitations under the License.
     <name>hive.exec.reducers.bytes.per.reducer</name>
     <value>67108864</value>
     <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
-    <display-name>Memory</display-name>
+    <display-name>Data per Reducer</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>64</minimum>
@@ -1096,7 +1096,7 @@ limitations under the License.
         </entry>
         <entry>
           <value>LDAP</value>
-          <label>Lightweight Directory Access Protocol</label>
+          <label>LDAP</label>
         </entry>
         <entry>
           <value>KERBEROS</value>
@@ -1104,7 +1104,11 @@ limitations under the License.
         </entry>
         <entry>
           <value>PAM</value>
-          <label>Pluggable Authentication Modules</label>
+          <label>PAM</label>
+        </entry>
+        <entry>
+          <value>CUSTOM</value>
+          <label>Custom</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -1399,6 +1403,12 @@ limitations under the License.
       <unit>B</unit>
       <step-increment></step-increment>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.tez.container.size</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

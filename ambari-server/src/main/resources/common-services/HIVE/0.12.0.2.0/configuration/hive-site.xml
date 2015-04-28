@@ -356,20 +356,12 @@ limitations under the License.
       <type>value-list</type>
       <entries>
         <entry>
-          <value>ORCFile</value>
+          <value>ORC</value>
           <description>The Optimized Row Columnar (ORC) file format provides a highly efficient way to store Hive data. It was designed to overcome limitations of the other Hive file formats. Using ORC files improves performance when Hive is reading, writing, and processing data.</description>
         </entry>
         <entry>
           <value>TextFile</value>
           <description>Text file format saves Hive data as normal text.</description>
-        </entry>
-        <entry>
-          <value>SequenceFile</value>
-          <description>Compressed text file format saves Hive data in CompressedStorage.</description>
-        </entry>
-        <entry>
-          <value>RCfile</value>
-          <description>Short of Record Columnar File, are flat files consisting of binary key/value pairs.</description>
         </entry>
       </entries>
     </value-attributes>
