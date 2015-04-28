@@ -135,7 +135,7 @@ App.WidgetType.FIXTURES = [
       {
         name : 'time_range',
         isRequired: true,
-        value: 'Last 1 hour'
+        value: "1"
       },
       {
         name : 'display_unit',

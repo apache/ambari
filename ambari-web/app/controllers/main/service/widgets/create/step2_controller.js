@@ -434,7 +434,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
             isMetric: true,
             componentName: metric.component_name,
             serviceName: metric.service_name,
-            metricPath: metric.metric_path
+            metricPath: metric.metric_path,
+            hostComponentCriteria: metric.host_component_criteria
           }));
           str = '';
         }
@@ -455,7 +456,8 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
         isMetric: true,
         componentName: metric.component_name,
         serviceName: metric.service_name,
-        metricPath: metric.metric_path
+        metricPath: metric.metric_path,
+        hostComponentCriteria: metric.host_component_criteria
       }));
     }
     return data;

@@ -120,7 +120,8 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
             "name": metric.name,
             "service_name": metric.serviceName,
             "component_name": metric.componentName,
-            "metric_path": metric.metricPath
+            "metric_path": metric.metricPath,
+            "host_component_criteria": metric.hostComponentCriteria
           }
         }),
         values: this.get('widgetValues'),

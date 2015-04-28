@@ -61,9 +61,21 @@ App.WidgetPropertyThresholdView = Em.View.extend({
 });
 
 App.WidgetPropertySelectView = Em.Select.extend({
-  selectionBinding: 'property.value',
   contentBinding: 'property.options',
-  classNameBindings: ['property.classNames', 'parentView.basicClass']
+  classNameBindings: ['property.classNames', 'parentView.basicClass'],
+  optionLabelPath: "content.label",
+  optionValuePath: "content.value",
+  didInsertElement: function () {
+    var selection = this.get('content').findProperty('value', this.get('property.value'));
+    if (selection) {
+      this.set('selection', selection);
+    }
+    this.addObserver('selection.value', this, 'setValue');
+    this.setValue();
+  },
+  setValue: function () {
+    this.set('property.value', this.get('selection.value'));
+  }
 });
 
 

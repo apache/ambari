@@ -1,4 +1,3 @@
-
 {
   "href" : "http://c6401.ambari.apache.org:8080/api/v1/users/admin/activeWidgetLayouts?WidgetLayoutInfo/section_name=HBASE_SUMMARY",
   "items" : [
@@ -20,7 +19,7 @@
               "author" : "ambari",
               "description" : "Widget shows 95% Read Latency",
               "scope" : "CLUSTER",
-              "properties" : "{\"display_unit\":\"ms\",\"graph_type\":\"LINE\",\"time_range\":\"1\"}",
+              "properties" : "{\"display_unit\":\"ms\",\"graph_type\":\"LINE\",\"time_range\":\"4\"}",
               "widget_name" : "Read Latency",
               "widget_type" : "GRAPH",
               "time_created" : 1429906622306,
@@ -36,7 +35,7 @@
               "author" : "ambari",
               "description" : "This widget shows 95th percentile of the write latency.",
               "scope" : "CLUSTER",
-              "properties" : "{\"display_unit\":\"ms\",\"graph_type\":\"LINE\",\"time_range\":\"1\"}",
+              "properties" : "{\"display_unit\":\"ms\",\"graph_type\":\"LINE\",\"time_range\":\"2\"}",
               "widget_name" : "Write Latency",
               "widget_type" : "GRAPH",
               "time_created" : 1429906622306,

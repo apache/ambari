@@ -108,18 +108,58 @@ App.WidgetPropertyTypes = [
     name: 'graph_type',
     label: 'Graph Type',
     displayType: 'select',
-    options: ["LINE", "STACK"],
+    options: [
+      {
+        label: "LINE",
+        value: "LINE"
+      },
+      {
+        label: "STACK",
+        value: "STACK"
+      }
+    ],
     valueMap: {
       "value": "graph_type"
     }
   },
-
   {
     name: 'time_range',
     label: 'Time Range',
     displayType: 'select',
-    options: ["Last 1 hour", "Last 2 hours", "Last 4 hours", "Last 12 hours", "Last 24 hours",
-      "Last 1 week", "Last 1 month", "Last 1 year"],
+    options: [
+      {
+        label: "Last 1 hour",
+        value: "1"
+      },
+      {
+        label: "Last 2 hours",
+        value: "2"
+      },
+      {
+        label: "Last 4 hour",
+        value: "4"
+      },
+      {
+        label: "Last 12 hour",
+        value: "12"
+      },
+      {
+        label: "Last 24 hour",
+        value: "24"
+      },
+      {
+        label: "Last 1 week",
+        value: "168"
+      },
+      {
+        label: "Last 1 month",
+        value: "720"
+      },
+      {
+        label: "Last 1 year",
+        value: "8760"
+      }
+    ],
     valueMap: {
       "value": "time_range"
     }

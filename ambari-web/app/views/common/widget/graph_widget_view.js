@@ -28,10 +28,18 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   metrics: [],
 
   /**
+   * 3600000 ms in 1 hour
+   * @const
+   */
+  TIME_FACTOR: 3600000,
+
+  /**
    * value in ms
    * @type {number}
    */
-  timeRange: 3600000,
+  timeRange: function () {
+    return parseInt(this.get('content.properties.time_range')) * this.get('TIME_FACTOR');
+  }.property('content.properties.time_range'),
 
   /**
    * value in ms
