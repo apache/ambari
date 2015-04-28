@@ -18,7 +18,12 @@
 package org.apache.ambari.server.controller;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -83,7 +88,12 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   /**
    * Mapping of view instance entities to handlers.
    */
-  private final Map<ViewInstanceEntity, Handler> handlerMap = new HashMap<ViewInstanceEntity, Handler>();
+  private final Map<ViewInstanceEntity, Handler> viewHandlerMap = new HashMap<ViewInstanceEntity, Handler>();
+
+  /**
+   * The non-view handlers.
+   */
+  private final Collection<Handler> nonViewHandlers = new HashSet<Handler>();
 
   /**
    * The logger.
@@ -125,7 +135,6 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   }
 
 
-
   // ----- HandlerCollection -------------------------------------------------
 
   @Override
@@ -158,14 +167,19 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     }
   }
 
+  @Override
+  public void addHandler(Handler handler) {
+    nonViewHandlers.add(handler);
+    super.addHandler(handler);
+  }
 
-  // ----- ViewInstanceHandler -----------------------------------------------
+// ----- ViewInstanceHandler -----------------------------------------------
 
   @Override
   public void addViewInstance(ViewInstanceEntity viewInstanceDefinition) throws SystemException {
     Handler handler = getHandler(viewInstanceDefinition);
-    handlerMap.put(viewInstanceDefinition, handler);
-    addHandler(handler);
+    viewHandlerMap.put(viewInstanceDefinition, handler);
+    super.addHandler(handler);
     // if this is running then start the handler being added...
     if(!isStopped() && !isStopping()) {
       try {
@@ -178,9 +192,9 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
 
   @Override
   public void removeViewInstance(ViewInstanceEntity viewInstanceDefinition) {
-    Handler handler = handlerMap.get(viewInstanceDefinition);
+    Handler handler = viewHandlerMap.get(viewInstanceDefinition);
     if (handler != null) {
-      handlerMap.remove(viewInstanceDefinition);
+      viewHandlerMap.remove(viewInstanceDefinition);
       removeHandler(handler);
     }
   }
@@ -196,13 +210,24 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     final Handler[] handlers = getHandlers();
 
     if (handlers != null && isStarted()) {
-      for (Handler handler : handlers) {
-        handler.handle(target, baseRequest, request, response);
-        if (baseRequest.isHandled()) {
-          return;
-        }
+      if (!processHandlers(viewHandlerMap.values(), target, baseRequest, request, response)) {
+        processHandlers(nonViewHandlers, target, baseRequest, request, response);
       }
     }
+  }
+
+  // call the given handlers until the request is handled; return true if the request is handled
+  private boolean processHandlers(Collection<Handler> handlers, String target, Request baseRequest,
+                               HttpServletRequest request, HttpServletResponse response)
+      throws IOException, ServletException {
+
+    for (Handler handler : handlers) {
+      handler.handle(target, baseRequest, request, response);
+      if (baseRequest.isHandled()) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
