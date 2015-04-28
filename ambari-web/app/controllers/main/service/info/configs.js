@@ -377,6 +377,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   onConfigGroupChange: function () {
     var self = this;
     this.get('stepConfigs').clear();
+    this.set('dataIsLoaded', false);
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var serviceName = this.get('content.serviceName');
     //STEP 1: handle tags from JSON data for host overrides

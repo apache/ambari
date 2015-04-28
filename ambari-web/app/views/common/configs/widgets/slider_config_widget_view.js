@@ -186,6 +186,10 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     this.get('changeBoundariesProperties').forEach(function(property) {
       self.removeObserver(property, self, self.changeBoundaries);
     });
+    this.removeObserver('mirrorValue', this, this.mirrorValueObs);
+    if (this.get('slider')) {
+      this.get('slider').destroy();
+    }
   },
 
   /**
