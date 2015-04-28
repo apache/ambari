@@ -18,6 +18,14 @@
 
 var App = require('app');
 
+var delay = (function(){
+  var timer = 0;
+  return function(callback, ms){
+    clearTimeout (timer);
+    timer = setTimeout(callback, ms);
+  };
+})();
+
 /**
  * Abstract view for config fields.
  * Add popover support to control
@@ -156,6 +164,10 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
     if (event.keyCode == 13) {
       return false;
     }
+    var self = this;
+    delay(function(){
+      self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
+    }, 500);
   },
   //Set editDone true for last edited config text field parameter
   focusOut: function () {
@@ -194,6 +206,14 @@ App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverS
   focusOut: function () {
     this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
   },
+
+  keyPress: function (event) {
+    var self = this;
+    delay(function(){
+      self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
+    }, 500);
+  },
+
   templateName: require('templates/wizard/controls_service_config_textfield_with_unit')
 });
 
@@ -248,6 +268,13 @@ App.ServiceConfigTextArea = Ember.TextArea.extend(App.ServiceConfigPopoverSuppor
 
   focusOut: function () {
     this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
+  },
+
+  keyPress: function (event) {
+    var self = this;
+    delay(function(){
+      self.sendRequestRorDependentConfigs(self.get('serviceConfig'));
+    }, 500);
   },
 
   valueBinding: 'serviceConfig.value',
