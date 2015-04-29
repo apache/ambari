@@ -30,6 +30,8 @@ App.RMHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.Blueprint
 
   showCurrentPrefix: ['RESOURCEMANAGER'],
 
-  showAdditionalPrefix: ['RESOURCEMANAGER']
+  showAdditionalPrefix: ['RESOURCEMANAGER'],
+
+  showInstalledMastersFirst: true
 });
 

@@ -32,7 +32,9 @@ App.HighAvailabilityWizardStep2Controller = Em.Controller.extend(App.BlueprintMi
 
   showCurrentPrefix: ['NAMENODE'],
 
-  showAdditionalPrefix: ['NAMENODE']
+  showAdditionalPrefix: ['NAMENODE'],
+
+  showInstalledMastersFirst: true
 
 });
 

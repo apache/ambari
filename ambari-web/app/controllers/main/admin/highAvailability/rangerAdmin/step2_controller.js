@@ -31,7 +31,9 @@ App.RAHighAvailabilityWizardStep2Controller = Em.Controller.extend(App.Blueprint
 
   showAdditionalPrefix: ['RANGER_ADMIN'],
 
-  mastersAddableInHA: ['RANGER_ADMIN']
+  mastersAddableInHA: ['RANGER_ADMIN'],
+
+  showInstalledMastersFirst: true
 
 });
 

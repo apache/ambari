@@ -89,6 +89,12 @@ App.AssignMasterComponents = Em.Mixin.create({
   additionalHostsList: [],
 
   /**
+   * Define whether show already installed masters first
+   * @type {Boolean}
+   */
+  showInstalledMastersFirst: false,
+
+  /**
    * Array of <code>servicesMasters</code> objects, that will be shown on the page
    * Are filtered using <code>mastersToShow</code>
    * @type {Array}
@@ -96,16 +102,30 @@ App.AssignMasterComponents = Em.Mixin.create({
   servicesMastersToShow: function () {
     var mastersToShow = this.get('mastersToShow');
     var servicesMasters = this.get('servicesMasters');
+    var result = [];
     if (!mastersToShow.length) {
-      return servicesMasters;
+      result = servicesMasters;
     } else {
-      var result = [];
-      mastersToShow.forEach(function(master){
+      mastersToShow.forEach(function (master) {
         result = result.concat(servicesMasters.filterProperty('component_name', master));
       });
-      return result;
     }
-  }.property('servicesMasters.length', 'mastersToShow.length'),
+
+    if (this.get('showInstalledMastersFirst')) {
+      result = this.sortMasterComponents(result);
+    }
+
+    return result;
+  }.property('servicesMasters.length', 'mastersToShow.length', 'showInstalledMastersFirst'),
+
+  /**
+   * Sort masters, installed masters will be first.
+   * @param masters
+   * @returns {Array}
+   */
+  sortMasterComponents: function (masters) {
+    return [].concat(masters.filterProperty('isInstalled'), masters.filterProperty('isInstalled', false));
+  },
 
   /**
    * Check if <code>installerWizard</code> used
