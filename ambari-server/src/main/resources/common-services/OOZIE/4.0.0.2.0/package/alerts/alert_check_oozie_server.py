@@ -59,7 +59,7 @@ def get_tokens():
   return (OOZIE_URL_KEY, OOZIE_PRINCIPAL, SECURITY_ENABLED, OOZIE_KEYTAB, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def get_check_command(oozie_url, host_name, parameters):
+def get_check_command(oozie_url, host_name, configurations):
   from resource_management.libraries.functions import reload_windows_env
   reload_windows_env()
   oozie_home = os.environ['OOZIE_HOME']
@@ -67,20 +67,20 @@ def get_check_command(oozie_url, host_name, parameters):
   return (command, None)
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def get_check_command(oozie_url, host_name, parameters):
+def get_check_command(oozie_url, host_name, configurations):
   security_enabled = False
-  if SECURITY_ENABLED in parameters:
-    security_enabled = str(parameters[SECURITY_ENABLED]).upper() == 'TRUE'
+  if SECURITY_ENABLED in configurations:
+    security_enabled = str(configurations[SECURITY_ENABLED]).upper() == 'TRUE'
   kerberos_env = None
   if security_enabled:
-    if OOZIE_KEYTAB in parameters and OOZIE_PRINCIPAL in parameters:
-      oozie_keytab = parameters[OOZIE_KEYTAB]
-      oozie_principal = parameters[OOZIE_PRINCIPAL]
+    if OOZIE_KEYTAB in configurations and OOZIE_PRINCIPAL in configurations:
+      oozie_keytab = configurations[OOZIE_KEYTAB]
+      oozie_principal = configurations[OOZIE_PRINCIPAL]
 
       # substitute _HOST in kerberos principal with actual fqdn
       oozie_principal = oozie_principal.replace('_HOST', host_name)
     else:
-      raise KerberosPropertiesNotFound('The Oozie keytab and principal are required parameters when security is enabled.')
+      raise KerberosPropertiesNotFound('The Oozie keytab and principal are required configurations when security is enabled.')
 
     # Create the kerberos credentials cache (ccache) file and set it in the environment to use
     # when executing curl
@@ -89,8 +89,8 @@ def get_check_command(oozie_url, host_name, parameters):
     kerberos_env = {'KRB5CCNAME': ccache_file}
 
     # Get the configured Kerberos executable search paths, if any
-    if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
-      kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+    if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
+      kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
     else:
       kerberos_executable_search_paths = None
 
@@ -110,30 +110,31 @@ def get_check_command(oozie_url, host_name, parameters):
   command = format("source /etc/oozie/conf/oozie-env.sh ; oozie admin -oozie {oozie_url} -status")
   return (command, kerberos_env)
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
-  if parameters is None:
-    return (RESULT_CODE_UNKNOWN, ['There were no parameters supplied to the script.'])
+  if configurations is None:
+    return (RESULT_CODE_UNKNOWN, ['There were no configurations supplied to the script.'])
 
-  if not OOZIE_URL_KEY in parameters:
+  if not OOZIE_URL_KEY in configurations:
     return (RESULT_CODE_UNKNOWN, ['The Oozie URL is a required parameter.'])
 
   # use localhost on Windows, 0.0.0.0 on others; 0.0.0.0 means bind to all
   # interfaces, which doesn't work on Windows
   localhost_address = 'localhost' if OSCheck.get_os_family() == OSConst.WINSRV_FAMILY else '0.0.0.0'
 
-  oozie_url = parameters[OOZIE_URL_KEY]
+  oozie_url = configurations[OOZIE_URL_KEY]
   oozie_url = oozie_url.replace(urlparse(oozie_url).hostname,localhost_address)
 
   try:
-    command, env = get_check_command(oozie_url, host_name, parameters)
+    command, env = get_check_command(oozie_url, host_name, configurations)
     # execute the command
     Execute(command, environment=env)
 

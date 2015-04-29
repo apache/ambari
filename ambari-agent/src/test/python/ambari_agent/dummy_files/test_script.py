@@ -26,18 +26,23 @@ def get_tokens():
   return ('{{foo-site/bar}}','{{foo-site/baz}}')
   
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   '''
   returns a tuple containing the result code and a pre-formatted result label
   '''
-  if parameters is not None:
-    if '{{foo-site/bar}}' in parameters:
-      bar = parameters['{{foo-site/bar}}']
-    
-    if '{{foo-site/baz}}' in parameters:
-      baz = parameters['{{foo-site/baz}}']
 
-    if '{{foo-site/skip}}' in parameters:
+  # short circuit the script when a parameter is present
+  if "script.parameter.foo" in parameters:
+    return "OK", ["Script parameter detected: " + parameters["script.parameter.foo"]]
+
+  if configurations is not None:
+    if '{{foo-site/bar}}' in configurations:
+      bar = configurations['{{foo-site/bar}}']
+    
+    if '{{foo-site/baz}}' in configurations:
+      baz = configurations['{{foo-site/baz}}']
+
+    if '{{foo-site/skip}}' in configurations:
       return ('SKIPPED', ['This alert is skipped and will not be in the collector'])
   
   label = "bar is {0}, baz is {1}".format(bar, baz)  

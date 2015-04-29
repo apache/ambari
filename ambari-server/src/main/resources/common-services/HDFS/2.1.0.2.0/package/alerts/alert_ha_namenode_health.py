@@ -35,7 +35,8 @@ NN_HTTP_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.http-address}}'
 NN_HTTPS_ADDRESS_KEY = '{{hdfs-site/dfs.namenode.https-address}}'
 DFS_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
 
-CONNECTION_TIMEOUT = 5.0
+CONNECTION_TIMEOUT_KEY = 'connection.timeout'
+CONNECTION_TIMEOUT_DEFAULT = 5.0
 
 def get_tokens():
   """
@@ -46,34 +47,41 @@ def get_tokens():
   NN_HTTPS_ADDRESS_KEY, DFS_POLICY_KEY)
   
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
-  if parameters is None:
-    return (RESULT_STATE_UNKNOWN, ['There were no parameters supplied to the script.'])
+  if configurations is None:
+    return (RESULT_STATE_UNKNOWN, ['There were no configurations supplied to the script.'])
 
   # if not in HA mode, then SKIP
-  if not NAMESERVICE_KEY in parameters:
+  if not NAMESERVICE_KEY in configurations:
     return (RESULT_STATE_SKIPPED, ['NameNode HA is not enabled'])
 
   # hdfs-site is required
-  if not HDFS_SITE_KEY in parameters:
+  if not HDFS_SITE_KEY in configurations:
     return (RESULT_STATE_UNKNOWN, ['{0} is a required parameter for the script'.format(HDFS_SITE_KEY)])
+
+  # parse script arguments
+  connection_timeout = CONNECTION_TIMEOUT_DEFAULT
+  if CONNECTION_TIMEOUT_KEY in parameters:
+    connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
+
 
   # determine whether or not SSL is enabled
   is_ssl_enabled = False
-  if DFS_POLICY_KEY in parameters:
-    dfs_policy = parameters[DFS_POLICY_KEY]
+  if DFS_POLICY_KEY in configurations:
+    dfs_policy = configurations[DFS_POLICY_KEY]
     if dfs_policy == "HTTPS_ONLY":
       is_ssl_enabled = True
 
-  name_service = parameters[NAMESERVICE_KEY]
-  hdfs_site = parameters[HDFS_SITE_KEY]
+  name_service = configurations[NAMESERVICE_KEY]
+  hdfs_site = configurations[HDFS_SITE_KEY]
 
   # look for dfs.ha.namenodes.foo
   nn_unique_ids_key = 'dfs.ha.namenodes.' + name_service
@@ -105,7 +113,7 @@ def execute(parameters=None, host_name=None):
 
       try:
         jmx_uri = jmx_uri_fragment.format(value)
-        state = get_value_from_jmx(jmx_uri,'State')
+        state = get_value_from_jmx(jmx_uri, 'State', connection_timeout)
 
         if state == HDFS_NN_STATE_ACTIVE:
           active_namenodes.append(value)
@@ -161,11 +169,11 @@ def execute(parameters=None, host_name=None):
       return (RESULT_STATE_SKIPPED, ['Another host will report this alert'])
 
 
-def get_value_from_jmx(query, jmx_property):
+def get_value_from_jmx(query, jmx_property, connection_timeout):
   response = None
   
   try:
-    response = urllib2.urlopen(query, timeout=CONNECTION_TIMEOUT)
+    response = urllib2.urlopen(query, timeout=connection_timeout)
     data = response.read()
 
     data_dict = json.loads(data)

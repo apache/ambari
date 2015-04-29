@@ -53,8 +53,10 @@ KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}
 WEBHCAT_OK_RESPONSE = 'ok'
 WEBHCAT_PORT_DEFAULT = 50111
 
-CURL_CONNECTION_TIMEOUT = '5'
-CONNECTION_TIMEOUT = 5.0
+CONNECTION_TIMEOUT_KEY = 'connection.timeout'
+CONNECTION_TIMEOUT_DEFAULT = 5.0
+CURL_CONNECTION_TIMEOUT_DEFAULT = str(int(CONNECTION_TIMEOUT_DEFAULT))
+
 
 def get_tokens():
   """
@@ -64,27 +66,36 @@ def get_tokens():
   return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY, WEBHCAT_PRINCIPAL_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
   
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
   result_code = RESULT_CODE_UNKNOWN
 
-  if parameters is None:
-    return (result_code, ['There were no parameters supplied to the script.'])
+  if configurations is None:
+    return (result_code, ['There were no configurations supplied to the script.'])
 
   webhcat_port = WEBHCAT_PORT_DEFAULT
-  if TEMPLETON_PORT_KEY in parameters:
-    webhcat_port = int(parameters[TEMPLETON_PORT_KEY])
+  if TEMPLETON_PORT_KEY in configurations:
+    webhcat_port = int(configurations[TEMPLETON_PORT_KEY])
 
   security_enabled = False
-  if SECURITY_ENABLED_KEY in parameters:
-    security_enabled = parameters[SECURITY_ENABLED_KEY].lower() == 'true'
+  if SECURITY_ENABLED_KEY in configurations:
+    security_enabled = configurations[SECURITY_ENABLED_KEY].lower() == 'true'
+
+  # parse script arguments
+  connection_timeout = CONNECTION_TIMEOUT_DEFAULT
+  curl_connection_timeout = CURL_CONNECTION_TIMEOUT_DEFAULT
+  if CONNECTION_TIMEOUT_KEY in parameters:
+    connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
+    curl_connection_timeout = str(int(connection_timeout))
+
 
   # the alert will always run on the webhcat host
   if host_name is None:
@@ -98,12 +109,12 @@ def execute(parameters=None, host_name=None):
   json_response = {}
 
   if security_enabled:
-    if WEBHCAT_KEYTAB_KEY not in parameters or WEBHCAT_PRINCIPAL_KEY not in parameters:
-      return (RESULT_CODE_UNKNOWN, [str(parameters)])
+    if WEBHCAT_KEYTAB_KEY not in configurations or WEBHCAT_PRINCIPAL_KEY not in configurations:
+      return (RESULT_CODE_UNKNOWN, [str(configurations)])
 
     try:
-      webhcat_keytab = parameters[WEBHCAT_KEYTAB_KEY]
-      webhcat_principal = parameters[WEBHCAT_PRINCIPAL_KEY]
+      webhcat_keytab = configurations[WEBHCAT_KEYTAB_KEY]
+      webhcat_principal = configurations[WEBHCAT_PRINCIPAL_KEY]
 
       # substitute _HOST in kerberos principal with actual fqdn
       webhcat_principal = webhcat_principal.replace('_HOST', host_name)
@@ -115,8 +126,8 @@ def execute(parameters=None, host_name=None):
       kerberos_env = {'KRB5CCNAME': ccache_file}
 
       # Get the configured Kerberos executable search paths, if any
-      if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
-        kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+      if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
+        kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
       else:
         kerberos_executable_search_paths = None
 
@@ -136,7 +147,7 @@ def execute(parameters=None, host_name=None):
 
       # make a single curl call to get just the http code
       curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL', '-w',
-        '%{http_code}', '--connect-timeout', CURL_CONNECTION_TIMEOUT,
+        '%{http_code}', '--connect-timeout', curl_connection_timeout,
         '-o', '/dev/null', query_url], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
       stdout, stderr = curl.communicate()
@@ -160,7 +171,7 @@ def execute(parameters=None, host_name=None):
       # now that we have the http status and it was 200, get the content
       start_time = time.time()
       curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-sL',
-        '--connect-timeout', CURL_CONNECTION_TIMEOUT, query_url, ],
+        '--connect-timeout', curl_connection_timeout, query_url, ],
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
       stdout, stderr = curl.communicate()
@@ -178,7 +189,7 @@ def execute(parameters=None, host_name=None):
     try:
       # execute the query for the JSON that includes WebHCat status
       start_time = time.time()
-      url_response = urllib2.urlopen(query_url, timeout=CONNECTION_TIMEOUT)
+      url_response = urllib2.urlopen(query_url, timeout=connection_timeout)
       total_time = time.time() - start_time
 
       json_response = json.loads(url_response.read())

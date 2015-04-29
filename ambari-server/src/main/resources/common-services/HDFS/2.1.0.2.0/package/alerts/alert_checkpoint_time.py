@@ -30,13 +30,17 @@ NN_HTTP_POLICY_KEY = '{{hdfs-site/dfs.http.policy}}'
 NN_CHECKPOINT_TX_KEY = '{{hdfs-site/dfs.namenode.checkpoint.txns}}'
 NN_CHECKPOINT_PERIOD_KEY = '{{hdfs-site/dfs.namenode.checkpoint.period}}'
 
-PERCENT_WARNING = 200
-PERCENT_CRITICAL = 200
+PERCENT_WARNING_KEY = 'checkpoint.time.warning.threshold'
+PERCENT_WARNING_DEFAULT = 200
+
+PERCENT_CRITICAL_KEY = 'checkpoint.time.critical.threshold'
+PERCENT_CRITICAL_DEFAULT = 200
 
 CHECKPOINT_TX_DEFAULT = 1000000
 CHECKPOINT_PERIOD_DEFAULT = 21600
 
-CONNECTION_TIMEOUT = 5.0
+CONNECTION_TIMEOUT_KEY = 'connection.timeout'
+CONNECTION_TIMEOUT_DEFAULT = 5.0
 
 def get_tokens():
   """
@@ -47,43 +51,55 @@ def get_tokens():
       NN_CHECKPOINT_TX_KEY, NN_CHECKPOINT_PERIOD_KEY)      
   
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
-  if parameters is None:
-    return (('UNKNOWN', ['There were no parameters supplied to the script.']))
+  if configurations is None:
+    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
   
   uri = None
   scheme = 'http'  
   http_uri = None
   https_uri = None
   http_policy = 'HTTP_ONLY'
-  percent_warning = PERCENT_WARNING
-  percent_critical = PERCENT_CRITICAL
   checkpoint_tx = CHECKPOINT_TX_DEFAULT
   checkpoint_period = CHECKPOINT_PERIOD_DEFAULT
   
-  if NN_HTTP_ADDRESS_KEY in parameters:
-    http_uri = parameters[NN_HTTP_ADDRESS_KEY]
+  if NN_HTTP_ADDRESS_KEY in configurations:
+    http_uri = configurations[NN_HTTP_ADDRESS_KEY]
 
-  if NN_HTTPS_ADDRESS_KEY in parameters:
-    https_uri = parameters[NN_HTTPS_ADDRESS_KEY]
+  if NN_HTTPS_ADDRESS_KEY in configurations:
+    https_uri = configurations[NN_HTTPS_ADDRESS_KEY]
 
-  if NN_HTTP_POLICY_KEY in parameters:
-    http_policy = parameters[NN_HTTP_POLICY_KEY]
+  if NN_HTTP_POLICY_KEY in configurations:
+    http_policy = configurations[NN_HTTP_POLICY_KEY]
 
-  if NN_CHECKPOINT_TX_KEY in parameters:
-    checkpoint_tx = parameters[NN_CHECKPOINT_TX_KEY]
+  if NN_CHECKPOINT_TX_KEY in configurations:
+    checkpoint_tx = configurations[NN_CHECKPOINT_TX_KEY]
 
-  if NN_CHECKPOINT_PERIOD_KEY in parameters:
-    checkpoint_period = parameters[NN_CHECKPOINT_PERIOD_KEY]
-    
+  if NN_CHECKPOINT_PERIOD_KEY in configurations:
+    checkpoint_period = configurations[NN_CHECKPOINT_PERIOD_KEY]
+
+  # parse script arguments
+  connection_timeout = CONNECTION_TIMEOUT_DEFAULT
+  if CONNECTION_TIMEOUT_KEY in parameters:
+    connection_timeout = float(parameters[CONNECTION_TIMEOUT_KEY])
+
+  percent_warning = PERCENT_WARNING_DEFAULT
+  if PERCENT_WARNING_KEY in parameters:
+    percent_warning = float(parameters[PERCENT_WARNING_KEY]) * 100
+
+  percent_critical = PERCENT_CRITICAL_DEFAULT
+  if PERCENT_CRITICAL_KEY in parameters:
+    percent_critical = float(parameters[PERCENT_CRITICAL_KEY]) * 100
+
   # determine the right URI and whether to use SSL
   uri = http_uri
   if http_policy == 'HTTPS_ONLY':
@@ -102,8 +118,12 @@ def execute(parameters=None, host_name=None):
   result_code = "OK"
 
   try:
-    last_checkpoint_time = int(get_value_from_jmx(last_checkpoint_time_qry,"LastCheckpointTime"))
-    journal_transaction_info = get_value_from_jmx(journal_transaction_info_qry,"JournalTransactionInfo")
+    last_checkpoint_time = int(get_value_from_jmx(last_checkpoint_time_qry,
+      "LastCheckpointTime", connection_timeout))
+
+    journal_transaction_info = get_value_from_jmx(journal_transaction_info_qry,
+      "JournalTransactionInfo", connection_timeout)
+
     journal_transaction_info_dict = json.loads(journal_transaction_info)
   
     last_tx = int(journal_transaction_info_dict['LastAppliedOrWrittenTxId'])
@@ -131,11 +151,11 @@ def get_time(delta):
   return {'h':h, 'm':m}
 
 
-def get_value_from_jmx(query, jmx_property):
+def get_value_from_jmx(query, jmx_property, connection_timeout):
   response = None
   
   try:
-    response = urllib2.urlopen(query, timeout=CONNECTION_TIMEOUT)
+    response = urllib2.urlopen(query, timeout=connection_timeout)
     data = response.read()
 
     data_dict = json.loads(data)

@@ -25,7 +25,16 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
 DiskInfo = collections.namedtuple('DiskInfo', 'total used free path')
-MIN_FREE_SPACE = 5000000000L   # 5GB
+
+# script parameter keys
+MIN_FREE_SPACE_KEY = "minimum.free.space"
+PERCENT_USED_WARNING_KEY = "percent.used.space.warning.threshold"
+PERCENT_USED_CRITICAL_KEY = "percent.free.space.critical.threshold"
+
+# defaults in case no script parameters are passed
+MIN_FREE_SPACE_DEFAULT = 5000000000L
+PERCENT_USED_WARNING_DEFAULT = 50
+PERCENT_USED_CRITICAL_DEFAULT = 80
 
 # the location where HDP installs components when using HDP 2.2+
 HDP_HOME_DIR = "/usr/hdp"
@@ -40,8 +49,9 @@ def get_tokens():
   """
   return None
 
+
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Performs advanced disk checks under Linux. This will first attempt to
   check the HDP installation directories if they exist. If they do not exist,
@@ -50,7 +60,8 @@ def execute(parameters=None, host_name=None):
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
@@ -66,21 +77,40 @@ def execute(parameters=None, host_name=None):
 
   try:
     disk_usage = _get_disk_usage(path)
-    result_code, label = _get_warnings_for_partition(disk_usage)
+    result_code, label = _get_warnings_for_partition(parameters, disk_usage)
   except NotImplementedError, platform_error:
     return 'CRITICAL', [str(platform_error)]
 
   return result_code, [label]
 
-def _get_warnings_for_partition(disk_usage):
+
+def _get_warnings_for_partition(parameters, disk_usage):
+
+  # start with hard coded defaults
+  min_free_space = MIN_FREE_SPACE_DEFAULT
+  warning_percent = PERCENT_USED_WARNING_DEFAULT
+  critical_percent = PERCENT_USED_CRITICAL_DEFAULT
+
+  # parse script parameters
+  if MIN_FREE_SPACE_KEY in parameters:
+    # long(float(5e9)) seems like gson likes scientific notation
+    min_free_space = long(float(parameters[MIN_FREE_SPACE_KEY]))
+
+  if PERCENT_USED_WARNING_KEY in parameters:
+    warning_percent = float(parameters[PERCENT_USED_WARNING_KEY]) * 100
+
+  if PERCENT_USED_CRITICAL_KEY in parameters:
+    critical_percent = float(parameters[PERCENT_USED_CRITICAL_KEY]) * 100
+
+
   if disk_usage is None or disk_usage.total == 0:
     return 'CRITICAL', ['Unable to determine the disk usage']
 
   result_code = 'OK'
   percent = disk_usage.used / float(disk_usage.total) * 100
-  if percent > 80:
+  if percent > critical_percent:
     result_code = 'CRITICAL'
-  elif percent > 50:
+  elif percent > warning_percent:
     result_code = 'WARNING'
 
   label = 'Capacity Used: [{0:.2f}%, {1}], Capacity Total: [{2}]'.format(
@@ -92,26 +122,27 @@ def _get_warnings_for_partition(disk_usage):
 
   if result_code == 'OK':
     # Check absolute disk space value
-    if disk_usage.free < MIN_FREE_SPACE:
+    if disk_usage.free < min_free_space:
       result_code = 'WARNING'
-      label += '. Total free space is less than {0}'.format(_get_formatted_size(MIN_FREE_SPACE))
+      label += '. Total free space is less than {0}'.format(_get_formatted_size(min_free_space))
 
   return result_code, label
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Performs simplified disk checks under Windows
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
   try:
     disk_usage = _get_disk_usage()
-    result = _get_warnings_for_partition(disk_usage)
+    result = _get_warnings_for_partition(parameters, disk_usage)
   except NotImplementedError, platform_error:
     result = ('CRITICAL', [str(platform_error)])
   return result

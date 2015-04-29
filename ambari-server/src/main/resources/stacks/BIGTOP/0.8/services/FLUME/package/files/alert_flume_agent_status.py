@@ -29,7 +29,8 @@ RESULT_CODE_UNKNOWN = 'UNKNOWN'
 
 FLUME_CONF_DIR_KEY = '{{flume-env/flume_conf_dir}}'
 
-FLUME_RUN_DIR = '/var/run/flume'
+FLUME_RUN_DIR_KEY = "run.directory"
+FLUME_RUN_DIR_DEFAULT = '/var/run/flume'
 
 def get_tokens():
   """
@@ -37,23 +38,24 @@ def get_tokens():
   to build the dictionary passed into execute
   """
   return (FLUME_CONF_DIR_KEY,)
-  
 
-def execute(parameters=None, host_name=None):
+
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
-  if parameters is None:
-    return (RESULT_CODE_UNKNOWN, ['There were no parameters supplied to the script.'])
+  if configurations is None:
+    return (RESULT_CODE_UNKNOWN, ['There were no configurations supplied to the script.'])
 
   flume_conf_directory = None
-  if FLUME_CONF_DIR_KEY in parameters:
-    flume_conf_directory = parameters[FLUME_CONF_DIR_KEY]
+  if FLUME_CONF_DIR_KEY in configurations:
+    flume_conf_directory = configurations[FLUME_CONF_DIR_KEY]
 
   if flume_conf_directory is None:
     return (RESULT_CODE_UNKNOWN, ['The Flume configuration directory is a required parameter.'])
@@ -61,7 +63,12 @@ def execute(parameters=None, host_name=None):
   if host_name is None:
     host_name = socket.getfqdn()
 
-  processes = get_flume_status(flume_conf_directory, FLUME_RUN_DIR)
+  # parse script arguments
+  flume_run_directory = FLUME_RUN_DIR_DEFAULT
+  if FLUME_RUN_DIR_KEY in parameters:
+    flume_run_directory = parameters[FLUME_RUN_DIR_KEY]
+
+  processes = get_flume_status(flume_conf_directory, flume_run_directory)
   expected_agents = find_expected_agent_names(flume_conf_directory)
 
   alert_label = ''

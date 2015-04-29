@@ -73,20 +73,21 @@ def is_monitor_process_live(pid_file):
   return live
 
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
-  if parameters is None:
-    return (RESULT_CODE_UNKNOWN, ['There were no parameters supplied to the script.'])
+  if configurations is None:
+    return (RESULT_CODE_UNKNOWN, ['There were no configurations supplied to the script.'])
 
-  if set([AMS_MONITOR_PID_DIR]).issubset(parameters):
-    AMS_MONITOR_PID_PATH = os.path.join(parameters[AMS_MONITOR_PID_DIR], 'ambari-metrics-monitor.pid')
+  if set([AMS_MONITOR_PID_DIR]).issubset(configurations):
+    AMS_MONITOR_PID_PATH = os.path.join(configurations[AMS_MONITOR_PID_DIR], 'ambari-metrics-monitor.pid')
   else:
     return (RESULT_CODE_UNKNOWN, ['The ams_monitor_pid_dir is a required parameter.'])
 

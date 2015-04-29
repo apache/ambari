@@ -33,15 +33,20 @@ SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 HIVE_METASTORE_URIS_KEY = '{{hive-site/hive.metastore.uris}}'
+
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
 
-PERCENT_WARNING = 200
-PERCENT_CRITICAL = 200
-
-
+# default keytab location
+SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = 'default.smoke.keytab'
 SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+
+# default smoke principal
+SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = 'default.smoke.principal'
 SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
+
+# default smoke user
+SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
 def get_tokens():
@@ -53,46 +58,61 @@ def get_tokens():
     HIVE_METASTORE_URIS_KEY, SMOKEUSER_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
 
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
-  if parameters is None:
-    return (('UNKNOWN', ['There were no parameters supplied to the script.']))
+  if configurations is None:
+    return (('UNKNOWN', ['There were no configurations supplied to the script.']))
 
-  if not HIVE_METASTORE_URIS_KEY in parameters:
+  if not HIVE_METASTORE_URIS_KEY in configurations:
     return (('UNKNOWN', ['Hive metastore uris were not supplied to the script.']))
-  metastore_uris = parameters[HIVE_METASTORE_URIS_KEY].split(',')
+
+  metastore_uris = configurations[HIVE_METASTORE_URIS_KEY].split(',')
 
   security_enabled = False
-  if SECURITY_ENABLED_KEY in parameters:
-    security_enabled = str(parameters[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+  if SECURITY_ENABLED_KEY in configurations:
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
 
+  # defaults
+  smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
   smokeuser_principal = SMOKEUSER_PRINCIPAL_DEFAULT
-  if SMOKEUSER_PRINCIPAL_KEY in parameters:
-    smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_KEY]
-
   smokeuser = SMOKEUSER_DEFAULT
-  if SMOKEUSER_KEY in parameters:
-    smokeuser = parameters[SMOKEUSER_KEY]
+
+  # check script params
+  if SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY in parameters:
+    smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY]
+
+  if SMOKEUSER_SCRIPT_PARAM_KEY in parameters:
+    smokeuser = parameters[SMOKEUSER_SCRIPT_PARAM_KEY]
+
+  if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
+    smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
+
+
+  # check configurations last as they should always take precedence
+  if SMOKEUSER_PRINCIPAL_KEY in configurations:
+    smokeuser_principal = configurations[SMOKEUSER_PRINCIPAL_KEY]
+
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
 
   result_code = None
 
   try:
     if security_enabled:
-      smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
-
-      if SMOKEUSER_KEYTAB_KEY in parameters:
-        smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
+      if SMOKEUSER_KEYTAB_KEY in configurations:
+        smokeuser_keytab = configurations[SMOKEUSER_KEYTAB_KEY]
 
       # Get the configured Kerberos executable search paths, if any
-      if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
-        kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+      if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
+        kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
       else:
         kerberos_executable_search_paths = None
              

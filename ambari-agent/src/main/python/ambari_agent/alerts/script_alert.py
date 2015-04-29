@@ -46,6 +46,7 @@ class ScriptAlert(BaseAlert):
     self.common_services_dir = None
     self.host_scripts_dir = None
     self.path_to_script = None
+    self.parameters = {}
     
     if 'path' in alert_source_meta:
       self.path = alert_source_meta['path']
@@ -59,11 +60,24 @@ class ScriptAlert(BaseAlert):
     if 'host_scripts_directory' in alert_source_meta:
       self.host_scripts_dir = alert_source_meta['host_scripts_directory']
 
+    # convert a list of script parameters, like timeouts, into a dictionary
+    # so the the scripts can easily lookup the data
+    if 'parameters' in alert_source_meta:
+      parameters = alert_source_meta['parameters']
+      for parameter in parameters:
+        if 'name' not in parameter or 'value' not in parameter:
+          continue
+
+        # create the dictionary value
+        parameter_name = parameter['name']
+        parameter_value = parameter['value']
+        self.parameters[parameter_name] = parameter_value
+
   def _collect(self):
     cmd_module = self._load_source()
 
     if cmd_module is not None:
-      parameters = {}
+      configurations = {}
 
       try:
         tokens = cmd_module.get_tokens()
@@ -73,7 +87,7 @@ class ScriptAlert(BaseAlert):
           for token in tokens:
             value = self._get_configuration_value(token)
             if value is not None:
-              parameters[token] = value
+              configurations[token] = value
       except AttributeError:
         # it's OK if the module doesn't have get_tokens() ; no tokens will
         # be passed in so hopefully the script doesn't need any
@@ -85,9 +99,9 @@ class ScriptAlert(BaseAlert):
       if matchObj:
         basedir = matchObj.group(1)
         with Environment(basedir, tmp_dir=self.config.get('agent', 'tmp_dir')) as env:
-          return cmd_module.execute(parameters, self.host_name)
+          return cmd_module.execute(configurations, self.parameters, self.host_name)
       else:
-        return cmd_module.execute(parameters, self.host_name)
+        return cmd_module.execute(configurations, self.parameters, self.host_name)
     else:
       return (self.RESULT_UNKNOWN, ["Unable to execute script {0}".format(self.path)])
     

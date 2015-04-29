@@ -38,7 +38,36 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "alert_disk_space.py"
+          "path": "alert_disk_space.py",
+          "parameters": [
+            {
+              "name": "minimum.free.space",
+              "display_name": "Minimum Free Space",
+              "value": 5000000000,
+              "type": "NUMERIC",
+              "description": "The overall amount of free disk space left before an alert is triggered.",
+              "units": "bytes",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "percent.used.space.warning.threshold",
+              "display_name": "Warning",
+              "value": 0.5,
+              "type": "PERCENT",
+              "description": "The percent of disk space consumed before a warning is triggered.",
+              "units": "%",
+              "threshold": "WARNING"
+            },
+            {
+              "name": "percent.free.space.critical.threshold",
+              "display_name": "Critical",
+              "value": 0.8,
+              "type": "PERCENT",
+              "description": "The percent of disk space consumed before a critical alert is triggered.",
+              "units": "%",
+              "threshold": "CRITICAL"
+            }
+          ]
         }
       }
     ]

@@ -210,6 +210,40 @@ class TestAlerts(TestCase):
     self.assertEquals('bar is rendered-bar, baz is rendered-baz', alerts[0]['text'])
 
 
+  def test_script_alert_with_parameters(self):
+    definition_json = self._get_script_alert_definition_with_parameters()
+
+    # normally set by AlertSchedulerHandler
+    definition_json['source']['stacks_directory'] = os.path.join('ambari_agent', 'dummy_files')
+    definition_json['source']['common_services_directory'] = os.path.join('ambari_agent', 'common-services')
+    definition_json['source']['host_scripts_directory'] = os.path.join('ambari_agent', 'host_scripts')
+
+    configuration = {'foo-site' :
+      { 'bar': 'rendered-bar', 'baz' : 'rendered-baz' }
+    }
+
+    collector = AlertCollector()
+    cluster_configuration = self.__get_cluster_configuration()
+    self.__update_cluster_configuration(cluster_configuration, configuration)
+
+    alert = ScriptAlert(definition_json, definition_json['source'], MagicMock())
+    alert.set_helpers(collector, cluster_configuration )
+    alert.set_cluster("c1", "c6401.ambari.apache.org")
+
+    self.assertEquals(definition_json['source']['path'], alert.path)
+    self.assertEquals(definition_json['source']['stacks_directory'], alert.stacks_dir)
+    self.assertEquals(definition_json['source']['common_services_directory'], alert.common_services_dir)
+    self.assertEquals(definition_json['source']['host_scripts_directory'], alert.host_scripts_dir)
+
+    alert.collect()
+
+    alerts = collector.alerts()
+    self.assertEquals(0, len(collector.alerts()))
+
+    self.assertEquals('OK', alerts[0]['state'])
+    self.assertEquals('Script parameter detected: foo bar baz', alerts[0]['text'])
+
+
   @patch.object(MetricAlert, "_load_jmx")
   def test_metric_alert(self, ma_load_jmx_mock):
     definition_json = self._get_metric_alert_definition()
@@ -969,6 +1003,27 @@ class TestAlerts(TestCase):
       }
     }
 
+  def _get_script_alert_definition_with_parameters(self):
+    return {
+      "name": "namenode_process",
+      "service": "HDFS",
+      "component": "NAMENODE",
+      "label": "NameNode process",
+      "interval": 6,
+      "scope": "host",
+      "enabled": True,
+      "uuid": "c1f73191-4481-4435-8dae-fd380e4c0be1",
+      "source": {
+        "type": "SCRIPT",
+        "path": "test_script.py",
+        "parameters": [
+          {
+          "name": "script.parameter.foo",
+          "value": "foo bar baz"
+          }
+        ]
+      }
+    }
 
   def _get_port_alert_definition(self):
     return { "name": "namenode_process",

@@ -40,15 +40,21 @@ SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
 
-PERCENT_WARNING = 200
-PERCENT_CRITICAL = 200
-
 THRIFT_PORT_DEFAULT = 10000
 HIVE_SERVER_TRANSPORT_MODE_DEFAULT = 'binary'
 HIVE_SERVER_PRINCIPAL_DEFAULT = 'hive/_HOST@EXAMPLE.COM'
 HIVE_SERVER2_AUTHENTICATION_DEFAULT = 'NOSASL'
+
+# default keytab location
+SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY = 'default.smoke.keytab'
 SMOKEUSER_KEYTAB_DEFAULT = '/etc/security/keytabs/smokeuser.headless.keytab'
+
+# default smoke principal
+SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY = 'default.smoke.principal'
 SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
+
+# default smoke user
+SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
 
 def get_tokens():
@@ -59,62 +65,76 @@ def get_tokens():
   return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY, SMOKEUSER_KEY,
     HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
     SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
-    HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
+    HIVE_SERVER_TRANSPORT_MODE_KEY,KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
 
 
-def execute(parameters=None, host_name=None):
+def execute(configurations={}, parameters={}, host_name=None):
   """
   Returns a tuple containing the result code and a pre-formatted result label
 
   Keyword arguments:
-  parameters (dictionary): a mapping of parameter key to value
+  configurations (dictionary): a mapping of configuration key to value
+  parameters (dictionary): a mapping of script parameter key to value
   host_name (string): the name of this host where the alert is running
   """
 
-  if parameters is None:
-    return ('UNKNOWN', ['There were no parameters supplied to the script.'])
+  if configurations is None:
+    return ('UNKNOWN', ['There were no configurations supplied to the script.'])
 
   transport_mode = HIVE_SERVER_TRANSPORT_MODE_DEFAULT
-  if HIVE_SERVER_TRANSPORT_MODE_KEY in parameters:
-    transport_mode = parameters[HIVE_SERVER_TRANSPORT_MODE_KEY]
+  if HIVE_SERVER_TRANSPORT_MODE_KEY in configurations:
+    transport_mode = configurations[HIVE_SERVER_TRANSPORT_MODE_KEY]
 
   port = THRIFT_PORT_DEFAULT
-  if transport_mode.lower() == 'binary' and HIVE_SERVER_THRIFT_PORT_KEY in parameters:
-    port = int(parameters[HIVE_SERVER_THRIFT_PORT_KEY])
-  elif  transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in parameters:
-    port = int(parameters[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
+  if transport_mode.lower() == 'binary' and HIVE_SERVER_THRIFT_PORT_KEY in configurations:
+    port = int(configurations[HIVE_SERVER_THRIFT_PORT_KEY])
+  elif  transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in configurations:
+    port = int(configurations[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
 
   security_enabled = False
-  if SECURITY_ENABLED_KEY in parameters:
-    security_enabled = str(parameters[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
+  if SECURITY_ENABLED_KEY in configurations:
+    security_enabled = str(configurations[SECURITY_ENABLED_KEY]).upper() == 'TRUE'
 
   hive_server2_authentication = HIVE_SERVER2_AUTHENTICATION_DEFAULT
-  if HIVE_SERVER2_AUTHENTICATION_KEY in parameters:
-    hive_server2_authentication = parameters[HIVE_SERVER2_AUTHENTICATION_KEY]
+  if HIVE_SERVER2_AUTHENTICATION_KEY in configurations:
+    hive_server2_authentication = configurations[HIVE_SERVER2_AUTHENTICATION_KEY]
 
+  # defaults
+  smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
   smokeuser_principal = SMOKEUSER_PRINCIPAL_DEFAULT
-  if SMOKEUSER_PRINCIPAL_KEY in parameters:
-    smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_KEY]
-
   smokeuser = SMOKEUSER_DEFAULT
-  if SMOKEUSER_KEY in parameters:
-    smokeuser = parameters[SMOKEUSER_KEY]
+
+  # check script params
+  if SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY in parameters:
+    smokeuser_principal = parameters[SMOKEUSER_PRINCIPAL_SCRIPT_PARAM_KEY]
+
+  if SMOKEUSER_SCRIPT_PARAM_KEY in parameters:
+    smokeuser = parameters[SMOKEUSER_SCRIPT_PARAM_KEY]
+
+  if SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY in parameters:
+    smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_SCRIPT_PARAM_KEY]
+
+
+  # check configurations last as they should always take precedence
+  if SMOKEUSER_PRINCIPAL_KEY in configurations:
+    smokeuser_principal = configurations[SMOKEUSER_PRINCIPAL_KEY]
+
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
 
   result_code = None
 
   if security_enabled:
     hive_server_principal = HIVE_SERVER_PRINCIPAL_DEFAULT
-    if HIVE_SERVER_PRINCIPAL_KEY in parameters:
-      hive_server_principal = parameters[HIVE_SERVER_PRINCIPAL_KEY]
+    if HIVE_SERVER_PRINCIPAL_KEY in configurations:
+      hive_server_principal = configurations[HIVE_SERVER_PRINCIPAL_KEY]
 
-    smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
-
-    if SMOKEUSER_KEYTAB_KEY in parameters:
-      smokeuser_keytab = parameters[SMOKEUSER_KEYTAB_KEY]
+    if SMOKEUSER_KEYTAB_KEY in configurations:
+      smokeuser_keytab = configurations[SMOKEUSER_KEYTAB_KEY]
 
     # Get the configured Kerberos executable search paths, if any
-    if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in parameters:
-      kerberos_executable_search_paths = parameters[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
+    if KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY in configurations:
+      kerberos_executable_search_paths = configurations[KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY]
     else:
       kerberos_executable_search_paths = None
 

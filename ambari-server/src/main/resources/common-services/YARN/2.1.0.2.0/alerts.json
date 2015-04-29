@@ -203,7 +203,18 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanager_health.py"
+          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanager_health.py",
+          "parameters": [
+            {
+              "name": "connection.timeout",
+              "display_name": "Connection Timeout",
+              "value": 5.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before this alert is considered to be CRITICAL",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
         }
       }
     ],
@@ -337,7 +348,18 @@
         "enabled": true,
         "source": {
           "type": "SCRIPT",
-          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanagers_summary.py"
+          "path": "YARN/2.1.0.2.0/package/alerts/alert_nodemanagers_summary.py",
+          "parameters": [
+            {
+              "name": "connection.timeout",
+              "display_name": "Connection Timeout",
+              "value": 5.0,
+              "type": "NUMERIC",
+              "description": "The maximum time before this alert is considered to be CRITICAL",
+              "units": "seconds",
+              "threshold": "CRITICAL"
+            }
+          ]
         }
       }
     ],
