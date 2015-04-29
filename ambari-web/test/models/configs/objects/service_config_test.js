@@ -141,6 +141,40 @@ describe('App.ServiceConfig', function () {
       expect(serviceConfig.get('configCategories').findProperty('name', 'c0').get('nonSlaveErrorCount')).to.equal(2);
       expect(serviceConfig.get('configCategories').findProperty('name', 'c1').get('nonSlaveErrorCount')).to.equal(1);
     });
+    it('should include invalid properties with widgets', function() {
+      serviceConfig.setProperties({
+        configs: [
+          Em.Object.create({
+            isValid: false,
+            widget: Em.View,
+            isVisible: true,
+            category: 'some1'
+          }),
+          Em.Object.create({
+            isValid: false,
+            widget: Em.View,
+            isVisible: true,
+            category: 'some2'
+          }),
+          Em.Object.create({
+            isValid: false,
+            widget: null,
+            isVisible: true,
+            category: 'some2'
+          }),
+          Em.Object.create({
+            isValid: false,
+            widget: Em.View,
+            isVisible: true
+          })
+        ],
+        configCategories: [
+          Em.Object.create({ name: 'some1', slaveErrorCount: 0}),
+          Em.Object.create({ name: 'some2', slaveErrorCount: 0})
+        ]
+      });
+      expect(serviceConfig.get('errorCount')).to.equal(4);
+    });
   });
 
 });

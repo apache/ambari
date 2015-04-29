@@ -32,7 +32,8 @@ App.ServiceConfig = Ember.Object.extend({
       masterErrors = 0,
       slaveErrors = 0,
       configs = this.get('configs'),
-      configCategories = this.get('configCategories');
+      configCategories = this.get('configCategories'),
+      enhancedConfigsErrors = 0;
     configCategories.forEach(function (_category) {
       slaveErrors += _category.get('slaveErrorCount');
       _category.set('nonSlaveErrorCount', 0);
@@ -42,6 +43,9 @@ App.ServiceConfig = Ember.Object.extend({
       if (category && !item.get('isValid') && item.get('isVisible') && !item.get('widget')) {
         category.incrementProperty('nonSlaveErrorCount');
         masterErrors++;
+      }
+      if (!item.get('isValid') && item.get('widget') && item.get('isVisible')) {
+        enhancedConfigsErrors++;
       }
       if (item.get('overrides')) {
         item.get('overrides').forEach(function (e) {
@@ -54,7 +58,7 @@ App.ServiceConfig = Ember.Object.extend({
         });
       }
     });
-    return masterErrors + slaveErrors + overrideErrors;
+    return masterErrors + slaveErrors + overrideErrors + enhancedConfigsErrors;
   }.property('configs.@each.isValid', 'configs.@each.isVisible', 'configCategories.@each.slaveErrorCount', 'configs.@each.overrideErrorTrigger'),
 
   isPropertiesChanged: function() {
