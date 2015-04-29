@@ -72,8 +72,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSiteProperty("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
+
     dataDirsCount = 1
-    if "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]:
+    # Use users 'dfs.datanode.data.dir' first
+    if "hdfs-site" in services["configurations"] and "dfs.datanode.data.dir" in services["configurations"]["hdfs-site"]["properties"]:
+      dataDirsCount = len(str(services["configurations"]["hdfs-site"]["properties"]["dfs.datanode.data.dir"]).split(","))
+    elif "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]:
       dataDirsCount = len(str(configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"]).split(","))
     if dataDirsCount <= 2:
       failedVolumesTolerated = 0
@@ -97,31 +101,32 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
         putHdfsSiteProperty("dfs.permissions.enabled",'true')
 
-    putHdfsSiteProperty("dfs.namenode.safemode.threshold-pct", "0.99f" if len(namenodeHosts) > 1 else "1.0f")
+    putHdfsSiteProperty("dfs.namenode.safemode.threshold-pct", "0.999" if len(namenodeHosts) > 1 else "1.000")
 
     putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
     putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
 
     putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
-    putHdfsEnvProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
-    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
-    nn_max_heapsize=None
+    nn_heapsize_limit = None
     if (namenodeHosts is not None and len(namenodeHosts) > 0):
       if len(namenodeHosts) > 1:
         nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
+        masters_at_host = max(self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts),
+                              self.getHostComponentsByCategories(namenodeHosts[1]["Hosts"]["host_name"], ["MASTER"], services, hosts))
       else:
         nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
+        masters_at_host = self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts)
 
       putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', max(nn_max_heapsize, 1024))
 
-      nn_heapsize = nn_max_heapsize
-      nn_heapsize -= clusterData["reservedRam"]
-      if clusterData["hBaseInstalled"]:
-        nn_heapsize -= clusterData["hbaseRam"]
-      putHdfsEnvProperty('namenode_heapsize', max(int(nn_heapsize / 2), 1024))
-      putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
-      putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 256))
+      nn_heapsize_limit = nn_max_heapsize
+      nn_heapsize_limit -= clusterData["reservedRam"]
+      if len(masters_at_host) > 1:
+        nn_heapsize_limit = int(nn_heapsize_limit/2)
+
+      putHdfsEnvProperty('namenode_heapsize', max(nn_heapsize_limit, 1024))
+
 
     datanodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
     if datanodeHosts is not None and len(datanodeHosts) > 0:
@@ -163,12 +168,14 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       nn_memory_config = nn_memory_configs[index]
 
       #override with new values if applicable
-      if nn_max_heapsize is not None and nn_memory_config['nn_heap'] <= nn_max_heapsize:
+      if nn_heapsize_limit is not None and nn_memory_config['nn_heap'] <= nn_heapsize_limit:
         putHdfsEnvProperty('namenode_heapsize', nn_memory_config['nn_heap'])
-        putHdfsEnvProperty('namenode_opt_newsize', nn_memory_config['nn_opt'])
-        putHdfsEnvProperty('namenode_opt_maxnewsize', nn_memory_config['nn_opt'])
 
       putHdfsEnvPropertyAttribute('dtnode_heapsize', 'maximum', int(min_datanode_ram_kb/1024))
+
+    nn_heapsize = int(configurations["hadoop-env"]["properties"]["namenode_heapsize"])
+    putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
+    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 128))
 
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
     putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'maximum', dataDirsCount)

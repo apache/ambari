@@ -25,7 +25,7 @@ class TestHDP22StackAdvisor(TestCase):
 
   def setUp(self):
     import imp
-
+    self.maxDiff = None
     self.testDirectory = os.path.dirname(os.path.abspath(__file__))
     stackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/stack_advisor.py')
     hdp206StackAdvisorPath = os.path.join(self.testDirectory, '../../../../../main/resources/stacks/HDP/2.0.6/services/stack_advisor.py')
@@ -1500,7 +1500,7 @@ class TestHDP22StackAdvisor(TestCase):
     clusterData = {
       "totalAvailableRam": 2048,
       "hBaseInstalled": True,
-      "hbaseRam": 111,
+      "hbaseRam": 112,
       "reservedRam": 128
     }
     expected = {
@@ -1518,7 +1518,7 @@ class TestHDP22StackAdvisor(TestCase):
       'hdfs-site': {
         'properties': {
           'dfs.datanode.max.transfer.threads': '16384',
-          'dfs.namenode.safemode.threshold-pct': '1.0f',
+          'dfs.namenode.safemode.threshold-pct': '1.000',
           'dfs.datanode.failed.volumes.tolerated': '1',
           'dfs.namenode.handler.count': '25',
           'dfs.datanode.data.dir': '/path/1,/path/2,/path/3,/path/4'
@@ -1680,8 +1680,8 @@ class TestHDP22StackAdvisor(TestCase):
       )
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "3072")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "512")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "512")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "384")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "384")
     # Test 2 - add more datanodes
     for i in xrange(11,30):
       hostname = "datanode" + `i`
@@ -1705,8 +1705,8 @@ class TestHDP22StackAdvisor(TestCase):
     configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"] = "/path1,/path2,/path3,/path4"
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "9984")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1280")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1280")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1248")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1248")
     # Test 3 - more datanodes than host can handle
     for i in xrange(31, 90):
       hostname = "datanode" + `i`
@@ -1727,10 +1727,10 @@ class TestHDP22StackAdvisor(TestCase):
         }
       )
     self.stackAdvisor.recommendHDFSConfigurations(configurations, clusterData, services, hosts)
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "5000")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1250")
-    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1250")
-    
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_heapsize"], "10112")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1264")
+    self.assertEquals(configurations["hadoop-env"]["properties"]["namenode_opt_maxnewsize"], "1264")
+
     # Test 4 - KMS empty test from previous call
     self.assertTrue("dfs.encryption.key.provider.uri" not in configurations["hdfs-site"]["properties"])
     

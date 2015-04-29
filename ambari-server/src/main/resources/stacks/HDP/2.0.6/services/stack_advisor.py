@@ -224,6 +224,15 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       return componentHosts[0]
     return None
 
+  def getHostComponentsByCategories(self, hostname, categories, services, hosts):
+    components = []
+    if services is not None and hosts is not None:
+      for service in services["services"]:
+          components.extend([componentEntry for componentEntry in service["components"]
+                              if componentEntry["StackServiceComponents"]["component_category"] in categories
+                              and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
+    return components
+
   def getConfigurationClusterSummary(self, servicesList, hosts, components, services):
 
     hBaseInstalled = False

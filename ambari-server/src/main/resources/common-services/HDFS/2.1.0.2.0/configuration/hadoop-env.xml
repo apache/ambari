@@ -59,6 +59,12 @@
     <value>200</value>
     <description>NameNode new generation size</description>
     <display-name>NameNode new generation size</display-name>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>namenode_heapsize</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -72,6 +78,12 @@
     <value>200</value>
     <description>NameNode maximum new generation size</description>
     <display-name>NameNode maximum new generation size</display-name>
+    <depends-on>
+      <property>
+        <type>hadoop-env</type>
+        <name>namenode_heapsize</name>
+      </property>
+    </depends-on>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>

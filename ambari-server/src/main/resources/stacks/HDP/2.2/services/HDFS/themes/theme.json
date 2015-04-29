@@ -137,7 +137,12 @@
       {
         "config": "hdfs-site/dfs.namenode.safemode.threshold-pct",
         "widget": {
-          "type": "toggle"
+          "type": "slider",
+          "units": [
+            {
+              "unit-name": "percent"
+            }
+          ]
         }
       },
       {
