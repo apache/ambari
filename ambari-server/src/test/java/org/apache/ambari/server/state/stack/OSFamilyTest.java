@@ -101,8 +101,13 @@ public class OSFamilyTest {
 
     Assert.assertNotNull(actual_result);
     Assert.assertEquals(expected_result, actual_result);
+
+    // for windows
+    expected_result = "winsrv6";
+    actual_result = os_family.find("win2012server6");
+
+    Assert.assertNotNull(actual_result);
+    Assert.assertEquals(expected_result, actual_result);
   }
-
-
 }
 

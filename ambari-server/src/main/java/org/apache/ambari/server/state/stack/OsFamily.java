@@ -45,7 +45,7 @@ public class OsFamily {
     private final static String OS_FAMILY_SUSE = "suse";
     private final static String OS_FAMILY_REDHAT = "redhat";
     
-    private final String os_pattern = "([^\\d]*)([\\d]*)";
+    private final String os_pattern = "([\\D]+|(?:[\\D]+[\\d]+[\\D]+))([\\d]*)";
     private final String OS_DISTRO = "distro";
     private final String OS_VERSION = "versions";
     private final String LOAD_CONFIG_MSG = "Could not load OS family definition from %s file";
@@ -99,7 +99,7 @@ public class OsFamily {
       Pattern r = Pattern.compile(os_pattern);
       Matcher m = r.matcher(os);
 
-      if (m.find()){
+      if (m.matches()){
         pos.put(OS_DISTRO, m.group(1));
         pos.put(OS_VERSION, m.group(2));
       } else {
