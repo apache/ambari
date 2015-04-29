@@ -367,10 +367,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         return false;
       });
       // create label for default value and align it
-
-        defaultSliderTick.append('<span>{0}</span>'.format(recommendedValue + this.get('unitLabel')));
-        defaultSliderTick.find('span').css('marginLeft', -defaultSliderTick.find('span').width()/2 + 'px');
-
+      // defaultSliderTick.append('<span>{0}</span>'.format(recommendedValue + this.get('unitLabel')));
+      // defaultSliderTick.find('span').css('marginLeft', -defaultSliderTick.find('span').width()/2 + 'px');
       // if mirrored value was added need to hide the tick for it
       if (recommendedValueMirroredId) {
         sliderTicks.eq(recommendedValueMirroredId).hide();
