@@ -19,10 +19,7 @@ package org.apache.ambari.server.events.listeners.alerts;
 
 import java.util.List;
 
-import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.EagerSingleton;
-import org.apache.ambari.server.controller.MaintenanceStateHelper;
-import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.events.MaintenanceModeEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.dao.AlertsDAO;
@@ -30,8 +27,7 @@ import org.apache.ambari.server.orm.entities.AlertCurrentEntity;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertHistoryEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponentHost;
@@ -41,7 +37,6 @@ import org.slf4j.LoggerFactory;
 import com.google.common.eventbus.AllowConcurrentEvents;
 import com.google.common.eventbus.Subscribe;
 import com.google.inject.Inject;
-import com.google.inject.Provider;
 import com.google.inject.Singleton;
 
 /**
@@ -61,18 +56,6 @@ public class AlertMaintenanceModeListener {
    */
   @Inject
   private AlertsDAO m_alertsDao = null;
-
-  /**
-   * Used to assist in determining implied maintenance state.
-   */
-  @Inject
-  private Provider<MaintenanceStateHelper> m_maintenanceHelper;
-
-  /**
-   * Used to lookup MM states.
-   */
-  @Inject
-  private Provider<Clusters> m_clusters;
 
   /**
    * Constructor.
@@ -98,123 +81,85 @@ public class AlertMaintenanceModeListener {
   public void onEvent(MaintenanceModeEvent event) {
     List<AlertCurrentEntity> currentAlerts = m_alertsDao.findCurrent();
 
-    for( AlertCurrentEntity currentAlert : currentAlerts ){
-      MaintenanceState currentState = currentAlert.getMaintenanceState();
-      AlertHistoryEntity history = currentAlert.getAlertHistory();
-      AlertDefinitionEntity definition = history.getAlertDefinition();
+    MaintenanceState newMaintenanceState = MaintenanceState.OFF;
+    if (event.getMaintenanceState() != MaintenanceState.OFF) {
+      newMaintenanceState = MaintenanceState.ON;
+    }
 
-      long clusterId = history.getClusterId();
-      String hostName = history.getHostName();
-      String serviceName = history.getServiceName();
-      String componentName = history.getComponentName();
+    for( AlertCurrentEntity currentAlert : currentAlerts ){
+      AlertHistoryEntity history = currentAlert.getAlertHistory();
+
+      String alertHostName = history.getHostName();
+      String alertServiceName = history.getServiceName();
+      String alertComponentName = history.getComponentName();
 
       try {
-        // although AMBARI is a service, it's not really a service and would
-        // fail in this loop; so handle it specifically
-        if (Services.AMBARI.name().equals(serviceName)) {
+        Host host = event.getHost();
+        Service service = event.getService();
+        ServiceComponentHost serviceComponentHost = event.getServiceComponentHost();
 
-          // if this alert is an AMBARI_AGENT alert, then the only maintenance
-          // state that affects it is a host maintenance state
-          if (null == event.getHost()) {
+        // host level maintenance
+        if( null != host ){
+          String hostName = host.getHostName();
+          if( hostName.equals( alertHostName ) ){
+            updateMaintenanceState(currentAlert, newMaintenanceState);
             continue;
           }
-
-          MaintenanceState maintenanceState = MaintenanceState.OFF;
-          if (event.getMaintenanceState() != MaintenanceState.OFF) {
-            maintenanceState = MaintenanceState.ON;
-          }
-
-          currentAlert.setMaintenanceState(maintenanceState);
-          m_alertsDao.merge(currentAlert);
-          continue;
-        }
-
-        Cluster cluster = m_clusters.get().getClusterById(clusterId);
-        if (null == cluster) {
-          LOG.warn("Unable to find cluster with ID {}", clusterId);
-          continue;
-        }
-
-        Service service = cluster.getService(serviceName);
-        if (null == service) {
-          LOG.warn("Unable to find service named {} in cluster {}",
-              serviceName, cluster.getClusterName());
-
-          continue;
-        }
-
-        // if this is a service-level alert, then check explicitely against the
-        // service for the MM state
-        if (null == componentName) {
-          MaintenanceState serviceState = service.getMaintenanceState();
-          if (currentState != serviceState) {
-            currentAlert.setMaintenanceState(serviceState);
-            m_alertsDao.merge(currentAlert);
-          }
-        }
-        // the presence of a component name means that it's a component alert
-        // which require a host
-        else {
-          if (hostName == null) {
-            LOG.warn("The alert {} for component {} must have a host",
-                definition.getDefinitionName(), componentName);
-
+        } else if( null != service ){
+          // service level maintenance
+          String serviceName = service.getName();
+          if( serviceName.equals(alertServiceName)){
+            updateMaintenanceState(currentAlert, newMaintenanceState);
             continue;
           }
+        } else if( null != serviceComponentHost ){
+          // component level maintenance
+          String hostName = serviceComponentHost.getHostName();
+          String serviceName = serviceComponentHost.getServiceName();
+          String componentName = serviceComponentHost.getServiceComponentName();
 
-          List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostName);
-          if (null == serviceComponentHosts) {
-            LOG.warn(
-                "Unable to find service components on host {} for {} in cluster {}",
-                hostName, serviceName, cluster.getClusterName());
-
+          // match on all 3 for a service component
+          if (hostName.equals(alertHostName) && serviceName.equals(alertServiceName)
+              && componentName.equals(alertComponentName)) {
+            updateMaintenanceState(currentAlert, newMaintenanceState);
             continue;
-          }
-
-          ServiceComponentHost serviceComponentHost = null;
-          for (ServiceComponentHost sch : serviceComponentHosts) {
-            if (componentName.equals(sch.getServiceComponentName())) {
-              serviceComponentHost = sch;
-              break;
-            }
-          }
-
-          if (null == serviceComponentHost) {
-            LOG.warn("Unable to find component {} of {} on host {}",
-                componentName, serviceName, hostName);
-
-            continue;
-          }
-
-          MaintenanceState effectiveState = m_maintenanceHelper.get().getEffectiveState(
-              serviceComponentHost);
-
-          switch (effectiveState) {
-            case OFF:
-              if (currentState != MaintenanceState.OFF) {
-                currentAlert.setMaintenanceState(MaintenanceState.OFF);
-                m_alertsDao.merge(currentAlert);
-              }
-
-              break;
-            case ON:
-            case IMPLIED_FROM_HOST:
-            case IMPLIED_FROM_SERVICE:
-            case IMPLIED_FROM_SERVICE_AND_HOST:
-              if (currentState == MaintenanceState.OFF) {
-                currentAlert.setMaintenanceState(MaintenanceState.ON);
-                m_alertsDao.merge(currentAlert);
-              }
-
-              break;
-            default:
-              break;
           }
         }
-      } catch (AmbariException ambariException) {
+      } catch (Exception exception) {
+        AlertDefinitionEntity definition = history.getAlertDefinition();
         LOG.error("Unable to put alert '{}' for host {} into maintenance mode",
-            definition.getDefinitionName(), hostName, ambariException);
+            definition.getDefinitionName(), alertHostName, exception);
       }
     }
+  }
+
+  /**
+   * Updates the maintenance state of the specified alert if different than the
+   * supplied maintenance state.
+   *
+   * @param currentAlert
+   *          the alert to update (not {@code null}).
+   * @param maintenanceState
+   *          the maintenance state to change to, either
+   *          {@link MaintenanceState#OFF} or {@link MaintenanceState#ON}.
+   */
+  private void updateMaintenanceState(AlertCurrentEntity currentAlert,
+      MaintenanceState maintenanceState) {
+
+    // alerts only care about OFF or ON
+    if (maintenanceState != MaintenanceState.OFF && maintenanceState != MaintenanceState.ON) {
+      LOG.warn("Unable to set invalid maintenance state of {} on the alert {}", maintenanceState,
+          currentAlert.getAlertHistory().getAlertDefinition().getDefinitionName());
+
+      return;
+    }
+
+    MaintenanceState currentState = currentAlert.getMaintenanceState();
+    if (currentState == maintenanceState) {
+      return;
+    }
+
+    currentAlert.setMaintenanceState(maintenanceState);
+    m_alertsDao.merge(currentAlert);
   }
 }
