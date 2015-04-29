@@ -79,17 +79,17 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
 
     contentColor: function () {
       var used = parseFloat(this.get('parentView.value')) * this.get('FACTOR');
-      var thresh1 = parseFloat(this.get('warningThreshold')) * this.get('FACTOR');
-      var thresh2 = parseFloat(this.get('errorThreshold')) * this.get('FACTOR');
+      var threshold1 = parseFloat(this.get('warningThreshold')) * this.get('FACTOR');
+      var threshold2 = parseFloat(this.get('errorThreshold')) * this.get('FACTOR');
       var color_green = App.healthStatusGreen;
       var color_red = App.healthStatusRed;
       var color_orange = App.healthStatusOrange;
-      if (isNaN(thresh1) || isNaN(thresh2) || used <= thresh1) {
+      if (isNaN(threshold1) || (isNaN(threshold2) && used <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (used > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (used <= threshold1))) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_green  ].reverse()
         }));
         return color_green;
-      } else if (used <= thresh2) {
+      } else if (!isNaN(threshold2) && used.isInRange(threshold1, threshold2)) {
         this.set('palette', new Rickshaw.Color.Palette({
           scheme: [ '#FFFFFF', color_orange  ].reverse()
         }));

@@ -7,7 +7,6 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "GC Statistics",
-          "display_name": "GC Statistics",
           "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -56,7 +55,6 @@
         },
         {
           "widget_name": "Client connections",
-          "display_name": "Client connections",
           "description": "Number of open connections for Active NameNode.",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -84,7 +82,6 @@
         },
         {
           "widget_name": "NameNode JVM Heap Statistics",
-          "display_name": "NameNode JVM Heap Statistics",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -120,7 +117,6 @@
         },
         {
           "widget_name": "NameNode CPU and RAM Utilization",
-          "display_name": "NameNode CPU and RAM Utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -156,7 +152,6 @@
         },
         {
           "widget_name": "RPC Queue Wait time",
-          "display_name": "RPC Queue Wait time",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -179,8 +174,7 @@
           }
         },
         {
-          "widget_name": "RPC_PROCESSING_TIME",
-          "display_name": "RPC Processing time",
+          "widget_name": "RPC Processing time",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -204,7 +198,6 @@
         },
         {
           "widget_name": "Corrupted Blocks",
-          "display_name": "Corrupted Blocks",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -226,7 +219,6 @@
         },
         {
           "widget_name": "Under Replicated Blocks",
-          "display_name": "Under Replicated Blocks",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -250,7 +242,6 @@
     },
     {
       "layout_name": "default_hdfs_heatmap",
-      "display_name": "HDFS Heatmaps",
       "section_name": "HDFS_HEATMAPS",
       "widgetLayoutInfo": [
         {
@@ -280,7 +271,6 @@
         },
         {
           "widget_name": "HDFS Bytes Written",
-          "display_name": "HDFS Bytes Written",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -305,7 +295,6 @@
         },
         {
           "widget_name": "DataNode Garbage Collection Time",
-          "display_name": "DataNode Garbage Collection Time",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -330,7 +319,6 @@
         },
         {
           "widget_name": "DataNode JVM Heap Memory Used",
-          "display_name": "DataNode JVM Heap Memory Used",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -355,7 +343,6 @@
         },
         {
           "widget_name": "DataNode JVM Heap Memory Committed",
-          "display_name": "DataNode JVM Heap Memory Committed",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -423,7 +410,6 @@
         },
         {
           "widget_name": "DataNode Process Network I/O Utilization",
-          "display_name": "DataNode Process Network I/O Utilization",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,

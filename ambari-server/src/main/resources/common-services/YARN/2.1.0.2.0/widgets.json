@@ -7,7 +7,6 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "NodeManager RAM Utilization",
-          "display_name": "NodeManager RAM Utilization",
           "description": "",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -43,7 +42,6 @@
         },
         {
           "widget_name": "NodeManager CPU Utilization",
-          "display_name": "NodeManager CPU Utilization",
           "description": "",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -79,7 +77,6 @@
         },
         {
           "widget_name": "NodeManager Disk and Network Utilization",
-          "display_name": "NodeManager Disk and Network Utilization",
           "description": "",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -127,7 +124,6 @@
         },
         {
           "widget_name": "NodeManager Container Failures",
-          "display_name": "NodeManager Container Failures",
           "description": "",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -160,7 +156,6 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "NodeManager GC Time",
-          "display_name": "NodeManager GC Time",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
@@ -185,7 +180,6 @@
         },
         {
           "widget_name": "NodeManager JVM Heap Memory Used",
-          "display_name": "NodeManager JVM Heap Memory Used",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -210,7 +204,6 @@
         },
         {
           "widget_name": "NodeManager Memory used %",
-          "display_name": "NodeManager Memory used %",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -241,7 +234,6 @@
         },
         {
           "widget_name": "Allocated Containers",
-          "display_name": "Allocated Containers",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -266,7 +258,6 @@
         },
         {
           "widget_name": "NodeManager RAM Utilized",
-          "display_name": "NodeManager RAM Utilized",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -291,7 +282,6 @@
         },
         {
           "widget_name": "NodeManager CPU Utilized",
-          "display_name": "NodeManager CPU Utilized",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,

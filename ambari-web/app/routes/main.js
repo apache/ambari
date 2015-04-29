@@ -583,7 +583,6 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       widgetController.save('widgetMetrics', context.get('metrics'));
       widgetController.save('widgetValues', context.get('values'));
       widgetController.save('widgetName', context.get('widgetName'));
-      widgetController.save('widgetDisplayName', context.get('displayName'));
       widgetController.save('widgetDescription', context.get('description'));
       widgetController.save('widgetScope', context.get('scope'));
       widgetController.save('widgetId', context.get('id'));

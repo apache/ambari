@@ -25,7 +25,6 @@ App.widgetMapper = App.QuickDataMapper.create({
     widget_name: 'widget_name',
     default_order: 'default_order',
     widget_type: 'widget_type',
-    display_name: 'display_name',
     service_name: 'service_name',
     section_name: 'section_name',
     time_created: 'time_created',

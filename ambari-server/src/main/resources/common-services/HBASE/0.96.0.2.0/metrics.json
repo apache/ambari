@@ -353,7 +353,7 @@
             },
             "metrics/hbase/regionserver/Server/percentFilesLocal": {
               "metric": "regionserver.Server.percentFilesLocal",
-              "pointInTime": false,
+              "pointInTime": true,
               "temporal": true
             },
             "metrics/hbase/regionserver/Server/updatesBlockedTime": {

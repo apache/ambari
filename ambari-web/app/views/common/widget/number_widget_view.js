@@ -29,7 +29,7 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
   displayValue: function () {
     var value = parseFloat(this.get('value'));
     if (isNaN(value)) return Em.I18n.t('common.na');
-    var value = value % 1 != 0? value.toFixed(2): value;
+    value = value % 1 != 0? value.toFixed(2): value;
     var unit = this.get('content.properties.display_unit')? this.get('content.properties.display_unit'): '';
     return value + unit;
   }.property('value'),
@@ -46,14 +46,14 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   contentColor: function () {
     var value = parseFloat(this.get('value'));
-    var warningThreshold = parseFloat(this.get('content.properties.warning_threshold'));
-    var errorThreshold = parseFloat(this.get('content.properties.error_threshold'));
+    var threshold1 = parseFloat(this.get('content.properties.warning_threshold'));
+    var threshold2 = parseFloat(this.get('content.properties.error_threshold'));
 
     if (isNaN(value)) {
       return 'grey';
-    } else if (isNaN(warningThreshold) || isNaN(errorThreshold) || value <= warningThreshold) {
+    } else if (isNaN(threshold1) || (isNaN(threshold2) && value <= threshold1) || (!isNaN(threshold2) && (threshold1 > threshold2) && (value > threshold1)) || (!isNaN(threshold2) && (threshold1 < threshold2) && (value <= threshold1))) {
       return 'green';
-    } else if (value <= errorThreshold) {
+    } else if (!isNaN(threshold2) && value.isInRange(threshold1, threshold2)) {
       return 'orange';
     } else {
       return 'red';

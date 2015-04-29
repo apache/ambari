@@ -253,8 +253,8 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
     }.property('parentView.content.properties.graph_type'),
 
     title: function () {
-      return this.get('parentView.content.displayName');
-    }.property('parentView.content.displayName'),
+      return this.get('parentView.content.widgetName');
+    }.property('parentView.content.widgetName'),
 
     transformToSeries: function (seriesData) {
       var seriesArray = [];

@@ -45,6 +45,11 @@ App.WidgetMixin = Ember.Mixin.create({
   metrics: [],
 
   /**
+   *
+   */
+  aggregatorFunc: ['._sum', '._avg', '._min', '._max'],
+
+  /**
    * @type {boolean}
    */
   isLoaded: false,
@@ -73,7 +78,7 @@ App.WidgetMixin = Ember.Mixin.create({
     for (var i in requestData) {
       request = requestData[i];
       requestCounter++;
-      if (this.get('content.widgetType') === 'HEATMAP'){
+      if (this.get('content.widgetType') === 'HEATMAP') {
         if (request.service_name === 'STACK') {
           this.getHostsMetrics(request).complete(function () {
             requestCounter--;
@@ -185,19 +190,18 @@ App.WidgetMixin = Ember.Mixin.create({
             hostName: request.host_name,
             metricPaths: request.metric_paths.join(',')
           }
-        }).done(function(metricData) {
+        }).done(function (metricData) {
           self.getMetricsSuccessCallback(metricData);
           dfd.resolve();
-        }).fail(function(data){
+        }).fail(function (data) {
           dfd.reject();
         });
       }
-    }).fail(function(data){
+    }).fail(function (data) {
       dfd.reject();
     });
     return dfd.promise();
   },
-
 
 
   /**
@@ -225,13 +229,24 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   getMetricsSuccessCallback: function (data) {
     var metrics = [];
-
-    this.get('content.metrics').forEach(function (_metric) {
-      if (!Em.isNone(Em.get(data, _metric.metric_path.replace(/\//g, '.')))) {
-        _metric.data = Em.get(data, _metric.metric_path.replace(/\//g, '.'));
-        this.get('metrics').pushObject(_metric);
-      }
-    }, this);
+    if (this.get('content.metrics')) {
+      this.get('content.metrics').forEach(function (_metric) {
+        var metric_path;
+        this.aggregatorFunc.forEach(function (_func) {
+          if (_metric.metric_path.endsWith(_func)) {
+            // truncate aggregator function suffixed at the end of the metric
+            metric_path = _metric.metric_path.substring(0, _metric.metric_path.indexOf(_func));
+          }
+        }, this);
+        if (!metric_path) {
+          metric_path = _metric.metric_path;
+        }
+        if (!Em.isNone(Em.get(data, metric_path.replace(/\//g, '.')))) {
+          _metric.data = Em.get(data, metric_path.replace(/\//g, '.'));
+          this.get('metrics').pushObject(_metric);
+        }
+      }, this);
+    }
   },
 
   /**
@@ -239,8 +254,8 @@ App.WidgetMixin = Ember.Mixin.create({
    * @param {object} request
    * @return {$.ajax}
    */
-  getHostComponentsMetrics: function(request) {
-    request.metric_paths.forEach(function(_metric,index){
+  getHostComponentsMetrics: function (request) {
+    request.metric_paths.forEach(function (_metric, index) {
       request.metric_paths[index] = "host_components/" + _metric;
     });
     return App.ajax.send({
@@ -256,21 +271,21 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
 
-  getHostComponentsMetricsSuccessCallback: function(data) {
+  getHostComponentsMetricsSuccessCallback: function (data) {
     var metrics = this.get('content.metrics');
-    data.host_components.forEach(function(item){
+    data.host_components.forEach(function (item) {
       metrics.forEach(function (_metric) {
         if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
-          var metric = $.extend({},_metric,true);
-          metric.data =  Em.get(item, _metric.metric_path.replace(/\//g, '.'));
+          var metric = $.extend({}, _metric, true);
+          metric.data = Em.get(item, _metric.metric_path.replace(/\//g, '.'));
           metric.hostName = item.HostRoles.host_name;
           this.get('metrics').pushObject(metric);
         }
       }, this);
-    },this);
+    }, this);
   },
 
-  getHostsMetrics: function(request) {
+  getHostsMetrics: function (request) {
     return App.ajax.send({
       name: 'widgets.hosts.metrics.get',
       sender: this,
@@ -281,18 +296,18 @@ App.WidgetMixin = Ember.Mixin.create({
     });
   },
 
-  getHostsMetricsSuccessCallback: function(data) {
+  getHostsMetricsSuccessCallback: function (data) {
     var metrics = this.get('content.metrics');
-    data.items.forEach(function(item){
-      metrics.forEach(function (_metric,index) {
+    data.items.forEach(function (item) {
+      metrics.forEach(function (_metric, index) {
         if (!Em.isNone(Em.get(item, _metric.metric_path.replace(/\//g, '.')))) {
-          var metric = $.extend({},_metric,true);
-          metric.data =  Em.get(item, _metric.metric_path.replace(/\//g, '.'));
+          var metric = $.extend({}, _metric, true);
+          metric.data = Em.get(item, _metric.metric_path.replace(/\//g, '.'));
           metric.hostName = item.Hosts.host_name;
           this.get('metrics').pushObject(metric);
         }
       }, this);
-    },this);
+    }, this);
   },
 
   /**
@@ -412,7 +427,7 @@ App.WidgetMixin = Ember.Mixin.create({
   cloneWidget: function (event) {
     var self = this;
     return App.showConfirmationPopup(
-      function() {
+      function () {
         self.postWidgetDefinition();
       },
       Em.I18n.t('widget.clone.body').format(self.get('content.displayName')),
@@ -464,7 +479,7 @@ App.WidgetMixin = Ember.Mixin.create({
     });
   },
 
-  postWidgetDefinitionSuccessCallback: function() {
+  postWidgetDefinitionSuccessCallback: function () {
 
   },
 

@@ -91,7 +91,6 @@ App.WidgetWizardController = App.WizardController.extend({
     dataSets: [],
     templateValue: null,
     widgetName: null,
-    widgetDisplayName: null,
     widgetDescription: null,
     widgetScope: null
   }),
@@ -252,8 +251,8 @@ App.WidgetWizardController = App.WizardController.extend({
    * @returns {$.ajax}
    */
   postWidgetDefinition: function (data) {
-    //TODO set correct widget name when adding new one, now widget name the same as to display name
-    data.WidgetInfo.widget_name = data.WidgetInfo.display_name;
+    //TODO remove setting diplay_name once API supports it
+    data.WidgetInfo.display_name = data.WidgetInfo.widget_name;
     return App.ajax.send({
       name: 'widgets.wizard.add',
       sender: this,

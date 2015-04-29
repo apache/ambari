@@ -43,11 +43,6 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   /**
    * @type {string}
    */
-  widgetDisplayName: '',
-
-  /**
-   * @type {string}
-   */
   widgetAuthor: '',
 
   /**
@@ -86,8 +81,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetValues', this.get('content.widgetValues'));
     this.set('widgetMetrics', this.get('content.widgetMetrics'));
     this.set('widgetAuthor', App.router.get('loginName'));
-    this.set('widgetName', this.get('content.widgetDisplayName'));
-    this.set('widgetDisplayName', this.get('content.widgetDisplayName'));
+    this.set('widgetName', this.get('content.widgetName'));
     this.set('widgetDescription', this.get('content.widgetDescription'));
     this.get('scopes').forEach(function (scope) {
       scope.set('checked', scope.get('name').toUpperCase() == this.get('content.widgetScope'));
@@ -100,18 +94,17 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
 
   //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
   isSubmitDisabled: function () {
-    return !this.get('widgetDisplayName');
-  }.property('widgetDisplayName'),
+    return !(this.get('widgetName') && this.get('widgetDescription'));
+  }.property('widgetName', 'widgetDescription'),
 
   /**
    * collect all needed data to create new widget
-   * @returns {{WidgetInfo: {cluster_name: *, widget_name: *, display_name: *, widget_type: *, description: *, scope: string, metrics: *, values: *, properties: *}}}
+   * @returns {{WidgetInfo: {cluster_name: *, widget_name: *, widget_type: *, description: *, scope: string, metrics: *, values: *, properties: *}}}
    */
   collectWidgetData: function () {
     return {
       WidgetInfo: {
         widget_name: this.get('widgetName'),
-        display_name: this.get('widgetDisplayName'),
         widget_type: this.get('content.widgetType'),
         description: this.get('widgetDescription'),
         scope: this.get('widgetScope.name').toUpperCase(),

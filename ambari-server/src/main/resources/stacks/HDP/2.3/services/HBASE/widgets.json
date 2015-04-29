@@ -7,44 +7,43 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "Reads and Writes",
-          "display_name": "Reads and Writes",
           "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.Get_num_ops",
-              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops",
+              "name": "regionserver.Server.Get_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.ScanNext_num_ops",
-              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops",
+              "name": "regionserver.Server.ScanNext_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Append_num_ops",
-              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops",
+              "name": "regionserver.Server.Append_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Delete_num_ops",
-              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops",
+              "name": "regionserver.Server.Delete_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Increment_num_ops",
-              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops",
+              "name": "regionserver.Server.Increment_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Mutate_num_ops",
-              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops",
+              "name": "regionserver.Server.Mutate_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -52,11 +51,11 @@
           "values": [
             {
               "name": "Read Requests",
-              "value": "${regionserver.Server.Get_num_ops + regionserver.Server.ScanNext_num_ops}"
+              "value": "${regionserver.Server.Get_num_ops._sum + regionserver.Server.ScanNext_num_ops._sum}"
             },
             {
               "name": "Write Requests",
-              "value": "${regionserver.Server.Append_num_ops + regionserver.Server.Delete_num_ops + regionserver.Server.Increment_num_ops + regionserver.Server.Mutate_num_ops}"
+              "value": "${regionserver.Server.Append_num_ops._sum + regionserver.Server.Delete_num_ops._sum + regionserver.Server.Increment_num_ops._sum + regionserver.Server.Mutate_num_ops._sum}"
             }
           ],
           "properties": {
@@ -67,20 +66,55 @@
         },
         {
           "widget_name": "Read Latency",
-          "display_name": "Read Latency",
           "description": "Widget shows 95% Read Latency",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.Get_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/Get_95th_percentile",
+              "name": "regionserver.Server.Get_95th_percentile._min",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_95th_percentile._min",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.ScanNext_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile",
+              "name": "regionserver.Server.Get_95th_percentile._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_95th_percentile._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Get_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.ScanNext_95th_percentile._min",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile._min",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.ScanNext_95th_percentile._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.ScanNext_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Get_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.ScanNext_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/ScanNext_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -88,15 +122,15 @@
           "values": [
             {
               "name": "Cluster wide minimum of 95% Read Latency",
-              "value": "${regionserver.Server.Get_95th_percentile + regionserver.Server.ScanNext_95th_percentile}"
+              "value": "${regionserver.Server.Get_95th_percentile._min + regionserver.Server.ScanNext_95th_percentile._min}"
             },
             {
               "name": "Weighted average of 95% Read Latency",
-              "value": "${regionserver.Server.Get_95th_percentile + regionserver.Server.ScanNext_95th_percentile}"
+              "value": "${((regionserver.Server.Get_95th_percentile._avg * regionserver.Server.Get_num_ops._sum) + (regionserver.Server.ScanNext_95th_percentile._avg * regionserver.Server.ScanNext_num_ops._sum))/(regionserver.Server.Get_num_ops._sum + regionserver.Server.ScanNext_num_ops._sum)}"
             },
             {
               "name": "Cluster wide maximum of 95% Read Latency",
-              "value": "${regionserver.Server.Get_95th_percentile + regionserver.Server.ScanNext_95th_percentile}"
+              "value": "${regionserver.Server.Get_95th_percentile._max + regionserver.Server.ScanNext_95th_percentile._max}"
             }
           ],
           "properties": {
@@ -107,32 +141,109 @@
         },
         {
           "widget_name": "Write Latency",
-          "display_name": "Write Latency",
           "description": "This widget shows 95th percentile of the write latency.",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.Mutate_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/Mutate_95th_percentile",
+              "name": "regionserver.Server.Mutate_95th_percentile._min",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_95th_percentile._min",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Increment_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/Increment_95th_percentile",
+              "name": "regionserver.Server.Increment_95th_percentile._min",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_95th_percentile._min",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Append_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/Append_95th_percentile",
+              "name": "regionserver.Server.Append_95th_percentile._min",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_95th_percentile._min",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.Server.Delete_95th_percentile",
-              "metric_path": "metrics/hbase/regionserver/Server/Delete_95th_percentile",
+              "name": "regionserver.Server.Delete_95th_percentile._min",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_95th_percentile._min",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Mutate_95th_percentile._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_95th_percentile._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Increment_95th_percentile._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_95th_percentile._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Append_95th_percentile._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_95th_percentile._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Delete_95th_percentile._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_95th_percentile._avg",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Mutate_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Increment_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Append_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Delete_95th_percentile._max",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_95th_percentile._max",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Get_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Get_num_ops._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Append_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Append_num_ops._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Delete_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Delete_num_ops._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Increment_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Increment_num_ops._sum",
+              "service_name": "HBASE",
+              "component_name": "HBASE_REGIONSERVER"
+            },
+            {
+              "name": "regionserver.Server.Mutate_num_ops._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/Mutate_num_ops._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -140,15 +251,15 @@
           "values": [
             {
               "name": "Cluster wide minimum of 95% write Latency",
-              "value": "${regionserver.Server.Mutate_95th_percentile + regionserver.Server.Increment_95th_percentile + regionserver.Server.Append_95th_percentile + regionserver.Server.Delete_95th_percentile}"
+              "value": "${regionserver.Server.Mutate_95th_percentile._min + regionserver.Server.Increment_95th_percentile._min + regionserver.Server.Append_95th_percentile._min + regionserver.Server.Delete_95th_percentile._min}"
             },
             {
               "name": "Weighted average of 95% write Latency",
-              "value": "${regionserver.Server.Mutate_95th_percentile + regionserver.Server.Increment_95th_percentile + regionserver.Server.Append_95th_percentile + regionserver.Server.Delete_95th_percentile}"
+              "value": "${((regionserver.Server.Mutate_95th_percentile._avg * regionserver.Server.Mutate_num_ops._sum) + (regionserver.Server.Increment_95th_percentile._avg * regionserver.Server.Increment_num_ops._sum) + (regionserver.Server.Append_95th_percentile._avg * regionserver.Server.Append_num_ops._sum) + (regionserver.Server.Delete_95th_percentile._avg * regionserver.Server.Delete_num_ops._sum))/(regionserver.Server.Append_num_ops._sum + regionserver.Server.Delete_num_ops._sum + regionserver.Server.Increment_num_ops._sum + regionserver.Server.Mutate_num_ops._sum)}"
             },
             {
               "name": "Cluster wide maximum of 95% write Latency",
-              "value": "${regionserver.Server.Mutate_95th_percentile + regionserver.Server.Increment_95th_percentile + regionserver.Server.Append_95th_percentile + regionserver.Server.Delete_95th_percentile}"
+              "value": "${regionserver.Server.Mutate_95th_percentile._max + regionserver.Server.Increment_95th_percentile._max + regionserver.Server.Append_95th_percentile._max + regionserver.Server.Delete_95th_percentile._max}"
             }
           ],
           "properties": {
@@ -159,14 +270,13 @@
         },
         {
           "widget_name": "Open Connections",
-          "display_name": "Open Connections",
           "description": "This widget shows number of current open connections",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.RegionServer.numOpenConnections",
-              "metric_path": "metrics/hbase/ipc/IPC/numOpenConnections",
+              "name": "regionserver.RegionServer.numOpenConnections._sum",
+              "metric_path": "metrics/hbase/ipc/IPC/numOpenConnections._sum",
               "category": "",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
@@ -175,7 +285,7 @@
           "values": [
             {
               "name": "Open Connections",
-              "value": "${regionserver.RegionServer.numOpenConnections}"
+              "value": "${regionserver.RegionServer.numOpenConnections._sum}"
             }
           ],
           "properties": {
@@ -186,19 +296,18 @@
         },
         {
           "widget_name": "Request Handlers",
-          "display_name": "Request Handlers",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.RegionServer.numActiveHandler",
-              "metric_path": "metrics/hbase/ipc/IPC/numActiveHandler",
+              "name": "regionserver.RegionServer.numActiveHandler._sum",
+              "metric_path": "metrics/hbase/ipc/IPC/numActiveHandler._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "regionserver.RegionServer.numCallsInGeneralQueue",
-              "metric_path": "metrics/hbase/ipc/IPC/numCallsInGeneralQueue",
+              "name": "regionserver.RegionServer.numCallsInGeneralQueue._sum",
+              "metric_path": "metrics/hbase/ipc/IPC/numCallsInGeneralQueue._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -206,11 +315,11 @@
           "values": [
             {
               "name": "Active Handlers",
-              "value": "${regionserver.RegionServer.numActiveHandler}"
+              "value": "${regionserver.RegionServer.numActiveHandler._sum}"
             },
             {
               "name": "Calls in General Queue",
-              "value": "${regionserver.RegionServer.numCallsInGeneralQueue}"
+              "value": "${regionserver.RegionServer.numCallsInGeneralQueue._sum}"
             }
           ],
           "properties": {
@@ -220,14 +329,13 @@
         },
         {
           "widget_name": "Files Local",
-          "display_name": "Files Local",
           "description": "This widget shows weighted average for local files.",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.percentFilesLocal",
-              "metric_path": "metrics/hbase/regionserver/percentFilesLocal",
+              "name": "regionserver.Server.percentFilesLocal._avg",
+              "metric_path": "metrics/hbase/regionserver/Server/percentFilesLocal._avg",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -235,7 +343,7 @@
           "values": [
             {
               "name": "Files Local",
-              "value": "${regionserver.Server.percentFilesLocal}"
+              "value": "${regionserver.Server.percentFilesLocal._avg}"
             }
           ],
           "properties": {
@@ -246,14 +354,13 @@
         },
         {
           "widget_name": "Blocked Updates",
-          "display_name": "Blocked Updates",
           "description": "Number of milliseconds updates have been blocked so the memstore can be flushed",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "regionserver.Server.updatesBlockedTime",
-              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime",
+              "name": "regionserver.Server.updatesBlockedTime._sum",
+              "metric_path": "metrics/hbase/regionserver/Server/updatesBlockedTime._sum",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -261,7 +368,7 @@
           "values": [
             {
               "name": "Updates Blocked Time",
-              "value": "${regionserver.Server.updatesBlockedTime}"
+              "value": "${regionserver.Server.updatesBlockedTime._sum}"
             }
           ],
           "properties": {
@@ -272,14 +379,13 @@
         },
         {
           "widget_name": "Cluster CPU",
-          "display_name": "Cluster CPU",
           "description": "ReqionServer widget for CPU utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "cpu_idle",
-              "metric_path": "metrics/cpu/cpu_idle",
+              "name": "cpu_idle._avg",
+              "metric_path": "metrics/cpu/cpu_idle._avg",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -287,7 +393,7 @@
           "values": [
             {
               "name": "CPU Idle",
-              "value": "${cpu_idle}"
+              "value": "${cpu_idle._avg}"
             }
           ],
           "properties": {
@@ -297,20 +403,19 @@
         },
         {
           "widget_name": "Cluster Network",
-          "display_name": "Cluster Network",
           "description": "ReqionServer widget for network utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "pkts_in",
-              "metric_path": "metrics/network/pkts_in",
+              "name": "pkts_in._avg",
+              "metric_path": "metrics/network/pkts_in._avg",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             },
             {
-              "name": "pkts_out",
-              "metric_path": "metrics/network/pkts_out",
+              "name": "pkts_out._avg",
+              "metric_path": "metrics/network/pkts_out._avg",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -318,11 +423,11 @@
           "values": [
             {
               "name": "Packets In",
-              "value": "${pkts_in}"
+              "value": "${pkts_in._avg}"
             },
             {
               "name": "Packets Out",
-              "value": "${disk_free}"
+              "value": "${pkts_out._avg}"
             }
           ],
           "properties": {
@@ -332,14 +437,13 @@
         },
         {
           "widget_name": "Cluster Disk",
-          "display_name": "Cluster Disk",
           "description": "ReqionServer widget for disk utilization",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "disk_free",
-              "metric_path": "metrics/disk/disk_free",
+              "name": "disk_free._avg",
+              "metric_path": "metrics/disk/disk_free._avg",
               "service_name": "HBASE",
               "component_name": "HBASE_REGIONSERVER"
             }
@@ -347,7 +451,7 @@
           "values": [
             {
               "name": "Disk Free",
-              "value": "${disk_free}"
+              "value": "${disk_free._avg}"
             }
           ],
           "properties": {
@@ -364,7 +468,6 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "HBase Compaction Queue Size",
-          "display_name": "HBase Compaction Queue Size",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
@@ -389,7 +492,6 @@
         },
         {
           "widget_name": "HBase Memstore Sizes",
-          "display_name": "HBase Memstore Sizes",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -414,7 +516,6 @@
         },
         {
           "widget_name": "HBase Read Request Count",
-          "display_name": "HBase Read Request Count",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -438,7 +539,6 @@
         },
         {
           "widget_name": "HBase Write Request Count",
-          "display_name": "HBase Write Request Count",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,
@@ -462,7 +562,6 @@
         },
         {
           "widget_name": "HBase Regions",
-          "display_name": "HBase Regions",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,

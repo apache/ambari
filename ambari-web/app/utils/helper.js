@@ -191,6 +191,21 @@ Number.prototype.toDaysHoursMinutes = function () {
 
   return formatted;
 };
+
+
+/**
+ *
+ * @param bound1 {Number}
+ * @param bound2 {Number}
+ * @return {boolean}
+ */
+Number.prototype.isInRange = function (bound1, bound2) {
+  var upperBound, lowerBound;
+  upperBound = bound1 > bound2 ? bound1: bound2;
+  lowerBound = bound1 < bound2 ? bound1: bound2;
+  return this > lowerBound && this < upperBound;
+};
+
 /**
  Sort an array by the key specified in the argument.
  Handle only native js objects as element of array, not the Ember's object.

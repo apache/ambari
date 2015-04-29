@@ -79,7 +79,6 @@ App.WidgetEditController = App.WidgetWizardController.extend({
     dataSets: [],
     templateValue: null,
     widgetName: null,
-    widgetDisplayName: null,
     widgetDescription: null,
     widgetScope: null,
     widgetId: null
@@ -112,7 +111,6 @@ App.WidgetEditController = App.WidgetWizardController.extend({
         callback: function () {
           this.load('widgetName');
           this.load('widgetDescription');
-          this.load('widgetDisplayName');
         }
       }
     ]
@@ -164,7 +162,6 @@ App.WidgetEditController = App.WidgetWizardController.extend({
     this.save('widgetValues', []);
     this.save('widgetName', '');
     this.save('widgetDescription', '');
-    this.save('widgetDisplayName', '');
     this.save('widgetScope', '');
     this.save('allMetrics', []);
     this.save('expressions', []);

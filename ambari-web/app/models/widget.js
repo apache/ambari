@@ -32,7 +32,6 @@ App.Widget = DS.Model.extend({
    */
   widgetType: DS.attr('string'),
   layout: DS.belongsTo('App.WidgetLayout'),
-  displayName: DS.attr('string'),
   description: DS.attr('string'),
   serviceName: DS.attr('string'),
   timeCreated: DS.attr('number'),

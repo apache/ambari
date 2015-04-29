@@ -25,7 +25,7 @@
   <ul class="dropdown-menu">
     {{#each heatmap in controller.allHeatmaps}}
       <li class="heatmap-metrics-dropdown-links">
-        <a tabindex="-1" {{action showHeatMapMetric heatmap target="controller"}}>{{heatmap.display_name}}</a>
+        <a tabindex="-1" {{action showHeatMapMetric heatmap target="controller"}}>{{heatmap.widget_name}}</a>
       </li>
     {{/each}}
   </ul>

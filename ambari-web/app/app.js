@@ -261,6 +261,10 @@ module.exports = Em.Application.create({
       return App.StackService.find().filterProperty('isNoConfigTypes').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
 
+    servicesWithHeatmapTab: function () {
+      return App.StackService.find().filterProperty('hasHeatmapSection').mapProperty('serviceName');
+    }.property('App.router.clusterController.isLoaded'),
+
     monitoring: function () {
       return App.StackService.find().filterProperty('isMonitoringService').mapProperty('serviceName');
     }.property('App.router.clusterController.isLoaded'),
