@@ -675,9 +675,16 @@ class TestController(unittest.TestCase):
     self.controller.recovery_manager.process_execution_commands = process_execution_commands
     process_status_commands = MagicMock(name="process_status_commands")
     self.controller.recovery_manager.process_status_commands = process_status_commands
+    set_paused = MagicMock(name = "set_paused")
+    self.controller.recovery_manager.set_paused = set_paused
 
     self.controller.responseId = 0
-    response = {"responseId":1, "statusCommands": "commands2", "executionCommands" : "commands1", "log":"", "exitstatus":"0"}
+    response = {"responseId":1,
+                "statusCommands": "commands2",
+                "executionCommands" : "commands1",
+                "log":"",
+                "exitstatus":"0",
+                "hasPendingTasks": True}
     sendRequest.return_value = response
 
     def one_heartbeat(*args, **kwargs):
@@ -697,6 +704,7 @@ class TestController(unittest.TestCase):
     self.assertTrue(process_status_commands.called)
     process_execution_commands.assert_called_with("commands1")
     process_status_commands.assert_called_with("commands2")
+    set_paused.assert_called_with(True)
 
     self.controller.heartbeatWithServer()
     sys.stdout = sys.__stdout__

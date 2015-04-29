@@ -222,6 +222,7 @@ class ActionScheduler implements Runnable {
           LOG.debug("There are no stages currently in progress.");
         }
 
+        actionQueue.updateListOfHostsWithPendingTask(null);
         return;
       }
 
@@ -238,12 +239,17 @@ class ActionScheduler implements Runnable {
           LOG.debug("There are no stages currently in progress.");
         }
 
+        actionQueue.updateListOfHostsWithPendingTask(null);
         return;
       }
 
       int i_stage = 0;
 
+      HashSet<String> hostsWithTasks = getListOfHostsWithPendingTask(stages);
+      actionQueue.updateListOfHostsWithPendingTask(hostsWithTasks);
+
       stages = filterParallelPerHostStages(stages);
+      // At this point the stages is a filtered list
 
       boolean exclusiveRequestIsGoing = false;
       // This loop greatly depends on the fact that order of stages in
@@ -398,6 +404,21 @@ class ActionScheduler implements Runnable {
       LOG.debug("Scheduler finished work.");
       unitOfWork.end();
     }
+  }
+
+  /**
+   * Returns the list of hosts that have a task assigned
+   *
+   * @param stages
+   *
+   * @return
+   */
+  private HashSet<String> getListOfHostsWithPendingTask(List<Stage> stages) {
+    HashSet<String> hostsWithTasks = new HashSet<String>();
+    for (Stage s : stages) {
+      hostsWithTasks.addAll(s.getHosts());
+    }
+    return hostsWithTasks;
   }
 
   /**

@@ -304,6 +304,7 @@ public class HeartbeatMonitor implements Runnable {
 
     // If Agent wants the command and the States differ
     statusCmd.setDesiredState(sch.getDesiredState());
+    statusCmd.setHasStaleConfigs(configHelper.isStaleConfigs(sch));
     if (getAgentRequests().shouldSendExecutionDetails(hostname, componentName)) {
       LOG.info(componentName + " is at " + sch.getState() + " adding more payload per agent ask");
       statusCmd.setPayloadLevel(StatusCommand.StatusCommandPayload.EXECUTION_COMMAND);

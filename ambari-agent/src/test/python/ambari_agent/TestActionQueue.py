@@ -678,9 +678,9 @@ class TestActionQueue(TestCase):
     gpeo_mock.return_value = 1
     config.get_parallel_exec_option = gpeo_mock
     actionQueue = ActionQueue(config, dummy_controller)
-    actionQueue.start()
     actionQueue.put([self.datanode_install_command, self.hbase_install_command])
     self.assertEqual(2, actionQueue.commandQueue.qsize())
+    actionQueue.start()
     time.sleep(1)
     actionQueue.stop()
     actionQueue.join()

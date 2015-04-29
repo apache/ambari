@@ -400,7 +400,7 @@ class ActionQueue(threading.Thread):
       if component_status_result.has_key('structuredOut'):
         component_extra = component_status_result['structuredOut']
 
-      result = livestatus.build(forsed_component_status= component_status)
+      result = livestatus.build(forced_component_status= component_status)
       if self.controller.recovery_manager.enabled():
         result['sendExecCmdDet'] = str(request_execution_cmd)
 

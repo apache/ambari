@@ -31,10 +31,13 @@ class TestRecoveryManager(TestCase):
     "payloadLevel": "EXECUTION_COMMAND",
     "componentName": "NODEMANAGER",
     "desiredState": "STARTED",
+    "hasStaleConfigs": False,
     "executionCommandDetails": {
       "commandType": "EXECUTION_COMMAND",
       "roleCommand": "INSTALL",
       "role": "NODEMANAGER",
+      "hostLevelParams": {
+        "custom_command":""},
       "configurations": {
         "capacity-scheduler": {
           "yarn.scheduler.capacity.default.minimum-user-limit-percent": "100"},
@@ -227,7 +230,7 @@ class TestRecoveryManager(TestCase):
 
     rm.update_current_status("NODEMANAGER", "STARTED")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
-    self.assertFalse(rm.requires_recovery("NODEMANAGER"))
+    self.assertTrue(rm.requires_recovery("NODEMANAGER"))
 
     rm.update_desired_status("NODEMANAGER", "STARTED")
     self.assertFalse(rm.requires_recovery("NODEMANAGER"))
@@ -296,14 +299,26 @@ class TestRecoveryManager(TestCase):
     self.assertEqual(None, rm.get_install_command("component2"))
     self.assertEqual(None, rm.get_start_command("component2"))
 
+    rm.store_or_update_command(command1)
+    self.assertTrue(rm.command_exists("NODEMANAGER", "EXECUTION_COMMAND"))
+    rm.set_paused(True)
+
+    self.assertEqual(None, rm.get_install_command("NODEMANAGER"))
+    self.assertEqual(None, rm.get_start_command("NODEMANAGER"))
+
     pass
 
   @patch.object(RecoveryManager, "_now_")
   def test_get_recovery_commands(self, time_mock):
     time_mock.side_effect = \
-      [1000, 2000, 3000, 4000, 5000, 6000]
+      [1000, 1001, 1002, 1003,
+       1100, 1101, 1102,
+       1200, 1201, 1203,
+       4000, 4001, 4002, 4003,
+       4100, 4101, 4102, 4103,
+       4200, 4201, 4202]
     rm = RecoveryManager(True)
-    rm.update_config(10, 5, 1, 11, True, False)
+    rm.update_config(15, 5, 1, 16, True, False)
 
     command1 = copy.deepcopy(self.command)
 
@@ -319,6 +334,7 @@ class TestRecoveryManager(TestCase):
     rm.update_current_status("NODEMANAGER", "INIT")
     rm.update_desired_status("NODEMANAGER", "STARTED")
 
+    # Starts at 1100
     commands = rm.get_recovery_commands()
     self.assertEqual(1, len(commands))
     self.assertEqual("INSTALL", commands[0]["roleCommand"])
@@ -326,6 +342,7 @@ class TestRecoveryManager(TestCase):
     rm.update_current_status("NODEMANAGER", "INIT")
     rm.update_desired_status("NODEMANAGER", "INSTALLED")
 
+    # Starts at 1200
     commands = rm.get_recovery_commands()
     self.assertEqual(1, len(commands))
     self.assertEqual("INSTALL", commands[0]["roleCommand"])
@@ -336,6 +353,36 @@ class TestRecoveryManager(TestCase):
 
     commands = rm.get_recovery_commands()
     self.assertEqual(0, len(commands))
+
+    rm.update_config(12, 5, 1, 15, True, False)
+    rm.update_current_status("NODEMANAGER", "INIT")
+    rm.update_desired_status("NODEMANAGER", "INSTALLED")
+
+    rm.store_or_update_command(command1)
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("INSTALL", commands[0]["roleCommand"])
+
+    rm.update_config_staleness("NODEMANAGER", False)
+    rm.update_current_status("NODEMANAGER", "INSTALLED")
+    rm.update_desired_status("NODEMANAGER", "INSTALLED")
+    commands = rm.get_recovery_commands()
+    self.assertEqual(0, len(commands))
+
+    command_install = copy.deepcopy(self.command)
+    command_install["desiredState"] = "INSTALLED"
+    rm.store_or_update_command(command_install)
+    rm.update_config_staleness("NODEMANAGER", True)
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("INSTALL", commands[0]["roleCommand"])
+
+    rm.update_current_status("NODEMANAGER", "STARTED")
+    rm.update_desired_status("NODEMANAGER", "STARTED")
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("CUSTOM_COMMAND", commands[0]["roleCommand"])
+    self.assertEqual("RESTART", commands[0]["hostLevelParams"]["custom_command"])
     pass
 
   @patch.object(RecoveryManager, "update_config")
@@ -427,4 +474,37 @@ class TestRecoveryManager(TestCase):
                                  {"name": "LION", "numAttempts": 4, "limitReached": True},
                                  {"name": "PUMA", "numAttempts": 4, "limitReached": True}
                                ]})
+    pass
+
+  @patch.object(RecoveryManager, "_now_")
+  def test_command_expiry(self, time_mock):
+    time_mock.side_effect = \
+      [1000, 1001, 1002, 1003, 1104, 1105, 1106, 1807, 1808, 1809, 1810, 1811, 1812]
+
+    rm = RecoveryManager(True)
+    rm.update_config(5, 5, 1, 11, True, False)
+
+    command1 = copy.deepcopy(self.command)
+
+    rm.store_or_update_command(command1)
+
+    rm.update_current_status("NODEMANAGER", "INSTALLED")
+    rm.update_desired_status("NODEMANAGER", "STARTED")
+
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("START", commands[0]["roleCommand"])
+
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("START", commands[0]["roleCommand"])
+
+    #1807 command is stale
+    commands = rm.get_recovery_commands()
+    self.assertEqual(0, len(commands))
+
+    rm.store_or_update_command(command1)
+    commands = rm.get_recovery_commands()
+    self.assertEqual(1, len(commands))
+    self.assertEqual("START", commands[0]["roleCommand"])
     pass

@@ -19,6 +19,7 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Queue;
@@ -37,7 +38,11 @@ public class ActionQueue {
 
   private static Logger LOG = LoggerFactory.getLogger(ActionQueue.class);
 
+  private static HashSet<String> EMPTY_HOST_LIST = new HashSet<String>();
+
   final ConcurrentMap<String, Queue<AgentCommand>> hostQueues;
+
+  HashSet<String> hostsWithPendingTask = new HashSet<String>();
 
   public ActionQueue() {
     hostQueues = new ConcurrentHashMap<String, Queue<AgentCommand>>();
@@ -173,5 +178,32 @@ public class ActionQueue {
     } while (command != null);
 
     return l;
+  }
+
+  /**
+   * Update the cache of hosts that have pending tasks
+   *
+   * @param hosts
+   */
+  public void updateListOfHostsWithPendingTask(HashSet<String> hosts) {
+    if (hosts != null) {
+      hostsWithPendingTask = hosts;
+    } else if (hostsWithPendingTask.size() > 0) {
+      hostsWithPendingTask = EMPTY_HOST_LIST;
+    }
+  }
+
+  /**
+   * Checks whether host has pending tasks
+   * @param hostName
+   * @return
+   */
+  public boolean hasPendingTask(String hostName) {
+    HashSet<String> copyHostsWithTaskPending = hostsWithPendingTask;
+    if (copyHostsWithTaskPending != null) {
+      return copyHostsWithTaskPending.contains(hostName);
+    }
+
+    return false;
   }
 }

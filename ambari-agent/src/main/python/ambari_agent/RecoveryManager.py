@@ -43,6 +43,7 @@ class RecoveryManager:
   ROLE = "role"
   TASK_ID = "taskId"
   DESIRED_STATE = "desiredState"
+  HAS_STALE_CONFIG = "hasStaleConfigs"
   EXECUTION_COMMAND_DETAILS = "executionCommandDetails"
   ROLE_COMMAND = "roleCommand"
   PAYLOAD_LEVEL_DEFAULT = "DEFAULT"
@@ -51,6 +52,8 @@ class RecoveryManager:
   STARTED = "STARTED"
   INSTALLED = "INSTALLED"
   INIT = "INIT"  # TODO: What is the state when machine is reset
+  COMPONENT_UPDATE_KEY_FORMAT = "{0}_UPDATE_TIME"
+  COMMAND_REFRESH_DELAY_SEC = 600 #10 minutes
 
   default_action_counter = {
     "lastAttempt": 0,
@@ -60,6 +63,12 @@ class RecoveryManager:
     "warnedLastAttempt": False,
     "warnedLastReset": False,
     "warnedThresholdReached": False
+  }
+
+  default_component_status = {
+    "current": "",
+    "desired": "",
+    "stale_config": False
   }
 
 
@@ -78,15 +87,41 @@ class RecoveryManager:
     self.actions = {}
     self.statuses = {}
     self.__status_lock = threading.RLock()
+    self.__command_lock = threading.RLock()
+    self.paused = False
 
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only)
 
     pass
 
 
+  def set_paused(self, paused):
+    if self.paused != paused:
+      logger.debug("RecoveryManager is transitioning from isPaused = " + str(self.paused) + " to " + str(paused))
+    self.paused = paused
+
   def enabled(self):
     return self.recovery_enabled
 
+
+  def update_config_staleness(self, component, is_config_stale):
+    """
+    Updates staleness of config
+    """
+    if component not in self.statuses:
+      self.__status_lock.acquire()
+      try:
+        if component not in self.statuses:
+          self.statuses[component] = copy.deepcopy(self.default_component_status)
+      finally:
+        self.__status_lock.release()
+      pass
+
+    self.statuses[component]["stale_config"] = is_config_stale
+    if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
+            self.statuses[component]["stale_config"] == False:
+      self.remove_command(component)
+    pass
 
   def update_current_status(self, component, state):
     """
@@ -96,15 +131,15 @@ class RecoveryManager:
       self.__status_lock.acquire()
       try:
         if component not in self.statuses:
-          self.statuses[component] = {
-            "current": "",
-            "desired": ""
-          }
+          self.statuses[component] = copy.deepcopy(self.default_component_status)
       finally:
         self.__status_lock.release()
       pass
 
     self.statuses[component]["current"] = state
+    if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
+            self.statuses[component]["stale_config"] == False:
+      self.remove_command(component)
     pass
 
 
@@ -116,15 +151,15 @@ class RecoveryManager:
       self.__status_lock.acquire()
       try:
         if component not in self.statuses:
-          self.statuses[component] = {
-            "current": "",
-            "desired": ""
-          }
+          self.statuses[component] = copy.deepcopy(self.default_component_status)
       finally:
         self.__status_lock.release()
       pass
 
     self.statuses[component]["desired"] = state
+    if self.statuses[component]["current"] == self.statuses[component]["desired"] and \
+            self.statuses[component]["stale_config"] == False:
+      self.remove_command(component)
     pass
 
 
@@ -133,7 +168,7 @@ class RecoveryManager:
     Recovery is allowed for:
     INISTALLED --> STARTED
     INIT --> INSTALLED --> STARTED
-    CLIENTs may be RE-INSTALLED (TODO)
+    RE-INSTALLED (if configs do not match)
     """
     if not self.enabled():
       return False
@@ -141,15 +176,16 @@ class RecoveryManager:
     if component not in self.statuses:
       return False
 
-    status = self.statuses[component]
-    if status["current"] == status["desired"]:
-      return False
+    if self.auto_start_only:
+      status = self.statuses[component]
+      if status["current"] == status["desired"]:
+        return False
+    else:
+      status = self.statuses[component]
+      if status["current"] == status["desired"] and status['stale_config'] == False:
+        return False
 
     if status["desired"] not in self.allowed_desired_states or status["current"] not in self.allowed_current_states:
-      return False
-
-    ### No recovery to INSTALLED or INIT states
-    if status["current"] == self.STARTED:
       return False
 
     logger.info("%s needs recovery.", component)
@@ -213,14 +249,29 @@ class RecoveryManager:
     for component in self.statuses.keys():
       if self.requires_recovery(component) and self.may_execute(component):
         status = copy.deepcopy(self.statuses[component])
-        if status["desired"] == self.STARTED:
-          if status["current"] == self.INSTALLED:
-            command = self.get_start_command(component)
-          elif status["current"] == self.INIT:
-            command = self.get_install_command(component)
-        elif status["desired"] == self.INSTALLED:
-          if status["current"] == self.INIT:
-            command = self.get_install_command(component)
+        command = None
+        if self.auto_start_only:
+          if status["desired"] == self.STARTED:
+            if status["current"] == self.INSTALLED:
+              command = self.get_start_command(component)
+        else:
+          # START, INSTALL, RESTART
+          if status["desired"] != status["current"]:
+            if status["desired"] == self.STARTED:
+              if status["current"] == self.INSTALLED:
+                command = self.get_start_command(component)
+              elif status["current"] == self.INIT:
+                command = self.get_install_command(component)
+            elif status["desired"] == self.INSTALLED:
+              if status["current"] == self.INIT:
+                command = self.get_install_command(component)
+              # else issue a STOP command
+          else:
+            if status["current"] == self.INSTALLED:
+              command = self.get_install_command(component)
+            elif status["current"] == self.STARTED:
+              command = self.get_restart_command(component)
+
         if command:
           self.execute(component)
           commands.append(command)
@@ -417,7 +468,7 @@ class RecoveryManager:
     self.max_lifetime_count = max_lifetime_count
 
     self.allowed_desired_states = [self.STARTED, self.INSTALLED]
-    self.allowed_current_states = [self.INIT, self.INSTALLED]
+    self.allowed_current_states = [self.INIT, self.INSTALLED, self.STARTED]
 
     if self.auto_start_only:
       self.allowed_desired_states = [self.STARTED]
@@ -481,12 +532,13 @@ class RecoveryManager:
 
       component = command[self.COMPONENT_NAME]
       self.update_desired_status(component, command[self.DESIRED_STATE])
+      self.update_config_staleness(component, command[self.HAS_STALE_CONFIG])
 
       if payloadLevel == self.PAYLOAD_LEVEL_EXECUTION_COMMAND:
         if self.EXECUTION_COMMAND_DETAILS in command:
           # Store the execution command details
           self.remove_command(component)
-          self.stored_exec_commands[component] = command[self.EXECUTION_COMMAND_DETAILS]
+          self.add_command(component, command[self.EXECUTION_COMMAND_DETAILS])
           logger.debug("Stored command details for " + component)
         else:
           logger.warn("Expected field " + self.EXECUTION_COMMAND_DETAILS + " unavailable.")
@@ -495,6 +547,10 @@ class RecoveryManager:
 
 
   def get_install_command(self, component):
+    if self.paused:
+      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
+      return None
+
     if self.enabled():
       logger.debug("Using stored INSTALL command for %s", component)
       if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
@@ -504,14 +560,39 @@ class RecoveryManager:
         command[self.TASK_ID] = self.get_unique_task_id()
         return command
       else:
-        logger.info("INSTALL command cannot be computed.")
+        logger.info("INSTALL command cannot be computed as details are not received from Server.")
     else:
       logger.info("Recovery is not enabled. INSTALL command will not be computed.")
     return None
     pass
 
+  def get_restart_command(self, component):
+    if self.paused:
+      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
+      return None
+
+    if self.enabled():
+      logger.debug("Using stored INSTALL command for %s", component)
+      if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
+        command = copy.deepcopy(self.stored_exec_commands[component])
+        command[self.ROLE_COMMAND] = "CUSTOM_COMMAND"
+        command[self.COMMAND_TYPE] = ActionQueue.AUTO_EXECUTION_COMMAND
+        command[self.TASK_ID] = self.get_unique_task_id()
+        command['hostLevelParams']['custom_command'] = 'RESTART'
+        return command
+      else:
+        logger.info("RESTART command cannot be computed as details are not received from Server.")
+    else:
+      logger.info("Recovery is not enabled. RESTART command will not be computed.")
+    return None
+    pass
+
 
   def get_start_command(self, component):
+    if self.paused:
+      logger.info("Recovery is paused, likely tasks waiting in pipeline for this host.")
+      return None
+
     if self.enabled():
       logger.debug("Using stored START command for %s", component)
       if self.command_exists(component, ActionQueue.EXECUTION_COMMAND):
@@ -521,7 +602,7 @@ class RecoveryManager:
         command[self.TASK_ID] = self.get_unique_task_id()
         return command
       else:
-        logger.info("START command cannot be computed.")
+        logger.info("START command cannot be computed as details are not received from Server.")
     else:
       logger.info("Recovery is not enabled. START command will not be computed.")
 
@@ -531,6 +612,7 @@ class RecoveryManager:
 
   def command_exists(self, component, command_type):
     if command_type == ActionQueue.EXECUTION_COMMAND:
+      self.remove_stale_command(component)
       if component in self.stored_exec_commands:
         return True
 
@@ -538,11 +620,40 @@ class RecoveryManager:
     pass
 
 
+  def remove_stale_command(self, component):
+    component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
+    if component in self.stored_exec_commands:
+      insert_time = self.stored_exec_commands[component_update_key]
+      age = self._now_() - insert_time
+      if self.COMMAND_REFRESH_DELAY_SEC < age:
+        logger.debug("Removing stored command for component : " + str(component) + " as its " + str(age) + " sec old")
+        self.remove_command(component)
+    pass
+
+
   def remove_command(self, component):
     if component in self.stored_exec_commands:
-      del self.stored_exec_commands[component]
-      return True
+      self.__status_lock.acquire()
+      try:
+        component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
+        del self.stored_exec_commands[component]
+        del self.stored_exec_commands[component_update_key]
+        logger.debug("Removed stored command for component : " + str(component))
+        return True
+      finally:
+        self.__status_lock.release()
     return False
+
+
+  def add_command(self, component, command):
+    self.__status_lock.acquire()
+    try:
+      component_update_key = self.COMPONENT_UPDATE_KEY_FORMAT.format(component)
+      self.stored_exec_commands[component] = command
+      self.stored_exec_commands[component_update_key] = self._now_()
+      logger.debug("Added command for component : " + str(component))
+    finally:
+      self.__status_lock.release()
 
 
   def _read_int_(self, value, default_value=0):

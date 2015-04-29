@@ -62,6 +62,9 @@ public class StatusCommand extends AgentCommand {
   @SerializedName("desiredState")
   private State desiredState;
 
+  @SerializedName("hasStaleConfigs")
+  private Boolean hasStaleConfigs;
+
   @SerializedName("executionCommandDetails")
   private ExecutionCommand executionCommand;
 
@@ -79,6 +82,14 @@ public class StatusCommand extends AgentCommand {
 
   public void setDesiredState(State desiredState) {
     this.desiredState = desiredState;
+  }
+
+  public Boolean getHasStaleConfigs() {
+    return hasStaleConfigs;
+  }
+
+  public void setHasStaleConfigs(Boolean hasStaleConfigs) {
+    this.hasStaleConfigs = hasStaleConfigs;
   }
 
   public StatusCommandPayload getPayloadLevel() {

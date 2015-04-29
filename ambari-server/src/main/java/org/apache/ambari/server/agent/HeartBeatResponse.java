@@ -66,6 +66,9 @@ public class HeartBeatResponse {
   @SerializedName("hasMappedComponents")
   private boolean hasMappedComponents = false;
 
+  @SerializedName("hasPendingTasks")
+  private boolean hasPendingTasks = false;
+
   public long getResponseId() {
     return responseId;
   }
@@ -142,6 +145,14 @@ public class HeartBeatResponse {
 
   public void setHasMappedComponents(boolean hasMappedComponents) {
     this.hasMappedComponents = hasMappedComponents;
+  }
+
+  public boolean hasPendingTasks() {
+    return hasPendingTasks;
+  }
+
+  public void setHasPendingTasks(boolean hasPendingTasks) {
+    this.hasPendingTasks = hasPendingTasks;
   }
 
   public void addExecutionCommand(ExecutionCommand execCmd) {

@@ -51,16 +51,16 @@ class LiveStatus:
     #TODO: Should also check belonging of server to cluster
     return component['serviceName'] == self.service
 
-  def build(self, forsed_component_status = None):
+  def build(self, forced_component_status = None):
     """
-    If forsed_component_status is explicitly defined, than StatusCheck methods are
+    If forced_component_status is explicitly defined, than StatusCheck methods are
     not used. This feature has been added to support custom (ver 2.0) services.
     """
     global SERVICES, CLIENT_COMPONENTS, COMPONENTS, LIVE_STATUS, DEAD_STATUS
 
     component = {"serviceName" : self.service, "componentName" : self.component}
-    if forsed_component_status: # If already determined
-      status = forsed_component_status  # Nothing to do
+    if forced_component_status: # If already determined
+      status = forced_component_status  # Nothing to do
     elif component in self.CLIENT_COMPONENTS:
       status = self.DEAD_STATUS # CLIENT components can't have status STARTED
     elif component in self.COMPONENTS:

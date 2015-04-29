@@ -233,7 +233,6 @@ class Controller(threading.Thread):
           logger.debug("Sending Heartbeat (id = %s): %s", self.responseId, data)
 
         response = self.sendRequest(self.heartbeatUrl, data)
-
         exitStatus = 0
         if 'exitstatus' in response.keys():
           exitStatus = int(response['exitstatus'])
@@ -247,6 +246,10 @@ class Controller(threading.Thread):
 
         if 'hasMappedComponents' in response.keys():
           self.hasMappedComponents = response['hasMappedComponents'] is not False
+
+        if 'hasPendingTasks' in response.keys():
+          self.recovery_manager.set_paused(response['hasPendingTasks'])
+
 
         if 'registrationCommand' in response.keys():
           # check if the registration command is None. If none skip

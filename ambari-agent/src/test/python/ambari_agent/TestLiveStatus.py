@@ -165,20 +165,20 @@ class TestLiveStatus(TestCase):
     result = livestatus.build()
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result.has_key('configurationTags'))
-    # Test build status with forsed_component_status
+    # Test build status with forced_component_status
     ## Alive
     livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})
-    result = livestatus.build(forsed_component_status = LiveStatus.LIVE_STATUS)
+    result = livestatus.build(forced_component_status = LiveStatus.LIVE_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
     ## Dead
     livestatus = LiveStatus('c1', 'HDFS', 'HDFS_CLIENT', { }, config, {})
-    result = livestatus.build(forsed_component_status = LiveStatus.DEAD_STATUS)
+    result = livestatus.build(forced_component_status = LiveStatus.DEAD_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.DEAD_STATUS)
 
     livestatus = LiveStatus('c1', 'TEZ', 'TEZ_CLIENT', { }, config, {})
-    result = livestatus.build(forsed_component_status = LiveStatus.LIVE_STATUS)
+    result = livestatus.build(forced_component_status = LiveStatus.LIVE_STATUS)
     self.assertTrue(len(result) > 0, 'Livestatus should not be empty')
     self.assertTrue(result['status'], LiveStatus.LIVE_STATUS)
 
@@ -197,7 +197,7 @@ class TestLiveStatus(TestCase):
                             'SOME_UNKNOWN_COMPONENT', {}, config, {})
     livestatus.versionsHandler.versionsFilePath = "ambari_agent" + \
                       os.sep + "dummy_files" + os.sep + "dummy_current_stack"
-    result = livestatus.build(forsed_component_status = "STARTED")
+    result = livestatus.build(forced_component_status = "STARTED")
     result_str = pprint.pformat(result)
     self.assertEqual(result_str,
                      "{'clusterName': '',\n "

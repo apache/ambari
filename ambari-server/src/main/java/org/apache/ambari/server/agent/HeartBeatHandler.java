@@ -981,6 +981,7 @@ public class HeartBeatHandler {
   /**
    * Annotate the response with some housekeeping details.
    * hasMappedComponents - indicates if any components are mapped to the host
+   * hasPendingTasks - indicates if any tasks are pending for the host (they may not be sent yet)
    * @param hostname
    * @param response
    * @throws org.apache.ambari.server.AmbariException
@@ -992,6 +993,11 @@ public class HeartBeatHandler {
         response.setHasMappedComponents(true);
         break;
       }
+    }
+
+    if(actionQueue.hasPendingTask(hostname)) {
+      LOG.debug("Host " + hostname + " has pending tasks");
+      response.setHasPendingTasks(true);
     }
   }
 

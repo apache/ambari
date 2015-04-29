@@ -18,9 +18,11 @@
 package org.apache.ambari.server.agent;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
@@ -39,7 +41,9 @@ public class TestActionQueue {
     enum OpType {
       ENQUEUE,
       DEQUEUE,
-      DEQUEUEALL
+      DEQUEUEALL,
+      CHECKPENDING,
+      UPDATEHOSTLIST
     }
 
     private volatile boolean shouldRun = true;
@@ -76,13 +80,45 @@ public class TestActionQueue {
         case DEQUEUE:
           dequeueOp();
           break;
-        case DEQUEUEALL:
-          dequeueAllOp();
+          case DEQUEUEALL:
+            dequeueAllOp();
+          case CHECKPENDING:
+            checkPending();
+          case UPDATEHOSTLIST:
+            updateHostList();
           break;
         }
       } catch (Exception ex) {
         LOG.error("Failure", ex);
         throw new RuntimeException("Failure", ex);
+      }
+    }
+
+    private void checkPending() throws InterruptedException {
+      while (shouldRun) {
+        int index = 0;
+        for (String host: hosts) {
+          actionQueue.hasPendingTask(host);
+          opCounts[index]++;
+          index++;
+        }
+        Thread.sleep(1);
+      }
+    }
+
+    private void updateHostList() throws InterruptedException {
+      HashSet<String> hostsWithTasks = new HashSet<String>();
+      while (shouldRun) {
+        for (String host: hosts) {
+          hostsWithTasks.add(host);
+          if (hostsWithTasks.size() % 2 == 0) {
+            actionQueue.updateListOfHostsWithPendingTask(hostsWithTasks);
+          } else {
+            actionQueue.updateListOfHostsWithPendingTask(null);
+          }
+          opCounts[0]++;
+        }
+        Thread.sleep(1);
       }
     }
 
@@ -213,6 +249,82 @@ public class TestActionQueue {
           + ", opsDequeued: " + opsDequeued);
       assertEquals(opsDequeued, opsEnqueued);
     }
+  }
+
+  @Test
+  public void testConcurrentHostCheck() throws InterruptedException {
+    ActionQueue aq = new ActionQueue();
+    String[] hosts = new String[] { "h0", "h1", "h2", "h3", "h4" };
+
+    ActionQueueOperation[] hostCheckers = new ActionQueueOperation[threadCount];
+    ActionQueueOperation[] hostUpdaters = new ActionQueueOperation[threadCount];
+
+    List<Thread> producers = new ArrayList<Thread>();
+    List<Thread> consumers = new ArrayList<Thread>();
+
+    for (int i = 0; i < threadCount; i++) {
+      hostCheckers[i] = new ActionQueueOperation(aq, hosts,
+                                                   ActionQueueOperation.OpType.CHECKPENDING);
+      Thread t = new Thread(hostCheckers[i]);
+      consumers.add(t);
+      t.start();
+    }
+
+    for (int i = 0; i < threadCount; i++) {
+      hostUpdaters[i] = new ActionQueueOperation(aq, hosts,
+                                                   ActionQueueOperation.OpType.UPDATEHOSTLIST);
+      Thread t = new Thread(hostUpdaters[i]);
+      producers.add(t);
+      t.start();
+    }
+
+    // Run for some time
+    Thread.sleep(100);
+
+    for (int i = 0; i < threadCount; i++) {
+      hostUpdaters[i].stop();
+    }
+
+    for (Thread producer : producers) {
+      producer.join();
+    }
+
+    for (int i = 0; i < threadCount; i++) {
+      hostCheckers[i].stop();
+    }
+
+    for (Thread consumer : consumers) {
+      consumer.join();
+    }
+
+    int totalChecks = 0;
+    int totalUpdates = 0;
+    for (int i = 0; i < threadCount; i++) {
+      totalChecks += hostUpdaters[i].getOpCounts()[0];
+      for (int h = 0; h<hosts.length; h++) {
+        totalUpdates += hostCheckers[i].getOpCounts()[h];
+      }
+    }
+    LOG.info("Report: totalChecks: " + totalChecks + ", totalUpdates: " + totalUpdates);
+
+    HashSet<String> hostsWithPendingtasks = new HashSet<String>();
+    aq.updateListOfHostsWithPendingTask(hostsWithPendingtasks);
+    hostsWithPendingtasks.add("h1");
+    aq.updateListOfHostsWithPendingTask(hostsWithPendingtasks);
+    assertTrue(aq.hasPendingTask("h1"));
+    assertFalse(aq.hasPendingTask("h2"));
+
+    hostsWithPendingtasks.add("h1");
+    hostsWithPendingtasks.add("h2");
+    aq.updateListOfHostsWithPendingTask(hostsWithPendingtasks);
+    assertTrue(aq.hasPendingTask("h1"));
+    assertTrue(aq.hasPendingTask("h2"));
+
+    hostsWithPendingtasks.clear();
+    hostsWithPendingtasks.add("h2");
+    aq.updateListOfHostsWithPendingTask(hostsWithPendingtasks);
+    assertFalse(aq.hasPendingTask("h1"));
+    assertTrue(aq.hasPendingTask("h2"));
   }
 
   /**

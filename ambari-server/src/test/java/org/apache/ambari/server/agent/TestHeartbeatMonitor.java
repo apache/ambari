@@ -245,6 +245,12 @@ public class TestHeartbeatMonitor {
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).getServiceComponentHost(hostname1).setState(State.INSTALLED);
     hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).getServiceComponentHost(hostname2).setState(State.INSTALLED);
 
+    hdfs.getServiceComponent(Role.DATANODE.name()).getServiceComponentHost(hostname1).setDesiredState(State.INSTALLED);
+    hdfs.getServiceComponent(Role.NAMENODE.name()).getServiceComponentHost(hostname1).setDesiredState(State.INSTALLED);
+    hdfs.getServiceComponent(Role.SECONDARY_NAMENODE.name()).getServiceComponentHost(hostname1).setDesiredState(State.INSTALLED);
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).getServiceComponentHost(hostname1).setDesiredState(State.INSTALLED);
+    hdfs.getServiceComponent(Role.HDFS_CLIENT.name()).getServiceComponentHost(hostname2).setDesiredState(State.INSTALLED);
+
     ActionQueue aq = new ActionQueue();
     ActionManager am = mock(ActionManager.class);
     HeartbeatMonitor hm = new HeartbeatMonitor(clusters, aq, am,
@@ -283,8 +289,10 @@ public class TestHeartbeatMonitor {
       containsSECONDARY_NAMENODEStatus |= cmd.getComponentName().
         equals("SECONDARY_NAMENODE");
       containsHDFS_CLIENTStatus |= cmd.getComponentName().equals
-        ("HDFS_CLIENT");
+          ("HDFS_CLIENT");
       assertTrue(cmd.getConfigurations().size() > 0);
+      assertEquals(State.INSTALLED, cmd.getDesiredState());
+      assertEquals(false, cmd.getHasStaleConfigs());
     }
     assertTrue(containsDATANODEStatus);
     assertTrue(containsNAMENODEStatus);
