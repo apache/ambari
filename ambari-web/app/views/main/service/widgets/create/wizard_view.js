@@ -28,32 +28,13 @@ App.WidgetWizardView = Em.View.extend(App.WizardMenuMixin, {
   previewWidgetClass: function () {
     switch (this.get('controller.content.widgetType')) {
       case 'GRAPH':
-        return App.GraphWidgetView.extend(App.WidgetPreviewMixin, {
-          MOCK_VALUE: function () {
-            var nowTime = App.dateTime();
-            var mock = [];
-
-            for (var i = 0; i < 240; i++) {
-              mock.push([
-                1,
-                (nowTime + (15 * i))
-              ])
-            }
-            return mock;
-          }.property()
-        });
+        return App.GraphWidgetView.extend(App.WidgetPreviewMixin);
       case 'TEMPLATE':
-        return App.TemplateWidgetView.extend(App.WidgetPreviewMixin, {
-          MOCK_VALUE: 50
-        });
+        return App.TemplateWidgetView.extend(App.WidgetPreviewMixin);
       case 'NUMBER':
-        return App.NumberWidgetView.extend(App.WidgetPreviewMixin, {
-          MOCK_VALUE: 50
-        });
+        return App.NumberWidgetView.extend(App.WidgetPreviewMixin);
       case 'GAUGE':
-        return App.GaugeWidgetView.extend(App.WidgetPreviewMixin, {
-          MOCK_VALUE: 0.5
-        });
+        return App.GaugeWidgetView.extend(App.WidgetPreviewMixin);
       default:
         return Em.View;
     }
