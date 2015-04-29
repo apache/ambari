@@ -305,10 +305,11 @@ class BootstrapWindows(Bootstrap):
 
   def getRunSetupCommand(self, expected_hostname):
     setupFile = os.path.join(self.getTempFolder(), self.SETUP_SCRIPT_FILENAME)
-    msi_url = 'http://{0}:{1}/resources/ambari-agent.msi'.format(self.shared_state.ambari_server, self.shared_state.server_port)
+    passphrase = os.environ[AMBARI_PASSPHRASE_VAR_NAME]
+    user_run_as = self.shared_state.user_run_as
     server = self.shared_state.ambari_server
     version = self.getAmbariVersion()
-    return ' '.join(['python', setupFile, msi_url, server, version])
+    return ' '.join(['python', setupFile, expected_hostname, passphrase, server, user_run_as, version])
 
   def runSetupAgent(self):
     self.host_log.write("==========================\n")

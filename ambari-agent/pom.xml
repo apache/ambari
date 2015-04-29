@@ -703,7 +703,7 @@
         <artifactId>apache-rat-plugin</artifactId>
         <configuration>
           <excludes>
-          	<exclude>src/test/python/tmp_hostcheck.result</exclude>
+            <exclude>src/test/python/tmp_hostcheck.result</exclude>
             <exclude>src/examples/*</exclude>
             <exclude>src/test/python/dummy*.txt</exclude>
             <exclude>src/test/python/ambari_agent/dummy_files/*</exclude>
@@ -715,6 +715,7 @@
             <exclude>**/*.json</exclude>
             <exclude>**/*.pydevproject</exclude>
             <exclude>**/*.wxs</exclude>
+            <exclude>src/main/package/choco/ambari-agent.nuspec</exclude>
           </excludes>
         </configuration>
         <executions>
@@ -815,6 +816,21 @@
                   <goal>single</goal>
                 </goals>
               </execution>
+              <execution>
+                <id>build-choco-dir</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                  <descriptors>
+                    <descriptor>src/packages/windows-choco.xml</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
           <!-- msi creation -->
@@ -847,6 +863,22 @@
                     <argument>".\..\ambari-agent-files.wxs"</argument>
                   </arguments>
                   <workingDirectory>${basedir}/target/${final.name}-windows-dist</workingDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>build-choco-package</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>choco.exe</executable>
+                  <arguments>
+                    <argument>pack</argument>
+                    <argument>--version=${project.version}</argument>
+                    <argument>${basedir}/target/ambari-agent-${project.version}-choco/ambari-agent.nuspec</argument>
+                  </arguments>
+                  <workingDirectory>target/ambari-agent-${project.version}-choco</workingDirectory>
                 </configuration>
               </execution>
             </executions>

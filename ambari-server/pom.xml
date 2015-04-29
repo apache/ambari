@@ -167,6 +167,7 @@
             <exclude>src/main/resources/stacks/HDP/2.1.GlusterFS/services/YARN/package/templates/exclude_hosts_list.j2</exclude>
             <exclude>src/main/windows/ambari-server.cmd</exclude>
             <exclude>src/main/windows/ambari-server.ps1</exclude>
+            <exclude>src/main/package/choco/ambari-server.nuspec</exclude>
             <exclude>src/main/resources/common-services/AMBARI_METRICS/0.1.0/package/templates/smoketest_metrics.json.j2</exclude>
             <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer-err.log</exclude>
             <exclude>src/main/resources/common-services/HDFS/2.1.0.2.0/package/scripts/balancer-emulator/balancer.log</exclude>
@@ -187,7 +188,6 @@
             <exclude>**/cluster.properties.j2</exclude>
             <exclude>**/repo_ubuntu.j2</exclude>
             <exclude>**/.pydev*</exclude>
-
             <!--gitignore content -->
             <exclude>src/main/resources/db/newcerts/**</exclude>
 
@@ -1310,6 +1310,7 @@
         <path.python.1>${project.basedir}\..\ambari-common\src\main\python;${project.basedir}\..\ambari-agent\src\main\python;${project.basedir}\..\ambari-common\src\main\python\ambari_jinja2;${project.basedir}\..\ambari-common\src\main\python\ambari_commons;${project.basedir}\..\ambari-common\src\test\python;${project.basedir}\src\main\python;${project.basedir}\src\main\python\ambari-server-state;${project.basedir}\src\main\resources\custom_actions;${project.basedir}\src\main\resources\scripts;${project.basedir}\src\test\python</path.python.1>
         <assemblydescriptor>src/main/assemblies/server-windows.xml</assemblydescriptor>
         <assemblybootstrap>src/main/assemblies/bootstrap-windows.xml</assemblybootstrap>
+        <assemblychocodescriptor>src/main/assemblies/server-windows-choco.xml</assemblychocodescriptor>
         <packagingFormat>jar</packagingFormat>
       </properties>
       <build>
@@ -1353,6 +1354,21 @@
                   </descriptors>
                 </configuration>
               </execution>
+              <execution>
+                <id>build-choco-dir</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <appendAssemblyId>true</appendAssemblyId>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                  <descriptors>
+                    <descriptor>${assemblychocodescriptor}</descriptor>
+                  </descriptors>
+                </configuration>
+              </execution>
             </executions>
           </plugin>
           <plugin>
@@ -1384,6 +1400,22 @@
                     <argument>".\..\..\ambari-server-files.wxs"</argument>
                   </arguments>
                   <workingDirectory>target/ambari-server-${project.version}-dist/ambari-server-${project.version}</workingDirectory>
+                </configuration>
+              </execution>
+              <execution>
+                <id>build-choco-package</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>exec</goal>
+                </goals>
+                <configuration>
+                  <executable>choco.exe</executable>
+                  <arguments>
+                    <argument>pack</argument>
+                    <argument>--version=${project.version}</argument>
+                    <argument>${basedir}/target/ambari-server-${project.version}-choco/ambari-server.nuspec</argument>
+                  </arguments>
+                  <workingDirectory>target/ambari-server-${project.version}-choco</workingDirectory>
                 </configuration>
               </execution>
             </executions>
