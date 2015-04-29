@@ -188,19 +188,6 @@ def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_use
             path='/bin'
     )
 
-  #Check if destination folder already exists
-  does_hdfs_dir_exist = False
-  does_hdfs_file_exist_cmd = "fs -ls %s" % os.path.dirname(destination_file)
-  try:
-    ExecuteHadoop(does_hdfs_file_exist_cmd,
-                  user=component_user,
-                  logoutput=True,
-                  conf_dir=params.hadoop_conf_dir,
-                  bin_dir=params.hadoop_bin_dir
-    )
-    does_hdfs_dir_exist = True
-  except Fail:
-    pass
 
   does_hdfs_file_exist_cmd = "fs -ls %s" % destination_file
   does_hdfs_file_exist = False
@@ -215,7 +202,7 @@ def copy_tarballs_to_hdfs(source, dest, hdp_select_component_name, component_use
   except Fail:
     pass
  
-  if not does_hdfs_file_exist and not does_hdfs_dir_exist:
+  if not does_hdfs_file_exist:
     source_and_dest_pairs = [(component_tar_source_file, destination_file), ]
     return _copy_files(source_and_dest_pairs, file_owner, group_owner, kinit_if_needed)
   return 1
