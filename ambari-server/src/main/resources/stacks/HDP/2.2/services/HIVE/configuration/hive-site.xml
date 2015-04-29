@@ -179,7 +179,7 @@ limitations under the License.
     <value-attributes>
       <type>int</type>
       <minimum>64</minimum>
-      <maximum>4398046511104</maximum>
+      <maximum>4294967296</maximum>
       <unit>B</unit>
       <step-increment></step-increment>
     </value-attributes>

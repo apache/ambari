@@ -232,9 +232,6 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.vectorized.execution.enabled", "true")
     putHiveSiteProperty("hive.vectorized.execution.reduce.enabled", "false")
 
-    # Memory
-    putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
-
     # Transactions
     putHiveEnvProperty("hive_txn_acid", "Off")
     if str(configurations["hive-env"]["properties"]["hive_txn_acid"]).lower() == "on":
@@ -296,22 +293,24 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "yarn.scheduler.minimum-allocation-mb" in configurations["yarn-site"]["properties"]:
       container_size = configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]
     putHiveSiteProperty("hive.tez.container.size", container_size)
-    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", str(int(int(container_size)/3)*1024*1024))
     putHiveSiteProperty("hive.prewarm.enabled", "false")
     putHiveSiteProperty("hive.prewarm.numcontainers", "3")
     putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
     putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
 
+    # Memory
+    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(int(container_size)*1024*1024/3))
+    putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
+
     # CBO
     putHiveEnvProperty("cost_based_optimizer", "On")
     if str(configurations["hive-env"]["properties"]["cost_based_optimizer"]).lower() == "on":
       putHiveSiteProperty("hive.cbo.enable", "true")
-      putHiveSiteProperty("hive.stats.fetch.partition.stats", "true")
-      putHiveSiteProperty("hive.stats.fetch.column.stats", "true")
     else:
       putHiveSiteProperty("hive.cbo.enable", "false")
-      putHiveSiteProperty("hive.stats.fetch.partition.stats", "false")
-      putHiveSiteProperty("hive.stats.fetch.column.stats", "false")
+    hive_cbo_enable = configurations["hive-site"]["properties"]["hive.cbo.enable"]
+    putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
+    putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
     putHiveSiteProperty("hive.compute.query.using.stats ", "true")
 
     # Interactive Query
@@ -340,11 +339,22 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     else:
       putHiveSiteProperty("hive.security.authorization.enabled", "true")
 
-    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
+    try:
       auth_manager_value = str(configurations["hive-env"]["properties"]["hive.security.metastore.authorization.manager"])
-      sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+    except KeyError:
+      auth_manager_value = ''
+      pass
+    sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
       if sqlstdauth_class not in auth_manager_value:
         putHiveSiteProperty("hive.security.metastore.authorization.manager", auth_manager_value + "," + sqlstdauth_class)
+    elif auth_manager_value != '':
+      #remove item from csv
+      auth_manager_values = auth_manager_value.split(",")
+      auth_manager_values = [x for x in auth_manager_values if x != sqlstdauth_class]
+      putHiveSiteProperty("hive.security.metastore.authorization.manager", ",".join(auth_manager_values))
+      pass
 
     putHiveServerProperty("hive.server2.enable.doAs", "true")
     putHiveSiteProperty("hive.server2.use.SSL", "false")
@@ -445,7 +455,9 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations,
                "hadoop-env": self.validateHDFSConfigurationsEnv},
       "YARN": {"yarn-env": self.validateYARNEnvConfigurations},
-      "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations, "hive-site": self.validateHiveConfigurations},
+      "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
+               "hive-site": self.validateHiveConfigurations,
+               "hive-env": self.validateHiveConfigurationsEnv},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations,
                 "hbase-env": self.validateHBASEEnvConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
@@ -659,6 +671,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
                                   "If Ranger Hive Plugin is disabled."\
                                   " {0} needs to be set to {1}".format(prop_name,prop_val))})
     return self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
+
+  def validateHiveConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    hive_env = properties
+    hive_site = getSiteProperties(configurations, "hive-site")
+    if str(hive_env["hive_security_authorization"]).lower() == "none" \
+      and str(hive_site["hive.security.authorization.enabled"]).lower() == "true":
+      authorization_item = self.getErrorItem("hive_security_authorization should not be None "
+                                             "if hive.security.authorization.enabled is set")
+      validationItems.append({"config-name": "hive_security_authorization", "item": authorization_item})
+
+    return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDP22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)

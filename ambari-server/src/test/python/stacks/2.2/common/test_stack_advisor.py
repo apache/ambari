@@ -832,6 +832,7 @@ class TestHDP22StackAdvisor(TestCase):
     self.assertEquals(configurations, expected)
 
   def test_recommendHiveConfigurationAttributes(self):
+    self.maxDiff = None
     configurations = {
       "yarn-site": {
         "properties": {
@@ -874,7 +875,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-site': {
         'properties': {
-          'hive.auto.convert.join.noconditionaltask.size': '89128960',
+          'hive.auto.convert.join.noconditionaltask.size': '89478485',
           'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
@@ -1041,6 +1042,22 @@ class TestHDP22StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+    #test recommendations
+    configurations = expected
+    configurations["hive-site"]["properties"]["hive.cbo.enable"] = "false"
+    configurations["hive-env"]["properties"]["hive_security_authorization"] = "sqlstdauth"
+    services["configurations"] = configurations
+    services["changed-configurations"] = [{"type": "hive-site", "key": "hive.cbo.enable"},
+                                          {"type": "hive-env", "key": "hive_security_authorization"}]
+    expected["hive-site"]["properties"]["hive.stats.fetch.partition.stats"]="false"
+    expected["hive-site"]["properties"]["hive.stats.fetch.column.stats"]="false"
+    expected["hive-site"]["properties"]["hive.security.metastore.authorization.manager"]=\
+      ",org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+
+    self.stackAdvisor.recommendHIVEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
 
   def test_recommendMapredConfigurationAttributes(self):
     configurations = {
@@ -1877,6 +1894,31 @@ class TestHDP22StackAdvisor(TestCase):
 
     res = self.stackAdvisor.validateMapReduce2Configurations(properties, recommendedDefaults, {}, '', '')
     self.assertEquals(res, res_expected)
+
+  def test_validateHiveConfigurationsEnv(self):
+    properties = {"hive_security_authorization": "None"}
+    configurations = {"hive-site": {
+                        "properties": {"hive.security.authorization.enabled": "true"}
+                      },
+                      "hive-env": {
+                        "properties": {"hive_security_authorization": "None"}
+                      }
+    }
+
+    res_expected = [
+      {
+        "config-type": "hive-env",
+        "message": "hive_security_authorization should not be None if hive.security.authorization.enabled is set",
+        'type': 'configuration',
+        "config-name": "hive_security_authorization",
+        "level": "ERROR"
+      }
+    ]
+
+    res = self.stackAdvisor.validateHiveConfigurationsEnv(properties, {}, configurations, {}, {})
+    self.assertEquals(res, res_expected)
+
+    pass
 
   def test_recommendYarnCGroupConfigurations(self):
     servicesList = ["YARN"]
