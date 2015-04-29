@@ -39,6 +39,12 @@ App.WidgetMixin = Ember.Mixin.create({
   VALUE_NAME_REGEX: /[\w\.\,\:\=\[\]]+/g,
 
   /**
+   * @type {string}
+   * @const
+   */
+  CLONE_SUFFIX: '(Copy)',
+
+  /**
    * common metrics container
    * @type {Array}
    */
@@ -428,9 +434,9 @@ App.WidgetMixin = Ember.Mixin.create({
     var self = this;
     return App.showConfirmationPopup(
       function () {
-        self.postWidgetDefinition();
+        self.postWidgetDefinition(true);
       },
-      Em.I18n.t('widget.clone.body').format(self.get('content.displayName')),
+      Em.I18n.t('widget.clone.body').format(self.get('content.widgetName')),
       null,
       null,
       Em.I18n.t('common.clone')
@@ -445,7 +451,6 @@ App.WidgetMixin = Ember.Mixin.create({
     return {
       WidgetInfo: {
         widget_name: this.get('content.widgetName'),
-        display_name: this.get('content.displayName'),
         widget_type: this.get('content.widgetType'),
         description: this.get('content.widgetDescription'),
         scope: this.get('content.scope'),
@@ -466,21 +471,30 @@ App.WidgetMixin = Ember.Mixin.create({
 
   /**
    * post widget definition to server
+   * @param {boolean} isClone
    * @returns {$.ajax}
    */
-  postWidgetDefinition: function () {
+  postWidgetDefinition: function (isClone) {
+    var data = this.collectWidgetData();
+    if (isClone) {
+      data.WidgetInfo.widget_name += this.get('CLONE_SUFFIX');
+    }
     return App.ajax.send({
       name: 'widgets.wizard.add',
       sender: this,
       data: {
-        data: this.collectWidgetData()
+        data: data
       },
       success: 'postWidgetDefinitionSuccessCallback'
     });
   },
 
-  postWidgetDefinitionSuccessCallback: function () {
-
+  postWidgetDefinitionSuccessCallback: function (data) {
+    var widgets = this.get('content.layout.widgets').toArray();
+    widgets.pushObject(Em.Object.create({
+      id: data.resources[0].WidgetInfo.id
+    }));
+    App.router.get('mainServiceInfoSummaryController').saveWidgetLayout(widgets);
   },
 
   /*
