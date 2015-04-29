@@ -18,6 +18,7 @@
 
 var App = require('app');
 var stringUtils = require('utils/string_utils');
+var configPropertyHelper = require('utils/configs/config_property_helper');
 
 App.config = Em.Object.create({
 
@@ -704,7 +705,7 @@ App.config = Em.Object.create({
             'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.defaultValue,
             'clientPort': clientPortConfig && clientPortConfig.defaultValue
           };
-          serviceConfigProperty.initialValue(localDB, dependencies);
+          configPropertyHelper.initialValue(serviceConfigProperty, localDB, dependencies);
         }
         if (storedConfigs && storedConfigs.filterProperty('name', _config.name).length && !!_config.filename) {
           var storedConfig = storedConfigs.filterProperty('name', _config.name).findProperty('filename', _config.filename);

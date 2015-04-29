@@ -16,7 +16,9 @@
  * limitations under the License.
  */
 var App = require('app');
-require('models/service_config');
+require('models/configs/objects/service_config');
+require('models/configs/objects/service_config_category');
+require('models/configs/objects/service_config_property');
 require('models/service');
 
 App.SecureConfigProperties = Ember.ArrayProxy.extend({

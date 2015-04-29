@@ -18,7 +18,7 @@
 
 var App = require('app');
 require('utils/helper');
-require('models/service_config');
+require('models/configs/objects/service_config_category');
 
 /**
  * This model loads all services supported by the stack

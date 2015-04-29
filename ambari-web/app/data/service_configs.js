@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-require('models/service_config');
+require('models/configs/objects/service_config_category');
 
 /**
  * This

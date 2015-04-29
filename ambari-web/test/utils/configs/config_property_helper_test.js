@@ -17,72 +17,14 @@
  */
 
 var App = require('app');
+var configPropertyHelper = require('utils/configs/config_property_helper');
 
-require('models/service_config');
+require('models/configs/objects/service_config_property');
 
 var serviceConfig,
-  serviceConfigCategory,
   group,
   serviceConfigProperty,
-  serviceConfigPropertyInit,
-  configsData = [
-    Ember.Object.create({
-      category: 'c0',
-      overrides: [
-        {
-          error: true,
-          errorMessage: 'error'
-        },
-        {
-          error: true
-        },
-        {}
-      ]
-    }),
-    Ember.Object.create({
-      category: 'c1',
-      isValid: false,
-      isVisible: true
-    }),
-    Ember.Object.create({
-      category: 'c0',
-      isValid: true,
-      isVisible: true
-    }),
-    Ember.Object.create({
-      category: 'c1',
-      isValid: false,
-      isVisible: false
-    })
-  ],
-  configCategoriesData = [
-    Em.Object.create({
-      name: 'c0',
-      slaveErrorCount: 1
-    }),
-    Em.Object.create({
-      name: 'c1',
-      slaveErrorCount: 2
-    })
-  ],
-  nameCases = [
-    {
-      name: 'DataNode',
-      primary: 'DATANODE'
-    },
-    {
-      name: 'TaskTracker',
-      primary: 'TASKTRACKER'
-    },
-    {
-      name: 'RegionServer',
-      primary: 'HBASE_REGIONSERVER'
-    },
-    {
-      name: 'name',
-      primary: null
-    }
-  ],
+
   components = [
     {
       name: 'NameNode',
@@ -134,517 +76,23 @@ var serviceConfig,
     }
   ],
   masters = components.filterProperty('master'),
-  slaves = components.filterProperty('slave'),
-  groupsData = {
-    groups: [
-      Em.Object.create({
-        errorCount: 1
-      }),
-      Em.Object.create({
-        errorCount: 2
-      })
-    ]
-  },
-  groupNoErrorsData = [].concat(configsData.slice(2)),
-  groupErrorsData = [configsData[1]],
-  overridableFalseData = [
-    {
-      isOverridable: false
-    },
-    {
-      isEditable: false,
-      overrides: configsData[0].overrides
-    },
-    {
-      displayType: 'masterHost'
-    }
-  ],
-  overridableTrueData = [
-    {
-      isOverridable: true,
-      isEditable: true
-    },    {
-      isOverridable: true,
-      overrides: []
-    },
-    {
-      isOverridable: true
-    }
-  ],
-  overriddenFalseData = [
-    {
-      overrides: null,
-      isOriginalSCP: true
-    },
-    {
-      overrides: [],
-      isOriginalSCP: true
-    }
-  ],
-  overriddenTrueData = [
-    {
-      overrides: configsData[0].overrides
-    },
-    {
-      isOriginalSCP: false
-    }
-  ],
-  removableFalseData = [
-    {
-      isEditable: false
-    },
-    {
-      hasOverrides: true
-    },
-    {
-      isUserProperty: false,
-      isOriginalSCP: true
-    }
-  ],
-  removableTrueData = [
-    {
-      isEditable: true,
-      hasOverrides: false,
-      isUserProperty: true
-    },
-    {
-      isEditable: true,
-      hasOverrides: false,
-      isOriginalSCP: false
-    }
-  ],
-  initPropertyData = [
-    {
-      initial: {
-        displayType: 'password',
-        value: 'value'
-      },
-      result: {
-        retypedPassword: 'value'
-      }
-    },
-    {
-      initial: {
-        id: 'puppet var',
-        value: '',
-        defaultValue: 'default'
-      },
-      result: {
-        value: 'default'
-      }
-    }
-  ],
-  notDefaultFalseData = [
-    {
-      isEditable: false
-    },
-    {
-      defaultValue: null
-    },
-    {
-      value: 'value',
-      defaultValue: 'value'
-    }
-  ],
-  notDefaultTrueData = {
-    isEditable: true,
-    value: 'value',
-    defaultValue: 'default'
-  },
-  types = ['masterHost', 'slaveHosts', 'masterHosts', 'slaveHost', 'radio button'],
-  classCases = [
-    {
-      initial: {
-        displayType: 'checkbox'
-      },
-      viewClass: App.ServiceConfigCheckbox
-    },
-    {
-      initial: {
-        displayType: 'checkbox',
-        dependentConfigPattern: 'somPattern'
-      },
-      viewClass: App.ServiceConfigCheckboxWithDependencies
-    },
-    {
-      initial: {
-        displayType: 'password'
-      },
-      viewClass: App.ServiceConfigPasswordField
-    },
-    {
-      initial: {
-        displayType: 'combobox'
-      },
-      viewClass: App.ServiceConfigComboBox
-    },
-    {
-      initial: {
-        displayType: 'radio button'
-      },
-      viewClass: App.ServiceConfigRadioButtons
-    },
-    {
-      initial: {
-        displayType: 'directories'
-      },
-      viewClass: App.ServiceConfigTextArea
-    },
-    {
-      initial: {
-        displayType: 'content'
-      },
-      viewClass: App.ServiceConfigTextAreaContent
-
-    },
-    {
-      initial: {
-        displayType: 'multiLine'
-      },
-      viewClass: App.ServiceConfigTextArea
-    },
-    {
-      initial: {
-        displayType: 'custom'
-      },
-      viewClass: App.ServiceConfigBigTextArea
-    },
-    {
-      initial: {
-        displayType: 'masterHost'
-      },
-      viewClass: App.ServiceConfigMasterHostView
-    },
-    {
-      initial: {
-        displayType: 'masterHosts'
-      },
-      viewClass: App.ServiceConfigMasterHostsView
-    },
-    {
-      initial: {
-        displayType: 'slaveHosts'
-      },
-      viewClass: App.ServiceConfigSlaveHostsView
-    },
-    {
-      initial: {
-        unit: true,
-        displayType: 'type'
-      },
-      viewClass: App.ServiceConfigTextFieldWithUnit
-    },
-    {
-      initial: {
-        unit: false,
-        displayType: 'type'
-      },
-      viewClass: App.ServiceConfigTextField
-    },
-    {
-      initial: {
-        unit: false,
-        displayType: 'supportTextConnection'
-      },
-      viewClass: App.checkConnectionView
-    }
-  ];
+  slaves = components.filterProperty('slave');
 
 
-describe('App.ServiceConfig', function () {
-
-  beforeEach(function () {
-    serviceConfig = App.ServiceConfig.create();
-  });
-
-  describe('#errorCount', function () {
-    it('should be 0', function () {
-      serviceConfig.setProperties({
-        configs: [],
-        configCategories: []
-      });
-      expect(serviceConfig.get('errorCount')).to.equal(0);
-    });
-    it('should sum counts of all errors', function () {
-      serviceConfig.setProperties({
-        configs: configsData,
-        configCategories: configCategoriesData
-      });
-      expect(serviceConfig.get('errorCount')).to.equal(6);
-      expect(serviceConfig.get('configCategories').findProperty('name', 'c0').get('nonSlaveErrorCount')).to.equal(2);
-      expect(serviceConfig.get('configCategories').findProperty('name', 'c1').get('nonSlaveErrorCount')).to.equal(1);
-    });
-  });
-
-});
-
-describe('App.ServiceConfigCategory', function () {
-
-  beforeEach(function () {
-    serviceConfigCategory = App.ServiceConfigCategory.create();
-  });
-
-  describe('#primaryName', function () {
-    nameCases.forEach(function (item) {
-      it('should return ' + item.primary, function () {
-        serviceConfigCategory.set('name', item.name);
-        expect(serviceConfigCategory.get('primaryName')).to.equal(item.primary);
-      })
-    });
-  });
-
-  describe('#isForMasterComponent', function () {
-    masters.forEach(function (item) {
-      it('should be true for ' + item.name, function () {
-        serviceConfigCategory.set('name', item.name);
-        expect(serviceConfigCategory.get('isForMasterComponent')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      serviceConfigCategory.set('name', 'name');
-      expect(serviceConfigCategory.get('isForMasterComponent')).to.be.false;
-    });
-  });
-
-  describe('#isForSlaveComponent', function () {
-    slaves.forEach(function (item) {
-      it('should be true for ' + item.name, function () {
-        serviceConfigCategory.set('name', item.name);
-        expect(serviceConfigCategory.get('isForSlaveComponent')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      serviceConfigCategory.set('name', 'name');
-      expect(serviceConfigCategory.get('isForSlaveComponent')).to.be.false;
-    });
-  });
-
-  describe('#slaveErrorCount', function () {
-    it('should be 0', function () {
-      serviceConfigCategory.set('slaveConfigs', []);
-      expect(serviceConfigCategory.get('slaveErrorCount')).to.equal(0);
-    });
-    it('should sum all errorCount values', function () {
-      serviceConfigCategory.set('slaveConfigs', groupsData);
-      expect(serviceConfigCategory.get('slaveErrorCount')).to.equal(3);
-    });
-  });
-
-  describe('#errorCount', function () {
-    it('should sum all errors for category', function () {
-      serviceConfigCategory.reopen({
-        slaveErrorCount: 1
-      });
-      expect(serviceConfigCategory.get('errorCount')).to.equal(1);
-      serviceConfigCategory.set('nonSlaveErrorCount', 2);
-      expect(serviceConfigCategory.get('errorCount')).to.equal(3);
-      serviceConfigCategory.set('slaveErrorCount', 0);
-      expect(serviceConfigCategory.get('errorCount')).to.equal(2);
-    });
-  });
-
-  describe('#isAdvanced', function () {
-    it('should be true', function () {
-      serviceConfigCategory.set('name', 'Advanced');
-      expect(serviceConfigCategory.get('isAdvanced')).to.be.true;
-    });
-    it('should be false', function () {
-      serviceConfigCategory.set('name', 'name');
-      expect(serviceConfigCategory.get('isAdvanced')).to.be.false;
-    });
-  });
-
-});
-
-describe('App.Group', function () {
-
-  beforeEach(function () {
-    group = App.Group.create();
-  });
-
-  describe('#errorCount', function () {
-    it('should be 0', function () {
-      group.set('properties', groupNoErrorsData);
-      expect(group.get('errorCount')).to.equal(0);
-    });
-    it('should be 1', function () {
-      group.set('properties', groupErrorsData);
-      expect(group.get('errorCount')).to.equal(1);
-    });
-  });
-
-});
-
-describe('App.ServiceConfigProperty', function () {
+describe('configPropertyHelper', function () {
 
   beforeEach(function () {
     serviceConfigProperty = App.ServiceConfigProperty.create();
   });
 
-  describe('#overrideErrorTrigger', function () {
-    it('should be an increment', function () {
-      serviceConfigProperty.set('overrides', configsData[0].overrides);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(1);
-      serviceConfigProperty.set('overrides', []);
-      expect(serviceConfigProperty.get('overrideErrorTrigger')).to.equal(2);
-    });
-  });
-
-  describe('#isPropertyOverridable', function () {
-    overridableFalseData.forEach(function (item) {
-      it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isPropertyOverridable')).to.be.false;
-      });
-    });
-    overridableTrueData.forEach(function (item) {
-      it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isPropertyOverridable')).to.be.true;
-      });
-    });
-  });
-
-  describe('#isOverridden', function () {
-    overriddenFalseData.forEach(function (item) {
-      it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isOverridden')).to.be.false;
-      });
-    });
-    overriddenTrueData.forEach(function (item) {
-      it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isOverridden')).to.be.true;
-      });
-    });
-  });
-
-  describe('#isRemovable', function () {
-    removableFalseData.forEach(function (item) {
-      it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isRemovable')).to.be.false;
-      });
-    });
-    removableTrueData.forEach(function (item) {
-      it('should be true', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isRemovable')).to.be.true;
-      });
-    });
-  });
-
-  describe('#init', function () {
-    initPropertyData.forEach(function (item) {
-      it('should set initial data', function () {
-        serviceConfigPropertyInit = App.ServiceConfigProperty.create(item.initial);
-        Em.keys(item.result).forEach(function (prop) {
-          expect(serviceConfigPropertyInit.get(prop)).to.equal(item.result[prop]);
-        });
-      });
-    });
-  });
-
-  describe('#isNotDefaultValue', function () {
-    notDefaultFalseData.forEach(function (item) {
-      it('should be false', function () {
-        Em.keys(item).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item[prop]);
-        });
-        expect(serviceConfigProperty.get('isNotDefaultValue')).to.be.false;
-      });
-    });
-    it('should be true', function () {
-      Em.keys(notDefaultTrueData).forEach(function (prop) {
-        serviceConfigProperty.set(prop, notDefaultTrueData[prop]);
-      });
-      expect(serviceConfigProperty.get('isNotDefaultValue')).to.be.true;
-    });
-  });
-
-  describe('#cantBeUndone', function () {
-    types.forEach(function (item) {
-      it('should be true', function () {
-        serviceConfigProperty.set('displayType', item);
-        expect(serviceConfigProperty.get('cantBeUndone')).to.be.true;
-      });
-    });
-    it('should be false', function () {
-      serviceConfigProperty.set('displayType', 'type');
-      expect(serviceConfigProperty.get('cantBeUndone')).to.be.false;
-    });
-  });
-
   describe('#setDefaultValue', function () {
     it('should change the default value', function () {
       serviceConfigProperty.set('defaultValue', 'value0');
-      serviceConfigProperty.setDefaultValue(/\d/, '1');
+      configPropertyHelper.setDefaultValue(serviceConfigProperty, /\d/, '1');
       expect(serviceConfigProperty.get('defaultValue')).to.equal('value1');
     });
   });
 
-  describe('#isValid', function () {
-    it('should be true', function () {
-      serviceConfigProperty.set('errorMessage', '');
-      expect(serviceConfigProperty.get('isValid')).to.be.true;
-    });
-    it('should be false', function () {
-      serviceConfigProperty.set('errorMessage', 'message');
-      expect(serviceConfigProperty.get('isValid')).to.be.false;
-    });
-  });
-
-  describe('#viewClass', function () {
-    classCases.forEach(function (item) {
-      it ('should be ' + item.viewClass, function () {
-        Em.keys(item.initial).forEach(function (prop) {
-          serviceConfigProperty.set(prop, item.initial[prop]);
-        });
-        expect(serviceConfigProperty.get('viewClass')).to.eql(item.viewClass);
-      });
-    });
-  });
-
-  describe('#validate', function () {
-    it('not required', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: false,
-        value: ''
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('should validate', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        value: 'value'
-      });
-      expect(serviceConfigProperty.get('errorMessage')).to.be.empty;
-      expect(serviceConfigProperty.get('error')).to.be.false;
-    });
-    it('should fail', function () {
-      serviceConfigProperty.setProperties({
-        isRequired: true,
-        value: 'value'
-      });
-      serviceConfigProperty.set('value', '');
-      expect(serviceConfigProperty.get('errorMessage')).to.equal('This is required');
-      expect(serviceConfigProperty.get('error')).to.be.true;
-    });
-  });
 
   describe('#initialValue', function () {
 
@@ -902,13 +350,13 @@ describe('App.ServiceConfigProperty', function () {
       }
     };
 
-    cases['kafka.ganglia.metrics.host'].forEach(function(item){
+    cases['kafka.ganglia.metrics.host'].forEach(function (item) {
       it(item.message, function () {
         serviceConfigProperty.setProperties({
           name: 'kafka.ganglia.metrics.host',
           value: 'localhost'
         });
-        serviceConfigProperty.initialValue(item.localDB);
+        configPropertyHelper.initialValue(serviceConfigProperty, item.localDB);
         expect(serviceConfigProperty.get('value')).to.equal(item.expected);
       });
     });
@@ -925,7 +373,7 @@ describe('App.ServiceConfigProperty', function () {
           value: item.receivedValue,
           options: item.options
         });
-        serviceConfigProperty.initialValue({});
+        configPropertyHelper.initialValue(serviceConfigProperty, {});
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('options').findProperty('displayName', 'New MySQL Database').hidden).to.equal(item.hidden);
         App.get.restore();
@@ -939,7 +387,7 @@ describe('App.ServiceConfigProperty', function () {
           value: 'localhost',
           'filename': item.filename
         });
-        serviceConfigProperty.initialValue({
+        configPropertyHelper.initialValue(serviceConfigProperty, {
           masterComponentHosts: {
             filterProperty: function () {
               return {
@@ -961,26 +409,26 @@ describe('App.ServiceConfigProperty', function () {
           p: 'v'
         };
       it(item.title, function () {
-        sinon.stub(serviceConfigProperty, 'unionAllMountPoints', Em.K);
+        sinon.stub(configPropertyHelper, 'unionAllMountPoints', Em.K);
         serviceConfigProperty.setProperties({
           name: 'hbase.tmp.dir',
           filename: item.filename
         });
-        serviceConfigProperty.initialValue(localDB);
-        expect(serviceConfigProperty.unionAllMountPoints.calledWith(isOnlyFirstOneNeeded, localDB)).to.equal(item.isUnionAllMountPointsCalled);
-        serviceConfigProperty.unionAllMountPoints.restore();
+        configPropertyHelper.initialValue(serviceConfigProperty, localDB);
+        expect(configPropertyHelper.unionAllMountPoints.calledWith(serviceConfigProperty, isOnlyFirstOneNeeded, localDB)).to.equal(item.isUnionAllMountPointsCalled);
+        configPropertyHelper.unionAllMountPoints.restore();
       });
     });
 
     it(cases['hivemetastore_host'].title, function () {
       serviceConfigProperty.set('name', 'hivemetastore_host');
-      serviceConfigProperty.initialValue(cases['hivemetastore_host'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hivemetastore_host'].localDB);
       expect(serviceConfigProperty.get('value')).to.eql(cases['hivemetastore_host'].value);
     });
 
     it(cases['hive_master_hosts'].title, function () {
       serviceConfigProperty.set('name', 'hive_master_hosts');
-      serviceConfigProperty.initialValue(cases['hive_master_hosts'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive_master_hosts'].localDB);
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive_master_hosts'].value);
     });
 
@@ -989,7 +437,7 @@ describe('App.ServiceConfigProperty', function () {
         name: 'hive.metastore.uris',
         defaultValue: cases['hive.metastore.uris'].defaultValue
       });
-      serviceConfigProperty.initialValue(cases['hive.metastore.uris'].localDB, cases['hive.metastore.uris'].dependencies);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['hive.metastore.uris'].localDB, cases['hive.metastore.uris'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['hive.metastore.uris'].value);
       expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['hive.metastore.uris'].value);
     });
@@ -1000,7 +448,7 @@ describe('App.ServiceConfigProperty', function () {
         defaultValue: cases['templeton.hive.properties'].defaultValue,
         value: cases['templeton.hive.properties'].defaultValue
       });
-      serviceConfigProperty.initialValue(cases['templeton.hive.properties'].localDB, cases['templeton.hive.properties'].dependencies);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['templeton.hive.properties'].localDB, cases['templeton.hive.properties'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['templeton.hive.properties'].value);
       expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['templeton.hive.properties'].value);
     });
@@ -1010,20 +458,20 @@ describe('App.ServiceConfigProperty', function () {
         name: 'yarn.resourcemanager.zk-address',
         defaultValue: cases['yarn.resourcemanager.zk-address'].defaultValue
       });
-      serviceConfigProperty.initialValue(cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['yarn.resourcemanager.zk-address'].localDB, cases['yarn.resourcemanager.zk-address'].dependencies);
       expect(serviceConfigProperty.get('value')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
       expect(serviceConfigProperty.get('defaultValue')).to.equal(cases['yarn.resourcemanager.zk-address'].value);
     });
 
     it(cases['oozieserver_host'].title, function () {
       serviceConfigProperty.set('name', 'oozieserver_host');
-      serviceConfigProperty.initialValue(cases['oozieserver_host'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['oozieserver_host'].localDB);
       expect(serviceConfigProperty.get('value')).to.eql(cases['oozieserver_host'].value);
     });
 
     it(cases['knox_gateway_host'].title, function () {
       serviceConfigProperty.set('name', 'knox_gateway_host');
-      serviceConfigProperty.initialValue(cases['knox_gateway_host'].localDB);
+      configPropertyHelper.initialValue(serviceConfigProperty, cases['knox_gateway_host'].localDB);
       expect(serviceConfigProperty.get('value')).to.eql(cases['knox_gateway_host'].value);
     });
 
@@ -1103,7 +551,7 @@ describe('App.ServiceConfigProperty', function () {
 
     cases.forEach(function (item) {
       it(item.title, function () {
-        expect(serviceConfigProperty.getHiveMetastoreUris(item.hosts, item.defaultValue)).to.equal(item.expected);
+        expect(configPropertyHelper.getHiveMetastoreUris(item.hosts, item.defaultValue)).to.equal(item.expected);
       });
     });
 
@@ -1293,12 +741,12 @@ describe('App.ServiceConfigProperty', function () {
         {
           name: 'mapred.local.dir',
           isOnlyFirstOneNeeded: false,
-          value:  '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
+          value: '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
         },
         {
           name: 'yarn.nodemanager.log-dirs',
           isOnlyFirstOneNeeded: false,
-          value:  '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\nc:\\default\n'
+          value: '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\nc:\\default\n'
         },
         {
           name: 'yarn.nodemanager.local-dirs',
@@ -1343,7 +791,7 @@ describe('App.ServiceConfigProperty', function () {
         {
           name: 'log.dirs',
           isOnlyFirstOneNeeded: false,
-          value:  '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
+          value: '/media/disk0/default\n/mount0/default\n/media/disk1/default\n/mount1/default\n'
         }
       ];
 
@@ -1407,12 +855,11 @@ describe('App.ServiceConfigProperty', function () {
           name: item.name,
           defaultDirectory: '/default'
         });
-        serviceConfigProperty.unionAllMountPoints(item.isOnlyFirstOneNeeded, localDB);
+        configPropertyHelper.unionAllMountPoints(serviceConfigProperty, item.isOnlyFirstOneNeeded, localDB);
         expect(serviceConfigProperty.get('value')).to.equal(item.value);
         expect(serviceConfigProperty.get('defaultValue')).to.equal(item.value);
       });
     });
 
   });
-
 });
