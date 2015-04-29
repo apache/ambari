@@ -377,7 +377,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   onConfigGroupChange: function () {
     var self = this;
     this.get('stepConfigs').clear();
-    this.set('dataIsLoaded', false);
+    this.set('versionLoaded', false);
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var serviceName = this.get('content.serviceName');
     //STEP 1: handle tags from JSON data for host overrides
@@ -418,7 +418,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       self.addHostNamesToConfig();
       //load configs of version being compared against
       self.loadCompareVersionConfigs(self.get('allConfigs')).done(function (isComparison) {
-        //Load and add overriden configs of group
+        //Load and add overridden configs of group
         if (!isComparison && (!self.get('selectedConfigGroup').get('isDefault') || self.get('isCurrentSelected'))) {
           App.config.loadServiceConfigGroupOverrides(self.get('allConfigs'), self.get('loadedGroupToOverrideSiteToTagMap'), self.get('configGroupsToLoad'), self.onLoadOverrides, self);
         } else {
