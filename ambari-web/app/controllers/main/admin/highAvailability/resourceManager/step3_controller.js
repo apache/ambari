@@ -25,6 +25,8 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   versionLoaded: true,
 
+  hideDependenciesInfoBar: true,
+
   isLoaded: false,
 
   isSubmitDisabled: function () {

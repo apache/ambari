@@ -1221,7 +1221,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   loadDoServiceChecksFlagSuccessCallback: function (data) {
     var properties = Em.get(data, 'RootServiceComponents.properties');
-    if(properties.hasOwnProperty('skip.service.checks')){
+    if(properties && properties.hasOwnProperty('skip.service.checks')){
       this.set('skipServiceChecks', properties['skip.service.checks'] === 'true');
     }
   }

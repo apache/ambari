@@ -27,6 +27,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
   once: false,
   isLoaded: false,
   versionLoaded: true,
+  hideDependenciesInfoBar: true,
 
   /**
    * Map of sites and properties to delete
