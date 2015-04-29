@@ -35,7 +35,6 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -51,7 +50,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import static org.apache.ambari.server.Role.HBASE_MASTER;
 import static org.apache.ambari.server.Role.HBASE_REGIONSERVER;
 import static org.apache.ambari.server.Role.METRICS_COLLECTOR;
@@ -261,6 +259,8 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               if (metric.getMetricName() != null
                   && metric.getMetricValues() != null
                   && checkMetricName(patterns, metric.getMetricName())) {
+                // Pad zeros or nulls if needed
+                metricsPaddingMethod.applyPaddingStrategy(metric, temporalInfo);
                 populateResource(resource, metric);
               }
             }
