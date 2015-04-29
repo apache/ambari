@@ -25,6 +25,7 @@ import java.util.TreeMap;
 public class MetricsPaddingMethod {
   private final PADDING_STRATEGY strategy;
   public static final String ZERO_PADDING_PARAM = "params/padding";
+  private static final long MINIMUM_STEP_INTERVAL = 999l; // ~ 1 second
   public static enum PADDING_STRATEGY {
     ZEROS,
     NULLS,
@@ -55,7 +56,7 @@ public class MetricsPaddingMethod {
 
     long dataInterval = getTimelineMetricInterval(values);
 
-    if (dataInterval == -1) {
+    if (dataInterval == -1 || dataInterval < MINIMUM_STEP_INTERVAL) {
       dataInterval = temporalInfo.getStep() != null ? temporalInfo.getStep() : -1;
     }
     // Unable to determine what interval to use for padding
