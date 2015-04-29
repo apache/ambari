@@ -19,7 +19,10 @@
   <label>
     {{view view.configView class="pull-left"}}
     {{#if view.isOriginalSCP}}
-      <span class="widget-config-label">{{view.configLabel}}</span>
+      <span {{bindAttr class=":widget-config-label view.configLabelClass"}}>
+        {{view view.issueView configBinding="view.config"}}
+        {{view.configLabel}}
+      </span>
     {{else}}
       <span class="widget-config-label text-success">{{t common.override}}</span>
     {{/if}}

@@ -52,6 +52,11 @@
     &.text-success {
       color: @green;
     }
+    .icon-warning-sign {
+      &.warning {
+        color: @health-status-yellow
+      }
+    }
   }
   .action-button {
     margin-right: @undo-btn-margin;
@@ -75,16 +80,12 @@
       text-decoration: none;
       display: block;
     }
-    .widget-action-final {
+    .widget-action-final,
+    .widget-action-switch-view {
       padding-left: 1px;
       color: @widget-config-override-action-color;
       &.active {
         color: @widget-config-override-action-active-color;
-      }
-    }
-    .icon-warning-sign {
-      &.warning {
-        color: @health-status-yellow
       }
     }
   }
@@ -130,6 +131,7 @@
       line-height: 14px;
       min-width: 30px;
       z-index: 1;
+      visibility: inherit;
       &.tooltip-min,
       &.tooltip-max {
         display: none;
@@ -217,6 +219,7 @@
   .ui-slider-wrapper {
     .ui-slider-wrapper-inner {
       width: 68%;
+      padding-left: 10px;
       .slider.slider-horizontal {
         width: 100%;
       }

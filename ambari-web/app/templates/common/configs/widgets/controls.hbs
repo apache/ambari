@@ -24,19 +24,18 @@
   {{/if}}
   <div class="widget-config-controls">
     <div class="widget-col left">
-      {{#if view.supportSwitchToCheckBox}}
-        <a href="#"
-          {{bindAttr class=":icon-pencil view.isHover::hide"}}
-          {{action "toggleWidgetView" target="view"}}>
-        </a>
-      {{/if}}
-      {{view view.issueView configBinding="view.config"}}
       {{#if view.config.isNotDefaultValue}}
         {{#if view.undoAllowed}}
           <a class="widget-action widget-action-undo" href="#" {{action "restoreValue" target="view"}}>
             <i class="icon-undo"></i>
           </a>
         {{/if}}
+      {{/if}}
+      {{#if view.supportSwitchToCheckBox}}
+        <a href="#"
+          {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.showAsTextBox::active"}}
+          {{action "toggleWidgetView" target="view"}}>
+        </a>
       {{/if}}
     </div>
     <div class="widget-col right">

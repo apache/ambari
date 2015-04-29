@@ -17,10 +17,7 @@
 }}
 
 <div>
-  {{#if view.isOriginalSCP}}
-    <div class="clearfix"></div>
-    <p class="widget-config-label">{{formatWordBreak view.configLabel}}</p>
-  {{/if}}
+  {{template "templates/common/configs/widgets/config_label"}}
   <div {{bindAttr class=":text-field-wrapper view.isOriginalSCP:original-widget"}}>
     {{view view.configView}}
   </div>

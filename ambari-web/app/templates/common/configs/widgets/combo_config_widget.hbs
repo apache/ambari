@@ -15,10 +15,7 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-{{#if view.isOriginalSCP}}
-  <div class="clearfix"></div>
-  <p class="widget-config-label">{{view.configLabel}}</p>
-{{/if}}
+{{template "templates/common/configs/widgets/config_label"}}
 <div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget view.disabled:disabled view.showAsTextBox:hide"}}>
   <div class="input-append">
     <div class="dropdown btn-group">

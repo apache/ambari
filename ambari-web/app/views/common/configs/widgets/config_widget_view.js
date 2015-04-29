@@ -51,6 +51,12 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   canEdit: true,
 
   /**
+   * Config label class attribute. Displays validation status of config.
+   * @type {string}
+   */
+  configLabelClass: '',
+
+  /**
    * Tab where current widget placed
    * Bound in the template
    * @type {App.Tab}
@@ -110,17 +116,55 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
     config: null,
 
+    issueIconClass: '',
+
+    issueMessage: false,
+
     didInsertElement: function() {
       App.tooltip($(this.get('element')));
+      this.errorLevelObserver();
+      this.addObserver('issuedConfig.warnMessage', this, this.errorLevelObserver);
+      this.addObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
     },
 
-    issueIconClass: function() {
-      return this.get('config.errorMessage') ? '': this.get('config.warnMessage') ? 'warning' : 'not-show';
-    }.property('config.warnMessage', 'config.errorMessage'),
+    willDestroyElement: function() {
+      this.removeObserver('issuedConfig.warnMessage', this, this.errorLevelObserver);
+      this.removeObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
+    },
 
-    issueMessage: function() {
-      return this.get('config.errorMessage') || this.get('config.warnMessage');
-    }.property('config.warnMessage', 'config.errorMessage')
+    errorLevelObserver: function() {
+      var messageLevel = this.get('issuedConfig.errorMessage') ? 'ERROR': this.get('issuedConfig.warnMessage') ? 'WARN' : 'NONE';
+      var issue = {
+        ERROR: {
+          iconClass: '',
+          message: this.get('issuedConfig.errorMessage'),
+          configLabelClass: 'text-error'
+        },
+        WARN: {
+          iconClass: 'warning',
+          message: this.get('issuedConfig.warnMessage'),
+          configLabelClass: 'text-warning'
+        },
+        NONE: {
+          iconClass: 'hide',
+          message: false,
+          configLabelClass: ''
+        }
+      }[messageLevel];
+      this.set('parentView.configLabelClass', issue.configLabelClass);
+      this.set('issueIconClass', issue.iconClass);
+      this.set('issueMessage', issue.message);
+    },
+
+    issuedConfig: function() {
+      var config = this.get('config');
+      // check editable overrides
+      if (!config.get('isEditable') && config.get('overrides.length') && config.get('overrides').someProperty('isEditable', true)) {
+        config = config.get('overrides').findProperty('isEditable', true);
+      }
+      return config;
+    }.property('config.isEditable', 'config.overrides.length')
+
   }),
 
   /**

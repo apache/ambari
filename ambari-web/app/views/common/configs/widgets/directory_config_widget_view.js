@@ -31,12 +31,14 @@ App.DirectoryConfigWidgetView = App.ConfigWidgetView.extend({
    * @property configView
    */
   configView: App.ServiceConfigTextArea.extend({
+    isPopoverEnabled: 'false',
     widthClass: 'span12',
     serviceConfigBinding: 'parentView.config',
     popoverPlacement: 'top'
   }),
 
   didInsertElement: function() {
+    this.initPopover();
     this.set('config.displayType', this.get('config.stackConfigProperty.widget.type'));
   }
 

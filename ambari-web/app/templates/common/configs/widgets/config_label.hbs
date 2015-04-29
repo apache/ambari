@@ -16,12 +16,10 @@
 * limitations under the License.
 }}
 
-<div {{bindAttr class="view.isOriginalSCP:original-widget"}}>
-  {{template "templates/common/configs/widgets/config_label"}}
-   <div class="directory-textarea-wrapper">
-     {{view view.configView}}
-   </div>
-   <div class="right">
-     {{template "templates/common/configs/widgets/controls"}}
-   </div>
-</div>
+{{#if view.isOriginalSCP}}
+  <div class="clearfix"></div>
+  <p {{bindAttr class=":widget-config-label view.configLabelClass"}}>
+   {{view view.issueView configBinding="view.config"}}
+   {{formatWordBreak view.configLabel}}
+  </p>
+{{/if}}

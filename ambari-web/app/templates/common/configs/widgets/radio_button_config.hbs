@@ -16,12 +16,7 @@
 * limitations under the License.
 }}
 
-{{#if view.isOriginalSCP}}
-  <div class="clearfix"></div>
-  <p class="widget-config-label">
-    {{view.configLabel}}
-  </p>
-{{/if}}
+{{template "templates/common/configs/widgets/config_label"}}
 <div class="pull-left">
   {{#each item in view.content}}
     <label>

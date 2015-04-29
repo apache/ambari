@@ -16,10 +16,7 @@
 * limitations under the License.
 }}
 
-{{#if view.isOriginalSCP}}
-  <div class="clearfix"></div>
-  <p class="widget-config-label">{{view.configLabel}}</p>
-{{/if}}
+{{template "templates/common/configs/widgets/config_label"}}
 <div {{bindAttr class=":pull-left view.isOriginalSCP:original-widget"}}>
   {{view Ember.Checkbox checkedBinding="view.switcherValue"}}
 </div>

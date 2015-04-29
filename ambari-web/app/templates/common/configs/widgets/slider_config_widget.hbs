@@ -17,10 +17,7 @@
 }}
 
 <div class="widget-config slider-widget">
-  {{#if view.isOriginalSCP}}
-    <div class="clearfix"></div>
-    <p class="widget-config-label">{{formatWordBreak view.configLabel}}</p>
-  {{/if}}
+  {{template "templates/common/configs/widgets/config_label"}}
   <div {{bindAttr class="view.isOriginalSCP:original-widget view.showAsTextBox:hide :ui-slider-wrapper"}}>
     <div {{bindAttr class=":pull-left :ui-slider-wrapper-inner"}}>{{view Ember.TextField valueBinding="view.config.value" class="input-mini slider-input"}}</div>
   </div>
