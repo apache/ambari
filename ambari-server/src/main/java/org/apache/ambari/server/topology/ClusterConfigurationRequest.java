@@ -68,7 +68,12 @@ public class ClusterConfigurationRequest {
 
   public void process() throws AmbariException, ConfigurationTopologyException {
     // this will update the topo cluster config and all host group configs in the cluster topology
-    configurationProcessor.doUpdateForClusterCreate();
+    try {
+      configurationProcessor.doUpdateForClusterCreate();
+    } catch (ConfigurationTopologyException e) {
+      //log and continue to set configs on cluster to make progress
+      LOG.error("An exception occurred while doing configuration topology update: " + e, e);
+    }
     setConfigurationsOnCluster(clusterTopology, "TOPOLOGY_RESOLVED");
   }
 

@@ -636,12 +636,12 @@ public class BlueprintConfigurationProcessor {
      *
      * @return new property value
      */
-    public String updateForClusterCreate(String propertyName,
+    String updateForClusterCreate(String propertyName,
                                          String origValue,
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology);
 
-    public Collection<String> getRequiredHostGroups(String origValue,
+    Collection<String> getRequiredHostGroups(String origValue,
                                                     Map<String, Map<String, String>> properties,
                                                     ClusterTopology topology);
   }
@@ -792,32 +792,79 @@ public class BlueprintConfigurationProcessor {
         return Collections.singleton(hostGroupName);
       } else {
         Collection<String> matchingGroups = topology.getHostGroupsForComponent(component);
-        if (matchingGroups.size() == 1) {
+        int matchingGroupCount = matchingGroups.size();
+        if (matchingGroupCount == 1) {
           return Collections.singleton(matchingGroups.iterator().next());
         } else {
-          if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroups.size() == 2)) {
-            // if this is the defaultFS property, it should reflect the nameservice name,
-            // rather than a hostname (used in non-HA scenarios)
-            if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
-              return Collections.emptySet();
-            }
-
-            if (properties.containsKey("hbase-site") && properties.get("hbase-site").get("hbase.rootdir").equals(origValue)) {
-              // hbase-site's reference to the namenode is handled differently in HA mode, since the
-              // reference must point to the logical nameservice, rather than an individual namenode
-              return Collections.emptySet();
-            }
-          }
-
-          if (topology.isNameNodeHAEnabled() && isComponentSecondaryNameNode() && (matchingGroups.isEmpty())) {
-            // if HDFS HA is enabled, then no replacement is necessary for properties that refer to the SECONDARY_NAMENODE
-            // eventually this type of information should be encoded in the stacks
+          Cardinality cardinality = topology.getBlueprint().getStack().getCardinality(component);
+          // if no matching host groups are found for a component whose configuration
+          // is handled by this updater, return an empty set
+          if (matchingGroupCount == 0 && cardinality.isValidCount(0)) {
             return Collections.emptySet();
-          }
+          } else {
+            //todo: shouldn't have all of these hard coded HA rules here
+            if (topology.isNameNodeHAEnabled() && isComponentNameNode() && (matchingGroupCount == 2)) {
+              // if this is the defaultFS property, it should reflect the nameservice name,
+              // rather than a hostname (used in non-HA scenarios)
+              if (properties.containsKey("core-site") && properties.get("core-site").get("fs.defaultFS").equals(origValue)) {
+                return Collections.emptySet();
+              }
 
-          //todo:
-          throw new IllegalArgumentException("Unable to determine required host groups for component. " +
-              "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
+              if (properties.containsKey("hbase-site") && properties.get("hbase-site").get("hbase.rootdir").equals(origValue)) {
+                // hbase-site's reference to the namenode is handled differently in HA mode, since the
+                // reference must point to the logical nameservice, rather than an individual namenode
+                return Collections.emptySet();
+              }
+
+              if (properties.containsKey("accumulo-site") && properties.get("accumulo-site").get("instance.volumes").equals(origValue)) {
+                // accumulo-site's reference to the namenode is handled differently in HA mode, since the
+                // reference must point to the logical nameservice, rather than an individual namenode
+                return Collections.emptySet();
+              }
+
+              if (!origValue.contains("localhost")) {
+                // if this NameNode HA property is a FDQN, then simply return it
+                return Collections.emptySet();
+              }
+            }
+
+            if (topology.isNameNodeHAEnabled() && isComponentSecondaryNameNode() && (matchingGroupCount == 0)) {
+              // if HDFS HA is enabled, then no replacement is necessary for properties that refer to the SECONDARY_NAMENODE
+              // eventually this type of information should be encoded in the stacks
+              return Collections.emptySet();
+            }
+
+            if (isYarnResourceManagerHAEnabled(properties) && isComponentResourceManager() && (matchingGroupCount == 2)) {
+              if (!origValue.contains("localhost")) {
+                // if this Yarn property is a FQDN, then simply return it
+                return Collections.emptySet();
+              }
+            }
+
+            if ((isOozieServerHAEnabled(properties)) && isComponentOozieServer() && (matchingGroupCount > 1)) {
+              if (!origValue.contains("localhost")) {
+                // if this Oozie property is a FQDN, then simply return it
+                return Collections.emptySet();
+              }
+            }
+
+            if ((isHiveServerHAEnabled(properties)) && isComponentHiveServer() && (matchingGroupCount > 1)) {
+              if (!origValue.contains("localhost")) {
+                // if this Hive property is a FQDN, then simply return it
+                return Collections.emptySet();
+              }
+            }
+
+            if ((isComponentHiveMetaStoreServer()) && matchingGroupCount > 1) {
+              if (!origValue.contains("localhost")) {
+                // if this Hive MetaStore property is a FQDN, then simply return it
+                return Collections.emptySet();
+              }
+            }
+            //todo: property name
+            throw new IllegalArgumentException("Unable to update configuration property with topology information. " +
+                "Component '" + component + "' is not mapped to any host group or is mapped to multiple groups.");
+          }
         }
       }
     }
@@ -996,6 +1043,15 @@ public class BlueprintConfigurationProcessor {
         return super.updateForClusterCreate(propertyName, origValue, properties, topology);
       } else {
         return origValue;
+      }
+    }
+
+    @Override
+    public Collection<String> getRequiredHostGroups(String origValue, Map<String, Map<String, String>> properties, ClusterTopology topology) {
+      if (isDatabaseManaged(properties)) {
+        return super.getRequiredHostGroups(origValue, properties, topology);
+      } else {
+        return Collections.emptySet();
       }
     }
 

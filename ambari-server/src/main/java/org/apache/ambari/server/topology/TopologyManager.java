@@ -39,6 +39,8 @@ import org.apache.ambari.server.orm.entities.StageEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.SecurityType;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -80,6 +82,8 @@ public class TopologyManager {
   //todo: task id's.  Use existing mechanism for getting next task id sequence
   private final static AtomicLong nextTaskId = new AtomicLong(10000);
   private final Object serviceResourceLock = new Object();
+
+  protected final static Logger LOG = LoggerFactory.getLogger(TopologyManager.class);
 
 
   public TopologyManager() {
@@ -174,7 +178,7 @@ public class TopologyManager {
 
     if (! matchedToRequest) {
       synchronized (availableHosts) {
-        System.out.printf("TopologyManager: Queueing available host %s\n", hostName);
+        LOG.info("TopologyManager: Queueing available host {}", hostName);
         availableHosts.add(host);
       }
     }
@@ -500,7 +504,7 @@ public class TopologyManager {
 
     @Override
     public void run() {
-      System.out.println("TopologyManager.ConfigureClusterTask: Entering");
+      LOG.info("TopologyManager.ConfigureClusterTask: Entering");
 
       boolean completed = false;
       boolean interrupted = false;
@@ -520,25 +524,25 @@ public class TopologyManager {
 
       if (! interrupted) {
         try {
-          System.out.println("TopologyManager.ConfigureClusterTask: Setting Configuration on cluster");
+          LOG.info("TopologyManager.ConfigureClusterTask: Setting Configuration on cluster");
           // sets updated configuration on topology and cluster
           configRequest.process();
         } catch (Exception e) {
           //todo: how to handle this?  If this fails, we shouldn't start any hosts.
-          System.out.println("TopologyManager.ConfigureClusterTask: " +
-              "An exception occurred while attempting to process cluster configs and set on cluster");
+          LOG.error("TopologyManager.ConfigureClusterTask: " +
+              "An exception occurred while attempting to process cluster configs and set on cluster: " + e);
           e.printStackTrace();
         }
 
         synchronized (configurationFlagLock) {
-          System.out.println("TopologyManager.ConfigureClusterTask: Setting configure complete flag to true");
+          LOG.info("TopologyManager.ConfigureClusterTask: Setting configure complete flag to true");
           configureComplete = true;
         }
 
         // execute all queued install/start tasks
         executor.submit(new ExecuteQueuedHostTasks());
       }
-      System.out.println("TopologyManager.ConfigureClusterTask: Exiting");
+      LOG.info("TopologyManager.ConfigureClusterTask: Exiting");
     }
 
     // get set of required host groups from config processor and confirm that all requests
@@ -549,9 +553,10 @@ public class TopologyManager {
       try {
         requiredHostGroups = configRequest.getRequiredHostGroups();
       } catch (RuntimeException e) {
-        //todo
-        System.out.println("Caught an error from Config Processor: " + e);
-        throw e;
+        //todo: for now if an exception occurs, log error and return true which will result in topology update
+        LOG.error("An exception occurred while attempting to determine required host groups for config update " + e);
+        e.printStackTrace();
+        requiredHostGroups = Collections.emptyList();
       }
 
       synchronized (outstandingRequests) {
