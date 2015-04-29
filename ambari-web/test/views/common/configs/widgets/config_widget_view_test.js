@@ -218,4 +218,16 @@ describe('App.ConfigWidgetView', function () {
     });
 
   });
+
+  describe('#isValueCompatibleWithWidget()', function() {
+    it('pass validation', function() {
+      view.set('config.isValid', true);
+      expect(view.isValueCompatibleWithWidget()).to.be.true;
+    });
+
+    it('fail validation', function() {
+      view.set('config.isValid', false);
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+  });
 });

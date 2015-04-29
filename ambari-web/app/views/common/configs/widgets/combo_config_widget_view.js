@@ -131,7 +131,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isValueCompatibleWithWidget: function() {
-    return this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
+    return this._super() && this.get('content.valuesList').someProperty('configValue', this.get('config.value'));
   }
 
 });

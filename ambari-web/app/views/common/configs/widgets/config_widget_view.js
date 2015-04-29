@@ -282,7 +282,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @returns {boolean}
    */
   isValueCompatibleWithWidget: function() {
-    return true
+    return this.get('config.isValid');
   }
 
 });

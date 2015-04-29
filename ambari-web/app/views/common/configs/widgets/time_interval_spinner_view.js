@@ -237,18 +237,22 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   },
 
   isValueCompatibleWithWidget: function() {
-    var configValue = parseInt(this.get('config.value'));
-    if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
-      var min = parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'));
-      if (configValue < min) return false;
+    if (this._super()) {
+      var configValue = parseInt(this.get('config.value'));
+      if (isNaN(configValue)) return false;
+      if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
+        var min = parseInt(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+        if (configValue < min) return false;
+      }
+      if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
+        var max = parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+        if (configValue > max) return false;
+      }
+      if (this.get('config.stackConfigProperty.valueAttributes.increment_step')) {
+        if (configValue % this.get('config.stackConfigProperty.valueAttributes.increment_step') != 0) return false;
+      }
+      return true;
     }
-    if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
-      var max = parseInt(this.get('config.stackConfigProperty.valueAttributes.maximum'));
-      if (configValue > max) return false;
-    }
-    if (this.get('config.stackConfigProperty.valueAttributes.step')) {
-      if (configValue % this.get('config.stackConfigProperty.valueAttributes.increment_step') != 0) return false;
-    }
-    return true
+    return false;
   }
 });

@@ -446,19 +446,25 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive'),
 
   isValueCompatibleWithWidget: function() {
-    var configValue = this.get('parseFunction')(this.get('config.value'));
-    if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
-      var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
-      if (configValue < min) return false;
+    if (this._super()) {
+      if (!this.get('validateFunction')(this.get('config.value'))) {
+        return false;
+      }
+      var configValue = this.get('parseFunction')(this.get('config.value'));
+      if (this.get('config.stackConfigProperty.valueAttributes.minimum')) {
+        var min = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.minimum'));
+        if (configValue < min) return false;
+      }
+      if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
+        var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
+        if (configValue > max) return false;
+      }
+      if (this.get('config.stackConfigProperty.valueAttributes.increment_step')) {
+        if (configValue % this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.increment_step')) != 0) return false;
+      }
+      return true;
     }
-    if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
-      var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
-      if (configValue > max) return false;
-    }
-    if (this.get('config.stackConfigProperty.valueAttributes.step')) {
-      if (configValue % this.get('config.stackConfigProperty.valueAttributes.increment_step') != 0) return false;
-    }
-    return true
+    return false;
   }
 
 });

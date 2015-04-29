@@ -261,7 +261,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   isValueCompatibleWithWidget: function() {
-    return this.get('options').someProperty('value', this.get('config.value'));
+    return this._super() && this.get('options').someProperty('value', this.get('config.value'));
   }
 
 });

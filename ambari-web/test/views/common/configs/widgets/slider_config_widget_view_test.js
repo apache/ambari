@@ -17,7 +17,7 @@
  */
 
 var App = require('app');
-
+var validator = require('utils/validator');
 var viewInt, viewFloat, viewPercent;
 
 describe('App.SliderConfigWidgetView', function () {
@@ -367,6 +367,59 @@ describe('App.SliderConfigWidgetView', function () {
         expect(ticks.toArray()).to.be.eql(test.e.ticks);
         expect(ticksLabels.toArray()).to.be.eql(test.e.ticksLabels);
       });
+    });
+  });
+
+  describe('#isValueCompatibleWithWidget', function() {
+    var stackConfigProperty = null;
+
+    beforeEach(function() {
+      viewInt.set('config', {});
+      stackConfigProperty = App.StackConfigProperty.createRecord({name: 'p1', valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}});
+      viewInt.set('config.stackConfigProperty', stackConfigProperty);
+      viewInt.set('config.isValid', true);
+    });
+
+    it ('fail by config validation', function() {
+      viewInt.set('config.isValid', false);
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail by view validation', function() {
+      viewInt.set('config.value', 'a');
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail by view validation int', function() {
+      viewInt.set('config.value', '2.2');
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail by view validation float', function() {
+      viewFloat.set('config.value', '2.2.2');
+      viewFloat.set('validateFunction', validator.isValidFloat);
+      expect(viewFloat.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail: to large', function() {
+      viewInt.set('config.value', 12);
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail: to small', function() {
+      viewInt.set('config.value', 0);
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail: wrong step', function() {
+      viewInt.set('config.stackConfigProperty', stackConfigProperty);
+      viewInt.set('config.value', '3');
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('ok', function() {
+      viewInt.set('config.value', 4);
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.true;
     });
   });
 

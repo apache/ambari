@@ -244,4 +244,51 @@ describe('App.TimeIntervalSpinnerView', function () {
 
   });
 
+  describe('#isValueCompatibleWithWidget', function() {
+    var stackConfigProperty = null;
+
+    beforeEach(function() {
+      view.set('config', {});
+      stackConfigProperty = App.StackConfigProperty.createRecord({name: 'p1', valueAttributes: {minimum: 1, maximum: 10, increment_step: 4, type: 'int'}});
+      view.set('config.stackConfigProperty', stackConfigProperty);
+      view.set('config.isValid', true);
+    });
+
+    it ('fail by config validation', function() {
+      view.set('config.isValid', false);
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail by view validation', function() {
+      view.set('config.value', 'a');
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail by view validation int', function() {
+      view.set('config.value', '2.2');
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail: to large', function() {
+      view.set('config.value', 12);
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail: to small', function() {
+      view.set('config.value', 0);
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('fail: wrong step', function() {
+      view.set('config.stackConfigProperty', stackConfigProperty);
+      view.set('config.value', '3');
+      expect(view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it ('ok', function() {
+      view.set('config.value', 4);
+      expect(view.isValueCompatibleWithWidget()).to.be.true;
+    });
+  });
+
 });

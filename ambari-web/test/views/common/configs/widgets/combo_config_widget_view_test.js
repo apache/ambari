@@ -148,4 +148,29 @@ describe('App.ComboConfigWidgetView', function() {
       });
     });
   });
+
+  describe('#isValueCompatibleWithWidget()', function() {
+    beforeEach(function() {
+      this.view.set('content', {});
+      this.view.set('config', {});
+    });
+    it('pass validation', function() {
+      this.view.set('config.isValid', true);
+      this.view.set('config.value', 'v1');
+      this.view.set('content.valuesList', [{configValue: 'v1'}, {configValue: 'v2'}]);
+      expect(this.view.isValueCompatibleWithWidget()).to.be.true;
+    });
+
+    it('fail validation by isValid', function() {
+      this.view.set('config.isValid', false);
+      expect(this.view.isValueCompatibleWithWidget()).to.be.false;
+    });
+
+    it('fail validation value that missing from list', function() {
+      this.view.set('config.isValid', true);
+      this.view.set('config.value', 'v3');
+      this.view.set('content.valuesList', [{configValue: 'v1'}, {configValue: 'v2'}]);
+      expect(this.view.isValueCompatibleWithWidget()).to.be.false;
+    });
+  });
 });
