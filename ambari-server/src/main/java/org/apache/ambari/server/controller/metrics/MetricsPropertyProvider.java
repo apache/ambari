@@ -24,13 +24,15 @@ import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
+import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
-import org.apache.http.client.utils.URIBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+
+import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 
 public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
   protected final static Logger LOG =
@@ -49,6 +51,9 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
   protected final String componentNamePropertyId;
 
   protected final ComponentSSLConfiguration configuration;
+
+  protected MetricsPaddingMethod metricsPaddingMethod =
+    new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
 
   protected MetricsPropertyProvider(Map<String, Map<String,
     PropertyInfo>> componentPropertyInfoMap,
@@ -122,6 +127,16 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
     Set<String> ids = getRequestPropertyIds(request, predicate);
     if (ids.isEmpty()) {
       return resources;
+    }
+
+    Map<String, Object> predicateProperties = PredicateHelper.getProperties(predicate);
+    if (predicateProperties != null && predicateProperties.keySet().contains(ZERO_PADDING_PARAM)) {
+      String paddingStr = (String) predicateProperties.get(ZERO_PADDING_PARAM);
+      for (MetricsPaddingMethod.PADDING_STRATEGY strategy : MetricsPaddingMethod.PADDING_STRATEGY.values()) {
+        if (paddingStr.equalsIgnoreCase(strategy.name())) {
+          metricsPaddingMethod = new MetricsPaddingMethod(strategy);
+        }
+      }
     }
 
     return populateResourcesWithProperties(resources, request, ids);

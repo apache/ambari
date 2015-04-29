@@ -366,7 +366,7 @@ public class AMSPropertyProviderTest {
     uriBuilder.addParameter("endTime", "1421697600");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
     Number[][] val = (Number[][]) res.getPropertyValue(propertyId);
-    Assert.assertEquals(188, val.length);
+    Assert.assertEquals(189, val.length);
   }
 
   public static class TestMetricHostProvider implements MetricHostProvider {
