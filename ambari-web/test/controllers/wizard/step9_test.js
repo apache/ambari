@@ -473,14 +473,18 @@ describe('App.InstallerStep9Controller', function () {
           })
         })
       ]);
-      c.set('status', 'failed');
-      c.set('hosts', Em.A([
-        Em.Object.create({
-          progress: 0
-        })
-      ]));
+      c.setProperties({
+        status: 'failed',
+        isPolling: true,
+        hosts: Em.A([
+          Em.Object.create({
+            progress: 0
+          })
+        ])
+      });
       c.setIsServicesInstalled(polledData);
       expect(c.get('progress')).to.equal('100');
+      expect(c.get('isPolling')).to.be.false;
     });
     it('Should return 34% completed', function () {
       var polledData = Em.A([
@@ -495,17 +499,21 @@ describe('App.InstallerStep9Controller', function () {
           })
         })
       ]);
-      c.set('status', '');
-      c.set('hosts', Em.A([
-        Em.Object.create({
-          progress: 0
+      c.setProperties({
+        status: '',
+        isPolling: true,
+        hosts: Em.A([
+          Em.Object.create({
+            progress: 0
+          })
+        ]),
+        content: Em.Object.create({
+          controllerName: 'installerController'
         })
-      ]));
-      c.set('content', Em.Object.create({
-        controllerName: 'installerController'
-      }));
+      });
       c.setIsServicesInstalled(polledData);
       expect(c.get('progress')).to.equal('34');
+      expect(c.get('isPolling')).to.be.true;
     });
   });
 

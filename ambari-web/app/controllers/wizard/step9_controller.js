@@ -45,13 +45,13 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   progress: '0',
 
-  /*
+  /**
    * Json file for the mock data to be used in mock mode
    * @type {string}
    */
   mockDataPrefix: '/data/wizard/deploy/5_hosts',
 
-  /*
+  /**
    * Current Request data polled from the API: api/v1/clusters/{clusterName}/requests/{RequestId}?fields=tasks/Tasks/command,
    * tasks/Tasks/exit_code,tasks/Tasks/start_time,tasks/Tasks/end_time,tasks/Tasks/host_name,tasks/Tasks/id,tasks/Tasks/role,
    * tasks/Tasks/status&minimal_response=true
@@ -59,7 +59,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   polledData: [],
 
-  /*
+  /**
    * This flag is only used in UI mock mode as a counter for number of polls.
    * @type {number}
    */
@@ -89,7 +89,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
    */
   startCallFailed: false,
 
-  /*
+  /**
    * Status of the page. Possible values: <info, warning, failed and success>.
    * This property is used in the step-9 view for displaying the appropriate color of the overall progress bar and
    * the appropriate result message at the bottom of the page
@@ -130,7 +130,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
     }
   }.observes('content.cluster.status', 'content.controllerName'),
 
-  /*
+  /**
    * Computed property to determine if the Retry button should be made visible on the page.
    * @type {bool}
    */
@@ -829,7 +829,10 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       if (this.get('status') === 'failed') {
         clusterStatus.status = 'INSTALL FAILED';
         this.saveClusterStatus(clusterStatus);
-        this.set('progress', '100');
+        this.setProperties({
+          progress: '100',
+          isPolling: false
+        });
         this.get('hosts').forEach(function (host) {
           host.set('progress', '100');
         });
@@ -1142,7 +1145,7 @@ App.WizardStep9Controller = Em.Controller.extend(App.ReloadPopupMixin, {
       });
       this.set('progress', '100');
       this.saveClusterStatus(clusterStatus);
-    } else if (this.get('content.cluster.status') === 'PENDING') {
+    } else if (this.get('content.cluster.status') === 'PENDING' && this.get('isPolling')) {
       this.launchStartServices();
     }
 
