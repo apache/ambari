@@ -21,7 +21,7 @@
 
   <form>
     <div class="row-fluid">
-      <div class="span2 title">{{t widget.create.wizard.step3.widgetName}}</div>
+      <div class="span2 title">{{t widget.create.wizard.step3.widgetName}}<i class="icon-asterisk"></i></div>
       <div class="span10">{{view Ember.TextField valueBinding="widgetName"}}</div>
     </div>
 
@@ -31,20 +31,18 @@
     </div>
 
     <div class="row-fluid">
-      <div class="span2 title">{{t common.scope}}</div>
-      <div class="span10 radio-group">
-        {{#each scope in scopes}}
-          <label class="checkbox">
-            {{view view.scopeRadioButtonView checkedBinding="scope.checked" class="align-checkbox"}}
-            {{scope.name}}
-          </label>
-        {{/each}}
+      <div class="span2 title">{{t widget.create.wizard.step3.sharing}}</div>
+      <div class="span10">
+        <label class="checkbox">
+          {{view Ember.Checkbox checkedBinding="controller.isSharedChecked"}} &nbsp;
+          {{t widget.create.wizard.step3.sharing.msg}}
+        </label>
       </div>
     </div>
 
     <div class="row-fluid">
       <div class="span2 title">{{t common.description}}</div>
-      <div class="span10">{{view Ember.TextArea valueBinding="widgetDescription"}}</div>
+      <div class="span10">{{view Ember.TextArea valueBinding="widgetDescription" class="description-text-area"}}</div>
     </div>
   </form>
 

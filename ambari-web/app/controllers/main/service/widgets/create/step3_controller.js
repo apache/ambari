@@ -22,20 +22,6 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   name: "widgetWizardStep3Controller",
 
   /**
-   * @type {Array}
-   */
-  scopes: [
-    Em.Object.create({
-      name: 'User',
-      checked: false
-    }),
-    Em.Object.create({
-      name: 'Cluster',
-      checked: false
-    })
-  ],
-
-  /**
    * @type {string}
    */
   widgetName: '',
@@ -46,11 +32,16 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   widgetAuthor: '',
 
   /**
+   * @type {boolean}
+   */
+  isSharedChecked: false,
+
+  /**
    * @type {string}
    */
   widgetScope: function () {
-    return this.get('scopes').findProperty('checked');
-  }.property('scopes.@each.checked'),
+    return this.get('isSharedChecked')? 'Cluster': 'User';
+  }.property('isSharedChecked'),
 
   /**
    * @type {string}
@@ -83,19 +74,12 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetAuthor', App.router.get('loginName'));
     this.set('widgetName', this.get('content.widgetName'));
     this.set('widgetDescription', this.get('content.widgetDescription'));
-    this.get('scopes').forEach(function (scope) {
-      scope.set('checked', scope.get('name').toUpperCase() == this.get('content.widgetScope'));
-    }, this);
-    //if no scope selected, choose User by default
-    if (!this.get('scopes').someProperty('checked')) {
-      this.get('scopes').findProperty('name', 'User').set('checked', true);
-    }
+    this.set('isSharedChecked', this.get('content.widgetScope') == 'CLUSTER');
   },
 
-  //TODO: Following computed property needs to be implemented. Next button should be enabled when there is no validation error and all required fields are filled
   isSubmitDisabled: function () {
-    return !(this.get('widgetName') && this.get('widgetDescription'));
-  }.property('widgetName', 'widgetDescription'),
+    return !(this.get('widgetName'));
+  }.property('widgetName'),
 
   /**
    * collect all needed data to create new widget
@@ -106,8 +90,8 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
       WidgetInfo: {
         widget_name: this.get('widgetName'),
         widget_type: this.get('content.widgetType'),
-        description: this.get('widgetDescription'),
-        scope: this.get('widgetScope.name').toUpperCase(),
+        description: this.get('widgetDescription') || " ",
+        scope: this.get('widgetScope').toUpperCase(),
         "metrics": this.get('widgetMetrics').map(function (metric) {
           return {
             "name": metric.name,

@@ -399,14 +399,19 @@
         .title {
           text-align: right;
         }
-      }
-      .radio-group {
-        line-height: 20px;
-        .checkbox {
-          padding-left: 0;
+        .icon-asterisk {
+          color: red;
+          font-size: 8px;
+          margin-left: 2px;
         }
-        label {
-          margin-bottom: 0;
+        label.checkbox {
+          line-height: 20px;
+          margin-bottom: 0px;
+          margin-top: 5px;
+        }
+        .description-text-area {
+          width: 320px;
+          height: 75px;
         }
       }
     }
@@ -538,7 +543,7 @@
   .modal {
     max-height: 703px;
     .modal-body {
-      max-height: 543px;
+      min-height: 541px;
     }
   }
   
@@ -630,7 +635,7 @@
         }
       }
       .no-widgets-text {
-        padding-left: 20px;
+        padding: 20px;
         color: #808080;
       }
     }

@@ -20,18 +20,6 @@ App.WidgetWizardStep3View = Em.View.extend({
 
   templateName: require('templates/main/service/widgets/create/step3'),
 
-  /**
-   * @type {Ember.Checkbox}
-   */
-  scopeRadioButtonView: Em.Checkbox.extend({
-    attributeBindings: ['type', 'value', 'checked'],
-    type: 'radio',
-
-    change: function () {
-      this.get('controller.scopes').setEach('checked', false);
-    }
-  }),
-
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.initPreviewData();

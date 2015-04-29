@@ -2519,7 +2519,9 @@ Em.I18n.translations = {
   'widget.create.wizard.step2.allComponents': 'All {0}',
   'widget.create.wizard.step2.activeComponents': 'Active {0}',
   'widget.create.wizard.step2.noMetricFound': 'No metric found',
-  'widget.create.wizard.step3.widgetName': 'Widget Name',
+  'widget.create.wizard.step3.widgetName': 'Name',
+  'widget.create.wizard.step3.sharing': 'Sharing',
+  'widget.create.wizard.step3.sharing.msg': 'Share this widget in the widget library',
   'widget.create.wizard.step3.header': 'Name and Description',
 
   'widget.edit.wizard.header': 'Edit Widget',
