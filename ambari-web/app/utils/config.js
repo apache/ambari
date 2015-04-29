@@ -1346,11 +1346,12 @@ App.config = Em.Object.create({
    * transform set of configs from file
    * into one config with textarea content:
    * name=value
-   * @param configs
-   * @param filename
+   * @param {App.ServiceConfigProperty[]} configs
+   * @param {String} filename
+   * @param {App.ServiceConfigProperty[]} [configsToSkip=[]]
    * @return {*}
    */
-  fileConfigsIntoTextarea: function (configs, filename) {
+  fileConfigsIntoTextarea: function (configs, filename, configsToSkip) {
     var fileConfigs = configs.filterProperty('filename', filename);
     var value = '';
     var defaultValue = '';
@@ -1358,8 +1359,10 @@ App.config = Em.Object.create({
     var complexConfig = $.extend({}, template);
     if (complexConfig) {
       fileConfigs.forEach(function (_config) {
-        value += _config.name + '=' + _config.value + '\n';
-        defaultValue += _config.name + '=' + _config.defaultValue + '\n';
+        if (!(configsToSkip && configsToSkip.someProperty('name', _config.name))) {
+          value += _config.name + '=' + _config.value + '\n';
+          defaultValue += _config.name + '=' + _config.defaultValue + '\n';
+        }
       }, this);
       var isFinal = fileConfigs.someProperty('isFinal', true);
       complexConfig.value = value;
@@ -1367,7 +1370,7 @@ App.config = Em.Object.create({
       complexConfig.isFinal = isFinal;
       complexConfig.defaultIsFinal = isFinal;
       configs = configs.filter(function (_config) {
-        return _config.filename !== filename;
+        return _config.filename !== filename || (configsToSkip && configsToSkip.someProperty('name', _config.name));
       });
       configs.push(complexConfig);
     }

@@ -410,7 +410,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
 
       //put properties from capacity-scheduler.xml into one config with textarea view
       if (self.get('content.serviceName') === 'YARN') {
-        configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
+        var configsToSkip = self.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection');
+        configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
       }
       self.set('allConfigs', configs);
       //add configs as names of host components

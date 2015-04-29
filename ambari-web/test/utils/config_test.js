@@ -124,7 +124,34 @@ describe('App.config', function () {
       expect(result[0].value).to.equal('');
       expect(result[0].defaultValue).to.equal('');
     });
-
+    it("filename has configs that shouldn't be included in textarea", function () {
+      var configs = [
+        {
+          name: 'config1',
+          value: 'value1',
+          defaultValue: 'value1',
+          filename: filename
+        },
+        {
+          name: 'config2',
+          value: 'value2',
+          defaultValue: 'value2',
+          filename: filename
+        }
+      ];
+      var cfg = {
+        name: 'config3',
+        value: 'value3',
+        defaultValue: 'value3',
+        filename: filename
+      };
+      configs.push(cfg);
+      var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename, [cfg]);
+      expect(result.length).to.equal(2);
+      expect(result[1].value).to.equal('config1=value1\nconfig2=value2\n');
+      expect(result[1].defaultValue).to.equal('config1=value1\nconfig2=value2\n');
+      expect(configs.findProperty('name', 'config3')).to.eql(cfg);
+    });
   });
 
   describe('#textareaIntoFileConfigs', function () {
