@@ -25,6 +25,7 @@
   <property>
     <name>keyserver_host</name>
     <value> </value>
+    <display-name>Key Server Host</display-name>
     <description>Hostnames where Key Management Server is installed</description>
     <value-attributes>
       <type>string</type>
@@ -33,6 +34,7 @@
   <property>
     <name>keyserver_port</name>
     <value> </value>
+    <display-name>Key Server Port</display-name>
     <description>Port number where Key Management Server is available</description>
     <value-attributes>
       <type>int</type>

@@ -54,9 +54,10 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
     password: App.PasswordConfigWidgetView,
     'radio-buttons': App.RadioButtonConfigWidgetView,
     slider: App.SliderConfigWidgetView,
+    'text-field': App.TextFieldConfigWidgetView,
     'time-interval-spinner': App.TimeIntervalSpinnerView,
     toggle: App.ToggleConfigWidgetView,
-    string: App.StringConfigWidgetView
+    'text-area': App.StringConfigWidgetView
   },
 
   /**

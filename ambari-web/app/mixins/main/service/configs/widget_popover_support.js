@@ -48,6 +48,8 @@ App.WidgetPopoverSupport = Em.Mixin.create({
 
   initPopover: function () {
     if (this.get('isPopoverEnabled') !== false) {
+      if (this.get('config.name') == 'keyserver_port')
+        console.error(this.get('popoverPlacement'));
       var leftPopoverTemplate = '<div class="popover config-widget-left-popover"><div class="arrow"></div><div class="popover-inner"><h3 class="popover-title"></h3><div class="popover-content"><p></p></div></div></div>';
       App.popover(this.$('.original-widget'), {
         template: this.get('popoverPlacement') == 'left'? leftPopoverTemplate : undefined,

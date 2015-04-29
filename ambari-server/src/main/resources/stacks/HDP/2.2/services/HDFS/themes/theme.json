@@ -204,13 +204,13 @@
       {
         "config": "hadoop-env/keyserver_host",
         "widget": {
-          "type": "string"
+          "type": "text-field"
         }
       },
       {
         "config": "hadoop-env/keyserver_port",
         "widget": {
-          "type": "string"
+          "type": "text-field"
         }
       }
     ]
