@@ -24,6 +24,7 @@ import org.apache.ambari.server.api.resources.ResourceInstanceFactoryImpl;
 import org.apache.ambari.server.api.services.parsers.BodyParseException;
 import org.apache.ambari.server.api.services.parsers.JsonRequestBodyParser;
 import org.apache.ambari.server.api.services.parsers.RequestBodyParser;
+import org.apache.ambari.server.api.services.serializers.CsvSerializer;
 import org.apache.ambari.server.api.services.serializers.JsonSerializer;
 import org.apache.ambari.server.api.services.serializers.ResultSerializer;
 import org.apache.ambari.server.controller.spi.Resource;
@@ -41,6 +42,7 @@ import java.util.Set;
  * Provides common functionality to all services.
  */
 public abstract class BaseService {
+  public final static MediaType MEDIA_TYPE_TEXT_CSV_TYPE = new MediaType("text", "csv");
 
   /**
    * Factory for creating resource instances.
@@ -175,6 +177,10 @@ public abstract class BaseService {
         }
       };
     }
+    else if (mediaType.equals(MEDIA_TYPE_TEXT_CSV_TYPE)) {
+      return new CsvSerializer();
+    }
+
     throw new IllegalArgumentException("The media type " + mediaType + " is not supported.");
   }
 

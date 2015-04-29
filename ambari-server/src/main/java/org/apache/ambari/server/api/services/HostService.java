@@ -207,6 +207,17 @@ public class HostService extends BaseService {
   }
 
   /**
+   * Get the kerberos_identities sub-resource.
+   *
+   * @param hostName host id
+   * @return the host_components service
+   */
+  @Path("{hostName}/kerberos_identities")
+  public HostKerberosIdentityService getHostKerberosIdentityHandler(@PathParam("hostName") String hostName) {
+    return new HostKerberosIdentityService(m_clusterName, hostName);
+  }
+
+  /**
    * Get the alerts sub-resource.
    *
    * @param hostName host id

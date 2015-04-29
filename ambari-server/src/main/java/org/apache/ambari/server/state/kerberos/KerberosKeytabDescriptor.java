@@ -156,6 +156,27 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
 
   /**
    * Creates a new KerberosKeytabDescriptor
+   *
+   * @param file the path to the keytab file
+   * @param ownerName the local username of the file owner
+   * @param ownerAccess the file access privileges for the file owner ("r", "rw", "")
+   * @param groupName the local group name with privileges to access the file
+   * @param groupAccess the file access privileges for the group ("r", "rw", "")
+   * @param configuration the configuration used to store the principal name
+   * @param cachable true if the keytab may be cached by Ambari; otherwise false
+   */
+  public KerberosKeytabDescriptor(String file, String ownerName, String ownerAccess, String groupName,
+                                  String groupAccess, String configuration, boolean cachable) {
+    setName(file);
+    setOwnerName(ownerName);
+    setOwnerAccess(ownerAccess);
+    setGroupName(groupName);
+    setGroupAccess(groupAccess);
+    setConfiguration(configuration);
+    setCachable(cachable);
+  }
+  /**
+   * Creates a new KerberosKeytabDescriptor
    * <p/>
    * See {@link org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor} for the JSON
    * Schema that may be used to generate this map.

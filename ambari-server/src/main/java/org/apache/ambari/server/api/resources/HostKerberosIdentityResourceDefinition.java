@@ -1,4 +1,4 @@
-/**
+/*
  * Licensed to the Apache Software Foundation (ASF) under one
  * or more contributor license agreements.  See the NOTICE file
  * distributed with this work for additional information
@@ -16,43 +16,41 @@
  * limitations under the License.
  */
 
+
 package org.apache.ambari.server.api.resources;
 
-
-import java.util.HashSet;
-import java.util.Set;
-
+import org.apache.ambari.server.api.query.render.HostKerberosIdentityCsvRenderer;
+import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.controller.spi.Resource;
 
 /**
- * Host resource definition.
+ * HostKerberosIdentity resource definition.
  */
-public class HostResourceDefinition extends BaseResourceDefinition {
+public class HostKerberosIdentityResourceDefinition extends BaseResourceDefinition {
 
   /**
    * Constructor.
    */
-  public HostResourceDefinition() {
-    super(Resource.Type.Host);
+  public HostKerberosIdentityResourceDefinition() {
+    super(Resource.Type.HostKerberosIdentity);
   }
 
   @Override
   public String getPluralName() {
-    return "hosts";
+    return "kerberos_identities";
   }
 
   @Override
   public String getSingularName() {
-    return "host";
+    return "kerberos_identity";
   }
 
   @Override
-  public Set<SubResourceDefinition> getSubResourceDefinitions() {
-    Set<SubResourceDefinition> subs = new HashSet<SubResourceDefinition>();
-    subs.add(new SubResourceDefinition(Resource.Type.HostComponent));
-    subs.add(new SubResourceDefinition(Resource.Type.Alert));
-    subs.add(new SubResourceDefinition(Resource.Type.HostStackVersion));
-    subs.add(new SubResourceDefinition(Resource.Type.HostKerberosIdentity));
-    return subs;
+  public Renderer getRenderer(String name) {
+    if ("csv".equalsIgnoreCase(name)) {
+      return new HostKerberosIdentityCsvRenderer();
+    } else {
+      return super.getRenderer(name);
+    }
   }
 }

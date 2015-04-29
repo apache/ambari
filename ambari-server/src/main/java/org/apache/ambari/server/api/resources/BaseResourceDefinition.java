@@ -28,6 +28,8 @@ import org.apache.ambari.server.controller.spi.ClusterController;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.Schema;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.net.URLCodec;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -180,12 +182,32 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
         }
 
         Schema schema = getClusterController().getSchema(r.getType());
-        Object id     = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
+        Object id = r.getPropertyValue(schema.getKeyPropertyId(r.getType()));
 
-        href = parent.getProperty("isCollection").equals("true") ?
-            href + id : href + parent.getName() + '/' + id;
+        String hrefIdPart = urlencode(id);
+
+        href = parent.getStringProperty("isCollection").equals("true") ?
+            href + hrefIdPart : href + parent.getName() + '/' + hrefIdPart;
       }
       resultNode.setProperty("href", href);
+    }
+
+    /**
+     * URL encodes the id (string) value
+     *
+     * @param id the id to URL encode
+     * @return null if id is null, else the URL encoded value of the id
+     */
+    protected String urlencode(Object id) {
+      if (id == null)
+        return "";
+      else {
+        try {
+          return new URLCodec().encode(id.toString());
+        } catch (EncoderException e) {
+          return id.toString();
+        }
+      }
     }
   }
 

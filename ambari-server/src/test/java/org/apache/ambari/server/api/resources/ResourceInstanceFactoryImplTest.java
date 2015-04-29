@@ -47,4 +47,14 @@ public class ResourceInstanceFactoryImplTest {
     assertEquals("artifacts", resourceDefinition.getPluralName());
     assertEquals(Resource.Type.Artifact, resourceDefinition.getType());
   }
+
+  @Test
+  public void testGetHostKerberosIdentityDefinition() {
+    ResourceDefinition resourceDefinition = ResourceInstanceFactoryImpl.getResourceDefinition(
+        Resource.Type.HostKerberosIdentity, null);
+
+    assertEquals("kerberos_identity", resourceDefinition.getSingularName());
+    assertEquals("kerberos_identities", resourceDefinition.getPluralName());
+    assertEquals(Resource.Type.HostKerberosIdentity, resourceDefinition.getType());
+  }
 }

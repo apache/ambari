@@ -214,14 +214,14 @@ public class JsonSerializer implements ResultSerializer {
   }
 
   private void writeHref(TreeNode<Resource> node) throws IOException {
-    String hrefProp = node.getProperty("href");
+    String hrefProp = node.getStringProperty("href");
     if (hrefProp != null) {
       m_generator.writeStringField("href", hrefProp);
     }
   }
 
   private void writeItemCount(TreeNode<Resource> node) throws IOException {
-    String countProp = node.getProperty("count");
+    String countProp = node.getStringProperty("count");
     if (countProp != null) {
       m_generator.writeStringField("itemTotal", countProp);
       // Write once

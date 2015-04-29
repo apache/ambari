@@ -87,6 +87,19 @@ public class KerberosIdentityDescriptor extends AbstractKerberosDescriptor {
 
   /**
    * Creates a new KerberosIdentityDescriptor
+   *
+   * @param name the name of this identity descriptor
+   * @param principal a KerberosPrincipalDescriptor
+   * @param keytab a KerberosKeytabDescriptor
+   */
+  public KerberosIdentityDescriptor(String name, KerberosPrincipalDescriptor principal, KerberosKeytabDescriptor keytab) {
+    setName(name);
+    setPrincipalDescriptor(principal);
+    setKeytabDescriptor(keytab);
+  }
+
+  /**
+   * Creates a new KerberosIdentityDescriptor
    * <p/>
    * See {@link org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor} for the JSON
    * Schema that may be used to generate this map.

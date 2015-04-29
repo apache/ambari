@@ -89,7 +89,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
       for (ResourceDefinition.PostProcessor processor : listProcessors) {
         processor.process(m_request, node, href);
       }
-      href = node.getProperty("href");
+      href = node.getStringProperty("href");
       int i = href.indexOf('?');
       if (i != -1) {
         try {
@@ -99,7 +99,7 @@ public class ResultPostProcessorImpl implements ResultPostProcessor {
         }
       }
     } else {
-      String isItemsCollection = node.getProperty("isCollection");
+      String isItemsCollection = node.getStringProperty("isCollection");
       if (node.getName() == null && "true".equals(isItemsCollection)) {
         node.setName("items");
         node.setProperty("href", href);

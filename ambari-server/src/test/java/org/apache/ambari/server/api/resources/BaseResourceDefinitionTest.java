@@ -106,7 +106,7 @@ public class BaseResourceDefinitionTest {
     
     processor.process(null, serviceNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services");
 
-    String href = serviceNode.getProperty("href");
+    String href = serviceNode.getStringProperty("href");
 
     Assert.assertEquals("http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/services/Service1", href);
 
@@ -121,7 +121,7 @@ public class BaseResourceDefinitionTest {
 
     processor.process(null, configGroupNode, "http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/config_groups");
 
-    href = configGroupNode.getProperty("href");
+    href = configGroupNode.getStringProperty("href");
 
     Assert.assertEquals("http://c6401.ambari.apache.org:8080/api/v1/clusters/c1/config_groups/2", href);
   }

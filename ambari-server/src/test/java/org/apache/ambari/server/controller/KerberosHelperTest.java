@@ -415,6 +415,409 @@ public class KerberosHelperTest extends EasyMockSupport {
     testDeleteTestIdentity(new KerberosCredential("principal", "password", "keytab"));
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void testGetActiveIdentities_MissingCluster() throws Exception {
+    testGetActiveIdentities(null, null, null, null, true);
+  }
+
+  @Test
+  public void testGetActiveIdentities_All() throws Exception {
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, null, true);
+
+    Assert.assertNotNull(identities);
+    Assert.assertEquals(2, identities.size());
+
+    Collection<KerberosIdentityDescriptor> hostIdentities;
+
+    hostIdentities = identities.get("host1");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(3, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+    
+    hostIdentities = identities.get("host2");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(3, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+  }
+
+  @Test
+  public void testGetActiveIdentities_SingleHost() throws Exception {
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", "host1", null, null, true);
+
+    Assert.assertNotNull(identities);
+    Assert.assertEquals(1, identities.size());
+
+    Collection<KerberosIdentityDescriptor> hostIdentities;
+
+    hostIdentities = identities.get("host1");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(3, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+  }
+
+  @Test
+  public void testGetActiveIdentities_SingleService() throws Exception {
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, "SERVICE1", null, true);
+
+    Assert.assertNotNull(identities);
+    Assert.assertEquals(2, identities.size());
+
+    Collection<KerberosIdentityDescriptor> hostIdentities;
+
+    hostIdentities = identities.get("host1");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(2, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+    
+    hostIdentities = identities.get("host2");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(2, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});  }
+
+  @Test
+  public void testGetActiveIdentities_SingleServiceSingleHost() throws Exception {
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", "host2", "SERVICE1", null, true);
+
+    Assert.assertNotNull(identities);
+    Assert.assertEquals(1, identities.size());
+
+    Collection<KerberosIdentityDescriptor> hostIdentities;
+
+    hostIdentities = identities.get("host2");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(2, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+  }
+
+  @Test
+  public void testGetActiveIdentities_SingleComponent() throws Exception {
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, "COMPONENT2", true);
+
+    Assert.assertNotNull(identities);
+    Assert.assertEquals(2, identities.size());
+
+    Collection<KerberosIdentityDescriptor> hostIdentities;
+
+    hostIdentities = identities.get("host1");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(1, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+
+    hostIdentities = identities.get("host2");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(1, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+  }
+
+  private void validateIdentities(Collection<KerberosIdentityDescriptor> identities, HashMap<String, Map<String, Object>> expectedDataMap) {
+
+    Assert.assertEquals(expectedDataMap.size(), identities.size());
+
+    for(KerberosIdentityDescriptor identity: identities) {
+      Map<String, Object> expectedData = expectedDataMap.get(identity.getName());
+
+      Assert.assertNotNull(expectedData);
+
+      KerberosPrincipalDescriptor principal = identity.getPrincipalDescriptor();
+      Assert.assertNotNull(principal);
+      Assert.assertEquals(expectedData.get("principal_name"), principal.getName());
+      Assert.assertEquals(expectedData.get("principal_type"), principal.getType());
+      Assert.assertEquals(expectedData.get("principal_configuration"), principal.getConfiguration());
+      Assert.assertEquals(expectedData.get("principal_local_username"), principal.getLocalUsername());
+
+      KerberosKeytabDescriptor keytab = identity.getKeytabDescriptor();
+      Assert.assertNotNull(keytab);
+      Assert.assertEquals(expectedData.get("keytab_file"), keytab.getFile());
+      Assert.assertEquals(expectedData.get("keytab_owner_name"), keytab.getOwnerName());
+      Assert.assertEquals(expectedData.get("keytab_owner_access"), keytab.getOwnerAccess());
+      Assert.assertEquals(expectedData.get("keytab_group_name"), keytab.getGroupName());
+      Assert.assertEquals(expectedData.get("keytab_group_access"), keytab.getGroupAccess());
+      Assert.assertEquals(expectedData.get("keytab_configuration"), keytab.getConfiguration());
+      Assert.assertEquals(Boolean.TRUE.equals(expectedData.get("keytab_cachable")), keytab.isCachable());
+    }
+  }
+
+
   private void testEnableKerberos(final KerberosCredential kerberosCredential,
                                   boolean getClusterDescriptor,
                                   boolean getStackDescriptor) throws Exception {
@@ -2473,4 +2876,232 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     verifyAll();
   }
+
+  private Map<String, Collection<KerberosIdentityDescriptor>> testGetActiveIdentities(String clusterName, String hostName, String serviceName, String compnentName, boolean replaceHostnames) throws Exception {
+
+    KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
+
+    final ServiceComponentHost schKerberosClient1 = createMock(ServiceComponentHost.class);
+    expect(schKerberosClient1.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
+    expect(schKerberosClient1.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
+
+    final ServiceComponentHost schKerberosClient2 = createMock(ServiceComponentHost.class);
+    expect(schKerberosClient2.getServiceName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
+    expect(schKerberosClient2.getServiceComponentName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
+
+    final ServiceComponentHost sch1a = createMock(ServiceComponentHost.class);
+    expect(sch1a.getServiceName()).andReturn("SERVICE1").anyTimes();
+    expect(sch1a.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
+
+    final ServiceComponentHost sch1b = createMock(ServiceComponentHost.class);
+    expect(sch1b.getServiceName()).andReturn("SERVICE2").anyTimes();
+    expect(sch1b.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
+
+    final ServiceComponentHost sch2a = createMock(ServiceComponentHost.class);
+    expect(sch2a.getServiceName()).andReturn("SERVICE1").anyTimes();
+    expect(sch2a.getServiceComponentName()).andReturn("COMPONENT1").anyTimes();
+
+    final ServiceComponentHost sch2b = createMock(ServiceComponentHost.class);
+    expect(sch2b.getServiceName()).andReturn("SERVICE2").anyTimes();
+    expect(sch2b.getServiceComponentName()).andReturn("COMPONENT2").anyTimes();
+
+    final Host host1 = createNiceMock(Host.class);
+    expect(host1.getHostName()).andReturn("host1").anyTimes();
+    expect(host1.getState()).andReturn(HostState.HEALTHY).anyTimes();
+
+    final Host host2 = createNiceMock(Host.class);
+    expect(host2.getHostName()).andReturn("host2").anyTimes();
+    expect(host2.getState()).andReturn(HostState.HEALTHY).anyTimes();
+
+    final ServiceComponent serviceComponentKerberosClient = createMock(ServiceComponent.class);
+    expect(serviceComponentKerberosClient.getName()).andReturn(Role.KERBEROS_CLIENT.name()).anyTimes();
+    expect(serviceComponentKerberosClient.getServiceComponentHosts()).andReturn(Collections.singletonMap("host1", schKerberosClient1)).anyTimes();
+
+    final Service serviceKerberos = createStrictMock(Service.class);
+    expect(serviceKerberos.getName()).andReturn(Service.Type.KERBEROS.name()).anyTimes();
+    expect(serviceKerberos.getServiceComponents())
+        .andReturn(Collections.singletonMap(Role.KERBEROS_CLIENT.name(), serviceComponentKerberosClient))
+        .anyTimes();
+
+    final Service service1 = createStrictMock(Service.class);
+    expect(service1.getName()).andReturn("SERVICE1").anyTimes();
+    expect(service1.getServiceComponents())
+        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .anyTimes();
+
+    final Service service2 = createStrictMock(Service.class);
+    expect(service2.getName()).andReturn("SERVICE2").anyTimes();
+    expect(service2.getServiceComponents())
+        .andReturn(Collections.<String, ServiceComponent>emptyMap())
+        .anyTimes();
+
+    final Cluster cluster = createMock(Cluster.class);
+    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
+    expect(cluster.getServiceComponentHosts("host1"))
+        .andReturn(new ArrayList<ServiceComponentHost>() {
+          {
+            add(schKerberosClient1);
+            add(sch1a);
+            add(sch1b);
+          }
+        })
+        .anyTimes();
+    expect(cluster.getServiceComponentHosts("host2"))
+        .andReturn(new ArrayList<ServiceComponentHost>() {
+          {
+            add(schKerberosClient2);
+            add(sch2a);
+            add(sch2b);
+          }
+        })
+        .anyTimes();
+    expect(cluster.getCurrentStackVersion())
+        .andReturn(new StackId("HDP", "2.2"))
+        .anyTimes();
+    expect(cluster.getServices())
+        .andReturn(new HashMap<String, Service>() {
+          {
+            put(Service.Type.KERBEROS.name(), serviceKerberos);
+            put("SERVICE1", service1);
+            put("SERVICE2", service2);
+          }
+        })
+        .anyTimes();
+
+    final Clusters clusters = injector.getInstance(Clusters.class);
+    expect(clusters.getCluster(clusterName)).andReturn(cluster).times(1);
+
+    if(hostName == null) {
+      expect(clusters.getHostsForCluster(clusterName))
+          .andReturn(new HashMap<String, Host>() {
+            {
+              put("host1", host1);
+              put("host2", host2);
+            }
+          })
+          .once();
+    }
+
+    final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
+        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .anyTimes();
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host2"))
+        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .anyTimes();
+    expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, null))
+        .andReturn(Collections.<String, Map<String, String>>emptyMap())
+        .anyTimes();
+
+    final ConfigHelper configHelper = injector.getInstance(ConfigHelper.class);
+    expect(configHelper.getEffectiveConfigProperties(anyObject(Cluster.class), anyObject(Map.class)))
+        .andReturn(new HashMap<String, Map<String, String>>() {
+          {
+            put("cluster-env", new HashMap<String, String>() {{
+              put("kerberos_domain", "FOOBAR.COM");
+            }});
+          }
+        })
+        .anyTimes();
+
+    final KerberosPrincipalDescriptor principalDescriptor1 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").anyTimes();
+    expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).anyTimes();
+    expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").anyTimes();
+    expect(principalDescriptor1.getLocalUsername()).andReturn("service1").anyTimes();
+
+    final KerberosPrincipalDescriptor principalDescriptor2 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptor2.getValue()).andReturn("component2/${host}@${realm}").anyTimes();
+    expect(principalDescriptor2.getType()).andReturn(KerberosPrincipalType.SERVICE).anyTimes();
+    expect(principalDescriptor2.getConfiguration()).andReturn("service2-site/component2.kerberos.principal").anyTimes();
+    expect(principalDescriptor2.getLocalUsername()).andReturn("service2").anyTimes();
+
+    final KerberosPrincipalDescriptor principalDescriptorService1 = createMock(KerberosPrincipalDescriptor.class);
+    expect(principalDescriptorService1.getValue()).andReturn("service1/_HOST@${realm}").anyTimes();
+    expect(principalDescriptorService1.getType()).andReturn(KerberosPrincipalType.SERVICE).anyTimes();
+    expect(principalDescriptorService1.getConfiguration()).andReturn("service1-site/service1.kerberos.principal").anyTimes();
+    expect(principalDescriptorService1.getLocalUsername()).andReturn("service1").anyTimes();
+
+    final KerberosKeytabDescriptor keytabDescriptor1 = createMock(KerberosKeytabDescriptor.class);
+    expect(keytabDescriptor1.getFile()).andReturn("${keytab_dir}/service1.keytab").anyTimes();
+    expect(keytabDescriptor1.getOwnerName()).andReturn("service1").anyTimes();
+    expect(keytabDescriptor1.getOwnerAccess()).andReturn("rw").anyTimes();
+    expect(keytabDescriptor1.getGroupName()).andReturn("hadoop").anyTimes();
+    expect(keytabDescriptor1.getGroupAccess()).andReturn("").anyTimes();
+    expect(keytabDescriptor1.getConfiguration()).andReturn("service1-site/component1.keytab.file").anyTimes();
+    expect(keytabDescriptor1.isCachable()).andReturn(false).anyTimes();
+
+    final KerberosKeytabDescriptor keytabDescriptor2 = createMock(KerberosKeytabDescriptor.class);
+    expect(keytabDescriptor2.getFile()).andReturn("${keytab_dir}/service2.keytab").anyTimes();
+    expect(keytabDescriptor2.getOwnerName()).andReturn("service2").anyTimes();
+    expect(keytabDescriptor2.getOwnerAccess()).andReturn("rw").anyTimes();
+    expect(keytabDescriptor2.getGroupName()).andReturn("hadoop").anyTimes();
+    expect(keytabDescriptor2.getGroupAccess()).andReturn("").anyTimes();
+    expect(keytabDescriptor2.getConfiguration()).andReturn("service2-site/component2.keytab.file").anyTimes();
+    expect(keytabDescriptor2.isCachable()).andReturn(false).anyTimes();
+
+    final KerberosKeytabDescriptor keytabDescriptorService1 = createMock(KerberosKeytabDescriptor.class);
+    expect(keytabDescriptorService1.getFile()).andReturn("${keytab_dir}/service1.service.keytab").anyTimes();
+    expect(keytabDescriptorService1.getOwnerName()).andReturn("service1").anyTimes();
+    expect(keytabDescriptorService1.getOwnerAccess()).andReturn("rw").anyTimes();
+    expect(keytabDescriptorService1.getGroupName()).andReturn("hadoop").anyTimes();
+    expect(keytabDescriptorService1.getGroupAccess()).andReturn("").anyTimes();
+    expect(keytabDescriptorService1.getConfiguration()).andReturn("service1-site/service1.keytab.file").anyTimes();
+    expect(keytabDescriptorService1.isCachable()).andReturn(false).anyTimes();
+
+    final KerberosIdentityDescriptor identityDescriptor1 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor1.getName()).andReturn("identity1").anyTimes();
+    expect(identityDescriptor1.getPrincipalDescriptor()).andReturn(principalDescriptor1).anyTimes();
+    expect(identityDescriptor1.getKeytabDescriptor()).andReturn(keytabDescriptor1).anyTimes();
+
+    final KerberosIdentityDescriptor identityDescriptor2 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptor2.getName()).andReturn("identity2").anyTimes();
+    expect(identityDescriptor2.getPrincipalDescriptor()).andReturn(principalDescriptor2).anyTimes();
+    expect(identityDescriptor2.getKeytabDescriptor()).andReturn(keytabDescriptor2).anyTimes();
+
+    final KerberosIdentityDescriptor identityDescriptorService1 = createMock(KerberosIdentityDescriptor.class);
+    expect(identityDescriptorService1.getName()).andReturn("identity3").anyTimes();
+    expect(identityDescriptorService1.getPrincipalDescriptor()).andReturn(principalDescriptorService1).anyTimes();
+    expect(identityDescriptorService1.getKeytabDescriptor()).andReturn(keytabDescriptorService1).anyTimes();
+
+    final KerberosComponentDescriptor componentDescriptor1 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor1.getIdentities(true)).andReturn(Collections.singletonList(identityDescriptor1)).anyTimes();
+
+    final KerberosComponentDescriptor componentDescriptor2 = createMock(KerberosComponentDescriptor.class);
+    expect(componentDescriptor2.getIdentities(true)).andReturn(Collections.singletonList(identityDescriptor2)).anyTimes();
+
+    final KerberosServiceDescriptor serviceDescriptor1 = createMock(KerberosServiceDescriptor.class);
+    expect(serviceDescriptor1.getComponent("COMPONENT1")).andReturn(componentDescriptor1).anyTimes();
+    expect(serviceDescriptor1.getIdentities(true)).andReturn(Collections.singletonList(identityDescriptorService1)).anyTimes();
+
+    final KerberosServiceDescriptor serviceDescriptor2 = createMock(KerberosServiceDescriptor.class);
+    expect(serviceDescriptor2.getComponent("COMPONENT2")).andReturn(componentDescriptor2).anyTimes();
+    expect(serviceDescriptor2.getIdentities(true)).andReturn(null).anyTimes();
+
+    final KerberosDescriptor kerberosDescriptor = createMock(KerberosDescriptor.class);
+    expect(kerberosDescriptor.getProperties()).andReturn(new HashMap<String, String>(){
+      {
+        put("realm", "EXAMPLE.COM");
+      }
+    }).anyTimes();
+    expect(kerberosDescriptor.getService("KERBEROS")).andReturn(null).anyTimes();
+    expect(kerberosDescriptor.getService("SERVICE1")).andReturn(serviceDescriptor1).anyTimes();
+    expect(kerberosDescriptor.getService("SERVICE2")).andReturn(serviceDescriptor2).anyTimes();
+
+    setupGetDescriptorFromCluster(kerberosDescriptor);
+
+    replayAll();
+
+    // Needed by infrastructure
+    metaInfo.init();
+
+    Map<String, Collection<KerberosIdentityDescriptor>> identities;
+    identities = kerberosHelper.getActiveIdentities(clusterName, hostName, serviceName, compnentName, replaceHostnames);
+
+    verifyAll();
+
+    return identities;
+  }
+
 }

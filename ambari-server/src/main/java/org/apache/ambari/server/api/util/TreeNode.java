@@ -98,7 +98,7 @@ public interface TreeNode<T> {
    * @param name  the name of the property
    * @param value the value of the property
    */
-  public void setProperty(String name, String value);
+  public void setProperty(String name, Object value);
 
   /**
    * Get the specified node property.
@@ -106,7 +106,15 @@ public interface TreeNode<T> {
    * @param name property name
    * @return the requested property value or null
    */
-  public String getProperty(String name);
+  public Object getProperty(String name);
+
+  /**
+   * Get the specified node property as a String.
+   *
+   * @param name property name
+   * @return the requested property value (as a String) or null
+   */
+  public String getStringProperty(String name);
 
   /**
    * Remove a property from the node.

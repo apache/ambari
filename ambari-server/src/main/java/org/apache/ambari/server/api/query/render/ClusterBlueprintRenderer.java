@@ -264,7 +264,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
    * @return true if the node represents a collection; false otherwise
    */
   private boolean isCollection(TreeNode<Resource> node) {
-    String isCollection = node.getProperty("isCollection");
+    String isCollection = node.getStringProperty("isCollection");
     return isCollection != null && isCollection.equals("true");
   }
 

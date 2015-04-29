@@ -106,7 +106,7 @@ public class HostComponentResourceDefinition extends BaseResourceDefinition {
       //todo: look at partial request fields to ensure that hosts should be returned
       if (request.getResource().getResourceDefinition().getType() == getType()) {
         // only add host if query host_resource was directly queried
-        String nodeHref = resultNode.getProperty("href");
+        String nodeHref = resultNode.getStringProperty("href");
         resultNode.getObject().setProperty(PropertyHelper.getPropertyId("host", "href"),
             nodeHref.substring(0, nodeHref.indexOf("/host_components/")));
       }

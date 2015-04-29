@@ -50,7 +50,7 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   /**
    * properties
    */
-  private Map<String, String> m_mapNodeProps;
+  private Map<String, Object> m_mapNodeProps;
 
   /**
    * Constructor.
@@ -117,16 +117,22 @@ public class TreeNodeImpl<T> implements TreeNode<T> {
   }
 
   @Override
-  public void setProperty(String name, String value) {
+  public void setProperty(String name, Object value) {
     if (m_mapNodeProps == null) {
-      m_mapNodeProps = new LinkedHashMap<String, String>();
+      m_mapNodeProps = new LinkedHashMap<String, Object>();
     }
     m_mapNodeProps.put(name, value);
   }
 
   @Override
-  public String getProperty(String name) {
+  public Object getProperty(String name) {
     return m_mapNodeProps == null ? null : m_mapNodeProps.get(name);
+  }
+
+  @Override
+  public String getStringProperty(String name) {
+    Object value = getProperty(name);
+    return value == null ? null : value.toString();
   }
 
   @Override

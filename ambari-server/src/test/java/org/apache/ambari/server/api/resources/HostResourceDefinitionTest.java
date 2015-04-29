@@ -46,10 +46,11 @@ public class HostResourceDefinitionTest {
     final ResourceDefinition resource = new HostResourceDefinition();
     Set<SubResourceDefinition> subResources = resource.getSubResourceDefinitions();
 
-    assertEquals(3, subResources.size());
+    assertEquals(4, subResources.size());
     assertTrue(includesType(subResources, Resource.Type.HostComponent));
     assertTrue(includesType(subResources, Resource.Type.Alert));
     assertTrue(includesType(subResources, Resource.Type.HostStackVersion));
+    assertTrue(includesType(subResources, Resource.Type.HostKerberosIdentity));
   }
 
   private boolean includesType(Set<SubResourceDefinition> resources, Resource.Type type) {

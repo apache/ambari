@@ -419,6 +419,22 @@ public class ClusterService extends BaseService {
   }
 
   /**
+   * Get the host Kerberos identity resource without specifying the parent host component.
+   * Allows accessing host Kerberos identity resources across hosts.
+   *
+   * @param request      the request
+   * @param clusterName  the cluster name
+   *
+   * @return  the host component service with no parent set
+   */
+  @Path("{clusterName}/kerberos_identities")
+  public HostKerberosIdentityService getHostKerberosIdentityHandler(@Context javax.ws.rs.core.Request request, @PathParam("clusterName") String clusterName) {
+
+    hasPermission(Request.Type.valueOf(request.getMethod()), clusterName);
+    return new HostKerberosIdentityService(clusterName, null);
+  }
+
+  /**
    * Get the component resource without specifying the parent service.
    * Allows accessing component resources across services.
    *

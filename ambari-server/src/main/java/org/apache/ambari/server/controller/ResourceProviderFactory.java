@@ -53,6 +53,9 @@ public interface ResourceProviderFactory {
       Map<Type, String> keyPropertyIds,
       AmbariManagementController managementController);
 
+  @Named("hostKerberosIdentity")
+  ResourceProvider getHostKerberosIdentityResourceProvider(AmbariManagementController managementController);
+
   @Named("repositoryVersion")
   ResourceProvider getRepositoryVersionResourceProvider();
 }

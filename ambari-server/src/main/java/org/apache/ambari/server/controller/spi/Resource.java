@@ -143,7 +143,8 @@ public interface Resource {
     Widget,
     WidgetLayout,
     ActiveWidgetLayout,
-    Theme;
+    Theme,
+    HostKerberosIdentity;
 
     /**
      * Get the {@link Type} that corresponds to this InternalType.
@@ -248,6 +249,7 @@ public interface Resource {
     public static final Type Widget = InternalType.Widget.getType();
     public static final Type WidgetLayout = InternalType.WidgetLayout.getType();
     public static final Type ActiveWidgetLayout = InternalType.ActiveWidgetLayout.getType();
+    public static final Type HostKerberosIdentity = InternalType.HostKerberosIdentity.getType();
 
     /**
      * The type name.

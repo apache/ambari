@@ -193,7 +193,7 @@ public class ClusterBlueprintRendererTest {
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
-    assertNull(blueprintTree.getProperty("isCollection"));
+    assertNull(blueprintTree.getStringProperty("isCollection"));
     assertEquals(1, blueprintTree.getChildren().size());
 
     TreeNode<Resource> blueprintNode = blueprintTree.getChildren().iterator().next();
@@ -272,7 +272,7 @@ public class ClusterBlueprintRendererTest {
     Result blueprintResult = renderer.finalizeResult(result);
 
     TreeNode<Resource> blueprintTree = blueprintResult.getResultTree();
-    assertNull(blueprintTree.getProperty("isCollection"));
+    assertNull(blueprintTree.getStringProperty("isCollection"));
     assertEquals(1, blueprintTree.getChildren().size());
 
     TreeNode<Resource> blueprintNode = blueprintTree.getChildren().iterator().next();

@@ -73,7 +73,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * <p/>
    * Expecting either "service" or "user"
    */
-  private KerberosPrincipalType type;
+  private KerberosPrincipalType type = KerberosPrincipalType.SERVICE;
 
   /**
    * A string declaring configuration type and property name indicating the property to be updated
@@ -87,7 +87,7 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * <p/>
    * Example: hdfs-site/dfs.namenode.kerberos.principal
    */
-  private String configuration;
+  private String configuration = null;
 
   /**
    * a String indicating the local username related to this principal, or null of no local mapping is
@@ -95,7 +95,24 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * <p/>
    * This value may be using in generating auth_to_local configuration settings.
    */
-  private String localUsername;
+  private String localUsername = null;
+
+  /**
+   * Creates a new KerberosPrincipalDescriptor
+   *
+   * @param principal the principal name
+   * @param type the principal type (user, service, etc...)
+   * @param configuration the configuration used to store the principal name
+   * @param localUsername the local username to map to the principal
+   */
+  public KerberosPrincipalDescriptor(String principal, KerberosPrincipalType type, String configuration, String localUsername) {
+    // The name for this KerberosPrincipalDescriptor is stored in the "value" entry in the map
+    // This is not automatically set by the super classes.
+    setName(principal);
+    setType((type == null) ? KerberosPrincipalType.SERVICE : type);
+    setConfiguration(configuration);
+    setLocalUsername(localUsername);
+  }
 
   /**
    * Creates a new KerberosPrincipalDescriptor
@@ -107,16 +124,11 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * @see org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor
    */
   public KerberosPrincipalDescriptor(Map<?, ?> data) {
-    // The name for this KerberosPrincipalDescriptor is stored in the "value" entry in the map
-    // This is not automatically set by the super classes.
-    setName(getStringValue(data, "value"));
-
-    String type = getStringValue(data, "type");
-    setType((type == null) ? KerberosPrincipalType.SERVICE : KerberosPrincipalType.valueOf(type.toUpperCase()));
-
-    setConfiguration(getStringValue(data, "configuration"));
-
-    setLocalUsername(getStringValue(data, "local_username"));
+    this(getStringValue(data, "value"),
+        getKerberosPrincipalTypeValue(data, "type"),
+        getStringValue(data, "configuration"),
+        getStringValue(data, "local_username")
+    );
   }
 
   /**
@@ -297,6 +309,26 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
           );
     } else {
       return false;
+    }
+  }
+
+  /**
+   * Translates a string value representing a principal type to a KerberosPrincipalType.
+   * <p/>
+   * If no value is supplied for the key or a translation cannot be made then KerberosPrincipalType.SERVICE
+   * is assumed.
+   *
+   * @param map a Map containing the relevant data
+   * @param key a String declaring the item to retrieve
+   * @return a KerberosPrincipalType
+   * @throws IllegalArgumentException if the principal type value is not one of the expected types.
+   */
+  private static KerberosPrincipalType getKerberosPrincipalTypeValue(Map<?, ?> map, String key) {
+    String type = getStringValue(map, key);
+    if ((type == null) || type.isEmpty()) {
+      return KerberosPrincipalType.SERVICE;
+    } else {
+      return KerberosPrincipalType.valueOf(type.toUpperCase());
     }
   }
 }

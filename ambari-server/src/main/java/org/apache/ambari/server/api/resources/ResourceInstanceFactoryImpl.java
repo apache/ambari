@@ -384,6 +384,10 @@ public class ResourceInstanceFactoryImpl implements ResourceInstanceFactory {
         resourceDefinition = new ActiveWidgetLayoutResourceDefinition();
         break;
 
+      case HostKerberosIdentity:
+        resourceDefinition = new HostKerberosIdentityResourceDefinition();
+        break;
+
       default:
         throw new IllegalArgumentException("Unsupported resource type: " + type);
     }

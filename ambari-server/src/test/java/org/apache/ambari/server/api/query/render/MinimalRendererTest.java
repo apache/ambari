@@ -348,7 +348,7 @@ public class MinimalRendererTest {
     renderer.finalizeProperties(createPropertyTree(), false);
 
     TreeNode<Resource> resultTree = renderer.finalizeResult(result).getResultTree();
-    assertNull(resultTree.getProperty("isCollection"));
+    assertNull(resultTree.getStringProperty("isCollection"));
     assertEquals(1, resultTree.getChildren().size());
 
     TreeNode<Resource> clusterNode = resultTree.getChildren().iterator().next();
@@ -414,7 +414,7 @@ public class MinimalRendererTest {
     renderer.finalizeProperties(createPropertyTreeWithSubProps(), false);
 
     TreeNode<Resource> resultTree = renderer.finalizeResult(result).getResultTree();
-    assertNull(resultTree.getProperty("isCollection"));
+    assertNull(resultTree.getStringProperty("isCollection"));
     assertEquals(1, resultTree.getChildren().size());
 
     TreeNode<Resource> clusterNode = resultTree.getChildren().iterator().next();

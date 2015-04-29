@@ -1999,6 +1999,173 @@ public class KerberosHelper {
   }
 
   /**
+   * Returns the active identities for the named cluster.  Results are filtered by host, service,
+   * and/or component; and grouped by host.
+   * <p/>
+   * The cluster name is mandatory; however the active identities may be filtered by one or more of
+   * host, service, or component. A <code>null</code> value for any of these filters indicates no
+   * filter for that parameter.
+   * <p/>
+   * The return values are grouped by host and optionally <code>_HOST</code> in principals will be
+   * replaced with the relevant hostname if specified to do so.
+   *
+   * @param clusterName      the name of the relevant cluster (mandatory)
+   * @param hostName         the name of a host for which to find results, null indicates all hosts
+   * @param serviceName      the name of a service for which to find results, null indicates all
+   *                         services
+   * @param componentName    the name of a component for which to find results, null indicates all
+   *                         components
+   * @param replaceHostNames if true, _HOST in principals will be replace with the relevant host
+   *                         name
+   * @return a map of host names to kerberos identities
+   * @throws AmbariException if an error occurs processing the cluster's active identities
+   */
+  public Map<String, Collection<KerberosIdentityDescriptor>> getActiveIdentities(String clusterName,
+                                                                                 String hostName,
+                                                                                 String serviceName,
+                                                                                 String componentName,
+                                                                                 boolean replaceHostNames)
+      throws AmbariException {
+
+    if ((clusterName == null) || clusterName.isEmpty()) {
+      throw new IllegalArgumentException("Invalid argument, cluster name is required");
+    }
+
+    Cluster cluster = clusters.getCluster(clusterName);
+
+    if (cluster == null) {
+      throw new AmbariException(String.format("The cluster object for the cluster name %s is not available", clusterName));
+    }
+
+    Map<String, Collection<KerberosIdentityDescriptor>> activeIdentities = new HashMap<String, Collection<KerberosIdentityDescriptor>>();
+
+    if (isClusterKerberosEnabled(cluster)) {
+      Collection<String> hosts;
+
+      if (hostName == null) {
+        Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
+        if (hostMap == null) {
+          hosts = null;
+        } else {
+          hosts = hostMap.keySet();
+        }
+      } else {
+        hosts = Collections.singleton(hostName);
+      }
+
+      if ((hosts != null) && !hosts.isEmpty()) {
+        KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
+
+        if (kerberosDescriptor != null) {
+          Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
+
+          for (String hostname : hosts) {
+            Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<String, KerberosIdentityDescriptor>();
+            List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname, serviceName, componentName, kerberosDescriptor);
+
+            if (!identities.isEmpty()) {
+              // Calculate the current host-specific configurations. These will be used to replace
+              // variables within the Kerberos descriptor data
+              Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname, kerberosDescriptorProperties);
+
+              for (KerberosIdentityDescriptor identity : identities) {
+                KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
+                String principal = null;
+
+                if (principalDescriptor != null) {
+                  principal = KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations);
+                }
+
+                if (principal != null) {
+                  if (replaceHostNames) {
+                    principal = principal.replace("_HOST", hostname);
+                  }
+
+                  if (!hostActiveIdentities.containsKey(principal)) {
+                    KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
+                        new KerberosPrincipalDescriptor(principal,
+                            principalDescriptor.getType(),
+                            KerberosDescriptor.replaceVariables(principalDescriptor.getConfiguration(), configurations),
+                            KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
+
+                    KerberosKeytabDescriptor resolvedKeytabDescriptor;
+
+                    KerberosKeytabDescriptor keytabDescriptor = identity.getKeytabDescriptor();
+                    if (keytabDescriptor == null) {
+                      resolvedKeytabDescriptor = null;
+                    } else {
+                      resolvedKeytabDescriptor =
+                          new KerberosKeytabDescriptor(
+                              KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations),
+                              KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
+                              KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
+                              KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations),
+                              KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupAccess(), configurations),
+                              KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations),
+                              keytabDescriptor.isCachable());
+                    }
+
+                    hostActiveIdentities.put(principal, new KerberosIdentityDescriptor(
+                        identity.getName(),
+                        resolvedPrincipalDescriptor,
+                        resolvedKeytabDescriptor));
+                  }
+                }
+              }
+            }
+
+            activeIdentities.put(hostname, hostActiveIdentities.values());
+          }
+        }
+      }
+    }
+
+    return activeIdentities;
+  }
+
+  private List<KerberosIdentityDescriptor> getActiveIdentities(Cluster cluster,
+                                                               String hostname,
+                                                               String serviceName,
+                                                               String componentName,
+                                                               KerberosDescriptor kerberosDescriptor)
+      throws AmbariException {
+
+    List<KerberosIdentityDescriptor> identities = new ArrayList<KerberosIdentityDescriptor>();
+
+    List<ServiceComponentHost> serviceComponentHosts = cluster.getServiceComponentHosts(hostname);
+
+    if(serviceComponentHosts != null) {
+      for (ServiceComponentHost serviceComponentHost : serviceComponentHosts) {
+        String schServiceName = serviceComponentHost.getServiceName();
+        String schComponentName = serviceComponentHost.getServiceComponentName();
+
+        if (((serviceName == null) || serviceName.equals(schServiceName)) &&
+            ((componentName == null) || componentName.equals(schComponentName))) {
+
+          KerberosServiceDescriptor serviceDescriptor = kerberosDescriptor.getService(schServiceName);
+
+          if (serviceDescriptor != null) {
+            List<KerberosIdentityDescriptor> serviceIdentities = serviceDescriptor.getIdentities(true);
+            if (serviceIdentities != null) {
+              identities.addAll(serviceIdentities);
+            }
+
+            KerberosComponentDescriptor componentDescriptor = serviceDescriptor.getComponent(schComponentName);
+            if (componentDescriptor != null) {
+              List<KerberosIdentityDescriptor> componentIdentities = componentDescriptor.getIdentities(true);
+              if (componentIdentities != null) {
+                identities.addAll(componentIdentities);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return identities;
+  }
+
+  /**
    * A enumeration of the supported custom operations
    */
   public static enum SupportedCustomOperation {
