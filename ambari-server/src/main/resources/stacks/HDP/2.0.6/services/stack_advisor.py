@@ -335,7 +335,7 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
       "HBASE": {"hbase-env": self.validateHbaseEnvConfigurations},
       "AMBARI_METRICS": {"ams-hbase-site": self.validateAmsHbaseSiteConfigurations,
               "ams-hbase-env": self.validateAmsHbaseEnvConfigurations,
-              "ams-site": self.validateAmsSiteConfigurations},
+              "ams-site": self.validateAmsSiteConfigurations}
     }
 
   def validateMinMax(self, items, recommendedDefaults, configurations):
