@@ -86,6 +86,7 @@
           <commandScript>
             <script>scripts/accumulo_tracer.py</script>
             <scriptType>PYTHON</scriptType>
+            <timeout>180</timeout>
           </commandScript>
         </component>
 

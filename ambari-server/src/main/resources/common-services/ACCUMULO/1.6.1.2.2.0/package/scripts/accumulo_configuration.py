@@ -128,14 +128,14 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
 
   # create log4j.properties files
   if (params.log4j_props != None):
-    File(format("{params.conf_dir}/log4j.properties"),
+    File(format("{dest_conf_dir}/log4j.properties"),
          mode=0644,
          group=params.user_group,
          owner=params.accumulo_user,
          content=params.log4j_props
     )
   else:
-    File(format("{params.conf_dir}/log4j.properties"),
+    File(format("{dest_conf_dir}/log4j.properties"),
          mode=0644,
          group=params.user_group,
          owner=params.hbase_user
@@ -148,11 +148,11 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
   accumulo_StaticFile("accumulo-metrics.xml", dest_conf_dir)
 
   # create host files
-  accumulo_StaticFile("tracers", dest_conf_dir)
-  accumulo_StaticFile("gc", dest_conf_dir)
-  accumulo_StaticFile("monitor", dest_conf_dir)
-  accumulo_StaticFile("slaves", dest_conf_dir)
-  accumulo_StaticFile("masters", dest_conf_dir)
+  accumulo_TemplateConfig("tracers", dest_conf_dir)
+  accumulo_TemplateConfig("gc", dest_conf_dir)
+  accumulo_TemplateConfig("monitor", dest_conf_dir)
+  accumulo_TemplateConfig("slaves", dest_conf_dir)
+  accumulo_TemplateConfig("masters", dest_conf_dir)
 
   # metrics configuration
   if params.has_metric_collector:

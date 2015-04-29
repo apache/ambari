@@ -31,6 +31,11 @@ def accumulo_service( name,
     pid_exists = format("ls {pid_file} >/dev/null 2>&1 && ps `cat {pid_file}` >/dev/null 2>&1")
 
     if action == 'start':
+      if name != 'tserver':
+        Execute(format("{daemon_script} org.apache.accumulo.master.state.SetGoalState NORMAL"),
+                not_if=pid_exists,
+                user=params.accumulo_user
+        )
       daemon_cmd = format("{daemon_script} {role} --address {params.hostname} > {log_dir}/accumulo-{role}.out 2>{log_dir}/accumulo-{role}.err & echo $! > {pid_file}")
       Execute ( daemon_cmd,
         not_if=pid_exists,
@@ -52,6 +57,11 @@ def accumulo_service( name,
                   timeout=30,
                   user=params.accumulo_user
           )
+        elif name != 'monitor':
+          Execute(format("{daemon_script} org.apache.accumulo.master.state.SetGoalState SAFE_MODE"),
+                  not_if=pid_exists,
+                  user=params.accumulo_user
+                  )
       except:
         pass
 

@@ -1917,6 +1917,269 @@ var hdp2properties = [
     "index": 0
   },
 
+/********************************************* ACCUMULO *****************************/
+  {
+    "id": "site property",
+    "name": "accumulo_instance_name",
+    "displayName": "Instance Name",
+    "displayType": "string",
+    "isOverridable": false,
+    "isReconfigurable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "General"
+  },
+  {
+    "id": "site property",
+    "name": "accumulo_user",
+    "displayName": "Accumulo process user",
+    "displayType": "user",
+    "isOverridable": false,
+    "isReconfigurable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "General"
+  },
+  {
+    "id": "site property",
+    "name": "accumulo_root_password",
+    "displayName": "Accumulo root password",
+    "displayType": "password",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "General"
+  },
+  {
+    "id": "site property",
+    "name": "trace.user",
+    "displayName": "Trace user",
+    "displayType": "string",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "General"
+  },
+  {
+    "id": "site property",
+    "name": "trace_password",
+    "displayName": "Trace user password",
+    "displayType": "password",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "General"
+  },
+  {
+    "id": "site property",
+    "name": "instance_secret",
+    "displayName": "Instance Secret",
+    "displayType": "password",
+    "isOverridable": false,
+    "isReconfigurable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "General"
+  },
+  {
+    "id": "site property",
+    "name": "server_content",
+    "displayName": "Server accumulo-env template",
+    "displayType": "content",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_master_heapsize",
+    "displayName": "Accumulo Master Maximum Java heap size",
+    "displayType": "int",
+    "unit": "MB",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_tserver_heapsize",
+    "displayName": "Accumulo TServer Maximum Java heap size",
+    "displayType": "int",
+    "unit": "MB",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_monitor_heapsize",
+    "displayName": "Accumulo Monitor Maximum Java heap size",
+    "displayType": "int",
+    "unit": "MB",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_gc_heapsize",
+    "displayName": "Accumulo GC Maximum Java heap size",
+    "displayType": "int",
+    "unit": "MB",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_other_heapsize",
+    "displayName": "Accumulo Other Maximum Java heap size",
+    "displayType": "int",
+    "unit": "MB",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_log_dir",
+    "displayName": "Accumulo Log Dir",
+    "isReconfigurable": false,
+    "displayType": "directory",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "puppet var",
+    "name": "accumulo_pid_dir",
+    "displayName": "Accumulo PID Dir",
+    "isReconfigurable": false,
+    "displayType": "directory",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
+    "id": "site property",
+    "name": "instance.volumes",
+    "displayName": "instance.volumes",
+    "displayType": "string",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 0
+  },
+  {
+    "id": "site property",
+    "name": "instance.zookeeper.host",
+    "displayName": "instance.zookeeper.host",
+    "displayType": "string",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 1
+  },
+  {
+    "id": "site property",
+    "name": "instance.zookeeper.timeout",
+    "displayName": "instance.zookeeper.timeout",
+    "displayType": "string",
+    "isOverridable": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 2
+  },
+  {
+    "id": "site property",
+    "name": "master.port.client",
+    "displayName": "master.port.client",
+    "displayType": "int",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 3
+  },
+  {
+    "id": "site property",
+    "name": "tserver.port.client",
+    "displayName": "tserver.port.client",
+    "displayType": "int",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 4
+  },
+  {
+    "id": "site property",
+    "name": "monitor.port.client",
+    "displayName": "monitor.port.client",
+    "displayType": "int",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 5
+  },
+  {
+    "id": "site property",
+    "name": "monitor.port.log4j",
+    "displayName": "monitor.port.log4j",
+    "displayType": "int",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 6
+  },
+  {
+    "id": "site property",
+    "name": "gc.port.client",
+    "displayName": "gc.port.client",
+    "displayType": "int",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 7
+  },
+  {
+    "id": "site property",
+    "name": "trace.port.client",
+    "displayName": "trace.port.client",
+    "displayType": "int",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 8
+  },
+  {
+    "id": "site property",
+    "name": "tserver.memory.maps.native.enabled",
+    "displayName": "tserver.memory.maps.native.enabled",
+    "displayType": "checkbox",
+    "defaultValue": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 9
+  },
+  {
+    "id": "site property",
+    "name": "general.classpaths",
+    "displayName": "general.classpaths",
+    "displayType": "content",
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-site.xml",
+    "category": "Advanced accumulo-site",
+    "index": 10
+  },
+
 /*******************************************kerberos***********************************/
   {
     "id": "puppet var",

@@ -64,32 +64,32 @@
     <name>accumulo_user</name>
     <value>accumulo</value>
     <property-type>USER</property-type>
-    <description>Accumulo User Name.</description>
+    <description>User for running Accumulo server processes.</description>
   </property>
   <property>
-    <name>master_heapsize</name>
-    <value>128m</value>
+    <name>accumulo_master_heapsize</name>
+    <value>1024</value>
     <description>Accumulo Master Heap Size.</description>
   </property>
   <property>
-    <name>tserver_heapsize</name>
-    <value>256m</value>
+    <name>accumulo_tserver_heapsize</name>
+    <value>1024</value>
     <description>Accumulo Tablet Server Heap Size.</description>
   </property>
   <property>
-    <name>monitor_heapsize</name>
-    <value>64m</value>
+    <name>accumulo_monitor_heapsize</name>
+    <value>1024</value>
     <description>Accumulo Monitor Heap Size.</description>
   </property>
   <property>
-    <name>gc_heapsize</name>
-    <value>64m</value>
+    <name>accumulo_gc_heapsize</name>
+    <value>256</value>
     <description>Accumulo Garbage Collector Heap Size.</description>
   </property>
   <property>
-    <name>other_heapsize</name>
-    <value>128m</value>
-    <description>Accumulo Other Heap Size.</description>
+    <name>accumulo_other_heapsize</name>
+    <value>1024</value>
+    <description>Heap size for other Accumulo processes.</description>
   </property>
   <property>
     <name>content</name>
@@ -102,12 +102,12 @@ export JAVA_HOME={{java64_home}}
 export ZOOKEEPER_HOME={{zookeeper_home}}
 export ACCUMULO_LOG_DIR={{log_dir}}
 export ACCUMULO_CONF_DIR={{conf_dir}}
-export ACCUMULO_TSERVER_OPTS="-Xmx{{tserver_heapsize}} -Xms{{tserver_heapsize}}"
-export ACCUMULO_MASTER_OPTS="-Xmx{{master_heapsize}} -Xms{{master_heapsize}}"
-export ACCUMULO_MONITOR_OPTS="-Xmx{{monitor_heapsize}} -Xms{{monitor_heapsize}}"
-export ACCUMULO_GC_OPTS="-Xmx{{gc_heapsize}} -Xms{{gc_heapsize}}"
-export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true"
-export ACCUMULO_OTHER_OPTS="-Xmx{{other_heapsize}} -Xms{{other_heapsize}}"
+export ACCUMULO_TSERVER_OPTS="-Xmx{{accumulo_tserver_heapsize}}m -Xms{{accumulo_tserver_heapsize}}m"
+export ACCUMULO_MASTER_OPTS="-Xmx{{accumulo_master_heapsize}}m -Xms{{accumulo_master_heapsize}}m"
+export ACCUMULO_MONITOR_OPTS="-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_monitor_heapsize}}m"
+export ACCUMULO_GC_OPTS="-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m"
+export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}"
+export ACCUMULO_OTHER_OPTS="-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}"
 # what do when the JVM runs out of heap memory
 export ACCUMULO_KILL_CMD='kill -9 %p'
     </value>
@@ -121,14 +121,15 @@ export HADOOP_PREFIX={{hadoop_prefix}}
 export HADOOP_CONF_DIR={{hadoop_conf_dir}}
 export JAVA_HOME={{java64_home}}
 export ZOOKEEPER_HOME={{zookeeper_home}}
+export ACCUMULO_PID_DIR={{pid_dir}}
 export ACCUMULO_LOG_DIR={{log_dir}}
 export ACCUMULO_CONF_DIR={{server_conf_dir}}
-export ACCUMULO_TSERVER_OPTS="-Xmx{{tserver_heapsize}} -Xms{{tserver_heapsize}}"
-export ACCUMULO_MASTER_OPTS="-Xmx{{master_heapsize}} -Xms{{master_heapsize}}"
-export ACCUMULO_MONITOR_OPTS="-Xmx{{monitor_heapsize}} -Xms{{monitor_heapsize}}"
-export ACCUMULO_GC_OPTS="-Xmx{{gc_heapsize}} -Xms{{gc_heapsize}}"
-export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true"
-export ACCUMULO_OTHER_OPTS="-Xmx{{other_heapsize}} -Xms{{other_heapsize}}"
+export ACCUMULO_TSERVER_OPTS="-Xmx{{accumulo_tserver_heapsize}}m -Xms{{accumulo_tserver_heapsize}}m"
+export ACCUMULO_MASTER_OPTS="-Xmx{{accumulo_master_heapsize}}m -Xms{{accumulo_master_heapsize}}m"
+export ACCUMULO_MONITOR_OPTS="-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_monitor_heapsize}}m"
+export ACCUMULO_GC_OPTS="-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m"
+export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}"
+export ACCUMULO_OTHER_OPTS="-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}"
 # what do when the JVM runs out of heap memory
 export ACCUMULO_KILL_CMD='kill -9 %p'
     </value>

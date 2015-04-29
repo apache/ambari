@@ -65,11 +65,11 @@ pid_dir = status_params.pid_dir
 
 # accumulo env
 java64_home = config['hostLevelParams']['java_home']
-master_heapsize = config['configurations']['accumulo-env']['master_heapsize']
-tserver_heapsize = config['configurations']['accumulo-env']['tserver_heapsize']
-monitor_heapsize = config['configurations']['accumulo-env']['monitor_heapsize']
-gc_heapsize = config['configurations']['accumulo-env']['gc_heapsize']
-other_heapsize = config['configurations']['accumulo-env']['other_heapsize']
+accumulo_master_heapsize = config['configurations']['accumulo-env']['accumulo_master_heapsize']
+accumulo_tserver_heapsize = config['configurations']['accumulo-env']['accumulo_tserver_heapsize']
+accumulo_monitor_heapsize = config['configurations']['accumulo-env']['accumulo_monitor_heapsize']
+accumulo_gc_heapsize = config['configurations']['accumulo-env']['accumulo_gc_heapsize']
+accumulo_other_heapsize = config['configurations']['accumulo-env']['accumulo_other_heapsize']
 env_sh_template = config['configurations']['accumulo-env']['content']
 server_env_sh_template = config['configurations']['accumulo-env']['server_content']
 
@@ -113,6 +113,16 @@ if has_metric_collector:
   if metric_collector_port and metric_collector_port.find(':') != -1:
     metric_collector_port = metric_collector_port.split(':')[1]
   pass
+
+# if accumulo is selected accumulo_tserver_hosts should not be empty, but still default just in case
+if 'slave_hosts' in config['clusterHostInfo']:
+  tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/slave_hosts')
+else:
+  tserver_hosts = default('/clusterHostInfo/accumulo_tserver_hosts', '/clusterHostInfo/all_hosts')
+master_hosts = default('/clusterHostInfo/accumulo_master_hosts', [])
+monitor_hosts = default('/clusterHostInfo/accumulo_monitor_hosts', [])
+gc_hosts = default('/clusterHostInfo/accumulo_gc_hosts', [])
+tracer_hosts = default('/clusterHostInfo/accumulo_tracer_hosts', [])
 
 # security properties
 accumulo_user_keytab = config['configurations']['accumulo-env']['accumulo_user_keytab']

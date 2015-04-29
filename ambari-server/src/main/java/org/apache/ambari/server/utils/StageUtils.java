@@ -151,6 +151,11 @@ public class StageUtils {
     componentToClusterInfoKeyMap.put("HBASE_REGIONSERVER", "hbase_rs_hosts");
     componentToClusterInfoKeyMap.put("KERBEROS_SERVER", "kdc_host");
     componentToClusterInfoKeyMap.put("KERBEROS_ADMIN_CLIENT", "kerberos_adminclient_host");
+    componentToClusterInfoKeyMap.put("ACCUMULO_MASTER", "accumulo_master_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_MONITOR", "accumulo_monitor_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_GC", "accumulo_gc_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_TRACER", "accumulo_tracer_hosts");
+    componentToClusterInfoKeyMap.put("ACCUMULO_TSERVER", "accumulo_tserver_hosts");
   }
 
   static {

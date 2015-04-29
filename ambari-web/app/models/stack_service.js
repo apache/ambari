@@ -341,6 +341,11 @@ App.StackService.configCategories = function () {
         App.ServiceConfigCategory.create({ name: 'LDAPSettings', displayName: 'LDAP Settings'})
       ]);
       break;
+    case 'ACCUMULO':
+      serviceConfigCategories.pushObjects([
+        App.ServiceConfigCategory.create({ name: 'General', displayName: 'General'})
+      ]);
+      break;
     case 'PIG':
       break;
     case 'SQOOP':

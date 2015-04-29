@@ -42,11 +42,12 @@
 
   <property>
     <name>tserver.memory.maps.max</name>
-    <value>80M</value>
+    <value>256M</value>
     <description>Amount of memory to use for Accumulo's in-memory
       map, where incoming writes are sorted.  If native maps are enabled
       (tserver.memory.maps.native.enabled) this memory is
-      off-heap.</description>
+      off-heap. Ensure that table.compaction.minor.logs.threshold *
+      tserver.walog.max.size >= tserver.memory.maps.max.</description>
   </property>
 
   <property>
@@ -59,27 +60,27 @@
 
   <property>
     <name>tserver.cache.data.size</name>
-    <value>7M</value>
+    <value>64M</value>
     <description>Size of on-heap block cache for data blocks.</description>
   </property>
 
   <property>
     <name>tserver.cache.index.size</name>
-    <value>20M</value>
+    <value>128M</value>
     <description>Size of on-heap block cache for index blocks.</description>
   </property>
 
   <property>
     <name>tserver.sort.buffer.size</name>
-    <value>50M</value>
-    <description>Size of on-heap block cache for data blocks.</description>
+    <value>100M</value>
+    <description>Amount of memory to use for sorting walogs when
+      recovering from tserver failure.</description>
   </property>
 
   <property>
     <name>tserver.walog.max.size</name>
-    <value>40M</value>
-    <description>Amount of memory to use for sorting walogs when
-      recovering from tserver failure.</description>
+    <value>512M</value>
+    <description>Maximum size of each write-ahead log.</description>
   </property>
 
   <property>
@@ -91,14 +92,14 @@
   <property>
     <name>trace.port.client</name>
     <value>12234</value>
-    <description>Port for client connections to the master.</description>
+    <description>Port for delivering tracing data to the tracer
+      process.</description>
   </property>
 
   <property>
     <name>tserver.port.client</name>
     <value>9997</value>
-    <description>Port for delivering tracing data to the tracer
-      process.</description>
+    <description>Port for client connections to the tservers.</description>
   </property>
 
   <property>
@@ -131,21 +132,21 @@
   <property>
     <name>general.classpaths</name>
     <value>
-      $ACCUMULO_HOME/lib/accumulo-server.jar,
-      $ACCUMULO_HOME/lib/accumulo-core.jar,
-      $ACCUMULO_HOME/lib/accumulo-start.jar,
-      $ACCUMULO_HOME/lib/accumulo-fate.jar,
-      $ACCUMULO_HOME/lib/accumulo-proxy.jar,
-      $ACCUMULO_HOME/lib/[^.].*.jar,
-      $ZOOKEEPER_HOME/zookeeper[^.].*.jar,
-      $HADOOP_CONF_DIR,
-      /usr/hdp/current/hadoop-client/[^.].*.jar,
-      /usr/hdp/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,
-      /usr/hdp/current/hadoop-hdfs-client/[^.].*.jar,
-      /usr/hdp/current/hadoop-mapreduce-client/[^.].*.jar,
-      /usr/hdp/current/hadoop-yarn-client/[^.].*.jar,
-      /usr/hdp/current/hadoop-yarn-client/lib/jersey.*.jar,
-      /usr/hdp/current/hive-client/lib/hive-accumulo-handler.jar,
+$ACCUMULO_HOME/lib/accumulo-server.jar,
+$ACCUMULO_HOME/lib/accumulo-core.jar,
+$ACCUMULO_HOME/lib/accumulo-start.jar,
+$ACCUMULO_HOME/lib/accumulo-fate.jar,
+$ACCUMULO_HOME/lib/accumulo-proxy.jar,
+$ACCUMULO_HOME/lib/[^.].*.jar,
+$ZOOKEEPER_HOME/zookeeper[^.].*.jar,
+$HADOOP_CONF_DIR,
+/usr/hdp/current/hadoop-client/[^.].*.jar,
+/usr/hdp/current/hadoop-client/lib/(?!slf4j)[^.].*.jar,
+/usr/hdp/current/hadoop-hdfs-client/[^.].*.jar,
+/usr/hdp/current/hadoop-mapreduce-client/[^.].*.jar,
+/usr/hdp/current/hadoop-yarn-client/[^.].*.jar,
+/usr/hdp/current/hadoop-yarn-client/lib/jersey.*.jar,
+/usr/hdp/current/hive-client/lib/hive-accumulo-handler.jar,
     </value>
     <description>List of jars and directories that will be added to
       Accumulo's classpath.  Ordering matters, as the entries will be
