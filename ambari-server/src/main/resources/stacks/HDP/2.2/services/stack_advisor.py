@@ -825,7 +825,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     if "yarn_cgroups_enabled" in properties:
       yarn_cgroups_enabled = properties["yarn_cgroups_enabled"].lower() == "true"
       core_site_properties = getSiteProperties(configurations, "core-site")
-      security_enbaled = False
+      security_enabled = False
       if core_site_properties:
         security_enabled = core_site_properties['hadoop.security.authentication'] == 'kerberos' and core_site_properties['hadoop.security.authorization'] == 'true'
       if not security_enabled and yarn_cgroups_enabled:
