@@ -78,7 +78,7 @@ def setup_spark(env, type, action = None):
   if params.is_hive_installed:
     XmlConfig("hive-site.xml",
               conf_dir=params.spark_conf,
-              configurations=params.config['configurations']['hive-site'],
+              configurations=params.spark_hive_properties,
               owner=params.spark_user,
               group=params.spark_group,
               mode=0644)
