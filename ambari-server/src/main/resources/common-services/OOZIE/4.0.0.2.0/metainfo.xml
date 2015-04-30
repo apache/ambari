@@ -117,9 +117,6 @@
             <package>
               <name>oozie-client</name>
             </package>
-            <package>
-              <name>mysql-connector-java</name>
-            </package>
           </packages>
         </osSpecific>
         

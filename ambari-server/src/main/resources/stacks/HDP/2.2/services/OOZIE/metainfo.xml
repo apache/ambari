@@ -65,9 +65,6 @@
               <name>zip</name>
             </package>
             <package>
-              <name>mysql-connector-java</name>
-            </package>
-            <package>
               <name>extjs</name>
             </package>
           </packages>

@@ -38,9 +38,6 @@
             <package>
               <name>zip</name>
             </package>
-            <package>
-              <name>mysql-connector-java</name>
-            </package>
           </packages>
         </osSpecific>
         
