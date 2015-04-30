@@ -457,10 +457,10 @@ App.WidgetMixin = Ember.Mixin.create({
         "metrics": this.get('content.metrics').map(function (metric) {
           return {
             "name": metric.name,
-            "service_name": metric.serviceName,
-            "component_name": metric.componentName,
-            "metric_path": metric.metric_path,
-            "category": metric.category
+            "service_name": metric.service_name,
+            "component_name": metric.component_name,
+            "host_component_criteria":  metric.host_component_criteria,
+            "metric_path": metric.metric_path
           }
         }),
         values: this.get('content.values'),
@@ -478,6 +478,8 @@ App.WidgetMixin = Ember.Mixin.create({
     var data = this.collectWidgetData();
     if (isClone) {
       data.WidgetInfo.widget_name += this.get('CLONE_SUFFIX');
+      //TODO remove setting diplay_name once API supports it
+      data.WidgetInfo.display_name = data.WidgetInfo.widget_name;
     }
     return App.ajax.send({
       name: 'widgets.wizard.add',
@@ -494,7 +496,10 @@ App.WidgetMixin = Ember.Mixin.create({
     widgets.pushObject(Em.Object.create({
       id: data.resources[0].WidgetInfo.id
     }));
-    App.router.get('mainServiceInfoSummaryController').saveWidgetLayout(widgets);
+    var mainServiceInfoSummaryController =  App.router.get('mainServiceInfoSummaryController');
+    mainServiceInfoSummaryController.saveWidgetLayout(widgets).done(function(){
+      mainServiceInfoSummaryController.updateActiveLayout();
+    });
   },
 
   /*

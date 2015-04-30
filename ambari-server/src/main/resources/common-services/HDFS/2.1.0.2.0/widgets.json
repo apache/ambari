@@ -243,6 +243,7 @@
     {
       "layout_name": "default_hdfs_heatmap",
       "section_name": "HDFS_HEATMAPS",
+      "display_name": "HDFS Heatmaps",
       "widgetLayoutInfo": [
         {
           "widget_name": "HDFS Bytes Read",

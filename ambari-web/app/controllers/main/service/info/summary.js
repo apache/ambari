@@ -354,7 +354,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {object|null} data
    */
   loadAllSharedWidgetsSuccessCallback: function (data) {
-    var addedWidgetsNames = this.get('widgets').mapProperty('widgetName');
+    var widgetIds = this.get('widgets').mapProperty('id');
     if (data.items[0] && data.items.length) {
       this.set("allSharedWidgets",
         data.items.filter(function (widget) {
@@ -362,16 +362,17 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         }).map(function (widget) {
           var widgetType = widget.WidgetInfo.widget_type;
           var widgetName = widget.WidgetInfo.widget_name;
+          var widgetId =  widget.WidgetInfo.id;
           return Em.Object.create({
-            id: widget.WidgetInfo.id,
+            id: widgetId,
             widgetName: widgetName,
             displayName: widget.WidgetInfo.display_name,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
             serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
-            added: addedWidgetsNames.contains(widgetName),
-            isShared: true
+            added: widgetIds.contains(widgetId),
+            isShared: widget.WidgetInfo.scope == "CLUSTER"
           });
         })
       );
@@ -403,7 +404,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {object|null} data
    */
   loadMineWidgetsSuccessCallback: function (data) {
-    var addedWidgetsNames = this.get('widgets').mapProperty('widgetName');
+    var widgetIds = this.get('widgets').mapProperty('id');
     if (data.items[0] && data.items.length) {
       this.set("mineWidgets",
         data.items.filter(function (widget) {
@@ -411,6 +412,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         }).map(function (widget) {
           var widgetType = widget.WidgetInfo.widget_type;
           var widgetName = widget.WidgetInfo.widget_name;
+          var widgetId =  widget.WidgetInfo.id;
           return Em.Object.create({
             id: widget.WidgetInfo.id,
             widgetName: widgetName,
@@ -419,7 +421,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
             serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
-            added: addedWidgetsNames.contains(widgetName),
+            added: widgetIds.contains(widgetId),
             isShared: widget.WidgetInfo.scope == "CLUSTER"
           });
         })
@@ -668,7 +670,11 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
          */
         services: function () {
           var view = this;
-          return App.Service.find().map(function (service) {
+          var services = App.Service.find().filter(function(item){
+            var stackService =  App.StackService.find().findProperty('serviceName', item.get('serviceName'));
+            return stackService.get('isServiceWithWidgets');
+          });
+          return services.map(function (service) {
             return Em.Object.create({
               value: service.get('serviceName'),
               label: service.get('displayName'),
