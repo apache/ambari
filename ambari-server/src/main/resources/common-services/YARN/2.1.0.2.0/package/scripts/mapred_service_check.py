@@ -19,6 +19,7 @@ Ambari Agent
 
 """
 
+import sys
 from resource_management import *
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl

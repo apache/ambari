@@ -25,6 +25,7 @@ import sys
 import json
 import re
 import subprocess
+from ambari_commons import os_utils
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 

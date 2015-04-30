@@ -25,9 +25,9 @@ from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def service(componentName, action='start', serviceName='yarn'):
-  import params
+  import status_params
   if componentName == 'resourcemanager' or componentName == 'nodemanager' or componentName == 'historyserver' or componentName == 'timelineserver':
-    service_name = params.service_map[componentName]
+    service_name = status_params.service_map[componentName]
     if action == 'start' or action == 'stop':
       Service(service_name, action=action)
     elif action == 'status':
