@@ -706,23 +706,24 @@ class UserHelper(object):
   ACTION_FAILED = -1
 
   def __init__(self, userName):
-    self.domainName, self.dcName, self.userName = UserHelper._parse_user_name(userName)
+    self.domainName, self.userName = UserHelper.parse_user_name(userName)
+    if self.domainName:
+      self.dcName = win32net.NetGetDCName(None, self.domainName)
+    else:
+      self.dcName = None
     self._policy = win32security.LsaOpenPolicy(self.dcName,
                                                win32security.POLICY_CREATE_ACCOUNT | win32security.POLICY_LOOKUP_NAMES)
 
   @staticmethod
-  def _parse_user_name(userName):
-    dcName = None
-    domainName = None
+  def parse_user_name(userName, defDomain=None):
+    domainName = defDomain
     domainSepIndex = userName.find('\\')
     if domainSepIndex != -1:
       domainName = userName[0:domainSepIndex]
       userName = userName[domainSepIndex + 1:]
-      if domainName == '.' or domainName == win32api.GetComputerName():
-        domainName = None
-      else:
-        dcName = win32net.NetGetDCName(None, domainName)
-    return (domainName, dcName, userName)
+      if not domainName or domainName == '.' or domainName == win32api.GetComputerName():
+        domainName = defDomain
+    return (domainName, userName)
 
   def create_user(self, password, comment="Ambari user"):
     user_info = {}

@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+from ambari_commons.os_windows import UserHelper
 
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
@@ -149,6 +150,8 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
   # TODO implement timeout, wait_for_finish
   Logger.info("Executing %s" % (command))
   if user:
+    domain, username = UserHelper.parse_user_name(user, ".")
+
     proc_token = OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES)
 
     old_states = []
@@ -163,7 +166,7 @@ def _call_command(command, logoutput=False, cwd=None, env=None, wait_for_finish=
       AdjustPrivilege(proc_token, priv)
       QueryPrivilegeState(proc_token, priv)
 
-    user_token = LogonUser(user, ".", Script.get_password(user), win32con.LOGON32_LOGON_SERVICE,
+    user_token = LogonUser(username, domain, Script.get_password(user), win32con.LOGON32_LOGON_SERVICE,
                            win32con.LOGON32_PROVIDER_DEFAULT)
     env_token = DuplicateTokenEx(user_token, SecurityIdentification, TOKEN_QUERY, TokenPrimary)
     # getting updated environment for impersonated user and merge it with custom env
