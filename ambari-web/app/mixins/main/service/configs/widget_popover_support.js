@@ -57,7 +57,11 @@ App.WidgetPopoverSupport = Em.Mixin.create({
         ),
         content: this.get('config.description'),
         placement: this.get('popoverPlacement'),
-        trigger: 'hover'
+        trigger: 'hover',
+        delay: {
+          show: 1000,
+          hide: 0
+        }
       });
     }
   },
