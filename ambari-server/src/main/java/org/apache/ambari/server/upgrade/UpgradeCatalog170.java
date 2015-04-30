@@ -149,14 +149,6 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
   }
 
   /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String[] getCompatibleVersions() {
-    return new String[] {"1.7.*", "2.0.*"};
-  }
-
-  /**
    * Logger.
    */
   private static final Logger LOG = LoggerFactory.getLogger
@@ -589,6 +581,13 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
 
   // ----- UpgradeCatalog ----------------------------------------------------
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void executePreDMLUpdates() {
+    ;
+  }
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {

@@ -39,6 +39,7 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
+import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,6 +93,9 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
   @Inject
   DaoUtils daoUtils;
+
+  @Inject
+  private OsFamily osFamily;
   
   /**
    * {@inheritDoc}
@@ -107,14 +111,6 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   @Override
   public String getTargetVersion() {
     return "2.1.0";
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String[] getCompatibleVersions() {
-    return new String[] {"*"};
   }
 
   /**
@@ -135,6 +131,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     this.injector = injector;
 
     daoUtils = injector.getInstance(DaoUtils.class);
+    osFamily = injector.getInstance(OsFamily.class);
   }
 
   // ----- AbstractUpgradeCatalog --------------------------------------------
@@ -316,6 +313,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(HOST_COMPONENT_STATE_TABLE, "FK_hostcomponentstate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(HOST_COMPONENT_DESIRED_STATE_TABLE, "FK_hcdesiredstate_host_id",
+        "host_id", HOSTS_TABLE, "host_id", false);
+    dbAccessor.addFKConstraint(HOST_ROLE_COMMAND_TABLE, "FK_host_role_command_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
     dbAccessor.addFKConstraint(HOST_STATE_TABLE, "FK_hoststate_host_id",
         "host_id", HOSTS_TABLE, "host_id", false);
@@ -503,7 +502,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   /**
    * Adds the stack table and constraints.
    */
-  protected void executeStackDMLUpdates() throws AmbariException, SQLException {
+  protected void executeStackPreDMLUpdates() throws AmbariException, SQLException {
     Gson gson = new Gson();
 
     injector.getInstance(AmbariMetaInfo.class);
@@ -759,14 +758,19 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    * {@inheritDoc}
    */
   @Override
+  protected void executePreDMLUpdates() throws AmbariException, SQLException {
+    executeStackPreDMLUpdates();
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {
     addNewConfigurationsFromXml();
 
     // Initialize all default widgets and widget layouts
     initializeClusterAndServiceWidgets();
-
-    // populate new stack ID columns
-    executeStackDMLUpdates();
   }
 
   /**

@@ -93,14 +93,6 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     return "1.5.0";
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String[] getCompatibleVersions() {
-    return new String[] {"1.5.*", "1.6.*", "1.7.*", "2.0.*"};
-  }
-
   @Override
   public void executeDDLUpdates() throws AmbariException, SQLException {
     LOG.debug("Upgrading schema...");
@@ -421,6 +413,14 @@ public class UpgradeCatalog150 extends AbstractUpgradeCatalog {
     if (!dbAccessor.tableExists(tableName)) {
       dbAccessor.executeQuery(String.format("RENAME TABLE ambarirca.%s TO %s.%s", tableName, dbName, tableName), true);
     }
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void executePreDMLUpdates() {
+    ;
   }
 
   @Override

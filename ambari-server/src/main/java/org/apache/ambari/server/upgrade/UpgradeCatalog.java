@@ -33,6 +33,13 @@ public interface UpgradeCatalog {
   void upgradeSchema() throws AmbariException, SQLException;
 
   /**
+   * perform data insertion before running normal upgrade of data, requires started persist service
+   * @throws AmbariException
+   * @throws SQLException
+   */
+  void preUpgradeData() throws AmbariException, SQLException;
+
+  /**
    * perform data updates as necessary, requires started persist service
    * @throws AmbariException
    * @throws SQLException
@@ -63,10 +70,4 @@ public interface UpgradeCatalog {
    * @return null : default
    */
   String getSourceVersion();
-
-  /**
-   * Returns a list of versions using simplified regex of the Ambari versions that allow running this UpgradeCatalog.
-   * @return null : default
-   */
-  String[] getCompatibleVersions();
 }

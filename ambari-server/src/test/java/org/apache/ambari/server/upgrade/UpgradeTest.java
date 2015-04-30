@@ -213,6 +213,8 @@ public class UpgradeTest {
 
     schemaUpgradeHelper.startPersistenceService();
 
+    schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
+
     schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
 
     LOG.info("Upgrade successful.");

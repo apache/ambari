@@ -127,6 +127,23 @@ public class UpgradeCatalog210Test {
   }
 
   @Test
+  public void testExecutePreDMLUpdates() throws Exception {
+    Method executeStackPreDMLUpdates = UpgradeCatalog210.class.getDeclaredMethod("executeStackPreDMLUpdates");
+
+    UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
+        .addMockedMethod( executeStackPreDMLUpdates) .createMock();
+
+    upgradeCatalog210.executeStackPreDMLUpdates();
+    expectLastCall().once();
+
+    replay(upgradeCatalog210);
+
+    upgradeCatalog210.executePreDMLUpdates();
+
+    verify(upgradeCatalog210);
+  }
+
+  @Test
   public void testExecuteDMLUpdates() throws Exception {
     Method addNewConfigurationsFromXml =
       AbstractUpgradeCatalog.class.getDeclaredMethod("addNewConfigurationsFromXml");
@@ -134,20 +151,14 @@ public class UpgradeCatalog210Test {
     Method initializeClusterAndServiceWidgets =
       UpgradeCatalog210.class.getDeclaredMethod("initializeClusterAndServiceWidgets");
 
-    Method executeStackDMLUpdates = UpgradeCatalog210.class.getDeclaredMethod("executeStackDMLUpdates");
-
     UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
       .addMockedMethod(addNewConfigurationsFromXml)
-      .addMockedMethod(initializeClusterAndServiceWidgets)
-      .addMockedMethod( executeStackDMLUpdates) .createMock();
+      .addMockedMethod(initializeClusterAndServiceWidgets).createMock();
 
     upgradeCatalog210.addNewConfigurationsFromXml();
     expectLastCall().once();
 
     upgradeCatalog210.initializeClusterAndServiceWidgets();
-    expectLastCall().once();
-
-    upgradeCatalog210.executeStackDMLUpdates();
     expectLastCall().once();
 
     replay(upgradeCatalog210);

@@ -151,33 +151,6 @@ public class SchemaUpgradeHelper {
   }
 
   /**
-   * Determine if the class definitions in the target version allow running the Upgrade Catalogs in the path.
-   * @param upgradeCatalogs Ordered list of upgrade catalogs
-   * @param targetVersion Destination version
-   * @throws AmbariException If invalid path, will throw an exception.
-   */
-  public void validateUpgradePath(List<UpgradeCatalog> upgradeCatalogs, String targetVersion) throws AmbariException {
-    for(UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
-      if (upgradeCatalog.getCompatibleVersions() != null) {
-        boolean validPath = false;
-        for (String version : upgradeCatalog.getCompatibleVersions()) {
-          // Treat dots as dots instead of match-any-char, and * as wildcard
-          String regexVersion = version.replace(".", "\\.").replace("*", ".*");
-          Matcher m = Pattern.compile(regexVersion).matcher(targetVersion);
-          if (m.matches()) {
-            validPath = true;
-            break;
-          }
-        }
-        if (!validPath) {
-          throw new AmbariException("Cannot upgrade because UpgradeCatalog " +
-              upgradeCatalog.getTargetVersion() + " is not supported in Ambari version " + targetVersion + ".");
-        }
-      }
-    }
-  }
-
-  /**
    * Extension of main controller module
    */
   public static class UpgradeHelperModule extends ControllerModule {
@@ -212,6 +185,21 @@ public class SchemaUpgradeHelper {
       for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
         try {
           upgradeCatalog.upgradeSchema();
+        } catch (Exception e) {
+          LOG.error("Upgrade failed. ", e);
+          throw new AmbariException(e.getMessage(), e);
+        }
+      }
+    }
+  }
+
+  public void executePreDMLUpdates(List<UpgradeCatalog> upgradeCatalogs) throws AmbariException {
+    LOG.info("Executing Pre-DML changes.");
+
+    if (upgradeCatalogs != null && !upgradeCatalogs.isEmpty()) {
+      for (UpgradeCatalog upgradeCatalog : upgradeCatalogs) {
+        try {
+          upgradeCatalog.preUpgradeData();
         } catch (Exception e) {
           LOG.error("Upgrade failed. ", e);
           throw new AmbariException(e.getMessage(), e);
@@ -288,11 +276,11 @@ public class SchemaUpgradeHelper {
       List<UpgradeCatalog> upgradeCatalogs =
         schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
 
-      schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, targetVersion);
-
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);
 
       schemaUpgradeHelper.startPersistenceService();
+
+      schemaUpgradeHelper.executePreDMLUpdates(upgradeCatalogs);
 
       schemaUpgradeHelper.executeDMLUpdates(upgradeCatalogs);
 

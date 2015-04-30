@@ -46,14 +46,6 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
     return "1.6.0";
   }
 
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public String[] getCompatibleVersions() {
-    return new String[] {"1.6.*", "1.7.*", "2.0.*"};
-  }
-
   // ----- Constructors ------------------------------------------------------
 
   @Inject
@@ -193,6 +185,13 @@ public class UpgradeCatalog160 extends AbstractUpgradeCatalog {
 
 
   // ----- UpgradeCatalog ----------------------------------------------------
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void executePreDMLUpdates() {
+    ;
+  }
 
   @Override
   protected void executeDMLUpdates() throws AmbariException, SQLException {

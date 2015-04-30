@@ -30,14 +30,11 @@ import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
-import org.apache.ambari.server.orm.dao.ClusterDAO;
-import org.apache.ambari.server.orm.entities.ClusterEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.sql.SQLException;
@@ -67,6 +64,11 @@ public class UpgradeCatalogTest {
     }
 
     @Override
+    public void executePreDMLUpdates() throws AmbariException, SQLException {
+
+    }
+
+    @Override
     public void executeDMLUpdates() throws AmbariException, SQLException {
 
     }
@@ -74,11 +76,6 @@ public class UpgradeCatalogTest {
     @Override
     public String getTargetVersion() {
       return "1.4.9";
-    }
-
-    @Override
-    public String[] getCompatibleVersions() {
-      return new String[] {"1.4.9", "1.5.*", "1.7.*", "2.0.*"};
     }
   }
 
@@ -125,44 +122,6 @@ public class UpgradeCatalogTest {
     Assert.assertEquals(2, upgradeCatalogs.size());
     Assert.assertEquals("1.4.9", upgradeCatalogs.get(0).getTargetVersion());
     Assert.assertEquals("1.5.0", upgradeCatalogs.get(1).getTargetVersion());
-
-    schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, "1.5.0");
-  }
-
-  @Test
-  public void testValidateUpgradePath() throws Exception {
-    SchemaUpgradeHelper schemaUpgradeHelper = injector.getInstance(SchemaUpgradeHelper.class);
-
-    Set<UpgradeCatalog> upgradeCatalogSet = schemaUpgradeHelper.getAllUpgradeCatalogs();
-
-    Assert.assertNotNull(upgradeCatalogSet);
-    Assert.assertEquals(5, upgradeCatalogSet.size());
-
-    List<UpgradeCatalog> upgradeCatalogs = schemaUpgradeHelper.getUpgradePath(null, "2.1.0");
-
-    Assert.assertNotNull(upgradeCatalogs);
-    Assert.assertEquals(5, upgradeCatalogs.size());
-    Assert.assertEquals("1.4.9", upgradeCatalogs.get(0).getTargetVersion());
-    Assert.assertEquals("1.5.0", upgradeCatalogs.get(1).getTargetVersion());
-    Assert.assertEquals("1.7.0", upgradeCatalogs.get(2).getTargetVersion());
-    Assert.assertEquals("2.0.0", upgradeCatalogs.get(3).getTargetVersion());
-    Assert.assertEquals("2.1.0", upgradeCatalogs.get(4).getTargetVersion());
-
-    try {
-      // This is a valid path, so should not throw exception.
-      schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, "2.0.0");
-    } catch (Throwable ex) {
-      Assert.assertTrue(false);
-    }
-
-    Throwable e = null;
-    try {
-      // This is an invalid path, so should throw exception.
-      schemaUpgradeHelper.validateUpgradePath(upgradeCatalogs, "2.1.0");
-    } catch (Throwable ex) {
-      e = ex;
-    }
-    Assert.assertTrue(e instanceof AmbariException);
   }
 
   @Test
