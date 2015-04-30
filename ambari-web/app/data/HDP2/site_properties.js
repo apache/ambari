@@ -1032,6 +1032,19 @@ var hdp2properties = [
   },
   {
     "id": "site property",
+    "name": "nimbus.seeds",
+    "displayName": "nimbus.seeds",
+    "displayType": "masterHosts",
+    "isOverridable": false,
+    "serviceName": "STORM",
+    "filename": "storm-site.xml",
+    "category": "NIMBUS",
+    "stack": {
+      "HDP": "2.3"
+    }
+  },
+  {
+    "id": "site property",
     "name": "nimbus.thrift.port",
     "displayName": "nimbus.thrift.port",
     "displayType": "int",

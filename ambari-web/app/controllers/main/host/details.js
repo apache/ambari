@@ -233,6 +233,12 @@ App.MainHostDetailsController = Em.Controller.extend({
       deleteHiveMetastoreMsg: Em.View.extend({
         template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteHiveMetastore'))
       }),
+      isNimbus: function () {
+        return componentName == 'NIMBUS';
+      }.property(),
+      deleteNimbusMsg: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteNimbus'))
+      }),
       isChecked: false,
       disablePrimary: function () {
         return !this.get('isChecked');
@@ -329,6 +335,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     } else if (data.componentName == 'HIVE_METASTORE') {
       this.set('deleteHiveMetaStore', true);
       this.loadConfigs('loadHiveConfigs');
+    } else if(data.componentName == 'NIMBUS') {
+      this.set('deleteNimbusHost', true);
+      this.loadConfigs('loadStormConfigs');
     }
   },
 
@@ -449,6 +458,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       self = this,
       hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : "";
       component = event.context,
+      hostName = this.get('content.hostName'),
       componentName = component.get('componentName'),
       missedComponents = !!hiveHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
         scope: 'host',
@@ -473,6 +483,12 @@ App.MainHostDetailsController = Em.Controller.extend({
           self.set('hiveMetastoreHost', hiveHost);
           self.loadConfigs("loadHiveConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
+        break;
+      case 'NIMBUS':
+        returnFunc = App.showConfirmationPopup(function() {
+            self.set('nimbusHost', hostName);
+            self.loadConfigs("loadStormConfigs");
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName));
         break;
       default:
         returnFunc = this.addClientComponent(component);
@@ -627,6 +643,114 @@ App.MainHostDetailsController = Em.Controller.extend({
     this.get('isOozieConfigLoaded').resolve();
   },
 
+
+  /**
+   * Success callback for Storm load configs request
+   * @param {object} data
+   * @method loadStormConfigs
+   */
+  loadStormConfigs: function (data) {
+    App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+          urlParams: '(type=storm-site&tag=' + data.Clusters.desired_configs['storm-env'].tag +')'
+      },
+      success: 'onLoadStormConfigs'
+    });
+  },
+
+  /**
+   * update and save Storm related configs to server
+   * @param {object} data
+   * @method onLoadStormConfigs
+   */
+   onLoadStormConfigs: function (data) {
+    var
+      nimbusHost = this.get('nimbusHost'),
+      stormNimbusHosts = this.getStormNimbusHosts(),
+      configs = {},
+      attributes = {};
+
+       data.items.forEach(function (item) {
+           configs[item.type] = item.properties;
+           attributes[item.type] = item.properties_attributes || {};
+       }, this);
+
+       configs['storm-site']['nimbus.seeds'] = stormNimbusHosts.join(',');
+       var groups = [
+           {
+               properties: {
+                   'storm-site': configs['storm-site'],
+                   'storm-env': configs['storm-env']
+               },
+               properties_attributes: {
+                   'storm-site': attributes['storm-site'],
+                   'storm-env': attributes['storm-env']
+               }
+           },
+           {
+               properties: {
+                   'core-site': configs['core-site']
+               },
+               properties_attributes: {
+                   'core-site': attributes['core-site']
+               }
+           }
+       ];
+    this.saveStormConfigsBatch(groups, nimbusHost);
+   },
+
+     /**
+   * save configs' sites in batch
+   * @param nimbusHost
+   * @param groups
+   */
+  saveStormConfigsBatch: function (groups, nimbusHost) {
+    groups.forEach(function (group) {
+      var desiredConfigs = [],
+        tag = 'version' + (new Date).getTime(),
+        properties = group.properties;
+
+      for (var site in properties) {
+        if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
+        desiredConfigs.push({
+          "type": site,
+          "tag": tag,
+          "properties": properties[site],
+          "properties_attributes": group.properties_attributes[site],
+          "service_config_version_note": Em.I18n.t('hosts.host.storm.configs.save.note')
+        });
+      }
+      if (desiredConfigs.length > 0) {
+        App.ajax.send({
+          name: 'common.service.configurations',
+          sender: this,
+          data: {
+            desired_config: desiredConfigs,
+            stormNimbusHost: nimbusHost
+          },
+          success: 'installStormNimbus'
+        });
+      }
+      //clear nimbus host not to send second request to install component
+      nimbusHost = null;
+    }, this);
+  },
+
+  /**
+   * success callback for saveStormConfigsBatch method
+   * @param data
+   * @param opt
+   * @param params
+   */
+  installStormNimbus: function(data, opt, params) {
+    if (params.stormNimbusHost) {
+      componentsUtils.installHostComponent(params.stormNimbusHost, App.StackServiceComponent.find("NIMBUS"));
+    }
+  },
+  /**
+
   /**
    * Success callback for load configs request
    * @param {object} data
@@ -774,6 +898,30 @@ App.MainHostDetailsController = Em.Controller.extend({
       return hiveHosts.without(this.get('content.hostName'));
     }
     return hiveHosts.sort();
+  },
+
+  /**
+   * Delete Storm Nimbus is performed
+   * @type {bool}
+   */
+  deleteNimbusHost: false,
+
+  getStormNimbusHosts: function () {
+    var
+      stormNimbusHosts = App.HostComponent.find().filterProperty('componentName', 'NIMBUS').mapProperty('hostName'),
+      nimbusHost = this.get('nimbusHost');
+
+    if(!!nimbusHost){
+      stormNimbusHosts.push(nimbusHost);
+      this.set('nimbusHost', '');
+    }
+
+    if (this.get('fromDeleteHost') || this.get('deleteNimbusHost')) {
+      this.set('deleteNimbusHost', false);
+      this.set('fromDeleteHost', false);
+      return stormNimbusHosts.without(this.get('content.hostName'));
+    }
+    return stormNimbusHosts.sort();
   },
 
   /**

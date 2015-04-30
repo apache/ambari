@@ -204,6 +204,9 @@ module.exports = {
       case 'nimbus.host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'NIMBUS').hostName);
         break;
+      case 'nimbus.seeds':
+        configProperty.set('value', masterComponentHostsInDB.filterProperty('component', 'NIMBUS').mapProperty('hostName'));
+        break;
       case 'falconserver_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName);
         break;

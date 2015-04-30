@@ -2152,6 +2152,8 @@ Em.I18n.translations = {
   'hosts.host.zooKeeper.configs.save.note': 'This configuration is created by ambari while installing/deleting zookeeper component on a host',
   'hosts.host.addComponent.securityNote':'You are running your cluster in secure mode. You must set up the keytab for {0} on {1} before you proceed. Otherwise, the component will not be able to start properly.',
   'hosts.host.addComponent.popup.confirm':'Confirm Add',
+  'hosts.host.deleteComponent.popup.deleteNimbus':'Deleting <i>Storm Nimbus</i> will reconfigure the <b>nimbus.seeds</b> property if it is defined.',
+  'hosts.host.storm.configs.save.note': 'This configuration is created by ambari while installing/deleting storm component on a host',
   'hosts.host.datanode.decommission':'Decommission DataNode',
   'hosts.host.datanode.recommission':'Recommission DataNode',
   'hosts.host.nodemanager.decommission':'Decommission NodeManager',
