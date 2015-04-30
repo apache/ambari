@@ -173,7 +173,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   loadedClusterSiteToTagMap: {},
 
   /**
-   * Number of errors in the configs in the selected service
+   * Number of errors in the configs in the selected service (only for AdvancedTab if App supports Enhanced Configs)
    * @type {number}
    */
   errorsCount: function () {
@@ -377,7 +377,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   onConfigGroupChange: function () {
     var self = this;
     this.get('stepConfigs').clear();
-    this.set('versionLoaded', false);
     var selectedConfigGroup = this.get('selectedConfigGroup');
     var serviceName = this.get('content.serviceName');
     //STEP 1: handle tags from JSON data for host overrides
