@@ -23,6 +23,12 @@ App.YARNService = App.Service.extend({
   resourceManager: function() {
     return this.get('hostComponents').findProperty('componentName', 'RESOURCEMANAGER');
   }.property('hostComponents'),
+  isRMHaEnabled: function() {
+    return this.get('hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').length > 1;
+  }.property('hostComponents'),
+  activeResourceManager: function() {
+    return this.get('hostComponents').filterProperty('componentName', 'RESOURCEMANAGER').findProperty('haStatus', 'ACTIVE');
+  }.property('hostComponents'),
   appTimelineServer: function() {
     return this.get('hostComponents').findProperty('componentName', 'APP_TIMELINE_SERVER');
   }.property('hostComponents'),
@@ -44,9 +50,9 @@ App.YARNService = App.Service.extend({
   appsKilled: DS.attr('number'),
   appsFailed: DS.attr('number'),
   ahsWebPort: function() {
-    var yarnConf = App.db.getConfigs().findProperty('type', 'yarn-site')
+    var yarnConf = App.db.getConfigs().findProperty('type', 'yarn-site');
     if(yarnConf){
-      return yarnConf.properties['yarn.timeline-service.webapp.address'].match(/:(\d+)/)[1];;
+      return yarnConf.properties['yarn.timeline-service.webapp.address'].match(/:(\d+)/)[1];
     }
     return "8188";
   }.property(),

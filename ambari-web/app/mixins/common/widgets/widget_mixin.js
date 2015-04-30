@@ -155,6 +155,15 @@ App.WidgetMixin = Ember.Mixin.create({
           }
         }
         break;
+      case 'RESOURCEMANAGER':
+        if (metric.host_component_criteria === 'host_components/HostRoles/ha_state=ACTIVE') {
+          //if (metric.host_component_criteria)
+          var yarn = App.YARNService.find().objectAt(0);
+          if (!yarn.get('isRMHaEnabled')) {
+            metric.host_component_criteria = 'host_components/HostRoles/component_name=RESOURCEMANAGER';
+          }
+        }
+        break;
     }
   },
 

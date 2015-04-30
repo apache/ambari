@@ -195,13 +195,19 @@ App.WidgetWizardExpressionView = Em.View.extend({
             placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
             no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
           }).change(function (event, obj) {
-            self.set('parentView.selectedMetric', Em.Object.create({
+            var filteredComponentMetrics = self.get('controller.filteredMetrics').filterProperty('component_name', self.get('selectedComponent.componentName')).filterProperty('level',self.get('selectedComponent.level'));
+            var filteredMetric = filteredComponentMetrics.findProperty('name', obj.selected);
+            var selectedMetric =  Em.Object.create({
               name: obj.selected,
               componentName: self.get('selectedComponent.componentName'),
               serviceName: self.get('selectedComponent.serviceName'),
-              metricPath: self.get('controller.filteredMetrics').findProperty('name', obj.selected).widget_id,
+              metricPath: filteredMetric.widget_id,
               isMetric: true
-            }));
+            });
+            if (self.get('selectedComponent.hostComponentCriteria')) {
+              selectedMetric.hostComponentCriteria = self.get('selectedComponent.hostComponentCriteria');
+            }
+            self.set('parentView.selectedMetric', selectedMetric);
           });
         },
 
@@ -271,6 +277,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
                   component_name: metric.component_name,
                   level: metric.level,
                   count: 1,
+                  hostComponentCriteria: metric.host_component_criteria,
                   metrics: [metric.name]
                 };
               }
@@ -290,7 +297,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
               if (servicesMap[serviceName].components[componentId].component_name === 'HBASE_MASTER' &&
                 servicesMap[serviceName].components[componentId].level === 'HOSTCOMPONENT') continue;
 
-              components.push(Em.Object.create({
+              var component = Em.Object.create({
                 componentName: servicesMap[serviceName].components[componentId].component_name,
                 level: servicesMap[serviceName].components[componentId].level,
                 displayName: function() {
@@ -307,7 +314,11 @@ App.WidgetWizardExpressionView = Em.View.extend({
                 selected: false,
                 id: componentId,
                 serviceName: serviceName
-              }));
+              });
+              if (component.get('level') === 'HOSTCOMPONENT') {
+                component.set('hostComponentCriteria', servicesMap[serviceName].components[componentId].hostComponentCriteria);
+              }
+              components.push(component);
             }
             result.push(Em.Object.create({
               serviceName: serviceName,

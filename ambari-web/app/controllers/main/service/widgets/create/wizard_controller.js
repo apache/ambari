@@ -220,6 +220,7 @@ App.WidgetWizardController = App.WizardController.extend({
    * @param {object} json
    */
   loadAllMetricsFromServerCallback: function (json) {
+    var self = this;
     var result = [];
     var metrics = {};
 
@@ -230,7 +231,7 @@ App.WidgetWizardController = App.WizardController.extend({
           for (var level in data[componentName]) {
             metrics = data[componentName][level][0]['metrics']['default'];
             for (var widgetId in metrics) {
-              result.push({
+              var metricObj = {
                 widget_id: widgetId,
                 point_in_time: metrics[widgetId].pointInTime,
                 temporal: metrics[widgetId].temporal,
@@ -239,13 +240,33 @@ App.WidgetWizardController = App.WizardController.extend({
                 type: data[componentName][level][0]["type"].toUpperCase(),
                 component_name: componentName,
                 service_name: service.StackServices.service_name
-              });
+              };
+              result.push(metricObj);
+              if (metricObj.level === 'HOSTCOMPONENT') {
+                self.insertHostComponentCriteria(metricObj);
+              }
             }
           }
         }
       }, this);
     }
     this.save('allMetrics', result);
+  },
+
+  /**
+   *
+   * @param metricObj {Object}
+   */
+  insertHostComponentCriteria: function (metricObj) {
+    switch (metricObj.component_name) {
+      case 'NAMENODE':
+        metricObj.host_component_criteria = 'host_components/metrics/dfs/FSNamesystem/HAState=active';
+        break;
+      case 'RESOURCEMANAGER':
+        metricObj.host_component_criteria = 'host_components/HostRoles/ha_state=ACTIVE';
+        break;
+      default:
+    }
   },
 
   /**
