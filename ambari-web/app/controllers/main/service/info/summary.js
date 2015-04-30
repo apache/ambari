@@ -420,7 +420,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
             serviceName: JSON.parse(widget.WidgetInfo.metrics).mapProperty('service_name').uniq().join('-'),
             added: addedWidgetsNames.contains(widgetName),
-            isShared: false
+            isShared: widget.WidgetInfo.scope == "CLUSTER"
           });
         })
       );
@@ -634,7 +634,17 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           if (this.get('parentView.isShowMineOnly')) {
             return this.get('controller.mineWidgets');
           } else {
-            return this.get('controller.mineWidgets').concat(this.get('controller.allSharedWidgets'));
+            // merge my widgets and all shared widgets, no duplicated is allowed
+            var content = [];
+            var widgetMap = {};
+            var allWidgets = this.get('controller.allSharedWidgets').concat(this.get('controller.mineWidgets'));
+            allWidgets.forEach(function(widget) {
+              if (!widgetMap[widget.get("id")]) {
+                content.pushObject(widget);
+                widgetMap[widget.get("id")] = true;
+              }
+            });
+            return content;
           }
         }.property('controller.allSharedWidgets.length', 'controller.isAllSharedWidgetsLoaded',
           'controller.mineWidgets.length', 'controller.isMineWidgetsLoaded', 'parentView.isShowMineOnly'),
