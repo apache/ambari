@@ -44,10 +44,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
 
   startIndex: 1,
 
-  expandedComponentsSections: [],
-
-  expandedVersionsSections: [],
-
   /**
    * Components which will be shown in component filter
    * @returns {Array}

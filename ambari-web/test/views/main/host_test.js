@@ -91,50 +91,16 @@ describe('App.MainHostView', function () {
   describe('#updateHostsPagination', function () {
 
     beforeEach(function () {
-      sinon.stub(view, 'clearExpandedSections', Em.K);
       sinon.stub(view, 'updatePagination', Em.K);
     });
 
     afterEach(function () {
-      view.clearExpandedSections.restore();
       view.updatePagination.restore();
     });
 
-    it('should execute clearExpandedSections and updatePagination', function () {
+    it('should execute and updatePagination', function () {
       view.updateHostsPagination();
-      expect(view.clearExpandedSections.calledOnce).to.be.true;
       expect(view.updatePagination.calledOnce).to.be.true;
-    });
-
-  });
-
-  describe('#willDestroyElement', function () {
-
-    beforeEach(function () {
-      sinon.stub(view, 'clearExpandedSections', Em.K);
-    });
-
-    afterEach(function () {
-      view.clearExpandedSections.restore();
-    });
-
-    it('should execute clearExpandedSections', function () {
-      view.willDestroyElement();
-      expect(view.clearExpandedSections.calledOnce).to.be.true;
-    });
-
-  });
-
-  describe('#clearExpandedSections', function () {
-
-    it('should clear expandedComponentsSections and expandedVersionsSections from controller', function () {
-      view.get('controller').setProperties({
-        expandedComponentsSections: [''],
-        expandedVersionsSections: ['']
-      });
-      view.clearExpandedSections();
-      expect(view.get('controller.expandedComponentsSections')).to.have.length(0);
-      expect(view.get('controller.expandedVersionsSections')).to.have.length(0);
     });
 
   });
@@ -152,109 +118,78 @@ describe('App.MainHostView', function () {
       });
     });
 
-    describe('#didInsertElement', function () {
+    describe('#displayComponents', function () {
 
-      var cases = [
+      beforeEach(function () {
+        sinon.stub(App, 'showHostsTableListPopup', Em.K);
+      });
+
+      afterEach(function () {
+        App.showHostsTableListPopup.restore();
+      });
+
+      it('should display host components in modal popup', function () {
+        hostView.set('content', {
+          hostName: 'h',
+          hostComponents: [
+            {
+              displayName: 'c0'
+            },
+            {
+              displayName: 'c1'
+            }
+          ]
+        });
+        hostView.displayComponents();
+        expect(App.showHostsTableListPopup.calledOnce).to.be.true;
+        expect(App.showHostsTableListPopup.calledWith(Em.I18n.t('common.components'), 'h', ['c0', 'c1'])).to.be.true;
+      });
+
+    });
+
+    describe('#displayVersions', function () {
+
+      beforeEach(function () {
+        sinon.stub(App, 'showHostsTableListPopup', Em.K);
+      });
+
+      afterEach(function () {
+        App.showHostsTableListPopup.restore();
+      });
+
+      it('should display stack versions in modal popup', function () {
+        hostView.set('content', {
+          hostName: 'h',
+          stackVersions: [
+            Em.Object.create({
+              displayName: 'v0',
+              status: 'CURRENT',
+              isVisible: true
+            }),
+            Em.Object.create({
+              displayName: 'v1',
+              status: 'OUT_OF_SYNC',
+              isVisible: true
+            }),
+            Em.Object.create({
+              displayName: 'v2',
+              status: 'INSTALL_FAILED',
+              isVisible: false
+            })
+          ]
+        });
+        hostView.displayVersions();
+        expect(App.showHostsTableListPopup.calledOnce).to.be.true;
+        expect(App.showHostsTableListPopup.calledWith(Em.I18n.t('common.versions'), 'h', [
           {
-            expandedSections: ['h0'],
-            isCollapsed: false,
-            title: '{0} section should be expanded'
+            name: 'v0',
+            status: 'Current'
           },
           {
-            expandedSections: ['h1'],
-            isCollapsed: true,
-            title: '{0} section should be collapsed'
+            name: 'v1',
+            status: 'Out Of Sync'
           }
-        ],
-        testMethod = function (item, elementsName, arrayName, propertyName) {
-          it(item.title.format(elementsName), function () {
-            hostView.set('content.hostName', 'h0');
-            hostView.set('controller.' + arrayName, item.expandedSections);
-            hostView.didInsertElement();
-            expect(App.tooltip.calledOnce).to.be.true;
-            expect(hostView.get(propertyName)).to.equal(item.isCollapsed);
-          });
-        };
-
-      beforeEach(function () {
-        sinon.stub(App, 'tooltip', Em.K);
-      });
-
-      afterEach(function () {
-        App.tooltip.restore();
-      });
-
-      cases.forEach(function (item) {
-        testMethod(item, 'components', 'expandedComponentsSections', 'isComponentsCollapsed');
-        testMethod(item, 'versions', 'expandedVersionsSections', 'isVersionsCollapsed');
-      });
-
-    });
-
-    describe('#toggleList', function () {
-
-      var cases = [
-        {
-          isCollapsed: false,
-          isCollapsedAfter: true,
-          expandedSections: ['h0'],
-          expandedSectionsAfter: [],
-          title: 'section becomes collapsed'
-        },
-        {
-          isCollapsed: true,
-          isCollapsedAfter: false,
-          expandedSections: [],
-          expandedSectionsAfter: ['h0'],
-          title: 'section becomes expanded'
-        }
-      ];
-
-      cases.forEach(function (item) {
-        it(item.title, function () {
-          hostView.set('content.hostName', 'h0');
-          hostView.set('isComponentsCollapsed', item.isCollapsed);
-          hostView.set('controller.expandedComponentsSections', item.expandedSections);
-          hostView.toggleList('isComponentsCollapsed', 'expandedComponentsSections');
-          expect(hostView.get('isComponentsCollapsed')).to.equal(item.isCollapsedAfter);
-          expect(hostView.get('controller.expandedComponentsSections')).to.eql(item.expandedSectionsAfter);
-        });
-      });
-
-    });
-
-    describe('#toggleComponents', function () {
-
-      beforeEach(function () {
-        sinon.stub(hostView, 'toggleList', Em.K);
-      });
-
-      afterEach(function () {
-        hostView.toggleList.restore();
-      });
-
-      it('should toggle components list', function () {
-        hostView.toggleComponents();
-        expect(hostView.toggleList.calledOnce).to.be.true;
-        expect(hostView.toggleList.calledWith('isComponentsCollapsed', 'expandedComponentsSections')).to.be.true;
-      });
-
-    });
-
-    describe('#toggleVersions', function () {
-
-      beforeEach(function () {
-        sinon.stub(hostView, 'toggleList', Em.K);
-      });
-
-      afterEach(function () {
-        hostView.toggleList.restore();
-      });
-
-      it('should toggle components list', function () {
-        hostView.toggleVersions();
-        expect(hostView.toggleList.calledOnce).to.be.true;
-        expect(hostView.toggleList.calledWith('isVersionsCollapsed', 'expandedVersionsSections')).to.be.true;
+        ])).to.be.true;
       });
 
     });

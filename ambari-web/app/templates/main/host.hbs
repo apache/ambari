@@ -138,22 +138,14 @@
 
           <td class="load-avg">{{host.loadAvg}}</td>
           <td {{bindAttr class="App.supports.stackUpgrade::hidden App.stackVersionsAvailable::hidden view.hasSingleVersion:not-active-link :host-table-versions"}}>
-            <a href="#" class="expander black" {{action toggleVersions target="view"}}>
-              {{#unless view.hasSingleVersion}}
-                <span {{bindAttr class="view.isVersionsCollapsed:icon-caret-right:icon-caret-down"}}></span>
-              {{/unless}}
+            <a href="#" class="black" {{action displayVersions target="view"}}>
               {{view.currentVersion}}
             </a>
-            <div {{bindAttr class="view.isVersionsCollapsed:noDisplay:display :stack-versions :collapsed-list"}}>
-              {{{view.versionLabels}}}
-            </div>
           </td>
-          <td class="host-table-components">
-            <a href="#" class="expander" {{action toggleComponents target="view"}}> <span {{bindAttr class="view.isComponentsCollapsed:icon-caret-right:icon-caret-down"}}></span>
-              {{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}</a>
-            <div {{bindAttr class="view.isComponentsCollapsed:noDisplay:display :host-components :collapsed-list"}}>
-              {{{view.labels}}}
-            </div>
+          <td {{bindAttr class="view.hasNoComponents:not-active-link :host-table-components"}}>
+            <a href="#" class="black" {{action displayComponents target="view"}}>
+              {{view.content.hostComponents.length}} {{pluralize view.content.hostComponents.length singular="t:common.component" plural="t:common.components"}}
+            </a>
           </td>
         {{/view}}
       {{/each}}
