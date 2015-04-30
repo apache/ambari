@@ -182,21 +182,22 @@ def runAgent(passPhrase, expected_hostname, user_run_as, verbose, ret=None):
   return {"exitstatus": agent_retcode, "log": log}
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
-def tryStopAgent():
+def checkVerbose():
   verbose = False
   if os.path.exists(AMBARI_AGENT_INSTALL_SYMLINK):
-    agentStopCmd = ["cmd", "/c", "ambari-agent.cmd", "stop"]
-    execOsCommand(agentStopCmd, tries=3, try_sleep=10, cwd=AMBARI_AGENT_INSTALL_SYMLINK)
+    agentStatusCmd = ["cmd", "/c", "ambari-agent.cmd", "status"]
+    ret = execOsCommand(agentStatusCmd, tries=3, try_sleep=10, cwd=AMBARI_AGENT_INSTALL_SYMLINK)
+    if ret["exitstatus"] == 0 and ret["log"][0].find("running") != -1:
+      verbose = True
   return verbose
 
 @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-def tryStopAgent():
+def checkVerbose():
   verbose = False
   cmds = ["bash", "-c", "ps aux | grep 'AmbariAgent.py' | grep ' \-v'"]
   cmdl = ["bash", "-c", "ps aux | grep 'AmbariAgent.py' | grep ' \--verbose'"]
   if execOsCommand(cmds)["exitstatus"] == 0 or execOsCommand(cmdl)["exitstatus"] == 0:
     verbose = True
-  subprocess.call("/usr/sbin/ambari-agent stop", shell=True)
   return verbose
 
 @OsFamilyFuncImpl(OSConst.WINSRV_FAMILY)
@@ -362,9 +363,9 @@ def run_setup(argv=None):
   return runAgent(passPhrase, expected_hostname, user_run_as, verbose)
 
 def main(argv=None):
-  #Try stop agent and check --verbose option if agent already run
+  #Check --verbose option if agent already running
   global verbose
-  verbose = tryStopAgent()
+  verbose = checkVerbose()
   if verbose:
     exitcode = run_setup(argv)
   else:

@@ -220,8 +220,10 @@ case "$1" in
         ;;
   restart)
         echo -e "Restarting $AMBARI_AGENT"
-        $0 stop
-        $0 start "$@"
+        scriptpath=$0
+        $scriptpath stop
+        shift
+        $scriptpath start "$@"
         retcode=$?
         ;;
   reset)

@@ -252,7 +252,7 @@ class TestSetupAgent(TestCase):
     self.assertFalse(setup_agent.execOsCommand("hostname -f") == None)
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
-  @patch.object(setup_agent, 'tryStopAgent')
+  @patch.object(setup_agent, 'checkVerbose')
   @patch.object(setup_agent, 'isAgentPackageAlreadyInstalled')
   @patch.object(setup_agent, 'runAgent')
   @patch.object(setup_agent, 'configureAgent')
@@ -267,14 +267,14 @@ class TestSetupAgent(TestCase):
   def test_setup_agent_main(self, dirname_mock, realpath_mock, exit_mock, checkServerReachability_mock,
                             getOptimalVersion_mock, is_ubuntu_family_mock, is_suse_family_mock,
                             installAgent_mock, configureAgent_mock, runAgent_mock,
-                            isAgentPackageAlreadyInstalled_mock, tryStopAgent_mock):
+                            isAgentPackageAlreadyInstalled_mock, checkVerbose_mock):
     checkServerReachability_mock.return_value = {'log': 'log', 'exitstatus': 0}
     installAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     configureAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     runAgent_mock.return_value = {'log': 'log', 'exitstatus': 0}
     getOptimalVersion_mock.return_value = {'log': '1.1.2, 1.1.3, ', 'exitstatus': 1}
     ret = setup_agent.main(("setupAgent.py","agents_host","password", "server_hostname","1.1.1","8080"))
-    self.assertTrue(tryStopAgent_mock.called)
+    self.assertTrue(checkVerbose_mock.called)
     self.assertFalse(exit_mock.called)
     self.assertTrue("exitstatus" in ret)
     self.assertEqual(ret["exitstatus"], 1)
