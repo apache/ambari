@@ -518,7 +518,7 @@ App.WidgetPreviewMixin = Ember.Mixin.create({
     id: 1,
     values: []
   }),
-  drawWidget: function () {
+  loadMetrics: function () {
     this.get('content').setProperties({
       'values': this.get('controller.widgetValues'),
       'properties': this.get('controller.widgetProperties'),
@@ -534,8 +534,9 @@ App.WidgetPreviewMixin = Ember.Mixin.create({
         }
       })
     });
-    this.loadMetrics();
     this._super();
   }.observes('controller.widgetProperties', 'controller.widgetValues', 'controller.widgetMetrics', 'controller.widgetName'),
-  onMetricsLoaded: Em.K
+  onMetricsLoaded: function () {
+    this.drawWidget();
+  }
 });

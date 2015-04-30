@@ -138,8 +138,10 @@ App.WidgetWizardExpressionView = Em.View.extend({
 
     this.set('isInvalid', isInvalid);
     this.set('expression.isInvalid', isInvalid);
-    this.set('expression.isEmpty', this.get('expression.data.length') == 0);
-    if (!isInvalid) this.get('controller').updateExpressions();
+    this.get('controller').propertyDidChange('isSubmitDisabled');
+    if (!isInvalid) {
+      this.get('controller').updateExpressions();
+    }
   }.observes('expression.data.length'),
 
   /**
@@ -233,6 +235,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
           }
           this.set('parentView.selectedMetric', null);
           Em.run.next(function () {
+            $('.chosen-select option').first().attr('selected','selected');
             $('.chosen-select').trigger('chosen:updated');
           });
         },
@@ -282,19 +285,22 @@ App.WidgetWizardExpressionView = Em.View.extend({
           for (var serviceName in servicesMap) {
             components = [];
             for (var componentId in servicesMap[serviceName].components) {
+
+              //HBase service should not show "Active HBase master"
+              if (servicesMap[serviceName].components[componentId].component_name === 'HBASE_MASTER' &&
+                servicesMap[serviceName].components[componentId].level === 'HOSTCOMPONENT') continue;
+
               components.push(Em.Object.create({
                 componentName: servicesMap[serviceName].components[componentId].component_name,
                 level: servicesMap[serviceName].components[componentId].level,
                 displayName: function() {
                   var stackComponent = App.StackServiceComponent.find(this.get('componentName'));
                   if (stackComponent.get('isMaster')) {
-                    if (this.get('level') === 'COMPONENT') {
-                      return Em.I18n.t('widget.create.wizard.step2.allComponents').format(stackComponent.get('displayName'));
-                    } else {
+                    if (this.get('level') === 'HOSTCOMPONENT') {
                       return Em.I18n.t('widget.create.wizard.step2.activeComponents').format(stackComponent.get('displayName'));
                     }
                   }
-                  return stackComponent.get('displayName');
+                  return Em.I18n.t('widget.create.wizard.step2.allComponents').format(stackComponent.get('displayName'));
                 }.property('componentName', 'level'),
                 count: servicesMap[serviceName].components[componentId].count,
                 metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),

@@ -107,23 +107,62 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     switch (this.get('content.widgetType')) {
       case "NUMBER":
       case "GAUGE":
-        return this.get('expressions')[0] &&
-          (this.get('expressions')[0].get('isInvalid') ||
-            this.get('expressions')[0].get('isEmpty'));
+        return !this.isExpressionComplete(this.get('expressions')[0]);
       case "GRAPH":
-        return this.get('dataSets.length') > 0 &&
-          (this.get('dataSets').someProperty('expression.isInvalid') ||
-            this.get('dataSets').someProperty('expression.isEmpty'));
+        return !this.isGraphDataComplete(this.get('dataSets'));
       case "TEMPLATE":
-        return !this.get('templateValue') ||
-          this.get('expressions.length') > 0 &&
-            (this.get('expressions').someProperty('isInvalid') ||
-              this.get('expressions').someProperty('isEmpty'));
+        return !this.isTemplateDataComplete(this.get('expressions'), this.get('templateValue'));
     }
     return false;
-  }.property('widgetPropertiesViews.@each.isValid', 'templateValue',
-    'dataSets.@each.expression', 'dataSets.@each.isInvalid', 'dataSets.@each.isExpressionEmpty',
-    'expressions.@each.isInvalid', 'expressions.@each.isEmpty'),
+  }.property(
+    'widgetPropertiesViews.@each.isValid',
+    'dataSets.@each.label',
+    'templateValue'
+  ),
+
+  /**
+   * check whether data of expression is complete
+   * @param {Em.Object} expression
+   * @returns {boolean}
+   */
+  isExpressionComplete: function (expression) {
+    return expression && !expression.get('isInvalid') && !expression.get('isEmpty');
+  },
+
+  /**
+   * check whether data of graph widget is complete
+   * @param dataSets
+   * @returns {boolean} isComplete
+   */
+  isGraphDataComplete: function (dataSets) {
+    var isComplete = Boolean(dataSets.length);
+
+    for (var i = 0; i < dataSets.length; i++) {
+      if (dataSets[i].get('label').trim() === '' || !this.isExpressionComplete(dataSets[i].get('expression'))) {
+        isComplete = false;
+        break;
+      }
+    }
+    return isComplete;
+  },
+
+  /**
+   * check whether data of template widget is complete
+   * @param {Array} expressions
+   * @param {string} templateValue
+   * @returns {boolean} isComplete
+   */
+  isTemplateDataComplete: function (expressions, templateValue) {
+    var isComplete = Boolean(expressions.length > 0 && templateValue.trim() !== '');
+
+    for (var i = 0; i < expressions.length; i++) {
+      if (!this.isExpressionComplete(expressions[i])) {
+        isComplete = false;
+        break;
+      }
+    }
+    return isComplete;
+  },
 
   /**
    * Add data set
@@ -138,17 +177,13 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       id: id,
       label: '',
       isRemovable: !isDefault,
-      expression: {
+      expression: Em.Object.create({
         data: [],
         isInvalid: false,
-        isEmpty: true
-      },
-      isInvalid: function() {
-        return this.get('expression.isInvalid');
-      }.property('expression.isInvalid'),
-      isExpressionEmpty: function() {
-        return this.get('expression.isEmpty');
-      }.property('expression.isEmpty')
+        isEmpty: function () {
+          return (this.get('data.length') === 0);
+        }.property('data.length')
+      })
     }));
     return id;
   },
@@ -176,7 +211,9 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       data: [],
       alias: '{{' + this.get('EXPRESSION_PREFIX') + id + '}}',
       isInvalid: false,
-      isEmpty: true
+      isEmpty: function () {
+        return (this.get('data.length') === 0);
+      }.property('data.length')
     }));
     return id;
   },
@@ -201,6 +238,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       return Em.Object.create(item);
     }, this));
     this.set('dataSets', this.get('content.dataSets').map(function (item) {
+      item.expression = Em.Object.create(item.expression);
       return Em.Object.create(item);
     }, this));
     this.set('templateValue', this.get('content.templateValue'));

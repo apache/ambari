@@ -206,7 +206,9 @@ App.WidgetWizardController = App.WizardController.extend({
       sender: this,
       data: {
         stackVersionURL: App.get('stackVersionURL'),
-        serviceNames: App.Service.find().mapProperty('serviceName').join(',')
+        serviceNames: App.Service.find().filter(function (item) {
+          return App.StackService.find(item.get('id')).get('isServiceWithWidgets');
+        }).mapProperty('serviceName').join(',')
       },
       callback: callback,
       success: 'loadAllMetricsFromServerCallback'
