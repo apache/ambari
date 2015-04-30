@@ -20,7 +20,10 @@
 
   {{#if parentController.isOperator}}
     <div class="form-group">
-      <label>Capacity:</label>
+      {{tooltip-label
+        label='Capacity:'
+        message= 'The minimum guaranteed capacity as a percentage of total capacity that is allocated to the queue.'
+      }}
       <div class="form-group">
         <div class="input-group input-percent">
           {{capacity-input class='input-sm' value=this.capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
@@ -41,7 +44,10 @@
     <div class="rollback-wrap-ghost"></div>
 
     <div {{bind-attr class=":form-group this.isValid::has-error" }}>
-      <label>Max Capacity:</label>
+      {{tooltip-label
+        label='Max Capacity:'
+        message= 'The cap (maximum capacity) as a percentage of total capacity that this quire can utilize.'
+      }}
       <div class="form-group">
         <div class="input-group input-percent">
           {{max-capacity-input class='input-sm' value=this.maximum_capacity totalCapacity=view.totalCapacity queue=this maxVal=100}}
@@ -64,14 +70,20 @@
     </div>
   {{else}}
     <div class="form-group">
-      <label>Capacity:
+      {{#tooltip-label
+        label='Capacity:'
+        message= 'The minimum guaranteed capacity as a percentage of total capacity that is allocated to the queue.'
+      }}
         <span>{{capacity}}%</span>
-      </label>
+      {{/tooltip-label}}
     </div>
     <div class="form-group">
-      <label>Max Capacity:
+      {{#tooltip-label
+        label='Max Capacity:'
+        message= 'The cap (maximum capacity) as a percentage of total capacity that this quire can utilize.'
+      }}
         <span>{{maximum_capacity}}%</span>
-      </label>
+      {{/tooltip-label}}
     </div>
   {{capacity-bar capacityValue=capacity maxCapacityValue=maximum_capacity}}
 

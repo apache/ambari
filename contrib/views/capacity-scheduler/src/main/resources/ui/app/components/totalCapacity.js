@@ -63,31 +63,23 @@ App.TotalCapacityComponent = Ember.Component.extend({
     rollbackProp:function (prop, item) {
       this.sendAction('rollbackProp', prop, item);
     },
+    toggleDefaultLabel:function (queue, label) {
+      if (queue.get('default_node_label_expression') === label.get('name')) {
+        queue.set('default_node_label_expression',null);
+      } else {
+        queue.set('default_node_label_expression',label.get('name'));
+      }
+    },
     toggleLabel:function (labelName, queue) {
       var q = queue || this.get('currentQueue'),
           labelRecord = q.store.getById('label',[q.get('path'),labelName].join('.').toLowerCase());
 
       if (q.get('labels').contains(labelRecord)) {
-        this.recurseRemoveLabel(q,labelRecord);
+        q.recurseRemoveLabel(labelRecord);
       } else {
         q.get('labels').pushObject(labelRecord);
+        q.notifyPropertyChange('labels');
       }
-      q.notifyPropertyChange('labels');
-    }
-  },
-
-  /**
-   * @param  {App.Queue} target queue
-   * @param  {App.Label} label ralated to queue. All labels with it's name will be removed from child queues.
-   * @method recurseRemoveLabel
-   */
-  recurseRemoveLabel:function(queue,label) {
-    label = queue.get('labels').findBy('name',label.get('name'));
-    if (label) {
-      queue.get('labels').removeObject(label);
-      this.get('allQueues').filterBy('parentPath',queue.get('path')).forEach(function (child) {
-        this.recurseRemoveLabel(child,label);
-      }.bind(this));
     }
   },
 
@@ -225,6 +217,13 @@ App.TotalCapacityComponent = Ember.Component.extend({
       }
     },
 
+    /**
+     * Current capacity value of current label.
+     * Update only when value realy changes.
+     * @type {Number}
+     */
+    currentCapacity:null,
+
     // COMPUTED PROPERTIES
 
     /**
@@ -241,7 +240,7 @@ App.TotalCapacityComponent = Ember.Component.extend({
      * @return {Boolean}
      */
     isActive:function () {
-      return this.get('queue.labels').mapBy('name').contains(this.get('labelName'));
+      return  !this.get('queue.labels.isDestroying') && this.get('queue.labels').mapBy('name').contains(this.get('labelName'));
     }.property('queue.labels.[]'),
 
     /**
@@ -249,7 +248,7 @@ App.TotalCapacityComponent = Ember.Component.extend({
      * @return {App.Label}
      */
     currentLabel:function () {
-      return this.get('queue.labels').findBy('name',this.get('labelName'));
+      return !this.get('queue.labels.isDestroying') && this.get('queue.labels').findBy('name',this.get('labelName'));
     }.property('labelName','queue.labels.length'),
 
     /**
@@ -285,7 +284,11 @@ App.TotalCapacityComponent = Ember.Component.extend({
      * @method capacityWatcher
      */
     capacityWatcher:function () {
-      this.get('labels').setEach('overCapacity',this.get('warning'));
+      Em.run.next(this,function () {
+        if (!!this.get('labels')) {
+          this.get('labels').setEach('overCapacity',this.get('warning'));
+        }
+      });
     }.observes('warning').on('didInsertElement'),
 
     /**
@@ -319,27 +322,30 @@ App.TotalCapacityComponent = Ember.Component.extend({
     isShownTimer:null,
 
     /**
+     * Triggers tooltip when capacity on labels changes.
+     * @return {[type]} [description]
+     */
+    triggerCapacityTooltip:function() {
+      if (!(Em.isNone(this.$()) || !this.get('queue.labelsEnabled') || Em.isNone(this.get('currentLabel')))
+          && this.get('currentLabel.capacity') != this.get('currentCapacity')) {
+        Em.run.scheduleOnce('afterRender', this, 'showCapacityTooltip');
+      }
+    }.observes('currentLabel.capacity'),
+
+    /**
      * Shows tooltip when label's capacity value changes.
      * @method showCapacityTooltip
      */
     showCapacityTooltip: function() {
-      Em.run.next(this,function () {
-        if (Em.isNone(this.$())) return;
-
-        this.$().tooltip({
-          title: function  () {
-            return this.get('capacityValue') + '';
-          }.bind(this),
-          container:"#"+this.elementId,
-          animation:false
-        }).tooltip('show');
-
+      if (this._state === 'inDOM') {
+        this.$().tooltip('show');
+        this.set('currentCapacity',this.get('currentLabel.capacity'));
         Em.run.cancel(this.get('isShownTimer'));
-        this.set('isShownTimer',Em.run.debounce(this,function() {
+        this.set('isShownTimer',Em.run.later(this,function() {
           if (this.$()) this.$().tooltip('hide');
         },500));
-      })
-    }.observes('currentLabel.capacity'),
+      }
+    },
 
     /**
      * Destrioy tooltips when element destroys.

@@ -17,48 +17,28 @@
 }}
 
 {{#each queue in view.leaf }}
-  {{#link-to "queue" queue classNameBindings=":list-group-item queue.overCapacity:list-group-item-danger queue.isNew:list-group-item-info" }}
+  {{#link-to "queue" queue classNameBindings=":list-group-item queue.overCapacity:list-group-item-danger queue.isNew:list-group-item-info" disabled=queue.isDeletedQueue }}
     <span class="col-md-offset-{{unbound queue.depth}} col-sm-offset-{{unbound queue.depth}} col-xs-offset-{{unbound queue.depth}}">
 
+    <div class="progress">
+      {{view 'view.capacityBarView' queue=queue}}
+    </div>
     {{queue.name}} ({{queue.capacity}}%)
 
     {{#if queue.version}}
         <span class="label label-info">v{{queue.version}}</span>
     {{/if}}
 
-    <span class="badge pull-right">
-      {{#if queue.overCapacity}}
-        <i class="fa fa-fw fa-lg red fa-warning"></i>
-      {{/if}}
-      {{#if queue.isNewQueue }}
-        {{#if queue.isSaving}}
-        <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
-        {{else}}
-        <i class="fa fa-fw fa-lg blue fa-refresh"></i>
-        {{/if}}
-      {{else}}
-        {{#if queue.isError}}
-          {{#if queue.isSaving}}
-            <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
-          {{else}}
-            <span> queue was not saved </span> <i class="fa fa-fw fa-lg red fa-warning"></i>
-          {{/if}}
-        {{else}}
-          {{#if queue.isAnyDirty}}
-            {{#if queue.isSaving}}
-              <i class="fa fa-fw fa-lg gray fa-spinner fa-spin"></i>
-            {{else}}
-              {{diff-tooltip queue=queue}}
-            {{/if}}
-          {{else}}
-            <i class="fa fa-fw fa-lg green fa-check"></i>
-          {{/if}}
-        {{/if}}
-      {{/if}}
-    </span>
+    {{queue-badge q=queue class="badge pull-right"}}
+
+    {{#if queue.isDeletedQueue}}
+      <span class="btn-group btn-group-xs pull-right">
+        <span  {{action 'addQ' queue.parentPath queue.name }} {{bind-attr class=":btn :btn-default view.parentIsDeleted:disabled" }} >Restore</span>
+      </span>
+    {{/if}}
 
     </span>
   {{/link-to}}
 
-  {{recurce-queues depth=view.childDepth parent=queue.path}}
+  {{recurce-queues depth=view.childDepth parent=queue.path parentIsDeleted=queue.isDeletedQueue}}
 {{/each}}

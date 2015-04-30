@@ -37,47 +37,50 @@ App.QueueController = Ember.ObjectController.extend({
       this.get('controllers.queues').send('delQ',record);
     },
     renameQ:function (opt) {
+
+      var queue = this.get('content'),
+          store = this.get('store'),
+          queuesController = this.get('controllers.queues'),
+          parentPath = queue.get('parentPath'),
+          name, renamedQueueBackup;
+
       if (opt == 'ask') {
-        this.set('tmpName',{name:this.get('content.name'),path:this.get('content.path')});
-        this.get('content').addObserver('name',this,this.setQueuePath);
+        this.set('tmpName', queue.getProperties('name','path','id'));
+        queue.addObserver('name',this,this.setQueuePath);
         this.toggleProperty('isRenaming');
         return;
       }
       if (opt == 'cancel') {
-        this.get('content').removeObserver('name',this,this.setQueuePath);
-        this.get('content').setProperties({
-          name:this.get('tmpName.name'),
-          id:this.get('tmpName.path'),
-          path:this.get('tmpName.path')
-        });
+        queue.set('name',this.get('tmpName.name'));
+        queue.removeObserver('name',this,this.setQueuePath);
         this.toggleProperty('isRenaming');
         return;
       }
-      if (opt && !this.get('content').get('errors.path')) {
 
-        this.store.filter('label',function (label){
-          return label.get('forQueue') == this.get('tmpName.path');
-        }.bind(this)).then(function (labels) {
-          labels.forEach(function (label) {
-            label.materializeId([this.get('id'),label.get('name')].join('.'));
-            label.store.updateId(label,label);
-          }.bind(this))
-        }.bind(this));
+      if (opt && !queue.get('errors.path')) {
+        name = queue.get('name');
         this.toggleProperty('isRenaming');
-        this.get('content').removeObserver('name',this,this.setQueuePath);
-        this.store.updateId(this.get('content'),this.get('content'));
-        this.transitionToRoute('queue',this.get('content.id'));
+        queue.removeObserver('name',this,this.setQueuePath);
+        queue.set('name',this.get('tmpName.name'));
 
+        if (queue.get('isNewQueue')) {
+          renamedQueueBackup = this.get('store').buildDeletedQueue(queue);
+        }
+
+        store.recurceRemoveQueue(queue).then(function (queue) {
+          return (queue.get('isNewQueue')) ? renamedQueueBackup : store.get('deletedQueues').findBy('path',queue.get('path'));
+        }).then(function (deletedQueue) {
+          var targetDeleted =  store.get('deletedQueues').findBy('path',[parentPath,name].join('.')),
+              queuePrototype = (targetDeleted) ? store.createFromDeleted(targetDeleted) : store.copyFromDeleted(deletedQueue,parentPath,name);
+
+          return store.saveAndUpdateQueue(queuePrototype,deletedQueue);
+        }).then(Em.run.bind(this,'transitionToRoute','queue'));
       }
 
     },
-    // TODO bubble to route
-    rollbackProp:function(prop, queue){
-      queue = queue || this.get('content');
-      attributes = queue.changedAttributes();
-      if (attributes.hasOwnProperty(prop)) {
-        queue.set(prop,attributes[prop][0]);
-      }
+    toggleProperty:function (property,target) {
+      target = target || this;
+      target.toggleProperty(property);
     }
   },
 
@@ -95,10 +98,15 @@ App.QueueController = Ember.ObjectController.extend({
 
   /**
    * Object contains temporary name and path while renaming the queue.
-   * @type {Object} - { name : {String}, path : {String} }
+   * @type {Object} - { name : {String}, path : {String} , id : {String}}
    */
   tmpName:{},
 
+  /**
+   * Possible values for ordering policy
+   * @type {Array}
+   */
+  orderingPolicyValues: [null,'fifo', 'fair'],
 
 
   // COMPUTED PROPERTIES
@@ -187,26 +195,35 @@ App.QueueController = Ember.ObjectController.extend({
 
   /**
    * Error messages for queue path.
-   * @type {[type]}
+   * @type {Array}
    */
   pathErrors:Ember.computed.mapBy('content.errors.path','message'),
+
+  /**
+   * Current ordering policy value of queue.
+   * @param  {String} key
+   * @param  {String} value
+   * @return {String}
+   */
+  currentOP:function (key,val) {
+    if (arguments.length > 1) {
+      if (!this.get('isFairOP')) {
+        this.send('rollbackProp','enable_size_based_weight',this.get('content'));
+      }
+      this.set('content.ordering_policy',val || null);
+    }
+    return this.get('content.ordering_policy');
+  }.property('content.ordering_policy'),
+
+  /**
+   * Does ordering policy is equal to 'fair'
+   * @type {Boolean}
+   */
+  isFairOP: Em.computed.equal('content.ordering_policy','fair'),
 
 
 
   // OBSERVABLES
-
-  /**
-   * Marks each queue in leaf with 'overCapacity' if sum if their capacity values is greater then 100.
-   * @method capacityControl
-   */
-  capacityControl:function () {
-    var leafQueues = this.get('leafQueues'),
-        total = leafQueues.reduce(function (prev, queue) {
-          return +queue.get('capacity') + prev;
-        },0);
-
-    leafQueues.setEach('overCapacity',total>100);
-  }.observes('content.capacity','leafQueues.@each.capacity'),
 
   /**
    * Keeps track of leaf queues and sets 'queues' value of parent to list of their names.
@@ -251,25 +268,22 @@ App.QueueController = Ember.ObjectController.extend({
    */
   setQueuePath:function (queue) {
     var name = queue.get('name').replace(/\s|\./g, ''),
-        parentPath = queue.get('parentPath');
+        parentPath = queue.get('parentPath'),
+        foundWithName;
 
-    queue.setProperties({
-      name:name,
-      path:parentPath+'.'+name,
-      id:(parentPath+'.'+name).dasherize()
+    queue.set('name',name);
+
+    foundWithName = this.store.all('queue').find(function (q) {
+      return q.get('path') === [queue.get('parentPath'),queue.get('name')].join('.');
     });
 
-    if (name == '') {
+    if (!Em.isEmpty(foundWithName) && queue.changedAttributes().hasOwnProperty('name')) {
+      return this.get('content').get('errors').add('path', 'Queue already exists');
+    } else if (name == '') {
       queue.get('errors').add('path', 'This field is required');
+    } else {
+      queue.get('errors').remove('path');
     }
-
-    this.store.filter('queue',function (q) {
-      return q.get('id') === queue.get('id');
-    }.bind(this)).then(function (queues){
-      if (queues.get('length') > 1) {
-        return this.get('content').get('errors').add('path', 'Queue already exists');
-      }
-    }.bind(this));
   },
 
   /**

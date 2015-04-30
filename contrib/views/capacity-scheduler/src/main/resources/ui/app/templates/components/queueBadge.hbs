@@ -16,14 +16,7 @@
 * limitations under the License.
 }}
 
-{{#view view.button action="showRestartConfirmation" classBinding=":btn isNotOperator:disabled needRestart::disabled"}}<i class="fa fa-fw fa fa-cogs"></i> Save and Restart ResourceManager{{/view}}
-{{#if view.restartConfirming}}
-  <div class="btn-group btn-group-justified">
-    <div class="btn-group">
-      <a {{action 'showRestartConfirmation' target="view"}} class="btn btn-sm btn-danger"><i class="fa fa-fw fa-lg fa-times"></i> Cancel</a>
-    </div>
-    <div class="btn-group">
-      <a {{action 'confirm' 'restart' target="view"}} class="btn btn-sm btn-success"><i class="fa fa-fw fa-lg fa-check"></i> Restart</a>
-    </div>
-  </div>
+{{#if warning}}
+  <i class="fa fa-fw fa-lg red fa-warning"></i>
 {{/if}}
+{{diff-tooltip queue=q isActive=tooltip classNameBindings="q.isSaving:fa-spin color icon"}}

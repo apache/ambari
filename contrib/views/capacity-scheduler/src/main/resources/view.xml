@@ -20,6 +20,8 @@
     <version>0.3.0</version>
     <min-ambari-version>1.7.*</min-ambari-version>
 
+    <validator-class>org.apache.ambari.view.capacityscheduler.PropertyValidator</validator-class>
+
     <parameter>
         <name>ambari.server.url</name>
         <description>Enter the Ambari REST API cluster resource.</description>

@@ -23,18 +23,7 @@ App.Router.map(function() {
     this.resource('queue', { path: '/:queue_id' });
     this.resource('trace', { path: '/log' });
   });
-});
-
-
-/**
- * The queues route.
- *
- * /queues
- */
-App.TraceRoute = Ember.Route.extend({
-  model: function() {
-    return this.controllerFor('queues').get('alertMessage');
-  }
+  this.route('refuse');
 });
 
 /**
@@ -51,26 +40,47 @@ App.QueuesRoute = Ember.Route.extend({
       }
     }
   },
+  beforeModel:function (transition) {
+    var controller = this.container.lookup('controller:loading') || this.generateController('loading');
+    controller.set('model', {message:'cluster check'});
+    return this.get('store').checkCluster().catch(Em.run.bind(this,'loadingError',transition));
+  },
   model: function() {
-    var store = this.get('store');
+    var store = this.get('store'),
+        controller = this.controllerFor('queues'),
+        loadingController = this.container.lookup('controller:loading');
     return new Ember.RSVP.Promise(function (resolve,reject) {
-      store.get('nodeLabels').then(function () {
+      loadingController.set('model', {message:'access check'});
+      store.checkOperator().then(function (isOperator) {
+        controller.set('isOperator', isOperator);
+
+        loadingController.set('model', {message:'loading node labels'});
+        return store.get('nodeLabels');
+      }).then(function () {
+        loadingController.set('model', {message:'loading queues'});
         return store.find('queue');
       }).then(function (queues) {
         resolve(queues);
       }).catch(function (e) {
         reject(e);
       });
-    });
+    }, 'App: QueuesRoute#model');
   },
   setupController:function (c,model) {
-    this.store.checkOperator().then(function (isOperator) {
-      c.set('isOperator', isOperator);
-    });
     c.set('model',model);
     this.store.find('scheduler','scheduler').then(function (s) {
       c.set('scheduler',s);
     });
+  },
+  loadingError: function (transition, error) {
+    var refuseController = this.container.lookup('controller:refuse') || this.generateController('refuse'),
+        message = error.responseJSON || {'message':'Something went wrong.'};
+
+    transition.abort();
+
+    refuseController.set('model', message);
+
+    this.transitionTo('refuse');
   }
 });
 
@@ -92,7 +102,6 @@ App.QueueRoute = Ember.Route.extend({
       this.transitionTo('queues');
     }
   },
-
   actions: {
     willTransition: function (tr) {
       if (this.get('controller.isRenaming')) {
@@ -100,7 +109,6 @@ App.QueueRoute = Ember.Route.extend({
       }
     }
   }
-
 });
 
 /**
@@ -108,8 +116,32 @@ App.QueueRoute = Ember.Route.extend({
  *
  */
 App.IndexRoute = Ember.Route.extend({
-  beforeModel: function() {
+  redirect: function() {
     this.transitionTo('queues');
+  }
+});
+
+/**
+ * Page for trace output.
+ *
+ * /queues/log
+ */
+App.TraceRoute = Ember.Route.extend({
+  model: function() {
+    return this.controllerFor('queues').get('alertMessage');
+  }
+});
+
+/**
+ * Connection rejection page.
+ *
+ * /refuse
+ */
+App.RefuseRoute = Ember.Route.extend({
+  setupController:function (controller,model) {
+    if (Em.isEmpty(controller.get('model'))) {
+      this.transitionTo('queues');
+    }
   }
 });
 
@@ -117,7 +149,13 @@ App.IndexRoute = Ember.Route.extend({
  * Loading spinner page.
  *
  */
-App.LoadingRoute = Ember.Route.extend();
+App.LoadingRoute = Ember.Route.extend({
+  setupController:function(controller) {
+    if (Em.isEmpty(controller.get('model'))) {
+      this._super();
+    }
+  }
+});
 
 /**
  * Error page.

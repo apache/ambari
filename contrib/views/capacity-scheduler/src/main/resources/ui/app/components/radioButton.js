@@ -18,15 +18,6 @@
 
 var App = require('app');
 
-App.RadioButtonInputComponent = Ember.View.extend({
-    tagName : "input",
-    type : "radio",
-    attributeBindings : [ "type", "value", "checked:checked" ],
-    click : function() {
-      this.set("selection", this.get('value'));
-    }
-});
-
 App.RadioButtonComponent = Em.Component.extend({
   tagName:'label',
   classNames:['btn btn-default'],
@@ -42,5 +33,16 @@ App.RadioButtonComponent = Em.Component.extend({
   isActive : function() {
     return this.get("value") == this.get("selection");
   }.property("selection"),
-  layout:Em.Handlebars.compile('{{label}} {{radio-button-input selection=selection value=value checked=isActive}}')
+  radioInput: Ember.View.extend({
+    tagName : "input",
+    type : "radio",
+    attributeBindings : [ "type", "value", "checked:checked" ],
+    selection:Em.computed.alias('controller.selection'),
+    value:Em.computed.alias('controller.value'),
+    checked:Em.computed.alias('controller.isActive'),
+    click : function() {
+      this.set("selection", this.get('value'));
+    }
+  }),
+  layout:Em.Handlebars.compile('{{label}} {{view radioInput}}')
 });

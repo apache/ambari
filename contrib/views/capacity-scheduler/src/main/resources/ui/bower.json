@@ -11,7 +11,9 @@
     "ember-i18n": "~1.6.0",
     "font-awesome": "~4.1",
     "bootstrap3-typeahead": "~3.0.3",
-    "perfect-scrollbar": "~0.5.8"
+    "perfect-scrollbar": "~0.5.8",
+    "file-saver": "*",
+    "Blob": "*"
   },
   "overrides": {
     "jquery": {
@@ -33,6 +35,12 @@
     },
     "font-awesome": {
       "main": "css/font-awesome.css"
+    },
+    "file-saver": {
+      "main": "FileSaver.js"
+    },
+    "Blob": {
+      "main": "Blob.js"
     }
   }
 }

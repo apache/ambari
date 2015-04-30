@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.UnknownHostException;
 import java.util.HashMap;
 
 /**
@@ -99,8 +100,10 @@ public class RequestBuilder {
     InputStream inputStream = null;
     try {
       inputStream = urlStreamProvider.readFrom(url, method, data, headers);
+    } catch (UnknownHostException e) {
+      throw new ServiceFormattedException(e.getMessage() + " is unknown host. Check Capacity-Scheduler instance properties.", e);
     } catch (IOException e) {
-      throw new ServiceFormattedException(e.getMessage(), e);
+      throw new ServiceFormattedException(e.toString(), e);
     }
     return new ResponseTranslator(inputStream);
   }

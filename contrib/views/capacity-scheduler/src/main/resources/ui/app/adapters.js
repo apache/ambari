@@ -47,8 +47,12 @@ App.QueueAdapter = DS.Adapter.extend({
   queues: [],
 
   createRecord: function(store, type, record) {
-    var data = record.toJSON({ includeId: true });
+    var data = record.serialize({clone:true});
     return new Ember.RSVP.Promise(function(resolve, reject) {
+      if (type.typeKey === 'label') {
+        Ember.run(record, resolve, {'label':data});
+        return;
+      }
       return store.filter('queue',function (q) {
         return q.id === record.id;
       }).then(function (queues) {
@@ -63,16 +67,17 @@ App.QueueAdapter = DS.Adapter.extend({
           store.recordWasInvalid(record, error.errors);
           return;
         }
+        data.labelsEnabled = record.get('labelsEnabled');
         Ember.run(record, resolve, {'queue':data,'label':[]});
 
       });
-    });
+    },'App: QueueAdapter#createRecord ' + type + ' ' + record.id);
   },
 
   deleteRecord:function (store, type, record) {
     return new Ember.RSVP.Promise(function(resolve, reject) {
       Ember.run(null, resolve, {'queue':record.serialize({ includeId: true , clone: true })});
-    });
+    },'App: QueueAdapter#deleteRecord ' + type + ' ' + record.id);
   },
 
   saveMark:'',
@@ -114,7 +119,7 @@ App.QueueAdapter = DS.Adapter.extend({
           adapter.postSave(postSaveUri);
         }
       });
-    });
+    },'App: QueueAdapter#updateRecord save config woth ' + new_tag + ' tag');
   },
 
   postSave:function(uri){
@@ -129,13 +134,16 @@ App.QueueAdapter = DS.Adapter.extend({
     id = id.toLowerCase();
     var record = store.getById(type,id);
     var key = type.typeKey;
+    var json = {};
     if (record) {
       return new Ember.RSVP.Promise(function(resolve, reject) {
-        resolve({key:record.toJSON({includeId:true})});
-      });
+        json[key] = record.toJSON({includeId:true});
+        resolve(json);
+      },'App: QueueAdapter#find ' + type + ' ' + id);
     } else {
       return store.findAll('queue').then(function (queues) {
-        resolve({key:store.getById(type,id).toJSON({includeId:true})});
+        json[key] = store.getById(type,id).toJSON({includeId:true});
+        resolve(json);
       });
     }
   },
@@ -162,12 +170,13 @@ App.QueueAdapter = DS.Adapter.extend({
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
       });
-    });
+    },'App: QueueAdapter#findAll ' + type);
   },
 
   findAllTagged: function(store, type) {
     var adapter = this,
-        uri = [_getCapacitySchedulerViewUri(this),'byTag',store.get('tag')].join('/');
+        tag = store.get('tag'),
+        uri = [_getCapacitySchedulerViewUri(this),'byTag',tag].join('/');
 
     return new Ember.RSVP.Promise(function(resolve, reject) {
       adapter.ajax(uri,'GET').then(function(data) {
@@ -176,7 +185,7 @@ App.QueueAdapter = DS.Adapter.extend({
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
       });
-    });
+    },'App: QueueAdapter#findAllTagged ' + tag);
   },
 
   getNodeLabels:function () {
@@ -185,11 +194,13 @@ App.QueueAdapter = DS.Adapter.extend({
     return new Ember.RSVP.Promise(function(resolve, reject) {
       this.ajax(uri,'GET').then(function(data) {
         var parsedData = JSON.parse(data), labels;
-          if (parsedData && Em.isArray(parsedData.nodeLabels)) {
-            labels = parsedData.nodeLabels;
-          } else {
-            labels = (parsedData && parsedData.nodeLabels)?[parsedData.nodeLabels]:[];
-          }
+
+        if (parsedData && Em.isArray(parsedData.nodeLabels)) {
+          labels = parsedData.nodeLabels;
+        } else {
+          labels = (parsedData && parsedData.nodeLabels)?[parsedData.nodeLabels]:[];
+        }
+
         Ember.run(null, resolve, labels.map(function (label) {
           return {name:label};
         }));
@@ -197,7 +208,7 @@ App.QueueAdapter = DS.Adapter.extend({
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
       });
-    }.bind(this));
+    }.bind(this),'App: QueueAdapter#getNodeLabels');
   },
 
   getPrivilege:function () {
@@ -211,7 +222,21 @@ App.QueueAdapter = DS.Adapter.extend({
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
       });
-    }.bind(this));
+    }.bind(this),'App: QueueAdapter#getPrivilege');
+  },
+
+  checkCluster:function () {
+    var uri = [_getCapacitySchedulerViewUri(this),'cluster'].join('/');
+    if (App.testMode)
+      uri = uri + ".json";
+    return new Ember.RSVP.Promise(function(resolve, reject) {
+      this.ajax(uri,'GET').then(function(data) {
+        Ember.run(null, resolve, data);
+      }, function(jqXHR) {
+        jqXHR.then = null;
+        Ember.run(null, reject, jqXHR);
+      });
+    }.bind(this),'App: QueueAdapter#checkCluster');
   },
 
   ajax: function(url, type, hash) {
@@ -229,7 +254,7 @@ App.QueueAdapter = DS.Adapter.extend({
       };
 
       Ember.$.ajax(hash);
-    }, "DS: RestAdapter#ajax " + type + " to " + url);
+    }, "App: QueueAdapter#ajax " + type + " to " + url);
   },
 
   ajaxOptions: function(url, type, hash) {
@@ -278,7 +303,7 @@ App.TagAdapter = App.QueueAdapter.extend({
         jqXHR.then = null;
         Ember.run(null, reject, jqXHR);
       });
-    });
+    }, "App: TagAdapter#findAll " + type);
   }
 });
 

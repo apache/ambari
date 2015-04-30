@@ -16,38 +16,26 @@
  * limitations under the License.
  */
 
-window.App = require('app');
+var App = require('app');
 
-// Set this value to true to run in test mode with local data
-App.testMode = false;
-
-// adapters
-require('adapters');
-
-//serializers
-require('serializers');
-
-//store
-require('store');
-
-//helpers
-require('helpers/timeAgo');
-require('helpers/escapeAcl');
-
-//components
-require('components');
-
-//controllers
-require('controllers');
-
-// templates
-require('templates');
-
-// models
-require('models');
-
-//views
-require('views/queues');
-
-// routes
-require('router');
+App.TooltipLabelComponent = Em.Component.extend({
+  tagName:'label',
+  label:'',
+  message:'',
+  propertyName:'',
+  classNames:['tooltip-label'],
+  layout:Em.Handlebars.compile('<span>{{label}}</span> {{yield}}'),
+  initTooltip:function () {
+    this.$('span').first().popover({
+      trigger:'hover',
+      placement:'bottom',
+      container: 'body',
+      title:this.get('propertyName'),
+      content:this.get('message'),
+      html:true
+    });
+  }.on('didInsertElement'),
+  destroyTooltip:function () {
+    this.$('span').first().popover('destroy');
+  }.on('willClearRender')
+});

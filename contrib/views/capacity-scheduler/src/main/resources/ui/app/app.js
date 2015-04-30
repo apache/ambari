@@ -16,4 +16,19 @@
  * limitations under the License.
  */
 
+var FileSaver = Ember.Object.extend({
+  save: function(fileContents, mimeType, filename) {
+    window.saveAs(new Blob([fileContents], {type: mimeType}), filename);
+  }
+});
+
+Ember.Application.initializer({
+  name: 'file-saver',
+
+  initialize: function(container, application) {
+    container.register('file-saver:main', FileSaver);
+    container.injection('controller', 'fileSaver', 'file-saver:main');
+  }
+});
+
 module.exports = Em.Application.create();

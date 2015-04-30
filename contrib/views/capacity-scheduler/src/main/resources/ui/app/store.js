@@ -30,7 +30,7 @@ function _fetchTagged(adapter, store, type, sinceToken) {
 
     store.set('tag',store.get('current_tag'));
 
-    if (!Em.isArray(config.queue)) {
+    if (Em.isEmpty(config) || !Em.isArray(config.queue)) {
       return;
     }
 
@@ -45,21 +45,32 @@ function _fetchTagged(adapter, store, type, sinceToken) {
     });
 
     store.findAll('queue').then(function (queues) {
+      store.set('deletedQueues',[]);
       queues.forEach(function  (queue) {
         var new_version = config.queue.findBy('id',queue.id);
         if (new_version) {
           new_version['isNewQueue'] = queue.get('isNewQueue');
           store.findByIds('label',new_version.labels).then(function(labels) {
             labels.forEach(function (label){
-              label.setProperties(config.label.findBy('id',label.get('id')));
+              var props = config.label.findBy('id',label.get('id'));
+              label.eachAttribute(function (attr,meta) {
+                this.set(attr, props[attr]);
+              },label);
             });
-            queue.updateHasMany('labels',labels);
+            queue.get('labels').clear().pushObjects(labels);
             queue.set('version',v);
           });
-          delete new_version.labels;
-          queue.setProperties(new_version);
+          queue.eachAttribute(function (attr,meta) {
+            if (meta.type === 'boolean') {
+              this.set(attr, (new_version[attr] === 'false' || !new_version[attr])?false:true);
+            } else {
+              this.set(attr, new_version[attr]);
+            }
+          },queue);
         } else {
-          store.unloadRecord(queue);
+          if (Em.isEmpty(store.get('deletedQueues').findBy('path',queue.get('path')))) {
+            store.recurceRemoveQueue(queue);
+          }
         }
         config.queue.removeObject(new_version);
       });
@@ -97,6 +108,168 @@ App.ApplicationStore = DS.Store.extend({
 
   current_tag: '',
 
+  hasDeletedQueues:Em.computed.notEmpty('deletedQueues.[]'),
+
+  deletedQueues:[],
+
+  buildConfig: function (fmt) {
+    var records = [],
+        config = '',
+        props,
+        serializer = this.serializerFor('queue');
+
+    records.pushObjects(this.all('scheduler').toArray());
+    records.pushObjects(this.all('queue').toArray());
+    props = serializer.serializeConfig(records).properties;
+
+    if (fmt === 'txt') {
+      Object.keys(props).forEach(function (propKey) {
+        config += propKey + '=' + props[propKey] + '\n';
+      });
+    } else if (fmt === 'xml') {
+      Object.keys(props).forEach(function (propKey) {
+        config += '<property>\n' +
+        '  <name>' + propKey + '</name>\n' +
+        '  <value>' + props[propKey] + '</value>\n' +
+        '</property>\n';
+      });
+    }
+
+    return config;
+  },
+
+  recurceRemoveQueue: function (queue) {
+    if (Em.isEmpty(queue)) {
+      return;
+    } else if (!queue.get('isNewQueue') && !queue.get('isNew')) {
+      queue.get('queuesArray').forEach(function (queueName) {
+        this.recurceRemoveQueue(this.getById('queue',[queue.get('path'),queueName].join('.').toLowerCase()));
+      }.bind(this));
+
+      this.get('deletedQueues').pushObject(this.buildDeletedQueue(queue));
+
+    }
+    this.all('queue').findBy('path',queue.get('parentPath')).set('queuesArray',{'exclude':queue.get('name')});
+    return queue.destroyRecord();
+
+  },
+
+  buildDeletedQueue: function (queue) {
+    var deletedQueue = queue.serialize({clone:true});
+    delete deletedQueue.id;
+
+    Em.merge(deletedQueue,{
+      'isDeletedQueue': true,
+      'changedAttributes': queue.changedAttributes(),
+      'isLabelsDirty': queue.get('isLabelsDirty'),
+      'labelsEnabled': queue.labelsEnabled
+    });
+
+    deletedQueue.changedAttributes.labels = [queue.get('initialLabels').sort(),queue.get('labels').mapBy('id').sort()];
+
+    return Em.Object.create(deletedQueue);
+  },
+
+  saveAndUpdateQueue: function(record, updates){
+    return record.save().then(function (queue) {
+      if (updates) {
+        queue.eachAttribute(function (attr,meta) {
+          if (updates.changedAttributes.hasOwnProperty(attr)) {
+            this.set(attr, updates.changedAttributes[attr].objectAt(1));
+          }
+        },queue);
+
+        queue.eachRelationship(function (relationship,meta) {
+          queue.get(relationship).clear();
+          if (updates.changedAttributes.hasOwnProperty(relationship)) {
+            updates.changedAttributes[relationship][1].forEach(function (label) {
+              queue.get('labels').pushObject(queue.store.recordForId('label', [queue.get('path'),label.split('.').get('lastObject')].join('.')));
+            });
+          } else {
+            this.set(relationship, updates.get(relationship));
+          }
+
+          queue.notifyPropertyChange('labels');
+        },queue);
+
+      }
+      return queue;
+    }.bind(this));
+  },
+
+  createFromDeleted: function (deletedQueue) {
+    var newQueue = this.createRecord('queue', {
+      id: [deletedQueue.parentPath,deletedQueue.name].join('.').toLowerCase(),
+      name: deletedQueue.name,
+      parentPath: deletedQueue.parentPath,
+      depth: deletedQueue.parentPath.split('.').length
+    });
+
+    this.get('deletedQueues').removeObject(deletedQueue);
+
+    newQueue.eachAttribute(function (attr,meta) {
+      if (deletedQueue.changedAttributes.hasOwnProperty(attr)) {
+        this.set(attr, deletedQueue.changedAttributes[attr].objectAt(0));
+      } else {
+        this.set(attr, deletedQueue.get(attr));
+      }
+    },newQueue);
+
+    newQueue.eachRelationship(function (relationship,meta) {
+      if (deletedQueue.changedAttributes.hasOwnProperty(relationship)) {
+        deletedQueue.changedAttributes[relationship][0].forEach(function (label) {
+          newQueue.get('labels').pushObject(newQueue.store.recordForId('label', label));
+        });
+      } else {
+        this.set(relationship, deletedQueue.get(relationship));
+      }
+    },newQueue);
+
+    newQueue.notifyPropertyChange('labels');
+
+    newQueue.set('labelsEnabled',deletedQueue.labelsEnabled);
+
+    return newQueue;
+  },
+
+  copyFromDeleted: function (deletedQueue, parent, name) {
+    var newQueue = this.createRecord('queue', {
+      id: [parent,name].join('.').toLowerCase(),
+      name: name,
+      path: [parent,name].join('.'),
+      parentPath: parent,
+      depth: parent.split('.').length
+    });
+
+    newQueue.eachAttribute(function (attr,meta) {
+      if (!newQueue.changedAttributes().hasOwnProperty(attr)) {
+        if (deletedQueue.changedAttributes.hasOwnProperty(attr)) {
+          this.set(attr, deletedQueue.changedAttributes[attr].objectAt(0));
+        } else {
+          this.set(attr, deletedQueue[attr]);
+        }
+      }
+    },newQueue);
+
+    newQueue.set('isNewQueue',true);
+
+    newQueue.eachRelationship(function (relationship,meta) {
+      if (deletedQueue.changedAttributes.hasOwnProperty(relationship)) {
+        deletedQueue.changedAttributes[relationship][0].forEach(function (label) {
+          newQueue.get('labels').pushObject(newQueue.store.recordForId('label', [newQueue.get('path'),label.split('.').get('lastObject')].join('.')));
+        });
+      } else {
+        this.set(relationship, deletedQueue.get(relationship));
+      }
+    },newQueue);
+
+    newQueue.notifyPropertyChange('labels');
+
+    newQueue.set('labelsEnabled',deletedQueue.labelsEnabled);
+
+    return newQueue;
+  },
+
   nodeLabels: function () {
     var adapter = this.get('defaultAdapter');
     return Ember.ArrayProxy.extend(Ember.PromiseProxyMixin).create({
@@ -116,7 +289,9 @@ App.ApplicationStore = DS.Store.extend({
 
   flushPendingSave: function() {
     var pending = this._pendingSave.slice(),
-        newPending = [[]];
+        newPending = [[]],
+        notLabel = false,
+        isDeleteOperation = false;
 
     if (pending.length == 1) {
       this._super();
@@ -125,11 +300,25 @@ App.ApplicationStore = DS.Store.extend({
 
     pending.forEach(function (tuple) {
       var record = tuple[0], resolver = tuple[1];
-      newPending[0].push(record);
-      newPending[1] = resolver;
-    });
 
-    this._pendingSave = [newPending];
+      newPending[0].push(record);
+      //resolve previous resolver to fire susscess callback
+      if (record.constructor.typeKey !== 'label') {
+        if (newPending[1]) {
+          newPending[1].resolve(true);
+        }
+        newPending[1] = resolver;
+        notLabel = true;
+      } else {
+        resolver.resolve(true);
+      }
+      if (record.get('isDeleted')) {
+        isDeleteOperation = true;
+      }
+    });
+    if (notLabel && !isDeleteOperation) {
+      this._pendingSave = [newPending];
+    }
     this._super();
   },
   didSaveRecord: function(record, data) {
@@ -160,5 +349,8 @@ App.ApplicationStore = DS.Store.extend({
   },
   checkOperator:function () {
     return this.get('defaultAdapter').getPrivilege();
+  },
+  checkCluster:function () {
+    return this.get('defaultAdapter').checkCluster();
   }
 });

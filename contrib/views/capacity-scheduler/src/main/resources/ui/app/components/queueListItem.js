@@ -19,11 +19,13 @@
 var App = require('app');
 
 App.RecurceQueuesComponent = Em.View.extend({
-  templateName: "components/queueListItem",
+  templateName: 'components/queueListItem',
   depth:0,
   parent:'',
+  parentIsDeleted:false,
+  queues: Ember.computed.union('controller.arrangedContent', 'controller.store.deletedQueues'),
   leaf:function () {
-    return this.get('controller.arrangedContent')
+    return this.get('queues')
       .filterBy('depth',this.get('depth'))
       .filterBy('parentPath',this.get('parent'));
   }.property('depth','parent','controller.content.length','controller.content.@each.name'),
@@ -31,77 +33,37 @@ App.RecurceQueuesComponent = Em.View.extend({
     return this.get('leaf.firstObject.depth')+1;
   }.property('depth'),
   didInsertElement:function () {
-    Ember.run.scheduleOnce('afterRender',null, this.setFirstAndLast, this);
+    Ember.run.scheduleOnce('afterRender', null, this.setFirstAndLast, this);
   },
   setFirstAndLast:function (item) {
     var items = item.$().parents('.queue-list').find('.list-group-item');
     items.first().addClass('first');
     items.last().addClass('last');
-  }
+  },
+  capacityBarView: Em.View.extend({
 
-});
+      classNameBindings:[':progress-bar','queue.overCapacity:progress-bar-danger:progress-bar-success'],
 
-App.DiffTooltipComponent = Em.Component.extend({
-  classNames:'fa fa-fw fa-lg blue fa-pencil'.w(),
-  tagName:'i',
-  queue:null,
-  initTooltip:function  () {
-    var queue = this.get('queue');
-    this.$().tooltip({
-        title:function () {
-          var caption = '',
-              fmtString = '<span>%@: %@ -> %@</span>\n',
-              emptyValue = '<small><em>not set</em></small>',
-              changes = queue.changedAttributes(),
-              idsToNames = function (l) {
-                return l.split('.').get('lastObject');
-              },
-              formatChangedAttributes = function (prefix,item) {
-                // don't show this to user.
-                if (item == '_accessAllLabels') return;
+      attributeBindings:['capacityWidth:style'],
 
-                var oldV = this[item].objectAt(0),
-                    newV = this[item].objectAt(1);
+      /**
+       * Formatting pattern.
+       * @type {String}
+       */
+      pattern:'width: %@%;',
 
-                caption += fmtString.fmt(
-                    [prefix,item].compact().join('.'),
-                    (oldV != null && '\'%@\''.fmt(oldV)) || emptyValue,
-                    (newV != null && '\'%@\''.fmt(newV)) || emptyValue
-                  );
-              },
-              initialLabels,
-              currentLabels,
-              isAllChanged,
-              oldV,
-              newV;
+      /**
+       * Alias for parentView.capacityValue.
+       * @type {String}
+       */
+      value:Em.computed.alias('queue.capacity'),
 
-          Em.keys(changes).forEach(Em.run.bind(changes,formatChangedAttributes,null));
-
-          if (queue.constructor.typeKey === 'queue') {
-            //cpmpare labels
-            isAllChanged = changes.hasOwnProperty('_accessAllLabels');
-            initialLabels = queue.get('initialLabels').sort();
-            currentLabels = queue.get('labels').mapBy('id').sort();
-
-            if (queue.get('isLabelsDirty') || isAllChanged) {
-
-              oldV = ((isAllChanged && changes._accessAllLabels.objectAt(0)) || (!isAllChanged && queue.get('_accessAllLabels')))?'*':initialLabels.map(idsToNames).join(',') || emptyValue;
-              newV = ((isAllChanged && changes._accessAllLabels.objectAt(1)) || (!isAllChanged && queue.get('_accessAllLabels')))?'*':currentLabels.map(idsToNames).join(',') || emptyValue;
-
-              caption += fmtString.fmt('accessible-node-labels', oldV, newV);
-            }
-
-            queue.get('labels').forEach(function (label) {
-              var labelsChanges = label.changedAttributes(),
-                  prefix = ['accessible-node-labels',label.get('name')].join('.');
-              Em.keys(labelsChanges).forEach(Em.run.bind(labelsChanges,formatChangedAttributes,prefix));
-            });
-          }
-
-          return caption;
-        },
-        html:true,
-        placement:'bottom'
-      });
-  }.on('didInsertElement')
+      /**
+       * Formats pattern whit value.
+       * @return {String}
+       */
+      capacityWidth: function(c,o) {
+        return  this.get('pattern').fmt((+this.get('value')<=100)?this.get('value'):100);
+      }.property('value')
+    })
 });

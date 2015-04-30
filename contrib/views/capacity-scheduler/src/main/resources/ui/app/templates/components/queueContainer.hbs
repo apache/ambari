@@ -18,16 +18,27 @@
 
 
 <div class="queue-container">
+  {{#if controller.isOperator}}
+    <div class="btn-group btn-group-xs pull-right">
+      <a href="#" {{action 'toggleProperty' 'labelsEnabled' this}} class="btn btn-default labels-enabler">
+        <i {{bind-attr class=":fa labelsEnabled:fa-check-square-o:fa-square-o"}}></i> Enable node labels
+      </a>
+    </div>
+  {{/if}}
   <div class="queue-capacity">
     <h5><strong>{{this.name}}</strong></h5>
     {{render "capacityEditForm" this}}
   </div>
-  <div class="labels-toggle-wrap">
-    <small> Node Labels Access</small>
+  <div {{bind-attr class=":labels-toggle-wrap labelsEnabled::hide"}}>
+      {{tooltip-label
+        tagName='small'
+        label='Node Labels Access'
+        message= 'Whether this queue has associated node labels that applications submitted to the queue can access.'
+      }}
       {{#if controller.isOperator}}
-      <div class="btn-group btn-group-xs labels-toggle-all" >
-        <button {{action 'toggleProperty' 'accessAllLabels' this}} type="button" {{bind-attr class=":btn this.accessAllLabels:btn-success:btn-default"}}><i class="fa fa-asterisk"></i></button>
-      </div>
+        <div class="btn-group btn-group-xs labels-toggle-all" >
+          <button {{action 'toggleProperty' 'accessAllLabels' this}} type="button" {{bind-attr class=":btn this.accessAllLabels:btn-success:btn-default"}}><i class="fa fa-asterisk"></i></button>
+        </div>
       {{else}}
         {{#if accessAllLabels}}
           <i class="fa fa-asterisk sign"></i>
@@ -48,7 +59,7 @@
     {{/each}}
   </div>
   {{#if this.labels}}
-    <div class="labels-capacity-wrap">
+    <div {{bind-attr class=":labels-capacity-wrap labelsEnabled::hide" }}>
       {{#each label in  this.sortedLabels}}
         <div class="label-capacity">
           <div class="queue-capacity">
@@ -57,6 +68,12 @@
               <small>Label is not exist on cluster</small>
             {{else}}
               <span {{bind-attr class=":label label.overCapacity:label-danger:label-success"}}>{{label.name}}</span>
+              <span {{bind-attr class=":label :label-default label.isDefault::hide"}}>default</span>
+
+              <div class="btn-group btn-group-xs pull-right">
+                <a  {{action 'toggleDefaultLabel' this label}} class="btn btn-default toggle-default-label"><i {{bind-attr class=":fa label.isDefault:fa-dot-circle-o:fa-circle-o"}}></i> Use by default</a>
+              </div>
+
             {{/if}}
             {{render "capacityEditForm" label}}
           </div>

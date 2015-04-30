@@ -32,14 +32,18 @@ App.Label = DS.Model.extend({
   overCapacity:false,
   isNotExist:function () {
     return this.get('store.nodeLabels.content').findBy('name',this.get('name')).notExist;
-  }.property('store.nodeLabels.content.@each.notExist')
+  }.property('store.nodeLabels.content.@each.notExist'),
+  isDefault: function () {
+    return this.get('queue.default_node_label_expression') === this.get('name');
+  }.property('queue.default_node_label_expression')
 });
 
 App.Scheduler = DS.Model.extend({
   maximum_am_resource_percent: DS.attr('number', { defaultValue: 0 }),
   maximum_applications: DS.attr('number', { defaultValue: 0 }),
   node_locality_delay: DS.attr('number', { defaultValue: 0 }),
-  resource_calculator: DS.attr('string', { defaultValue: '' })
+  resource_calculator: DS.attr('string', { defaultValue: '' }),
+  isAnyDirty:Em.computed.alias('isDirty')
 });
 
 
@@ -53,14 +57,8 @@ App.Tag = DS.Model.extend({
     return this.get('tag') === this.get('store.current_tag');
   }.property('store.current_tag'),
   changed:function () {
-    return (this.get('tag').match(/version[1-9]+/))?moment(+this.get('tag').replace('version','')).fromNow():'';
-  }.property('tag'),
-  updateTime:function () {
-    Em.run.later(this,function () {
-      this.trigger('tick');
-      this.notifyPropertyChange('tag');
-    },5000);
-  }.on('init','tick')
+    return (this.get('tag').match(/version[1-9]+/))?moment(+this.get('tag').replace('version','')):'';
+  }.property('tag')
 });
 
 /**
@@ -69,6 +67,9 @@ App.Tag = DS.Model.extend({
  */
 App.Queue = DS.Model.extend({
   labels: DS.hasMany('label'),
+
+  labelsEnabled: false,
+
   sortBy:['name'],
   sortedLabels:Em.computed.sort('labels','sortBy'),
 
@@ -82,23 +83,61 @@ App.Queue = DS.Model.extend({
       this.set('_accessAllLabels',val);
 
       if (this.get('_accessAllLabels')) {
-          labels.forEach(function(lb) {
-
+          labels.forEach(function (lb) {
             var containsByParent = (Em.isEmpty(this.get('parentPath')))?true:this.store.getById('queue',this.get('parentPath')).get('labels').findBy('name',lb.get('name'));
             if (!this.get('labels').contains(lb) && !!containsByParent) {
               this.get('labels').pushObject(lb);
-              this.notifyPropertyChange('labels');
             }
           }.bind(this));
+          this.notifyPropertyChange('labels');
       }
     }
 
-    if (this.get('labels.length') != labels.get('length')) {
+    return this.get('_accessAllLabels');
+  }.property('_accessAllLabels','labels'),
+
+  labelsAccessWatcher:function () {
+    Em.run.scheduleOnce('sync',this,'unsetAccessAllIfNeed');
+  }.observes('labels','_accessAllLabels'),
+
+  unsetAccessAllIfNeed:function () {
+    if (!this.get('isDeleted') && this.get('labels.length') != this.get('store.nodeLabels.length')) {
       this.set('_accessAllLabels',false);
     }
+  },
 
-    return this.get('_accessAllLabels');
-  }.property('_accessAllLabels','labels.[]'),
+  clearLabels:function () {
+    if (!this.get('labelsEnabled')) {
+      this.recurseClearLabels(false);
+    }
+  }.observes('labelsEnabled'),
+
+  recurseClearLabels:function(leaveEnabled) {
+    this.set('accessAllLabels',false);
+    this.get('labels').clear();
+    this.notifyPropertyChange('labels');
+    this.store.all('queue').filterBy('parentPath',this.get('path')).forEach(function (child) {
+      if (!Em.isNone(leaveEnabled)) {
+        child.set('labelsEnabled',leaveEnabled);
+      }
+      child.recurseClearLabels(leaveEnabled);
+    });
+  },
+
+  /**
+   * @param  {App.Label} label ralated to queue. All labels with it's name will be removed from child queues.
+   * @method recurseRemoveLabel
+   */
+  recurseRemoveLabel:function(label) {
+    label = this.get('labels').findBy('name',label.get('name'));
+    if (label) {
+      this.get('labels').removeObject(label);
+      this.notifyPropertyChange('labels');
+      this.store.all('queue').filterBy('parentPath',this.get('path')).forEach(function (child) {
+        child.recurseRemoveLabel(label);
+      }.bind(this));
+    }
+  },
 
   isAnyDirty: function () {
     return this.get('isDirty') || !Em.isEmpty(this.get('labels').findBy('isDirty',true)) || this.get('isLabelsDirty');
@@ -106,6 +145,7 @@ App.Queue = DS.Model.extend({
 
   initialLabels:[],
   labelsLoad:function() {
+    this.set('labelsEnabled',this._data.labelsEnabled);
     this.set('initialLabels',this.get('labels').mapBy('id'));
   }.on('didLoad','didUpdate','didCreate'),
 
@@ -126,6 +166,9 @@ App.Queue = DS.Model.extend({
   state: DS.attr('string', { defaultValue: 'RUNNING' }),
   acl_administer_queue: DS.attr('string', { defaultValue: '*' }),
   acl_submit_applications: DS.attr('string', { defaultValue: '*' }),
+  ordering_policy: DS.attr('string', { defaultValue: 'fifo' }),
+  enable_size_based_weight: DS.attr('boolean', { defaultValue: false }),
+  default_node_label_expression: DS.attr('string'),
 
   capacity: DS.attr('number', { defaultValue: 0 }),
   maximum_capacity: DS.attr('number', { defaultValue: 0 }),
@@ -144,7 +187,7 @@ App.Queue = DS.Model.extend({
         qrray = (this.get('queues'))?this.get('queues').split(','):[];
         this.set('queues',qrray.removeObject(val.exclude).join(',') || null);
       } else {
-        this.set('queues',val.join(',') || null);
+        this.set('queues',val.sort().join(',') || null);
       }
     }
     return (this.get('queues'))?this.get('queues').split(','):[];
@@ -180,8 +223,16 @@ App.Queue = DS.Model.extend({
     'minimum_user_limit_percent',
     'maximum_applications',
     'maximum_am_resource_percent',
+    'ordering_policy',
     'queues',
+    'enable_size_based_weight',
     'labels.@each.capacity',
     'labels.@each.maximum_capacity'
-  )
+  ),
+
+  clearDefaultNodeLabel: function () {
+    if (Em.isEmpty(this.get('labels').findBy('name',this.get('default_node_label_expression')))) {
+      this.set('default_node_label_expression',null);
+    }
+  }.observes('labels','default_node_label_expression')
 });

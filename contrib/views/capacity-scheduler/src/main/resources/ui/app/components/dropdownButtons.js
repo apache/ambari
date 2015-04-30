@@ -18,20 +18,9 @@
 
 var App = require('app');
 
-
-App.DropdownConfirmationComponent = Em.Component.extend(App.ClickElsewhereMixin,{
-  layoutName:'components/dropdownConfirmation',
+App.DropdownButtonsComponent = Em.Component.extend(App.ClickElsewhereMixin,{
   tagName:'li',
   restartConfirming:false,
-  actions:{
-    showRestartConfirmation: function() {
-      this.toggleProperty('restartConfirming');
-    },
-    confirm: function() {
-      this.set('restartConfirming',false);
-      this.sendAction('action','restart');
-    }
-  },
   onClickElsewhere:function () {
     this.set('restartConfirming',false);
     this.$().parents('.dropdown-menu').parent().removeClass('open');
@@ -44,7 +33,8 @@ App.DropdownConfirmationComponent = Em.Component.extend(App.ClickElsewhereMixin,
   }.on('didInsertElement'),
   button:Em.Component.extend({
     tagName:'a',
-    click:function () {
+    click:function (event) {
+      event.stopPropagation();
       this.triggerAction({
         action: 'showRestartConfirmation',
         target: this.get('parentView'),
@@ -52,5 +42,13 @@ App.DropdownConfirmationComponent = Em.Component.extend(App.ClickElsewhereMixin,
       });
     }
   }),
-  needRestart:false
+  actions:{
+    showRestartConfirmation: function() {
+      this.toggleProperty('restartConfirming');
+    },
+    confirm: function (arg) {
+      this.set('restartConfirming',false);
+      this.sendAction('action',arg);
+    }
+  }
 });

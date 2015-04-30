@@ -18,17 +18,11 @@
 
 var App = require('app');
 
-var bound;
-
-bound = function(fnName) {
-  return Ember.computed(fnName,function() {
-    return this.get(fnName).bind(this);
-  });
-};
-
 App.ClickElsewhereMixin = Ember.Mixin.create({
   onClickElsewhere: Ember.K,
-  clickHandler: bound("elsewhereHandler"),
+  clickHandler: Ember.computed('elsewhereHandler',function() {
+    return this.get('elsewhereHandler').bind(this);
+  }),
   elsewhereHandler: function(e) {
     var $target, element, thisIsElement;
     element = this.get("element");

@@ -53,6 +53,14 @@
 
 @import './../../bower_components/bootstrap/less/bootstrap.less';
 
+// ----- LOADER -----
+
+.loader {
+  h5 {
+    text-transform: uppercase;
+  }
+}
+
 // ----- TWO BUTTONS -----
 
 .add-queue {
@@ -75,9 +83,15 @@
       border-top-right-radius: 4px;
       border-bottom-right-radius: 4px;
     }
-    .dropdown-menu .btn {
-      border-radius: 0;
-      text-align: left;
+    .dropdown-menu {
+      .btn {
+        border-radius: 0;
+        text-align: left;
+      }
+      .btn-group-justified .btn {
+        text-align: center;
+        border: none;
+      }
     }
     .btn-group {
       width: 100%;
@@ -103,8 +117,11 @@
     }
   }
   .progress {
-    height: 3px;
-    margin: 0;
+    width: 40px;
+    display: inline-block;
+    //vertical-align: bottom;
+    height: 8px;
+    margin-bottom: 0;
   }
   .spacer {
     height: 25px;
@@ -120,7 +137,10 @@
   }
   .list-group-item {
     cursor: pointer;
-    .base-transition (background-color .1s linear 0s);
+    &.disabled {
+      color: #ccc;
+    }
+    //.base-transition (background-color .1s linear 0s);
   }
   .list-group-item.last {
     border-bottom-left-radius: 4px;
@@ -165,10 +185,18 @@
       display: inline-block;
       .input-int-width;
     }
+    .input-expand {
+      width: 85%;
+      display: inline-block;
+    }
+    .expanded-wrap .input-expand {
+      width: 92%;
+    }
     .input-percent-wrap {
       & > div {
         display: table-cell;
         .input-percent {
+          z-index: 1;
           .input-percent-width;
         }
         &.btn-group {
@@ -206,7 +234,7 @@
     margin-bottom: 20px;
     min-height: 20px;
     padding: 15px;
-    padding-top: 0px;
+    padding-top: 0;
 
     // ----- QUEUE -> HEADING ROW -----
 
@@ -290,9 +318,13 @@
             padding: 15px;
             background-color: #fefefe;
             .base-shadow(inset 0 0 2px #ccc);
+            a.labels-enabler {
+              color: #737373;
+            }
           }
 
           .input-percent {
+            z-index: 1;
             .input-percent-width;
           }
           .progress {
@@ -310,6 +342,15 @@
           .queue-capacity {
 
             padding-bottom: 4px;
+
+            .toggle-default-label{
+              color: #737373;
+            }
+
+            .label {
+              display: inline-block;
+              margin-bottom: 5px;
+            }
 
             &.active {
               .progress {
@@ -531,6 +572,7 @@
               }
             }
             .labels-toggle {
+              z-index: 1;
               margin-bottom: 5px;
               display: inline-table;
 
@@ -679,6 +721,7 @@
           & > div {
             display: table-cell;
             .input-percent {
+              z-index: 1;
               .input-percent-width;
             }
             &.btn-group {
@@ -749,9 +792,35 @@
   font-size: .9em;
 }
 
+.expanded-wrap {
+  position: relative;
+  @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+      height: 55px;
+    }
+    @media (min-width: @screen-lg-min) {
+      height: 30px;
+    }
+  .expanded {
+    @media (min-width: @screen-md-min) and (max-width: @screen-md-max) {
+      top: 25px;
+    }
+    @media (min-width: @screen-lg-min) {
+      left: 40%;
+      top: -8px;
+    }
+    position: absolute;
+    width: 450px !important;
+    z-index: 4;
+    padding: 8px;
+    border-radius: 4px;
+    background-color: #fff;
+    box-shadow: 0 0 5px;
+  }
+}
+
 .btn {
   padding: 6px 10px;
-  .base-transition(background-color .08s linear 0s)
+  //.base-transition(background-color .08s linear 0s)
 }
 
 .input-error  {
@@ -774,4 +843,8 @@
 
 .modal-backdrop.in {
   opacity: 0;
+}
+
+.tooltip-label span:first-child {
+  cursor: help;
 }

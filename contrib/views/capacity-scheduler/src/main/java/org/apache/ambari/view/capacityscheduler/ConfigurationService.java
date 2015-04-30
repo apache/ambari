@@ -157,6 +157,30 @@ public class ConfigurationService {
    * @return scheduler configuration
    */
   @GET
+  @Path("cluster")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response readClusterInfo() {
+    Response response = null;
+    try {
+      validateViewConfiguration();
+
+      JSONObject configurations = proxy.request(baseUrl).get().asJSON();
+      response = Response.ok(configurations).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+
+    return response;
+  }
+
+  /**
+   * Gets capacity scheduler configuration by all tags.
+   *
+   * @return scheduler configuration
+   */
+  @GET
   @Path("all")
   @Produces(MediaType.APPLICATION_JSON)
   public Response readAllConfigurations() {

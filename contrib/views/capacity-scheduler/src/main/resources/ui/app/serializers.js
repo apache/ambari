@@ -82,36 +82,32 @@ App.SerializerMixin = Em.Mixin.create({
     return this.extractSave(store, type, payload);
   },
   extractQueue: function(data, props) {
-    var q = { name: data.name, parentPath: data.parentPath, depth: data.depth };
-    var prefix = this.PREFIX;
-
-    if (q.parentPath == null || q.parentPath.length == 0){
-        q.path = q.name;
-      } else {
-        q.path = q.parentPath + '.' + q.name;
-      }
-    q.id = q.path.dasherize();
-
-    var base_path = prefix + "." + q.path;
-
-    var labelsPath =                base_path + ".accessible-node-labels";
-    var qLabels;
-
-    q.unfunded_capacity =           props[base_path + ".unfunded.capacity"] || null;
-
-    q.state =                       props[base_path + ".state"] || null;
-    q.acl_administer_queue =        props[base_path + ".acl_administer_queue"] || null;
-    q.acl_submit_applications =     props[base_path + ".acl_submit_applications"] || null;
-
-    q.capacity =                    (props[base_path + ".capacity"])?+props[base_path + ".capacity"]:null;
-    q.maximum_capacity =            (props[base_path + ".maximum-capacity"])?+props[base_path + ".maximum-capacity"]:null;
-
-    q.user_limit_factor =           (props[base_path + ".user-limit-factor"])?+props[base_path + ".user-limit-factor"]:null;
-    q.minimum_user_limit_percent =  (props[base_path + ".minimum-user-limit-percent"])?+props[base_path + ".minimum-user-limit-percent"]:null;
-    q.maximum_applications =        (props[base_path + ".maximum-applications"])?+props[base_path + ".maximum-applications"]:null;
-    q.maximum_am_resource_percent = (props[base_path + ".maximum-am-resource-percent"])?+props[base_path + ".maximum-am-resource-percent"]:null;
-
-    //TODO what if didn't set??
+    var path = (data.parentPath == null || data.parentPath.length == 0)?data.name:[data.parentPath, data.name].join('.'),
+        base_path = this.PREFIX + "." + path,
+        labelsPath = base_path + ".accessible-node-labels",
+        q = {
+          id: path.toLowerCase(),
+          name: data.name,
+          path: path,
+          parentPath: data.parentPath,
+          depth: data.depth,
+          //sort queue list to avoid of parsing different sorting as changed value
+          queues:                        (props[base_path + ".queues"] || '').split(',').sort().join(',') || null,
+          unfunded_capacity:             props[base_path + ".unfunded.capacity"] || null,
+          state:                         props[base_path + ".state"] || null,
+          acl_administer_queue:          props[base_path + ".acl_administer_queue"] || null,
+          acl_submit_applications:       props[base_path + ".acl_submit_applications"] || null,
+          capacity:                      (props[base_path + ".capacity"])?+props[base_path + ".capacity"]:null,
+          maximum_capacity:              (props[base_path + ".maximum-capacity"])?+props[base_path + ".maximum-capacity"]:null,
+          user_limit_factor:             (props[base_path + ".user-limit-factor"])?+props[base_path + ".user-limit-factor"]:null,
+          minimum_user_limit_percent:    (props[base_path + ".minimum-user-limit-percent"])?+props[base_path + ".minimum-user-limit-percent"]:null,
+          maximum_applications:          (props[base_path + ".maximum-applications"])?+props[base_path + ".maximum-applications"]:null,
+          maximum_am_resource_percent:   (props[base_path + ".maximum-am-resource-percent"])?+props[base_path + ".maximum-am-resource-percent"]*100:null, // convert to percent
+          ordering_policy:               props[base_path + ".ordering-policy"] || null,
+          enable_size_based_weight:      props[base_path + ".ordering-policy.fair.enable-size-based-weight"] || null,
+          default_node_label_expression: props[base_path + ".default-node-label-expression"] || null,
+          labelsEnabled: props.hasOwnProperty(labelsPath)
+        };
 
     switch ((props.hasOwnProperty(labelsPath))?props[labelsPath]:'') {
       case '*':
@@ -133,28 +129,22 @@ App.SerializerMixin = Em.Mixin.create({
           return [q.id,labelName].join('.');
         }.bind(this)).compact();
         break;
-
     }
-
-    if (q.maximum_am_resource_percent)
-      q.maximum_am_resource_percent = q.maximum_am_resource_percent*100; // convert to percent
-
-    q.queues = props[prefix + "." + q.path + ".queues"] || null;
 
     return q;
   },
   normalizePayload: function (properties) {
-    if (properties.hasOwnProperty('queue')) {
+    if ((properties && properties.hasOwnProperty('queue')) || !properties) {
       return properties;
     }
     var labels = [], queues = [];
 
     var scheduler = [{
-      id:'scheduler',
-      maximum_am_resource_percent:properties[this.PREFIX + ".maximum-am-resource-percent"]*100, // convert to percent
-      maximum_applications:properties[this.PREFIX + ".maximum-applications"],
-      node_locality_delay:properties[this.PREFIX + ".node-locality-delay"],
-      resource_calculator:properties[this.PREFIX + ".resource-calculator"]
+      id:                          'scheduler',
+      maximum_am_resource_percent: properties[this.PREFIX + ".maximum-am-resource-percent"]*100 || null, // convert to percent
+      maximum_applications:        properties[this.PREFIX + ".maximum-applications"] || null,
+      node_locality_delay:         properties[this.PREFIX + ".node-locality-delay"] || null,
+      resource_calculator:         properties[this.PREFIX + ".resource-calculator"] || null
     }];
     _recurseQueues(null, "root", 0, properties, queues, this.get('store'));
     this._setupLabels(properties,queues,labels,this.PREFIX);
@@ -172,7 +162,8 @@ App.SerializerMixin = Em.Mixin.create({
         labels.push({
           id:labelId,
           capacity:properties.hasOwnProperty(cp)?+properties[cp]:0,
-          maximum_capacity:properties.hasOwnProperty(mcp)?+properties[mcp]:100
+          maximum_capacity:properties.hasOwnProperty(mcp)?+properties[mcp]:100,
+          queue:(queue.labels.contains([queue.id,label.name].join('.')))?queue.id:null
         });
       });
 
@@ -226,6 +217,12 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
     json[this.PREFIX + "." + record.get('path') + ".state"] = record.get('state');
     json[this.PREFIX + "." + record.get('path') + ".capacity"] = record.get('capacity');
     json[this.PREFIX + "." + record.get('path') + ".queues"] = record.get('queues')||null;
+    json[this.PREFIX + "." + record.get('path') + ".default-node-label-expression"] = record.get('default_node_label_expression')||null;
+    json[this.PREFIX + "." + record.get('path') + ".ordering-policy"] = record.get('ordering_policy')||null;
+
+    if (record.get('ordering_policy') == 'fair') {
+      json[this.PREFIX + "." + record.get('path') + ".ordering-policy.fair.enable-size-based-weight"] = record.get('enable_size_based_weight');
+    }
 
     // do not set property if not set
     var ma = record.get('maximum_applications')||'';
@@ -252,6 +249,7 @@ App.QueueSerializer = DS.RESTSerializer.extend(App.SerializerMixin,{
   },
   serializeHasMany:function (record, json, relationship) {
     var key = relationship.key;
+    json[[this.PREFIX, record.get('path'), 'accessible-node-labels'].join('.')] = (record.get('labelsEnabled'))?'':null;
     record.get(key).map(function (l,idx,labels) {
       json[[this.PREFIX, record.get('path'), 'accessible-node-labels'].join('.')] = (record.get('accessAllLabels'))?'*':labels.mapBy('name').join(',');
       if (!record.get('store.nodeLabels').findBy('name',l.get('name')).notExist) {

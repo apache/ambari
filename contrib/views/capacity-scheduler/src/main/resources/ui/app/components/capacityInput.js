@@ -37,6 +37,16 @@ App.FocusInputComponent = Ember.TextField.extend({
   }
 });
 
+App.ExpandableInputComponent = Em.TextField.extend({
+  classNameBindings:['expanded'],
+  focusIn:function  (argument) {
+    this.$().parent().addClass('expanded').parent().addClass('expanded-wrap');
+  },
+  focusOut:function  (argument) {
+    this.$().parent().removeClass('expanded').parent().removeClass('expanded-wrap');
+  }
+});
+
 App.IntInputComponent = Ember.TextField.extend({
   classNames:['form-control'],
   maxVal:null,

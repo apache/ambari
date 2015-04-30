@@ -75,7 +75,19 @@ public class ResponseTranslator {
    */
   public JSONObject asJSON() {
     String jsonString = asString();
-    return (JSONObject) JSONValue.parse(jsonString);
+    JSONObject jsonObject = (JSONObject) JSONValue.parse(jsonString);
+    if (jsonObject.get("status") != null && (Long)jsonObject.get("status") >= 400L) {
+      // Throw exception if HTTP status is not OK
+      String message;
+      if (jsonObject.containsKey("message")) {
+        message = (String) jsonObject.get("message");
+      } else {
+        message = "without message";
+      }
+      throw new ServiceFormattedException("Proxy: Server returned error " + jsonObject.get("status") + " " +
+          message + ". Check Capacity-Scheduler instance properties.");
+    }
+    return jsonObject;
   }
 
   /**

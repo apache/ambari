@@ -20,6 +20,7 @@
 
 require('templates/error');
 require('templates/trace');
+require('templates/refuse');
 require('templates/loading');
 require('templates/queue');
 require('templates/queues');
@@ -36,3 +37,5 @@ require('templates/components/pathInput');
 require('templates/components/userGroupInput');
 require('templates/components/queueContainer');
 require('templates/components/dropdownConfirmation');
+require('templates/components/dropdownDownload');
+require('templates/components/queueBadge');
