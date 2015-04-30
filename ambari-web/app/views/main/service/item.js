@@ -77,6 +77,12 @@ App.MainServiceItemView = Em.View.extend({
         'label': '{0} {1}'.format(Em.I18n.t('add'), Em.I18n.t('dashboard.services.flume.agentLabel')),
         service: 'FLUME',
         component: 'FLUME_HANDLER'
+      },
+      {
+        cssClass: 'icon-plus',
+        'label': '{0} {1}'.format(Em.I18n.t('add'), App.format.role('RANGER_KMS_SERVER')),
+        service: 'RANGER_KMS',
+        component: 'RANGER_KMS_SERVER'
       }
     ]
   },

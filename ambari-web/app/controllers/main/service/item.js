@@ -54,7 +54,7 @@ App.MainServiceItemController = Em.Controller.extend({
       var hostNames = App.Host.find().mapProperty('hostName');
       this.set('allHosts', hostNames);
 
-      ['HBASE_MASTER', 'HIVE_METASTORE', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER', 'HIVE_SERVER'].forEach(function(componentName) {
+      ['HBASE_MASTER', 'HIVE_METASTORE', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER', 'HIVE_SERVER', 'RANGER_KMS_SERVER'].forEach(function(componentName) {
         self.loadHostsWithoutComponent(componentName);
       });
     }
