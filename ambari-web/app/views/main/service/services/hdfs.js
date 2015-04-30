@@ -190,6 +190,14 @@ App.MainDashboardServiceHdfsView = App.MainDashboardServiceView.extend({
     });
     //return this.get('service.dataNodes').objectAt(0);
   }.property(),
+
+  /**
+   * Define if NFS_GATEWAY is present in the installed stack
+   * @type {Boolean}
+   */
+  isNfsInStack: function () {
+    return App.StackServiceComponent.find().someProperty('componentName', 'NFS_GATEWAY');
+  }.property(),
   
   journalNodeComponent: function () {
     return this.get('service.journalNodes').objectAt(0);
