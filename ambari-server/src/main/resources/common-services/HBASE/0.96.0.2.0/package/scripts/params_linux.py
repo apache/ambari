@@ -175,9 +175,6 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
     region_drainer = format("/usr/hdp/current/hbase-{role_root}/bin/draining_servers.rb")
     hbase_cmd = format("/usr/hdp/current/hbase-{role_root}/bin/hbase")
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  enable_ranger_hbase = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
-
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0    
@@ -213,6 +210,8 @@ policy_user = config['configurations']['ranger-hbase-plugin-properties']['policy
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 if has_ranger_admin:
+  enable_ranger_hbase = (config['configurations']['ranger-hbase-plugin-properties']['ranger-hbase-plugin-enabled'].lower() == 'yes')
+  
   if xa_audit_db_flavor.lower() == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
@@ -231,26 +230,26 @@ if has_ranger_admin:
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
   driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-hbase_ranger_plugin_config = {
-  'username': repo_config_username,
-  'password': repo_config_password,
-  'hadoop.security.authentication': hadoop_security_authentication,
-  'hbase.security.authentication': hbase_security_authentication,
-  'hbase.zookeeper.property.clientPort': hbase_zookeeper_property_clientPort,
-  'hbase.zookeeper.quorum': hbase_zookeeper_quorum,
-  'zookeeper.znode.parent': zookeeper_znode_parent,
-  'commonNameForCertificate': common_name_for_certificate,
-  'hbase.master.kerberos.principal': master_jaas_princ if security_enabled else ''
-}
-
-hbase_ranger_plugin_repo = {
-  'isActive': 'true',
-  'config': json.dumps(hbase_ranger_plugin_config),
-  'description': 'hbase repo',
-  'name': repo_name,
-  'repositoryType': 'hbase',
-  'assetType': '2'
-}
+  hbase_ranger_plugin_config = {
+    'username': repo_config_username,
+    'password': repo_config_password,
+    'hadoop.security.authentication': hadoop_security_authentication,
+    'hbase.security.authentication': hbase_security_authentication,
+    'hbase.zookeeper.property.clientPort': hbase_zookeeper_property_clientPort,
+    'hbase.zookeeper.quorum': hbase_zookeeper_quorum,
+    'zookeeper.znode.parent': zookeeper_znode_parent,
+    'commonNameForCertificate': common_name_for_certificate,
+    'hbase.master.kerberos.principal': master_jaas_princ if security_enabled else ''
+  }
+  
+  hbase_ranger_plugin_repo = {
+    'isActive': 'true',
+    'config': json.dumps(hbase_ranger_plugin_config),
+    'description': 'hbase repo',
+    'name': repo_name,
+    'repositoryType': 'hbase',
+    'assetType': '2'
+  }
 
 
 

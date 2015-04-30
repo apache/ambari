@@ -140,9 +140,6 @@ if security_enabled:
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
-
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 # ranger knox properties
@@ -169,6 +166,8 @@ policy_user = config['configurations']['ranger-knox-plugin-properties']['policy_
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 if has_ranger_admin:
+  enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
+  
   if xa_audit_db_flavor.lower() == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
@@ -187,39 +186,18 @@ if has_ranger_admin:
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
   driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-knox_ranger_plugin_config = {
-  'username': repo_config_username,
-  'password': repo_config_password,
-  'knox.url': format("https://{knox_host_name}:{knox_host_port}/gateway/admin/api/v1/topologies"),
-  'commonNameForCertificate': common_name_for_certificate
-}
-
-knox_ranger_plugin_repo = {
-  'isActive': 'true',
-  'config': json.dumps(knox_ranger_plugin_config),
-  'description': 'knox repo',
-  'name': repo_name,
-  'repositoryType': 'knox',
-  'assetType': '5',
-}
-
-def knox_repo_properties():
-  import params
-
-  config_dict = dict()
-  config_dict['username'] = params.repo_config_username
-  config_dict['password'] = params.repo_config_password
-  config_dict['knox.url'] = 'https://' + params.knox_host_name + ':' + str(params.knox_host_port) +'/gateway/admin/api/v1/topologies'
-  config_dict['commonNameForCertificate'] = params.common_name_for_certificate
-
-  repo= dict()
-  repo['isActive'] = "true"
-  repo['config'] = json.dumps(config_dict)
-  repo['description'] = "knox repo"
-  repo['name'] = params.repo_name
-  repo['repositoryType'] = "knox"
-  repo['assetType'] = '5'
-
-  data = json.dumps(repo)
-
-  return data
+  knox_ranger_plugin_config = {
+    'username': repo_config_username,
+    'password': repo_config_password,
+    'knox.url': format("https://{knox_host_name}:{knox_host_port}/gateway/admin/api/v1/topologies"),
+    'commonNameForCertificate': common_name_for_certificate
+  }
+  
+  knox_ranger_plugin_repo = {
+    'isActive': 'true',
+    'config': json.dumps(knox_ranger_plugin_config),
+    'description': 'knox repo',
+    'name': repo_name,
+    'repositoryType': 'knox',
+    'assetType': '5',
+  }

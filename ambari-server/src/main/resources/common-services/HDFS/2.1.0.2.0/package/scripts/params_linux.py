@@ -324,9 +324,6 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
-
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 #ranger hdfs properties
@@ -361,6 +358,8 @@ policy_user = config['configurations']['ranger-hdfs-plugin-properties']['policy_
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 if has_ranger_admin:
+  enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
+  
   if xa_audit_db_flavor.lower() == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
@@ -378,28 +377,26 @@ if has_ranger_admin:
   
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
   driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+  hdfs_ranger_plugin_config = {
+    'username': repo_config_username,
+    'password': repo_config_password,
+    'hadoop.security.authentication': hadoop_security_authentication,
+    'hadoop.security.authorization': hadoop_security_authorization,
+    'fs.default.name': fs_default_name,
+    'hadoop.security.auth_to_local': hadoop_security_auth_to_local,
+    'hadoop.rpc.protection': hadoop_rpc_protection,
+    'commonNameForCertificate': common_name_for_certificate,
+    'dfs.datanode.kerberos.principal': dn_principal_name if security_enabled else '',
+    'dfs.namenode.kerberos.principal': nn_principal_name if security_enabled else '',
+    'dfs.secondary.namenode.kerberos.principal': sn_principal_name if security_enabled else ''
+  }
   
-
-
-hdfs_ranger_plugin_config = {
-  'username': repo_config_username,
-  'password': repo_config_password,
-  'hadoop.security.authentication': hadoop_security_authentication,
-  'hadoop.security.authorization': hadoop_security_authorization,
-  'fs.default.name': fs_default_name,
-  'hadoop.security.auth_to_local': hadoop_security_auth_to_local,
-  'hadoop.rpc.protection': hadoop_rpc_protection,
-  'commonNameForCertificate': common_name_for_certificate,
-  'dfs.datanode.kerberos.principal': dn_principal_name if security_enabled else '',
-  'dfs.namenode.kerberos.principal': nn_principal_name if security_enabled else '',
-  'dfs.secondary.namenode.kerberos.principal': sn_principal_name if security_enabled else ''
-}
-
-hdfs_ranger_plugin_repo = {
-  'isActive': 'true',
-  'config': json.dumps(hdfs_ranger_plugin_config),
-  'description': 'hdfs repo',
-  'name': repo_name,
-  'repositoryType': 'hdfs',
-  'assetType': '1'
-}
+  hdfs_ranger_plugin_repo = {
+    'isActive': 'true',
+    'config': json.dumps(hdfs_ranger_plugin_config),
+    'description': 'hdfs repo',
+    'name': repo_name,
+    'repositoryType': 'hdfs',
+    'assetType': '1'
+  }

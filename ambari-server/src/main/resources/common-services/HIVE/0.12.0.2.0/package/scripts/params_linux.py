@@ -395,23 +395,23 @@ if has_ranger_admin:
   
   ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
   ranger_driver_curl_target = format("{java_share_dir}/{ranger_jdbc_jar_name}")
+  
+  hive_ranger_plugin_config = {
+    'username': repo_config_username,
+    'password': repo_config_password,
+    'jdbc.driverClassName': jdbc_driver_class_name,
+    'jdbc.url': format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url,
+    'commonNameForCertificate': common_name_for_certificate
+  }
+  
+  hive_ranger_plugin_repo = {
+    'isActive': 'true',
+    'config': json.dumps(hive_ranger_plugin_config),
+    'description': 'hive repo',
+    'name': repo_name,
+    'repositoryType': 'hive',
+    'assetType': '3'
+  }
 
 if security_enabled:
   hive_principal = hive_server_principal.replace('_HOST',hostname.lower())
-  
-hive_ranger_plugin_config = {
-  'username': repo_config_username,
-  'password': repo_config_password,
-  'jdbc.driverClassName': jdbc_driver_class_name,
-  'jdbc.url': format("{hive_url}/default;principal={hive_principal}") if security_enabled else hive_url,
-  'commonNameForCertificate': common_name_for_certificate
-}
-
-hive_ranger_plugin_repo = {
-  'isActive': 'true',
-  'config': json.dumps(hive_ranger_plugin_config),
-  'description': 'hive repo',
-  'name': repo_name,
-  'repositoryType': 'hive',
-  'assetType': '3'
-}
