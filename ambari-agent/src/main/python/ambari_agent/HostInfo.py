@@ -32,7 +32,6 @@ from ambari_commons import OSCheck, OSConst
 from ambari_commons.firewall import Firewall
 from ambari_commons.os_family_impl import OsFamilyImpl
 
-from resource_management.libraries.functions import packages_analyzer
 from ambari_agent.Hardware import Hardware
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
@@ -326,26 +325,26 @@ class HostInfoLinux(HostInfo):
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class HostInfoWindows(HostInfo):
   SERVICE_STATUS_CMD = 'If ((Get-Service | Where-Object {{$_.Name -eq \'{0}\'}}).Status -eq \'Running\') {{echo "Running"; $host.SetShouldExit(0)}} Else {{echo "Stopped"; $host.SetShouldExit(1)}}'
-  GET_USERS_CMD = '$accounts=(Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "LocalAccount=\'$True\'" -ComputerName "LocalHost" -ErrorAction Stop); foreach ($acc in $accounts) {echo $acc.Name}'
-  GET_JAVA_PROC_CMD = 'foreach ($process in (gwmi Win32_Process -Filter "name = \'java.exe\'")){echo $process.ProcessId;echo $process.CommandLine; echo $process.GetOwner().User}'
+  GET_USERS_CMD = '$accounts=(Get-WmiObject -Class Win32_UserAccount -Namespace "root\cimv2" -Filter "name = \'{0}\' and Disabled=\'False\'" -ErrorAction Stop); foreach ($acc in $accounts) {{Write-Host ($acc.Domain + "\\" + $acc.Name)}}'
+  GET_JAVA_PROC_CMD = 'foreach ($process in (gwmi Win32_Process -Filter "name = \'java.exe\'")){{echo $process.ProcessId;echo $process.CommandLine; echo $process.GetOwner().User}}'
   DEFAULT_LIVE_SERVICES = [
     "W32Time"
   ]
-  DEFAULT_USERS = ["hadoop"]
+  DEFAULT_USERS = "hadoop"
 
-  def checkUsers(self, users, results):
-    get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD]
+  def checkUsers(self, user_mask, results):
+    get_users_cmd = ["powershell", '-noProfile', '-NonInteractive', '-nologo', "-Command", self.GET_USERS_CMD.format(user_mask)]
     try:
       osStat = subprocess.Popen(get_users_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
       out, err = osStat.communicate()
     except:
       raise Exception("Failed to get users.")
     for user in out.split(os.linesep):
-      if user in users:
-        result = {}
-        result['name'] = user
-        result['status'] = "Available"
-        results.append(result)
+      result = {}
+      result['name'] = user
+      result['homeDir'] = ""
+      result['status'] = "Available"
+      results.append(result)
 
   def createAlerts(self, alerts):
     # TODO AMBARI-7849 Implement createAlerts for Windows
