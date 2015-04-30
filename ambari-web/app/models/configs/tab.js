@@ -45,7 +45,17 @@ App.Tab = DS.Model.extend({
    */
   headingClass: function() {
     return '.' + this.get('id');
-  }.property('id')
+  }.property('id'),
+
+  /**
+   * Determines if tab is filtered out (all it's sections should be hidden)
+   * If it's an Advanced Tab it can't be hidden
+   * @type {boolean}
+   */
+  isHiddenByFilter: function () {
+    return this.get('isAdvanced') ? false : this.get('sections').everyProperty('isHiddenByFilter', true);
+  }.property('isAdvanced', 'sections.@each.isHiddenByFilter')
+
 });
 
 

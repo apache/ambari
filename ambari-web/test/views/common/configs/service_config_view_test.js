@@ -81,4 +81,64 @@ describe('App.ServiceConfigView', function () {
     });
   });
 
+  describe('#pickActiveTab', function () {
+
+    Em.A([
+        {
+          tabs: [
+            Em.Object.create({isAdvanced: false, isActive: false, name: 'settings', isHiddenByFilter: false}),
+            Em.Object.create({isAdvanced: true, isActive: false, name: 'advanced', isHiddenByFilter: false})
+          ],
+          m: 'Should make `settings` active (1)',
+          e: 'settings'
+        },
+        {
+          tabs: [
+            Em.Object.create({isAdvanced: false, isActive: false, name: 'settings', isHiddenByFilter: true}),
+            Em.Object.create({isAdvanced: true, isActive: false, name: 'advanced', isHiddenByFilter: false})
+          ],
+          m: 'Should make `advanced` active (1)',
+          e: 'advanced'
+        },
+        {
+          tabs: [
+            Em.Object.create({isAdvanced: false, isActive: true, name: 'settings', isHiddenByFilter: false}),
+            Em.Object.create({isAdvanced: true, isActive: false, name: 'advanced', isHiddenByFilter: false})
+          ],
+          m: 'Should make `settings` active (2)',
+          e: 'settings'
+        },
+        {
+          tabs: [
+            Em.Object.create({isAdvanced: false, isActive: true, name: 'settings', isHiddenByFilter: true}),
+            Em.Object.create({isAdvanced: true, isActive: false, name: 'advanced', isHiddenByFilter: false})
+          ],
+          m: 'Should make `advanced` active (2)',
+          e: 'advanced'
+        },
+        {
+          tabs: [
+            Em.Object.create({isAdvanced: false, isActive: false, name: 'settings', isHiddenByFilter: false}),
+            Em.Object.create({isAdvanced: true, isActive: false, name: 'advanced', isHiddenByFilter: false})
+          ],
+          m: 'Should make `settings` active (3)',
+          e: 'settings'
+        },
+        {
+          tabs: [
+            Em.Object.create({isAdvanced: false, isActive: false, name: 'settings', isHiddenByFilter: false}),
+            Em.Object.create({isAdvanced: true, isActive: true, name: 'advanced', isHiddenByFilter: false})
+          ],
+          m: 'Should make `advanced` active (3)',
+          e: 'advanced'
+        }
+    ]).forEach(function (test) {
+        it(test.m, function () {
+          view.pickActiveTab(test.tabs);
+          expect(test.tabs.findProperty('name', test.e).get('isActive')).to.be.true;
+        });
+      });
+
+  });
+
 });

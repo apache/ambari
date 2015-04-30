@@ -40,4 +40,47 @@ describe('App.Section', function () {
 
   });
 
+  describe('#isHiddenByFilter', function () {
+
+    Em.A([
+        {
+          subSections: [],
+          m: 'no subsections',
+          e: true
+        },
+        {
+          subSections: [
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}]}),
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}]})
+          ],
+          m: 'no subsections are hidden',
+          e: false
+        },
+        {
+          subSections: [
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}]}),
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}]})
+          ],
+          m: 'one subsection is hidden',
+          e: false
+        },
+        {
+          subSections: [
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}]}),
+            App.SubSection.createRecord({configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}]})
+          ],
+          m: 'all subsections are hidden',
+          e: true
+        }
+      ]).forEach(function (test) {
+        it(test.m, function () {
+          model.reopen({
+            subSections: test.subSections
+          });
+          expect(model.get('isHiddenByFilter')).to.equal(test.e);
+        });
+      });
+
+  });
+
 });

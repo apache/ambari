@@ -235,7 +235,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         }
 
         var searchString = config.get('defaultValue') + config.get('description') +
-          config.get('displayName') + config.get('name') + config.get('value');
+          config.get('displayName') + config.get('name') + config.get('value') + config.getWithDefault('stackConfigProperty.displayName', '');
 
         if (config.get('overrides')) {
           config.get('overrides').forEach(function (overriddenConf) {

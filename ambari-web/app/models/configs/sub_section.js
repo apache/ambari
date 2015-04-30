@@ -141,7 +141,17 @@ App.SubSection = DS.Model.extend({
    */
   isLastColumn: function () {
     return this.get('columnIndex') + this.get('columnSpan') == this.get('section.sectionColumns');
-  }.property('columnIndex', 'columnSpan', 'section.sectionColumns')
+  }.property('columnIndex', 'columnSpan', 'section.sectionColumns'),
+
+  /**
+   * Determines if subsection is filtered by checking it own configs
+   * If there is no configs, subsection can't be hidden
+   * @type {boolean}
+   */
+  isHiddenByFilter: function () {
+    var configs = this.get('configs');
+    return configs.length ? configs.everyProperty('isHiddenByFilter', true) : false;
+  }.property('configs.@each.isHiddenByFilter')
 });
 
 

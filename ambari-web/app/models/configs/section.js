@@ -121,7 +121,15 @@ App.Section = DS.Model.extend({
    */
   isLastColumn: function () {
     return this.get('columnIndex') + this.get('columnSpan') == this.get('tab.columns');
-  }.property('columnIndex', 'columnSpan', 'tab.columns')
+  }.property('columnIndex', 'columnSpan', 'tab.columns'),
+
+  /**
+   * Determines if section is filtered out (all it's subsections should be hidden)
+   * @type {boolean}
+   */
+  isHiddenByFilter: function () {
+    return this.get('subSections').everyProperty('isHiddenByFilter', true);
+  }.property('subSections.@each.isHiddenByFilter')
 
 });
 

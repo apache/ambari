@@ -42,4 +42,36 @@ describe('App.SubSection', function () {
 
   });
 
+  describe('#isHiddenByFilter', function () {
+
+    Em.A([
+        {
+          configs: [],
+          e: false,
+          m: 'Can\'t be hidden if there is no configs'
+        },
+        {
+          configs: [{isHiddenByFilter: true}, {isHiddenByFilter: true}],
+          e: true,
+          m: 'All configs are hidden'
+        },
+        {
+          configs: [{isHiddenByFilter: false}, {isHiddenByFilter: true}],
+          e: false,
+          m: 'Some configs are hidden'
+        },
+        {
+          configs: [{isHiddenByFilter: false}, {isHiddenByFilter: false}],
+          e: false,
+          m: 'No configs are hidden'
+        }
+    ]).forEach(function (test) {
+        it(test.m, function () {
+          model.set('configs', test.configs);
+          expect(model.get('isHiddenByFilter')).to.equal(test.e);
+        })
+      });
+
+  });
+
 });

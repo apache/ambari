@@ -54,6 +54,7 @@ App.ServiceConfigView = Em.View.extend({
   }.property('controller.name', 'controller.selectedService'),
 
   showConfigHistoryFeature: false,
+
   toggleRestartMessageView: function () {
     this.$('.service-body').toggle('blind', 200);
     this.set('isRestartMessageCollapsed', !this.get('isRestartMessageCollapsed'));
@@ -115,14 +116,22 @@ App.ServiceConfigView = Em.View.extend({
 
   /**
    * Pick the first non hidden tab and make it active when there is no active tab
+   * @method pickActiveTab
    */
-  pickActiveTab : function (tabs) {
+  pickActiveTab: function (tabs) {
+    if (!tabs) return;
     var activeTab = tabs.findProperty('isActive', true);
-    if (!activeTab) {
-      var nonHiddenTabs = tabs.filter(function (tab) {
-        return !(tab.get('isHiddenByFilter') === true);
-      });
-      nonHiddenTabs.get('firstObject').set('isActive', true);
+    if (activeTab) {
+      if (activeTab.get('isHiddenByFilter')) {
+        activeTab.set('isActive', false);
+        this.pickActiveTab(tabs);
+      }
+    }
+    else {
+      var firstHotHiddenTab = tabs.filterProperty('isHiddenByFilter', false).get('firstObject');
+      if(firstHotHiddenTab) {
+        firstHotHiddenTab.set('isActive', true);
+      }
     }
   },
 
@@ -157,6 +166,17 @@ App.ServiceConfigView = Em.View.extend({
       }
       tab.set('sectionRows', sectionRows);
     }
-  }
+  },
+
+  /**
+   * Mark isHiddenByFilter flag for configs, sub-sections, and tab
+   * @method filterEnhancedConfigs
+   */
+  filterEnhancedConfigs: function () {
+    var self = this;
+    Em.run.next(function () {
+      self.pickActiveTab(self.get('tabs'));
+    });
+  }.observes('filter', 'columns.@each.selected', 'tabs.@each.isHiddenByFilter')
 
 });
