@@ -190,7 +190,7 @@ module.exports = Em.Application.create({
    */
   isClusterSupportsEnhancedConfigs: function() {
     return this.get('isHadoop22Stack') && App.get('supports.enhancedConfigs')
-  }.property('isHadoop22Stack'),
+  }.property('isHadoop22Stack', 'supports.enhancedConfigs'),
 
   /**
    * If NameNode High Availability is enabled

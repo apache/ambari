@@ -5617,69 +5617,72 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
   }
 }
 
-.enhanced-config-tab-content {
-  overflow: hidden;
-  .section-layout-container {
-    width: 104%; // fallback option
-    width: ~"calc(100% + 40px)";
-    margin-top: -20px;
-    .config-section-table {
-      width: 100%;
-      border-spacing: 20px;
-      border-collapse: separate;
-      table-layout: fixed; // for width to be equally distributed
-      margin: 0 -20px;
-      .config-section {
-        overflow: hidden;
-        height: 100%;
-        padding: 18px;
-        border: 1px solid #aaa;
-        vertical-align: top;
-        h4 {
-          margin: 0px;
-          font-size: 22px;
-          font-weight: 400;
-        }
-        h5 {
-          font-size: 18px;
-          font-weight: 400;
-        }
-        .vertical-splitter-r {
-          border-right: 2px solid #ccc; // vertical splitter
-          padding-right: 20px;
-          padding-left: 0px;
-        }
-
-        .vertical-splitter-l {
-          border-left: 2px solid #ccc; // vertical splitter
-          margin-left: -2px;
-          padding-left: 20px;
-          padding-right: 0px;
-        }
-        div.with-border {
+.tab-content.service-config-tab-content {
+  overflow: visible;
+  .enhanced-config-tab-content {
+    overflow: visible;
+    .section-layout-container {
+      width: 104%; // fallback option
+      width: ~"calc(100% + 40px)";
+      margin-top: -20px;
+      .config-section-table {
+        width: 100%;
+        border-spacing: 20px;
+        border-collapse: separate;
+        table-layout: fixed; // for width to be equally distributed
+        margin: 0 -20px;
+        .config-section {
+          overflow: visible;
+          height: 100%;
+          padding: 18px;
           border: 1px solid #aaa;
-          padding: 10px;
-          margin-bottom: 20px;
-        }
-        .config-subsection-table {
-          width: 100%;
-          height: 90%; // fallback option
-          height: ~"calc(100% - 30px)";
-          border-collapse: separate;
-          table-layout: fixed;
-          .config-subsection {
-            padding: 0px;
-            vertical-align: top;
-            &.no-horizontal-splitter {
-              border-bottom: none; // no horizontal splitter for subsection on the last row
-            }
-            &.top-horizontal-splitter {
-              border-top: 2px solid #ccc; // horizontal splitter
-              padding-top: 15px;
-              padding-bottom: 15px;
-            }
-            .directories {
-              min-width: 0px !important;
+          vertical-align: top;
+          h4 {
+            margin: 0px;
+            font-size: 22px;
+            font-weight: 400;
+          }
+          h5 {
+            font-size: 18px;
+            font-weight: 400;
+          }
+          .vertical-splitter-r {
+            border-right: 2px solid #ccc; // vertical splitter
+            padding-right: 20px;
+            padding-left: 0px;
+          }
+
+          .vertical-splitter-l {
+            border-left: 2px solid #ccc; // vertical splitter
+            margin-left: -2px;
+            padding-left: 20px;
+            padding-right: 0px;
+          }
+          div.with-border {
+            border: 1px solid #aaa;
+            padding: 10px;
+            margin-bottom: 20px;
+          }
+          .config-subsection-table {
+            width: 100%;
+            height: 90%; // fallback option
+            height: ~"calc(100% - 30px)";
+            border-collapse: separate;
+            table-layout: fixed;
+            .config-subsection {
+              padding: 0px;
+              vertical-align: top;
+              &.no-horizontal-splitter {
+                border-bottom: none; // no horizontal splitter for subsection on the last row
+              }
+              &.top-horizontal-splitter {
+                border-top: 2px solid #ccc; // horizontal splitter
+                padding-top: 15px;
+                padding-bottom: 15px;
+              }
+              .directories {
+                min-width: 0px !important;
+              }
             }
           }
         }

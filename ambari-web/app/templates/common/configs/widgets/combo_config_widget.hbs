@@ -23,7 +23,7 @@
       <button {{bindAttr class="view.disabled:disabled :btn :dropdown-toggle"}} data-toggle="dropdown">
         <span class="caret"></span>
       </button>
-      <ul {{bindAttr class="view.section.isLastColumn:pull-right :dropdown-menu"}}>
+      <ul {{bindAttr class=":pull-left :dropdown-menu"}}>
         {{#each item in view.content.valuesList}}
           <li>
             <a href="#" {{action setConfigValue item.configValue target="view"}}>{{item.widgetValue}}</a>
