@@ -329,6 +329,15 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         recommendedValueId = ticks.indexOf(recommendedValue);
       }
     }
+
+    /**
+     * Slider some times change config value while being created,
+     * this may happens when slider recreating couple times during small period.
+     * To cover this situation need to reset config value after slider initializing
+     * @type {Sting}
+     */
+    var correctConfigValue = this.get('config.value');
+
     var slider = new Slider(this.$('input.slider-input')[0], {
       value: this.get('mirrorValue'),
       ticks: ticks,
@@ -343,6 +352,13 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         }
       }
     });
+
+    /**
+     * Resetting config value, look for <code>correctConfigValue<code>
+     * for more info
+     */
+    this.set('config.value', correctConfigValue);
+
     slider.on('change', function (obj) {
       var val = self.get('mirrorValueParseFunction')(obj.newValue);
       self.set('config.value', '' + self.configValueByWidget(val));

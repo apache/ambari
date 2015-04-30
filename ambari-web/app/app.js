@@ -189,7 +189,7 @@ module.exports = Em.Application.create({
    * @type {boolean}
    */
   isClusterSupportsEnhancedConfigs: function() {
-    return this.get('isHadoop22Stack') && App.get('supports.enhancedConfigs')
+    return this.get('isHadoop22Stack') && this.get('supports.enhancedConfigs');
   }.property('isHadoop22Stack', 'supports.enhancedConfigs'),
 
   /**

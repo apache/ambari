@@ -16,40 +16,42 @@
 * limitations under the License.
 }}
 
-{{#unless tab.isHiddenByFilter}}
-<div class="section-layout-container">
-  <table class="config-section-table">
-    {{#each row in tab.sectionRows}}
-      <tr>
-        {{#each section in row}}
-          <td {{bindAttr class="section.isHiddenByFilter:invisible :config-section" colspan="section.columnSpan" rowspan="section.rowSpan"}}>
-            <h4>{{section.displayName}}</h4>
-            <table class="config-subsection-table">
-              {{#each subRow in section.subsectionRows}}
-                <tr>
-                  {{#each subsection in subRow}}
-                    <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.showTopSplitter:top-horizontal-splitter:no-horizontal-splitter :config-subsection" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
-                      <div {{bindAttr class="subsection.addLeftVerticalSplitter:vertical-splitter-l subsection.addRightVerticalSplitter:vertical-splitter-r"}}>
-                        <div {{bindAttr class="subsection.border:with-border"}}>
-                          <h5>{{subsection.displayName}}&nbsp;</h5>
-                          {{#each config in subsection.configs}}
-                            {{#if config.widget}}
-                              {{#unless config.isHiddenByFilter}}
-                                {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
-                              {{/unless}}
-                            {{/if}}
-                          {{/each}}
+{{#if view.dataIsReady}}
+  {{#unless tab.isHiddenByFilter}}
+  <div class="section-layout-container">
+    <table class="config-section-table">
+      {{#each row in tab.sectionRows}}
+        <tr>
+          {{#each section in row}}
+            <td {{bindAttr class="section.isHiddenByFilter:invisible :config-section" colspan="section.columnSpan" rowspan="section.rowSpan"}}>
+              <h4>{{section.displayName}}</h4>
+              <table class="config-subsection-table">
+                {{#each subRow in section.subsectionRows}}
+                  <tr>
+                    {{#each subsection in subRow}}
+                      <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.showTopSplitter:top-horizontal-splitter:no-horizontal-splitter :config-subsection" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
+                        <div {{bindAttr class="subsection.addLeftVerticalSplitter:vertical-splitter-l subsection.addRightVerticalSplitter:vertical-splitter-r"}}>
+                          <div {{bindAttr class="subsection.border:with-border"}}>
+                            <h5>{{subsection.displayName}}&nbsp;</h5>
+                            {{#each config in subsection.configs}}
+                              {{#if config.widget}}
+                                {{#unless config.isHiddenByFilter}}
+                                  {{view config.widget configBinding="config" canEditBinding="view.canEdit" sectionBinding="section" subSectionBinding="subsection" tabBinding="tab"}}
+                                {{/unless}}
+                              {{/if}}
+                            {{/each}}
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                  {{/each}}
-                </tr>
-              {{/each}}
-            </table>
-          </td>
-        {{/each}}
-      </tr>
-    {{/each}}
-  </table>
-</div>
-{{/unless}}
+                      </td>
+                    {{/each}}
+                  </tr>
+                {{/each}}
+              </table>
+            </td>
+          {{/each}}
+        </tr>
+      {{/each}}
+    </table>
+  </div>
+  {{/unless}}
+{{/if}}

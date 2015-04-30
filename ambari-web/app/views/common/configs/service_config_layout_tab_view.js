@@ -30,6 +30,13 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   canEdit: true,
 
   /**
+   * view need some time to prepare data to display it correct
+   * before that it's better not to show anything
+   * @type {boolean}
+   */
+  dataIsReady: false,
+
+  /**
    * @type {App.Service}
    */
   service: function () {
@@ -194,9 +201,11 @@ App.ServiceConfigLayoutTabView = Em.View.extend(App.ConfigOverridable, {
   }.observes('parentView.filter', 'parentView.columns.@each.selected'),
 
   didInsertElement: function () {
+    this.set('dataIsReady', false);
     this._super();
     this.prepareConfigProperties();
     this.filterEnhancedConfigs();
+    this.set('dataIsReady', true);
   }
 
 });
