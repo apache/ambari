@@ -125,6 +125,8 @@ public class OrmTestHelper {
   @Inject
   private StackDAO stackDAO;
 
+  public static final String CLUSTER_NAME = "test_cluster1";
+
   public EntityManager getEntityManager() {
     return entityManagerProvider.get();
   }
@@ -303,7 +305,7 @@ public class OrmTestHelper {
    */
   @Transactional
   public Long createCluster() {
-    return createCluster("test_cluster1");
+    return createCluster(CLUSTER_NAME);
   }
 
   /**

@@ -653,6 +653,74 @@ CREATE TABLE ambari.widget_layout_user_widget (
 );
 GRANT ALL PRIVILEGES ON TABLE ambari.widget_layout_user_widget TO :username;
 
+CREATE TABLE ambari.topology_request (
+  id BIGINT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_name VARCHAR(100) NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  description VARCHAR(1024),
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_request TO :username;
+
+CREATE TABLE ambari.topology_hostgroup (
+  name VARCHAR(255) NOT NULL,
+  group_properties TEXT,
+  group_attributes TEXT,
+  request_id BIGINT NOT NULL,
+  PRIMARY KEY(name)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_hostgroup TO :username;
+
+CREATE TABLE ambari.topology_host_info (
+  id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  fqdn VARCHAR(255),
+  host_count INTEGER,
+  predicate VARCHAR(2048),
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_host_info TO :username;
+
+CREATE TABLE ambari.topology_logical_request (
+  id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  description VARCHAR(1024),
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_logical_request TO :username;
+
+CREATE TABLE ambari.topology_host_request (
+  id BIGINT NOT NULL,
+  logical_request_id BIGINT NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  stage_id BIGINT NOT NULL,
+  host_name VARCHAR(255),
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_host_request TO :username;
+
+CREATE TABLE ambari.topology_host_task (
+  id BIGINT NOT NULL,
+  host_request_id BIGINT NOT NULL,
+  logical_request_id BIGINT NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_host_task TO :username;
+
+CREATE TABLE ambari.topology_logical_task (
+  id BIGINT NOT NULL,
+  host_task_id BIGINT NOT NULL,
+  physical_task_id BIGINT NOT NULL,
+  component VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+GRANT ALL PRIVILEGES ON TABLE ambari.topology_logical_task TO :username;
+
 --------altering tables by creating unique constraints----------
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_tag UNIQUE (cluster_id, type_name, version_tag);
 ALTER TABLE ambari.clusterconfig ADD CONSTRAINT UQ_config_type_version UNIQUE (cluster_id, type_name, version);
@@ -728,6 +796,15 @@ ALTER TABLE ambari.groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (pri
 ALTER TABLE ambari.clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES ambari.adminresource(resource_id);
 ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES ambari.widget_layout(id);
 ALTER TABLE ambari.widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES ambari.widget(id);
+ALTER TABLE ambari.topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES ambari.topology_request(id);
+ALTER TABLE ambari.topology_host_info ADD CONSTRAINT FK_hostinfo_group_name FOREIGN KEY (group_name) REFERENCES ambari.topology_hostgroup(name);
+ALTER TABLE ambari.topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES ambari.topology_request(id);
+ALTER TABLE ambari.topology_host_request ADD CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES ambari.topology_logical_request(id);
+ALTER TABLE ambari.topology_host_request ADD CONSTRAINT FK_hostreq_group_name FOREIGN KEY (group_name) REFERENCES ambari.topology_hostgroup(name);
+ALTER TABLE ambari.topology_host_task ADD CONSTRAINT FK_hosttask_req_id FOREIGN KEY (host_request_id) REFERENCES ambari.topology_host_request (id);
+ALTER TABLE ambari.topology_host_task ADD CONSTRAINT FK_hosttask_lreq_id FOREIGN KEY (logical_request_id) REFERENCES ambari.topology_logical_request (id);
+ALTER TABLE ambari.topology_logical_task ADD CONSTRAINT FK_ltask_hosttask_id FOREIGN KEY (host_task_id) REFERENCES ambari.topology_host_task (id);
+ALTER TABLE ambari.topology_logical_task ADD CONSTRAINT FK_ltask_hrc_id FOREIGN KEY (physical_task_id) REFERENCES ambari.host_role_command (task_id);
 
 -- Kerberos
 CREATE TABLE ambari.kerberos_principal (
@@ -981,7 +1058,19 @@ INSERT INTO ambari.ambari_sequences (sequence_name, sequence_value)
   union all
   select 'upgrade_item_id_seq', 0
   union all
-  select 'stack_id_seq', 0;
+  select 'stack_id_seq', 0
+  union all
+  select 'topology_host_info_id_seq', 0
+  union all
+  select 'topology_host_request_id_seq', 0
+  union all
+  select 'topology_host_task_id_seq', 0
+  union all
+  select 'topology_logical_request_id_seq', 0
+  union all
+  select 'topology_logical_task_id_seq', 0
+  union all
+  select 'topology_request_id_seq', 0;
 
 INSERT INTO ambari.adminresourcetype (resource_type_id, resource_type_name)
   SELECT 1, 'AMBARI'

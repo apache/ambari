@@ -571,6 +571,67 @@ CREATE TABLE artifact (
   artifact_data CLOB NOT NULL,
   PRIMARY KEY(artifact_name, foreign_keys));
 
+CREATE TABLE topology_request (
+  id NUMBER(19) NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_name VARCHAR(100) NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties CLOB,
+  cluster_attributes CLOB,
+  description VARCHAR(1024),
+  PRIMARY KEY(id)
+);
+
+CREATE TABLE topology_hostgroup (
+  name VARCHAR(255) NOT NULL,
+  group_properties CLOB,
+  group_attributes CLOB,
+  request_id NUMBER(19) NOT NULL,
+  PRIMARY KEY(name)
+);
+
+CREATE TABLE topology_host_info (
+  id NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  fqdn VARCHAR(255),
+  host_count INTEGER,
+  predicate VARCHAR(2048),
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE topology_logical_request (
+  id NUMBER(19) NOT NULL,
+  request_id NUMBER(19) NOT NULL,
+  description VARCHAR(1024),
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE topology_host_request (
+  id NUMBER(19) NOT NULL,
+  logical_request_id NUMBER(19) NOT NULL,
+  group_name VARCHAR(255) NOT NULL,
+  stage_id NUMBER(19) NOT NULL,
+  host_name VARCHAR(255),
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE topology_host_task (
+  id NUMBER(19) NOT NULL,
+  host_request_id NUMBER(19) NOT NULL,
+  logical_request_id NUMBER(19) NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+
+CREATE TABLE topology_logical_task (
+  id NUMBER(19) NOT NULL,
+  host_task_id NUMBER(19) NOT NULL,
+  physical_task_id NUMBER(19) NOT NULL,
+  component VARCHAR(255) NOT NULL,
+  PRIMARY KEY (id)
+);
+
 --------altering tables by creating unique constraints----------
 ALTER TABLE users ADD CONSTRAINT UNQ_users_0 UNIQUE (user_name, ldap_user);
 ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group);
@@ -649,6 +710,15 @@ ALTER TABLE groups ADD CONSTRAINT FK_groups_principal_id FOREIGN KEY (principal_
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id);
+ALTER TABLE topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
+ALTER TABLE topology_host_info ADD CONSTRAINT FK_hostinfo_group_name FOREIGN KEY (group_name) REFERENCES topology_hostgroup(name);
+ALTER TABLE topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
+ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id);
+ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_group_name FOREIGN KEY (group_name) REFERENCES topology_hostgroup(name);
+ALTER TABLE topology_host_task ADD CONSTRAINT FK_hosttask_req_id FOREIGN KEY (host_request_id) REFERENCES topology_host_request (id);
+ALTER TABLE topology_host_task ADD CONSTRAINT FK_hosttask_lreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request (id);
+ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hosttask_id FOREIGN KEY (host_task_id) REFERENCES topology_host_task (id);
+ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hrc_id FOREIGN KEY (physical_task_id) REFERENCES host_role_command (task_id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (
@@ -851,6 +921,12 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('upgrade_ite
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('stack_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_info_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_request_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_task_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);
 
 INSERT INTO metainfo("metainfo_key", "metainfo_value") values ('version', '${ambariVersion}');
 

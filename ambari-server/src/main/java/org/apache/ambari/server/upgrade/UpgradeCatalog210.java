@@ -76,10 +76,16 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String STACK_TABLE = "stack";
   private static final String REPO_VERSION_TABLE = "repo_version";
   private static final String ALERT_HISTORY_TABLE = "alert_history";
-
   private static final String HOST_ID_COL = "host_id";
   private static final String HOST_NAME_COL = "host_name";
   private static final String PUBLIC_HOST_NAME_COL = "public_host_name";
+  private static final String TOPOLOGY_REQUEST_TABLE = "topology_request";
+  private static final String TOPOLOGY_HOST_GROUP_TABLE = "topology_hostgroup";
+  private static final String TOPOLOGY_HOST_INFO_TABLE = "topology_host_info";
+  private static final String TOPOLOGY_LOGICAL_REQUEST_TABLE = "topology_logical_request";
+  private static final String TOPOLOGY_HOST_REQUEST_TABLE = "topology_host_request";
+  private static final String TOPOLOGY_HOST_TASK_TABLE = "topology_host_task";
+  private static final String TOPOLOGY_LOGICAL_TASK_TABLE = "topology_logical_task";
 
   // constants for stack table changes
   private static final String STACK_ID_COLUMN_NAME = "stack_id";
@@ -144,6 +150,86 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     executeHostsDDLUpdates();
     executeWidgetDDLUpdates();
     executeStackDDLUpdates();
+    executeTopologyDDLUpdates();
+  }
+
+  private void executeTopologyDDLUpdates() throws AmbariException, SQLException {
+    List<DBColumnInfo> columns = new ArrayList<DBColumnInfo>();
+
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("action", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("cluster_name", String.class, 100, null, false));
+    columns.add(new DBColumnInfo("bp_name", String.class, 100, null, false));
+    columns.add(new DBColumnInfo("cluster_properties", byte[].class, null, null, false));
+    columns.add(new DBColumnInfo("cluster_attributes", byte[].class, null, null, false));
+    columns.add(new DBColumnInfo("description", String.class, 1024, null, false));
+
+    dbAccessor.createTable(TOPOLOGY_REQUEST_TABLE, columns, "id");
+
+    columns.clear();
+    columns.add(new DBColumnInfo("name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("group_properties", byte[].class, null, null, false));
+    columns.add(new DBColumnInfo("group_attributes", byte[].class, null, null, false));
+    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
+
+    dbAccessor.createTable(TOPOLOGY_HOST_GROUP_TABLE, columns, "name");
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_GROUP_TABLE, "FK_hostgroup_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", true, false);
+
+    columns.clear();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("fqdn", String.class, 255, null, true));
+    columns.add(new DBColumnInfo("host_count", Integer.class, null, null, true));
+    columns.add(new DBColumnInfo("predicate", String.class, 2048, null, true));
+
+    dbAccessor.createTable(TOPOLOGY_HOST_INFO_TABLE, columns, "id");
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_INFO_TABLE, "FK_hostinfo_group_name", "group_name", TOPOLOGY_HOST_GROUP_TABLE, "name", true, false);
+
+    columns.clear();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("description", String.class, 1024, null, false));
+
+    dbAccessor.createTable(TOPOLOGY_LOGICAL_REQUEST_TABLE, columns, "id");
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_GROUP_TABLE, "FK_logicalreq_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", true, false);
+
+    columns.clear();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("logical_request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("stage_id", Integer.class, null, null, false));
+    columns.add(new DBColumnInfo("host_name", String.class, 255, null, true));
+
+    dbAccessor.createTable(TOPOLOGY_HOST_REQUEST_TABLE, columns, "id");
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_logicalreq_id", "logical_request_id", TOPOLOGY_LOGICAL_REQUEST_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_group_name", "group_name", TOPOLOGY_HOST_GROUP_TABLE, "name", true, false);
+
+    columns.clear();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("host_request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("logical_request_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("type", String.class, 255, null, false));
+    dbAccessor.createTable(TOPOLOGY_HOST_TASK_TABLE, columns, "id");
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_TASK_TABLE, "FK_hosttask_req_id", "host_request_id", TOPOLOGY_HOST_REQUEST_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_TASK_TABLE, "FK_hosttask_lreq_id", "logical_request_id", TOPOLOGY_LOGICAL_REQUEST_TABLE, "id", true, false);
+
+    columns.clear();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("host_task_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("physical_task_id", Long.class, null, null, false));
+    columns.add(new DBColumnInfo("component", String.class, 255, null, false));
+    dbAccessor.createTable(TOPOLOGY_LOGICAL_TASK_TABLE, columns, "id");
+    dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hosttask_id", "host_task_id", TOPOLOGY_HOST_TASK_TABLE, "id", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hrc_id", "physical_task_id", "host_role_command", "task_id", false, false);
+
+    // Sequence updates
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_info_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_request_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_task_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);", false);
   }
 
   /**
@@ -413,21 +499,21 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("widget_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("widget_type", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("metrics", String.class,  32672,   null, true));
-    columns.add(new DBColumnInfo("time_created", Long.class,  255,   null, false));
+    columns.add(new DBColumnInfo("time_created", Long.class,  null,   null, false));
     columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("description", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("display_name", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("scope", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("widget_values", String.class,  4000,   null, true));
     columns.add(new DBColumnInfo("properties", String.class,  4000,   null, true));
-    columns.add(new DBColumnInfo("cluster_id", Long.class,  255,   null, false));
+    columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
     dbAccessor.createTable(WIDGET_TABLE, columns, "id");
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("layout_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("section_name", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("cluster_id", Long.class,  255,   null, false));
+    columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
     columns.add(new DBColumnInfo("scope", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("user_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("display_name", String.class,  255,   null, true));
@@ -444,6 +530,10 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     //Alter users to store active widget layouts
     dbAccessor.addColumn("users", new DBColumnInfo("active_widget_layouts", String.class, 1024, null, true));
+
+    // Sequence updates
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0);", false);
   }
 
   /**

@@ -163,6 +163,9 @@ public class HostRoleCommandEntity {
   @JoinColumn(name = "host_id", referencedColumnName = "host_id", nullable = false)
   private HostEntity hostEntity;
 
+  @OneToOne(mappedBy = "hostRoleCommandEntity", cascade = CascadeType.REMOVE)
+  private TopologyLogicalTaskEntity topologyLogicalTaskEntity;
+
   public Long getTaskId() {
     return taskId;
   }
@@ -445,5 +448,13 @@ public class HostRoleCommandEntity {
 
   public void setHostEntity(HostEntity hostEntity) {
     this.hostEntity = hostEntity;
+  }
+
+  public TopologyLogicalTaskEntity getTopologyLogicalTaskEntity() {
+    return topologyLogicalTaskEntity;
+  }
+
+  public void setTopologyLogicalTaskEntity(TopologyLogicalTaskEntity topologyLogicalTaskEntity) {
+    this.topologyLogicalTaskEntity = topologyLogicalTaskEntity;
   }
 }
