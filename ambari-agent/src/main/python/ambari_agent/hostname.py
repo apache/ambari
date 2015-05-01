@@ -45,11 +45,12 @@ def hostname(config):
       if (0 == osStat.returncode and 0 != len(out.strip())):
         cached_hostname = out.strip()
       else:
-        cached_hostname = socket.getfqdn().lower()
+        cached_hostname = socket.getfqdn()
     except:
-      cached_hostname = socket.getfqdn().lower()
+      cached_hostname = socket.getfqdn()
   except:
-    cached_hostname = socket.getfqdn().lower()
+    cached_hostname = socket.getfqdn()
+  cached_hostname = cached_hostname.lower()
   return cached_hostname
 
 
@@ -66,7 +67,7 @@ def public_hostname(config):
       output = subprocess.Popen(scriptname, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
       out, err = output.communicate()
       if (0 == output.returncode and 0 != len(out.strip())):
-        cached_public_hostname = out.strip()
+        cached_public_hostname = out.strip().lower()
         logger.info("Read public hostname '" + cached_public_hostname + "' using agent:public_hostname_script")
         return cached_public_hostname
   except:
@@ -76,14 +77,7 @@ def public_hostname(config):
                 + " :out " + out + " :err " + err)
     logger.info("Defaulting to fqdn.")
 
-  # future - do an agent entry for this too
-  try:
-    handle = urllib2.urlopen('http://169.254.169.254/latest/meta-data/public-hostname', '', 2)
-    str = handle.read()
-    handle.close()
-    cached_public_hostname = str
-  except Exception, e:
-    cached_public_hostname = socket.getfqdn().lower()
+  cached_public_hostname = socket.getfqdn().lower()
   return cached_public_hostname
 
 def server_hostname(config):

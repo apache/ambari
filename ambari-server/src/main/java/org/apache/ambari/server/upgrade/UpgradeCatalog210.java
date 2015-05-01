@@ -74,8 +74,11 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   private static final String VIEW_PARAMETER_TABLE = "viewparameter";
   private static final String STACK_TABLE = "stack";
   private static final String REPO_VERSION_TABLE = "repo_version";
+  private static final String ALERT_HISTORY_TABLE = "alert_history";
 
   private static final String HOST_ID_COL = "host_id";
+  private static final String HOST_NAME_COL = "host_name";
+  private static final String PUBLIC_HOST_NAME_COL = "public_host_name";
 
   // constants for stack table changes
   private static final String STACK_ID_COLUMN_NAME = "stack_id";
@@ -371,16 +374,16 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
         " ADD CONSTRAINT serviceconfighosts_pkey PRIMARY KEY (service_config_id, host_id)");
 
     // Finish by deleting the unnecessary host_name columns.
-    dbAccessor.dropColumn(CONFIG_GROUP_HOST_MAPPING_TABLE, "host_name");
-    dbAccessor.dropColumn(CLUSTER_HOST_MAPPING_TABLE, "host_name");
-    dbAccessor.dropColumn(HOST_CONFIG_MAPPING_TABLE, "host_name");
-    dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, "host_name");
-    dbAccessor.dropColumn(HOST_COMPONENT_DESIRED_STATE_TABLE, "host_name");
-    dbAccessor.dropColumn(HOST_ROLE_COMMAND_TABLE, "host_name");
-    dbAccessor.dropColumn(HOST_STATE_TABLE, "host_name");
-    dbAccessor.dropColumn(HOST_VERSION_TABLE, "host_name");
-    dbAccessor.dropColumn(KERBEROS_PRINCIPAL_HOST_TABLE, "host_name");
-    dbAccessor.dropColumn(REQUEST_OPERATION_LEVEL_TABLE, "host_name");
+    dbAccessor.dropColumn(CONFIG_GROUP_HOST_MAPPING_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(CLUSTER_HOST_MAPPING_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(HOST_CONFIG_MAPPING_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(HOST_COMPONENT_STATE_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(HOST_COMPONENT_DESIRED_STATE_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(HOST_ROLE_COMMAND_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(HOST_STATE_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(HOST_VERSION_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(KERBEROS_PRINCIPAL_HOST_TABLE, HOST_NAME_COL);
+    dbAccessor.dropColumn(REQUEST_OPERATION_LEVEL_TABLE, HOST_NAME_COL);
 
     // Notice that the column name doesn't have an underscore here.
     dbAccessor.dropColumn(SERVICE_CONFIG_HOSTS_TABLE, "hostname");
@@ -388,6 +391,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     // view columns for cluster association
     dbAccessor.addColumn(VIEW_INSTANCE_TABLE, new DBColumnInfo("cluster_handle", String.class, 255, null, true));
     dbAccessor.addColumn(VIEW_PARAMETER_TABLE, new DBColumnInfo("cluster_config", String.class, 255, null, true));
+
+    // Update host names to be case insensitive
+    String UPDATE_TEMPLATE = "UPDATE {0} SET {1} = lower({1})";
+    // First remove duplicate hosts
+    removeDuplicateHosts();
+    // Lowercase host name in hosts
+    String updateHostName = MessageFormat.format(UPDATE_TEMPLATE, HOSTS_TABLE, HOST_NAME_COL);
+    dbAccessor.executeQuery(updateHostName);
+    // Lowercase public host name in hosts
+    String updatePublicHostName = MessageFormat.format(UPDATE_TEMPLATE, HOSTS_TABLE, PUBLIC_HOST_NAME_COL);
+    dbAccessor.executeQuery(updatePublicHostName);
+    // Lowercase host name in alert_history
+    String updateAlertHostName = MessageFormat.format(UPDATE_TEMPLATE, ALERT_HISTORY_TABLE, HOST_NAME_COL);
+    dbAccessor.executeQuery(updateAlertHostName);
   }
 
   private void executeWidgetDDLUpdates() throws AmbariException, SQLException {
@@ -633,7 +650,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
           if (StringUtils.isNotBlank(hostName)) {
             dbAccessor.executeQuery("UPDATE " + HOSTS_TABLE + " SET host_id = " + hostId +
-                " WHERE host_name = '" + hostName + "'");
+                " WHERE " + HOST_NAME_COL + " = '" + hostName + "'");
           }
         }
       } catch (Exception e) {
@@ -647,7 +664,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     String randomHostName = null;
     ResultSet resultSet = null;
     try {
-      resultSet = dbAccessor.executeSelect("SELECT host_name FROM hosts ORDER BY host_name ASC");
+      resultSet = dbAccessor.executeSelect("SELECT " + HOST_NAME_COL + " FROM " + HOSTS_TABLE + " ORDER BY " + HOST_NAME_COL + " ASC");
       if (resultSet != null && resultSet.next()) {
         randomHostName = resultSet.getString(1);
       }
@@ -659,6 +676,51 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
       }
     }
     return randomHostName;
+  }
+
+  /**
+   * Remove duplicate hosts before making host name case-insensitive
+   * @throws SQLException
+   */
+  private void removeDuplicateHosts() throws SQLException {
+    // Select hosts not in the cluster
+    String hostsNotInClusterQuery = MessageFormat.format(
+        "SELECT * FROM {0} WHERE {1} NOT IN (SELECT {1} FROM {2})",
+        HOSTS_TABLE, HOST_ID_COL, CLUSTER_HOST_MAPPING_TABLE);
+    ResultSet hostsNotInCluster = null;
+    try {
+      hostsNotInCluster = dbAccessor.executeSelect(hostsNotInClusterQuery);
+      if(hostsNotInCluster != null) {
+        while (hostsNotInCluster.next()) {
+          long hostToDeleteId = hostsNotInCluster.getLong(HOST_ID_COL);
+          String hostToDeleteName = hostsNotInCluster.getString(HOST_NAME_COL);
+          String duplicateHostsQuery = "SELECT count(*) FROM hosts WHERE lower(host_name) = '" + hostToDeleteName + "' AND host_id != " + hostToDeleteId;
+          long count = 0;
+          ResultSet duplicateHosts = null;
+          try {
+            duplicateHosts = dbAccessor.executeSelect(duplicateHostsQuery);
+            if (duplicateHosts != null && duplicateHosts.next()) {
+              count = duplicateHosts.getLong(1);
+            }
+          } finally {
+            if (null != duplicateHosts) {
+              duplicateHosts.close();
+            }
+          }
+          if (count > 0) {
+            // Delete hosts and host_state table entries for this duplicate host entry
+            dbAccessor.executeQuery(
+                MessageFormat.format("DELETE from {0} WHERE {1} = {2}", HOST_STATE_TABLE, HOST_ID_COL, hostToDeleteId));
+            dbAccessor.executeQuery(
+                MessageFormat.format("DELETE from {0} WHERE {1} = {2}", HOSTS_TABLE, HOST_ID_COL, hostToDeleteId));
+          }
+        }
+      }
+    } finally {
+      if (null != hostsNotInCluster) {
+        hostsNotInCluster.close();
+      }
+    }
   }
 
   /**
