@@ -64,7 +64,7 @@ class HostInfo():
       'cpu_nice': number2percents(cpu_times.nice) if hasattr(cpu_times, 'nice') else 0,
       'cpu_wio': number2percents(cpu_times.iowait) if hasattr(cpu_times, 'iowait') else 0,
       'cpu_intr': number2percents(cpu_times.irq) if hasattr(cpu_times, 'irq') else 0,
-      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else 0
+      'cpu_sintr': number2percents(cpu_times.softirq) if hasattr(cpu_times, 'softirq') else 0,
       'cpu_steal': number2percents(cpu_times.steal) if hasattr(cpu_times, 'steal') else 0
     }
     if platform.system() != "Windows":
