@@ -417,130 +417,22 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test(expected = IllegalArgumentException.class)
   public void testGetActiveIdentities_MissingCluster() throws Exception {
-    testGetActiveIdentities(null, null, null, null, true);
+    testGetActiveIdentities(null, null, null, null, true, SecurityType.KERBEROS);
   }
 
   @Test
-  public void testGetActiveIdentities_All() throws Exception {
-    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, null, true);
+  public void testGetActiveIdentities_SecurityTypeKerberos_All() throws Exception {
+    testGetActiveIdentities_All(SecurityType.KERBEROS);
+  }
 
-    Assert.assertNotNull(identities);
-    Assert.assertEquals(2, identities.size());
-
-    Collection<KerberosIdentityDescriptor> hostIdentities;
-
-    hostIdentities = identities.get("host1");
-    Assert.assertNotNull(hostIdentities);
-    Assert.assertEquals(3, hostIdentities.size());
-
-    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
-      put("identity1", new HashMap<String, Object>() {
-        {
-          put("principal_name", "component1/host1@EXAMPLE.COM");
-          put("principal_type", KerberosPrincipalType.SERVICE);
-          put("principal_configuration", "service1-site/component1.kerberos.principal");
-          put("principal_local_username", "service1");
-          put("keytab_file", "${keytab_dir}/service1.keytab");
-          put("keytab_owner_name", "service1");
-          put("keytab_owner_access", "rw");
-          put("keytab_group_name", "hadoop");
-          put("keytab_group_access", "");
-          put("keytab_configuration", "service1-site/component1.keytab.file");
-          put("keytab_cachable", false);
-        }
-      });
-
-      put("identity2", new HashMap<String, Object>() {
-        {
-          put("principal_name", "component2/host1@EXAMPLE.COM");
-          put("principal_type", KerberosPrincipalType.SERVICE);
-          put("principal_configuration", "service2-site/component2.kerberos.principal");
-          put("principal_local_username", "service2");
-          put("keytab_file", "${keytab_dir}/service2.keytab");
-          put("keytab_owner_name", "service2");
-          put("keytab_owner_access", "rw");
-          put("keytab_group_name", "hadoop");
-          put("keytab_group_access", "");
-          put("keytab_configuration", "service2-site/component2.keytab.file");
-          put("keytab_cachable", false);
-        }
-      });
-
-      put("identity3", new HashMap<String, Object>() {
-        {
-          put("principal_name", "service1/host1@EXAMPLE.COM");
-          put("principal_type", KerberosPrincipalType.SERVICE);
-          put("principal_configuration", "service1-site/service1.kerberos.principal");
-          put("principal_local_username", "service1");
-          put("keytab_file", "${keytab_dir}/service1.service.keytab");
-          put("keytab_owner_name", "service1");
-          put("keytab_owner_access", "rw");
-          put("keytab_group_name", "hadoop");
-          put("keytab_group_access", "");
-          put("keytab_configuration", "service1-site/service1.keytab.file");
-          put("keytab_cachable", false);
-        }
-      });
-    }});
-    
-    hostIdentities = identities.get("host2");
-    Assert.assertNotNull(hostIdentities);
-    Assert.assertEquals(3, hostIdentities.size());
-
-    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
-      put("identity1", new HashMap<String, Object>() {
-        {
-          put("principal_name", "component1/host2@EXAMPLE.COM");
-          put("principal_type", KerberosPrincipalType.SERVICE);
-          put("principal_configuration", "service1-site/component1.kerberos.principal");
-          put("principal_local_username", "service1");
-          put("keytab_file", "${keytab_dir}/service1.keytab");
-          put("keytab_owner_name", "service1");
-          put("keytab_owner_access", "rw");
-          put("keytab_group_name", "hadoop");
-          put("keytab_group_access", "");
-          put("keytab_configuration", "service1-site/component1.keytab.file");
-          put("keytab_cachable", false);
-        }
-      });
-
-      put("identity2", new HashMap<String, Object>() {
-        {
-          put("principal_name", "component2/host2@EXAMPLE.COM");
-          put("principal_type", KerberosPrincipalType.SERVICE);
-          put("principal_configuration", "service2-site/component2.kerberos.principal");
-          put("principal_local_username", "service2");
-          put("keytab_file", "${keytab_dir}/service2.keytab");
-          put("keytab_owner_name", "service2");
-          put("keytab_owner_access", "rw");
-          put("keytab_group_name", "hadoop");
-          put("keytab_group_access", "");
-          put("keytab_configuration", "service2-site/component2.keytab.file");
-          put("keytab_cachable", false);
-        }
-      });
-
-      put("identity3", new HashMap<String, Object>() {
-        {
-          put("principal_name", "service1/host2@EXAMPLE.COM");
-          put("principal_type", KerberosPrincipalType.SERVICE);
-          put("principal_configuration", "service1-site/service1.kerberos.principal");
-          put("principal_local_username", "service1");
-          put("keytab_file", "${keytab_dir}/service1.service.keytab");
-          put("keytab_owner_name", "service1");
-          put("keytab_owner_access", "rw");
-          put("keytab_group_name", "hadoop");
-          put("keytab_group_access", "");
-          put("keytab_configuration", "service1-site/service1.keytab.file");
-          put("keytab_cachable", false);
-        }
-      });
-    }});
+  @Test
+  public void testGetActiveIdentities_SecurityTypeNone_All() throws Exception {
+    testGetActiveIdentities_All(SecurityType.NONE);
   }
 
   @Test
   public void testGetActiveIdentities_SingleHost() throws Exception {
-    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", "host1", null, null, true);
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", "host1", null, null, true, SecurityType.KERBEROS);
 
     Assert.assertNotNull(identities);
     Assert.assertEquals(1, identities.size());
@@ -604,7 +496,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testGetActiveIdentities_SingleService() throws Exception {
-    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, "SERVICE1", null, true);
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, "SERVICE1", null, true, SecurityType.KERBEROS);
 
     Assert.assertNotNull(identities);
     Assert.assertEquals(2, identities.size());
@@ -689,7 +581,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testGetActiveIdentities_SingleServiceSingleHost() throws Exception {
-    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", "host2", "SERVICE1", null, true);
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", "host2", "SERVICE1", null, true, SecurityType.KERBEROS);
 
     Assert.assertNotNull(identities);
     Assert.assertEquals(1, identities.size());
@@ -737,7 +629,7 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testGetActiveIdentities_SingleComponent() throws Exception {
-    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, "COMPONENT2", true);
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, "COMPONENT2", true, SecurityType.KERBEROS);
 
     Assert.assertNotNull(identities);
     Assert.assertEquals(2, identities.size());
@@ -783,6 +675,123 @@ public class KerberosHelperTest extends EasyMockSupport {
           put("keytab_group_name", "hadoop");
           put("keytab_group_access", "");
           put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+  }
+
+  private void testGetActiveIdentities_All(SecurityType clusterSecurityType) throws Exception {
+    Map<String, Collection<KerberosIdentityDescriptor>> identities = testGetActiveIdentities("c1", null, null, null, true, clusterSecurityType);
+
+    Assert.assertNotNull(identities);
+    Assert.assertEquals(2, identities.size());
+
+    Collection<KerberosIdentityDescriptor> hostIdentities;
+
+    hostIdentities = identities.get("host1");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(3, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host1@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+    }});
+
+    hostIdentities = identities.get("host2");
+    Assert.assertNotNull(hostIdentities);
+    Assert.assertEquals(3, hostIdentities.size());
+
+    validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
+      put("identity1", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/component1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/component1.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity2", new HashMap<String, Object>() {
+        {
+          put("principal_name", "component2/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service2-site/component2.kerberos.principal");
+          put("principal_local_username", "service2");
+          put("keytab_file", "${keytab_dir}/service2.keytab");
+          put("keytab_owner_name", "service2");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service2-site/component2.keytab.file");
+          put("keytab_cachable", false);
+        }
+      });
+
+      put("identity3", new HashMap<String, Object>() {
+        {
+          put("principal_name", "service1/host2@EXAMPLE.COM");
+          put("principal_type", KerberosPrincipalType.SERVICE);
+          put("principal_configuration", "service1-site/service1.kerberos.principal");
+          put("principal_local_username", "service1");
+          put("keytab_file", "${keytab_dir}/service1.service.keytab");
+          put("keytab_owner_name", "service1");
+          put("keytab_owner_access", "rw");
+          put("keytab_group_name", "hadoop");
+          put("keytab_group_access", "");
+          put("keytab_configuration", "service1-site/service1.keytab.file");
           put("keytab_cachable", false);
         }
       });
@@ -2877,7 +2886,13 @@ public class KerberosHelperTest extends EasyMockSupport {
     verifyAll();
   }
 
-  private Map<String, Collection<KerberosIdentityDescriptor>> testGetActiveIdentities(String clusterName, String hostName, String serviceName, String compnentName, boolean replaceHostnames) throws Exception {
+  private Map<String, Collection<KerberosIdentityDescriptor>> testGetActiveIdentities(String clusterName,
+                                                                                      String hostName,
+                                                                                      String serviceName,
+                                                                                      String componentName,
+                                                                                      boolean replaceHostNames,
+                                                                                      SecurityType clusterSecurityType)
+      throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
 
@@ -2936,7 +2951,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .anyTimes();
 
     final Cluster cluster = createMock(Cluster.class);
-    expect(cluster.getSecurityType()).andReturn(SecurityType.KERBEROS).anyTimes();
+    expect(cluster.getSecurityType()).andReturn(clusterSecurityType).anyTimes();
     expect(cluster.getClusterName()).andReturn(clusterName).anyTimes();
     expect(cluster.getServiceComponentHosts("host1"))
         .andReturn(new ArrayList<ServiceComponentHost>() {
@@ -3097,7 +3112,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     metaInfo.init();
 
     Map<String, Collection<KerberosIdentityDescriptor>> identities;
-    identities = kerberosHelper.getActiveIdentities(clusterName, hostName, serviceName, compnentName, replaceHostnames);
+    identities = kerberosHelper.getActiveIdentities(clusterName, hostName, serviceName, componentName, replaceHostNames);
 
     verifyAll();
 

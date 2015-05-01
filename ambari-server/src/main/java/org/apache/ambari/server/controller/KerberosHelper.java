@@ -2039,83 +2039,81 @@ public class KerberosHelper {
 
     Map<String, Collection<KerberosIdentityDescriptor>> activeIdentities = new HashMap<String, Collection<KerberosIdentityDescriptor>>();
 
-    if (isClusterKerberosEnabled(cluster)) {
-      Collection<String> hosts;
+    Collection<String> hosts;
 
-      if (hostName == null) {
-        Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
-        if (hostMap == null) {
-          hosts = null;
-        } else {
-          hosts = hostMap.keySet();
-        }
+    if (hostName == null) {
+      Map<String, Host> hostMap = clusters.getHostsForCluster(clusterName);
+      if (hostMap == null) {
+        hosts = null;
       } else {
-        hosts = Collections.singleton(hostName);
+        hosts = hostMap.keySet();
       }
+    } else {
+      hosts = Collections.singleton(hostName);
+    }
 
-      if ((hosts != null) && !hosts.isEmpty()) {
-        KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
+    if ((hosts != null) && !hosts.isEmpty()) {
+      KerberosDescriptor kerberosDescriptor = getKerberosDescriptor(cluster);
 
-        if (kerberosDescriptor != null) {
-          Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
+      if (kerberosDescriptor != null) {
+        Map<String, String> kerberosDescriptorProperties = kerberosDescriptor.getProperties();
 
-          for (String hostname : hosts) {
-            Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<String, KerberosIdentityDescriptor>();
-            List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname, serviceName, componentName, kerberosDescriptor);
+        for (String hostname : hosts) {
+          Map<String, KerberosIdentityDescriptor> hostActiveIdentities = new HashMap<String, KerberosIdentityDescriptor>();
+          List<KerberosIdentityDescriptor> identities = getActiveIdentities(cluster, hostname, serviceName, componentName, kerberosDescriptor);
 
-            if (!identities.isEmpty()) {
-              // Calculate the current host-specific configurations. These will be used to replace
-              // variables within the Kerberos descriptor data
-              Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname, kerberosDescriptorProperties);
+          if (!identities.isEmpty()) {
+            // Calculate the current host-specific configurations. These will be used to replace
+            // variables within the Kerberos descriptor data
+            Map<String, Map<String, String>> configurations = calculateConfigurations(cluster, hostname, kerberosDescriptorProperties);
 
-              for (KerberosIdentityDescriptor identity : identities) {
-                KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
-                String principal = null;
+            for (KerberosIdentityDescriptor identity : identities) {
+              KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
+              String principal = null;
 
-                if (principalDescriptor != null) {
-                  principal = KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations);
+              if (principalDescriptor != null) {
+                principal = KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations);
+              }
+
+              if (principal != null) {
+                if (replaceHostNames) {
+                  principal = principal.replace("_HOST", hostname);
                 }
 
-                if (principal != null) {
-                  if (replaceHostNames) {
-                    principal = principal.replace("_HOST", hostname);
+                if (!hostActiveIdentities.containsKey(principal)) {
+                  KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
+                      new KerberosPrincipalDescriptor(principal,
+                          principalDescriptor.getType(),
+                          KerberosDescriptor.replaceVariables(principalDescriptor.getConfiguration(), configurations),
+                          KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
+
+                  KerberosKeytabDescriptor resolvedKeytabDescriptor;
+
+                  KerberosKeytabDescriptor keytabDescriptor = identity.getKeytabDescriptor();
+                  if (keytabDescriptor == null) {
+                    resolvedKeytabDescriptor = null;
+                  } else {
+                    resolvedKeytabDescriptor =
+                        new KerberosKeytabDescriptor(
+                            KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations),
+                            KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
+                            KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
+                            KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations),
+                            KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupAccess(), configurations),
+                            KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations),
+                            keytabDescriptor.isCachable());
                   }
 
-                  if (!hostActiveIdentities.containsKey(principal)) {
-                    KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
-                        new KerberosPrincipalDescriptor(principal,
-                            principalDescriptor.getType(),
-                            KerberosDescriptor.replaceVariables(principalDescriptor.getConfiguration(), configurations),
-                            KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
-
-                    KerberosKeytabDescriptor resolvedKeytabDescriptor;
-
-                    KerberosKeytabDescriptor keytabDescriptor = identity.getKeytabDescriptor();
-                    if (keytabDescriptor == null) {
-                      resolvedKeytabDescriptor = null;
-                    } else {
-                      resolvedKeytabDescriptor =
-                          new KerberosKeytabDescriptor(
-                              KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations),
-                              KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
-                              KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
-                              KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations),
-                              KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupAccess(), configurations),
-                              KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations),
-                              keytabDescriptor.isCachable());
-                    }
-
-                    hostActiveIdentities.put(principal, new KerberosIdentityDescriptor(
-                        identity.getName(),
-                        resolvedPrincipalDescriptor,
-                        resolvedKeytabDescriptor));
-                  }
+                  hostActiveIdentities.put(principal, new KerberosIdentityDescriptor(
+                      identity.getName(),
+                      resolvedPrincipalDescriptor,
+                      resolvedKeytabDescriptor));
                 }
               }
             }
-
-            activeIdentities.put(hostname, hostActiveIdentities.values());
           }
+
+          activeIdentities.put(hostname, hostActiveIdentities.values());
         }
       }
     }
