@@ -20,11 +20,13 @@
   {{#if view.isLoaded}}
     <div class="widget-browser-content">
       <!--Create new widget button-->
-      <div class="btn-group pull-right">
-        <button type="button" class="btn btn-primary" {{action "createWidget" target="view"}} >
-          <i class="icon-plus"></i> &nbsp; {{t dashboard.widgets.create}}
-        </button>
-      </div>
+      {{#isAccessible ADMIN}}
+        <div class="btn-group pull-right">
+          <button type="button" class="btn btn-primary" {{action "createWidget" target="view"}} >
+            <i class="icon-plus"></i> &nbsp; {{t dashboard.widgets.create}}
+          </button>
+        </div>
+      {{/isAccessible}}
 
       <!--Filters bar: service name filter, status filter here-->
       <ul id="services-filter-bar" class="nav nav-tabs">
@@ -62,27 +64,25 @@
                         <i class="icon-ok"></i> &nbsp; {{t dashboard.widgets.browser.action.added}}
                     </button>
                   {{else}}
-                    <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
-                      {{t common.more}}<span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu">
-                      <li>
-                        <a href="#" {{action "deleteWidget" widget target="controller"}}>
-                          {{t dashboard.widgets.browser.action.delete}}
-                        </a>
-                      </li>
-                      <li>
-                        {{#if widget.isShared}}
-                          <a href="#" {{action "unshareWidget" widget target="controller"}}>
-                            {{t dashboard.widgets.browser.action.unshare}}
+                    {{#isAccessible ADMIN}}
+                      <button class="btn btn-default dropdown-toggle" data-toggle="dropdown">
+                        {{t common.more}}<span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu">
+                        <li>
+                          <a href="#" {{action "deleteWidget" widget target="controller"}}>
+                            {{t dashboard.widgets.browser.action.delete}}
                           </a>
-                        {{else}}
-                          <a href="#" {{action "shareWidget" widget target="controller"}}>
-                            {{t dashboard.widgets.browser.action.share}}
-                          </a>
-                        {{/if}}
-                      </li>
-                    </ul>
+                        </li>
+                        <li>
+                          {{#unless widget.isShared}}
+                            <a href="#" {{action "shareWidget" widget target="controller"}}>
+                              {{t dashboard.widgets.browser.action.share}}
+                            </a>
+                          {{/unless}}
+                        </li>
+                      </ul>
+                    {{/isAccessible}}
                     <button type="button" class="btn btn-default" {{action "addWidget" widget target="controller"}} >
                       {{t dashboard.widgets.browser.action.add}}
                     </button>

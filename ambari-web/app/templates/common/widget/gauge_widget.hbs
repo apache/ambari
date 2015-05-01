@@ -22,12 +22,14 @@
       <i class="icon-remove-sign icon-large"></i>
     </a>
     <div class="caption title span11">{{view.content.widgetName}}</div>
-    <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
-      <i class="icon-copy"></i>
-    </a>
-    <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
-      <i class="icon-edit"></i>
-    </a>
+    {{#isAccessible ADMIN}}
+      <a class="corner-icon pull-right" href="#" {{action cloneWidget target="view"}}>
+        <i class="icon-copy"></i>
+      </a>
+      <a class="corner-icon pull-right" href="#" {{action editWidget target="view"}}>
+        <i class="icon-edit"></i>
+      </a>
+    {{/isAccessible}}
     <div class="content"> {{view view.chartView}}</div>
     {{#if view.content.description}}
       <div class="hidden-description">
