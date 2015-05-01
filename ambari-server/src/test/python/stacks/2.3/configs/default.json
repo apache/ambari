@@ -160,6 +160,39 @@
         "log.index.interval.bytes": "4096",
         "log.retention.hours": "168"
       },
+      "application-properties": {
+        "graph_storage_backend": "berkeleyje",
+        "graph_storage_directory": "data/berkley",
+        "graph_index_search_backend": "elasticsearch",
+        "graph_index_search_directory": "data/es",
+        "graph_index_search_elasticsearch_client_only": false,
+        "graph_index_search_elasticsearch_local_mode": true,
+        "lineage_hive_table_type_name": "Table",
+        "lineage_hive_column_type_name": "Column",
+        "lineage_hive_table_column_name": "columns",
+        "lineage_hive_process_type_name": "LoadProcess",
+        "lineage_hive_process_inputs_name": "inputTables",
+        "lineage_hive_process_outputs_name": "outputTables",
+        "enableTLS": false,
+        "authentication_method": "simple",
+        "authentication_principal": "atlas",
+        "authentication_keytab": "/etc/security/keytabs/atlas.service.keytab",
+        "http_authentication_enabled": false,
+        "http_authentication_type": "simple",
+        "http_authentication_kerberos_principal": "HTTP/_HOST@EXAMPLE.COM",
+        "http_authentication_kerberos_keytab": "/etc/security/keytabs/spnego.service.keytab",
+        "http_authentication_kerberos_name_rules": "DEFAULT",
+        "content": "  # Graph Storage\nmetadata.graph.storage.backend={{graph_storage_backend}}\nmetadata.graph.storage.directory={{graph_storage_directory}}\nmetadata.graph.index.search.backend={{graph_index_search_backend}}\nmetadata.graph.index.search.directory={{graph_index_search_directory}}\nmetadata.graph.index.search.elasticsearch.client-only={{graph_index_search_elasticsearch_client_only}}\nmetadata.graph.index.search.elasticsearch.local-mode={{graph_index_search_elasticsearch_local_mode}}\nmetadata.lineage.hive.table.type.name={{lineage_hive_table_type_name}}\nmetadata.lineage.hive.column.type.name={{lineage_hive_column_type_name}}\nmetadata.lineage.hive.table.column.name={{lineage_hive_table_column_name}}\nmetadata.lineage.hive.process.type.name={{lineage_hive_process_type_name}}\nmetadata.lineage.hive.process.inputs.name={{lineage_hive_process_inputs_name}}\nmetadata.lineage.hive.process.outputs.name={{lineage_hive_process_outputs_name}}\nmetadata.enableTLS={{enableTLS}}\nmetadata.authentication.method={{authentication_method}}\nmetadata.authentication.principal={{authentication_principal}}\nmetadata.authentication.keytab={{authentication_keytab}}\nmetadata.http.authentication.enabled={{http_authentication_enabled}}\nmetadata.http.authentication.type={{http_authentication_type}}\nmetadata.http.authentication.kerberos.principal={{http_authentication_kerberos_principal}}\nmetadata.http.authentication.kerberos.keytab={{http_authentication_kerberos_keytab}}\nmetadata.http.authentication.kerberos.name.rules={{http_authentication_kerberos_name_rules}}"
+      },
+      "metadata-env": {
+        "content": "# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path\nexport JAVA_HOME={{java64_home}}\n# any additional java opts you want to set. This will apply to both client and server operations\nexport METADATA_OPTS={{metadata_opts}}\n# metadata configuration directory\nexport METADATA_CONF={{conf_dir}}\n# Where log files are stored. Defatult is logs directory under the base install location\nexport METADATA_LOG_DIR={{log_dir}}\n# additional classpath entries\nexport METADATACPPATH={{metadata_classpath}}\n# data dir\nexport METADATA_DATA_DIR={{data_dir}}\n# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.\nexport METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}",
+        "metadata_user": "atlas",
+        "metadata_port": 21000,
+        "metadata_pid_dir": "/var/run/atlas",
+        "metadata_log_dir": "/var/log/atlas",
+        "metadata_data_dir": "/var/lib/atlas/data",
+        "metadata_expanded_war_dir": "/var/lib/atlas/server/webapp"
+      },
       "ranger-hbase-plugin-properties": {
             "ranger-hbase-plugin-enabled":"yes"
       },
@@ -194,7 +227,8 @@
       "users-ldif": {},
       "kafka-env": {},
       "kafka-log4j": {},
-      "kafka-broker": {}
+      "kafka-broker": {},
+      "metadata-env": {}
     },
     "configurationTags": {
         "slider-client": {
@@ -231,6 +265,9 @@
         "tag": "version1"
       },
       "kafka-broker": {
+        "tag": "version1"
+      },
+      "metadata-env": {
         "tag": "version1"
       }
     },

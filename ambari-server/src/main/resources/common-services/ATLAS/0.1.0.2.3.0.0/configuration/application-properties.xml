@@ -1,0 +1,190 @@
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration supports_final="false">
+  <property>
+    <name>graph_storage_backend</name>
+    <value>berkeleyje</value>
+    <description></description>
+  </property>
+  <property>
+    <name>graph_storage_directory</name>
+    <value>/var/lib/atlas/data/berkeley</value>
+    <description></description>
+  </property>
+  <property>
+    <name>graph_index_search_backend</name>
+    <value>elasticsearch</value>
+    <description></description>
+  </property>
+  <property>
+    <name>graph_index_search_directory</name>
+    <value>/var/lib/atlas/data/es</value>
+    <description></description>
+  </property>
+  <property>
+    <name>graph_index_search_elasticsearch_client_only</name>
+    <value>false</value>
+    <description></description>
+  </property>
+  <property>
+    <name>graph_index_search_elasticsearch_local_mode</name>
+    <value>true</value>
+    <description></description>
+  </property>
+  <property>
+    <name>lineage_hive_table_type_name</name>
+    <value>Table</value>
+    <description></description>
+  </property>
+  <property>
+    <name>lineage_hive_column_type_name</name>
+    <value>Column</value>
+    <description></description>
+  </property>
+  <property>
+    <name>lineage_hive_table_column_name</name>
+    <value>columns</value>
+    <description></description>
+  </property>
+  <property>
+    <name>lineage_hive_process_type_name</name>
+    <value>LoadProcess</value>
+    <description></description>
+  </property>
+  <property>
+    <name>lineage_hive_process_inputs_name</name>
+    <value>inputTables</value>
+    <description></description>
+  </property>
+  <property>
+    <name>lineage_hive_process_outputs_name</name>
+    <value>outputTables</value>
+    <description></description>
+  </property>
+  <property>
+    <name>enableTLS</name>
+    <value>false</value>
+    <description></description>
+  </property>
+  <property>
+    <name>authentication_method</name>
+    <value>simple</value>
+    <description></description>
+  </property>
+  <property>
+    <name>authentication_principal</name>
+    <value>atlas</value>
+    <description></description>
+  </property>
+  <property>
+    <name>authentication_keytab</name>
+    <value>/etc/security/keytabs/atlas.service.keytab</value>
+    <description></description>
+  </property>
+  <property>
+    <name>http_authentication_enabled</name>
+    <value>false</value>
+    <description></description>
+  </property>
+  <property>
+    <name>http_authentication_type</name>
+    <value>simple</value>
+    <description></description>
+  </property>
+  <property>
+    <name>http_authentication_kerberos_principal</name>
+    <value>HTTP/_HOST@EXAMPLE.COM</value>
+    <description></description>
+  </property>
+  <property>
+    <name>http_authentication_kerberos_keytab</name>
+    <value>/etc/security/keytabs/spnego.service.keytab</value>
+    <description></description>
+  </property>
+  <property>
+    <name>http_authentication_kerberos_name_rules</name>
+    <value>RULE:[1:$1@$0](.*@EXAMPLE.COM)s/@.*//
+      DEFAULT</value>
+    <description></description>
+  </property>
+
+  <!-- application.properties -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for application.properties file</description>
+    <value>
+  #
+  # Licensed to the Apache Software Foundation (ASF) under one
+  # or more contributor license agreements.  See the NOTICE file
+  # distributed with this work for additional information
+  # regarding copyright ownership.  The ASF licenses this file
+  # to you under the Apache License, Version 2.0 (the
+  # "License"); you may not use this file except in compliance
+  # with the License.  You may obtain a copy of the License at
+  #
+  #     http://www.apache.org/licenses/LICENSE-2.0
+  #
+  # Unless required by applicable law or agreed to in writing, software
+  # distributed under the License is distributed on an "AS IS" BASIS,
+  # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  # See the License for the specific language governing permissions and
+  # limitations under the License.
+  #
+
+  #########  Graph Database Configs  #########
+  # Graph Storage
+  metadata.graph.storage.backend={{graph_storage_backend}}
+  metadata.graph.storage.directory={{graph_storage_directory}}
+
+  # Graph Search Index
+  metadata.graph.index.search.backend={{graph_index_search_backend}}
+  metadata.graph.index.search.directory={{graph_index_search_directory}}
+  metadata.graph.index.search.elasticsearch.client-only={{graph_index_search_elasticsearch_client_only}}
+  metadata.graph.index.search.elasticsearch.local-mode={{graph_index_search_elasticsearch_local_mode}}
+
+  #########  Hive Lineage Configs  #########
+  metadata.lineage.hive.table.type.name={{lineage_hive_table_type_name}}
+  metadata.lineage.hive.column.type.name={{lineage_hive_column_type_name}}
+  metadata.lineage.hive.table.column.name={{lineage_hive_table_column_name}}
+  metadata.lineage.hive.process.type.name={{lineage_hive_process_type_name}}
+  metadata.lineage.hive.process.inputs.name={{lineage_hive_process_inputs_name}}
+  metadata.lineage.hive.process.outputs.name={{lineage_hive_process_outputs_name}}
+  #########  Security Properties  #########
+
+  # SSL config
+  metadata.enableTLS={{enableTLS}}
+
+  # Service Authentication
+  metadata.authentication.method={{authentication_method}}
+  metadata.authentication.principal={{authentication_principal}}
+  metadata.authentication.keytab={{authentication_keytab}}
+
+  # SPNEGO
+  metadata.http.authentication.enabled={{http_authentication_enabled}}
+  metadata.http.authentication.type={{http_authentication_type}}
+  metadata.http.authentication.kerberos.principal={{http_authentication_kerberos_principal}}
+  metadata.http.authentication.kerberos.keytab={{http_authentication_kerberos_keytab}}
+  metadata.http.authentication.kerberos.name.rules={{http_authentication_kerberos_name_rules}}
+
+  #########  Security Properties  #########
+    </value>
+  </property>
+</configuration>

@@ -1,0 +1,59 @@
+{
+  "services": [
+    {
+      "name": "ATLAS",
+      "identities": [
+        {
+          "name": "/spnego"
+        }
+      ],
+      "configurations": [
+        {
+          "metadata-runtime.properties": {
+            "*.metadata.authentication.type": "kerberos",
+            "*.metadata.http.authentication.type": "kerberos",
+            "*.dfs.namenode.kerberos.principal": "nn/_HOST@${realm}"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "ATLAS_SERVER",
+          "identities": [
+            {
+              "name": "metadata_server",
+              "principal": {
+                "value": "atlas/_HOST@${realm}",
+                "type" : "service",
+                "configuration": "application-properties/*.metadata.authentication.principal",
+                "local_username" : "${metadata-env/metadata_user}"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/atlas.service.keytab",
+                "owner": {
+                  "name": "${metadata-env/metadata_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "application-properties/*.metadata.authentication.keytab"
+              }
+            },
+            {
+              "name": "/spnego",
+              "principal": {
+                "value": "HTTP/_HOST@${realm}",
+                "configuration": "application-properties/*.metadata.http.authentication.principal"
+              },
+              "keytab": {
+                "configuration": "application-properties/*.metadata.http.authentication.keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,94 @@
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<!--
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+-->
+<configuration>
+  <property require-input="false">
+    <name>metadata_port</name>
+    <value>21000</value>
+    <description>Listening port of the Atlas server.</description>
+  </property>
+  <property require-input="false">
+    <name>metadata_log_dir</name>
+    <value>/var/log/atlas</value>
+    <description>Atlas log directory.</description>
+  </property>
+  <property require-input="false">
+    <name>metadata_pid_dir</name>
+    <value>/var/run/atlas</value>
+    <description>Atlas pid-file directory.</description>
+  </property>
+  <property>
+    <name>metadata_user</name>
+    <value>atlas</value>
+    <property-type>USER</property-type>
+    <description>Metadata User Name.</description>
+  </property>
+  <property>
+    <name>metadata_opts</name>
+    <value> </value>
+    <description>Metadata Server command line options.</description>
+  </property>
+  <property>
+    <name>metadata_classpath</name>
+    <value> </value>
+    <description>Metadata Server additional classpath.</description>
+  </property>
+  <property require-input="false">
+    <name>metadata_data_dir</name>
+    <value>/var/lib/atlas/data</value>
+    <description>Atlas data directory.</description>
+  </property>
+  <property require-input="false">
+    <name>metadata_expanded_war_dir</name>
+    <value>./server/webapp</value>
+    <description>Atlas expanded WAR directory.</description>
+  </property>
+
+  <!-- metadata-env.sh -->
+  <property>
+    <name>content</name>
+    <description>This is the jinja template for metadata-env.sh file</description>
+    <value>
+# The java implementation to use. If JAVA_HOME is not found we expect java and jar to be in path
+export JAVA_HOME={{java64_home}}
+
+# any additional java opts you want to set. This will apply to both client and server operations
+export METADATA_OPTS={{metadata_opts}}
+
+# metadata configuration directory 
+export METADATA_CONF={{conf_dir}}
+
+# Where log files are stored. Defatult is logs directory under the base install location
+export METADATA_LOG_DIR={{log_dir}}
+
+# additional classpath entries
+export METADATACPPATH={{metadata_classpath}}
+
+# data dir
+export METADATA_DATA_DIR={{data_dir}}
+
+# pid dir
+export METADATA_PID_DIR={{pid_dir}}
+
+# Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
+export METADATA_EXPANDED_WEBAPP_DIR={{expanded_war_dir}}
+    </value>
+  </property>  
+</configuration>
