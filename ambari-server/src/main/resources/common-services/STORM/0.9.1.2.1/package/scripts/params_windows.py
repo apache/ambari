@@ -26,4 +26,11 @@ config = Script.get_config()
 
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
 conf_dir = os.environ["STORM_CONF_DIR"]
-storm_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+storm_user = hadoop_user
+
+service_map = {
+  "nimbus" : nimbus_win_service_name,
+  "supervisor" : supervisor_win_service_name,
+  "ui" : ui_win_service_name
+}

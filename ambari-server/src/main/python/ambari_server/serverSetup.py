@@ -321,7 +321,9 @@ def check_ambari_user(options):
 def service_setup(register_service, svc_user, svc_password):
   from ambari_windows_service import svcsetup
 
-  result = svcsetup(register_service, svc_user, svc_password)
+  svc_user_setup = svc_user if svc_user.upper() != "NT AUTHORITY\\SYSTEM" else None
+
+  result = svcsetup(register_service, svc_user_setup, svc_password)
   if result == 0:
     write_property(NR_USER_PROPERTY, svc_user)
 

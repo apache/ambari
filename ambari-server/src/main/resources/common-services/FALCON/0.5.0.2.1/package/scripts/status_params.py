@@ -24,6 +24,8 @@ config = Script.get_config()
 
 if OSCheck.is_windows_family():
   falcon_win_service_name = "falcon"
+  hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+  falcon_user = hadoop_user
 else:
   falcon_pid_dir = config['configurations']['falcon-env']['falcon_pid_dir']
   server_pid_file = format('{falcon_pid_dir}/falcon.pid')

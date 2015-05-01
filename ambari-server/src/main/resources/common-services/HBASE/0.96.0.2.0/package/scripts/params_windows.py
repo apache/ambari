@@ -28,10 +28,16 @@ hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
 hbase_bin_dir = os.path.join(os.environ["HBASE_HOME"],'bin')
 hbase_executable = os.path.join(hbase_bin_dir,"hbase.cmd")
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"],".."))
-hbase_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+hbase_user = hadoop_user
 
 #decomm params
 region_drainer = os.path.join(hbase_bin_dir,"draining_servers.rb")
 region_mover = os.path.join(hbase_bin_dir,"region_mover.rb")
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = config['commandParams']['mark_draining_only']
+
+service_map = {
+  'master' : status_params.hbase_master_win_service_name,
+  'regionserver' : status_params.hbase_regionserver_win_service_name
+}

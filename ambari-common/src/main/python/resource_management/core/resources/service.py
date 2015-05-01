@@ -20,7 +20,7 @@ Ambari Agent
 
 """
 
-__all__ = ["Service"]
+__all__ = ["Service", "ServiceConfig"]
 
 from resource_management.core.base import Resource, ResourceArgument, ForcedListArgument
 
@@ -36,3 +36,16 @@ class Service(Resource):
   status_command = ResourceArgument()
 
   actions = ["nothing", "start", "stop", "restart", "reload"]
+
+class ServiceConfig(Resource):
+  action = ForcedListArgument(default="install")
+  service_name = ResourceArgument(default=lambda obj: obj.name)
+  display_name = ResourceArgument()
+  description = ResourceArgument()
+  start_type = ResourceArgument()
+  #exe_path = ResourceArgument()
+  #arguments = ResourceArgument()
+  username = ResourceArgument()
+  password = ResourceArgument()
+
+  actions = ["nothing", "install", "configure", "change_user", "uninstall"]

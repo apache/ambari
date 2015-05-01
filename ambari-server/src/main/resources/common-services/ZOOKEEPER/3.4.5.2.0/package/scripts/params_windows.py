@@ -28,7 +28,8 @@ config = Script.get_config()
 # notused zookeeper_home_dir = os.environ["ZOOKEEPER_HOME"]
 config_dir = os.environ["ZOOKEEPER_CONF_DIR"]
 hdp_root = os.environ["HADOOP_NODE_INSTALL_ROOT"]
-zk_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+zk_user = hadoop_user
 
 # notused zk_log_dir = config['configurations']['zookeeper-env']['zk_log_dir']
 zk_data_dir = ensure_double_backslashes(config['configurations']['zoo.cfg']['dataDir'])

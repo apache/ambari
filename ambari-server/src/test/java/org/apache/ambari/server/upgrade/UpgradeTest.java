@@ -85,7 +85,7 @@ public class UpgradeTest {
   private static String DROP_DERBY_URL = "jdbc:derby:memory:myDB/ambari;drop=true";
 
   private final String sourceVersion;
-  private  Properties properties = new Properties();
+  private Properties properties = new Properties();
 
   private Injector injector;
 
@@ -94,9 +94,9 @@ public class UpgradeTest {
     properties.setProperty(Configuration.SERVER_PERSISTENCE_TYPE_KEY, "remote");
     properties.setProperty(Configuration.SERVER_JDBC_URL_KEY, Configuration.JDBC_IN_MEMORY_URL);
     properties.setProperty(Configuration.SERVER_JDBC_DRIVER_KEY, Configuration.JDBC_IN_MEMROY_DRIVER);
-    properties.setProperty(Configuration.METADETA_DIR_PATH,"src/test/resources/stacks");
-    properties.setProperty(Configuration.SERVER_VERSION_FILE,"src/test/resources/version");
-    properties.setProperty(Configuration.OS_VERSION_KEY,"centos5");
+    properties.setProperty(Configuration.METADETA_DIR_PATH, "src/test/resources/stacks");
+    properties.setProperty(Configuration.SERVER_VERSION_FILE, "src/test/resources/version");
+    properties.setProperty(Configuration.OS_VERSION_KEY, "centos5");
     properties.setProperty(Configuration.SHARED_RESOURCES_DIR_KEY, "src/test/resources/");
   }
 
@@ -188,7 +188,7 @@ public class UpgradeTest {
     LOG.info("Upgrading schema to target version = " + targetVersion);
 
     UpgradeCatalog targetUpgradeCatalog = AbstractUpgradeCatalog
-      .getUpgradeCatalog(targetVersion);
+        .getUpgradeCatalog(targetVersion);
 
     LOG.debug("Target upgrade catalog. " + targetUpgradeCatalog);
 
@@ -197,7 +197,7 @@ public class UpgradeTest {
     LOG.info("Upgrading schema from source version = " + sourceVersion);
 
     List<UpgradeCatalog> upgradeCatalogs =
-      schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
+        schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
 
     try {
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);

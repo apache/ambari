@@ -25,7 +25,17 @@ config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 if OSCheck.is_windows_family():
-  service_map = {'resourcemanager':'resourcemanager', 'nodemanager':'nodemanager', 'historyserver':'jobhistoryserver', 'timelineserver':'historyserver'}
+  resourcemanager_win_service_name = 'resourcemanager'
+  nodemanager_win_service_name = 'nodemanager'
+  historyserver_win_service_name = 'jobhistoryserver'
+  timelineserver_win_service_name = 'timelineserver'
+
+  service_map = {
+    'resourcemanager' : resourcemanager_win_service_name,
+    'nodemanager' : nodemanager_win_service_name,
+    'historyserver' : historyserver_win_service_name,
+    'timelineserver' : timelineserver_win_service_name
+  }
 else:
   mapred_user = config['configurations']['mapred-env']['mapred_user']
   yarn_user = config['configurations']['yarn-env']['yarn_user']

@@ -94,3 +94,6 @@ class ServiceProvider(Provider):
       self.__upstart = os.path.exists("/sbin/start") \
         and os.path.exists("/etc/init/%s.conf" % self.resource.service_name)
     return self.__upstart
+
+class ServiceConfigProvider(Provider):
+  pass

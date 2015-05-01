@@ -118,6 +118,7 @@ GO
 ALTER authorization on DATABASE::$(AMBARIDBNAME) to [NT AUTHORITY\SYSTEM]
 GO
 
+--set AMBARIDBOWNER=hadoop
 if exists (select 1 from master.sys.syslogins where name='$(AMBARIDBOWNER)')
 BEGIN
     CREATE USER [$(AMBARIDBOWNER)] FOR LOGIN [$(AMBARIDBOWNER)]

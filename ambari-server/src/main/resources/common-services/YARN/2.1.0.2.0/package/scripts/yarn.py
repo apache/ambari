@@ -49,6 +49,14 @@ def yarn(name = None):
             mode='f'
   )
 
+  if params.service_map.has_key(name):
+    service_name = params.service_map[name]
+
+    ServiceConfig(service_name,
+                  action="change_user",
+                  username = params.yarn_user,
+                  password = Script.get_password(params.yarn_user))
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def yarn(name = None):

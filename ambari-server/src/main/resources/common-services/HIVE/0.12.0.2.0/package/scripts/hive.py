@@ -29,13 +29,21 @@ from ambari_commons import OSConst
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hive(name=None):
   import params
+
   XmlConfig("hive-site.xml",
             conf_dir = params.hive_conf_dir,
             configurations = params.config['configurations']['hive-site'],
             owner=params.hive_user,
             configuration_attributes=params.config['configuration_attributes']['hive-site']
   )
+
   if name in ["hiveserver2","metastore"]:
+    # Manually overriding service logon user & password set by the installation package
+    service_name = params.service_map[name]
+    ServiceConfig(service_name,
+                  action="change_user",
+                  username = params.hive_user,
+                  password = Script.get_password(params.hive_user))
     Execute(format("cmd /c hadoop fs -mkdir -p {hive_warehouse_dir}"), logoutput=True, user=params.hadoop_user)
 
   if name == 'metastore':

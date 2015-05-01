@@ -169,6 +169,10 @@ def falcon(type, action = None):
     )
 
   if type == 'server':
+    ServiceConfig(params.falcon_win_service_name,
+                  action="change_user",
+                  username=params.falcon_user,
+                  password = Script.get_password(params.falcon_user))
     if action == 'start':
       Service(params.falcon_win_service_name, action="start")
     if action == 'stop':

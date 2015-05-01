@@ -21,7 +21,8 @@ from resource_management import *
 import os
 
 config = Script.get_config()
-tez_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+tez_user = hadoop_user
 tez_home_dir = None
 tez_conf_dir = "conf"
 

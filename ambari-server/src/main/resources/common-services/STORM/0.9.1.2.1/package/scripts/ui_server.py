@@ -44,7 +44,7 @@ class UiServer(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    storm()
+    storm("ui")
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class UiServerWindows(UiServer):

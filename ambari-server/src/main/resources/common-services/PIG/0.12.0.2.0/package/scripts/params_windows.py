@@ -32,5 +32,6 @@ if (('pig-log4j' in config['configurations']) and ('content' in config['configur
 else:
   log4j_props = None
 
-pig_user = "hadoop"
-hdfs_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+pig_user = hadoop_user
+hdfs_user = hadoop_user

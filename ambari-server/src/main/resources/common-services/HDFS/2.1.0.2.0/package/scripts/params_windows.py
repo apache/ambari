@@ -58,9 +58,18 @@ if dfs_ha_enabled:
       namenode_id = nn_id
       namenode_rpc = nn_host
 
-hdfs_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+hdfs_user = hadoop_user
 
 grep_exe = "findstr"
 
 name_node_params = default("/commandParams/namenode", None)
 exclude_packages = []
+
+service_map = {
+  "datanode" : datanode_win_service_name,
+  "journalnode" : journalnode_win_service_name,
+  "namenode" : namenode_win_service_name,
+  "secondarynamenode" : snamenode_win_service_name,
+  "zkfc_slave": zkfc_win_service_name
+}

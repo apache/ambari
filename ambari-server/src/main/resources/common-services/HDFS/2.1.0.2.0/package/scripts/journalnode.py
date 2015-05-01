@@ -174,7 +174,7 @@ class JournalNodeWindows(JournalNode):
   def configure(self, env):
     import params
     env.set_params(params)
-    hdfs()
+    hdfs("journalnode")
     pass
 
   def status(self, env):

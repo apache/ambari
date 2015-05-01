@@ -36,7 +36,7 @@ class ZkfcSlave(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    hdfs()
+    hdfs("zkfc_slave")
     pass
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

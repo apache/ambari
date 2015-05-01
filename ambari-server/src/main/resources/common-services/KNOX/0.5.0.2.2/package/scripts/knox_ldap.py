@@ -20,7 +20,10 @@ limitations under the License.
 import os
 from resource_management import *
 
-def ldap():
+from ambari_commons import OSConst
+from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
+
+def _ldap_common():
     import params
 
     File(os.path.join(params.knox_conf_dir, 'ldap-log4j.properties'),
@@ -37,3 +40,19 @@ def ldap():
          content=params.users_ldif
     )
 
+@OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
+def ldap():
+  import params
+  from service_mapping import knox_ldap_win_service_name
+
+  # Manually overriding service logon user & password set by the installation package
+  ServiceConfig(knox_ldap_win_service_name,
+                action="change_user",
+                username = params.knox_user,
+                password = Script.get_password(params.knox_user))
+
+  _ldap_common()
+
+@OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
+def ldap():
+  _ldap_common()

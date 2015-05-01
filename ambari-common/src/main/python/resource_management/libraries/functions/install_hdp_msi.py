@@ -93,24 +93,24 @@ OOZIE_DB_PASSWORD=oozie
 """
 
 INSTALL_MSI_CMD = 'cmd /C start /wait msiexec /qn /i  {hdp_msi_path} /lv {hdp_log_path} MSIUSEREALADMINDETECTION=1 ' \
-                  'HDP_LAYOUT={hdp_layout_path} DESTROY_DATA=yes HDP_USER_PASSWORD={hadoop_password_arg} HDP=yes ' \
+                  'HDP_LAYOUT={hdp_layout_path} DESTROY_DATA=yes HDP_USER={hadoop_user} HDP_USER_PASSWORD={hadoop_password_arg} HDP=yes ' \
                   'KNOX=yes KNOX_MASTER_SECRET="AmbariHDP2Windows" FALCON=yes STORM=yes HBase=yes STORM=yes FLUME=yes SLIDER=yes PHOENIX=yes RANGER=no'
 CREATE_SERVICE_SCRIPT = os.path.abspath("sbin\createservice.ps1")
-CREATE_SERVICE_CMD = 'cmd /C powershell -File "{script}" -username hadoop -password "{password}" -servicename ' \
+CREATE_SERVICE_CMD = 'cmd /C powershell -File "{script}" -username {username} -password "{password}" -servicename ' \
                      '{servicename} -hdpresourcesdir "{resourcedir}" -servicecmdpath "{servicecmd}"'
 INSTALL_MARKER_OK = "msi.installed"
 INSTALL_MARKER_FAILED = "msi.failed"
 _working_dir = None
 
 
-def _ensure_services_created(hadoop_password):
+def _ensure_services_created(hadoop_user, hadoop_password):
   resource_dir_hdfs = os.path.join(os.environ["HADOOP_HDFS_HOME"], "bin")
   service_cmd_hdfs = os.path.join(os.environ["HADOOP_HDFS_HOME"], "bin", "hdfs.cmd")
   if not check_windows_service_exists("journalnode"):
-    Execute(CREATE_SERVICE_CMD.format(script=CREATE_SERVICE_SCRIPT, password=hadoop_password, servicename="journalnode",
+    Execute(CREATE_SERVICE_CMD.format(script=CREATE_SERVICE_SCRIPT, username=hadoop_user, password=hadoop_password, servicename="journalnode",
                                       resourcedir=resource_dir_hdfs, servicecmd=service_cmd_hdfs), logoutput=True)
   if not check_windows_service_exists("zkfc"):
-    Execute(CREATE_SERVICE_CMD.format(script=CREATE_SERVICE_SCRIPT, password=hadoop_password, servicename="zkfc",
+    Execute(CREATE_SERVICE_CMD.format(script=CREATE_SERVICE_SCRIPT, username=hadoop_user, password=hadoop_password, servicename="zkfc",
                                       resourcedir=resource_dir_hdfs, servicecmd=service_cmd_hdfs), logoutput=True)
 
 
@@ -155,7 +155,7 @@ def _write_marker():
     open(os.path.join(_working_dir, INSTALL_MARKER_FAILED), "w").close()
 
 
-def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_version):
+def install_windows_msi(msi_url, save_dir, save_file, hadoop_user, hadoop_password, stack_version):
   global _working_dir
   _working_dir = save_dir
   save_dir = os.path.abspath(save_dir)
@@ -194,10 +194,10 @@ def install_windows_msi(msi_url, save_dir, save_file, hadoop_password, stack_ver
 
     Execute(
       INSTALL_MSI_CMD.format(hdp_msi_path=hdp_msi_path, hdp_log_path=hdp_log_path, hdp_layout_path=hdp_layout_path,
-                             hadoop_password_arg=hadoop_password_arg))
+                             hadoop_user=hadoop_user, hadoop_password_arg=hadoop_password_arg))
     reload_windows_env()
     # create additional services manually due to hdp.msi limitaitons
-    _ensure_services_created(hadoop_password)
+    _ensure_services_created(hadoop_user, hadoop_password)
     _create_symlinks(stack_version)
     # finalizing install
     _write_marker()

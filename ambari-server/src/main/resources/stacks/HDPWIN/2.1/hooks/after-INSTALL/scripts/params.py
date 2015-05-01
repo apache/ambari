@@ -23,7 +23,8 @@ from urlparse import urlparse
 config = Script.get_config()
 hadoop_conf_dir = None
 hadoop_common_dir = os.path.join("share", "hadoop", "common", "lib")
-hdfs_user="hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+hdfs_user = hadoop_user
 hadoop_common_bin = "bin"
 
 if os.environ.has_key("HADOOP_CONF_DIR"):

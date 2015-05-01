@@ -249,11 +249,11 @@ class NameNodeDefault(NameNode):
 class NameNodeWindows(NameNode):
 
   def rebalancehdfs(self, env):
-    from ambari_commons.os_windows import run_os_command_impersonated
+    from ambari_commons.os_windows import UserHelper, run_os_command_impersonated
     import params
     env.set_params(params)
 
-    hdfs_user = params.hdfs_user
+    hdfs_username, hdfs_domain = UserHelper.parse_user_name(params.hdfs_user, ".")
 
     name_node_parameters = json.loads( params.name_node_params )
     threshold = name_node_parameters['threshold']
@@ -272,7 +272,7 @@ class NameNodeWindows(NameNode):
     _print("Executing command %s\n" % command)
 
     parser = hdfs_rebalance.HdfsParser()
-    returncode, stdout, err = run_os_command_impersonated(' '.join(command), hdfs_user, Script.get_password(hdfs_user))
+    returncode, stdout, err = run_os_command_impersonated(' '.join(command), hdfs_username, Script.get_password(params.hdfs_user), hdfs_domain)
 
     for line in stdout.split('\n'):
       _print('[balancer] %s %s' % (str(datetime.now()), line ))

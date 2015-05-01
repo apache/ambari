@@ -19,15 +19,15 @@ limitations under the License.
 """
 import os
 
-from resource_management.core.resources import Directory
-from resource_management.core.resources import File
-from resource_management.core.resources.system import Execute
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import DownloadSource
 from resource_management.core.source import InlineTemplate
 from resource_management.core.source import Template
-from resource_management.libraries.functions import format
-from resource_management.libraries.functions import compare_versions
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.version import compare_versions
 from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.script.script import Script
 from resource_management.core.resources.packaging import Package
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
@@ -36,6 +36,8 @@ from ambari_commons.inet_utils import download_file
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def oozie(is_server=False):
   import params
+
+  from status_params import oozie_server_win_service_name
 
   XmlConfig("oozie-site.xml",
             conf_dir=params.oozie_conf_dir,
@@ -52,8 +54,16 @@ def oozie(is_server=False):
 
   Directory(params.oozie_tmp_dir,
             owner=params.oozie_user,
-             recursive = True,
+            recursive = True,
   )
+
+  if is_server:
+    # Manually overriding service logon user & password set by the installation package
+    ServiceConfig(oozie_server_win_service_name,
+                  action="change_user",
+                  username = params.oozie_user,
+                  password = Script.get_password(params.oozie_user))
+
   download_file(os.path.join(params.config['hostLevelParams']['jdk_location'], "sqljdbc4.jar"),
                       os.path.join(params.oozie_root, "extra_libs", "sqljdbc4.jar")
   )

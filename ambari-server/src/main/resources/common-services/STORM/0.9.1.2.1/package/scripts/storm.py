@@ -18,13 +18,13 @@ limitations under the License.
 
 """
 
-import resource_management
-from resource_management.core.resources import File
-from resource_management.core.resources import Execute
-from resource_management.core.resources import Directory
+from resource_management.core.exceptions import Fail
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.resources.system import Directory, Execute, File
 from resource_management.core.source import InlineTemplate
 from resource_management.libraries.resources.template_config import TemplateConfig
 from resource_management.libraries.functions.format import format
+from resource_management.libraries.script.script import Script
 from resource_management.core.source import Template
 from resource_management.libraries.functions import compare_versions
 from yaml_utils import yaml_config_template, yaml_config
@@ -32,7 +32,7 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-def storm():
+def storm(name=None):
   import params
   yaml_config("storm.yaml",
               conf_dir=params.conf_dir,
@@ -40,8 +40,16 @@ def storm():
               owner=params.storm_user
   )
 
+  if params.service_map.has_key(name):
+    service_name = params.service_map[name]
+    ServiceConfig(service_name,
+                  action="change_user",
+                  username = params.storm_user,
+                  password = Script.get_password(params.storm_user))
+
+
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def storm():
+def storm(name=None):
   import params
 
   Directory(params.log_dir,

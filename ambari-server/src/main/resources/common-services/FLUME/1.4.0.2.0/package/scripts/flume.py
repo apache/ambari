@@ -31,7 +31,14 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 def flume(action = None):
   import params
 
+  from service_mapping import flume_win_service_name
+
   if action == 'config':
+    ServiceConfig(flume_win_service_name,
+                  action="change_user",
+                  username=params.flume_user,
+                  password = Script.get_password(params.flume_user))
+
     # remove previously defined meta's
     for n in find_expected_agent_names(params.flume_conf_dir):
       os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))

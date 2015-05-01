@@ -72,7 +72,11 @@ def ams(name=None):
          owner=params.ams_user,
          content=InlineTemplate(params.ams_env_sh_template)
     )
-    pass
+
+    ServiceConfig(params.ams_collector_win_service_name,
+                  action="change_user",
+                  username = params.ams_user,
+                  password = Script.get_password(params.ams_user))
 
     if params.is_hbase_distributed:
       # Configuration needed to support NN HA
@@ -93,6 +97,11 @@ def ams(name=None):
                 group=params.user_group,
                 mode=0644
       )
+    else:
+      ServiceConfig(params.ams_embedded_hbase_win_service_name,
+                    action="change_user",
+                    username = params.ams_user,
+                    password = Script.get_password(params.ams_user))
     pass
 
   elif name == 'monitor':
@@ -130,6 +139,12 @@ def ams(name=None):
       owner=params.ams_user,
       template_tag=None
     )
+
+    ServiceConfig(params.ams_monitor_win_service_name,
+                  action="change_user",
+                  username = params.ams_user,
+                  password = Script.get_password(params.ams_user))
+
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def ams(name=None):

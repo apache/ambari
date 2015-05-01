@@ -93,7 +93,6 @@ class MSSQLConfig(DBMSConfig):
 
     self.env_var_db_name = ""
     self.env_var_db_log_name = ""
-    self.env_var_db_owner = ""
 
     self.init_script_file = ""
     self.drop_tables_script_file = ""
@@ -284,7 +283,6 @@ class MSSQLConfig(DBMSConfig):
     # Setup DB
     os.environ[self.env_var_db_name] = self.database_name
     os.environ[self.env_var_db_log_name] = self.database_name + '_log'
-    os.environ[self.env_var_db_owner] = 'hadoop'
 
     # Don't create the database, assume it already exists. Just clear out the known tables structure
     MSSQLConfig._execute_db_script(self.database_host, self.drop_tables_script_file)
@@ -333,7 +331,6 @@ class MSSQLAmbariDBConfig(MSSQLConfig):
 
     self.env_var_db_name ='AMBARIDBNAME'
     self.env_var_db_log_name = 'AMBARIDBLOGNAME'
-    self.env_var_db_owner = 'AMBARIDBOWNER'
 
     # The values from options supersede the values from properties
     self.init_script_file = compress_backslashes(DBMSConfig._init_member_with_default(options, "init_db_script_file",

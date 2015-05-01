@@ -33,3 +33,7 @@ hadoop_bin_dir = os.path.join(os.environ["HADOOP_HOME"], "bin")
 hbase_cmd = os.path.join(os.environ["COLLECTOR_HOME"], "hbase", "bin", "hbase.cmd")
 hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf")
 hbase_conf_dir = os.path.join(os.environ["COLLECTOR_HOME"], "hbase", "conf")
+
+ams_collector_win_service_name = "AmbariMetricsCollector"
+ams_monitor_win_service_name = "AmbariMetricsCollector"
+ams_embedded_hbase_win_service_name = "ams_hbase_master"

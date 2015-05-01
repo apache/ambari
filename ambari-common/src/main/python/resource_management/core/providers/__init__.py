@@ -55,6 +55,7 @@ PROVIDERS = dict(
   ),
   winsrv=dict(
     Service="resource_management.core.providers.windows.service.ServiceProvider",
+    ServiceConfig="resource_management.core.providers.windows.service.ServiceConfigProvider",
     Execute="resource_management.core.providers.windows.system.ExecuteProvider",
     File="resource_management.core.providers.windows.system.FileProvider",
     Directory="resource_management.core.providers.windows.system.DirectoryProvider"
@@ -69,6 +70,7 @@ PROVIDERS = dict(
     User="resource_management.core.providers.accounts.UserProvider",
     Group="resource_management.core.providers.accounts.GroupProvider",
     Service="resource_management.core.providers.service.ServiceProvider",
+    ServiceConfig="resource_management.core.providers.service.ServiceConfigProvider",
   ),
 )
 

@@ -23,11 +23,12 @@ from status_params import *
 
 config = Script.get_config()
 
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 hdp_root = os.path.abspath(os.path.join(os.environ["HADOOP_HOME"], ".."))
 oozie_root = os.environ['OOZIE_ROOT']
 oozie_home = os.environ['OOZIE_HOME']
 oozie_conf_dir = os.path.join(oozie_home,'conf')
-oozie_user = "hadoop"
+oozie_user = hadoop_user
 oozie_tmp_dir = "c:\\hadoop\\temp\\oozie"
 
 oozie_env_cmd_template = config['configurations']['oozie-env']['content']

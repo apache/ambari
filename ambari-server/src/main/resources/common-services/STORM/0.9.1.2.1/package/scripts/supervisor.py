@@ -39,7 +39,7 @@ class Supervisor(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    storm()
+    storm("supervisor")
 
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)

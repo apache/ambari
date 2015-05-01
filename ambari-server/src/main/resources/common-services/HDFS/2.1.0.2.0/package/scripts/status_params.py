@@ -27,6 +27,7 @@ if OSCheck.is_windows_family():
   datanode_win_service_name = "datanode"
   snamenode_win_service_name = "secondarynamenode"
   journalnode_win_service_name = "journalnode"
+  zkfc_win_service_name = "zkfc"
 else:
   hadoop_pid_dir_prefix = config['configurations']['hadoop-env']['hadoop_pid_dir_prefix']
   hdfs_user = config['configurations']['hadoop-env']['hdfs_user']

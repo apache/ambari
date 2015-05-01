@@ -35,4 +35,4 @@ if has_metric_collector:
 
 hadoop_conf_dir = os.environ["HADOOP_CONF_DIR"]
 hbase_conf_dir = os.environ["HBASE_CONF_DIR"]
-hadoop_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]

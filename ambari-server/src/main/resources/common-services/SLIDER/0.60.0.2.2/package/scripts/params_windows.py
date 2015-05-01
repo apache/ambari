@@ -30,5 +30,6 @@ slider_conf_dir = os.path.join(slider_home, 'conf')
 storm_slider_conf_dir = os.path.join(os.environ['STORM_HOME'], 'conf')
 slider_home_dir = slider_home
 
-slider_user = 'hadoop'
-hdfs_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+slider_user = hadoop_user
+hdfs_user = hadoop_user

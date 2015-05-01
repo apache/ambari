@@ -23,6 +23,7 @@ from mock.mock import MagicMock, call, patch
 from resource_management import Hook
 import json
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch("os.path.exists", new = MagicMock(return_value=True))
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeStart(RMFTestCase):

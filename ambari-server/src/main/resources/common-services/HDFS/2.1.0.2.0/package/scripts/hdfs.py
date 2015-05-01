@@ -117,6 +117,13 @@ def hdfs(component=None):
          owner=params.hdfs_user,
          mode="f",
          )
+  if params.service_map.has_key(component):
+    service_name = params.service_map[component]
+    ServiceConfig(service_name,
+                  action="change_user",
+                  username=params.hdfs_user,
+                  password=Script.get_password(params.hdfs_user))
+
   if "hadoop-policy" in params.config['configurations']:
     XmlConfig("hadoop-policy.xml",
               conf_dir=params.hadoop_conf_dir,

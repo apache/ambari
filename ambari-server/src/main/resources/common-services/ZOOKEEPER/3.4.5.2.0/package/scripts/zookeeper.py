@@ -107,6 +107,12 @@ def zookeeper(type = None, rolling_restart = False):
   configFile("zoo.cfg", template_name="zoo.cfg.j2", mode="f")
   configFile("configuration.xsl", template_name="configuration.xsl.j2", mode="f")
 
+  ServiceConfig(params.zookeeper_win_service_name,
+                action="change_user",
+                username = params.zk_user,
+                password = Script.get_password(params.zk_user))
+
+
   Directory(params.zk_data_dir,
             owner=params.zk_user,
             mode="(OI)(CI)F",

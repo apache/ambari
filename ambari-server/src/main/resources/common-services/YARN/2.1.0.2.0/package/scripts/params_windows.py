@@ -27,9 +27,10 @@ from status_params import *
 # server configurations
 config = Script.get_config()
 
-yarn_user = "hadoop"
-hdfs_user = "hadoop"
-smokeuser = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+yarn_user = hadoop_user
+hdfs_user = hadoop_user
+smokeuser = hadoop_user
 config_dir = os.environ["HADOOP_CONF_DIR"]
 hadoop_home = os.environ["HADOOP_HOME"]
 

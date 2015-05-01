@@ -42,7 +42,7 @@ class Nimbus(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    storm()
+    storm("nimbus")
 
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
@@ -135,7 +135,6 @@ class NimbusWindows(Nimbus):
     from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
     env.set_params(status_params)
     check_windows_service_status(status_params.nimbus_win_service_name)
-
 
 if __name__ == "__main__":
   Nimbus().execute()

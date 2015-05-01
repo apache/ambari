@@ -39,9 +39,9 @@ hcat_config_dir = os.environ["WEBHCAT_CONF_DIR"]
 
 hive_env_sh_template = config['configurations']['hive-env']['content']
 hive_warehouse_dir = config['configurations']['hive-site']['hive.metastore.warehouse.dir']
-hive_user = "hadoop"
-hadoop_user = "hadoop"
-hcat_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+hive_user = hadoop_user
+hcat_user = hadoop_user
 
 hive_bin = os.path.join(hive_home, "bin")
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
@@ -52,3 +52,10 @@ hive_exclude_packages = []
 
 ######## Metastore Schema
 init_metastore_schema = not config['configurations']['hive-site']['datanucleus.autoCreateSchema']
+
+service_map = {
+  "metastore" : hive_metastore_win_service_name,
+  "client" : hive_client_win_service_name,
+  "hiveserver2" : hive_server_win_service_name,
+  "templeton" : webhcat_server_win_service_name
+}

@@ -298,8 +298,9 @@ class Script(object):
 
     if OSCheck.is_windows_family():
       #TODO hacky install of windows msi, remove it or move to old(2.1) stack definition when component based install will be implemented
+      hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
       install_windows_msi(os.path.join(config['hostLevelParams']['jdk_location'], "hdp.msi"),
-                          config["hostLevelParams"]["agentCacheDir"], "hdp.msi", self.get_password("hadoop"),
+                          config["hostLevelParams"]["agentCacheDir"], "hdp.msi", hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
     pass

@@ -36,7 +36,8 @@ knox_data_dir = os.path.join(knox_home, 'data')
 knox_master_secret_path = os.path.join(knox_data_dir, 'security', 'master')
 knox_cert_store_path = os.path.join(knox_data_dir, 'security', 'keystores', 'gateway.jks')
 
-knox_user = 'hadoop'
-hdfs_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+knox_user = hadoop_user
+hdfs_user = hadoop_user
 knox_group = None
 mode = None

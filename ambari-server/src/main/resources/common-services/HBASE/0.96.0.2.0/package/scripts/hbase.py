@@ -33,6 +33,14 @@ def hbase(name=None):
             configuration_attributes=params.config['configuration_attributes']['hbase-site']
   )
 
+  if params.service_map.has_key(name):
+    # Manually overriding service logon user & password set by the installation package
+    service_name = params.service_map[name]
+    ServiceConfig(service_name,
+                  action="change_user",
+                  username = params.hbase_user,
+                  password = Script.get_password(params.hbase_user))
+
 # name is 'master' or 'regionserver' or 'queryserver' or 'client'
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
 def hbase(name=None):
