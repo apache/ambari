@@ -29,6 +29,11 @@
       <i class="icon-edit"></i>
     </a>
     <div {{bindAttr class="view.contentColor :content"}}>{{view.displayValue}}</div>
+    {{#if view.content.description}}
+      <div class="hidden-description">
+        {{view.content.description}}
+      </div>
+    {{/if}}
   {{else}}
     <div class="spinner"></div>
   {{/if}}

@@ -354,7 +354,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {object|null} data
    */
   loadAllSharedWidgetsSuccessCallback: function (data) {
-    var widgetIds = this.get('widgets').mapProperty('id');
+    var widgetIds = this.get('widgets') ? this.get('widgets').mapProperty('id'): [];
     if (data.items[0] && data.items.length) {
       this.set("allSharedWidgets",
         data.items.filter(function (widget) {
@@ -404,7 +404,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {object|null} data
    */
   loadMineWidgetsSuccessCallback: function (data) {
-    var widgetIds = this.get('widgets').mapProperty('id');
+    var widgetIds = this.get('widgets') ? this.get('widgets').mapProperty('id'): [];
     if (data.items[0] && data.items.length) {
       this.set("mineWidgets",
         data.items.filter(function (widget) {

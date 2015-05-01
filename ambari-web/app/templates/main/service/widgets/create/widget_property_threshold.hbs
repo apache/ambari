@@ -16,19 +16,17 @@
 * limitations under the License.
 }}
 
-<div>
-    <div class="span2 badge-container"><span {{bindAttr class=":label view.property.badgeOK"}}>{{view.property.badgeOK}}</span>&nbsp;</div>
-    <div {{bindAttr class=":span2 :threshold-input property.isSmallValueValid::error"}} rel="threshold-tooltip"
-      {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.ok.tooltip"}}>
-      {{view Em.TextField valueBinding="view.property.smallValue" class ="span10"}}
-    </div>
-    <div class="span2 badge-container"><span {{bindAttr class=":label view.property.badgeWarning"}}>{{view.property.badgeWarning}}</span>&nbsp;</div>
-    <div {{bindAttr class=":span2 :threshold-input property.isBigValueValid::error"}} rel="threshold-tooltip"
-      {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.warning.tooltip"}}>
-      {{view Em.TextField valueBinding="view.property.bigValue" class ="span10"}}
-    </div>
-    <div class="span3 badge-container"><span {{bindAttr class=":label view.property.badgeCritical"}}>{{view.property.badgeCritical}}</span>&nbsp;</div>
-    <div {{bindAttr class="property.threshold:error"}}>
-      {{view.property.errorMsg}}
-    </div>
+<div class="row-fluid">
+  <div class="span3 badge-container"><span {{bindAttr class=":label view.property.badgeWarning"}}>{{view.property.badgeWarning}}</span>&nbsp;</div>
+  <div {{bindAttr class=":span2 :threshold-input property.isSmallValueValid::error"}} rel="threshold-tooltip"
+    {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.ok.tooltip"}}>
+    {{view Em.TextField valueBinding="view.property.smallValue" class ="span10"}}
+</div>
+</div>
+<div class="row-fluid">
+  <div class="span3 badge-container"><span {{bindAttr class=":label view.property.badgeCritical"}}>{{view.property.badgeCritical}}</span>&nbsp;</div>
+  <div {{bindAttr class=":span2 :threshold-input property.isBigValueValid::error"}} rel="threshold-tooltip"
+    {{translateAttr data-original-title="dashboard.widgets.wizard.step2.threshold.warning.tooltip"}}>
+    {{view Em.TextField valueBinding="view.property.bigValue" class ="span10"}}
+  </div>
 </div>

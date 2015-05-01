@@ -131,9 +131,9 @@
                   </div>
                 {{/each}}
                 <div class="span2p4">
-                  <button id="add-widget-action-box"
-                          class="btn btn-default" {{action "goToWidgetsBrowser" controller.content target="controller"}}><i
-                          class="icon-plus"></i></button>
+                  <button id="add-widget-action-box" class="btn btn-default" {{action "goToWidgetsBrowser" controller.content target="controller"}}
+                          rel="add-widget-tooltip" {{translateAttr data-original-title="dashboard.widgets.addButton.tooltip"}}>
+                    <i class="icon-plus"></i></button>
                 </div>
               </div>
             {{/if}}

@@ -25,6 +25,9 @@ App.WidgetWizardStep1View = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     controller.loadStep();
+    Em.run.later(this, function () {
+      App.tooltip($("[rel='selectable-tooltip']"));
+    }, 300);
   }
 
 });

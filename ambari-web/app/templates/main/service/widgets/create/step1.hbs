@@ -24,18 +24,15 @@
 
     <div class="widgets-info-container row-fluid">
       {{#each option in options}}
-        <div {{bindAttr class="option.isSelected:is-selected :span6 :row-fluid :widget-info-section"}}>
+        <div class="span6 row-fluid widget-info-section" rel="selectable-tooltip"
+          {{translateAttr data-original-title="widget.create.wizard.step1.body.choose.tooltip"}}
+          {{action "chooseOption" option.name target="controller"}}>
           <div class="icon span4">
             <a class="widget-icon-image" target="_blank"><img {{bindAttr src="option.iconPath"}}></a>
           </div>
           <div class="label-description span8">
             <p class="label-text">{{option.displayName}}</p>
             <p class="description-text">{{option.description}}</p>
-          </div>
-          <div class="widget-section-actions pull-right">
-            <button type="button" class="btn btn-primary" {{action "chooseOption" option.name target="controller"}} >
-              {{t widget.create.wizard.step1.body.button.choose}}
-            </button>
           </div>
         </div>
       {{/each}}

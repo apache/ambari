@@ -90,7 +90,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
       WidgetInfo: {
         widget_name: this.get('widgetName'),
         widget_type: this.get('content.widgetType'),
-        description: this.get('widgetDescription') || " ",
+        description: this.get('widgetDescription') || "",
         scope: this.get('widgetScope').toUpperCase(),
         "metrics": this.get('widgetMetrics').map(function (metric) {
           return {

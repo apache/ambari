@@ -47,14 +47,15 @@
                 </div>
                 <div class="label-description span8">
                   <p class="label-text">{{widget.widgetName}}</p>
+                  <p class="is-shared-icon pull-right">
+                    {{#if widget.isShared}}
+                        <i class="icon-group" rel="shared-icon-tooltip"
+                          {{translateAttr data-original-title="dashboard.widgets.browser.shareIcon.tooltip"}}></i>
+                    {{/if}}
+                  </p>
                   <p class="description-text">{{widget.description}}</p>
                 </div>
-                <div class="is-shared-icon pull-left">
-                  {{#if widget.isShared}}
-                    <i class="icon-group" rel="shared-icon-tooltip"
-                      {{translateAttr data-original-title="dashboard.widgets.browser.shareIcon.tooltip"}}></i>
-                  {{/if}}
-                </div>
+
                 <div class="widget-section-actions btn-group pull-right">
                   {{#if widget.added}}
                     <button type="button" class="btn added-btn" {{action "hideWidget" widget target="controller"}} >

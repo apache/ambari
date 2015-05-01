@@ -196,6 +196,24 @@
         margin-left: -10px;
       }
     }
+    .thumbnail .hidden-description{
+      display: none;
+      color: #555555;
+      z-index: 7;
+      font-size: 12px;
+      font-weight: bold;
+      line-height: 18px;
+      text-align: center;
+      text-decoration: none;
+      position: absolute;
+      top: 40px;
+      padding: 8px 5px;
+      width: 89%;
+      height: 62%;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      background: rgba(255,255,255, 0.7);
+    }
   }
 }
 
@@ -212,23 +230,9 @@
       }
       .span6.widget-info-section:hover {
         background-color: #eee;
+        cursor: pointer;
         .icon {
           background-color: white;
-        }
-        .widget-section-actions {
-          display: block;
-        }
-      }
-      .span6.widget-info-section.is-selected {
-        background-color: #eee;
-        .icon {
-          background-color: white;
-        }
-      }
-      .span6.widget-info-section.is-selected:hover {
-        background-color: #eee;
-        .widget-section-actions {
-          display: none;
         }
       }
       .icon {
@@ -260,16 +264,6 @@
           height: 60px;
         }
       }
-      .widget-section-actions {
-        display: none;
-        position: relative;
-        top: -30px;
-        right: 30px;
-        .btn {
-          padding: 3px 8px;
-          width: 70px;
-        }
-      }
     }
   }
   .step2 {
@@ -279,20 +273,19 @@
       }
       .controls {
         margin-left: 130px;
+        line-height: 40px;
         .threshold-input {
-          width: 85px;
-          //margin-left: 0px;
+          width: 100px;
         }
       }
     }
     .badge-container {
-      height: 26px;
       width: 80px;
       .OK, .WARNING, .CRITICAL {
         line-height: 26px;
         height: 26px;
         display: inline-block;
-        width: 60px;
+        width: 65px;
         text-align: center;
       }
       .OK {
@@ -592,13 +585,19 @@
         .label-description {
           padding-top: 5px;
           .label-text {
-            display: block;
+            display: inline-block;
             font-size: 14px;
             font-weight: bold;
             margin-bottom: 1px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            width: 86%;
+          }
+          .is-shared-icon {
+            display: inline-block;
+            margin-bottom: 0px;
+            margin-right: 5px;
           }
           .description-text {
             font-size: 12px;
@@ -609,11 +608,7 @@
             height: 40px;
           }
         }
-        .is-shared-icon {
-          position: relative;
-          top: -5px;
-          left: 10px;
-        }
+
         .widget-section-actions {
           position: relative;
           top: -10px;

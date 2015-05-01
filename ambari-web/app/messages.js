@@ -2265,9 +2265,10 @@ Em.I18n.translations = {
   'dashboard.button.reset': 'Reset all widgets to default ',
   'dashboard.button.gangliaLink': 'View metrics in Ganglia',
   'dashboard.widgets.create': 'Create Widget',
-  'dashboard.widgets.actions.browse': 'Browse & Manage Widgets',
+  'dashboard.widgets.actions.browse': 'Browse Widgets',
   'dashboard.widgets.layout.import': 'Import a layout',
   'dashboard.widgets.layout.save': 'Save a layout',
+  'dashboard.widgets.addButton.tooltip': 'Add Widget',
   'dashboard.widgets.browser.header': 'Widget Browser',
   'dashboard.widgets.browser.menu.shared': 'Shared',
   'dashboard.widgets.browser.menu.mine': 'Mine',
@@ -2511,7 +2512,7 @@ Em.I18n.translations = {
   'widget.create.wizard.header': 'Create Widget',
   'widget.create.wizard.step1.header': 'Select Type',
   'widget.create.wizard.step1.body.text': 'What type of widget do you want to create?',
-  'widget.create.wizard.step1.body.button.choose': 'Select',
+  'widget.create.wizard.step1.body.choose.tooltip': 'Click tp select',
   'widget.create.wizard.step2.header': 'Metrics and Expression',
   'widget.create.wizard.step2.body.text':'Define the expression with any metrics and valid operators. </br>Use parentheses when necessary.',
   'widget.create.wizard.step2.body.template':'Define the template first, a template can have any number of {{expression}} and any string.',
@@ -2528,7 +2529,7 @@ Em.I18n.translations = {
 
   'widget.edit.wizard.header': 'Edit Widget',
 
-  'widget.clone.body': 'Are you sure you want to clone current widget {0}?',
+  'widget.clone.body': 'Are you sure you want to clone current widget <b>{0}</b>?',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ Add Metric',

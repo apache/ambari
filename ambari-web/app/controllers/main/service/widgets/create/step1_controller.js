@@ -48,8 +48,7 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
         name: option.get('name'),
         displayName: option.get('displayName'),
         iconPath: option.get('iconPath'),
-        description: option.get('description'),
-        isSelected: option.get('name') == selectedType
+        description: option.get('description')
       }
     });
   }.property('widgetType'),
@@ -60,6 +59,7 @@ App.WidgetWizardStep1Controller = Em.Controller.extend({
    */
   chooseOption: function (event) {
     this.set('widgetType', event.context);
+    $("[rel='selectable-tooltip']").trigger('mouseleave');
     this.next();
   },
 

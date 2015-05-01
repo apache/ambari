@@ -314,23 +314,24 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       var stackService = App.StackService.find().findProperty('serviceName', serviceName);
       if (!graphNames && !stackService.get('isServiceWithWidgets')) {
         self.set('serviceMetricGraphs', []);
-        self.set('isServiceMetricLoaded', true);
+        self.set('isServiceMetricLoaded', false);
         return;
       }
     } else if (!graphNames) {
       self.set('serviceMetricGraphs', []);
-      self.set('isServiceMetricLoaded', true);
+      self.set('isServiceMetricLoaded', false);
       return;
     }
     // load time range for current service from server
     self.getUserPref(self.get('persistKey')).complete(function () {
       var index = self.get('currentTimeRangeIndex');
-      graphNames.forEach(function(graphName) {
-        graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
-          currentTimeIndex : index
-        }));
-      });
-
+      if (graphNames) {
+        graphNames.forEach(function(graphName) {
+          graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
+            currentTimeIndex : index
+          }));
+        });
+      }
       while(graphObjects.length) {
         result.push(graphObjects.splice(0, chunkSize));
       }
@@ -567,6 +568,20 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
       }
     }
     this.makeSortable();
+    Em.run.later(this, function () {
+      App.tooltip($("[rel='add-widget-tooltip']"));
+      // enalble description show up on hover
+      $('.thumbnail').hoverIntent(function() {
+        var self = this;
+        setTimeout(function() {
+          if ($(self).is(':hover')) {
+            $(self).find('.hidden-description').fadeIn(200);
+          }
+        }, 1000);
+      }, function() {
+        $(this).find('.hidden-description').hide();
+      });
+    }, 1000);
   },
 
   /**
