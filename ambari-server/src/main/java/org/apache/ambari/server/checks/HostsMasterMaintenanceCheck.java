@@ -51,6 +51,10 @@ public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    if (!super.isApplicable(request)) {
+      return false;
+    }
+
     return request.getRepositoryVersion() != null;
   }
 

@@ -29,6 +29,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.upgrade.RepositoryVersionHelper;
@@ -45,6 +46,8 @@ import com.google.inject.Provider;
 public abstract class AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCheckDescriptor.class);
+  private static final StackId STACK_HDP_22 = new StackId("HDP", "2.2");
+  private static final StackId STACK_HDP_23 = new StackId("HDP", "2.3");
 
   protected static final String DEFAULT = "default";
 
@@ -75,15 +78,64 @@ public abstract class AbstractCheckDescriptor {
   }
 
   /**
-   * Tests if the prerequisite check is applicable to given cluster. By default returns true.
+   * Tests if the prerequisite check is applicable to given cluster. This
+   * method's defautl logic is to ensure that the cluster stack source and
+   * target are compatible with the prerequisite check. When overridding this
+   * method, call {@code super#isApplicable(PrereqCheckRequest)}.
    *
-   * @param request prerequisite check request
+   * @param request
+   *          prerequisite check request
    * @return true if check should be performed
    *
-   * @throws org.apache.ambari.server.AmbariException if server error happens
+   * @throws org.apache.ambari.server.AmbariException
+   *           if server error happens
    */
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    StackId sourceStackId = getSourceStack();
+    StackId targetStackId = getTargetStack();
+
+    if( null == sourceStackId && null == targetStackId ) {
+      return true;
+    }
+
+    StackId requestSourceStack = request.getSourceStackId();
+    if (null != sourceStackId && null != requestSourceStack
+        && sourceStackId.compareTo(requestSourceStack) > 0) {
+      return false;
+    }
+
+    StackId requestTargetStack = request.getTargetStackId();
+    if (null != targetStackId && null != requestTargetStack
+        && targetStackId.compareTo(requestTargetStack) < 0) {
+      return false;
+    }
+
     return true;
+  }
+
+  /**
+   * Gets the earliest stack that the upgrade check is compatible with. By
+   * default, all checks will return {@link #STACK_HDP_22} since this is the
+   * first version of HDP that supports automated upgrades.
+   *
+   * @return the earliest stack that the upgrade check is compatible with, or
+   *         {@code null} for all.
+   */
+  public StackId getSourceStack(){
+    return STACK_HDP_22;
+  }
+
+  /**
+   * Gets the most recent stack that the upgrade check is compatible with. By
+   * default, this will return {@code null} to indicate all future stacks are
+   * compatible. If an upgrade check is not compatible with a future stack, then
+   * this method should be overridden.
+   *
+   * @return the most recent stack that the upgrade check is compatible with, or
+   *         {@code null} for all.
+   */
+  public StackId getTargetStack() {
+    return null;
   }
 
   /**
@@ -97,10 +149,20 @@ public abstract class AbstractCheckDescriptor {
   public abstract void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException;
 
 
+  /**
+   * Gets the description of the check.
+   *
+   * @return the description (not {@code null}).
+   */
   public CheckDescription getDescription() {
     return m_description;
   }
 
+  /**
+   * Gets the type of check.
+   *
+   * @return the type of check (not {@code null}).
+   */
   public PrereqCheckType getType() {
     return m_description.getType();
   }

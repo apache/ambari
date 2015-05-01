@@ -24,6 +24,7 @@ import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
@@ -42,7 +43,12 @@ public class ServicesMaintenanceModeCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    Assert.assertTrue(new ServicesMaintenanceModeCheck().isApplicable(null));
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
+    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
+    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+
+    Assert.assertTrue(new ServicesMaintenanceModeCheck().isApplicable(checkRequest));
   }
 
   @Test
@@ -65,6 +71,7 @@ public class ServicesMaintenanceModeCheckTest {
 
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
+    Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     final Service service = Mockito.mock(Service.class);
     Mockito.when(cluster.getServices()).thenReturn(Collections.singletonMap("service", service));

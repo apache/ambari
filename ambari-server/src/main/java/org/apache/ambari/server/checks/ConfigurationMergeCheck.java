@@ -48,6 +48,10 @@ public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
 
   @Override
   public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    if (!super.isApplicable(request)) {
+      return false;
+    }
+
     String repoVersion = request.getRepositoryVersion();
     if (null == repoVersion) {
       return false;

@@ -27,6 +27,7 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.HostHealthStatus;
 import org.apache.ambari.server.state.HostHealthStatus.HealthStatus;
 import org.apache.ambari.server.state.MaintenanceState;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
@@ -44,7 +45,12 @@ public class HostsHeartbeatCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    Assert.assertTrue(new HostsHeartbeatCheck().isApplicable(null));
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
+    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
+    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+
+    Assert.assertTrue(new HostsHeartbeatCheck().isApplicable(checkRequest));
   }
 
   @Test
@@ -60,6 +66,7 @@ public class HostsHeartbeatCheckTest {
 
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
+    Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     final Map<String, Host> hosts = new HashMap<String, Host>();
     final Host host1 = Mockito.mock(Host.class);

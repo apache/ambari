@@ -43,8 +43,11 @@ public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
   static final String KEY_USE_HADOOP_LIBS_FALSE = "tez_use_hadoop_libs_false";
 
   @Override
-  public boolean isApplicable(PrereqCheckRequest request)
-    throws AmbariException {
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    if (!super.isApplicable(request)) {
+      return false;
+    }
+
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     try {
       cluster.getService("TEZ");

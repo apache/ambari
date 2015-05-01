@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.ambari.server.checks.CheckDescription;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 
 /**
@@ -29,6 +30,9 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 public class PrereqCheckRequest {
   private String m_clusterName;
   private String m_repositoryVersion;
+  private StackId m_sourceStackId;
+  private StackId m_targetStackId;
+
   private Map<CheckDescription, PrereqCheckStatus> m_results =
       new HashMap<CheckDescription, PrereqCheckStatus>();
 
@@ -64,5 +68,43 @@ public class PrereqCheckRequest {
    */
   public PrereqCheckStatus getResult(CheckDescription description) {
     return m_results.get(description);
+  }
+
+  /**
+   * Gets the cluster's current stack before upgrade.
+   *
+   * @return the sourceStackId the source stack ID.
+   */
+  public StackId getSourceStackId() {
+    return m_sourceStackId;
+  }
+
+  /**
+   * Sets the cluster's current stack before upgrade.
+   *
+   * @param sourceStackId
+   *          the sourceStackId to set
+   */
+  public void setSourceStackId(StackId sourceStackId) {
+    m_sourceStackId = sourceStackId;
+  }
+
+  /**
+   * Gets the target stack of the upgrade.
+   *
+   * @return the targetStackId
+   */
+  public StackId getTargetStackId() {
+    return m_targetStackId;
+  }
+
+  /**
+   * Sets the target stack of the upgrade.
+   *
+   * @param targetStackId
+   *          the targetStackId to set
+   */
+  public void setTargetStackId(StackId targetStackId) {
+    m_targetStackId = targetStackId;
   }
 }

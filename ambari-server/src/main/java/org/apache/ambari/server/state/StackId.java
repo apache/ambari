@@ -82,6 +82,9 @@ public class StackId implements Comparable<StackId> {
     parseStackIdHelper(this, stackId);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public boolean equals(Object object) {
     if (!(object instanceof StackId)) {
@@ -94,6 +97,9 @@ public class StackId implements Comparable<StackId> {
     return stackName.equals(s.stackName) && stackVersion.equals(s.stackVersion);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int hashCode() {
     int result = stackName != null ? stackName.hashCode() : 0;
@@ -101,6 +107,9 @@ public class StackId implements Comparable<StackId> {
     return result;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public int compareTo(StackId other) {
     if (this == other) {
@@ -120,26 +129,27 @@ public class StackId implements Comparable<StackId> {
     return returnValue;
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public String toString() {
     return getStackId();
   }
 
-  public static void parseStackIdHelper(StackId stackVersion,
-      String stackId) {
+  private void parseStackIdHelper(StackId stackVersion, String stackId) {
     if (stackId == null || stackId.isEmpty()) {
       stackVersion.stackName = "";
       stackVersion.stackVersion = "";
       return;
     }
-    int pos = stackId.indexOf('-');
-    if (pos == -1
-        || (stackId.length() <= (pos+1))) {
-      throw new RuntimeException("Could not parse invalid Stack Id"
-          + ", stackId=" + stackId);
-    }
-    stackVersion.stackName = stackId.substring(0, pos);
-    stackVersion.stackVersion = stackId.substring(pos+1);
-  }
 
+    int pos = stackId.indexOf('-');
+    if (pos == -1 || (stackId.length() <= (pos + 1))) {
+      throw new RuntimeException("Could not parse invalid Stack Id" + ", stackId=" + stackId);
+    }
+
+    stackVersion.stackName = stackId.substring(0, pos);
+    stackVersion.stackVersion = stackId.substring(pos + 1);
+  }
 }

@@ -43,6 +43,11 @@ public class ServicesMapReduceDistributedCacheCheck extends AbstractCheckDescrip
   @Override
   public boolean isApplicable(PrereqCheckRequest request)
     throws AmbariException {
+
+    if (!super.isApplicable(request)) {
+      return false;
+    }
+
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     try {
       cluster.getService("YARN");

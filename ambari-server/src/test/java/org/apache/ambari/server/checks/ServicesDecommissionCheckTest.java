@@ -29,6 +29,7 @@ import org.apache.ambari.server.state.HostComponentAdminState;
 import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceComponent;
 import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.junit.Assert;
@@ -46,7 +47,12 @@ public class ServicesDecommissionCheckTest {
 
   @Test
   public void testIsApplicable() throws Exception {
-    Assert.assertTrue(new ServicesDecommissionCheck().isApplicable(null));
+    PrereqCheckRequest checkRequest = new PrereqCheckRequest("c1");
+    checkRequest.setRepositoryVersion("HDP-2.2.0.0");
+    checkRequest.setSourceStackId(new StackId("HDP", "2.2"));
+    checkRequest.setTargetStackId(new StackId("HDP", "2.2"));
+
+    Assert.assertTrue(new ServicesDecommissionCheck().isApplicable(checkRequest));
   }
 
   @Test
@@ -68,6 +74,7 @@ public class ServicesDecommissionCheckTest {
 
     final Cluster cluster = Mockito.mock(Cluster.class);
     Mockito.when(cluster.getClusterId()).thenReturn(1L);
+    Mockito.when(cluster.getCurrentStackVersion()).thenReturn(new StackId("HDP", "2.2"));
     Mockito.when(clusters.getCluster("cluster")).thenReturn(cluster);
     final Service service = Mockito.mock(Service.class);
     Mockito.when(cluster.getServices()).thenReturn(Collections.singletonMap("service", service));

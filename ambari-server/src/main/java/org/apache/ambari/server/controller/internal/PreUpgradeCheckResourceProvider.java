@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
 import org.apache.ambari.server.checks.AbstractCheckDescriptor;
 import org.apache.ambari.server.checks.ConfigurationMergeCheck;
@@ -50,11 +51,16 @@ import org.apache.ambari.server.controller.spi.Resource.Type;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.state.CheckHelper;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
 import com.google.common.collect.Sets;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * Resource provider for pre-upgrade checks.
@@ -75,28 +81,45 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
   @Inject
   private static ServicesMaintenanceModeCheck servicesMaintenanceModeCheck;
+
   @Inject
   private static HostsMasterMaintenanceCheck hostsMasterMaintenanceCheck;
+
   @Inject
   private static HostsRepositoryVersionCheck hostsRepositoryVersionCheck;
+
   @Inject
   private static ServicesNamenodeHighAvailabilityCheck servicesNamenodeHighAvailabilityCheck;
+
   @Inject
   private static SecondaryNamenodeDeletedCheck secondaryNamenodeDeletedCheck;
+
   @Inject
   private static ServicesYarnWorkPreservingCheck servicesYarnWorkPreservingCheck;
+
   @Inject
   private static ServicesDecommissionCheck servicesDecommissionCheck;
+
   @Inject
   private static ServicesMapReduceDistributedCacheCheck servicesJobsDistributedCacheCheck;
+
   @Inject
   private static HostsHeartbeatCheck heartbeatCheck;
+
   @Inject
   private static ServicesUpCheck servicesUpCheck;
+
   @Inject
   private static ServicesTezDistributedCacheCheck servicesTezDistributedCacheCheck;
+
   @Inject
   private static ConfigurationMergeCheck configMergeCheck;
+
+  @Inject
+  private static Provider<Clusters> clustersProvider;
+
+  @Inject
+  private static RepositoryVersionDAO repositoryVersionDAO;
 
   /**
    * List of the registered upgrade checks.  Make sure that if a check that
@@ -160,10 +183,26 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
 
     for (Map<String, Object> propertyMap: propertyMaps) {
       final String clusterName = propertyMap.get(UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID).toString();
-      final PrereqCheckRequest upgradeCheckRequest = new PrereqCheckRequest(clusterName);
-      if (propertyMap.containsKey(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID)) {
-        upgradeCheckRequest.setRepositoryVersion(propertyMap.get(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).toString());
+      final Cluster cluster;
+
+      try {
+        cluster = clustersProvider.get().getCluster(clusterName);
+      } catch (AmbariException ambariException) {
+        throw new NoSuchResourceException(ambariException.getMessage());
       }
+
+      final PrereqCheckRequest upgradeCheckRequest = new PrereqCheckRequest(clusterName);
+      upgradeCheckRequest.setSourceStackId(cluster.getCurrentStackVersion());
+
+      if (propertyMap.containsKey(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID)) {
+        String repositoryVersionId = propertyMap.get(UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID).toString();
+        RepositoryVersionEntity repositoryVersionEntity = repositoryVersionDAO.findMaxByVersion(repositoryVersionId);
+
+        // set some required properties on the check request
+        upgradeCheckRequest.setRepositoryVersion(repositoryVersionId);
+        upgradeCheckRequest.setTargetStackId(repositoryVersionEntity.getStackId());
+      }
+
       for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, updateChecksRegistry)) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
         setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, prerequisiteCheck.getId(), requestedIds);
