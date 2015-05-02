@@ -6,145 +6,378 @@
       "section_name": "YARN_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "NodeManager RAM Utilization",
-          "description": "",
+          "widget_name": "Memory Utilization",
+          "description": "Memory Utilization Ratio",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.NodeManagerMetrics.AllocatedGB",
-              "metric_path": "metrics/yarn/AllocatedGB",
+              "name": "yarn.QueueMetrics.Queue=root.AllocatedMB._sum",
+              "metric_path": "metrics/yarn/Queue/root/AllocatedMB._sum",
               "service_name": "YARN",
-              "component_name": "NODEMANAGER"
+              "component_name": "RESOURCEMANAGER"
             },
             {
-              "name": "proc_total",
-              "metric_path": "metrics/process/proc_total",
+              "name": "yarn.QueueMetrics.Queue=root.AvailableMB._sum",
+              "metric_path": "metrics/yarn/Queue/root/AvailableMB._sum",
               "service_name": "YARN",
-              "component_name": "NODEMANAGER"
+              "component_name": "RESOURCEMANAGER"
             }
           ],
           "values": [
             {
-              "name": "Total Allocatable RAM Utilized across NodeManager",
-              "value": "${yarn.NodeManagerMetrics.AllocatedGB}"
-            },
-            {
-              "name": "NodeManager total processes",
-              "value": "${proc_total}"
+              "name": "Memory Utilization",
+              "value": "${yarn.QueueMetrics.Queue=root.AllocatedMB._sum / (yarn.QueueMetrics.Queue=root.AvailableMB._sum + yarn.QueueMetrics.Queue=root.AvailableMB._sum)}"
             }
           ],
           "properties": {
-            "display_unit": "",
+            "display_unit": "%",
             "graph_type": "LINE",
             "time_range": "1"
           }
         },
         {
-          "widget_name": "NodeManager CPU Utilization",
-          "description": "",
+          "widget_name": "CPU Utilization",
+          "description": "CPU Utilization Ratio",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.NodeManagerMetrics.AllocatedVCores",
-              "metric_path": "metrics/yarn/AllocatedVCores",
+              "name": "yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum",
+              "metric_path": "metrics/yarn/Queue/root/AllocatedVCores._sum",
               "service_name": "YARN",
-              "component_name": "NODEMANAGER"
+              "component_name": "RESOURCEMANAGER"
             },
             {
-              "name": "cpu_idle",
-              "metric_path": "metrics/cpu/cpu_idle",
+              "name": "yarn.QueueMetrics.Queue=root.default.AvailableVCores._sum",
+              "metric_path": "metrics/yarn/Queue/root/AvailableVCores._sum",
               "service_name": "YARN",
-              "component_name": "NODEMANAGER"
+              "component_name": "RESOURCEMANAGER"
             }
           ],
           "values": [
             {
               "name": "Total Allocatable CPU Utilized across NodeManager",
-              "value": "${yarn.NodeManagerMetrics.AllocatedVCores}"
-            },
-            {
-              "name": "NodeManager CPU Idle",
-              "value": "${cpu_idle}"
+              "value": "${yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum / (yarn.QueueMetrics.Queue=root.default.AllocatedVCores._sum + yarn.QueueMetrics.Queue=root.default.AvailableVCores._sum)}"
             }
           ],
           "properties": {
-            "display_unit": "",
+            "display_unit": "%",
             "graph_type": "LINE",
             "time_range": "1"
           }
         },
         {
-          "widget_name": "NodeManager Disk and Network Utilization",
-          "description": "",
-          "widget_type": "GRAPH",
+          "widget_name": "Bad Local Disks",
+          "description": "Number of unhealthy local disks accross all NodeManagers",
+          "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
             {
-              "name": "read_bytes",
-              "metric_path": "metrics/disk/read_bytes",
+              "name": "yarn.NodeManagerMetrics.BadLocalDirs",
+              "metric_path": "metrics/yarn/BadLocalDirs",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             },
             {
-              "name": "write_bytes",
-              "metric_path": "metrics/disk/write_bytes",
-              "service_name": "YARN",
-              "component_name": "NODEMANAGER"
-            },
-            {
-              "name": "bytes_in",
-              "metric_path": "metrics/network/bytes_in",
-              "service_name": "YARN",
-              "component_name": "NODEMANAGER"
-            },
-            {
-              "name": "bytes_out",
-              "metric_path": "metrics/network/bytes_out",
+              "name": "yarn.NodeManagerMetrics.BadLogDirs",
+              "metric_path": "metrics/yarn/BadLogDirs",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             }
           ],
           "values": [
             {
-              "name": "DISK IO",
-              "value": "${read_bytes + write_bytes}"
-            },
-            {
-              "name": "Network IO",
-              "value": "${bytes_in + bytes_out}"
+              "name": "Number of unhealthy local disks for NodeManager",
+              "value": "${yarn.NodeManagerMetrics.BadLocalDirs + yarn.NodeManagerMetrics.BadLogDirs}"
             }
           ],
           "properties": {
-            "display_unit": "",
-            "graph_type": "LINE",
-            "time_range": "1"
+            "display_unit": ""
           }
         },
         {
-          "widget_name": "NodeManager Container Failures",
-          "description": "",
+          "widget_name": "Container Failures",
+          "description": "Ratio of Container Failures",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "yarn.NodeManagerMetrics.ContainersFailed",
-              "metric_path": "metrics/yarn/ContainersFailed",
+              "name": "yarn.NodeManagerMetrics.ContainersFailed._sum",
+              "metric_path": "metrics/yarn/ContainersFailed._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersCompleted._sum",
+              "metric_path": "metrics/yarn/ContainersCompleted._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersLaunched._sum",
+              "metric_path": "metrics/yarn/ContainersLaunched._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersIniting._sum",
+              "metric_path": "metrics/yarn/ContainersIniting._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersKilled._sum",
+              "metric_path": "metrics/yarn/ContainersKilled._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersRunning._sum",
+              "metric_path": "metrics/yarn/ContainersRunning._sum",
               "service_name": "YARN",
               "component_name": "NODEMANAGER"
             }
           ],
           "values": [
             {
-              "name": "NodeManager Container Failures",
-              "value": "${yarn.NodeManagerMetrics.ContainersFailed}"
+              "name": "Container Failures",
+              "value": "${yarn.NodeManagerMetrics.ContainersFailed._sum/(yarn.NodeManagerMetrics.ContainersFailed._sum + yarn.NodeManagerMetrics.ContainersCompleted._sum + yarn.NodeManagerMetrics.ContainersLaunched._sum + yarn.NodeManagerMetrics.ContainersIniting._sum + yarn.NodeManagerMetrics.ContainersKilled._sum + yarn.NodeManagerMetrics.ContainersRunning._sum)}"
             }
           ],
           "properties": {
-            "display_unit": "",
+            "display_unit": "%",
             "graph_type": "LINE",
             "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "App Failures",
+          "description": "App Failures ratio",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsFailed",
+              "metric_path": "metrics/yarn/Queue/root/AppsFailed",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsKilled",
+              "metric_path": "metrics/yarn/Queue/root/AppsKilled",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsPending",
+              "metric_path": "metrics/yarn/Queue/root/AppsPending",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsRunning",
+              "metric_path": "metrics/yarn/Queue/root/AppsRunning",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsSubmitted",
+              "metric_path": "metrics/yarn/Queue/root/AppsSubmitted",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            },
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsCompleted",
+              "metric_path": "metrics/yarn/Queue/root/AppsCompleted",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "App Failures",
+              "value": "${yarn.QueueMetrics.Queue=root.AppsFailed/(yarn.QueueMetrics.Queue=root.AppsFailed + yarn.QueueMetrics.Queue=root.AppsKilled + yarn.QueueMetrics.Queue=root.AppsPending + yarn.QueueMetrics.Queue=root.AppsRunning + yarn.QueueMetrics.Queue=root.AppsSubmitted + yarn.QueueMetrics.Queue=root.AppsCompleted)}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Pending Apps",
+          "description": "Applications in pending scheduling state for cluster",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.QueueMetrics.Queue=root.AppsPending._sum",
+              "metric_path": "metrics/yarn/Queue/root/AppsPending._sum",
+              "service_name": "YARN",
+              "component_name": "RESOURCEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Pending Apps",
+              "value": "${yarn.QueueMetrics.Queue=root.AppsPending._sum}"
+            }
+          ],
+          "properties": {
+            "display_unit": "Apps",
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster(NodeManager) Memory",
+          "description": "Memory utilization on NodeManager hosts",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "mem_total._sum",
+              "metric_path": "metrics/memory/mem_total._avg",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "mem_free._sum",
+              "metric_path": "metrics/memory/mem_free._avg",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "mem_cached._sum",
+              "metric_path": "metrics/memory/mem_cached._avg",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Memory utilization on NameNode host",
+              "value": "${(mem_total._sum - mem_free._sum - mem_cached._sum)/mem_total._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster(NodeManager) Disk",
+          "description": "NodeManager widget for disk utilization",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "disk_free._sum",
+              "metric_path": "metrics/disk/disk_free._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "disk_total._sum",
+              "metric_path": "metrics/disk/disk_total._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Disk Utlization",
+              "value": "${(disk_total._sum - disk_free._sum)/disk_total._sum}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster(NodeManager) Network",
+          "description": "NodeManager widget for network utilization",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "pkts_in._avg",
+              "metric_path": "metrics/network/pkts_in._avg",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "pkts_out._avg",
+              "metric_path": "metrics/network/pkts_out._avg",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Packets In",
+              "value": "${pkts_in._avg}"
+            },
+            {
+              "name": "Packets Out",
+              "value": "${pkts_out._avg}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Cluster(NodeManager) CPU",
+          "description": "NodeManager widget for CPU utilization",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "cpu_system._sum",
+              "metric_path": "metrics/cpu/cpu_system._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "cpu_user._sum",
+              "metric_path": "metrics/cpu/cpu_user._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "cpu_nice._sum",
+              "metric_path": "metrics/cpu/cpu_nice._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "cpu_idle._sum",
+              "metric_path": "metrics/cpu/cpu_idle._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "cpu_wio._sum",
+              "metric_path": "metrics/cpu/cpu_wio._sum",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "CPU utilization on NameNode host",
+              "value": "${(cpu_system._sum + cpu_user._sum + cpu_nice._sum)/(cpu_system._sum + cpu_user._sum + cpu_nice._sum + cpu_idle._sum + cpu_wio._sum)}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
+            "display_unit": "%"
           }
         }
       ]
@@ -155,10 +388,184 @@
       "section_name": "YARN_HEATMAPS",
       "widgetLayoutInfo": [
         {
-          "widget_name": "NodeManager GC Time",
+          "widget_name": "YARN local disk space utilization per NodeManager",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
+              "metric_path": "metrics/yarn/GoodLocalDirsDiskUtilizationPerc",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
+              "metric_path": "metrics/yarn/GoodLogDirsDiskUtilizationPerc",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "YARN local disk space utilization per NodeManager",
+              "value": "${(yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc + yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc)/2}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Total Allocatable RAM Utilized per NodeManager",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedGB",
+              "metric_path": "metrics/yarn/AllocatedGB",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.AvailableGB",
+              "metric_path": "metrics/yarn/AvailableGB",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable RAM Utilized per NodeManager",
+              "value": "${(yarn.NodeManagerMetrics.AllocatedGB/(yarn.NodeManagerMetrics.AvailableGB + yarn.NodeManagerMetrics.AllocatedGB)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Total Allocatable CPU Utilized per NodeManager",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.AllocatedVCores",
+              "metric_path": "metrics/yarn/AllocatedVCores",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.AvailableVCores",
+              "metric_path": "metrics/yarn/AvailableVCores",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Total Allocatable CPU Utilized per NodeManager",
+              "value": "${(yarn.NodeManagerMetrics.AllocatedVCores/(yarn.NodeManagerMetrics.AllocatedVCores + yarn.NodeManagerMetrics.AvailableVCores)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Number of unhealthy local disks for NodeManager",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.BadLocalDirs",
+              "metric_path": "metrics/yarn/BadLocalDirs",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.BadLogDirs",
+              "metric_path": "metrics/yarn/BadLogDirs",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Number of unhealthy local disks for NodeManager",
+              "value": "${yarn.NodeManagerMetrics.BadLocalDirs + yarn.NodeManagerMetrics.BadLogDirs}"
+            }
+          ],
+          "properties": {
+            "display_unit": "",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "Container Failures",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersFailed",
+              "metric_path": "metrics/yarn/ContainersFailed",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersCompleted",
+              "metric_path": "metrics/yarn/ContainersCompleted",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersLaunched",
+              "metric_path": "metrics/yarn/ContainersLaunched",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersIniting",
+              "metric_path": "metrics/yarn/ContainersIniting",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersKilled",
+              "metric_path": "metrics/yarn/ContainersKilled",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            },
+            {
+              "name": "yarn.NodeManagerMetrics.ContainersRunning",
+              "metric_path": "metrics/yarn/ContainersRunning",
+              "service_name": "YARN",
+              "component_name": "NODEMANAGER"
+            }
+          ],
+          "values": [
+            {
+              "name": "Container Failures",
+              "value": "${(yarn.NodeManagerMetrics.ContainersFailed/(yarn.NodeManagerMetrics.ContainersFailed + yarn.NodeManagerMetrics.ContainersCompleted + yarn.NodeManagerMetrics.ContainersLaunched + yarn.NodeManagerMetrics.ContainersIniting + yarn.NodeManagerMetrics.ContainersKilled + yarn.NodeManagerMetrics.ContainersRunning)) * 100}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "NodeManager GC Time",
+          "description": "",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
           "metrics": [
             {
               "name": "Hadoop:service=NodeManager,name=JvmMetrics.GcTimeMillis",
@@ -200,36 +607,6 @@
           "properties": {
             "display_unit": "MB",
             "max_limit": "512"
-          }
-        },
-        {
-          "widget_name": "NodeManager Memory used %",
-          "description": "",
-          "widget_type": "HEATMAP",
-          "is_visible": false,
-          "metrics": [
-            {
-              "name": "yarn.NodeManagerMetrics.AllocatedGB",
-              "metric_path": "metrics/yarn/AllocatedGB",
-              "service_name": "YARN",
-              "component_name": "NODEMANAGER"
-            },
-            {
-              "name": "yarn.NodeManagerMetrics.AvailableGB",
-              "metric_path": "metrics/yarn/AvailableGB",
-              "service_name": "YARN",
-              "component_name": "NODEMANAGER"
-            }
-          ],
-          "values": [
-            {
-              "name": "NodeManager Memory used %",
-              "value": "${yarn.NodeManagerMetrics.AllocatedGB/(yarn.NodeManagerMetrics.AvailableGB + yarn.NodeManagerMetrics.AllocatedGB)}"
-            }
-          ],
-          "properties": {
-            "display_unit": "%",
-            "max_limit": "100"
           }
         },
         {

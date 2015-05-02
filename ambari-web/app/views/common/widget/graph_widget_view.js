@@ -120,7 +120,8 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
           timestamp = dataLinks[match][i][1];
           return dataLinks[match][i][0];
         });
-        value.push([Number(window.eval(beforeCompute)), timestamp]);
+        var dataLinkPointValue = window.isNaN(Number(window.eval(beforeCompute))) ? 0 : Number(window.eval(beforeCompute));
+        value.push([dataLinkPointValue, timestamp]);
       }
     }
 

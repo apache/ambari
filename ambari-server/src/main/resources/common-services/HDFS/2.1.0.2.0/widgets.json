@@ -6,7 +6,7 @@
       "section_name": "HDFS_SUMMARY",
       "widgetLayoutInfo": [
         {
-          "widget_name": "GC Statistics",
+          "widget_name": "NameNode GC",
           "description": "This widget shows JVM Garbage collection statistics for Active NameNode",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -54,7 +54,7 @@
           }
         },
         {
-          "widget_name": "Client connections",
+          "widget_name": "NN Connection Load",
           "description": "Number of open connections for Active NameNode.",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -70,7 +70,7 @@
           ],
           "values": [
             {
-              "name": "Client connections",
+              "name": "NN Connection Load",
               "value": "${rpc.rpc.NumOpenConnections}"
             }
           ],
@@ -81,7 +81,7 @@
           }
         },
         {
-          "widget_name": "NameNode JVM Heap Statistics",
+          "widget_name": "NameNode Heap",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -116,10 +116,31 @@
           }
         },
         {
-          "widget_name": "NameNode CPU and RAM Utilization",
+          "widget_name": "NameNode Host Load",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
+            {
+              "name": "cpu_system",
+              "metric_path": "metrics/cpu/cpu_system",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_user",
+              "metric_path": "metrics/cpu/cpu_user",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "cpu_nice",
+              "metric_path": "metrics/cpu/cpu_nice",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
             {
               "name": "cpu_idle",
               "metric_path": "metrics/cpu/cpu_idle",
@@ -128,8 +149,29 @@
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
             },
             {
-              "name": "proc_total",
-              "metric_path": "metrics/process/proc_total",
+              "name": "cpu_wio",
+              "metric_path": "metrics/cpu/cpu_wio",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_total",
+              "metric_path": "metrics/memory/mem_total",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_free",
+              "metric_path": "metrics/memory/mem_free",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            },
+            {
+              "name": "mem_cached",
+              "metric_path": "metrics/memory/mem_cached",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
@@ -137,49 +179,34 @@
           ],
           "values": [
             {
-              "name": "CPU Idle on NameNode host",
-              "value": "${cpu_idle}"
+              "name": "CPU utilization on NameNode host",
+              "value": "${(cpu_system + cpu_user + cpu_nice)/(cpu_system + cpu_user + cpu_nice + cpu_idle + cpu_wio)}"
             },
             {
-              "name": "Total Processes on NameNode host",
-              "value": "${proc_total}"
+              "name": "Memory utilization on NameNode host",
+              "value": "${(mem_total - mem_free - mem_cached)/mem_total}"
             }
           ],
           "properties": {
             "graph_type": "LINE",
-            "time_range": "1"
+            "time_range": "1",
+            "display_unit": "%"
           }
         },
         {
-          "widget_name": "RPC Queue Wait time",
-          "widget_type": "NUMBER",
+          "widget_name": "NameNode RPC",
+          "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
             {
-              "name": "Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime",
+              "name": "rpc.rpc.RpcQueueTimeAvgTime",
               "metric_path": "metrics/rpc/RpcQueueTime_avg_time",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
               "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
-            }
-          ],
-          "values": [
+            },
             {
-              "name": "RPC Queue Wait time",
-              "value": "${Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime}"
-            }
-          ],
-          "properties": {
-            "display_unit": "ms"
-          }
-        },
-        {
-          "widget_name": "RPC Processing time",
-          "widget_type": "NUMBER",
-          "is_visible": true,
-          "metrics": [
-            {
-              "name": "Hadoop:service=DataNode,name=RpcActivity.RpcProcessingTimeAvgTime",
+              "name": "rpc.rpc.RpcProcessingTimeAvgTime",
               "metric_path": "metrics/rpc/RpcProcessingTime_avg_time",
               "service_name": "HDFS",
               "component_name": "NAMENODE",
@@ -188,12 +215,64 @@
           ],
           "values": [
             {
+              "name": "RPC Queue Wait time",
+              "value": "${rpc.rpc.RpcQueueTimeAvgTime}"
+            },
+            {
               "name": "RPC Processing time",
-              "value": "${Hadoop:service=DataNode,name=RpcActivity.RpcProcessingTimeAvgTime}"
+              "value": "${rpc.rpc.RpcProcessingTimeAvgTime}"
             }
           ],
           "properties": {
+            "graph_type": "LINE",
+            "time_range": "1",
             "display_unit": "ms"
+          }
+        },
+        {
+          "widget_name": "NameNode Operations",
+          "widget_type": "GRAPH",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "dfs.namenode.TotalFileOps",
+              "metric_path": "metrics/dfs/namenode/TotalFileOps",
+              "service_name": "HDFS",
+              "component_name": "NAMENODE",
+              "host_component_criteria": "host_components/metrics/dfs/FSNamesystem/HAState=active"
+            }
+          ],
+          "values": [
+            {
+              "name": "NameNode File Operations",
+              "value": "${dfs.namenode.TotalFileOps}"
+            }
+          ],
+          "properties": {
+            "graph_type": "LINE",
+            "time_range": "1"
+          }
+        },
+        {
+          "widget_name": "Failed disk volumes",
+          "widget_type": "NUMBER",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum",
+              "metric_path": "metrics/dfs/datanode/NumFailedVolumes",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "Failed disk volumes",
+              "value": "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes._sum}"
+            }
+          ],
+          "properties": {
+            "display_unit": ""
           }
         },
         {
@@ -215,6 +294,8 @@
             }
           ],
           "properties": {
+            "warning_threshold": "0",
+            "error_threshold": "50"
           }
         },
         {
@@ -236,6 +317,37 @@
             }
           ],
           "properties": {
+            "warning_threshold": "0",
+            "error_threshold": "50"
+          }
+        },
+        {
+          "widget_name": "HDFS Space Utilization",
+          "widget_type": "GAUGE",
+          "is_visible": true,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
+              "metric_path": "metrics/dfs/datanode/DfsUsed",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+              "metric_path": "metrics/dfs/datanode/Capacity",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "HDFS Space Utilization",
+              "value": "${FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity}"
+            }
+          ],
+          "properties": {
+            "warning_threshold": "0.75",
+            "error_threshold": "0.9"
           }
         }
       ]
@@ -444,6 +556,35 @@
             {
               "name": "DataNode Process Network I/O Utilization",
               "value": "${((dfs.datanode.RemoteBytesRead/dfs.datanode.ReadsFromRemoteClient)+(dfs.datanode.RemoteBytesWritten/dfs.datanode.WritesFromRemoteClient))*50}"
+            }
+          ],
+          "properties": {
+            "display_unit": "%",
+            "max_limit": "100"
+          }
+        },
+        {
+          "widget_name": "HDFS Space Utilization",
+          "widget_type": "HEATMAP",
+          "is_visible": false,
+          "metrics": [
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
+              "metric_path": "metrics/dfs/datanode/DfsUsed",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            },
+            {
+              "name": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
+              "metric_path": "metrics/dfs/datanode/Capacity",
+              "service_name": "HDFS",
+              "component_name": "DATANODE"
+            }
+          ],
+          "values": [
+            {
+              "name": "HDFS Space Utilization",
+              "value": "${(FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed/FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity) * 100}"
             }
           ],
           "properties": {

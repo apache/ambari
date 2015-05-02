@@ -71,7 +71,7 @@ App.supports = {
   customizeAgentUserAccount: false,
   installGanglia: false,
   opsDuringRollingUpgrade: false,
-  customizedWidgets: false,
+  customizedWidgets: true,
   customizedWidgetLayout: false,
   enhancedConfigs: false
 };

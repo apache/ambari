@@ -45,6 +45,11 @@
               "pointInTime": true,
               "temporal": true
             },
+            "metrics/dfs/namenode/TotalFileOps": {
+              "metric": "dfs.namenode.TotalFileOps",
+              "pointInTime": true,
+              "temporal": true
+            },
             "metrics/rpcdetailed/getProtocolVersion_num_ops": {
               "metric": "rpcdetailed.rpcdetailed.getProtocolVersion_num_ops",
               "pointInTime": false,
@@ -1574,6 +1579,11 @@
               "pointInTime": true,
               "temporal": true
             },
+            "metrics/dfs/namenode/TotalFileOps": {
+              "metric": "dfs.namenode.TotalFileOps",
+              "pointInTime": true,
+              "temporal": true
+            },
             "metrics/rpcdetailed/getProtocolVersion_num_ops": {
               "metric": "rpcdetailed.rpcdetailed.getProtocolVersion_num_ops",
               "pointInTime": false,
@@ -2918,6 +2928,21 @@
             },
             "metrics/dfs/datanode/heartBeats_avg_time": {
               "metric": "dfs.datanode.HeartbeatsAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/dfs/datanode/NumFailedVolumes": {
+              "metric": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/dfs/datanode/DfsUsed": {
+              "metric": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/dfs/datanode/Capacity": {
+              "metric": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
               "pointInTime": true,
               "temporal": true
             },
@@ -4614,6 +4639,21 @@
             },
             "metrics/dfs/datanode/heartBeats_avg_time": {
               "metric": "dfs.datanode.HeartbeatsAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/dfs/datanode/NumFailedVolumes": {
+              "metric": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.NumFailedVolumes",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/dfs/datanode/DfsUsed": {
+              "metric": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.DfsUsed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/dfs/datanode/Capacity": {
+              "metric": "FSDatasetState.org.apache.hadoop.hdfs.server.datanode.fsdataset.impl.FsDatasetImpl.Capacity",
               "pointInTime": true,
               "temporal": true
             },

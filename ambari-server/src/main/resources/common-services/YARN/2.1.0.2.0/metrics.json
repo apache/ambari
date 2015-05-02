@@ -187,11 +187,6 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/yarn/ContainersCompleted": {
-              "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/rpc/SentBytes": {
               "metric": "rpc.rpc.SentBytes",
               "pointInTime": false,
@@ -200,11 +195,6 @@
             "metrics/jvm/memNonHeapUsedM": {
               "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/yarn/ContainersKilled": {
-              "metric": "yarn.NodeManagerMetrics.ContainersKilled",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/jvm/logWarn": {
@@ -237,13 +227,88 @@
               "pointInTime": false,
               "temporal": true
             },
+            "metrics/yarn/AllocatedContainers": {
+              "metric": "yarn.NodeManagerMetrics.AllocatedContainers",
+              "pointInTime": true,
+              "temporal": true
+            },
             "metrics/yarn/AllocatedGB": {
               "metric": "yarn.NodeManagerMetrics.AllocatedGB",
               "pointInTime": true,
               "temporal": true
             },
+            "metrics/yarn/AvailableGB": {
+              "metric": "yarn.NodeManagerMetrics.AvailableGB",
+              "pointInTime": true,
+              "temporal": true
+            },
             "metrics/yarn/AllocatedVCores": {
               "metric": "yarn.NodeManagerMetrics.AllocatedVCores",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/AvailableVCores": {
+              "metric": "yarn.NodeManagerMetrics.AvailableVCores",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/BadLocalDirs": {
+              "metric": "yarn.NodeManagerMetrics.BadLocalDirs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/BadLogDirs": {
+              "metric": "yarn.NodeManagerMetrics.BadLogDirs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainerLaunchDurationAvgTime": {
+              "metric": "yarn.NodeManagerMetrics.ContainerLaunchDurationAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainerLaunchDurationNumOps": {
+              "metric": "yarn.NodeManagerMetrics.ContainerLaunchDurationNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersCompleted": {
+              "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersFailed": {
+              "metric": "yarn.NodeManagerMetrics.ContainersFailed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersIniting": {
+              "metric": "yarn.NodeManagerMetrics.ContainersIniting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersKilled": {
+              "metric": "yarn.NodeManagerMetrics.ContainersKilled",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersLaunched": {
+              "metric": "yarn.NodeManagerMetrics.ContainersLaunched",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersRunning": {
+              "metric": "yarn.NodeManagerMetrics.ContainersRunning",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/GoodLocalDirsDiskUtilizationPerc": {
+              "metric": "yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/GoodLogDirsDiskUtilizationPerc": {
+              "metric": "yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
               "pointInTime": true,
               "temporal": true
             },
@@ -272,11 +337,6 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/yarn/ContainersFailed": {
-              "metric": "yarn.NodeManagerMetrics.ContainersFailed",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/ugi/loginSuccess_num_ops": {
               "metric": "ugi.ugi.LoginSuccessNumOps",
               "pointInTime": false,
@@ -285,11 +345,6 @@
             "metrics/jvm/gcTimeMillis": {
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/yarn/AllocatedContainers": {
-              "metric": "yarn.NodeManagerMetrics.AllocatedContainers",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/jvm/threadsTerminated": {
@@ -317,19 +372,9 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/yarn/ContainersRunning": {
-              "metric": "yarn.NodeManagerMetrics.ContainersRunning",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/jvm/logInfo": {
               "metric": "jvm.JvmMetrics.LogInfo",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/yarn/ContainersLaunched": {
-              "metric": "yarn.NodeManagerMetrics.ContainersLaunched",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/rpc/RpcProcessingTime_num_ops": {
@@ -342,18 +387,8 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/yarn/AvailableGB": {
-              "metric": "yarn.NodeManagerMetrics.AvailableGB",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/mapred/ShuffleConnections": {
               "metric": "mapred.ShuffleConnections",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/yarn/ContainersIniting": {
-              "metric": "yarn.NodeManagerMetrics.ContainersIniting",
               "pointInTime": true,
               "temporal": true
             },
@@ -615,11 +650,6 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/yarn/ContainersCompleted": {
-              "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/rpc/SentBytes": {
               "metric": "rpc.rpc.SentBytes",
               "pointInTime": false,
@@ -628,11 +658,6 @@
             "metrics/jvm/memNonHeapUsedM": {
               "metric": "jvm.JvmMetrics.MemNonHeapUsedM",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/yarn/ContainersKilled": {
-              "metric": "yarn.NodeManagerMetrics.ContainersKilled",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/jvm/logWarn": {
@@ -665,13 +690,88 @@
               "pointInTime": false,
               "temporal": true
             },
+            "metrics/yarn/AllocatedContainers": {
+              "metric": "yarn.NodeManagerMetrics.AllocatedContainers",
+              "pointInTime": true,
+              "temporal": true
+            },
             "metrics/yarn/AllocatedVCores": {
               "metric": "yarn.NodeManagerMetrics.AllocatedVCores",
               "pointInTime": true,
               "temporal": true
             },
+            "metrics/yarn/AvailableVCores": {
+              "metric": "yarn.NodeManagerMetrics.AvailableVCores",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/AvailableGB": {
+              "metric": "yarn.NodeManagerMetrics.AvailableGB",
+              "pointInTime": true,
+              "temporal": true
+            },
             "metrics/yarn/AllocatedGB": {
               "metric": "yarn.NodeManagerMetrics.AllocatedGB",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/BadLocalDirs": {
+              "metric": "yarn.NodeManagerMetrics.BadLocalDirs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/BadLogDirs": {
+              "metric": "yarn.NodeManagerMetrics.BadLogDirs",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainerLaunchDurationAvgTime": {
+              "metric": "yarn.NodeManagerMetrics.ContainerLaunchDurationAvgTime",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainerLaunchDurationNumOps": {
+              "metric": "yarn.NodeManagerMetrics.ContainerLaunchDurationNumOps",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersCompleted": {
+              "metric": "yarn.NodeManagerMetrics.ContainersCompleted",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersFailed": {
+              "metric": "yarn.NodeManagerMetrics.ContainersFailed",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersIniting": {
+              "metric": "yarn.NodeManagerMetrics.ContainersIniting",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersKilled": {
+              "metric": "yarn.NodeManagerMetrics.ContainersKilled",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersLaunched": {
+              "metric": "yarn.NodeManagerMetrics.ContainersLaunched",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/ContainersRunning": {
+              "metric": "yarn.NodeManagerMetrics.ContainersRunning",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/GoodLocalDirsDiskUtilizationPerc": {
+              "metric": "yarn.NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
+              "pointInTime": true,
+              "temporal": true
+            },
+            "metrics/yarn/GoodLogDirsDiskUtilizationPerc": {
+              "metric": "yarn.NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
               "pointInTime": true,
               "temporal": true
             },
@@ -700,11 +800,6 @@
               "pointInTime": true,
               "temporal": true
             },
-            "metrics/yarn/ContainersFailed": {
-              "metric": "yarn.NodeManagerMetrics.ContainersFailed",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/ugi/loginSuccess_num_ops": {
               "metric": "ugi.ugi.LoginSuccessNumOps",
               "pointInTime": false,
@@ -713,11 +808,6 @@
             "metrics/jvm/gcTimeMillis": {
               "metric": "jvm.JvmMetrics.GcTimeMillis",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/yarn/AllocatedContainers": {
-              "metric": "yarn.NodeManagerMetrics.AllocatedContainers",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/jvm/threadsTerminated": {
@@ -745,19 +835,9 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/yarn/ContainersRunning": {
-              "metric": "yarn.NodeManagerMetrics.ContainersRunning",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/jvm/logInfo": {
               "metric": "jvm.JvmMetrics.LogInfo",
               "pointInTime": false,
-              "temporal": true
-            },
-            "metrics/yarn/ContainersLaunched": {
-              "metric": "yarn.NodeManagerMetrics.ContainersLaunched",
-              "pointInTime": true,
               "temporal": true
             },
             "metrics/rpc/RpcProcessingTime_num_ops": {
@@ -770,18 +850,8 @@
               "pointInTime": false,
               "temporal": true
             },
-            "metrics/yarn/AvailableGB": {
-              "metric": "yarn.NodeManagerMetrics.AvailableGB",
-              "pointInTime": true,
-              "temporal": true
-            },
             "metrics/mapred/ShuffleConnections": {
               "metric": "mapred.ShuffleConnections",
-              "pointInTime": true,
-              "temporal": true
-            },
-            "metrics/yarn/ContainersIniting": {
-              "metric": "yarn.NodeManagerMetrics.ContainersIniting",
               "pointInTime": true,
               "temporal": true
             },
