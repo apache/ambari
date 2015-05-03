@@ -657,7 +657,6 @@ table.no-border tr td{
 }
 
 .property-form label{
-  width: 254px;
   word-wrap: break-word;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -1074,7 +1073,7 @@ button.btn.btn-xs{
   position: relative;
   border: 1px solid #c4c4c4;
   border-radius: 4px 0 0 4px;
-  box-shadow: 0 0px 4px #ebebeb;
+  box-shadow: 0 0 4px #ebebeb;
   width: 300px;
   background: white;
   margin-bottom: 20px;
@@ -1324,17 +1323,15 @@ accordion .panel-group .panel{
     margin-left: 10px;
 }
 .clusters-name-dropdown {
-  margin-top: 7px;
-  margin-left: 16px;
   width: 200px;
-}
-.cluster-configurable-form {
-  width: 350px;
-  margin-top: 15px;
-  margin-bottom: 15px;
-  padding: 0 15px;
 }
 .edit-view-custom-wrap {
   padding-top: 0;
-  margin-top: -28px;
+  margin-top: -15px;
+}
+.panel-body .checkbox {
+  min-height: 20px;
+  padding-left: 20px;
+  margin-top: 10px;
+  margin-bottom: 10px;
 }

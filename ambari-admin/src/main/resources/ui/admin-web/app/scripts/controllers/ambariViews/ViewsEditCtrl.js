@@ -21,38 +21,69 @@ angular.module('ambariAdminConsole')
 .controller('ViewsEditCtrl', ['$scope', '$routeParams' , 'Cluster', 'View', 'Alert', 'PermissionLoader', 'PermissionSaver', 'ConfirmationModal', '$location', 'UnsavedDialog', function($scope, $routeParams, Cluster, View, Alert, PermissionLoader, PermissionSaver, ConfirmationModal, $location, UnsavedDialog) {
   $scope.identity = angular.identity;
   $scope.isConfigurationEmpty = true;
-  function reloadViewInfo(){
+  $scope.isSettingsEmpty = true;
+
+  function reloadViewInfo(section){
     // Load instance data, after View permissions meta loaded
     View.getInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId)
     .then(function(instance) {
       $scope.instance = instance;
-
       $scope.settings = {
         'visible': $scope.instance.ViewInstanceInfo.visible,
         'label': $scope.instance.ViewInstanceInfo.label,
         'description': $scope.instance.ViewInstanceInfo.description
       };
-
-      initConfigurations();
-      if(instance.ViewInstanceInfo.cluster_handle) {
-        $scope.isLocalCluster = true;
-        $scope.cluster = instance.ViewInstanceInfo.cluster_handle;
-      }else{
-        $scope.isLocalCluster = false;
-        $scope.cluster = $scope.clusters.length > 0 ? $scope.clusters[0] : "No Clusters";
+      switch (section) {
+        case "details" :
+          initConfigurations();
+          initCtrlVariables(instance);
+          break;
+        case "settings" :
+          initConfigurations(true);
+          break;
+        case "cluster" :
+          initCtrlVariables(instance);
+          break;
       }
-      $scope.isConfigurationEmpty = !$scope.numberOfClusterConfigs;
     })
     .catch(function(data) {
       Alert.error('Cannot load instance info', data.data.message);
     });
   }
 
-  function initConfigurations() {
-    $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
-    for (var confName in $scope.configuration) {
-      if ($scope.configuration.hasOwnProperty(confName)) {
-        $scope.configuration[confName] = $scope.configuration[confName] === 'null' ? '' : $scope.configuration[confName];
+  function initCtrlVariables(instance) {
+    if(instance.ViewInstanceInfo.cluster_handle) {
+      $scope.isLocalCluster = true;
+      $scope.cluster = instance.ViewInstanceInfo.cluster_handle;
+    }else{
+      $scope.isLocalCluster = false;
+      $scope.cluster = $scope.clusters.length > 0 ? $scope.clusters[0] : "No Clusters";
+    }
+    $scope.isConfigurationEmpty = !$scope.numberOfClusterConfigs;
+    $scope.isSettingsEmpty = !$scope.numberOfSettingsConfigs;
+  }
+
+  function isClusterConfig(name) {
+    var configurationMeta = $scope.configurationMeta;
+    var clusterConfigs = configurationMeta.filter(function(el) {
+      return el.clusterConfig;
+    }).map(function(el) {
+      return el.name;
+    });
+    return clusterConfigs.indexOf(name) !== -1;
+  }
+
+  function initConfigurations(initClusterConfig) {
+    var initAllConfigs = !initClusterConfig;
+    var configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+    if (initAllConfigs) {
+      $scope.configuration = angular.copy($scope.instance.ViewInstanceInfo.properties);
+    }
+    for (var confName in configuration) {
+      if (configuration.hasOwnProperty(confName)) {
+        if (!isClusterConfig(confName) || initAllConfigs) {
+          $scope.configuration[confName] = configuration[confName] === 'null' ? '' : configuration[confName];
+        }
       }
     }
   }
@@ -65,9 +96,12 @@ angular.module('ambariAdminConsole')
     angular.forEach($scope.configurationMeta, function (item) {
       item.displayName = item.name.replace(/\./g, '\.\u200B');
       item.clusterConfig = !!item.clusterConfig;
+      if (!item.clusterConfig) {
+        $scope.numberOfSettingsConfigs++;
+      }
       $scope.numberOfClusterConfigs = $scope.numberOfClusterConfigs + !!item.clusterConfig;
     });
-    reloadViewInfo();
+    reloadViewInfo("details");
   });
 
   function reloadViewPrivileges(){
@@ -98,14 +132,29 @@ angular.module('ambariAdminConsole')
   $scope.noClusterAvailible = true;
 
 
-    $scope.editSettingsDisabled = true;
+  $scope.editSettingsDisabled = true;
+  $scope.editDetailsSettingsDisabled = true;
   $scope.numberOfClusterConfigs = 0;
+  $scope.numberOfSettingsConfigs = 0;
 
   $scope.toggleSettingsEdit = function() {
     $scope.editSettingsDisabled = !$scope.editSettingsDisabled;
     $scope.settingsBeforeEdit = angular.copy($scope.configuration);
     $scope.configurationMeta.forEach(function (element) {
       if (element.masked && !$scope.editSettingsDisabled && !element.clusterConfig) {
+        $scope.configuration[element.name] = '';
+      }
+      if(element.clusterConfig) {
+        delete $scope.settingsBeforeEdit[element.name];
+      }
+    });
+  };
+
+  $scope.toggleDetailsSettingsEdit = function() {
+    $scope.editDetailsSettingsDisabled = !$scope.editDetailsSettingsDisabled;
+    $scope.settingsBeforeEdit = angular.copy($scope.configuration);
+    $scope.configurationMeta.forEach(function (element) {
+      if (element.masked && !$scope.editDetailsSettingsDisabled && !element.clusterConfig) {
         $scope.configuration[element.name] = '';
       }
       if(element.clusterConfig) {
@@ -130,9 +179,6 @@ angular.module('ambariAdminConsole')
     if( $scope.settingsForm.$valid ){
       var data = {
         'ViewInstanceInfo':{
-          'visible': $scope.settings.visible,
-          'label': $scope.settings.label,
-          'description': $scope.settings.description,
           'properties':{}
         }
       };
@@ -146,7 +192,7 @@ angular.module('ambariAdminConsole')
         if( callback ){
           callback();
         } else {
-          reloadViewInfo();
+          reloadViewInfo("settings");
           $scope.editSettingsDisabled = true;
           $scope.settingsForm.$setPristine();
         }
@@ -157,13 +203,42 @@ angular.module('ambariAdminConsole')
     }
   };
   $scope.cancelSettings = function() {
+    angular.extend($scope.configuration, $scope.settingsBeforeEdit);
+    $scope.editSettingsDisabled = true;
+    $scope.settingsForm.$setPristine();
+  };
+
+  $scope.saveDetails = function(callback) {
+    if( $scope.detailsForm.$valid ){
+      var data = {
+        'ViewInstanceInfo':{
+          'visible': $scope.settings.visible,
+          'label': $scope.settings.label,
+          'description': $scope.settings.description
+        }
+      };
+      return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
+      .success(function() {
+        if( callback ){
+          callback();
+        } else {
+          reloadViewInfo("cluster");
+          $scope.editDetailsSettingsDisabled = true;
+          $scope.settingsForm.$setPristine();
+        }
+      })
+      .catch(function(data) {
+        Alert.error('Cannot save settings', data.data.message);
+      });
+    }
+  };
+  $scope.cancelDetails = function() {
     $scope.settings = {
       'visible': $scope.instance.ViewInstanceInfo.visible,
       'label': $scope.instance.ViewInstanceInfo.label,
       'description': $scope.instance.ViewInstanceInfo.description
     };
-    angular.extend($scope.configuration, $scope.settingsBeforeEdit);
-    $scope.editSettingsDisabled = true;
+    $scope.editDetailsSettingsDisabled = true;
     $scope.settingsForm.$setPristine();
   };
 
@@ -182,49 +257,51 @@ angular.module('ambariAdminConsole')
     });
   };
   $scope.saveConfiguration = function() {
-    var data = {
-      'ViewInstanceInfo':{
-        'properties':{}
-      }
-    };
-    if($scope.isLocalCluster) {
-      data.ViewInstanceInfo.cluster_handle = $scope.cluster;
-    } else {
-      data.ViewInstanceInfo.cluster_handle = null;
-      $scope.configurationMeta.forEach(function (element) {
-        if(element.clusterConfig) {
-          data.ViewInstanceInfo.properties[element.name] = $scope.configuration[element.name];
+    if( $scope.propertiesForm.$valid ){
+      var data = {
+        'ViewInstanceInfo':{
+          'properties':{}
         }
+      };
+      if($scope.isLocalCluster) {
+        data.ViewInstanceInfo.cluster_handle = $scope.cluster;
+      } else {
+        data.ViewInstanceInfo.cluster_handle = null;
+        $scope.configurationMeta.forEach(function (element) {
+          if(element.clusterConfig) {
+            data.ViewInstanceInfo.properties[element.name] = $scope.configuration[element.name];
+          }
+        });
+      }
+
+      return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
+      .success(function() {
+        $scope.editConfigurationDisabled = true;
+        $scope.propertiesForm.$setPristine();
+      })
+      .catch(function(data) {
+        var errorMessage = data.data.message;
+
+        //TODO: maybe the BackEnd should sanitize the string beforehand?
+        errorMessage = errorMessage.substr(errorMessage.indexOf("\{"));
+
+        if (data.status >= 400) {
+          try {
+            var errorObject = JSON.parse(errorMessage);
+            errorMessage = errorObject.detail;
+            angular.forEach(errorObject.propertyResults, function (item, key) {
+              $scope.propertiesForm[key].validationError = !item.valid;
+              if (!item.valid) {
+                $scope.propertiesForm[key].validationMessage = item.detail;
+              }
+            });
+          } catch (e) {
+            console.error('Unable to parse error message:', data.message);
+          }
+        }
+        Alert.error('Cannot save properties', errorMessage);
       });
     }
-
-    return View.updateInstance($routeParams.viewId, $routeParams.version, $routeParams.instanceId, data)
-    .success(function() {
-      $scope.editConfigurationDisabled = true;
-      $scope.propertiesForm.$setPristine();
-    })
-    .catch(function(data) {
-      var errorMessage = data.data.message;
-
-      //TODO: maybe the BackEnd should sanitize the string beforehand?
-      errorMessage = errorMessage.substr(errorMessage.indexOf("\{"));
-
-      if (data.status >= 400) {
-        try {
-          var errorObject = JSON.parse(errorMessage);
-          errorMessage = errorObject.detail;
-          angular.forEach(errorObject.propertyResults, function (item, key) {
-            $scope.propertiesForm[key].validationError = !item.valid;
-            if (!item.valid) {
-              $scope.propertiesForm[key].validationMessage = item.detail;
-            }
-          });
-        } catch (e) {
-          console.error('Unable to parse error message:', data.message);
-        }
-      }
-      Alert.error('Cannot save properties', errorMessage);
-    });
   };
   $scope.cancelConfiguration = function() {
     angular.extend($scope.configuration, $scope.configurationBeforeEdit);

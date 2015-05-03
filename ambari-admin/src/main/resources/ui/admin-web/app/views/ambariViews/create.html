@@ -30,7 +30,7 @@
     </div>
     <div class="form-group">
       <div class="col-sm-2"><label for="" class="control-label">Version</label></div>
-      <div class="col-sm-2">
+      <div class="col-sm-3">
         <select ng-model="version" class="instanceversion-input form-control" ng-change="versionChanged()" ng-options="o as o for o in versions"></select>
       </div>
     </div>
@@ -125,15 +125,25 @@
       <h3 class="panel-title">Cluster Configuration</h3>
     </div>
 
-    <div class="panel-body property-form cluster-configurable-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
-      <div class="checkbox">
+    <div class="panel-body property-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
+      <div class="checkbox create-checkbox-cluster">
         <label>
           <input type="radio" ng-disabled="!clusterConfigurable || noClusterAvailible" ng-model="instance.isLocalCluster" ng-value="true" class="visibilityCheckbox"> Local Ambari Managed Cluster
         </label>
       </div>
-      <div class="form-group sub-group">
-        <select ng-model="cluster" ng-disabled="!instance.isLocalCluster" ng-change="onClusterChange()" class="clusters-name-dropdown form-control"  ng-options="o as o for o in clusters"></select>
+
+      <div class="form-horizontal property-form">
+        <div class="form-group">
+
+          <label for="" class="control-label col-sm-3 ng-binding not-required" >Cluster Name</label>
+          <div>
+            <div class="col-sm-9">
+              <select ng-model="cluster" ng-disabled="!instance.isLocalCluster" ng-change="onClusterChange()" class="clusters-name-dropdown form-control"  ng-options="o as o for o in clusters"></select>
+            </div>
+          </div>
+        </div>
       </div>
+
     </div>
     <div class="panel-body property-form">
       <div class="checkbox">
@@ -144,7 +154,7 @@
       <div class="alert alert-danger bottom-margin top-margin" ng-show='form.instanceCreateForm.generalValidationError'>
         {{form.instanceCreateForm.generalValidationError}}
       </div>
-      <div class="form-group sub-group" ng-repeat="parameter in instance.properties | filter:{clusterConfig:true}"
+      <div class="form-group" ng-repeat="parameter in instance.properties | filter:{clusterConfig:true}"
         ng-class="{'has-error' : ((form.instanceCreateForm[parameter.name].$error.required && form.instanceCreateForm.submitted) || form.instanceCreateForm[parameter.name].validationError)}" >
         <label for="" class="col-sm-3 control-label" ng-class="{'not-required': !parameter.required}">{{parameter.label || parameter.displayName}}{{parameter.required ? '*' : ''}}</label>
         <div ng-switch="parameter.type">
