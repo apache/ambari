@@ -21,28 +21,18 @@
 -->
 
 <configuration supports_final="false">
-    <!-- knox-env.sh -->
-
     <property>
         <name>knox_user</name>
-        <value>knox</value>
-        <property-type>USER</property-type>
         <deleted>true</deleted>
-        <description>Knox Username.</description>
     </property>
 
     <property>
         <name>knox_group</name>
-        <value>knox</value>
-        <property-type>GROUP</property-type>
         <deleted>true</deleted>
-        <description>Knox Group.</description>
     </property>
 
     <property>
         <name>knox_pid_dir</name>
-        <value>/var/run/knox</value>
         <deleted>true</deleted>
-        <description>Knox PID dir.</description>
     </property>
 </configuration>

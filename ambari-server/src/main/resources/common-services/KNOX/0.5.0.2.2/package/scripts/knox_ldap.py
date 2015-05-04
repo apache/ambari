@@ -43,10 +43,9 @@ def _ldap_common():
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def ldap():
   import params
-  from service_mapping import knox_ldap_win_service_name
 
   # Manually overriding service logon user & password set by the installation package
-  ServiceConfig(knox_ldap_win_service_name,
+  ServiceConfig(params.knox_ldap_win_service_name,
                 action="change_user",
                 username = params.knox_user,
                 password = Script.get_password(params.knox_user))

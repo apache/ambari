@@ -23,7 +23,6 @@
   <property>
     <name>KNOX_HOME</name>
     <value>c:\hadoop\knox</value>
-    <description></description>
   </property>
 
 </configuration>

@@ -39,7 +39,7 @@
                 <customCommand>
                     <name>STARTDEMOLDAP</name>
                     <commandScript>
-                        <script>scripts/demo_ldap.py</script>
+                        <script>scripts/knox_gateway.py</script>
                         <scriptType>PYTHON</scriptType>
                         <timeout>600</timeout>
                     </commandScript>
@@ -47,7 +47,7 @@
                 <customCommand>
                     <name>STOPDEMOLDAP</name>
                     <commandScript>
-                        <script>scripts/demo_ldap.py</script>
+                        <script>scripts/knox_gateway.py</script>
                         <scriptType>PYTHON</scriptType>
                         <timeout>600</timeout>
                     </commandScript>

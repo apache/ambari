@@ -25,7 +25,6 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def knox():
   import params
-  from service_mapping import knox_geteway_win_service_name
 
   XmlConfig("gateway-site.xml",
             conf_dir=params.knox_conf_dir,
@@ -35,7 +34,7 @@ def knox():
   )
 
   # Manually overriding service logon user & password set by the installation package
-  ServiceConfig(knox_geteway_win_service_name,
+  ServiceConfig(params.knox_gateway_win_service_name,
                 action="change_user",
                 username = params.knox_user,
                 password = Script.get_password(params.knox_user))

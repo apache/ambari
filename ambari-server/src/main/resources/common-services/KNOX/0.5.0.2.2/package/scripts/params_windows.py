@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import os
+from status_params import *
 
 # server configurations
 config = Script.get_config()
@@ -35,6 +36,16 @@ knox_data_dir = os.path.join(knox_home, 'data')
 
 knox_master_secret_path = os.path.join(knox_data_dir, 'security', 'master')
 knox_cert_store_path = os.path.join(knox_data_dir, 'security', 'keystores', 'gateway.jks')
+
+knox_host_port = config['configurations']['gateway-site']['gateway.port']
+knox_host_name = config['clusterHostInfo']['knox_gateway_hosts'][0]
+knox_host_name_in_cluster = config['hostname']
+knox_master_secret = config['configurations']['knox-env']['knox_master_secret']
+topology_template = config['configurations']['topology']['content']
+gateway_log4j = config['configurations']['gateway-log4j']['content']
+security_enabled = config['configurations']['cluster-env']['security_enabled']
+ldap_log4j = config['configurations']['ldap-log4j']['content']
+users_ldif = config['configurations']['users-ldif']['content']
 
 hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
 knox_user = hadoop_user

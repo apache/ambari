@@ -24,46 +24,70 @@ import os
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
+
 class KnoxServiceCheck(Script):
-
-    @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-    def service_check(self, env):
-      import params
-      env.set_params(params)
-      smoke_cmd = os.path.join(params.hdp_root, "Run-SmokeTests.cmd")
-      service = "KNOX"
-      Execute(format("cmd /C {smoke_cmd} {service}"), logoutput=True, user=params.hdfs_user)
-
-    @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-    def service_check(self, env):
-        import params
-        env.set_params(params)
-
-        validateKnoxFileName = "validateKnoxStatus.py"
-        validateKnoxFilePath = format("{tmp_dir}/{validateKnoxFileName}")
-        python_executable = sys.executable
-        validateStatusCmd = format("{python_executable} {validateKnoxFilePath} -p {knox_host_port} -n {knox_host_name}")
-        if params.security_enabled:
-          kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
-          smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
-        else:
-          smoke_cmd = validateStatusCmd
-
-        print "Test connectivity to knox server"
+  def service_check(self, env):
+    pass
 
 
-        File(validateKnoxFilePath,
-          content=StaticFile(validateKnoxFileName),
-          mode=0755
-          )
-        Execute(smoke_cmd,
-          tries=3,
-          try_sleep=5,
-          path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
-          user=params.smokeuser,
-          timeout=5,
-          logoutput=True
-        )
+@OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
+class KnoxServiceCheckWindows(KnoxServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+
+    temp_dir = os.path.join(os.path.dirname(params.knox_home), "temp")
+    validateKnoxFileName = "validateKnoxStatus.py"
+    validateKnoxFilePath = os.path.join(temp_dir, validateKnoxFileName)
+    python_executable = sys.executable
+    validateStatusCmd = "%s %s -p %s -n %s" % (python_executable, validateKnoxFilePath, params.knox_host_port, params.knox_host_name)
+
+    print "Test connectivity to knox server"
+
+    File(validateKnoxFilePath,
+         content=StaticFile(validateKnoxFileName)
+    )
+
+    Execute(validateStatusCmd,
+            tries=3,
+            try_sleep=5,
+            timeout=5,
+            logoutput=True
+    )
+
+
+@OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
+class KnoxServiceCheckDefault(KnoxServiceCheck):
+  def service_check(self, env):
+    import params
+    env.set_params(params)
+
+    validateKnoxFileName = "validateKnoxStatus.py"
+    validateKnoxFilePath = format("{tmp_dir}/{validateKnoxFileName}")
+    python_executable = sys.executable
+    validateStatusCmd = format("{python_executable} {validateKnoxFilePath} -p {knox_host_port} -n {knox_host_name}")
+    if params.security_enabled:
+      kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};")
+      smoke_cmd = format("{kinit_cmd} {validateStatusCmd}")
+    else:
+      smoke_cmd = validateStatusCmd
+
+    print "Test connectivity to knox server"
+
+    File(validateKnoxFilePath,
+         content=StaticFile(validateKnoxFileName),
+         mode=0755
+    )
+
+    Execute(smoke_cmd,
+            tries=3,
+            try_sleep=5,
+            path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin',
+            user=params.smokeuser,
+            timeout=5,
+            logoutput=True
+    )
+
 
 if __name__ == "__main__":
     KnoxServiceCheck().execute()
