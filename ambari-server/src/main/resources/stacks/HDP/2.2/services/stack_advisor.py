@@ -516,10 +516,13 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
   def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
     self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     putMapredProperty = self.putProperty(configurations, "mapred-site", services)
+    nodemanagerMinRam = 1048576 # 1TB in mb
+    for nodemanager in self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts):
+      nodemanagerMinRam = min(nodemanager["Hosts"]["total_mem"]/1024, nodemanagerMinRam)
     putMapredProperty('yarn.app.mapreduce.am.resource.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
     putMapredProperty('mapreduce.map.memory.mb', int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
-    putMapredProperty('mapreduce.reduce.memory.mb', int(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
+    putMapredProperty('mapreduce.reduce.memory.mb', min(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(nodemanagerMinRam)))
     putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]))) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.reduce.memory.mb"]))) + "m")
     putMapredProperty('mapreduce.task.io.sort.mb', str(min(int(0.7*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"])), 2047)))
