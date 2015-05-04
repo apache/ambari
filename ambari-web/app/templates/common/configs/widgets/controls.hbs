@@ -31,7 +31,7 @@
           </a>
         {{/if}}
       {{/if}}
-      {{#if view.supportSwitchToCheckBox}}
+      {{#if view.showPencil}}
         <a href="#"
           {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.showAsTextBox::active"}}
           {{action "toggleWidgetView" target="view"}}>

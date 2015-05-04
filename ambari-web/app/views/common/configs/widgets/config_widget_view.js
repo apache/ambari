@@ -89,6 +89,13 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   supportSwitchToCheckBox: false,
 
   /**
+   * @type {boolean}
+   */
+  showPencil: function () {
+    return this.get('supportSwitchToCheckBox') && !this.get('disabled');
+  }.property('supportSwitchToCheckBox', 'disabled'),
+
+  /**
    * Alias to <code>config.isOriginalSCP</code>
    * Should be used in the templates
    * Don't use original <code>config.isOriginalSCP</code> in the widget-templates!!!
