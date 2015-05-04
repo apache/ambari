@@ -415,11 +415,11 @@
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>contrib/views</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
@@ -428,11 +428,11 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
@@ -447,11 +447,11 @@
         <module>ambari-project</module>
         <module>ambari-views</module>
         <module>ambari-admin</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
@@ -473,11 +473,11 @@
         <module>ambari-views</module>
         <module>ambari-admin</module>
         <module>contrib/ambari-scom/metrics-sink</module>
+        <module>ambari-metrics/ambari-metrics-common</module>
         <module>ambari-server</module>
         <module>ambari-agent</module>
         <module>ambari-client</module>
         <module>ambari-shell</module>
-        <module>ambari-metrics/ambari-metrics-common</module>
       </modules>
     </profile>
     <profile>
