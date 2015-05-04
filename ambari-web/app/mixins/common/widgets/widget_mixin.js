@@ -481,14 +481,25 @@ App.WidgetMixin = Ember.Mixin.create({
   /**
    * post widget definition to server
    * @param {boolean} isClone
+   *  * @param {boolean} isEditClonedWidget
    * @returns {$.ajax}
    */
-  postWidgetDefinition: function (isClone) {
+  postWidgetDefinition: function (isClone, isEditClonedWidget) {
     var data = this.collectWidgetData();
     if (isClone) {
       data.WidgetInfo.widget_name += this.get('CLONE_SUFFIX');
       //TODO remove setting diplay_name once API supports it
       data.WidgetInfo.display_name = data.WidgetInfo.widget_name;
+    }
+    if (isEditClonedWidget) {
+      return App.ajax.send({
+        name: 'widgets.wizard.add',
+        sender: this,
+        data: {
+          data: data
+        },
+        success: 'editNewClonedWidget'
+      });
     }
     return App.ajax.send({
       name: 'widgets.wizard.add',
@@ -512,10 +523,54 @@ App.WidgetMixin = Ember.Mixin.create({
   },
 
   /*
+   * enter edit wizard of the newly cloned widget
+   */
+  editNewClonedWidget: function (data) {
+    var controller = this.get('controller');
+    var widgets = this.get('content.layout.widgets').toArray();
+    var id = data.resources[0].WidgetInfo.id;
+    widgets.pushObject(Em.Object.create({
+      id: id
+    }));
+    var mainServiceInfoSummaryController =  App.router.get('mainServiceInfoSummaryController');
+    mainServiceInfoSummaryController.saveWidgetLayout(widgets).done(function() {
+      mainServiceInfoSummaryController.getActiveWidgetLayout().done(function() {
+        var newWidget = App.Widget.find().findProperty('id', id);
+        controller.editWidget(newWidget);
+      });
+    });
+  },
+
+  /*
    * make call when clicking on "edit icon" on widget
    */
   editWidget: function (event) {
-    this.get('controller').editWidget(this.get('content'));
+    var self = this;
+    var isShared = this.get('content.scope') == 'CLUSTER';
+    if (!isShared) {
+      self.get('controller').editWidget(self.get('content'));
+    } else {
+      return App.ModalPopup.show({
+        header: Em.I18n.t('common.warning'),
+        bodyClass: Em.View.extend({
+          template: Ember.Handlebars.compile('{{t widget.edit.body}}')
+        }),
+        primary: Em.I18n.t('widget.edit.button.primary'),
+        secondary: Em.I18n.t('widget.edit.button.secondary'),
+        third: Em.I18n.t('common.cancel'),
+        onPrimary: function () {
+          this.hide();
+          self.get('controller').editWidget(self.get('content'));
+        },
+        onSecondary: function () {
+          this.hide();
+          self.postWidgetDefinition(true, true);
+        },
+        onThird: function () {
+          this.hide();
+        }
+      });
+    }
   }
 
 });

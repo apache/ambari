@@ -149,6 +149,43 @@ App.WidgetEditController = App.WidgetWizardController.extend({
 
   },
 
+  cancel: function () {
+    var self = this;
+    var step3Controller = App.router.get('widgetWizardStep3Controller');
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      bodyClass: Em.View.extend({
+        template: Ember.Handlebars.compile('{{t alerts.saveChanges}}')
+      }),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.discard'),
+      third: Em.I18n.t('common.cancel'),
+      disablePrimary: function () {
+        if (self.get('currentStep') == 2 && !step3Controller.get('isSubmitDisabled')) {
+          return false;
+        } else {
+          return true;
+        }
+      }.property(''),
+      onPrimary: function () {
+        if (self.get('currentStep') == 2) {
+          App.router.send('complete', step3Controller.collectWidgetData());
+        }
+        this.onSecondary();
+      },
+      onSecondary: function () {
+        this.hide();
+        self.finish();
+        self.get('popup').hide();
+        var serviceName = self.get('content.widgetService');
+        var service = App.Service.find().findProperty('serviceName', serviceName);
+        App.router.transitionTo('main.services.service', service);
+      },
+      onThird: function () {
+        this.hide();
+      }
+    });
+  },
 
   /**
    * Clear all temporary data

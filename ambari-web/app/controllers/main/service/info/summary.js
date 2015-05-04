@@ -543,23 +543,31 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   },
 
   /**
-   * unshare widgets, on click handler for "Unshare"
-   */
-  unshareWidget: function (event) {
-    var widget = event.context;
-    var widgetName = widget.widgetName;
-    //todo unshare current widget
-
-  },
-
-  /**
    * Share widgets, on click handler for "Share"
    */
   shareWidget: function (event) {
     var widget = event.context;
-    var widgetName = widget.widgetName;
-    // todo share current widget
-
+    var self = this;
+    var bodyMessage = Em.Object.create({
+      confirmMsg: Em.I18n.t('dashboard.widgets.browser.action.share.confirmation'),
+      confirmButton: Em.I18n.t('dashboard.widgets.browser.action.share')
+    });
+    return App.showConfirmationFeedBackPopup(function (query) {
+      return App.ajax.send({
+        name: 'widgets.wizard.edit',
+        sender: self,
+        data: {
+          data: {
+            "WidgetInfo": {
+              "widget_name": widget.get("widgetName"),
+              "scope": "CLUSTER"
+            }
+          },
+          widgetId: widget.get("id")
+        },
+        success: 'updateWidgetBrowser'
+      });
+    }, bodyMessage);
   },
 
   /**

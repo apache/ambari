@@ -34,7 +34,7 @@
       <div class="span2 title">{{t widget.create.wizard.step3.sharing}}</div>
       <div class="span10">
         <label class="checkbox">
-          {{view Ember.Checkbox checkedBinding="controller.isSharedChecked"}} &nbsp;
+          {{view Ember.Checkbox disabledBinding="controller.isSharedCheckboxDisabled" checkedBinding="controller.isSharedChecked"}} &nbsp;
           {{t widget.create.wizard.step3.sharing.msg}}
         </label>
       </div>
@@ -48,6 +48,11 @@
 
   <div class="btn-area">
     <button id="add-widget-step3-back" class="btn" {{action back}}>&larr; {{t common.back}}</button>
-    <button id="add-widget-step3-complete" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "complete" target="controller"}}>{{t common.complete}}</button>
+    {{#if controller.isEditController}}
+      <button id="add-widget-step3-save" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "complete" target="controller"}}>{{t common.save}}</button>
+      <button id="add-widget-step3-cancel" class="btn pull-right" {{action "cancel" target="controller"}}>{{t common.cancel}}</button>
+    {{else}}
+      <button id="add-widget-step3-complete" class="btn btn-success pull-right" {{bindAttr disabled="isSubmitDisabled"}} {{action "complete" target="controller"}}>{{t common.complete}}</button>
+    {{/if}}
   </div>
 </div>

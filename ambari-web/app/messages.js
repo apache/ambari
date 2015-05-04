@@ -2279,6 +2279,7 @@ Em.I18n.translations = {
   'dashboard.widgets.browser.action.delete': 'Delete',
   'dashboard.widgets.browser.action.unshare': 'Unshare',
   'dashboard.widgets.browser.action.share': 'Share',
+  'dashboard.widgets.browser.action.share.confirmation': 'You are about to make this a shared widget. All cluster operators will be able to modify or delete this widget. Are you sure you want to share this widget?',
   'dashboard.widgets.browser.shareIcon.tooltip': 'Shared',
   'dashboard.widgets.browser.action.delete.bodyMsg': 'You are about to permanently delete widget: {0}. You can add it back through creating new widget.',
   'dashboard.widgets.browser.action.delete.btnMsg': 'Confirm Delete',
@@ -2530,6 +2531,9 @@ Em.I18n.translations = {
   'widget.edit.wizard.header': 'Edit Widget',
 
   'widget.clone.body': 'Are you sure you want to clone current widget <b>{0}</b>?',
+  'widget.edit.body': 'This is a shared widget and the edits are going to change this widget for all users. Would you prefer to Clone the widget instead?',
+  'widget.edit.button.primary': 'Edit Shared',
+  'widget.edit.button.secondary': 'Clone and Edit',
 
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ Add Metric',

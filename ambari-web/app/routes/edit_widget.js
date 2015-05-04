@@ -33,12 +33,7 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var self = this;
-          widgetEditController.finish();
-          self.hide();
-          var serviceName = widgetEditController.get('content.widgetService');
-          var service = App.Service.find().findProperty('serviceName', serviceName);
-          router.transitionTo('main.services.service', service);
+          widgetEditController.cancel();
         },
 
         didInsertElement: function () {
@@ -107,7 +102,6 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step1'),
     complete: function (router, context) {
       router.get('widgetEditController').putWidgetDefinition(context);
-      router.get('widgetEditController.popup').onClose();
     }
   })
 });
