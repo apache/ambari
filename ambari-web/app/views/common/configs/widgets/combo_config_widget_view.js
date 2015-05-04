@@ -102,9 +102,12 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * @param {Object} e
    */
   setConfigValue: function(e) {
+    var configValueChanged = this.get('config.value') != e.context;
     this.set('config.value', e.context);
     this.set('content.value', this.generateWidgetValue(e.context));
-    this.sendRequestRorDependentConfigs(this.get('config'));
+    if (configValueChanged) {
+      this.sendRequestRorDependentConfigs(this.get('config'));
+    }
   },
 
   /**

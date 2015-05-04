@@ -213,6 +213,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+    putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if 'ranger-hive-plugin-properties' in services['configurations'] and ('ranger-hive-plugin-enabled' in services['configurations']['ranger-hive-plugin-properties']['properties']):
@@ -365,6 +366,38 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     putHiveServerProperty("hive.server2.enable.doAs", "true")
     putHiveSiteProperty("hive.server2.use.SSL", "false")
+
+    #Hive authentication
+    hive_server2_auth = None
+    if "hive-site" in services["configurations"] and "hive.server2.authentication" in services["configurations"]["hive-site"]["properties"]:
+      hive_server2_auth = str(services["configurations"]["hive-site"]["properties"]["hive.server2.authentication"]).lower()
+    elif "hive.server2.authentication" in configurations["hive-site"]["properties"]:
+      hive_server2_auth = str(configurations["hive-site"]["properties"]["hive.server2.authentication"]).lower()
+
+    if hive_server2_auth == "ldap":
+      putHiveSiteProperty("hive.server2.authentication.ldap.url", "")
+      putHiveSiteProperty("hive.server2.authentication.ldap.baseDN", " ")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
+      putHiveSitePropertyAttribute("hive.server2.authentication.ldap.baseDN", "delete", "true")
+
+    if hive_server2_auth == "kerberos":
+      putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
+      putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.keytab", "delete", "true")
+      putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.principal", "delete", "true")
+
+    if hive_server2_auth == "pam":
+      putHiveSiteProperty("hive.server2.authentication.pam.services", "")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.authentication.pam.services", "delete", "true")
+
+    if hive_server2_auth == "custom":
+      putHiveSiteProperty("hive.server2.custom.authentication.class", "")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.custom.authentication.class", "delete", "true")
+
 
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDP22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
