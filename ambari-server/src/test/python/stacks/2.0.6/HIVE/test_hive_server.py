@@ -115,6 +115,79 @@ class TestHiveServer(RMFTestCase):
     self.assertTrue(s.close.called)
     self.assertFalse(get_tar_mock.called)
 
+  @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
+  @patch("socket.socket")
+  def test_start_default_alt_tmp(self, socket_mock, get_tar_mock):
+    s = socket_mock.return_value
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
+                       classname = "HiveServer",
+                       command = "start",
+                       config_file="default_hive_nn_ha.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    get_tar_mock.return_value = ("a", "b")
+    self.assert_configure_default(no_tmp=True)
+
+    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
+                              environment = {'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+                              user = 'hive',
+                              )
+    self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
+                              not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
+                              environment = {'HADOOP_HOME' : '/usr', 'JAVA_HOME':'/usr/jdk64/jdk1.7.0_45'},
+                              path = ["/bin:/usr/lib/hive/bin:/usr/bin"],
+                              user = 'hive'
+    )
+
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
+    )
+
+    self.assertNoMoreResources()
+    self.assertTrue(socket_mock.called)
+    self.assertTrue(s.close.called)
+    self.assertFalse(get_tar_mock.called)
+
+
+  @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
+  @patch("socket.socket")
+  def test_start_default_alt_nn_ha_tmp(self, socket_mock, get_tar_mock):
+    s = socket_mock.return_value
+
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
+                       classname = "HiveServer",
+                       command = "start",
+                       config_file="default_hive_nn_ha_2.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+
+    get_tar_mock.return_value = ("a", "b")
+    self.assert_configure_default(no_tmp=True)
+
+    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
+                              environment = {'PATH': '/bin:/usr/lib/hive/bin:/usr/bin'},
+                              user = 'hive',
+                              )
+    self.assertResourceCalled('Execute', '/tmp/start_hiveserver2_script /var/log/hive/hive-server2.out /var/log/hive/hive-server2.log /var/run/hive/hive-server.pid /etc/hive/conf.server /var/log/hive',
+                              not_if = 'ls /var/run/hive/hive-server.pid >/dev/null 2>&1 && ps -p `cat /var/run/hive/hive-server.pid` >/dev/null 2>&1',
+                              environment = {'HADOOP_HOME' : '/usr', 'JAVA_HOME':'/usr/jdk64/jdk1.7.0_45'},
+                              path = ["/bin:/usr/lib/hive/bin:/usr/bin"],
+                              user = 'hive'
+    )
+
+    self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
+                              path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
+    )
+
+    self.assertNoMoreResources()
+    self.assertTrue(socket_mock.called)
+    self.assertTrue(s.close.called)
+    self.assertFalse(get_tar_mock.called)
+
   @patch("socket.socket")
   @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
   def test_stop_default(self, socket_mock):
@@ -226,7 +299,7 @@ class TestHiveServer(RMFTestCase):
     
     self.assertNoMoreResources()
 
-  def assert_configure_default(self):
+  def assert_configure_default(self, no_tmp = False):
     self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
                               security_enabled=False,
                               keytab=UnknownConfigurationMock(),
@@ -249,18 +322,20 @@ class TestHiveServer(RMFTestCase):
                               bin_dir='/usr/bin',
                               action=['create_delayed'],
     )
-    self.assertResourceCalled('HdfsDirectory', '/custompath/tmp/hive',
-                              security_enabled=False,
-                              keytab=UnknownConfigurationMock(),
-                              conf_dir='/etc/hadoop/conf',
-                              hdfs_user='hdfs',
-                              kinit_path_local='/usr/bin/kinit',
-                              mode=0777,
-                              owner='hive',
-                              group='hdfs',
-                              action=['create_delayed'],
-                              bin_dir='/usr/bin',
-    )
+
+    if not no_tmp:
+      self.assertResourceCalled('HdfsDirectory', '/custompath/tmp/hive',
+                                security_enabled=False,
+                                keytab=UnknownConfigurationMock(),
+                                conf_dir='/etc/hadoop/conf',
+                                hdfs_user='hdfs',
+                                kinit_path_local='/usr/bin/kinit',
+                                mode=0777,
+                                owner='hive',
+                                group='hdfs',
+                                action=['create_delayed'],
+                                bin_dir='/usr/bin',
+      )
 
     self.assertResourceCalled('HdfsDirectory', None,
                               security_enabled=False,

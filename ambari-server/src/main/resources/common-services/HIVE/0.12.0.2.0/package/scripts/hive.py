@@ -24,6 +24,7 @@ import sys
 import os
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
+from urlparse import urlparse
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -288,10 +289,15 @@ def jdbc_connector():
 # recursive directory creation will be a prerequisite as 'hive' user cannot write on the root of the HDFS
 def setup_custom_scratchdir():
   import params
-  if not is_empty(params.hive_exec_scratchdir) and not params.hive_exec_scratchdir.startswith("/tmp"): # If this property is custom and not a variation of the writable temp dir
-    params.HdfsDirectory(params.hive_exec_scratchdir,
-                         action="create_delayed",
-                         owner=params.hive_user,
-                         group=params.hdfs_user,
-                         mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
+  # If this property is custom and not a variation of the writable temp dir
+  if is_empty(params.hive_exec_scratchdir):
+    return
+  parsed = urlparse(params.hive_exec_scratchdir)
+  if parsed.path.startswith("/tmp"):
+    return
+  params.HdfsDirectory(params.hive_exec_scratchdir,
+                       action="create_delayed",
+                       owner=params.hive_user,
+                       group=params.hdfs_user,
+                       mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
 
