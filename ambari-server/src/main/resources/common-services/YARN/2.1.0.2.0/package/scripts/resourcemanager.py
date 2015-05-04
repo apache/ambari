@@ -20,6 +20,7 @@ Ambari Agent
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -93,6 +94,7 @@ class ResourcemanagerDefault(Resourcemanager):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "hadoop", params.version)
       Execute(format("hdp-select set hadoop-yarn-resourcemanager {version}"))
 
   def start(self, env, rolling_restart=False):

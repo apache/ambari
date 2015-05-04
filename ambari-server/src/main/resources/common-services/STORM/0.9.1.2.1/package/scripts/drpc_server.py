@@ -21,6 +21,7 @@ limitations under the License.
 import sys
 from resource_management.libraries.functions import check_process_status
 from resource_management.libraries.script import Script
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
@@ -30,7 +31,6 @@ from service_check import ServiceCheck
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_JAAS_CONF
-
 
 class DrpcServer(Script):
 
@@ -52,6 +52,7 @@ class DrpcServer(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "storm", params.version)
       Execute(format("hdp-select set storm-client {version}"))
 
   def start(self, env, rolling_restart=False):

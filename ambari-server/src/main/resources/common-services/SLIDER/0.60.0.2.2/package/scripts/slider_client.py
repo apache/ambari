@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from slider import slider
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -35,11 +36,13 @@ class SliderClient(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "slider", params.version)      
       Execute(format("hdp-select set slider-client {version}"))
 
       # also set all of the hadoop clients since slider client is upgraded as
       # part of the final "CLIENTS" group and we need to ensure that
       # hadoop-client is also set
+      conf_select.select(params.stack_name, "hadoop", params.version)      
       Execute(format("hdp-select set hadoop-client {version}"))
 
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)

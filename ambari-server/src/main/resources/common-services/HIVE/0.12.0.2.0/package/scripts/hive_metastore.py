@@ -20,6 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -76,6 +77,7 @@ class HiveMetastoreDefault(HiveMetastore):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "hive", params.version)
       Execute(format("hdp-select set hive-metastore {version}"))
 
   def security_status(self, env):

@@ -21,6 +21,7 @@ Ambari Agent
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from mahout import mahout
 
 
@@ -33,6 +34,7 @@ class MahoutClient(Script):
     import params
     env.set_params(params)
 
+    conf_select.select(params.stack_name, "mahout", params.version)
     Execute(('hdp-select', 'set', 'mahout-client', params.version),
             sudo = True)
 

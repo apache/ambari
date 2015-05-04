@@ -25,6 +25,7 @@ from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions import compare_versions
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations
 from resource_management.libraries.functions.security_commons import cached_kinit_executor
@@ -159,6 +160,7 @@ class OozieServerDefault(OozieServer):
 
     oozie_server_upgrade.backup_configuration()
 
+    conf_select.select(params.stack_name, "oozie", params.version)
     Execute(format("hdp-select set oozie-server {version}"))
 
     oozie_server_upgrade.restore_configuration()

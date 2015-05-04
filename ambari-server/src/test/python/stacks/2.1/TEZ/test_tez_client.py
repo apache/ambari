@@ -17,6 +17,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
+import json
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 
@@ -73,3 +75,45 @@ class TestTezClient(RMFTestCase):
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
 
     # for now, it's enough that hdp-select is confirmed
+
+  @patch("resource_management.libraries.functions.get_hdp_version")
+  def test_upgrade_23(self, get_hdp_version_mock):
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
+                       classname = "TezClient",
+                       command = "restart",
+                       config_file="client-upgrade.json",
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES)
+
+    get_hdp_version_mock.return_value = "2.2.1.0-2067"
+    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
+
+    # for now, it's enough that hdp-select is confirmed
+
+  def test_pre_rolling_restart_23(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.1/configs/client-upgrade.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/tez_client.py",
+                       classname = "TezClient",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute', 'hdp-select set hadoop-client %s' % version)
+    self.assertNoMoreResources()
+
+    self.assertEquals(2, mocks_dict['call'].call_count)
+    self.assertEquals(
+      "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[0][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[1][0][0])

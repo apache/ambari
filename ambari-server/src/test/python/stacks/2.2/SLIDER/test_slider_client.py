@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 from stacks.utils.RMFTestCase import *
 
 
@@ -117,3 +118,38 @@ class TestSliderClient(RMFTestCase):
     self.assertResourceCalled("Execute", "hdp-select set slider-client 2.2.1.0-2067")
     self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.2.1.0-2067")
     self.assertNoMoreResources()
+
+
+  def test_pre_rolling_restart_23(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    json_content['commandParams']['version'] = '2.3.0.0-1234'
+    
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/slider_client.py",
+                       classname = "SliderClient",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None), (0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertResourceCalled("Execute", "hdp-select set slider-client 2.3.0.0-1234")
+    self.assertResourceCalled("Execute", "hdp-select set hadoop-client 2.3.0.0-1234")
+    self.assertNoMoreResources()
+
+    self.assertEquals(4, mocks_dict['call'].call_count)
+    self.assertEquals(
+      "conf-select create-conf-dir --package slider --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[0][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package slider --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[1][0][0])
+    self.assertEquals(
+      "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[2][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[3][0][0])

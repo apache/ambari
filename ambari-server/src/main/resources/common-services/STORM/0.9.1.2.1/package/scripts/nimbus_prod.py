@@ -22,10 +22,10 @@ import sys
 from resource_management.libraries.script import Script
 from storm import storm
 from supervisord_service import supervisord_service, supervisord_check_status
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.core.resources.system import Execute
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
-
 
 class Nimbus(Script):
 
@@ -47,6 +47,7 @@ class Nimbus(Script):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "storm", params.version)
       Execute(format("hdp-select set storm-nimbus {version}"))
 
   def start(self, env, rolling_restart=False):

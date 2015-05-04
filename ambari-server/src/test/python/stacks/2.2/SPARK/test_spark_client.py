@@ -17,6 +17,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
 from mock.mock import MagicMock, patch
 from stacks.utils.RMFTestCase import *
 
@@ -118,3 +119,31 @@ class TestSparkClient(RMFTestCase):
         owner = 'spark',
         group = 'spark',
     )
+
+  def test_pre_rolling_restart_23(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/spark_client.py",
+                       classname = "SparkClient",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute', 'hdp-select set spark-client {0}'.format(version))
+    self.assertNoMoreResources()
+
+    self.assertEquals(2, mocks_dict['call'].call_count)
+    self.assertEquals(
+      "conf-select create-conf-dir --package spark --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[0][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package spark --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[1][0][0])

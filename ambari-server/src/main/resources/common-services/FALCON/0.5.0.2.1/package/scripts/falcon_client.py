@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from falcon import falcon
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -50,6 +51,7 @@ class FalconClientLinux(FalconClient):
       return
 
     Logger.info("Executing Falcon Client Rolling Upgrade pre-restart")
+    conf_select.select(params.stack_name, "falcon", params.version)
     Execute(format("hdp-select set falcon-client {version}"))
 
   def security_status(self, env):

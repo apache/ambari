@@ -17,9 +17,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+import json
+import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-import os
 
 origin_exists = os.path.exists
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
@@ -595,3 +596,31 @@ class TestResourceManager(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
+
+  def test_pre_rolling_restart_23(self):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/resourcemanager.py",
+                       classname = "Resourcemanager",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+
+    self.assertResourceCalled('Execute', 'hdp-select set hadoop-yarn-resourcemanager {0}'.format(version))
+    self.assertNoMoreResources()
+
+    self.assertEquals(2, mocks_dict['call'].call_count)
+    self.assertEquals(
+      "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[0][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[1][0][0])

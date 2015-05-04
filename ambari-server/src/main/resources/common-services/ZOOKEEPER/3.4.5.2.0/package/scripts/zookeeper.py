@@ -19,9 +19,10 @@ Ambari Agent
 
 """
 import os
+import sys
 
 from resource_management import *
-import sys
+from resource_management.libraries.functions import conf_select
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 
@@ -73,6 +74,7 @@ def zookeeper(type = None, rolling_restart = False):
     )
     # This path may be missing after Ambari upgrade. We need to create it.
     if (not rolling_restart) and (not os.path.exists("/usr/hdp/current/zookeeper-server")) and params.current_version:
+      conf_select(params.stack_name, "zookeeper", params.current_version)
       Execute(format("hdp-select set zookeeper-server {current_version}"))
 
   if (params.log4j_props != None):

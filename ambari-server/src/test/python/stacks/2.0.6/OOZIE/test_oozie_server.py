@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 '''
 
+import json
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core import shell
@@ -835,6 +836,74 @@ class TestOozieServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
 
     self.assertNoMoreResources()
+
+  @patch("tarfile.open")
+  @patch("os.path.isdir")
+  @patch("os.path.exists")
+  @patch("os.path.isfile")
+  @patch("os.remove")
+  @patch("os.chmod")
+  @patch("shutil.rmtree", new = MagicMock())
+  @patch("glob.iglob")
+  @patch("shutil.copy2", new = MagicMock())
+  def test_upgrade_23(self, glob_mock, chmod_mock, remove_mock,
+      isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
+
+    isdir_mock.return_value = True
+    exists_mock.side_effect = [False,False,True]
+    isfile_mock.return_value = True
+    glob_mock.return_value = ["/usr/hdp/2.2.1.0-2187/hadoop/lib/hadoop-lzo-0.6.0.2.2.1.0-2187.jar"]
+
+    prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
+    New Oozie WAR file with added 'JARs' at /var/lib/oozie/oozie-server/webapps/oozie.war"""
+
+
+    config_file = self.get_src_folder()+"/test/python/stacks/2.2/configs/oozie-upgrade.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/oozie_server.py",
+     classname = "OozieServer", command = "pre_rolling_restart", config_dict = json_content,
+     hdp_stack_version = self.UPGRADE_STACK_VERSION,
+     target = RMFTestCase.TARGET_COMMON_SERVICES,
+     call_mocks = [(0, None), (0, None), (0, prepare_war_stdout)],
+     mocks_dict = mocks_dict
+    )
+
+    # 2 calls to tarfile.open (1 directories, read + write)
+    self.assertTrue(tarfile_open_mock.called)
+    self.assertEqual(tarfile_open_mock.call_count,2)
+
+    self.assertTrue(chmod_mock.called)
+    self.assertEqual(chmod_mock.call_count,1)
+    chmod_mock.assert_called_once_with('/usr/hdp/current/oozie-server/libext-customer', 511)
+
+    self.assertTrue(isfile_mock.called)
+    self.assertEqual(isfile_mock.call_count,3)
+    isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
+
+    self.assertTrue(glob_mock.called)
+    self.assertEqual(glob_mock.call_count,1)
+    glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
+
+    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.3.0.0-1234')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chmod -R 755 /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
+    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
+
+    self.assertNoMoreResources()
+
+    self.assertEquals(3, mocks_dict['call'].call_count)
+    self.assertEquals(
+      "conf-select create-conf-dir --package oozie --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[0][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package oozie --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[1][0][0])
 
 
   @patch("tarfile.open")

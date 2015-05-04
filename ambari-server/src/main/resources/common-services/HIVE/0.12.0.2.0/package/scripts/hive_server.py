@@ -22,6 +22,7 @@ import hive_server_upgrade
 from resource_management import *
 from hive import hive
 from hive_service import hive_service
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -99,6 +100,7 @@ class HiveServerDefault(HiveServer):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "hive", params.version)
       Execute(format("hdp-select set hive-server2 {version}"))
       copy_tarballs_to_hdfs('mapreduce', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)
       copy_tarballs_to_hdfs('tez', 'hive-server2', params.tez_user, params.hdfs_user, params.user_group)

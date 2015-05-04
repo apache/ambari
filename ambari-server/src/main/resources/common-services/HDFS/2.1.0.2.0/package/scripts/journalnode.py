@@ -18,6 +18,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import compare_versions, \
   format_hdp_stack_version
 from resource_management.libraries.functions.format import format
@@ -49,6 +50,7 @@ class JournalNodeDefault(JournalNode):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "hadoop", params.version)
       Execute(format("hdp-select set hadoop-hdfs-journalnode {version}"))
 
   def start(self, env, rolling_restart=False):

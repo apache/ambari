@@ -20,6 +20,7 @@ limitations under the License.
 
 import sys
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from hbase import hbase
 from ambari_commons import OSCheck, OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -54,11 +55,13 @@ class HbaseClientDefault(HbaseClient):
     env.set_params(params)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
+      conf_select.select(params.stack_name, "hbase", params.version)
       Execute(format("hdp-select set hbase-client {version}"))
 
-      # set all of the hadoop clientss since hbase client is upgraded as part
+      # set all of the hadoop clients since hbase client is upgraded as part
       # of the final "CLIENTS" group and we need to ensure that hadoop-client
       # is also set
+      conf_select.select(params.stack_name, "hadoop", params.version)
       Execute(format("hdp-select set hadoop-client {version}"))
 
 
