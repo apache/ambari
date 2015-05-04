@@ -350,15 +350,15 @@ describe('App.SliderConfigWidgetView', function () {
         sinon.stub(this.view, '$')
           .withArgs('input.slider-input').returns([])
           .withArgs('.ui-slider-wrapper:eq(0) .slider-tick').returns({
-            eq: function() {return this;},
-            addClass: function() {return this;},
-            on: function() {return this;},
-            append: function() {return this;},
-            find: function() {return this;},
-            css: function() {return this;},
+            eq: Em.K,
+            addClass: Em.K,
+            on: Em.K,
+            append: Em.K,
+            find: Em.K,
+            css: Em.K,
             width: function() {},
-            last: function() { return this;},
-            hide: function() { return this;}
+            last: Em.K,
+            hide: Em.K
           });
         this.view.willInsertElement();
         this.view.initSlider();
@@ -411,10 +411,10 @@ describe('App.SliderConfigWidgetView', function () {
       expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
     });
 
-    it ('fail: wrong step', function() {
+    it ('ok for wrong step', function() {
       viewInt.set('config.stackConfigProperty', stackConfigProperty);
       viewInt.set('config.value', '3');
-      expect(viewInt.isValueCompatibleWithWidget()).to.be.false;
+      expect(viewInt.isValueCompatibleWithWidget()).to.be.true;
     });
 
     it ('ok', function() {

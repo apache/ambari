@@ -374,8 +374,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var sliderTicks = this.$('.ui-slider-wrapper:eq(0) .slider-tick');
 
     if (recommendedValueId) {
-      var defaultSliderTick = sliderTicks.eq(recommendedValueId);
-
       sliderTicks.eq(recommendedValueId).addClass('slider-tick-default').on('mousedown', function(e) {
         if (self.get('disabled')) return false;
         self.setValue(self.get('config.recommendedValue'));
@@ -474,9 +472,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       if (this.get('config.stackConfigProperty.valueAttributes.maximum')) {
         var max = this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.maximum'));
         if (configValue > max) return false;
-      }
-      if (this.get('config.stackConfigProperty.valueAttributes.increment_step')) {
-        if (configValue % this.get('parseFunction')(this.get('config.stackConfigProperty.valueAttributes.increment_step')) != 0) return false;
       }
       return true;
     }
