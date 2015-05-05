@@ -71,4 +71,29 @@ describe('App.ToggleConfigWidgetView', function () {
 
   });
 
+  describe('#isValueCompatibleWithWidget', function () {
+
+    Em.A([
+      {
+        m: 'valid',
+        v: 'active',
+        e: true
+      },
+      {
+        m: 'invalid',
+        v: 'invalid',
+        e: false
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        this.view.get('config').setProperties({
+          value: test.v,
+          isValid: true
+        });
+        expect(this.view.isValueCompatibleWithWidget()).to.equal(test.e);
+      });
+    });
+
+  });
+
 });

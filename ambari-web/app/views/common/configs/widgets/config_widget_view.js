@@ -84,6 +84,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   showAsTextBox: false,
 
   /**
+   * Determines if user can switch custom widget-view to the input-field
    * @type {boolean}
    */
   supportSwitchToCheckBox: false,
@@ -121,11 +122,20 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
     attributeBindings:['issueMessage:data-original-title'],
 
+    /**
+     * @type {App.ServiceConfigProperty}
+     */
     config: null,
 
+    /**
+     * @type {string}
+     */
     issueIconClass: '',
 
-    issueMessage: false,
+    /**
+     * @type {string}
+     */
+    issueMessage: '',
 
     didInsertElement: function() {
       App.tooltip($(this.get('element')));
@@ -139,6 +149,10 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       this.removeObserver('issuedConfig.errorMessage', this, this.errorLevelObserver);
     },
 
+    /**
+     *
+     * @method errorLevelObserver
+     */
     errorLevelObserver: function() {
       var messageLevel = this.get('issuedConfig.errorMessage') ? 'ERROR': this.get('issuedConfig.warnMessage') ? 'WARN' : 'NONE';
       var issue = {
@@ -163,6 +177,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       this.set('issueMessage', issue.message);
     },
 
+    /**
+     * @type {App.ServiceConfigProperty}
+     */
     issuedConfig: function() {
       var config = this.get('config');
       // check editable overrides

@@ -112,6 +112,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   }.property('config.recommendedValue'),
 
   units: ['b', 'kb', 'mb', 'gb', 'tb', 'pb'],
+
   /**
    * unit type of widget
    * @type {String}
@@ -448,6 +449,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
 
   /**
    * Workaround for bootstrap-slider widget that was initiated inside hidden container.
+   * @method refreshSliderObserver
    */
   refreshSliderObserver: function() {
     var sliderTickLabel = this.$('.ui-slider-wrapper:eq(0) .slider-tick-label:first');
@@ -459,6 +461,11 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     }
   }.observes('parentView.content.isActive', 'parentView.parentView.tab.isActive'),
 
+  /**
+   * Check if value provided by user in the textbox may be used in the slider
+   * @returns {boolean}
+   * @method isValueCompatibleWithWidget
+   */
   isValueCompatibleWithWidget: function() {
     if (this._super()) {
       if (!this.get('validateFunction')(this.get('config.value'))) {

@@ -58,6 +58,8 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
    */
   skipRequestForDependencies: false,
 
+  supportSwitchToCheckBox: true,
+
   /**
    * Update config value using <code>switcherValue</code>.
    * switcherValue is boolean, but config value should be a string.
@@ -117,7 +119,7 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
       self = this;
     Em.assert('toggle for `' + this.get('config.name') + '` should contain two entries', labels.length === 2);
     if (this.$()) {
-      var switcher = this.$("input").bootstrapSwitch({
+      var switcher = this.$("input:eq(0)").bootstrapSwitch({
         onText: labels[0].label,
         offText: labels[1].label,
         offColor: 'default',
@@ -166,6 +168,18 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
       this.get('switcher').bootstrapSwitch('disabled', !this.get('config.isEditable'));
     }
     this._super();
-  }.observes('config.isEditable')
+  }.observes('config.isEditable'),
+
+  /**
+   * Check if value provided by user in the textbox may be used in the toggle
+   * @returns {boolean}
+   * @method isValueCompatibleWithWidget
+   */
+  isValueCompatibleWithWidget: function () {
+    if (this._super()) {
+      return this.get('config.stackConfigProperty.valueAttributes.entries').mapProperty('value').contains(this.get('config.value'));
+    }
+    return false;
+  }
 
 });
