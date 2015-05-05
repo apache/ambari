@@ -2411,7 +2411,7 @@ var urls = {
   },
 
   'widgets.all.mine.get': {
-    real: '/clusters/{clusterName}/widgets?WidgetInfo/author={loginName}&fields=*',
+    real: '/clusters/{clusterName}/widgets?WidgetInfo/scope=USER&WidgetInfo/author={loginName}&fields=*',
     mock: '/data/widget_layouts/all_mine_widgets.json'
   },
 

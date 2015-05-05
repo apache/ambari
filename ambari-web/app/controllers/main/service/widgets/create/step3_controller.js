@@ -95,7 +95,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetProperties', this.get('content.widgetProperties'));
     this.set('widgetValues', this.get('content.widgetValues'));
     this.set('widgetMetrics', this.get('content.widgetMetrics'));
-    this.set('widgetAuthor', App.router.get('loginName'));
+    this.set('widgetAuthor', this.get('content.widgetAuthor'));
     this.set('widgetName', this.get('content.widgetName'));
     this.set('widgetDescription', this.get('content.widgetDescription'));
     this.set('isSharedChecked', this.get('content.widgetScope') == 'CLUSTER');
@@ -120,6 +120,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
         widget_type: this.get('content.widgetType'),
         description: this.get('widgetDescription') || "",
         scope: this.get('widgetScope').toUpperCase(),
+        author: this.get('widgetAuthor'),
         "metrics": this.get('widgetMetrics').map(function (metric) {
           return {
             "name": metric.name,

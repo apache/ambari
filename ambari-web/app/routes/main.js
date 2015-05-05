@@ -585,6 +585,7 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
       widgetController.save('widgetName', context.get('widgetName'));
       widgetController.save('widgetDescription', context.get('description'));
       widgetController.save('widgetScope', context.get('scope'));
+      widgetController.save('widgetAuthor', context.get('author'));
       widgetController.save('widgetId', context.get('id'));
       widgetController.save('allMetrics', []);
       router.get('widgetWizardStep2Controller').convertData(context, widgetController);

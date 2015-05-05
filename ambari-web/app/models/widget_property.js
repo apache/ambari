@@ -214,10 +214,10 @@ App.WidgetPropertyTypes = [
      * @returns {boolean}
      */
     validate: function (value) {
+      value = Number(('' + value).trim());
       if (!value) {
         return true;
       }
-      value = ('' + value).trim();
       return validator.isValidFloat(value) && value > this.get('MIN_VALUE') && value <= this.get('MAX_VALUE');
     },
 

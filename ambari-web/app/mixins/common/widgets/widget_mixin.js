@@ -494,26 +494,18 @@ App.WidgetMixin = Ember.Mixin.create({
     var data = this.collectWidgetData();
     if (isClone) {
       data.WidgetInfo.widget_name += this.get('CLONE_SUFFIX');
-      //TODO remove setting diplay_name once API supports it
+      //TODO remove setting display_name once API supports it
       data.WidgetInfo.display_name = data.WidgetInfo.widget_name;
+      data.WidgetInfo.scope = 'USER';
     }
-    if (isEditClonedWidget) {
-      return App.ajax.send({
-        name: 'widgets.wizard.add',
-        sender: this,
-        data: {
-          data: data
-        },
-        success: 'editNewClonedWidget'
-      });
-    }
+    var successCallback =  isEditClonedWidget ? 'editNewClonedWidget' :  'postWidgetDefinitionSuccessCallback';
     return App.ajax.send({
       name: 'widgets.wizard.add',
       sender: this,
       data: {
         data: data
       },
-      success: 'postWidgetDefinitionSuccessCallback'
+      success: successCallback
     });
   },
 

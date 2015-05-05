@@ -92,6 +92,9 @@ App.WidgetWizardController = App.WizardController.extend({
     templateValue: null,
     widgetName: null,
     widgetDescription: null,
+    widgetAuthor: function () {
+      return App.router.get('loginName');
+    }.property('App.router.loginName'),
     widgetScope: null
   }),
 

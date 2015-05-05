@@ -81,6 +81,7 @@ App.WidgetEditController = App.WidgetWizardController.extend({
     widgetName: null,
     widgetDescription: null,
     widgetScope: null,
+    widgetAuthor: null,
     widgetId: null
   }),
 
@@ -111,6 +112,7 @@ App.WidgetEditController = App.WidgetWizardController.extend({
         callback: function () {
           this.load('widgetName');
           this.load('widgetDescription');
+          this.load('widgetAuthor');
         }
       }
     ]
@@ -199,6 +201,7 @@ App.WidgetEditController = App.WidgetWizardController.extend({
     this.save('widgetValues', []);
     this.save('widgetName', '');
     this.save('widgetDescription', '');
+    this.save('widgetAuthor', '');
     this.save('widgetScope', '');
     this.save('allMetrics', []);
     this.save('expressions', []);
