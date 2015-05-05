@@ -341,17 +341,6 @@
               </sources>
             </mapping>
             <mapping>
-              <directory>/var/lib/ambari-agent</directory>
-              <filemode>700</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>conf/unix/upgrade_agent_configs.py</location>
-                </source>
-              </sources>
-            </mapping>
-            <mapping>
               <directory>${package.pid.dir}</directory>
               <filemode>755</filemode>
               <username>root</username>
@@ -522,17 +511,6 @@
             </data>
             <data>
               <src>conf/unix/install-helper.sh</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/var/lib/ambari-agent</prefix>
-                <user>root</user>
-                <group>root</group>
-                <filemode>700</filemode>
-              </mapper>
-            </data>
-            <data>
-              <src>conf/unix/upgrade_agent_configs.py</src>
               <type>file</type>
               <mapper>
                 <type>perm</type>

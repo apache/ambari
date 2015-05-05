@@ -38,9 +38,10 @@ BAK=/etc/ambari-agent/conf/ambari-agent.ini.old
 ORIG=/etc/ambari-agent/conf/ambari-agent.ini
 
 if [ -f $BAK ]; then
-  SERV_HOST=`grep -e hostname\s*= $BAK | sed -r -e 's/hostname\s*=//' -e 's/\./\\\./g'`
-  sed -i -r -e "s/(hostname\s*=).*/\1$SERV_HOST/" $ORIG
-  rm $BAK -f
+  if [ -f "/var/lib/ambari-agent/upgrade_agent_configs.py" ]; then
+    /var/lib/ambari-agent/upgrade_agent_configs.py
+  fi
+  mv $BAK ${BAK}_$(date '+%d_%m_%y_%H_%M').save
 fi
 
 
