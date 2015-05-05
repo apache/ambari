@@ -364,9 +364,11 @@
       <entries>
         <entry>
           <value>true</value>
+          <label>Enabled</label>
         </entry>
         <entry>
           <value>false</value>
+          <label>Disabled</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
