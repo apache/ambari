@@ -112,7 +112,7 @@ var hdp2properties = [
   },
   {
     "id": "site property",
-    "name": "nfs.dump.dir",
+    "name": "nfs.file.dump.dir",
     "displayName": "NFSGateway dump directory",
     "defaultDirectory": "/tmp/.hdfs-nfs",
     "displayType": "directory",

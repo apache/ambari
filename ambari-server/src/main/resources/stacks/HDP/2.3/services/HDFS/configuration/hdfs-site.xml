@@ -23,7 +23,7 @@
 <configuration supports_final="true">
 
   <property>
-    <name>nfs.dump.dir</name>
+    <name>nfs.file.dump.dir</name>
     <value>/tmp/.hdfs-nfs</value>
     <description>
       This directory is used to temporarily save out-of-order writes before

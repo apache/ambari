@@ -138,7 +138,7 @@
         "hdfs-site": {
             "dfs.namenode.checkpoint.period": "21600", 
             "dfs.namenode.avoid.write.stale.datanode": "true", 
-            "nfs.dump.dir": "/tmp/.hdfs-nfs", 
+            "nfs.file.dump.dir": "/tmp/.hdfs-nfs", 
             "dfs.namenode.startup.delay.block.deletion.sec": "3600", 
             "dfs.namenode.checkpoint.txns": "1000000", 
             "dfs.block.access.token.enable": "true", 

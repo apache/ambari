@@ -255,7 +255,7 @@
             "dfs.namenode.checkpoint.period": "21600", 
             "dfs.namenode.avoid.write.stale.datanode": "true", 
             "dfs.permissions.superusergroup": "hdfs", 
-            "nfs.dump.dir": "/tmp/.hdfs-nfs", 
+            "nfs.file.dump.dir": "/tmp/.hdfs-nfs", 
             "dfs.namenode.startup.delay.block.deletion.sec": "3600", 
             "dfs.namenode.kerberos.internal.spnego.principal": "HTTP/_HOST@EXAMPLE.COM", 
             "dfs.datanode.kerberos.principal": "dn/_HOST@EXAMPLE.COM", 
