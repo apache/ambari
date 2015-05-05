@@ -25,6 +25,11 @@ import com.sun.istack.NotNull;
  */
 public enum KDCType {
   /**
+   * Indicates not KDC type is relevant. This is expected when Ambari is not managing Kerberos identities.
+   */
+  NONE,
+
+  /**
    * Indicates an MIT KDC (or similar)
    */
   MIT_KDC,
@@ -44,9 +49,12 @@ public enum KDCType {
    * @param value a String value to convert to a KDCType
    * @return A KDCType
    * @throws java.lang.IllegalArgumentException if this enum type has no constant with the specified name
-   * @throws java.lang.NullPointerException if the value to translate is null
    */
-  public static KDCType translate(@NotNull String value) {
-    return KDCType.valueOf(value.replace("-", "_").toUpperCase());
+  public static KDCType translate(String value) {
+    if((value == null) || value.isEmpty()) {
+      return NONE;
+    }else {
+      return KDCType.valueOf(value.replace("-", "_").toUpperCase());
+    }
   }
 }

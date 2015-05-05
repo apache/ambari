@@ -1216,14 +1216,22 @@ public class KerberosHelper {
       throw new AmbariException(message);
     }
 
-    KDCType kdcType;
+    kerberosDetails.setSecurityType(cluster.getSecurityType());
+    kerberosDetails.setDefaultRealm(kerberosEnvProperties.get("realm"));
+
+    kerberosDetails.setKerberosEnvProperties(kerberosEnvProperties);
+
+    // If set, override the manage identities behavior
+    kerberosDetails.setManageIdentities(manageIdentities);
+
     String kdcTypeProperty = kerberosEnvProperties.get("kdc_type");
-    if (kdcTypeProperty == null) {
+    if ((kdcTypeProperty == null) && kerberosDetails.manageIdentities()) {
       String message = "The 'kerberos-env/kdc_type' value must be set to a valid KDC type";
       LOG.error(message);
       throw new KerberosInvalidConfigurationException(message);
     }
 
+    KDCType kdcType;
     try {
       kdcType = KDCType.translate(kdcTypeProperty);
     } catch (IllegalArgumentException e) {
@@ -1232,16 +1240,8 @@ public class KerberosHelper {
       throw new AmbariException(message);
     }
 
-    kerberosDetails.setSecurityType(cluster.getSecurityType());
-    kerberosDetails.setDefaultRealm(kerberosEnvProperties.get("realm"));
-
     // Set the KDCType to the the MIT_KDC as a fallback.
     kerberosDetails.setKdcType((kdcType == null) ? KDCType.MIT_KDC : kdcType);
-
-    kerberosDetails.setKerberosEnvProperties(kerberosEnvProperties);
-
-    // If set, override the manage identities behavior
-    kerberosDetails.setManageIdentities(manageIdentities);
 
     return kerberosDetails;
   }
@@ -2577,10 +2577,11 @@ public class KerberosHelper {
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
       commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
-      commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-      commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
       if (kerberosDetails.manageIdentities()) {
+        commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
+
         // *****************************************************************
         // Create stage to create principals
         addCreatePrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
@@ -2669,8 +2670,6 @@ public class KerberosHelper {
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
       commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
       commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
-      commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-      commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
       // If there are configurations to set, create a (temporary) data file to store the configuration
       // updates and fill it will the relevant configurations.
@@ -2787,6 +2786,9 @@ public class KerberosHelper {
           roleCommandOrder, requestStageContainer);
 
       if(kerberosDetails.manageIdentities()) {
+        commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
+
         // *****************************************************************
         // Create stage to remove principals
         addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
@@ -2883,23 +2885,26 @@ public class KerberosHelper {
         commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
         commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
-        commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
-        commandParameters.put(KerberosServerAction.REGENERATE_ALL, (regenerateAllKeytabs) ? "true" : "false");
 
-        // *****************************************************************
-        // Create stage to create principals
-        addCreatePrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
-            commandParameters, roleCommandOrder, requestStageContainer);
+        if (kerberosDetails.manageIdentities()) {
+          commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+          commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
+          commandParameters.put(KerberosServerAction.REGENERATE_ALL, (regenerateAllKeytabs) ? "true" : "false");
 
-        // *****************************************************************
-        // Create stage to generate keytabs
-        addCreateKeytabFilesStage(cluster, clusterHostInfoJson, hostParamsJson, event,
-            commandParameters, roleCommandOrder, requestStageContainer);
+          // *****************************************************************
+          // Create stage to create principals
+          addCreatePrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
+              commandParameters, roleCommandOrder, requestStageContainer);
 
-        // Create stage to distribute keytabs
-        addDistributeKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
-            hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+          // *****************************************************************
+          // Create stage to generate keytabs
+          addCreateKeytabFilesStage(cluster, clusterHostInfoJson, hostParamsJson, event,
+              commandParameters, roleCommandOrder, requestStageContainer);
+
+          // Create stage to distribute keytabs
+          addDistributeKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
+              hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+        }
       }
 
       return requestStageContainer.getLastStageId();
@@ -2967,18 +2972,21 @@ public class KerberosHelper {
         commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
         commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
         commandParameters.put(KerberosServerAction.DEFAULT_REALM, kerberosDetails.getDefaultRealm());
-        commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
-        commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
-        // *****************************************************************
-        // Create stage to delete principals
-        addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
-            commandParameters, roleCommandOrder, requestStageContainer);
+        if (kerberosDetails.manageIdentities()) {
+          commandParameters.put(KerberosServerAction.KDC_TYPE, kerberosDetails.getKdcType().name());
+          commandParameters.put(KerberosServerAction.ADMINISTRATOR_CREDENTIAL, getEncryptedAdministratorCredentials(cluster));
 
-        // *****************************************************************
-        // Create stage to delete keytabs
-        addDeleteKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
-            hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+          // *****************************************************************
+          // Create stage to delete principals
+          addDestroyPrincipalsStage(cluster, clusterHostInfoJson, hostParamsJson, event,
+              commandParameters, roleCommandOrder, requestStageContainer);
+
+          // *****************************************************************
+          // Create stage to delete keytabs
+          addDeleteKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
+              hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
+        }
       }
 
       return requestStageContainer.getLastStageId();

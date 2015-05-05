@@ -68,7 +68,12 @@ public class KerberosOperationHandlerFactoryTest {
   }
 
   @Test(expected = IllegalArgumentException.class)
+  public void testForNone() {
+    Assert.assertNull(injector.getInstance(KerberosOperationHandlerFactory.class).getKerberosOperationHandler(KDCType.NONE));
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void testForNull() {
-    Assert.assertNull(new KerberosOperationHandlerFactory().getKerberosOperationHandler(null));
+    Assert.assertNull(injector.getInstance(KerberosOperationHandlerFactory.class).getKerberosOperationHandler(null));
   }
 }

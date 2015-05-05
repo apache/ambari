@@ -60,6 +60,7 @@ import org.apache.ambari.server.serveraction.kerberos.KDCType;
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosConfigDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosCredential;
+import org.apache.ambari.server.serveraction.kerberos.KerberosInvalidConfigurationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosMissingAdminCredentialsException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandler;
@@ -253,13 +254,28 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testEnableKerberos() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "mit-kdc", "true", true, false);
+  }
+
+  @Test
+  public void testEnableKerberos_ManageIdentitiesFalseKdcNone() throws Exception {
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "none", "false", true, false);
+  }
+
+  @Test(expected = AmbariException.class)
+  public void testEnableKerberos_ManageIdentitiesTrueKdcNone() throws Exception {
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "none", "true", true, false);
+  }
+
+  @Test(expected = KerberosInvalidConfigurationException.class)
+  public void testEnableKerberos_ManageIdentitiesTrueKdcNull() throws Exception {
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), null, "true", true, false);
   }
 
   @Test(expected = KerberosMissingAdminCredentialsException.class)
   public void testEnableKerberosMissingCredentials() throws Exception {
     try {
-      testEnableKerberos(null, true, false);
+      testEnableKerberos(null, "mit-kdc", "true", true, false);
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Missing KDC administrator credentials"));
       throw e;
@@ -269,7 +285,7 @@ public class KerberosHelperTest extends EasyMockSupport {
   @Test(expected = KerberosMissingAdminCredentialsException.class)
   public void testEnableKerberosInvalidCredentials() throws Exception {
     try {
-      testEnableKerberos(new KerberosCredential("invalid_principal", "password", "keytab"), true, false);
+      testEnableKerberos(new KerberosCredential("invalid_principal", "password", "keytab"), "mit-kdc", "true", true, false);
     } catch (IllegalArgumentException e) {
       Assert.assertTrue(e.getMessage().startsWith("Invalid KDC administrator credentials"));
       throw e;
@@ -278,12 +294,12 @@ public class KerberosHelperTest extends EasyMockSupport {
 
   @Test
   public void testEnableKerberos_GetKerberosDescriptorFromCluster() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), true, false);
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "mit-kdc", "true", true, false);
   }
 
   @Test
   public void testEnableKerberos_GetKerberosDescriptorFromStack() throws Exception {
-    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), false, true);
+    testEnableKerberos(new KerberosCredential("principal", "password", "keytab"), "mit-kdc", "true", false, true);
   }
 
   @Test
@@ -828,7 +844,8 @@ public class KerberosHelperTest extends EasyMockSupport {
 
 
   private void testEnableKerberos(final KerberosCredential kerberosCredential,
-                                  boolean getClusterDescriptor,
+                                  String kdcType,
+                                  String manageIdentities, boolean getClusterDescriptor,
                                   boolean getStackDescriptor) throws Exception {
 
     KerberosHelper kerberosHelper = injector.getInstance(KerberosHelper.class);
@@ -924,7 +941,8 @@ public class KerberosHelperTest extends EasyMockSupport {
     expectLastCall().once();
 
     final Map<String, String> kerberosEnvProperties = createMock(Map.class);
-    expect(kerberosEnvProperties.get("kdc_type")).andReturn("mit-kdc").anyTimes();
+    expect(kerberosEnvProperties.get("kdc_type")).andReturn(kdcType).anyTimes();
+    expect(kerberosEnvProperties.get("manage_identities")).andReturn(manageIdentities).anyTimes();
     expect(kerberosEnvProperties.get("realm")).andReturn("FOOBAR.COM").anyTimes();
 
     final Config kerberosEnvConfig = createNiceMock(Config.class);
@@ -979,9 +997,11 @@ public class KerberosHelperTest extends EasyMockSupport {
           }
         })
         .once();
-    expect(clusters.getHost("host1"))
-        .andReturn(host)
-        .once();
+    if((manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities)) {
+      expect(clusters.getHost("host1"))
+          .andReturn(host)
+          .once();
+    }
 
     final AmbariManagementController ambariManagementController = injector.getInstance(AmbariManagementController.class);
     expect(ambariManagementController.findConfigurationTagsWithOverrides(cluster, "host1"))
@@ -1089,21 +1109,23 @@ public class KerberosHelperTest extends EasyMockSupport {
 
     // This is a STRICT mock to help ensure that the end result is what we want.
     final RequestStageContainer requestStageContainer = createStrictMock(RequestStageContainer.class);
-    // Create Principals Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-    // Create Keytabs Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-    // Distribute Keytabs Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
+    if((manageIdentities == null) || !"false".equalsIgnoreCase(manageIdentities)) {
+      // Create Principals Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(-1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+      // Create Keytabs Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(0L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+      // Distribute Keytabs Stage
+      expect(requestStageContainer.getLastStageId()).andReturn(1L).anyTimes();
+      expect(requestStageContainer.getId()).andReturn(1L).once();
+      requestStageContainer.addStages(anyObject(List.class));
+      expectLastCall().once();
+    }
     // Update Configs Stage
     expect(requestStageContainer.getLastStageId()).andReturn(2L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
@@ -1121,7 +1143,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     // Needed by infrastructure
     metaInfo.init();
 
-    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer, true);
+    kerberosHelper.toggleKerberos(cluster, SecurityType.KERBEROS, requestStageContainer, null);
 
     verifyAll();
   }
