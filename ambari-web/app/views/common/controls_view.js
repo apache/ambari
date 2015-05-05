@@ -419,7 +419,9 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
     // on page render, automatically populate JDBC URLs only for default database settings
     // so as to not lose the user's customizations on these fields
     if (['addServiceController', 'installerController'].contains(this.get('controller.wizardController.name'))) {
-      if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value')) || this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name'))) {
+      if (/^New\s\w+\sDatabase$/.test(this.get('serviceConfig.value')) ||
+        this.get('dontUseHandleDbConnection').contains(this.get('serviceConfig.name')) ||
+        this.get('serviceConfig.serviceName') === 'RANGER') {
         this.onOptionsChange();
       } else {
         if (App.get('isHadoopWindowsStack') && /SQL\sauthentication/.test(this.get('serviceConfig.value'))) {

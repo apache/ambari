@@ -318,14 +318,20 @@ module.exports = {
         break;
       case 'db_host':
       case 'rangerserver_host':
-        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName);
+        var masterComponent =  masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
+        if (masterComponent) {
+          configProperty.set('value', masterComponent.hostName);
+        };
         break;
       case 'ranger_mysql_host':
       case 'ranger_oracle_host':
       case 'ranger_postgres_host':
       case 'ranger_mssql_host':
-        var rangerServerHost = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName;
-        configProperty.set('value', rangerServerHost).set('defaultValue', rangerServerHost);
+        var masterComponent = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN'),
+          rangerServerHost = masterComponent ? masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName : '';
+        if (rangerServerHost) {
+          configProperty.set('value', rangerServerHost).set('defaultValue', rangerServerHost);
+        }
         break;
     }
   },
