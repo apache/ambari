@@ -32,10 +32,15 @@
         {{/if}}
       {{/if}}
       {{#if view.showPencil}}
-        <a href="#"
-          {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.showAsTextBox::active"}}
-          {{action "toggleWidgetView" target="view"}}>
-        </a>
+        {{#if view.isWidgetViewAllowed}}
+          <a href="#"
+            {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.showAsTextBox::active"}}
+            {{action "toggleWidgetView" target="view"}}>
+          </a>
+        {{else}}
+          <i class="icon-pencil widget-action widget-action-switch-view text-error"
+             data-toggle="tooltip" {{translateAttr data-original-title="config.infoMessage.wrong.value.for.widget"}}></i>
+        {{/if}}
       {{/if}}
     </div>
     <div class="widget-col right">

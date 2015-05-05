@@ -317,6 +317,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @method toggleWidgetView
    */
   toggleWidgetView: function() {
+    if (!this.get('isWidgetViewAllowed')) {
+      return false;
+    }
     if (this.get('showAsTextBox')) {
       this.textBoxToWidget();
     } else {
@@ -340,8 +343,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     if (this.isValueCompatibleWithWidget()) {
       this.setValue(this.get('config.value'));
       this.set("showAsTextBox", false);
-    } else {
-      App.showAlertPopup(Em.I18n.t('common.warning'), Em.I18n.t('config.infoMessage.wrong.value.for.widget'));
     }
   },
 
@@ -351,6 +352,17 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   isValueCompatibleWithWidget: function() {
     return this.get('config.isValid');
-  }
+  },
+
+  /**
+   * Returns <code>true</code> if raw value can be used by widget or widget view is activated.
+   * @returns {Boolean}
+   */
+  isWidgetViewAllowed: function() {
+    if (!this.get('showAsTextBox')) {
+      return true;
+    }
+    return this.isValueCompatibleWithWidget();
+  }.property('config.value', 'showAsTextBox')
 
 });

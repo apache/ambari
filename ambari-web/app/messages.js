@@ -2620,7 +2620,7 @@ Em.I18n.translations = {
   'config.group.save.confirmation.manage.button': 'Manage Hosts',
   'config.group.description.default': 'New configuration group created on {0}',
 
-  'config.infoMessage.wrong.value.for.widget': 'Config value can\'t be converted to widget value',
+  'config.infoMessage.wrong.value.for.widget': 'Configuration value cannot be converted into UI control value',
   'config.warnMessage.outOfBoundaries.greater': 'Values greater than {0} are not recommended',
   'config.warnMessage.outOfBoundaries.less': 'Values smaller than {0} are not recommended',
 
