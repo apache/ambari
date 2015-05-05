@@ -17,7 +17,6 @@
  */
 
 var App = require('app');
-require('utils/pages/scroll_manager');
 
 App.ConfigHistoryFlowView = Em.View.extend({
   templateName: require('templates/common/configs/config_history_flow'),
@@ -164,6 +163,7 @@ App.ConfigHistoryFlowView = Em.View.extend({
     App.tooltip(this.$('[data-toggle=arrow-tooltip]'),{
       placement: 'top'
     });
+    $(".version-info-bar-wrapper").stick_in_parent({parent: '#serviceConfig', offset_top: 10});
   },
 
   serviceVersionBox: Em.View.extend({
@@ -212,16 +212,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-    if (!App.ScrollManager.get('elements').someProperty('id', 'configsManagePanel')) {
-      App.ScrollManager.get('elements').pushObject({
-        id: 'configsManagePanel',
-        updatedElementSelector: '#config_history_flow>.version-info-bar-wrapper',
-        elementForLeftOffsetSelector: '#config_history_flow>.version-slider',
-        defaultTop: 290,
-        movedTop: 10
-      });
-    }
-    App.ScrollManager.updatePositionForElements();
   },
 
   onChangeConfigGroup: function () {
@@ -267,7 +257,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
     }
     this.set('startIndex', startIndex);
     this.adjustFlowView();
-    App.ScrollManager.updatePositionForElements();
   }.observes('controller.selectedConfigGroup.name'),
 
   /**

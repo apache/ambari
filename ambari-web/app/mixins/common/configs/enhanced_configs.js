@@ -577,9 +577,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           }
           this.addOverrideProperty(cp, selectedGroup, Em.get(propertyToAdd, 'recommendedValue'), !Em.get(propertyToAdd, 'isDeleted'));
         }
-        Em.set(propertyToAdd, 'isDeleted', false);
-        Em.set(propertyToAdd, 'toAdd', false);
-        Em.set(propertyToAdd, 'toDelete', false);
+        Em.setProperties(propertyToAdd, {
+          isDeleted: false,
+          toAdd: false,
+          toDelete: false
+        });
       }, this);
     }
   },
@@ -606,19 +608,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
               Em.set(propertyToDelete, 'isDeleted', true);
             }
           } else {
-            var overridenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
-            if (overridenConfig) {
-              if (overridenConfig.get('isNotSaved')) {
+            var overriddenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
+            if (overriddenConfig) {
+              if (overriddenConfig.get('isNotSaved')) {
                 this.get('_dependentConfigValues').removeObject(propertyToDelete);
               }
-              cp.removeObject(overridenConfig);
-              if (!overridenConfig.get('isNotSaved')) {
+              cp.removeObject(overriddenConfig);
+              if (!overriddenConfig.get('isNotSaved')) {
                 Em.set(propertyToDelete, 'isDeleted', true);
               }
             }
           }
-          Em.set(propertyToDelete, 'toAdd', false);
-          Em.set(propertyToDelete, 'toDelete', false);
+          Em.setProperties(propertyToDelete, {
+            toAdd: false,
+            toDelete: false
+          });
         }
       }, this);
     }
@@ -645,9 +649,9 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             if (stepConfigs.get('serviceName') !== this.get('content.serviceName')) {
               cp.set('value', cp.get('defaultValue'));
             }
-            var overridenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
-            if (overridenConfig) {
-              overridenConfig.set('value', valueToSave);
+            var overriddenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
+            if (overriddenConfig) {
+              overriddenConfig.set('value', valueToSave);
             }
           }
         }

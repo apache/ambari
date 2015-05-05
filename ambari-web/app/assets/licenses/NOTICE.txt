@@ -54,3 +54,6 @@ Copyright (C) 2015 by Mattia Larentis (mattia [at] larentis [*dot*] eu)
 
 This product includes bootstrap-checkbox v.1.0.1 (https://github.com/montrezorro/bootstrap-checkbox - Apache License, Version 2.0)
 Copyright (C) 2014 Roberto Montresor (info [at] robertomontresor [*dot*] it)
+
+This product includes sticky-kit v.1.1.2 (https://github.com/leafo/sticky-kit - MIT License)
+Copyright (C) 2015 Leaf Corcoran (leafot [at] gmail [*dot*] com)

@@ -54,6 +54,7 @@ exports.config =
           'vendor/scripts/jquery.ui.custom-effects.js',
           'vendor/scripts/jquery.timeago.js',
           'vendor/scripts/jquery.ajax-retry.js',
+          'vendor/scripts/jquery.sticky-kit.js',
           'vendor/scripts/moment.js',
           'vendor/scripts/workflow_visualization.js',
           'vendor/scripts/rickshaw.js',
