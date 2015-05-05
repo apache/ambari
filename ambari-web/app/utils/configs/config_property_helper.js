@@ -316,6 +316,17 @@ module.exports = {
           configProperty.set('isRequired', 'false');
         }
         break;
+      case 'db_host':
+      case 'rangerserver_host':
+        configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName);
+        break;
+      case 'ranger_mysql_host':
+      case 'ranger_oracle_host':
+      case 'ranger_postgres_host':
+      case 'ranger_mssql_host':
+        var rangerServerHost = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName;
+        configProperty.set('value', rangerServerHost).set('defaultValue', rangerServerHost);
+        break;
     }
   },
 

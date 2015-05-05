@@ -103,6 +103,10 @@ describe('App.ServiceConfigRadioButtons', function () {
           },
           {
             name: 'oozie.db.schema.name',
+            value: 'db1'
+          },
+          {
+            name: 'db_name',
             value: 'db2'
           }
         ]
@@ -114,6 +118,10 @@ describe('App.ServiceConfigRadioButtons', function () {
         },
         {
           serviceName: 'OOZIE',
+          value: 'db1'
+        },
+        {
+          serviceName: 'RANGER',
           value: 'db2'
         }
       ];
@@ -194,7 +202,25 @@ describe('App.ServiceConfigRadioButtons', function () {
           {
             name: 'oozie_hostname',
             value: 'h16'
-          }
+          },
+          {
+            name: 'ranger_mysql_host',
+            value: 'h17'
+          },
+          {
+            name: 'ranger_oracle_host',
+            value: 'h18'
+          },
+          {
+            name: 'ranger_postgres_host',
+            value: 'h19'
+          },
+          {
+            name: 'ranger_mssql_host',
+            value: 'h20'
+          },
+
+
         ]
       }),
       cases = [
@@ -267,6 +293,26 @@ describe('App.ServiceConfigRadioButtons', function () {
           serviceName: 'OOZIE',
           value: 'default case',
           expected: 'h16'
+        },
+        {
+          serviceName: 'RANGER',
+          value: 'MYSQL',
+          expected: 'h17'
+        },
+        {
+          serviceName: 'RANGER',
+          value: 'ORACLE',
+          expected: 'h18'
+        },
+        {
+          serviceName: 'RANGER',
+          value: 'POSTGRES',
+          expected: 'h19'
+        },
+        {
+          serviceName: 'RANGER',
+          value: 'MSSQL',
+          expected: 'h20'
         }
       ];
 
@@ -313,6 +359,12 @@ describe('App.ServiceConfigRadioButtons', function () {
           }),
           Em.Object.create({
             name: 'oozie.service.JPAService.jdbc.password'
+          }),
+          Em.Object.create({
+            name: 'db_host'
+          }),
+          Em.Object.create({
+            name: 'SQL_COMMAND_INVOKER'
           })
         ],
         parentView: Em.Object.create({
@@ -320,7 +372,11 @@ describe('App.ServiceConfigRadioButtons', function () {
             {
               name: 'hive_database_type',
               value: null
-            }
+            },
+            Em.Object.create({
+              name: 'SQL_CONNECTOR_JAR',
+              value: null
+            })
           ]
         }),
         configs: [{}]
@@ -475,11 +531,62 @@ describe('App.ServiceConfigRadioButtons', function () {
           connectionUrlDefaultValue: 'jdbc:sqlserver://h11;databaseName=db11;integratedSecurity=true',
           dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
           isAuthVisibleAndRequired: false
+        },
+
+
+        {
+          serviceName: 'RANGER',
+          serviceConfigValue: 'MYSQL',
+          databaseName: 'db12',
+          hostName: 'h12',
+          databaseNameDefault: 'db12d',
+          hostNameDefault: 'h12d',
+          connectionUrlValue: 'jdbc:mysql://h12/db12',
+          connectionUrlDefaultValue: 'jdbc:mysql://h12/db12',
+          dbClassValue: 'com.mysql.jdbc.Driver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'RANGER',
+          serviceConfigValue: 'ORACLE',
+          databaseName: 'db13',
+          hostName: 'h13',
+          databaseNameDefault: 'db13d',
+          hostNameDefault: 'h13d',
+          connectionUrlValue: 'jdbc:oracle:thin:@//h13:1521/db13',
+          connectionUrlDefaultValue: 'jdbc:oracle:thin:@//h13:1521/db13',
+          dbClassValue: 'oracle.jdbc.driver.OracleDriver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'RANGER',
+          serviceConfigValue: 'POSTGRES',
+          databaseName: 'db14',
+          hostName: 'h14',
+          databaseNameDefault: 'db14d',
+          hostNameDefault: 'h14d',
+          connectionUrlValue: 'jdbc:postgresql://h14:5432/db14',
+          connectionUrlDefaultValue: 'jdbc:postgresql://h14:5432/db14',
+          dbClassValue: 'org.postgresql.Driver',
+          isAuthVisibleAndRequired: true
+        },
+        {
+          serviceName: 'RANGER',
+          serviceConfigValue: 'MSSQL',
+          databaseName: 'db15',
+          hostName: 'h15',
+          databaseNameDefault: 'db15d',
+          hostNameDefault: 'h15d',
+          connectionUrlValue: 'jdbc:sqlserver://h15;databaseName=db15',
+          connectionUrlDefaultValue: 'jdbc:sqlserver://h15;databaseName=db15',
+          dbClassValue: 'com.microsoft.sqlserver.jdbc.SQLServerDriver',
+          isAuthVisibleAndRequired: true
         }
       ],
       serviceAuthPropsMap = {
         HIVE: ['javax.jdo.option.ConnectionUserName', 'javax.jdo.option.ConnectionPassword'],
-        OOZIE: ['oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password']
+        OOZIE: ['oozie.service.JPAService.jdbc.username', 'oozie.service.JPAService.jdbc.password'],
+        RANGER: []
       };
 
     beforeEach(function () {
@@ -621,6 +728,10 @@ describe('App.CheckDBConnectionView', function () {
         {
           serviceName: 'HIVE',
           value: 'h2'
+        },
+        {
+          serviceName: 'RANGER',
+          value: 'h3'
         }
       ],
       categoryConfigsAll = [
@@ -635,6 +746,10 @@ describe('App.CheckDBConnectionView', function () {
         Em.Object.create({
           name: 'hive_ambari_host',
           value: 'h2'
+        }),
+        Em.Object.create({
+          name: 'rangerserver_host',
+          value: 'h3'
         })
       ];
 
