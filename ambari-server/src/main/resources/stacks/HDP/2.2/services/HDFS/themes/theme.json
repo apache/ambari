@@ -50,31 +50,6 @@
                       "column-span": "1"
                     }
                   ]
-                },
-                {
-                  "name": "section-encryption",
-                  "display-name": "Encryption",
-                  "row-index": "1",
-                  "column-index": "0",
-                  "row-span": "1",
-                  "column-span": "2",
-                  "section-columns": "2",
-                  "section-rows": "1",
-                  "subsections": [
-                    {
-                      "name": "subsection-encryption-col1",
-                      "row-index": "0",
-                      "column-index": "0",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }, {
-                      "name": "subsection-encryption-col2",
-                      "row-index": "0",
-                      "column-index": "1",
-                      "row-span": "1",
-                      "column-span": "1"
-                    }
-                  ]
                 }
               ]
             }
@@ -116,14 +91,6 @@
         {
           "config": "hdfs-site/dfs.datanode.max.transfer.threads",
           "subsection-name": "subsection-datanode-col1"
-        },
-        {
-          "config": "hadoop-env/keyserver_host",
-          "subsection-name": "subsection-encryption-col1"
-        },
-        {
-          "config": "hadoop-env/keyserver_port",
-          "subsection-name": "subsection-encryption-col2"
         }
       ]
     },
@@ -204,18 +171,6 @@
               "unit-name": "int"
             }
           ]
-        }
-      },
-      {
-        "config": "hadoop-env/keyserver_host",
-        "widget": {
-          "type": "text-field"
-        }
-      },
-      {
-        "config": "hadoop-env/keyserver_port",
-        "widget": {
-          "type": "text-field"
         }
       }
     ]
