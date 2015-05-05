@@ -574,8 +574,9 @@
             "yarn_heapsize": "1024", 
             "yarn_user": "yarn", 
             "resourcemanager_heapsize": "1024", 
-            "yarn_log_dir_prefix": "/var/log/hadoop-yarn"
-        }, 
+            "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
+            "is_supported_yarn_ranger": "false"
+        },
         "hadoop-env": {
             "namenode_opt_maxnewsize": "200m", 
             "hdfs_log_dir_prefix": "/var/log/hadoop",

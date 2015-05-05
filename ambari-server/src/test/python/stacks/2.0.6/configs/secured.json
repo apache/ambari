@@ -536,7 +536,8 @@
             "yarn_user": "yarn", 
             "resourcemanager_heapsize": "1024", 
             "yarn_log_dir_prefix": "/var/log/hadoop-yarn",
-            "min_user_id": "1000"
+            "min_user_id": "1000",
+            "is_supported_yarn_ranger": "false"
         },
         "cluster-env": {
             "security_enabled": "true",

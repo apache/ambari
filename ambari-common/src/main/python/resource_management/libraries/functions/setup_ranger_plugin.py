@@ -29,6 +29,7 @@ from resource_management.core.logger import Logger
 from resource_management.core.source import DownloadSource
 from resource_management.libraries.resources import ModifyPropertiesFile
 from resource_management.core.exceptions import Fail
+from resource_management.libraries.functions.ranger_functions_v2 import RangeradminV2
 
 def setup_ranger_plugin(component_select_name, service_name,
                         downloaded_custom_connector, driver_curl_source, 
@@ -36,7 +37,7 @@ def setup_ranger_plugin(component_select_name, service_name,
                         repo_name, plugin_repo_dict, 
                         ranger_env_properties, plugin_properties,
                         policy_user, policymgr_mgr_url,
-                        plugin_enabled):
+                        plugin_enabled,api_version=None):
   File(downloaded_custom_connector,
        content = DownloadSource(driver_curl_source)
   )
@@ -58,8 +59,11 @@ def setup_ranger_plugin(component_select_name, service_name,
 
   if plugin_enabled:
     cmd = (format('enable-{service_name}-plugin.sh'),)
-    
-    ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url)
+    if api_version == 'v2' and api_version is not None:
+      ranger_adm_obj = RangeradminV2(url=policymgr_mgr_url)
+    else:
+      ranger_adm_obj = Rangeradmin(url=policymgr_mgr_url)
+
     ranger_adm_obj.create_ranger_repository(service_name, repo_name, plugin_repo_dict,
                                             ranger_env_properties['ranger_admin_username'], ranger_env_properties['ranger_admin_password'], 
                                             ranger_env_properties['admin_username'], ranger_env_properties['admin_password'], 

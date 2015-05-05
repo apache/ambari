@@ -57,7 +57,11 @@
     <value>1000</value>
     <description>Set to 0 to disallow root from submitting jobs. Set to 1000 to disallow all superusers from submitting jobs</description>
   </property>  
-
+  <property>
+    <name>is_supported_yarn_ranger</name>
+    <value>false</value>
+    <description>Set to false by default,  needs to be set to true in stacks that use Ranger Yarn Plugin</description>
+  </property>
   <!-- yarn-env.sh -->
   <property>
     <name>content</name>

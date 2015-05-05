@@ -250,3 +250,72 @@ node_labels_dir = default("/configurations/yarn-site/yarn.node-labels.fs-store.r
 node_label_enable = config['configurations']['yarn-site']['yarn.node-labels.enabled']
 
 cgroups_dir = "/cgroups_test/cpu"
+
+# ***********************  RANGER PLUGIN CHANGES ***********************
+# ranger host
+ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+has_ranger_admin = not len(ranger_admin_hosts) == 0
+ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
+# hostname of the active HDFS HA Namenode (only used when HA is enabled)
+dfs_ha_namenode_active = default("/configurations/hadoop-env/dfs_ha_initial_namenode_active", None)
+if dfs_ha_namenode_active is not None: 
+  namenode_hostname = dfs_ha_namenode_active
+else:
+  namenode_hostname = config['clusterHostInfo']['namenode_host'][0]
+
+ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir","/var/log/ranger/admin")
+is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
+
+#ranger yarn properties
+if has_ranger_admin:
+
+  enable_ranger_yarn = (config['configurations']['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'].lower() == 'yes')
+  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+  sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
+  xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+  xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+  xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+  xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+  xa_db_host = config['configurations']['admin-properties']['db_host']
+  repo_name = str(config['clusterName']) + '_yarn'
+
+  ranger_env = config['configurations']['ranger-env']
+  ranger_plugin_properties = config['configurations']['ranger-yarn-plugin-properties']
+  policy_user = config['configurations']['ranger-yarn-plugin-properties']['policy_user']
+  
+  ranger_plugin_config = {
+    'username' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_USERNAME'],
+    'password' : config['configurations']['ranger-yarn-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'],
+    'yarn.url' : config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'],
+    'commonNameForCertificate' : config['configurations']['ranger-yarn-plugin-properties']['common.name.for.certificate']
+  }
+
+  yarn_ranger_plugin_repo = {
+    'isEnabled': 'true',
+    'configs': ranger_plugin_config,
+    'description': 'yarn repo',
+    'name': repo_name,
+    'repositoryType': 'yarn',
+    'type': 'yarn',
+    'assetType': '1'
+  }
+  #For curl command in ranger plugin to get db connector
+  jdk_location = config['hostLevelParams']['jdk_location']
+  java_share_dir = '/usr/share/java'
+  if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
+    jdbc_symlink_name = "mysql-jdbc-driver.jar"
+    jdbc_jar_name = "mysql-connector-java.jar"
+  elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
+    jdbc_jar_name = "ojdbc6.jar"
+    jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'postgres':
+    jdbc_jar_name = "postgresql.jar"
+    jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'sqlserver':
+    jdbc_jar_name = "sqljdbc4.jar"
+    jdbc_symlink_name = "mssql-jdbc-driver.jar"
+
+  downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
+
+  driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
+  driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")

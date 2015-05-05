@@ -31,7 +31,7 @@ from yarn import yarn
 from service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
-
+from setup_ranger_yarn import setup_ranger_yarn
 
 
 class Resourcemanager(Script):
@@ -102,6 +102,8 @@ class ResourcemanagerDefault(Resourcemanager):
 
     env.set_params(params)
     self.configure(env) # FOR SECURITY
+    if params.is_supported_yarn_ranger:
+      setup_ranger_yarn() #Ranger Yarn Plugin related calls 
     if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.1') == 0:
       install_tez_jars()
     else:

@@ -208,6 +208,11 @@
                 "yarn.nodemanager.local-dirs": "true"
             }
         },
+        "yarn-site": {
+          "final": {
+            "is_supported_yarn_ranger": "true"
+          }
+        },
         "hdfs-site": {
             "final": {
                 "dfs.web.ugi": "true",
