@@ -23,6 +23,7 @@ import static org.easymock.EasyMock.createStrictMock;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.anyObject;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -996,7 +997,8 @@ public class ServiceModuleTest {
     ServiceDirectory serviceDirectory = createNiceMock(ServiceDirectory.class);
 
     expect(serviceDirectory.getConfigurationDirectory(dir)).andReturn(configDir).anyTimes();
-    expect(serviceDirectory.getMetricsFile()).andReturn(new File("testMetricsFile")).anyTimes();
+    expect(serviceDirectory.getMetricsFile(anyObject(String.class))).andReturn(new File("testMetricsFile")).anyTimes();
+    expect(serviceDirectory.getWidgetsDescriptorFile(anyObject(String.class))).andReturn(new File("testWidgetsFile")).anyTimes();
     expect(serviceDirectory.getAlertsFile()).andReturn(new File("testAlertsFile")).anyTimes();
     expect(serviceDirectory.getKerberosDescriptorFile()).andReturn(new File("testKerberosDescriptorFile")).anyTimes();
     expect(serviceDirectory.getPackageDir()).andReturn("packageDir").anyTimes();

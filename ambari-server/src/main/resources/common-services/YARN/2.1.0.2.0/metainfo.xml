@@ -148,6 +148,8 @@
         <config-type>mapred-site</config-type>
         <config-type>yarn-log4j</config-type>
       </configuration-dependencies>
+      <widgetsFileName>YARN_widgets.json</widgetsFileName>
+      <metricsFileName>YARN_metrics.json</metricsFileName>
     </service>
 
     <service>
@@ -244,6 +246,8 @@
         <config-type>ssl-server</config-type>
       </configuration-dependencies>
       <restartRequiredAfterRackChange>true</restartRequiredAfterRackChange>
+      <widgetsFileName>MAPREDUCE2_widgets.json</widgetsFileName>
+      <metricsFileName>MAPREDUCE2_metrics.json</metricsFileName>
     </service>
   </services>
 </metainfo>

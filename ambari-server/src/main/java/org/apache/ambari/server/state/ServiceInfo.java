@@ -94,6 +94,12 @@ public class ServiceInfo implements Validable{
   @XmlElement(name = "extends")
   private String parent;
 
+  @XmlElement(name = "widgetsFileName")
+  private String widgetsFileName = AmbariMetaInfo.WIDGETS_DESCRIPTOR_FILE_NAME;
+
+  @XmlElement(name = "metricsFileName")
+  private String metricsFileName = AmbariMetaInfo.SERVICE_METRIC_FILE_NAME;
+
   @XmlTransient
   private volatile Map<String, PropertyInfo> requiredProperties;
 
@@ -265,6 +271,22 @@ public class ServiceInfo implements Validable{
   }
   public List<String> getRequiredServices() {
     return requiredServices;
+  }
+
+  public String getWidgetsFileName() {
+    return widgetsFileName;
+  }
+
+  public void setWidgetsFileName(String widgetsFileName) {
+    this.widgetsFileName = widgetsFileName;
+  }
+
+  public String getMetricsFileName() {
+    return metricsFileName;
+  }
+
+  public void setMetricsFileName(String metricsFileName) {
+    this.metricsFileName = metricsFileName;
   }
 
   public void setRequiredServices(List<String> requiredServices) {

@@ -108,10 +108,10 @@ public class ServiceModule extends BaseModule<ServiceModule, ServiceInfo> implem
     this.serviceDirectory = serviceDirectory;
     this.isCommonService = isCommonService;
 
-    serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile());
+    serviceInfo.setMetricsFile(serviceDirectory.getMetricsFile(serviceInfo.getName()));
     serviceInfo.setAlertsFile(serviceDirectory.getAlertsFile());
     serviceInfo.setKerberosDescriptorFile(serviceDirectory.getKerberosDescriptorFile());
-    serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile());
+    serviceInfo.setWidgetsDescriptorFile(serviceDirectory.getWidgetsDescriptorFile(serviceInfo.getName()));
     serviceInfo.setSchemaVersion(AmbariMetaInfo.SCHEMA_VERSION_2);
     serviceInfo.setServicePackageFolder(serviceDirectory.getPackageDir());
 

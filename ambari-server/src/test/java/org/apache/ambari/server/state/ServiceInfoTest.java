@@ -73,6 +73,35 @@ public class ServiceInfoTest {
   }
 
   @Test
+  public void testCustomMetricsWidgetsFiles() throws Exception {
+
+    String serviceInfoXml = "<metainfo>\n" +
+            "  <schemaVersion>2.0</schemaVersion>\n" +
+            "  <services>\n" +
+            "    <service>\n" +
+            "      <name>CUSTOM</name>\n" +
+            "      <displayName>CUSTOM</displayName>\n" +
+            "      <metricsFileName>CUSTOM_metrics.json</metricsFileName>\n" +
+            "      <widgetsFileName>CUSTOM_widgets.json</widgetsFileName>\n" +
+            "    </service>\n" +
+            "    <service>\n" +
+            "      <name>DEFAULT</name>\n" +
+            "      <displayName>DEFAULT</displayName>\n" +
+            "      <comment>Apache Hadoop Distributed File System</comment>\n" +
+            "      <version>2.1.0.2.0</version>\n" +
+            "    </service>\n" +
+            "  </services>\n" +
+            "</metainfo>\n";
+
+    Map<String, ServiceInfo> serviceInfoMap = getServiceInfo(serviceInfoXml);
+
+    assertEquals("CUSTOM_metrics.json",serviceInfoMap.get("CUSTOM").getMetricsFileName());
+    assertEquals("CUSTOM_widgets.json", serviceInfoMap.get("CUSTOM").getWidgetsFileName());
+    assertEquals("metrics.json", serviceInfoMap.get("DEFAULT").getMetricsFileName());
+    assertEquals("widgets.json",serviceInfoMap.get("DEFAULT").getWidgetsFileName());
+  }
+
+  @Test
   public void testSetRestartRequiredAfterRackChange() throws Exception {
     ServiceInfo serviceInfo = new ServiceInfo();
 
