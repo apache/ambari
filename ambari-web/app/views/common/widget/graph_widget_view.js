@@ -28,18 +28,24 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   metrics: [],
 
   /**
-   * 3600000 ms in 1 hour
+   * 3600 sec in 1 hour
    * @const
    */
-  TIME_FACTOR: 3600000,
+  TIME_FACTOR: 3600,
 
   /**
-   * value in ms
+   * custom time range, set when graph opened in popup
+   * @type {number|null}
+   */
+  customTimeRange: null,
+
+  /**
+   * value in seconds
    * @type {number}
    */
   timeRange: function () {
-    return parseInt(this.get('content.properties.time_range')) * this.get('TIME_FACTOR');
-  }.property('content.properties.time_range'),
+    return this.get('customTimeRange') || parseInt(this.get('content.properties.time_range')) * this.get('TIME_FACTOR');
+  }.property('content.properties.time_range', 'customTimeRange'),
 
   /**
    * value in ms
@@ -213,7 +219,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   addTimeProperties: function (metricPaths) {
     var toSeconds = Math.round(App.dateTime() / 1000);
-    var fromSeconds = toSeconds - (this.get('timeRange')/1000);
+    var fromSeconds = toSeconds - this.get('timeRange');
     var step = this.get('timeStep');
     var result = [];
 
@@ -232,6 +238,17 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
 
     noTitleUnderGraph: true,
     inWidget: true,
+
+    /**
+     * set custom time range for graph widget
+     */
+    setTimeRange: function () {
+      if (this.get('isPopup')) {
+        this.set('parentView.customTimeRange', this.get('timeUnitSeconds'));
+      } else {
+        this.set('parentView.customTimeRange', null);
+      }
+    }.observes('isPopup', 'timeUnitSeconds'),
 
     /**
      * graph height

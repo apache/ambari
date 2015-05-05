@@ -45,6 +45,11 @@ App.WidgetMixin = Ember.Mixin.create({
   CLONE_SUFFIX: '(Copy)',
 
   /**
+   * @type {number|null}
+   */
+  timeoutId: null,
+
+  /**
    * common metrics container
    * @type {Array}
    */
@@ -108,7 +113,7 @@ App.WidgetMixin = Ember.Mixin.create({
         });
       }
     }
-  },
+  }.observes('customTimeRange'),
 
   /**
    * get data formatted for request
@@ -332,9 +337,10 @@ App.WidgetMixin = Ember.Mixin.create({
     var self = this;
     this.set('isLoaded', true);
     this.drawWidget();
-    setTimeout(function () {
+    clearTimeout(this.get('timeoutId'));
+    this.set('timeoutId', setTimeout(function () {
       self.loadMetrics();
-    }, App.contentUpdateInterval);
+    }, App.contentUpdateInterval));
   },
 
 
