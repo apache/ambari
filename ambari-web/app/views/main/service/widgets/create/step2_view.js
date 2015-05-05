@@ -19,6 +19,7 @@
 App.WidgetWizardStep2View = Em.View.extend({
 
   templateName: require('templates/main/service/widgets/create/step2'),
+  templatePlaceholder: "{{Expression1}}" ,
 
   /**
    * calculate template by widget type

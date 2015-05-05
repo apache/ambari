@@ -23,7 +23,8 @@
 </div>
 
 <div class="template">
-  {{view Ember.TextArea valueBinding="templateValue"}}
+  <h5>{{t widget.create.wizard.step2.template.header}}</h5>
+  {{view Ember.TextArea valueBinding="templateValue" placeholderBinding="view.templatePlaceholder"}}
 </div>
 
 <div class="alert alert-info">
