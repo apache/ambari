@@ -106,7 +106,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   },
 
   isSubmitDisabled: function () {
-    return !(this.get('widgetName'));
+    return !(this.get('widgetName').trim());
   }.property('widgetName'),
 
   /**
