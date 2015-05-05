@@ -25,9 +25,9 @@ App.RAHighAvailabilityWizardStep4View = App.HighAvailabilityProgressPageView.ext
 
   headerTitle: Em.I18n.t('admin.ra_highAvailability.wizard.step4.header'),
 
-  noticeInProgress: Em.I18n.t('admin.rm_highAvailability.wizard.step4.notice.inProgress'),
+  noticeInProgress: Em.I18n.t('admin.ra_highAvailability.wizard.step4.notice.inProgress'),
 
-  noticeCompleted: Em.I18n.t('admin.rm_highAvailability.wizard.step4.notice.completed'),
+  noticeCompleted: Em.I18n.t('admin.ra_highAvailability.wizard.step4.notice.completed'),
 
   submitButtonText: Em.I18n.t('common.complete')
 

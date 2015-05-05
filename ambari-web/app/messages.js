@@ -1242,6 +1242,8 @@ Em.I18n.translations = {
   'admin.ra_highAvailability.wizard.step4.task1.title': 'Install Additional Ranger Admin',
   'admin.ra_highAvailability.wizard.step4.task2.title': 'Reconfigure Ranger',
   'admin.ra_highAvailability.wizard.step4.task3.title': 'Start All Services',
+  'admin.ra_highAvailability.wizard.step4.notice.inProgress': 'Please wait while Ranger Admin HA is being deployed.',
+  'admin.ra_highAvailability.wizard.step4.notice.completed': 'Ranger Admin HA has been enabled successfully.',
   'admin.ra_highAvailability.closePopup':'Enable Ranger Admin HA Wizard is in progress. You must allow the wizard to complete for Ambari to be in usable state. ' +
   'If you choose to quit, you must follow manual instructions to complete or revert enabling Ranger Admin HA as documented in the Ambari User Guide. Are you sure you want to exit the wizard?',
 
