@@ -15,51 +15,72 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+ var stringUtils = require('utils/string_utils');
 
 App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep5Controller',
-  clusterDeployState: 'KERBEROS_DEPLOY',
-  commands: ['stopServices'],
+  csvData: [],
 
-  loadStep: function() {
-    this.checkComponentsRemoval();
-    this._super();
+  submit: function() {
+    App.router.send('next');
   },
 
   /**
-   * remove Application Timeline Server component if needed.
+   * get CSV data from the server
    */
-  checkComponentsRemoval: function() {
-    if (App.Service.find().someProperty('serviceName', 'YARN') && !App.get('doesATSSupportKerberos')
-      && !this.get('commands').contains('deleteATS') && App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER')) {
-      this.get('commands').pushObject('deleteATS');
-    }
-  },
-
-  /**
-   * Remove Application Timeline Server from the host.
-   * @returns {$.Deferred}
-   */
-  deleteATS: function() {
-    return App.ajax.send({
-      name: 'common.delete.host_component',
+  getCSVData: function () {
+    App.ajax.send({
+      name: 'admin.kerberos.cluster.csv',
       sender: this,
-      data: {
-        componentName: 'APP_TIMELINE_SERVER',
-        hostName: App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER').get('hostName')
-      },
-      success: 'onDeleteATSSuccess',
-      error: 'onDeleteATSError'
-    });
+      data: {},
+      success: 'getCSVDataSuccessCallback',
+      error: 'getCSVDataSuccessCallback'
+    })
   },
 
-  onDeleteATSSuccess: function() {
-    this.onTaskCompleted();
+  /**
+   * get CSV data from server success callback
+   */
+  getCSVDataSuccessCallback: function (data, opt, params) {
+    this.set('csvData', this.prepareCSVData(data.split('\n')));
+    this.downloadCSV();
   },
 
-  onDeleteATSError: function(error) {
-    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
-      this.onDeleteATSSuccess();
+  prepareCSVData: function (array) {
+    for (var i = 0; i < array.length; i += 1) {
+      array[i] = array[i].split(',');
     }
-  }
+
+    return array;
+  },
+
+  /**
+   * download CSV file
+   */
+  downloadCSV: function () {
+    if ($.browser.msie && $.browser.version < 10) {
+      this.openInfoInNewTab();
+    } else {
+      try {
+        var blob = new Blob([stringUtils.arrayToCSV(this.get('csvData'))], {type: "text/csv;charset=utf-8;"});
+        saveAs(blob, "kerberos.csv");
+      } catch (e) {
+        this.openInfoInNewTab();
+      }
+    }
+  },
+
+  /**
+   * open content of CSV file in new window
+   */
+  openInfoInNewTab: function () {
+    var newWindow = window.open('');
+    var newDocument = newWindow.document;
+    newDocument.write(stringUtils.arrayToCSV(this.get('hostComponents')));
+    newWindow.focus();
+  },
+
+  isSubmitDisabled: function () {
+    return !["COMPLETED", "FAILED"].contains(this.get('status'));
+  }.property('status')
 });

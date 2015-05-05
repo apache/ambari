@@ -19,13 +19,116 @@
 App.KerberosWizardStep7Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep7Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
-  commands: ['startAllServices'],
+  isSingleRequestPage: true,
+  request: {},
+  commands: [],
+  contextForPollingRequest: Em.I18n.t('requestInfo.kerberizeCluster'),
 
-  startAllServices: function () {
-    this.startServices(true);
+  /**
+   * Define whether show Back button
+   * @type {Boolean}
+   */
+  isBackButtonDisabled: true,
+
+  /**
+   * Start cluster kerberization. On retry just unkerberize and kerbrize cluster.
+   * @param {bool} isRetry
+   */
+  setRequest: function (isRetry) {
+    var self = this;
+    var kerberizeRequest = {
+      name: 'KERBERIZE_CLUSTER',
+      ajaxName: 'admin.kerberize.cluster',
+      ajaxData: {
+        data: {
+          Clusters: {
+            security_type: "KERBEROS"
+          }
+        }
+      }
+    };
+    if (isRetry) {
+      // on retry we have to unkerberize cluster
+      this.unkerberizeCluster().always(function() {
+        // clear current request object before start of kerberize process
+        self.set('request', kerberizeRequest);
+        self.clearStage();
+        self.loadStep();
+      });
+    } else {
+      this.set('request', kerberizeRequest);
+    }
   },
 
-  isSubmitDisabled: function () {
-    return !["COMPLETED", "FAILED"].contains(this.get('status'));
-  }.property('status')
+  /**
+   * Send request to unkerberisze cluster
+   * @returns {$.ajax}
+   */
+  unkerberizeCluster: function () {
+    return App.ajax.send({
+      name: 'admin.unkerberize.cluster',
+      sender: this,
+      success: 'goToNextStep',
+      error: 'goToNextStep'
+    });
+  },
+
+  goToNextStep: function() {
+    this.clearStage();
+    App.router.transitionTo('step7');
+  },
+
+  postKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.create',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      }
+    });
+  },
+
+  /**
+   * Send request to update kerberos descriptor
+   * @param kerberosDescriptor
+   * @returns {$.ajax|*}
+   */
+  putKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.update',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      },
+      success: 'unkerberizeCluster',
+      error: 'unkerberizeCluster'
+    });
+  },
+
+  retry: function () {
+    this.set('showRetry', false);
+    this.get('tasks').setEach('status', 'PENDING');
+    App.router.send('retry');
+  },
+
+
+  /**
+   * Enable or disable previous steps according to tasks statuses
+   */
+  enableDisablePreviousSteps: function () {
+    var wizardController = App.router.get(this.get('content.controllerName'));
+    if (this.get('tasks').someProperty('status', 'FAILED')) {
+      wizardController.enableStep(4);
+      this.set('isBackButtonDisabled', false);
+    } else {
+      wizardController.setLowerStepsDisable(6);
+      this.set('isBackButtonDisabled', true);
+    }
+  }.observes('tasks.@each.status')
 });

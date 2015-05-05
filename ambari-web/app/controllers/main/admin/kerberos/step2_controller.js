@@ -282,7 +282,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   },
 
   /**
-   * shows popup with to warn user  
+   * shows popup with to warn user
    * @param primary
    */
   showConnectionInProgressPopup: function(primary) {
@@ -291,4 +291,3 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     App.showConfirmationPopup(primary, msg, null, null, primaryText)
   }
 });
-

@@ -19,116 +19,62 @@
 App.KerberosWizardStep6Controller = App.KerberosProgressPageController.extend({
   name: 'kerberosWizardStep6Controller',
   clusterDeployState: 'KERBEROS_DEPLOY',
-  isSingleRequestPage: true,
-  request: {},
-  commands: [],
-  contextForPollingRequest: Em.I18n.t('requestInfo.kerberizeCluster'),
+  commands: ['stopServices'],
 
-  /**
-   * Define whether show Back button
-   * @type {Boolean}
-   */
-  isBackButtonDisabled: true,
-
-  /**
-   * Start cluster kerberization. On retry just unkerberize and kerbrize cluster.
-   * @param {bool} isRetry
-   */
-  setRequest: function (isRetry) {
-    var self = this;
-    var kerberizeRequest = {
-      name: 'KERBERIZE_CLUSTER',
-      ajaxName: 'admin.kerberize.cluster',
-      ajaxData: {
-        data: {
-          Clusters: {
-            security_type: "KERBEROS"
-          }
-        }
-      }
-    };
-    if (isRetry) {
-      // on retry we have to unkerberize cluster
-      this.unkerberizeCluster().always(function() {
-        // clear current request object before start of kerberize process
-        self.set('request', kerberizeRequest);
-        self.clearStage();
-        self.loadStep();
-      });
-    } else {
-      this.set('request', kerberizeRequest);
-    }
-  },
-
-  /**
-   * Send request to unkerberisze cluster
-   * @returns {$.ajax}
-   */
-  unkerberizeCluster: function () {
-    return App.ajax.send({
-      name: 'admin.unkerberize.cluster',
-      sender: this,
-      success: 'goToNextStep',
-      error: 'goToNextStep'
-    });
-  },
-
-  goToNextStep: function() {
-    this.clearStage();
-    App.router.transitionTo('step6');
-  },
-
-  postKerberosDescriptor: function (kerberosDescriptor) {
-    return App.ajax.send({
-      name: 'admin.kerberos.cluster.artifact.create',
-      sender: this,
+  stopServices: function () {
+    App.ajax.send({
+      name: 'common.services.update',
       data: {
-        artifactName: 'kerberos_descriptor',
-        data: {
-          artifact_data: kerberosDescriptor
-        }
-      }
-    });
-  },
-
-  /**
-   * Send request to update kerberos descriptor
-   * @param kerberosDescriptor
-   * @returns {$.ajax|*}
-   */
-  putKerberosDescriptor: function (kerberosDescriptor) {
-    return App.ajax.send({
-      name: 'admin.kerberos.cluster.artifact.update',
-      sender: this,
-      data: {
-        artifactName: 'kerberos_descriptor',
-        data: {
-          artifact_data: kerberosDescriptor
+        context: "Stop services",
+        "ServiceInfo": {
+          "state": "INSTALLED"
         }
       },
-      success: 'unkerberizeCluster',
-      error: 'unkerberizeCluster'
+      sender: this,
+      success: 'startPolling',
+      error: 'onTaskError'
     });
   },
 
-  retry: function () {
-    this.set('showRetry', false);
-    this.get('tasks').setEach('status', 'PENDING');
-    App.router.send('retry');
+  loadStep: function() {
+    this.checkComponentsRemoval();
+    this._super();
   },
 
+  /**
+   * remove Application Timeline Server component if needed.
+   */
+  checkComponentsRemoval: function() {
+    if (App.Service.find().someProperty('serviceName', 'YARN') && !App.get('doesATSSupportKerberos')
+      && !this.get('commands').contains('deleteATS') && App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER')) {
+      this.get('commands').pushObject('deleteATS');
+    }
+  },
 
   /**
-   * Enable or disable previous steps according to tasks statuses
+   * Remove Application Timeline Server from the host.
+   * @returns {$.Deferred}
    */
-  enableDisablePreviousSteps: function () {
-    var wizardController = App.router.get(this.get('content.controllerName'));
-    if (this.get('tasks').someProperty('status', 'FAILED')) {
-      wizardController.enableStep(4);
-      this.set('isBackButtonDisabled', false);
-    } else {
-      wizardController.setLowerStepsDisable(6);
-      this.set('isBackButtonDisabled', true);
+  deleteATS: function() {
+    return App.ajax.send({
+      name: 'common.delete.host_component',
+      sender: this,
+      data: {
+        componentName: 'APP_TIMELINE_SERVER',
+        hostName: App.HostComponent.find().findProperty('componentName', 'APP_TIMELINE_SERVER').get('hostName')
+      },
+      success: 'onDeleteATSSuccess',
+      error: 'onDeleteATSError'
+    });
+  },
+
+  onDeleteATSSuccess: function() {
+    this.onTaskCompleted();
+  },
+
+  onDeleteATSError: function(error) {
+    if (error.responseText.indexOf('org.apache.ambari.server.controller.spi.NoSuchResourceException') !== -1) {
+      this.onDeleteATSSuccess();
     }
-  }.observes('tasks.@each.status')
+  }
 });

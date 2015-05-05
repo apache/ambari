@@ -1427,6 +1427,16 @@ var urls = {
       }
     }
   },
+  'admin.kerberos.cluster.csv': {
+    'real': '/clusters/{clusterName}/kerberos_identities?fields=*&format=csv',
+    'mock': '',
+    'format': function(data) {
+      return {
+        dataType: 'text',
+        data: data.data
+      }
+    }
+  },
   'admin.poll.kerberize.cluster.request': {
     'real': '/clusters/{clusterName}/requests/{requestId}?fields=stages/Stage/context,stages/Stage/status,stages/Stage/progress_percent,stages/tasks/*,Requests/*',
     'mock': '/data/wizard/kerberos/kerberize_cluster.json'

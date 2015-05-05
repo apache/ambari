@@ -45,6 +45,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   categoryConfigs: function () {
     var categoryConfigs = this.get('categoryConfigsAll');
+
     return this.orderContentAtLast(this.sortByIndex(categoryConfigs)).filterProperty('isVisible', true);
   }.property('categoryConfigsAll.@each.isVisible').cacheable(),
 
@@ -55,9 +56,14 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * MySQL etc. database options don't show up, because
    * they were not visible initially.
    */
-  categoryConfigsAll: function () {
-    return this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
-  }.property('serviceConfigs.@each').cacheable(),
+   categoryConfigsAll: function () {
+     var configs = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
+
+     if (this.get('service.serviceName') === 'KERBEROS' && App.router.get('kerberosWizardController.skipClientInstall')) {
+       App.router.get('kerberosWizardController').overrideVisibility(configs, false);
+     }
+     return configs;
+   }.property('serviceConfigs.@each').cacheable(),
 
   /**
    * If added/removed a serverConfigObject, this property got updated.
@@ -146,7 +152,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       this.affectedProperties = serviceConfigModificationHandler.getDependentConfigChanges(changedProperty, this.get("controller.selectedServiceNames"), stepConfigs, securityEnabled);
     }
     changedProperty.set("editDone", false); // Turn off flag
-    
+
     if (this.affectedProperties.length > 0 && !this.get("controller.miscModalVisible")) {
       this.newAffectedProperties = this.affectedProperties;
       var self = this;

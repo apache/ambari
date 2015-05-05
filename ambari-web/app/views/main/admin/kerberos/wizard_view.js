@@ -22,5 +22,3 @@ App.KerberosWizardView = Em.View.extend(App.WizardMenuMixin, {
 
   templateName: require('templates/main/admin/kerberos/wizard')
 });
-
-

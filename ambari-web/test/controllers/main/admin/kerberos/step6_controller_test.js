@@ -18,7 +18,7 @@
 
 var App = require('app');
 
-describe('App.KerberosWizardStep5Controller', function() {
+describe('App.KerberosWizardStep6Controller', function() {
   describe('#checkComponentsRemoval', function() {
 
     var tests = [
@@ -31,7 +31,7 @@ describe('App.KerberosWizardStep5Controller', function() {
 
     tests.forEach(function(test) {
       it('YARN installed: {0}, ATS supported: {1} list of commands should be {2}'.format(test.yarnInstalled, test.doesATSSupportKerberos, test.commands.toString()), function () {
-        var controller = App.KerberosWizardStep5Controller.create({ commands: ['stopServices'] });
+        var controller = App.KerberosWizardStep6Controller.create({ commands: ['stopServices'] });
         sinon.stub(App, 'get').withArgs('doesATSSupportKerberos').returns(test.doesATSSupportKerberos);
         sinon.stub(App.Service, 'find').returns(test.yarnInstalled ? [Em.Object.create({ serviceName: 'YARN'})] : []);
         sinon.stub(App.HostComponent, 'find').returns(test.ATSInstalled ? [Em.Object.create({ componentName: 'APP_TIMELINE_SERVER'})] : []);

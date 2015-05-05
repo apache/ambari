@@ -71,6 +71,7 @@ require('controllers/main/admin/kerberos/step4_controller');
 require('controllers/main/admin/kerberos/step5_controller');
 require('controllers/main/admin/kerberos/step6_controller');
 require('controllers/main/admin/kerberos/step7_controller');
+require('controllers/main/admin/kerberos/step8_controller');
 require('controllers/main/admin/security');
 require('controllers/main/admin/security/security_progress_controller');
 require('controllers/main/admin/security/disable');

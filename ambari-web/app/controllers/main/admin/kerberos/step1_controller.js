@@ -71,6 +71,32 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
           checked: false
         })
       ]
+    }),
+    Em.Object.create({
+      displayName: Em.I18n.t('admin.kerberos.wizard.step1.option.manual'),
+      value: Em.I18n.t('admin.kerberos.wizard.step1.option.manual'),
+      preConditions: [
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.manual.condition.1'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.manual.condition.2'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.manual.condition.3'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.manual.condition.4'),
+          checked: false
+        }),
+        Em.Object.create({
+          displayText: Em.I18n.t('admin.kerberos.wizard.step1.option.manual.condition.5'),
+          checked: false
+        })
+      ]
     })
   ],
 
@@ -95,4 +121,3 @@ App.KerberosWizardStep1Controller = Em.Controller.extend({
     }
   }
 });
-
