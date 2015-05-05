@@ -131,7 +131,7 @@ if security_enabled:
   spark_principal = spark_kerberos_principal.replace('_HOST',spark_history_server_host.lower())
   
   if is_hive_installed:
-    spark_hive_properties += {
+    spark_hive_properties.update({
       'hive.metastore.sasl.enabled': str(config['configurations']['hive-site']['hive.metastore.sasl.enabled']).lower(),
       'hive.metastore.kerberos.keytab.file': config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file'],
       'hive.server2.authentication.spnego.principal': config['configurations']['hive-site']['hive.server2.authentication.spnego.principal'],
@@ -141,7 +141,7 @@ if security_enabled:
       'hive.server2.authentication.kerberos.keytab': config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab'],
       'hive.security.authorization.enabled': spark_hive_sec_authorization_enabled,
       'hive.server2.enable.doAs': str(config['configurations']['hive-site']['hive.server2.enable.doAs']).lower()
-    }
+    })
   
 
 
