@@ -129,7 +129,10 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
             "host_component_criteria": metric.hostComponentCriteria
           }
         }),
-        values: this.get('widgetValues'),
+        values: this.get('widgetValues').map(function (value) {
+          delete value.computedValue;
+          return value;
+        }),
         properties: this.get('widgetProperties')
       }
     };

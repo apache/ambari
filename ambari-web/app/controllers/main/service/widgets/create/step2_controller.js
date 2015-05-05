@@ -267,6 +267,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
           expressionData = this.parseExpression(this.get('expressions')[0]);
           expressionData.values = [
             {
+              name: "",
               value: expressionData.value
             }
           ];
