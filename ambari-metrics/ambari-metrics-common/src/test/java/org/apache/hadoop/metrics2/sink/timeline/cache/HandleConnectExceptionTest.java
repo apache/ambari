@@ -68,6 +68,12 @@ public class HandleConnectExceptionTest {
     protected String getCollectorUri() {
       return COLLECTOR_URL;
     }
+
+    @Override
+    protected int getTimeoutSeconds() {
+      return 10;
+    }
+
     @Override
     public void emitMetrics(TimelineMetrics metrics) throws IOException {
       super.emitMetrics(metrics);

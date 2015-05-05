@@ -39,14 +39,22 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.*;
+
 public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implements IMetricsConsumer {
   private String collectorUri;
   private TimelineMetricsCache metricsCache;
   private String hostname;
+  private int timeoutSeconds;
 
   @Override
   protected String getCollectorUri() {
     return collectorUri;
+  }
+
+  @Override
+  protected int getTimeoutSeconds() {
+    return timeoutSeconds;
   }
 
   @Override
@@ -59,10 +67,12 @@ public class StormTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       throw new RuntimeException("Could not identify hostname.", e);
     }
     Configuration configuration = new Configuration("/storm-metrics2.properties");
+    timeoutSeconds = Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS,
+        String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
     int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
-        String.valueOf(TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT)));
+        String.valueOf(MAX_RECS_PER_NAME_DEFAULT)));
     int metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
-        String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
+        String.valueOf(MAX_EVICTION_TIME_MILLIS)));
     metricsCache = new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval);
     collectorUri = "http://" + configuration.getProperty(COLLECTOR_HOST_PROPERTY) + ":" + configuration.getProperty(COLLECTOR_PORT_PROPERTY) + "/ws/v1/timeline/metrics";
   }

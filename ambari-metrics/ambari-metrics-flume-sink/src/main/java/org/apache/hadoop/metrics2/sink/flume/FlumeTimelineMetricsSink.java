@@ -24,16 +24,15 @@ import org.apache.flume.Context;
 import org.apache.flume.FlumeException;
 import org.apache.flume.instrumentation.MonitorService;
 import org.apache.flume.instrumentation.util.JMXPollUtil;
+import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
 import org.apache.hadoop.metrics2.sink.timeline.UnableToConnectException;
 import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 import org.apache.hadoop.metrics2.sink.timeline.configuration.Configuration;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -45,8 +44,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-
-
 public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implements MonitorService {
   private String collectorUri;
   private TimelineMetricsCache metricsCache;
@@ -55,6 +52,7 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   private String hostname;
   private final static String COUNTER_METRICS_PROPERTY = "counters";
   private final Set<String> counterMetrics = new HashSet<String>();
+  private int timeoutSeconds = 10;
 
   @Override
   public void start() {
@@ -83,6 +81,8 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
       throw new FlumeException("Could not identify hostname.", e);
     }
     Configuration configuration = new Configuration("/flume-metrics2.properties");
+    timeoutSeconds = Integer.parseInt(configuration.getProperty(METRICS_POST_TIMEOUT_SECONDS,
+        String.valueOf(DEFAULT_POST_TIMEOUT_SECONDS)));
     int maxRowCacheSize = Integer.parseInt(configuration.getProperty(MAX_METRIC_ROW_CACHE_SIZE,
         String.valueOf(TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT)));
     int metricsSendInterval = Integer.parseInt(configuration.getProperty(METRICS_SEND_INTERVAL,
@@ -100,6 +100,11 @@ public class FlumeTimelineMetricsSink extends AbstractTimelineMetricsSink implem
   @Override
   public String getCollectorUri() {
     return collectorUri;
+  }
+
+  @Override
+  protected int getTimeoutSeconds() {
+    return timeoutSeconds;
   }
 
   public void setPollFrequency(long pollFrequency) {

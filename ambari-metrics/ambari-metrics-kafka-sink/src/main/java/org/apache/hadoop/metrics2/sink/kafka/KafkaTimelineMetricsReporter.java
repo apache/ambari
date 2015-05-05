@@ -18,27 +18,6 @@
 
 package org.apache.hadoop.metrics2.sink.kafka;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
-
-import kafka.metrics.KafkaMetricsConfig;
-import kafka.metrics.KafkaMetricsReporter;
-import kafka.utils.VerifiableProperties;
-
-import org.apache.commons.lang.ClassUtils;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
-import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
-
 import com.yammer.metrics.Metrics;
 import com.yammer.metrics.core.Counter;
 import com.yammer.metrics.core.Gauge;
@@ -51,9 +30,31 @@ import com.yammer.metrics.core.MetricsRegistry;
 import com.yammer.metrics.core.Summarizable;
 import com.yammer.metrics.core.Timer;
 import com.yammer.metrics.stats.Snapshot;
+import kafka.metrics.KafkaMetricsConfig;
+import kafka.metrics.KafkaMetricsReporter;
+import kafka.utils.VerifiableProperties;
+import org.apache.commons.lang.ClassUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.apache.hadoop.metrics2.sink.timeline.AbstractTimelineMetricsSink;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache;
 
-public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink implements KafkaMetricsReporter,
-    KafkaTimelineMetricsReporterMBean {
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map.Entry;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+
+import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS;
+import static org.apache.hadoop.metrics2.sink.timeline.cache.TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT;
+
+public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink
+    implements KafkaMetricsReporter, KafkaTimelineMetricsReporterMBean {
 
   private final static Log LOG = LogFactory.getLog(KafkaTimelineMetricsReporter.class);
 
@@ -72,10 +73,16 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink im
   private String hostname;
   private TimelineScheduledReporter reporter;
   private TimelineMetricsCache metricsCache;
+  private int timeoutSeconds = 10;
 
   @Override
   protected String getCollectorUri() {
     return collectorUri;
+  }
+
+  @Override
+  protected int getTimeoutSeconds() {
+    return timeoutSeconds;
   }
 
   public void setMetricsCache(TimelineMetricsCache metricsCache) {
@@ -93,10 +100,9 @@ public class KafkaTimelineMetricsReporter extends AbstractTimelineMetricsSink im
           throw new RuntimeException("Could not identify hostname.", e);
         }
         KafkaMetricsConfig metricsConfig = new KafkaMetricsConfig(props);
-        int metricsSendInterval = Integer.parseInt(props.getString(TIMELINE_METRICS_SEND_INTERVAL_PROPERTY,
-            String.valueOf(TimelineMetricsCache.MAX_EVICTION_TIME_MILLIS)));
-        int maxRowCacheSize = Integer.parseInt(props.getString(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY,
-            String.valueOf(TimelineMetricsCache.MAX_RECS_PER_NAME_DEFAULT)));
+        timeoutSeconds = props.getInt(METRICS_POST_TIMEOUT_SECONDS, DEFAULT_POST_TIMEOUT_SECONDS);
+        int metricsSendInterval = props.getInt(TIMELINE_METRICS_SEND_INTERVAL_PROPERTY, MAX_EVICTION_TIME_MILLIS);
+        int maxRowCacheSize = props.getInt(TIMELINE_METRICS_MAX_ROW_CACHE_SIZE_PROPERTY, MAX_RECS_PER_NAME_DEFAULT);
         String metricCollectorHost = props.getString(TIMELINE_HOST_PROPERTY, TIMELINE_DEFAULT_HOST);
         String metricCollectorPort = props.getString(TIMELINE_PORT_PROPERTY, TIMELINE_DEFAULT_PORT);
         setMetricsCache(new TimelineMetricsCache(maxRowCacheSize, metricsSendInterval));
