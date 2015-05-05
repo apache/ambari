@@ -31,6 +31,21 @@
       {{t services.service.summary.RegionServersLIVE}}
   </td>
 </tr>
+<!-- PhoenixServers -->
+{{#if view.showPhoenixInfo}}
+  <tr>
+      <td class="summary-label"><a href="#" {{action filterHosts view.regionServerComponent}}>{{t dashboard.services.hbase.phoenixServers}}</a>
+      </td>
+      <td>
+      <span>
+        {{#view App.ComponentLiveTextView liveComponentsBinding="view.service.phoenixServersStarted" totalComponentsBinding="view.service.phoenixServersTotal"}}
+          {{view.liveComponents}}/{{view.totalComponents}}
+        {{/view}}
+      </span>
+        {{t services.service.summary.PhoenixServersLIVE}}
+      </td>
+  </tr>
+{{/if}}
 <!-- Regions in Transition -->
 <tr>
   <td class="summary-label">{{t dashboard.services.hbase.regions.transition}}</td>

@@ -47,6 +47,23 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
     }
   }.property("service"),
 
+  phoenixServersText: function () {
+    if (this.get('service.phoenixServersTotal') == 0) {
+      return '';
+    } else if (this.get('service.phoenixServersTotal') > 1) {
+      return Em.I18n.t('services.service.summary.viewHosts');
+    } else {
+      return Em.I18n.t('services.service.summary.viewHost');
+    }
+  }.property("service"),
+
+  showPhoenixInfo: function () {
+    if (this.get('service.phoenixServersTotal') > 0) {
+      return true;
+    }
+    return false;
+  }.property("service"),
+
   /**
    * One(!) active master component
    */
@@ -120,6 +137,11 @@ App.MainDashboardServiceHbaseView = App.MainDashboardServiceView.extend({
       componentName: 'HBASE_REGIONSERVER'
     });
     //return this.get('service.regionServers').objectAt(0);
-  }.property()
+  }.property(),
 
+  phoenixServerComponent: function () {
+    return Em.Object.create({
+      componentName: 'PHOENIX_QUERY_SERVER'
+    });
+  }.property()
 });

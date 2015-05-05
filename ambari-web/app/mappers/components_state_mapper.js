@@ -63,6 +63,11 @@ App.componentsStateMapper = App.QuickDataMapper.create({
       region_servers_installed: 'INSTALLED_PATH',
       region_servers_total: 'TOTAL_PATH'
     },
+    'PHOENIX_QUERY_SERVER': {
+      phoenix_servers_started: 'STARTED_PATH',
+      phoenix_servers_installed: 'INSTALLED_PATH',
+      phoenix_servers_total: 'TOTAL_PATH'
+    },
     'GANGLIA_MONITOR': {
       ganglia_monitors_started: 'STARTED_PATH',
       ganglia_monitors_installed: 'INSTALLED_PATH',
