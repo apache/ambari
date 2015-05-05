@@ -224,12 +224,12 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint(TOPOLOGY_LOGICAL_TASK_TABLE, "FK_ltask_hrc_id", "physical_task_id", "host_role_command", "task_id", false, false);
 
     // Sequence updates
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_info_id_seq', 0);", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_request_id_seq', 0);", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_task_id_seq', 0);", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0);", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_info_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_request_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_task_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0)", false);
   }
 
   /**
@@ -532,8 +532,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.addColumn("users", new DBColumnInfo("active_widget_layouts", String.class, 1024, null, true));
 
     // Sequence updates
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0);", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0);", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('widget_layout_id_seq', 0)", false);
   }
 
   /**
