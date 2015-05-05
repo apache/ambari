@@ -17,10 +17,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import format
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
+
+# a map of the Ambari role to the component name
+# for use with /usr/hdp/current/<component>
+SERVER_ROLE_DIRECTORY_MAP = {
+  'RANGER_ADMIN' : 'ranger-admin',
+  'RANGER_USERSYNC' : 'ranger-usersync'
+}
+
+component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "RANGER_ADMIN")
 
 config  = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -32,12 +42,12 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
-stack_is_hdp23_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0
+stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
+stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
 if stack_is_hdp22_or_further:
   ranger_home    = '/usr/hdp/current/ranger-admin'
-  ranger_conf    = '/etc/ranger/admin/conf'
+  ranger_conf    = '/usr/hdp/current/ranger-admin/conf'
   ranger_stop    = '/usr/bin/ranger-admin-stop'
   ranger_start   = '/usr/bin/ranger-admin-start'
   usersync_home  = '/usr/hdp/current/ranger-usersync'

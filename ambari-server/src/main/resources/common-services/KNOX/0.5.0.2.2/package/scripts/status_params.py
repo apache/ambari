@@ -17,12 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
 
 config = Script.get_config()
 
 knox_conf_dir = '/etc/knox/conf'
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  knox_conf_dir = '/usr/hdp/current/knox-server/conf'
+
 knox_pid_dir = config['configurations']['knox-env']['knox_pid_dir']
 knox_pid_file = format("{knox_pid_dir}/gateway.pid")
 ldap_pid_file = format("{knox_pid_dir}/ldap.pid")
@@ -34,7 +39,8 @@ if security_enabled:
 else:
     knox_keytab_path = None
     knox_principal_name = None
+
 hostname = config['hostname'].lower()
 knox_user = default("/configurations/knox-env/knox_user", "knox")
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 temp_dir = Script.get_tmp_dir()

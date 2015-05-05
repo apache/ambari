@@ -18,9 +18,12 @@ limitations under the License.
 Ambari Agent
 
 """
-
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management import *
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 # server configurations
 config = Script.get_config()
@@ -36,15 +39,18 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 version = default("/commandParams/version", None)
 
 #mahout params
-mahout_conf_dir = "/etc/mahout/conf"
 mahout_home = "/usr/hdp/current/mahout-client"
+mahout_conf_dir = "/usr/hdp/current/mahout-client/conf"
 mahout_user = config['configurations']['mahout-env']['mahout_user']
 
 #hadoop params
 hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 hadoop_home = '/usr/hdp/current/hadoop-client'
 
-hadoop_conf_dir = "/etc/hadoop/conf"
+# the configuration direction for HDFS/YARN/MapR is the hadoop config
+# directory, which is symlinked by hadoop-client only
+hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
@@ -53,7 +59,7 @@ smokeuser_principal = config['configurations']['cluster-env']['smokeuser_princip
 user_group = config['configurations']['cluster-env']['user_group']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 # not supporting 32 bit jdk.
 java64_home = config['hostLevelParams']['java_home']

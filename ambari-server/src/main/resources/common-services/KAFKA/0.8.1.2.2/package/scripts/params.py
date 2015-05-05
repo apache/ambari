@@ -17,10 +17,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import format
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
-from resource_management.core.logger import Logger
 
 import status_params
 
@@ -35,19 +35,23 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-    kafka_home = '/usr/hdp/current/kafka-broker/'
-    kafka_bin = kafka_home+'bin/kafka'
-else:
-    kafka_home = '/usr/lib/kafka/'
-    kafka_bin = kafka_home+'/bin/kafka'
-
-
+# default kafka parameters
+kafka_home = '/usr/lib/kafka/'
+kafka_bin = kafka_home+'/bin/kafka'
 conf_dir = "/etc/kafka/conf"
+
+# parameters for 2.2+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  kafka_home = '/usr/hdp/current/kafka-broker/'
+  kafka_bin = kafka_home+'bin/kafka'
+  conf_dir = "/usr/hdp/current/kafka-broker/conf"
+
+
 kafka_user = config['configurations']['kafka-env']['kafka_user']
 kafka_log_dir = config['configurations']['kafka-env']['kafka_log_dir']
 kafka_pid_dir = status_params.kafka_pid_dir
 kafka_pid_file = kafka_pid_dir+"/kafka.pid"
+
 # This is hardcoded on the kafka bash process lifecycle on which we have no control over
 kafka_managed_pid_dir = "/var/run/kafka"
 kafka_managed_log_dir = "/var/log/kafka"

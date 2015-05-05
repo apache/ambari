@@ -17,21 +17,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
 from ambari_commons.constants import AMBARI_SUDO_BINARY
-from resource_management import *
-from resource_management.core import System
-from resource_management.libraries import Script
-from resource_management.libraries.functions import default
-from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.functions import get_port_from_url
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
-from resource_management.libraries.functions.version import compare_versions
-from resource_management.libraries.resources import HdfsDirectory
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import get_port_from_url
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 
 import status_params
-import itertools
 import os
 
 # server configurations
@@ -50,21 +46,13 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 #hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   # start out assuming client libraries
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
 
-  # if this is a server action, then use the server binaries; smoke tests
-  # use the client binaries
-  server_role_dir_mapping = { 'OOZIE_SERVER' : 'oozie-server',
-                              'OOZIE_SERVICE_CHECK' : 'oozie-client' }
-
-  command_role = default("/role", "")
-  if command_role not in server_role_dir_mapping:
-    command_role = 'OOZIE_SERVICE_CHECK'
-
-  oozie_root = server_role_dir_mapping[command_role]
+  # oozie-server or oozie-client, depending on role
+  oozie_root = status_params.component_directory
 
   # using the correct oozie root dir, format the correct location
   oozie_lib_dir = format("/usr/hdp/current/{oozie_root}")
@@ -78,6 +66,13 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
   oozie_home = format("/usr/hdp/current/{oozie_root}")
   oozie_bin_dir = format("/usr/hdp/current/{oozie_root}/bin")
   falcon_home = '/usr/hdp/current/falcon-client'
+
+  conf_dir = format("/usr/hdp/current/{oozie_root}/conf")
+  hive_conf_dir = format("{conf_dir}/action-conf/hive")
+
+  # the configuration direction for HDFS/YARN/MapR is the hadoop config
+  # directory, which is symlinked by hadoop-client only
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
@@ -91,12 +86,12 @@ else:
   oozie_home = "/usr/lib/oozie"
   oozie_bin_dir = "/usr/bin"
   falcon_home = '/usr/lib/falcon'
+  hadoop_conf_dir = "/etc/hadoop/conf"
+  conf_dir = "/etc/oozie/conf"
+  hive_conf_dir = "/etc/oozie/conf/action-conf/hive"
 
 execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 
-hadoop_conf_dir = "/etc/hadoop/conf"
-conf_dir = "/etc/oozie/conf"
-hive_conf_dir = "/etc/oozie/conf/action-conf/hive"
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -122,7 +117,8 @@ oozie_service_keytab = config['configurations']['oozie-site']['oozie.service.Had
 oozie_principal = config['configurations']['oozie-site']['oozie.service.HadoopAccessorService.kerberos.principal']
 http_principal = config['configurations']['oozie-site']['oozie.authentication.kerberos.principal']
 oozie_site = config['configurations']['oozie-site']
-if security_enabled and hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') < 0:
+
+if security_enabled and Script.is_hdp_stack_less_than("2.2"):
   #older versions of oozie have problems when using _HOST in principal
   oozie_site = dict(config['configurations']['oozie-site'])
   oozie_site['oozie.service.HadoopAccessorService.kerberos.principal'] = \
@@ -147,7 +143,7 @@ oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oo
 oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.2') < 0:
+if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2"):
   put_shared_lib_to_hdfs_cmd = format("hadoop --config {hadoop_conf_dir} dfs -put {oozie_shared_lib} {oozie_hdfs_user_dir}")
 # for newer
 else:

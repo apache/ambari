@@ -94,7 +94,7 @@ def hive(name=None):
     setup_custom_scratchdir()
     params.HdfsDirectory(None, action="create")
 
-  Directory(params.hive_conf_dir_prefix,
+  Directory(params.hive_etc_dir_prefix,
             mode=0755
   )
 

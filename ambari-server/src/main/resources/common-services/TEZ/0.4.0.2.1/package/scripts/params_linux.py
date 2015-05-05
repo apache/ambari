@@ -17,9 +17,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management import *
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 # server configurations
 config = Script.get_config()
@@ -34,15 +39,27 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
-  path_to_tez_examples_jar = "/usr/hdp/{hdp_version}/tez/tez-examples*.jar"
-else:
-  hadoop_bin_dir = "/usr/bin"
-  path_to_tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
+# default hadoop parameters
+hadoop_home = '/usr'
+hadoop_bin_dir = "/usr/bin"
 hadoop_conf_dir = "/etc/hadoop/conf"
+tez_etc_dir = "/etc/tez"
+config_dir = "/etc/tez/conf"
+path_to_tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
 
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+# hadoop parameters for 2.2+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+  path_to_tez_examples_jar = "/usr/hdp/{hdp_version}/tez/tez-examples*.jar"
+
+# tez only started linking /usr/hdp/x.x.x.x/tez-client/conf in HDP 2.3+
+if Script.is_hdp_stack_greater_or_equal("2.3"):
+  # !!! use realpath for now since the symlink exists but is broken and a
+  # broken symlink messes with the DirectoryProvider class
+  config_dir = os.path.realpath("/usr/hdp/current/tez-client/conf")
+
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
@@ -51,10 +68,6 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
-config_dir_prefix = "/etc/tez"
-config_dir = format("{config_dir_prefix}/conf")
-
-hadoop_home = '/usr'
 java64_home = config['hostLevelParams']['java_home']
 
 tez_user = config['configurations']['tez-env']['tez_user']

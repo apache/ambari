@@ -16,16 +16,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
-from ambari_commons import OSCheck
+from resource_management.libraries.functions import format
+from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()
 
 flume_conf_dir = '/etc/flume/conf'
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  flume_conf_dir = '/usr/hdp/current/flume-server/conf'
 
 flume_user = 'flume'
 flume_group = 'flume'

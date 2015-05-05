@@ -22,6 +22,18 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import default, format
 from ambari_commons import OSCheck
 
+# a map of the Ambari role to the component name
+# for use with /usr/hdp/current/<component>
+SERVER_ROLE_DIRECTORY_MAP = {
+  'NIMBUS' : 'storm-nimbus',
+  'SUPERVISOR' : 'storm-supervisor',
+  'STORM_UI_SERVER' : 'storm-client',
+  'DRPC_SERVER' : 'storm-client',
+  'STORM_SERVICE_CHECK' : 'storm-client'
+}
+
+component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "STORM_SERVICE_CHECK")
+
 config = Script.get_config()
 
 if OSCheck.is_windows_family():
@@ -36,19 +48,26 @@ else:
   pid_ui = format("{pid_dir}/ui.pid")
   pid_logviewer = format("{pid_dir}/logviewer.pid")
   pid_rest_api = format("{pid_dir}/restapi.pid")
-  pid_files = {"logviewer":pid_logviewer,
-               "ui": pid_ui,
-               "nimbus": pid_nimbus,
-               "supervisor": pid_supervisor,
-               "drpc": pid_drpc,
-               "rest_api": pid_rest_api}
+
+  pid_files = {
+    "logviewer":pid_logviewer,
+    "ui": pid_ui,
+    "nimbus": pid_nimbus,
+    "supervisor": pid_supervisor,
+    "drpc": pid_drpc,
+    "rest_api": pid_rest_api
+  }
 
   # Security related/required params
   hostname = config['hostname']
   security_enabled = config['configurations']['cluster-env']['security_enabled']
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()
+
   conf_dir = "/etc/storm/conf"
+  if Script.is_hdp_stack_greater_or_equal("2.2"):
+    conf_dir = format("/usr/hdp/current/{component_directory}/conf")
+
   storm_user = config['configurations']['storm-env']['storm_user']
   storm_ui_principal = default('/configurations/storm-env/storm_ui_principal_name', None)
   storm_ui_keytab = default('/configurations/storm-env/storm_ui_keytab', None)

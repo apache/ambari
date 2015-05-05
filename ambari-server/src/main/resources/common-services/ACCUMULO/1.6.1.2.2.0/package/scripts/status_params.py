@@ -17,17 +17,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
 
-from resource_management import *
+# a map of the Ambari role to the component name
+# for use with /usr/hdp/current/<component>
+SERVER_ROLE_DIRECTORY_MAP = {
+  'ACCUMULO_MASTER' : 'accumulo-master',
+  'ACCUMULO_MONITOR' : 'accumulo-monitor',
+  'ACCUMULO_GC' : 'accumulo-gc',
+  'ACCUMULO_TRACER' : 'accumulo-tracer',
+  'ACCUMULO_TSERVER' : 'accumulo-tablet',
+  'ACCUMULO_CLIENT' : 'accumulo-client'
+}
+
+component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "ACCUMULO_CLIENT")
 
 config = Script.get_config()
 
-conf_dir = "/etc/accumulo/conf"
+conf_dir = format('/usr/hdp/current/{component_directory}/conf')
+server_conf_dir = format('{conf_dir}/server')
 pid_dir = config['configurations']['accumulo-env']['accumulo_pid_dir']
 accumulo_user = config['configurations']['accumulo-env']['accumulo_user']
 
 # Security related/required params
 hostname = config['hostname']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 tmp_dir = Script.get_tmp_dir()

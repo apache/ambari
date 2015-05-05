@@ -24,7 +24,16 @@ from resource_management import Hook
 
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
-  def test_hook_default(self):
+  @patch("os.path.exists")
+  def test_hook_default(self, os_path_exists_mock):
+
+    def side_effect(path):
+      if path == "/etc/hadoop/conf":
+        return True
+      return False
+
+    os_path_exists_mock.side_effect = side_effect
+
     self.executeScript("2.0.6/hooks/before-ANY/scripts/hook.py",
                        classname="BeforeAnyHook",
                        command="hook",

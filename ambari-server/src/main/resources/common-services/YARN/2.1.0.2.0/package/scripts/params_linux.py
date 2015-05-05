@@ -19,10 +19,29 @@ Ambari Agent
 
 """
 import os
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+
 import status_params
+
+# a map of the Ambari role to the component name
+# for use with /usr/hdp/current/<component>
+MAPR_SERVER_ROLE_DIRECTORY_MAP = {
+  'HISTORYSERVER' : 'hadoop-mapreduce-historyserver',
+  'MAPREDUCE2_CLIENT' : 'hadoop-mapreduce-client',
+}
+
+YARN_SERVER_ROLE_DIRECTORY_MAP = {
+  'APP_TIMELINE_SERVER' : 'hadoop-yarn-timelineserver',
+  'NODEMANAGER' : 'hadoop-yarn-nodemanager',
+  'RESOURCEMANAGER' : 'hadoop-yarn-resourcemanager',
+  'YARN_CLIENT' : 'hadoop-yarn-client'
+}
 
 # server configurations
 config = Script.get_config()
@@ -39,46 +58,47 @@ version = default("/commandParams/version", None)
 
 hostname = config['hostname']
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  yarn_role_root = "hadoop-yarn-client"
+# hadoop default parameters
+hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+hadoop_bin = "/usr/lib/hadoop/sbin"
+hadoop_bin_dir = "/usr/bin"
+hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_yarn_home = '/usr/lib/hadoop-yarn'
+hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
+mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
+yarn_bin = "/usr/lib/hadoop-yarn/sbin"
+yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
+
+# hadoop parameters for 2.2+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+
+  # MapR directory root
   mapred_role_root = "hadoop-mapreduce-client"
-
   command_role = default("/role", "")
-  if command_role == "APP_TIMELINE_SERVER":
-    yarn_role_root = "hadoop-yarn-timelineserver"
-  elif command_role == "HISTORYSERVER":
-    mapred_role_root = "hadoop-mapreduce-historyserver"
-  elif command_role == "MAPREDUCE2_CLIENT":
-    mapred_role_root = "hadoop-mapreduce-client"
-  elif command_role == "NODEMANAGER":
-    yarn_role_root = "hadoop-yarn-nodemanager"
-  elif command_role == "RESOURCEMANAGER":
-    yarn_role_root = "hadoop-yarn-resourcemanager"
-  elif command_role == "YARN_CLIENT":
-    yarn_role_root = "hadoop-yarn-client"
+  if command_role in MAPR_SERVER_ROLE_DIRECTORY_MAP:
+    mapred_role_root = MAPR_SERVER_ROLE_DIRECTORY_MAP[command_role]
 
-  hadoop_libexec_dir          = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_bin                  = "/usr/hdp/current/hadoop-client/sbin"
-  hadoop_bin_dir              = "/usr/hdp/current/hadoop-client/bin"
+  # YARN directory root
+  yarn_role_root = "hadoop-yarn-client"
+  if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
+    yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
+
+  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
+  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
+  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 
   hadoop_mapred2_jar_location = format("/usr/hdp/current/{mapred_role_root}")
-  mapred_bin                  = format("/usr/hdp/current/{mapred_role_root}/sbin")
+  mapred_bin = format("/usr/hdp/current/{mapred_role_root}/sbin")
 
-  hadoop_yarn_home            = format("/usr/hdp/current/{yarn_role_root}")
-  yarn_bin                    = format("/usr/hdp/current/{yarn_role_root}/sbin")
-  yarn_container_bin          = format("/usr/hdp/current/{yarn_role_root}/bin")
-else:
-  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-  hadoop_bin = "/usr/lib/hadoop/sbin"
-  hadoop_bin_dir = "/usr/bin"
-  hadoop_yarn_home = '/usr/lib/hadoop-yarn'
-  hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
-  mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
-  yarn_bin = "/usr/lib/hadoop-yarn/sbin"
-  yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
+  hadoop_yarn_home = format("/usr/hdp/current/{yarn_role_root}")
+  yarn_bin = format("/usr/hdp/current/{yarn_role_root}/sbin")
+  yarn_container_bin = format("/usr/hdp/current/{yarn_role_root}/bin")
 
-hadoop_conf_dir = "/etc/hadoop/conf"
+  # the configuration direction for HDFS/YARN/MapR is the hadoop config
+  # directory, which is symlinked by hadoop-client only
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
+
 limits_conf_dir = "/etc/security/limits.d"
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir + os.pathsep + yarn_container_bin
 
@@ -93,7 +113,7 @@ smokeuser_principal = config['configurations']['cluster-env']['smokeuser_princip
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]
 rm_port = config['configurations']['yarn-site']['yarn.resourcemanager.webapp.address'].split(':')[-1]

@@ -18,11 +18,13 @@ limitations under the License.
 Ambari Agent
 
 """
-
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
 import status_params
+
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()
@@ -33,29 +35,26 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 stack_name = default("/hostLevelParams/stack_name", None)
 current_version = default("/hostLevelParams/current_version", None)
+component_directory = status_params.component_directory
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  role_root = "zookeeper-client"
-  command_role = default("/role", "")
-
-  if command_role == "ZOOKEEPER_SERVER":
-    role_root = "zookeeper-server"
-
-  zk_home = format("/usr/hdp/current/{role_root}")
-  zk_bin = format("/usr/hdp/current/{role_root}/bin")
-  zk_cli_shell = format("/usr/hdp/current/{role_root}/bin/zkCli.sh")
-else:
-  zk_home = "/usr"
-  zk_bin = "/usr/lib/zookeeper/bin"
-  zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
-
-
+# default parameters
+zk_home = "/usr"
+zk_bin = "/usr/lib/zookeeper/bin"
+zk_cli_shell = "/usr/lib/zookeeper/bin/zkCli.sh"
 config_dir = "/etc/zookeeper/conf"
-zk_user =  config['configurations']['zookeeper-env']['zk_user']
+
+# hadoop parameters for 2.2+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  zk_home = format("/usr/hdp/current/{component_directory}")
+  zk_bin = format("/usr/hdp/current/{component_directory}/bin")
+  zk_cli_shell = format("/usr/hdp/current/{component_directory}/bin/zkCli.sh")
+  config_dir = status_params.config_dir
+
+
+zk_user = config['configurations']['zookeeper-env']['zk_user']
 hostname = config['hostname']
 user_group = config['configurations']['cluster-env']['user_group']
 zk_env_sh_template = config['configurations']['zookeeper-env']['content']
@@ -91,7 +90,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 #log4j.properties
 if ('zookeeper-log4j' in config['configurations']) and ('content' in config['configurations']['zookeeper-log4j']):

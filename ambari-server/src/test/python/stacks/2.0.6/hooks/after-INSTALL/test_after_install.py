@@ -35,6 +35,7 @@ class TestHookAfterInstall(RMFTestCase):
                               group = 'hadoop',
                               conf_dir = '/etc/hadoop/conf',
                               configurations = self.getConfig()['configurations']['core-site'],
-                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site']
-                              )
+                              configuration_attributes = self.getConfig()['configuration_attributes']['core-site'],
+                              only_if="ls /etc/hadoop/conf")
+
     self.assertNoMoreResources()

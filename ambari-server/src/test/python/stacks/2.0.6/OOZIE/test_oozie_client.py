@@ -148,7 +148,7 @@ class TestOozieClient(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('Directory', '/etc/oozie/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-client/conf',
                               owner = 'oozie',
                               group = 'hadoop',
                               recursive = True
@@ -157,39 +157,39 @@ class TestOozieClient(RMFTestCase):
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0664,
-                              conf_dir = '/etc/oozie/conf',
+                              conf_dir = '/usr/hdp/current/oozie-client/conf',
                               configurations = self.getConfig()['configurations']['oozie-site'],
                               configuration_attributes = self.getConfig()['configuration_attributes']['oozie-site']
     )
-    self.assertResourceCalled('File', '/etc/oozie/conf/oozie-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/oozie-env.sh',
                               owner = 'oozie',
                               content = InlineTemplate(self.getConfig()['configurations']['oozie-env']['content'])
     )
-    self.assertResourceCalled('File', '/etc/oozie/conf/oozie-log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/oozie-log4j.properties',
                               owner = 'oozie',
                               group = 'hadoop',
                               mode = 0644,
                               content = 'log4jproperties\nline2'
     )
-    self.assertResourceCalled('File', '/etc/oozie/conf/adminusers.txt',
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/adminusers.txt',
                               content = Template('adminusers.txt.j2'),
                               owner = 'oozie',
                               group = 'hadoop',
                               mode=0644,
                               )
-    self.assertResourceCalled('File', '/etc/oozie/conf/hadoop-config.xml',
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/hadoop-config.xml',
                               owner = 'oozie',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/etc/oozie/conf/oozie-default.xml',
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/oozie-default.xml',
                               owner = 'oozie',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('Directory', '/etc/oozie/conf/action-conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/oozie-client/conf/action-conf',
                               owner = 'oozie',
                               group = 'hadoop',
                               )
-    self.assertResourceCalled('File', '/etc/oozie/conf/action-conf/hive.xml',
+    self.assertResourceCalled('File', '/usr/hdp/current/oozie-client/conf/action-conf/hive.xml',
                               owner = 'oozie',
                               group = 'hadoop',
                               )

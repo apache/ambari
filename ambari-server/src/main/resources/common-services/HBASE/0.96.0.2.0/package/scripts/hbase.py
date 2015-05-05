@@ -46,7 +46,7 @@ def hbase(name=None):
 def hbase(name=None):
   import params
 
-  Directory( params.hbase_conf_dir_prefix,
+  Directory( params.etc_prefix_dir,
       mode=0755
   )
 

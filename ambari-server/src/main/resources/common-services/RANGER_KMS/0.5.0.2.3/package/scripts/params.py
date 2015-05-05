@@ -18,7 +18,7 @@ limitations under the License.
 
 """
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 
@@ -31,7 +31,7 @@ version = default("/commandParams/version", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-stack_is_hdp23_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0
+stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
 if stack_is_hdp23_or_further:
   kms_home = '/usr/hdp/current/ranger-kms'

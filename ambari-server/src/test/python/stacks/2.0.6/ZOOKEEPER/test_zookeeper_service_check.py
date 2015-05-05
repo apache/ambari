@@ -76,7 +76,7 @@ class TestServiceCheck(RMFTestCase):
                        content = StaticFile('zkSmoke.sh'),
                        mode = 0755,
     )
-    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/hdp/current/zookeeper-client/bin/zkCli.sh ambari-qa /etc/zookeeper/conf 2181 False /usr/bin/kinit no_keytab no_principal',
+    self.assertResourceCalled('Execute', '/tmp/zkSmoke.sh /usr/hdp/current/zookeeper-client/bin/zkCli.sh ambari-qa /usr/hdp/current/zookeeper-client/conf 2181 False /usr/bin/kinit no_keytab no_principal',
                        logoutput = True,
                        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                        tries = 3,

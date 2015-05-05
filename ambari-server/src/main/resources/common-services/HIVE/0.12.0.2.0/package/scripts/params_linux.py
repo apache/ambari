@@ -18,14 +18,20 @@ limitations under the License.
 
 """
 
-from ambari_commons.constants import AMBARI_SUDO_BINARY
-from ambari_commons.os_check import OSCheck
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
 import status_params
 import json
 import os
+
+from ambari_commons.constants import AMBARI_SUDO_BINARY
+from ambari_commons.os_check import OSCheck
+
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 # server configurations
 config = Script.get_config()
@@ -40,76 +46,61 @@ hostname = config["hostname"]
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp21 = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.1') >= 0 and compare_versions(hdp_stack_version, '2.2') < 0
+stack_is_hdp21 = Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2")
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
 
-# Hadoop params
-# TODO, this logic should initialize these parameters in a file inside the HDP 2.2 stack.
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
-  # start out with client libraries
+hadoop_bin_dir = "/usr/bin"
+hadoop_home = '/usr'
+hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
+hive_bin = '/usr/lib/hive/bin'
+hive_lib = '/usr/lib/hive/lib/'
+hive_var_lib = '/var/lib/hive'
+pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
+hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
+sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
+hive_specific_configs_supported = False
+hive_etc_dir_prefix = "/etc/hive"
+limits_conf_dir = "/etc/security/limits.d"
+hcat_conf_dir = '/etc/hcatalog/conf'
+config_dir = '/etc/hcatalog/conf'
+hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
+webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
+
+# use the directories from status_params as they are already calculated for
+# the correct version of HDP
+hadoop_conf_dir = status_params.hadoop_conf_dir
+webhcat_conf_dir = status_params.webhcat_conf_dir
+hive_conf_dir = status_params.hive_conf_dir
+hive_config_dir = status_params.hive_config_dir
+hive_client_conf_dir = status_params.hive_client_conf_dir
+hive_server_conf_dir = status_params.hive_server_conf_dir
+
+if Script.is_hdp_stack_greater_or_equal("2.1"):
+  hcat_conf_dir = '/etc/hive-hcatalog/conf'
+  config_dir = '/etc/hive-webhcat/conf'
+  hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
+  webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  hive_specific_configs_supported = True
+
+  component_directory = status_params.component_directory
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
-  hive_bin = '/usr/hdp/current/hive-client/bin'
-  hive_lib = '/usr/hdp/current/hive-client/lib'
-
-  # if this is a server action, then use the server binaries; smoke tests
-  # use the client binaries
-  command_role = default("/role", "")
-  server_role_dir_mapping = { 'HIVE_SERVER' : 'hive-server2',
-    'HIVE_METASTORE' : 'hive-metastore' }
-
-  if command_role in server_role_dir_mapping:
-    hive_server_root = server_role_dir_mapping[command_role]
-    hive_bin = format('/usr/hdp/current/{hive_server_root}/bin')
-    hive_lib = format('/usr/hdp/current/{hive_server_root}/lib')
+  hive_bin = format('/usr/hdp/current/{component_directory}/bin')
+  hive_lib = format('/usr/hdp/current/{component_directory}/lib')
 
   # there are no client versions of these, use server versions directly
   hcat_lib = '/usr/hdp/current/hive-webhcat/share/hcatalog'
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
 
-  hive_specific_configs_supported = True
-else:
-  hadoop_bin_dir = "/usr/bin"
-  hadoop_home = '/usr'
-  hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
-  hive_bin = '/usr/lib/hive/bin'
-  hive_lib = '/usr/lib/hive/lib/'
-  pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
-  hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
-  sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
-
-  if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
-    hcat_lib = '/usr/lib/hcatalog/share/hcatalog'
-    webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
-  # for newer versions
-  else:
-    hcat_lib = '/usr/lib/hive-hcatalog/share/hcatalog'
-    webhcat_bin_dir = '/usr/lib/hive-hcatalog/sbin'
-    
-  hive_specific_configs_supported = False
-
-hadoop_conf_dir = "/etc/hadoop/conf"
-hive_conf_dir_prefix = "/etc/hive"
-hive_conf_dir = format("{hive_conf_dir_prefix}/conf")
-hive_client_conf_dir = format("{hive_conf_dir_prefix}/conf")
-hive_server_conf_dir = format("{hive_conf_dir_prefix}/conf.server")
-limits_conf_dir = "/etc/security/limits.d"
-
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
-  hcat_conf_dir = '/etc/hcatalog/conf'
-  config_dir = '/etc/hcatalog/conf'
-# for newer versions
-else:
-  hcat_conf_dir = '/etc/hive-hcatalog/conf'
-  config_dir = '/etc/hive-webhcat/conf'
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']
 hive_jdbc_connection_url = config['configurations']['hive-site']['javax.jdo.option.ConnectionURL']
 
-webhcat_conf_dir = status_params.webhcat_conf_dir
 hive_metastore_user_passwd = config['configurations']['hive-site']['javax.jdo.option.ConnectionPassword']
 hive_metastore_db_type = config['configurations']['hive-env']['hive_database_type']
 #HACK Temporarily use dbType=azuredb while invoking schematool
@@ -145,15 +136,16 @@ templeton_port = config['configurations']['webhcat-site']['templeton.port']
 hive_metastore_hosts = config['clusterHostInfo']['hive_metastore_host']
 hive_metastore_host = hive_metastore_hosts[0]
 hive_metastore_port = get_port_from_url(config['configurations']['hive-site']['hive.metastore.uris']) #"9083"
-hive_var_lib = '/var/lib/hive'
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 hive_server_host = config['clusterHostInfo']['hive_server_host'][0]
 hive_server_hosts = config['clusterHostInfo']['hive_server_host']
 hive_transport_mode = config['configurations']['hive-site']['hive.server2.transport.mode']
+
 if hive_transport_mode.lower() == "http":
   hive_server_port = config['configurations']['hive-site']['hive.server2.thrift.http.port']
 else:
   hive_server_port = default('/configurations/hive-site/hive.server2.thrift.port',"10000")
+
 hive_url = format("jdbc:hive2://{hive_server_host}:{hive_server_port}")
 hive_server_principal = config['configurations']['hive-site']['hive.server2.authentication.kerberos.principal']
 hive_server2_authentication = config['configurations']['hive-site']['hive.server2.authentication']
@@ -167,7 +159,7 @@ smokeuser_principal = config['configurations']['cluster-env']['smokeuser_princip
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metastore.kerberos.keytab.file']
 
 hive_server2_keytab = config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
@@ -177,16 +169,12 @@ hive_dbroot = config['configurations']['hive-env']['hive_dbroot']
 hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid
+
 #Default conf dir for client
 hive_conf_dirs_list = [hive_client_conf_dir]
 
 if hostname in hive_metastore_hosts or hostname in hive_server_hosts:
   hive_conf_dirs_list.append(hive_server_conf_dir)
-
-if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
-  hive_config_dir = hive_server_conf_dir
-else:
-  hive_config_dir = hive_client_conf_dir
 
 #hive-site
 hive_database_name = config['configurations']['hive-env']['hive_database_name']
@@ -223,7 +211,6 @@ else:
 java64_home = config['hostLevelParams']['java_home']
 
 ##### MYSQL
-
 db_name = config['configurations']['hive-env']['hive_database_name']
 mysql_group = 'mysql'
 mysql_host = config['clusterHostInfo']['hive_mysql_host']
@@ -232,13 +219,12 @@ mysql_adduser_path = format("{tmp_dir}/addMysqlUser.sh")
 mysql_deluser_path = format("{tmp_dir}/removeMysqlUser.sh")
 
 ######## Metastore Schema
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.1.0.0") < 0:
-  init_metastore_schema = False
-else:
+init_metastore_schema = False
+if Script.is_hdp_stack_greater_or_equal("2.1"):
   init_metastore_schema = True
 
-########## HCAT
 
+########## HCAT
 hcat_dbroot = hcat_lib
 
 hcat_user = config['configurations']['hive-env']['hcat_user']
@@ -353,7 +339,7 @@ HdfsDirectory = functools.partial(
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >=0:
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   enable_ranger_hive = (config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled'].lower() == 'yes')
 
 #ranger hive properties

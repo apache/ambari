@@ -18,13 +18,15 @@ limitations under the License.
 Ambari Agent
 
 """
-
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
 import status_params
-import json
+
 from ambari_commons import OSCheck
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions.get_port_from_url import get_port_from_url
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
 
 if OSCheck.is_windows_family():
   from params_windows import *
@@ -130,7 +132,7 @@ security_enabled = config['configurations']['cluster-env']['security_enabled']
 smokeuser = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal = config['configurations']['cluster-env']['smokeuser_principal_name']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 if security_enabled:
   knox_keytab_path = config['configurations']['knox-env']['knox_keytab_path']
   _hostname_lowercase = config['hostname'].lower()
@@ -174,7 +176,7 @@ if has_ranger_admin:
   elif xa_audit_db_flavor.lower() == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif nxa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor.lower() == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
   elif xa_audit_db_flavor.lower() == 'sqlserver':

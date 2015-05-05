@@ -27,14 +27,12 @@ from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 def tez():
   import params
 
-  Directory(params.config_dir_prefix,
-            mode=0755
-  )
+  Directory(params.tez_etc_dir, mode=0755)
+
   Directory(params.config_dir,
             owner = params.tez_user,
             group = params.user_group,
-            recursive = True
-  )
+            recursive = True)
 
   XmlConfig( "tez-site.xml",
              conf_dir = params.config_dir,
@@ -42,13 +40,11 @@ def tez():
              configuration_attributes=params.config['configuration_attributes']['tez-site'],
              owner = params.tez_user,
              group = params.user_group,
-             mode = 0664
-  )
+             mode = 0664)
 
   File(format("{config_dir}/tez-env.sh"),
        owner=params.tez_user,
-       content=InlineTemplate(params.tez_env_sh_template)
-  )
+       content=InlineTemplate(params.tez_env_sh_template))
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)

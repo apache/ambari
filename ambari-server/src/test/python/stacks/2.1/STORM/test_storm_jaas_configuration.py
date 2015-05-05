@@ -70,7 +70,7 @@ class TestStormJaasConfiguration(TestStormBase):
     self.assert_configure_secured()
 
   def assert_configure_default(self):
-    storm_yarn_content = super(TestStormJaasConfiguration, self).assert_configure_default()
+    storm_yarn_content = super(TestStormJaasConfiguration, self).assert_configure_default(confDir="/usr/hdp/current/storm-nimbus/conf")
     
     self.assertTrue(storm_yarn_content.find('_JAAS_PLACEHOLDER') == -1, 'Placeholder have to be substituted')
       
@@ -80,11 +80,11 @@ class TestStormJaasConfiguration(TestStormBase):
 
   def assert_configure_secured(self):
 
-    storm_yarn_content = super(TestStormJaasConfiguration, self).assert_configure_secured()
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/client_jaas.conf',
+    storm_yarn_content = super(TestStormJaasConfiguration, self).assert_configure_secured(confDir="/usr/hdp/current/storm-nimbus/conf")
+    self.assertResourceCalled('TemplateConfig', '/usr/hdp/current/storm-nimbus/conf/client_jaas.conf',
       owner = 'storm',
     )
-    self.assertResourceCalled('File', '/etc/storm/conf/worker-launcher.cfg',
+    self.assertResourceCalled('File', '/usr/hdp/current/storm-nimbus/conf/worker-launcher.cfg',
       owner = 'root',
       content = Template('worker-launcher.cfg.j2', min_user_ruid = 500),
       group = 'hadoop',

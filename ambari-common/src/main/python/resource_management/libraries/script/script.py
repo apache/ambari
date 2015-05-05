@@ -257,6 +257,78 @@ class Script(object):
     """
     return Script.tmp_dir
 
+  @staticmethod
+  def get_component_from_role(role_directory_map, default_role):
+    """
+    Gets the /usr/hdp/current/<component> component given an Ambari role,
+    such as DATANODE or HBASE_MASTER.
+    :return:  the component name, such as hbase-master
+    """
+    from resource_management.libraries.functions.default import default
+
+    command_role = default("/role", default_role)
+    if command_role in role_directory_map:
+      return role_directory_map[command_role]
+    else:
+      return role_directory_map[default_role]
+
+  @staticmethod
+  def get_stack_name():
+    """
+    Gets the name of the stack from hostLevelParams/stack_name.
+    :return: a stack name or None
+    """
+    from resource_management.libraries.functions.default import default
+    return default("/hostLevelParams/stack_name", None)
+
+  @staticmethod
+  def get_hdp_stack_version():
+    """
+    Gets the normalized version of the HDP stack in the form #.#.#.# if it is
+    present on the configurations sent.
+    :return: a normalized HDP stack version or None
+    """
+    stack_name = Script.get_stack_name()
+    if stack_name is None or stack_name.upper() != "HDP":
+      return None
+
+    config = Script.get_config()
+    if 'hostLevelParams' not in config or 'stack_version' not in config['hostLevelParams']:
+      return None
+
+    stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
+    if stack_version_unformatted is None or stack_version_unformatted == '':
+      return None
+
+    return format_hdp_stack_version(stack_version_unformatted)
+
+  @staticmethod
+  def is_hdp_stack_greater_or_equal(compare_to_version):
+    """
+    Gets whether the hostLevelParams/stack_version, after being normalized,
+    is greater than or equal to the specified stack version
+    :param compare_to_version: the version to compare to
+    :return: True if the command's stack is greater than the specified version
+    """
+    hdp_stack_version = Script.get_hdp_stack_version()
+    if hdp_stack_version is None or hdp_stack_version == "":
+      return False
+
+    return compare_versions(hdp_stack_version, compare_to_version) >= 0
+
+  @staticmethod
+  def is_hdp_stack_less_than(compare_to_version):
+    """
+    Gets whether the hostLevelParams/stack_version, after being normalized,
+    is less than the specified stack version
+    :param compare_to_version: the version to compare to
+    :return: True if the command's stack is less than the specified version
+    """
+    hdp_stack_version = Script.get_hdp_stack_version()
+    if hdp_stack_version is None:
+      return False
+
+    return compare_versions(hdp_stack_version, compare_to_version) < 0
 
   def install(self, env):
     """

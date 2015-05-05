@@ -28,24 +28,29 @@ config = Script.get_config()
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+# hadoop default params
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+hadoop_lib_home = "/usr/lib/hadoop/lib"
+hadoop_bin = "/usr/lib/hadoop/sbin"
+hadoop_home = '/usr'
+create_lib_snappy_symlinks = True
+hadoop_conf_dir = "/etc/hadoop/conf"
+default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
+
+# HDP 2.2+ params
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   create_lib_snappy_symlinks = False
-else:
-  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-  hadoop_lib_home = "/usr/lib/hadoop/lib"
-  hadoop_bin = "/usr/lib/hadoop/sbin"
-  hadoop_home = '/usr'
-  create_lib_snappy_symlinks = True
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+  default_topology_script_file_path = "/usr/hdp/current/hadoop-client/conf/topology_script.py"
 
 current_service = config['serviceName']
-hadoop_conf_dir = "/etc/hadoop/conf"
+
 #security params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 
@@ -183,7 +188,7 @@ all_ipv4_ips = default("/clusterHostInfo/all_ipv4_ips", [])
 slave_hosts = default("/clusterHostInfo/slave_hosts", [])
 
 #topology files
-net_topology_script_file_path = default("/configurations/core-site/net.topology.script.file.name","/etc/hadoop/conf/topology_script.py")
+net_topology_script_file_path = default("/configurations/core-site/net.topology.script.file.name",default_topology_script_file_path)
 net_topology_script_dir = os.path.dirname(net_topology_script_file_path)
 net_topology_mapping_data_file_name = 'topology_mappings.data'
 net_topology_mapping_data_file_path = os.path.join(net_topology_script_dir, net_topology_mapping_data_file_name)

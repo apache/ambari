@@ -36,7 +36,7 @@ class TestMahoutClient(RMFTestCase):
     self.assertResourceCalled('ExecuteHadoop', 'fs -rm -r -f /user/ambari-qa/mahoutsmokeoutput /user/ambari-qa/mahoutsmokeinput',
                               security_enabled = False,
                               keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               try_sleep = 5,
                               kinit_path_local = '/usr/bin/kinit',
                               tries = 3,
@@ -49,7 +49,7 @@ class TestMahoutClient(RMFTestCase):
                               tries = 3,
                               bin_dir = '/usr/hdp/current/hadoop-client/bin',
                               user = 'ambari-qa',
-                              conf_dir = '/etc/hadoop/conf',
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               )
     self.assertResourceCalled('File', '/tmp/sample-mahout-test.txt',
                               content = 'Test text which will be converted to sequence file.',
@@ -60,12 +60,12 @@ class TestMahoutClient(RMFTestCase):
                               tries = 3,
                               bin_dir = '/usr/hdp/current/hadoop-client/bin',
                               user = 'ambari-qa',
-                              conf_dir = '/etc/hadoop/conf',
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               )
     self.assertResourceCalled('Execute', 'mahout seqdirectory --input /user/ambari-qa/mahoutsmokeinput/'
                                          'sample-mahout-test.txt --output /user/ambari-qa/mahoutsmokeoutput/ '
                                          '--charset utf-8',
-                              environment = {'HADOOP_CONF_DIR': '/etc/hadoop/conf',
+                              environment = {'HADOOP_CONF_DIR': '/usr/hdp/current/hadoop-client/conf',
                                              'HADOOP_HOME': '/usr/hdp/current/hadoop-client',
                                              'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45',
                                              'MAHOUT_HOME': '/usr/hdp/current/mahout-client'},
@@ -79,7 +79,7 @@ class TestMahoutClient(RMFTestCase):
                               tries = 10,
                               bin_dir = '/usr/hdp/current/hadoop-client/bin',
                               user = 'ambari-qa',
-                              conf_dir = '/etc/hadoop/conf',
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
                               )
     self.assertNoMoreResources()
 

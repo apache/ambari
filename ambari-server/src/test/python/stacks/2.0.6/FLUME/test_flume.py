@@ -102,7 +102,7 @@ class TestFlumeHandler(RMFTestCase):
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("sys.exit")
   def test_status_default(self, sys_exit_mock, structured_out_mock):
-    
+
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/flume_handler.py",
                        classname = "FlumeHandler",
@@ -113,7 +113,7 @@ class TestFlumeHandler(RMFTestCase):
     except:
       # expected since ComponentIsNotRunning gets raised
       pass
-    
+
     # test that the method was called with empty processes
     self.assertTrue(structured_out_mock.called)
     structured_out_mock.assert_called_with({'processes': []})
@@ -130,7 +130,7 @@ class TestFlumeHandler(RMFTestCase):
    script.load_structured_out()
 
    self.assertFalse("version" in script.structuredOut)
-    
+
 
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("glob.glob")
@@ -148,7 +148,7 @@ class TestFlumeHandler(RMFTestCase):
     except:
       # expected since ComponentIsNotRunning gets raised
       pass
-    
+
     self.assertTrue(structured_out_mock.called)
 
     # call_args[0] is a tuple, whose first element is the actual call argument
@@ -156,7 +156,7 @@ class TestFlumeHandler(RMFTestCase):
     self.assertTrue(struct_out.has_key('processes'))
 
     self.assertNoMoreResources()
-    
+
   @patch("resource_management.libraries.script.Script.put_structured_out")
   @patch("glob.glob")
   @patch("sys.exit")
@@ -173,13 +173,13 @@ class TestFlumeHandler(RMFTestCase):
     except:
       # expected since ComponentIsNotRunning gets raised
       pass
-      
+
     self.assertTrue(structured_out_mock.called)
 
     # call_args[0] is a tuple, whose first element is the actual call argument
     struct_out = structured_out_mock.call_args[0][0]
     self.assertTrue(struct_out.has_key('processes'))
-    self.assertNoMoreResources()    
+    self.assertNoMoreResources()
 
   def assert_configure_default(self):
 
@@ -400,24 +400,24 @@ class TestFlumeHandler(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
+    self.assertResourceCalled('Directory', '/usr/hdp/current/flume-server/conf', recursive=True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
+    self.assertResourceCalled('Directory', '/usr/hdp/current/flume-server/conf/a1')
 
-    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
+    self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/flume-server/conf/a1/flume.conf',
       mode = 0644,
       properties = build_flume(
         self.getConfig()['configurations']['flume-conf']['content'])['a1'])
 
     self.assertResourceCalled('File',
-      '/etc/flume/conf/a1/log4j.properties',
+      '/usr/hdp/current/flume-server/conf/a1/log4j.properties',
       content = Template('log4j.properties.j2', agent_name = 'a1'),
       mode = 0644)
 
     self.assertResourceCalled('File',
-      '/etc/flume/conf/a1/ambari-meta.json',
+      '/usr/hdp/current/flume-server/conf/a1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
 
@@ -425,7 +425,7 @@ class TestFlumeHandler(RMFTestCase):
 
     self.assertTrue(content.get_content().find('/usr/hdp/current/hive-metastore') > -1)
 
-    self.assertResourceCalled('File', "/etc/flume/conf/a1/flume-env.sh",
+    self.assertResourceCalled('File', "/usr/hdp/current/flume-server/conf/a1/flume-env.sh",
                               owner="flume",
                               content=content)
 

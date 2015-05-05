@@ -17,14 +17,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from ambari_commons.constants import AMBARI_SUDO_BINARY
-from functions import calc_xmn_from_xms
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
 import status_params
 import json
+
+from functions import calc_xmn_from_xms
+
+from ambari_commons.constants import AMBARI_SUDO_BINARY
+
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.functions import get_unique_id_and_date
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+from resource_management.libraries.functions.substitute_vars import substitute_vars
 
 # server configurations
 config = Script.get_config()
@@ -32,32 +39,43 @@ exec_tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
-
 version = default("/commandParams/version", None)
+component_directory = status_params.component_directory
+etc_prefix_dir = "/etc/hbase"
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+# hadoop default parameters
+hadoop_bin_dir = "/usr/bin"
+hadoop_conf_dir = "/etc/hadoop/conf"
+daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
+region_mover = "/usr/lib/hbase/bin/region_mover.rb"
+region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
+hbase_cmd = "/usr/lib/hbase/bin/hbase"
+
+# hadoop parameters for 2.2+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
   hadoop_bin_dir = format("/usr/hdp/current/hadoop-client/bin")
   daemon_script = format('/usr/hdp/current/hbase-client/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase-client/bin/region_mover.rb')
   region_drainer = format('/usr/hdp/current/hbase-client/bin/draining_servers.rb')
   hbase_cmd = format('/usr/hdp/current/hbase-client/bin/hbase')
-else:
-  hadoop_bin_dir = "/usr/bin"
-  daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
-  region_mover = "/usr/lib/hbase/bin/region_mover.rb"
-  region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
-  hbase_cmd = "/usr/lib/hbase/bin/hbase"
+
+  hbase_max_direct_memory_size  = config['configurations']['hbase-env']['hbase_max_direct_memory_size']
+
+  daemon_script=format("/usr/hdp/current/{component_directory}/bin/hbase-daemon.sh")
+  region_mover = format("/usr/hdp/current/{component_directory}/bin/region_mover.rb")
+  region_drainer = format("/usr/hdp/current/{component_directory}/bin/draining_servers.rb")
+  hbase_cmd = format("/usr/hdp/current/{component_directory}/bin/hbase")
+
+
+hbase_conf_dir = status_params.hbase_conf_dir
 
 # no symlink for phoenix-server at this point
 phx_daemon_script = '/usr/hdp/current/phoenix-server/bin/queryserver.py'
 
-hadoop_conf_dir = "/etc/hadoop/conf"
-hbase_conf_dir_prefix = "/etc/hbase"
-hbase_conf_dir = format("{hbase_conf_dir_prefix}/conf")
 hbase_excluded_hosts = config['commandParams']['excluded_hosts']
 hbase_drain_only = default("/commandParams/mark_draining_only",False)
 hbase_included_hosts = config['commandParams']['included_hosts']
@@ -82,8 +100,6 @@ regionserver_xmn_max = config['configurations']['hbase-env']['hbase_regionserver
 regionserver_xmn_percent = config['configurations']['hbase-env']['hbase_regionserver_xmn_ratio']
 regionserver_xmn_size = calc_xmn_from_xms(regionserver_heapsize, regionserver_xmn_percent, regionserver_xmn_max)
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  hbase_max_direct_memory_size  = config['configurations']['hbase-env']['hbase_max_direct_memory_size']
 
 pid_dir = status_params.pid_dir
 tmp_dir = config['configurations']['hbase-site']['hbase.tmp.dir']
@@ -117,7 +133,7 @@ else:
 smoke_test_user = config['configurations']['cluster-env']['smokeuser']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 smokeuser_permissions = "RWXCA"
-service_check_data = functions.get_unique_id_and_date()
+service_check_data = get_unique_id_and_date()
 user_group = config['configurations']['cluster-env']["user_group"]
 
 if security_enabled:
@@ -131,7 +147,7 @@ regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regions
 queryserver_keytab_path = config['configurations']['hbase-site']['phoenix.queryserver.keytab.file']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 hbase_user_keytab = config['configurations']['hbase-env']['hbase_user_keytab']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 if security_enabled:
   kinit_cmd = format("{kinit_path_local} -kt {hbase_user_keytab} {hbase_principal_name};")
 else:
@@ -164,16 +180,6 @@ HdfsDirectory = functools.partial(
   kinit_path_local = kinit_path_local,
   bin_dir = hadoop_bin_dir
 )
-
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
-  command_role = default("/role", "")
-  if command_role == "HBASE_MASTER" or command_role == "HBASE_REGIONSERVER":
-    role_root = "master" if command_role == "HBASE_MASTER" else "regionserver"
-
-    daemon_script=format("/usr/hdp/current/hbase-{role_root}/bin/hbase-daemon.sh")
-    region_mover = format("/usr/hdp/current/hbase-{role_root}/bin/region_mover.rb")
-    region_drainer = format("/usr/hdp/current/hbase-{role_root}/bin/draining_servers.rb")
-    hbase_cmd = format("/usr/hdp/current/hbase-{role_root}/bin/hbase")
 
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
@@ -218,7 +224,7 @@ if has_ranger_admin:
   elif xa_audit_db_flavor.lower() == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif nxa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor.lower() == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
   elif xa_audit_db_flavor.lower() == 'sqlserver':

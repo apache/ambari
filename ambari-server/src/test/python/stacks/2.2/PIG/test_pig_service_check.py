@@ -38,11 +38,11 @@ class TestPigServiceCheck(RMFTestCase):
                        hdp_stack_version=self.STACK_VERSION,
                        target=RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled("ExecuteHadoop", "dfs -rmr pigsmoke.out passwd; hadoop --config /etc/hadoop/conf dfs -put /etc/passwd passwd ",
+    self.assertResourceCalled("ExecuteHadoop", "dfs -rmr pigsmoke.out passwd; hadoop --config /usr/hdp/current/hadoop-client/conf dfs -put /etc/passwd passwd ",
       try_sleep=5,
       tries=3,
       user="ambari-qa",
-      conf_dir="/etc/hadoop/conf",
+      conf_dir="/usr/hdp/current/hadoop-client/conf",
       security_enabled=True,
       principal="ambari-qa@EXAMPLE.COM",
       keytab="/etc/security/keytabs/smokeuser.headless.keytab",
@@ -65,15 +65,15 @@ class TestPigServiceCheck(RMFTestCase):
     self.assertResourceCalled("ExecuteHadoop", "fs -test -e pigsmoke.out",
       user="ambari-qa",
       bin_dir="/usr/hdp/current/hadoop-client/bin",
-      conf_dir="/etc/hadoop/conf"
+      conf_dir="/usr/hdp/current/hadoop-client/conf"
     )
 
     # Specific to HDP 2.2 and kerberized cluster
-    self.assertResourceCalled("ExecuteHadoop", "dfs -rmr pigsmoke.out passwd; hadoop --config /etc/hadoop/conf dfs -put /etc/passwd passwd ",
+    self.assertResourceCalled("ExecuteHadoop", "dfs -rmr pigsmoke.out passwd; hadoop --config /usr/hdp/current/hadoop-client/conf dfs -put /etc/passwd passwd ",
       tries=3,
       try_sleep=5,
       user="ambari-qa",
-      conf_dir="/etc/hadoop/conf",
+      conf_dir="/usr/hdp/current/hadoop-client/conf",
       keytab="/etc/security/keytabs/smokeuser.headless.keytab",
       principal="ambari-qa@EXAMPLE.COM",
       security_enabled=True,
@@ -96,7 +96,7 @@ class TestPigServiceCheck(RMFTestCase):
     self.assertResourceCalled("ExecuteHadoop", "fs -test -e pigsmoke.out",
       user="ambari-qa",
       bin_dir="/usr/hdp/current/hadoop-client/bin",
-      conf_dir="/etc/hadoop/conf"
+      conf_dir="/usr/hdp/current/hadoop-client/conf"
     )
     self.assertNoMoreResources()
 

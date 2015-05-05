@@ -114,13 +114,13 @@ class TestServiceCheck(RMFTestCase):
       content = Template('hbase-smoke.sh.j2'),
       mode = 0755,
     )
-    self.assertResourceCalled('Execute', ' /usr/hdp/current/hbase-client/bin/hbase --config /etc/hbase/conf shell /tmp/hbase-smoke.sh',
+    self.assertResourceCalled('Execute', ' /usr/hdp/current/hbase-client/bin/hbase --config /usr/hdp/current/hbase-client/conf shell /tmp/hbase-smoke.sh',
       logoutput = True,
       tries = 3,
       user = 'ambari-qa',
       try_sleep = 5,
     )
-    self.assertResourceCalled('Execute', ' /tmp/hbaseSmokeVerify.sh /etc/hbase/conf  /usr/hdp/current/hbase-client/bin/hbase',
+    self.assertResourceCalled('Execute', ' /tmp/hbaseSmokeVerify.sh /usr/hdp/current/hbase-client/conf  /usr/hdp/current/hbase-client/bin/hbase',
       logoutput = True,
       tries = 3,
       user = 'ambari-qa',

@@ -69,11 +69,26 @@ def is_secure_port(port):
   else:
     return False
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+# hadoop default params
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+hadoop_home = "/usr/lib/hadoop"
+hadoop_secure_dn_user = hdfs_user
+hadoop_dir = "/etc/hadoop"
+versioned_hdp_root = '/usr/hdp/current'
+hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+
+# HDP 2.2+ params
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_home = "/usr/hdp/current/hadoop-client"
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
+  # not supported in HDP 2.2+
+  hadoop_conf_empty_dir = None
+
   if not security_enabled:
     hadoop_secure_dn_user = '""'
   else:
@@ -91,16 +106,6 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
       hadoop_secure_dn_user = hdfs_user
     else:
       hadoop_secure_dn_user = '""'
-else:
-  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-  hadoop_home = "/usr/lib/hadoop"
-  hadoop_secure_dn_user = hdfs_user
-
-hadoop_dir = "/etc/hadoop"
-hadoop_conf_dir = "/etc/hadoop/conf"
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
-versioned_hdp_root = '/usr/hdp/current'
 
 #hadoop params
 hdfs_log_dir_prefix = config['configurations']['hadoop-env']['hdfs_log_dir_prefix']

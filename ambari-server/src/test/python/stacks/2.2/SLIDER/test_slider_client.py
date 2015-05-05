@@ -36,17 +36,17 @@ class TestSliderClient(RMFTestCase):
     )
 
     self.assertResourceCalled('Directory',
-                              '/etc/slider/conf',
+                              '/usr/hdp/current/slider-client/conf',
                               recursive=True
     )
 
     self.assertResourceCalled('XmlConfig',
                               'slider-client.xml',
-                              conf_dir='/etc/slider/conf',
+                              conf_dir='/usr/hdp/current/slider-client/conf',
                               configurations=self.getConfig()['configurations']['slider-client']
     )
 
-    self.assertResourceCalled('File', '/etc/slider/conf/slider-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/slider-client/conf/slider-env.sh',
                               content = InlineTemplate(self.getConfig()['configurations']['slider-env']['content']),
                               mode = 0755,
                               )
@@ -62,7 +62,7 @@ class TestSliderClient(RMFTestCase):
                               )
 
     self.assertResourceCalled('File',
-                              '/etc/slider/conf/log4j.properties',
+                              '/usr/hdp/current/slider-client/conf/log4j.properties',
                               mode=0644,
                               content='log4jproperties\nline2'
     )

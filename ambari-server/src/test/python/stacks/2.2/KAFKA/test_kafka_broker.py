@@ -50,7 +50,7 @@ class TestKafkaBroker(RMFTestCase):
                               cd_access = 'a'
     )
 
-    self.assertResourceCalled('Directory', '/etc/kafka/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/kafka-broker/conf',
                               owner = 'kafka',
                               group = 'hadoop',
                               recursive = True,
@@ -86,7 +86,7 @@ class TestKafkaBroker(RMFTestCase):
                               cd_access = 'a'
     )
 
-    self.assertResourceCalled('Directory', '/etc/kafka/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/kafka-broker/conf',
                               owner = 'kafka',
                               group = 'hadoop',
                               recursive = True,

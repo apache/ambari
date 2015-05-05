@@ -18,11 +18,27 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
-from setup_spark import *
+
 import status_params
+
+from setup_spark import *
+
+import resource_management.libraries.functions
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+
+# a map of the Ambari role to the component name
+# for use with /usr/hdp/current/<component>
+SERVER_ROLE_DIRECTORY_MAP = {
+  'SPARK_JOBHISTORYSERVER' : 'spark-historyserver',
+  'SPARK_CLIENT' : 'spark-client'
+}
+
+component_directory = Script.get_component_from_role(SERVER_ROLE_DIRECTORY_MAP, "SPARK_CLIENT")
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -42,29 +58,21 @@ version = default("/commandParams/version", None)
 # Commenting out for time being
 #stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2.1.0') >= 0
 
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
+spark_conf = '/etc/spark/conf'
+hadoop_conf_dir = "/etc/hadoop/conf"
 
-if stack_is_hdp22_or_further:
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_home = "/usr/hdp/current/hadoop-client"
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
-  spark_conf = '/etc/spark/conf'
+  spark_conf = format("/usr/hdp/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir
-  spark_role_root = "spark-client"
+  spark_home = format("/usr/hdp/current/{component_directory}")
 
-  command_role = default("/role", "")
-
-  if command_role == "SPARK_CLIENT":
-    spark_role_root = "spark-client"
-  elif command_role == "SPARK_JOBHISTORYSERVER":
-    spark_role_root = "spark-historyserver"
-
-  spark_home = format("/usr/hdp/current/{spark_role_root}")
-else:
-  pass
 
 java_home = config['hostLevelParams']['java_home']
-hadoop_conf_dir = "/etc/hadoop/conf"
+
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
@@ -119,7 +127,7 @@ if spark_javaopts_properties.find('-Dhdp.version') == -1:
   spark_javaopts_properties = spark_javaopts_properties+ ' -Dhdp.version=' + str(hdp_full_version)
 
 security_enabled = config['configurations']['cluster-env']['security_enabled']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 spark_kerberos_keytab =  config['configurations']['spark-defaults']['spark.history.kerberos.keytab']
 spark_kerberos_principal =  config['configurations']['spark-defaults']['spark.history.kerberos.principal']
 

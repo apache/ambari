@@ -42,7 +42,7 @@ def falcon(type, action = None):
               owner=params.falcon_user,
               recursive=True
     )
-    Directory(params.falcon_conf_dir_prefix,
+    Directory(params.etc_prefix_dir,
               mode=0755,
               recursive=True
     )

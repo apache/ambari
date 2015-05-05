@@ -16,11 +16,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import status_params
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
-from resource_management import *
-from status_params import *
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 config = Script.get_config()
 
@@ -31,9 +34,10 @@ version = default("/commandParams/version", None)
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+etc_prefix_dir = "/etc/falcon"
 
 # hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 
   # if this is a server action, then use the server binaries; smoke tests
@@ -53,12 +57,13 @@ else:
   falcon_webapp_dir = '/var/lib/falcon/webapp'
   falcon_home = '/usr/lib/falcon'
 
-hadoop_conf_dir = "/etc/hadoop/conf"
-falcon_conf_dir_prefix = "/etc/falcon"
-falcon_conf_dir = format("{falcon_conf_dir_prefix}/conf")
+hadoop_conf_dir = status_params.hadoop_conf_dir
+falcon_conf_dir = status_params.falcon_conf_dir
 oozie_user = config['configurations']['oozie-env']['oozie_user']
 falcon_user = config['configurations']['falcon-env']['falcon_user']
-smoke_user =  config['configurations']['cluster-env']['smokeuser']
+smoke_user = config['configurations']['cluster-env']['smokeuser']
+
+server_pid_file = status_params.server_pid_file
 
 user_group = config['configurations']['cluster-env']['user_group']
 proxyuser_group =  config['configurations']['hadoop-env']['proxyuser_group']
@@ -93,7 +98,7 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 import functools
 #create partial functions with common arguments for every HdfsDirectory call
 #to create hdfs directory we need to call params.HdfsDirectory in code

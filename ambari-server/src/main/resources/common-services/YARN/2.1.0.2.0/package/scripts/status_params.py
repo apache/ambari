@@ -52,6 +52,12 @@ else:
 
   # Security related/required params
   hadoop_conf_dir = "/etc/hadoop/conf"
+  if Script.is_hdp_stack_greater_or_equal("2.2"):
+    # the configuration direction for HDFS/YARN/MapR is the hadoop config
+    # directory, which is symlinked by hadoop-client only
+    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
+
   hostname = config['hostname']
   kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   security_enabled = config['configurations']['cluster-env']['security_enabled']

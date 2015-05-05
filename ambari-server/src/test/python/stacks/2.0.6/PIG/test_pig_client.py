@@ -109,23 +109,23 @@ class TestPigClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Directory', '/etc/pig/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/pig-client/conf',
                               recursive = True,
                               owner = 'hdfs',
                               group = 'hadoop'
     )
-    self.assertResourceCalled('File', '/etc/pig/conf/pig-env.sh',
+    self.assertResourceCalled('File', '/usr/hdp/current/pig-client/conf/pig-env.sh',
                               owner = 'hdfs',
                               mode=0755,
                               content = InlineTemplate(self.getConfig()['configurations']['pig-env']['content'])
     )
-    self.assertResourceCalled('File', '/etc/pig/conf/pig.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/pig-client/conf/pig.properties',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0644,
                               content = 'pigproperties\nline2'
     )
-    self.assertResourceCalled('File', '/etc/pig/conf/log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/pig-client/conf/log4j.properties',
                               owner = 'hdfs',
                               group = 'hadoop',
                               mode = 0644,

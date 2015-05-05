@@ -16,15 +16,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management import *
-from ambari_commons import OSCheck
+from resource_management.libraries.script.script import Script
 
 # server configurations
 config = Script.get_config()
 
-slider_conf_dir = "/etc/slider/conf"
+slider_conf_dir = "/usr/hdp/current/slider-client/conf"
 storm_slider_conf_dir = '/usr/hdp/current/storm-slider-client/conf'
 slider_home_dir = '/usr/hdp/current/slider-client'

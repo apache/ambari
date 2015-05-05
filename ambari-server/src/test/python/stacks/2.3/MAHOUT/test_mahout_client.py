@@ -35,12 +35,12 @@ class TestMahoutClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Directory', '/etc/mahout/conf',
+    self.assertResourceCalled('Directory', '/usr/hdp/current/mahout-client/conf',
                               owner = 'mahout',
                               group = 'hadoop',
                               recursive = True,
                               )
-    self.assertResourceCalled('File', '/etc/mahout/conf/log4j.properties',
+    self.assertResourceCalled('File', '/usr/hdp/current/mahout-client/conf/log4j.properties',
                               content = self.getConfig()['configurations']['mahout-log4j']['content'],
                               owner = 'mahout',
                               group = 'hadoop',

@@ -634,7 +634,7 @@ class TestHiveServer(RMFTestCase):
      call_mocks = [(0,"hive-server2 - 2.2.0.0-2041"), (0,"hive-server2 - 2.2.0.0-2041")]
     )
 
-    self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
+    self.assertResourceCalled('Execute', 'hive --config /usr/hdp/current/hive-server2/conf/conf.server --service hiveserver2 --deregister 2.2.0.0-2041',
       path=['/bin:/usr/hdp/current/hive-server2/bin:/usr/hdp/current/hadoop-client/bin'],
       tries=1, user='hive')
 

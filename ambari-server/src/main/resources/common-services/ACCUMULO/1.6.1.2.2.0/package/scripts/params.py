@@ -17,10 +17,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+
 import status_params
 
 # server configurations
@@ -33,22 +35,28 @@ security_enabled = status_params.security_enabled
 # hdp version
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-has_secure_user_auth = True
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') == 0:
-  has_secure_user_auth = False
 
-# accumulo local directory structure
-log_dir = config['configurations']['accumulo-env']['accumulo_log_dir']
-conf_dir = status_params.conf_dir # "/etc/accumulo/conf"
-server_conf_dir = "/etc/accumulo/conf/server"
-client_script = "/usr/hdp/current/accumulo-client/bin/accumulo"
-daemon_script = format("ACCUMULO_CONF_DIR={server_conf_dir} {client_script}")
+has_secure_user_auth = False
+if Script.is_hdp_stack_greater_or_equal("2.3"):
+  has_secure_user_auth = True
+
+# configuration directories
+conf_dir = status_params.conf_dir
+server_conf_dir = status_params.server_conf_dir
 
 # service locations
 hadoop_prefix = "/usr/hdp/current/hadoop-client"
 hadoop_bin_dir = format("{hadoop_prefix}/bin")
-hadoop_conf_dir = "/etc/hadoop/conf"
 zookeeper_home = "/usr/hdp/current/zookeeper-client"
+
+# the configuration direction for HDFS/YARN/MapR is the hadoop config
+# directory, which is symlinked by hadoop-client only
+hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
+# accumulo local directory structure
+log_dir = config['configurations']['accumulo-env']['accumulo_log_dir']
+client_script = "/usr/hdp/current/accumulo-client/bin/accumulo"
+daemon_script = format("ACCUMULO_CONF_DIR={server_conf_dir} {client_script}")
 
 # user and status
 accumulo_user = status_params.accumulo_user

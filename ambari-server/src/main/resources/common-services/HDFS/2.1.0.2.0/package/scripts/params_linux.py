@@ -17,23 +17,29 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from ambari_commons.os_check import OSCheck
-from resource_management.libraries.functions.default import default
-from resource_management import *
 import status_params
 import utils
 import json
 import os
-import itertools
 import re
+
+from ambari_commons.os_check import OSCheck
+
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.functions import get_klist_path
+from resource_management.libraries.functions import get_kinit_path
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+from resource_management.libraries.functions.format_jvm_option import format_jvm_option
+from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
 stack_name = default("/hostLevelParams/stack_name", None)
 upgrade_direction = default("/commandParams/upgrade_direction", None)
-
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
@@ -53,13 +59,27 @@ dfs_http_policy = default('/configurations/hdfs-site/dfs.http.policy', None)
 dfs_dn_ipc_address = config['configurations']['hdfs-site']['dfs.datanode.ipc.address']
 secure_dn_ports_are_in_use = False
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+# hadoop default parameters
+mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
+hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
+hadoop_bin = "/usr/lib/hadoop/sbin"
+hadoop_bin_dir = "/usr/bin"
+hadoop_home = "/usr/lib/hadoop"
+hadoop_secure_dn_user = hdfs_user
+hadoop_conf_dir = "/etc/hadoop/conf"
+
+# hadoop parameters for 2.2+
+if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = "/usr/hdp/current/hadoop-client"
+
+  # the configuration direction for HDFS/YARN/MapR is the hadoop config
+  # directory, which is symlinked by hadoop-client only
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
   if not security_enabled:
     hadoop_secure_dn_user = '""'
   else:
@@ -77,17 +97,16 @@ if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
       hadoop_secure_dn_user = hdfs_user
     else:
       hadoop_secure_dn_user = '""'
-else:
-  mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-  hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-  hadoop_bin = "/usr/lib/hadoop/sbin"
-  hadoop_bin_dir = "/usr/bin"
-  hadoop_home = "/usr/lib/hadoop"
-  hadoop_secure_dn_user = hdfs_user
 
-hadoop_conf_dir = "/etc/hadoop/conf"
-hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
+
+
 limits_conf_dir = "/etc/security/limits.d"
+
+if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.1") and not OSCheck.is_suse_family():
+  # deprecated rhel jsvc_path
+  jsvc_path = "/usr/libexec/bigtop-utils"
+else:
+  jsvc_path = "/usr/lib/bigtop-utils"
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited ; "
@@ -102,8 +121,8 @@ hdfs_exclude_file = default("/clusterHostInfo/decom_dn_hosts", [])
 exclude_file_path = config['configurations']['hdfs-site']['dfs.hosts.exclude']
 update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 
-klist_path_local = functions.get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
-kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+klist_path_local = get_klist_path(default('/configurations/kerberos-env/executable_search_paths', None))
+kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 #hosts
 hostname = config["hostname"]
 rm_host = default("/clusterHostInfo/rm_host", [])
@@ -298,12 +317,6 @@ hadoop_env_sh_template = config['configurations']['hadoop-env']['content']
 java_home = config['hostLevelParams']['java_home']
 java_version = int(config['hostLevelParams']['java_version'])
 
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.0') >= 0 and compare_versions(hdp_stack_version, '2.1') < 0 and not OSCheck.is_suse_family():
-  # deprecated rhel jsvc_path
-  jsvc_path = "/usr/libexec/bigtop-utils"
-else:
-  jsvc_path = "/usr/lib/bigtop-utils"
-
 hadoop_heapsize = config['configurations']['hadoop-env']['hadoop_heapsize']
 namenode_heapsize = config['configurations']['hadoop-env']['namenode_heapsize']
 namenode_opt_newsize = config['configurations']['hadoop-env']['namenode_opt_newsize']
@@ -366,7 +379,7 @@ if has_ranger_admin:
   elif xa_audit_db_flavor.lower() == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif nxa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor.lower() == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
   elif xa_audit_db_flavor.lower() == 'sqlserver':

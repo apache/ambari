@@ -28,7 +28,7 @@ class TestStormBase(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "STORM/0.9.1.2.1/package"
   STACK_VERSION = "2.1"
 
-  def assert_configure_default(self):
+  def assert_configure_default(self, confDir="/etc/storm/conf"):
     import params
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
@@ -48,28 +48,28 @@ class TestStormBase(RMFTestCase):
       recursive = True,
       cd_access='a'
     )
-    self.assertResourceCalled('Directory', '/etc/storm/conf',
+    self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
       recursive = True,
       cd_access='a'
     )
-    self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
+    self.assertResourceCalled('File', confDir + '/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
       group = 'hadoop',
     )
     
-    storm_yarn_content = self.call_storm_template_and_assert()
+    storm_yarn_content = self.call_storm_template_and_assert(confDir=confDir)
     
     self.assertTrue(storm_yarn_content.find('_JAAS_PLACEHOLDER') == -1, 'Placeholder have to be substituted')
 
-    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
+    self.assertResourceCalled('File', confDir + '/storm-env.sh',
                               owner = 'storm',
                               content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
                               )
     return storm_yarn_content
 
-  def assert_configure_secured(self):
+  def assert_configure_secured(self, confDir='/etc/storm/conf'):
     import params
     self.assertResourceCalled('Directory', '/var/log/storm',
       owner = 'storm',
@@ -89,36 +89,36 @@ class TestStormBase(RMFTestCase):
       recursive = True,
       cd_access='a'
     )
-    self.assertResourceCalled('Directory', '/etc/storm/conf',
+    self.assertResourceCalled('Directory', confDir,
       group = 'hadoop',
       recursive = True,
       cd_access='a'
     )
-    self.assertResourceCalled('File', '/etc/storm/conf/config.yaml',
+    self.assertResourceCalled('File', confDir + '/config.yaml',
       owner = 'storm',
       content = Template('config.yaml.j2'),
       group = 'hadoop',
     )
-    storm_yarn_content = self.call_storm_template_and_assert()
+    storm_yarn_content = self.call_storm_template_and_assert(confDir=confDir)
     
     self.assertTrue(storm_yarn_content.find('_JAAS_PLACEHOLDER') == -1, 'Placeholder have to be substituted')
     
-    self.assertResourceCalled('File', '/etc/storm/conf/storm-env.sh',
+    self.assertResourceCalled('File', confDir + '/storm-env.sh',
                               owner = 'storm',
                               content = InlineTemplate(self.getConfig()['configurations']['storm-env']['content'])
                               )
-    self.assertResourceCalled('TemplateConfig', '/etc/storm/conf/storm_jaas.conf',
+    self.assertResourceCalled('TemplateConfig', confDir + '/storm_jaas.conf',
       owner = 'storm',
     )
     return storm_yarn_content
 
-  def call_storm_template_and_assert(self):
+  def call_storm_template_and_assert(self, confDir="/etc/storm/conf"):
     import yaml_utils
 
     with RMFTestCase.env as env:
       storm_yarn_temlate = yaml_utils.yaml_config_template(self.getConfig()['configurations']['storm-site'])
 
-      self.assertResourceCalled('File', '/etc/storm/conf/storm.yaml',
+      self.assertResourceCalled('File', confDir + '/storm.yaml',
         owner = 'storm',
         content= storm_yarn_temlate,
         group = 'hadoop'

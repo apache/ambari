@@ -41,7 +41,7 @@
         "repo_info": "[{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0\",\"osType\":\"redhat6\",\"repoId\":\"HDP-2.2\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP/centos6/2.x/updates/2.2.0.0\"},{\"baseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"osType\":\"redhat6\",\"repoId\":\"HDP-UTILS-1.1.0.20\",\"repoName\":\"HDP-UTILS\",\"defaultBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\",\"latestBaseUrl\":\"http://s3.amazonaws.com/dev.hortonworks.com/HDP-UTILS-1.1.0.20/repos/centos6\"}]", 
         "group_list": "[\"hadoop\",\"users\"]", 
         "package_list": "[{\"name\":\"storm_2_2_0_0_*\"}]", 
-        "stack_version": "2.2", 
+        "stack_version": "2.2",
         "stack_name": "HDP", 
         "db_name": "ambari", 
         "ambari_db_rca_driver": "org.postgresql.Driver", 

@@ -17,14 +17,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from ambari_commons.constants import AMBARI_SUDO_BINARY
-from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management.libraries.functions.default import default
-from resource_management.libraries.script import Script
-from resource_management.libraries.functions import default, format
-import status_params
 import re
 import json
+
+import status_params
+
+from ambari_commons.constants import AMBARI_SUDO_BINARY
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.default import default
+from resource_management.libraries.script import Script
 
 def get_bare_principal(normalized_principal_name):
   """
@@ -51,27 +53,29 @@ tmp_dir = Script.get_tmp_dir()
 sudo = AMBARI_SUDO_BINARY
 
 stack_name = default("/hostLevelParams/stack_name", None)
-
 version = default("/commandParams/version", None)
+
+conf_dir = status_params.conf_dir
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
-stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0
+stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
 
-#hadoop params
-if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+# default hadoop params
+rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
+storm_bin_dir = "/usr/bin"
+storm_lib_dir = "/usr/lib/storm/lib/"
+
+# hadoop parameters for 2.2+
+if stack_is_hdp22_or_further:
   rest_lib_dir = '/usr/hdp/current/storm-client/contrib/storm-rest'
   storm_bin_dir = "/usr/hdp/current/storm-client/bin"
   storm_lib_dir = "/usr/hdp/current/storm-client/lib"
-else:
-  rest_lib_dir = "/usr/lib/storm/contrib/storm-rest"
-  storm_bin_dir = "/usr/bin"
-  storm_lib_dir = "/usr/lib/storm/lib/"
+
 
 storm_user = config['configurations']['storm-env']['storm_user']
 log_dir = config['configurations']['storm-env']['storm_log_dir']
 pid_dir = status_params.pid_dir
-conf_dir = "/etc/storm/conf"
 local_dir = config['configurations']['storm-site']['storm.local.dir']
 user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
@@ -102,7 +106,7 @@ if security_enabled:
   storm_jaas_principal = _storm_principal_name.replace('_HOST',_hostname_lowercase)
   storm_keytab_path = config['configurations']['storm-env']['storm_keytab']
 
-  if hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2') >= 0:
+  if stack_is_hdp22_or_further:
     storm_ui_keytab_path = config['configurations']['storm-env']['storm_ui_keytab']
     _storm_ui_jaas_principal_name = config['configurations']['storm-env']['storm_ui_principal_name']
     storm_ui_jaas_principal = _storm_ui_jaas_principal_name.replace('_HOST',_hostname_lowercase)
@@ -167,7 +171,7 @@ if has_ranger_admin:
   elif xa_audit_db_flavor.lower() == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif nxa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor.lower() == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
   elif xa_audit_db_flavor.lower() == 'sqlserver':
