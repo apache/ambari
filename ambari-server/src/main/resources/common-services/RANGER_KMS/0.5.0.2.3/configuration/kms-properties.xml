@@ -22,13 +22,13 @@
 
   <property>
     <name>REPOSITORY_CONFIG_USERNAME</name>
-    <value>kms</value>
+    <value>keyadmin</value>
     <description></description>
   </property>
 
   <property>
     <name>REPOSITORY_CONFIG_PASSWORD</name>
-    <value>kms</value>
+    <value>keyadmin</value>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>  
@@ -57,9 +57,9 @@
     <description></description>
   </property>
 
-  <property>
+  <property require-input="true">
     <name>db_root_password</name>
-    <value>vagrant</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>
@@ -82,9 +82,9 @@
     <description></description>
   </property>   
 
-  <property>
+  <property require-input="true">
     <name>db_password</name>
-    <value>rangerkms</value>
+    <value></value>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>
@@ -97,13 +97,13 @@
 
   <property>
     <name>POLICY_MGR_URL</name>
-    <value>http://localhost:6080</value>
+    <value>{{policymgr_mgr_url}}</value>
     <description></description>
   </property>
 
   <property>
     <name>REPOSITORY_NAME</name>
-    <value>kms_repo</value>
+    <value>{{repo_name}}</value>
     <description></description>
   </property>
 
@@ -115,31 +115,31 @@
 
   <property>
     <name>XAAUDIT.DB.FLAVOUR</name>
-    <value>MYSQL</value>
+    <value>{{xa_audit_db_flavor}}</value>
     <description></description>
   </property>
 
   <property>
     <name>XAAUDIT.DB.HOSTNAME</name>
-    <value>localhost</value>
+    <value>{{xa_db_host}}</value>
     <description></description>
   </property>
 
   <property>
     <name>XAAUDIT.DB.DATABASE_NAME</name>
-    <value>ranger_audit</value>
+    <value>{{xa_audit_db_name}}</value>
     <description></description>
   </property>
 
   <property>
     <name>XAAUDIT.DB.USER_NAME</name>
-    <value>rangerlogger</value>
+    <value>{{xa_audit_db_user}}</value>
     <description></description>
   </property>
 
   <property>
     <name>XAAUDIT.DB.PASSWORD</name>
-    <value>rangerlogger</value>
+    <value>{{xa_audit_db_password}}</value>
     <property-type>PASSWORD</property-type>
     <description></description>
   </property>

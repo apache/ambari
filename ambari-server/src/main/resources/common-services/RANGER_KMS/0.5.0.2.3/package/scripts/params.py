@@ -35,7 +35,7 @@ stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
 if stack_is_hdp23_or_further:
   kms_home = '/usr/hdp/current/ranger-kms'
-  kms_config_dir = '/usr/hdp/current/ranger-kms/ews/webapp/config'
+  kms_conf_dir = '/etc/ranger/kms/conf'
   
 
 java_home = config['hostLevelParams']['java_home']
@@ -46,67 +46,82 @@ jdk_location = config['hostLevelParams']['jdk_location']
 kms_log4j = config['configurations']['kms-log4j']['content']
 
 # ranger host
-ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
+ranger_admin_hosts = config['clusterHostInfo']['ranger_admin_hosts'][0]
 has_ranger_admin = len(ranger_admin_hosts) > 0
+kms_host = config['clusterHostInfo']['ranger_kms_server_hosts'][0]
+kms_port = config['configurations']['kms-env']['kms_port']
 
 #kms properties
-db_flavor = default("/configurations/kms-properties/DB_FLAVOR", "MYSQL")
-sql_command_invoker = default("/configurations/kms-properties/SQL_COMMAND_INVOKER", "mysql")
-sql_connector_jar = default("/configurations/kms-properties/SQL_CONNECTOR_JAR", "/usr/share/java/mysql-connector-java.jar")
-db_root_user = default("/configurations/kms-properties/db_root_user", "root")
-db_root_password = unicode(default("/configurations/kms-properties/db_root_password", " "))
-db_host = default("/configurations/kms-properties/db_host", "localhost")
-db_name = default("/configurations/kms-properties/db_name", "ranger")
-db_user = default("/configurations/kms-properties/db_user", "rangeradmin")
-db_password = unicode(default("/configurations/kms-properties/db_password", "rangeradmin"))
-kms_master_key_password = default("/configurations/kms-properties/KMS_MASTER_KEY_PASSWD", "Str0ngPassw0rd")
-policymgr_mgr_url = default("/configurations/kms-properties/POLICY_MGR_URL", "http://localhost:6080")
-repo_name = default("/configurations/kms-properties/REPOSITORY_NAME", "kms_repo")
-xa_audit_db_flavor = default("/configurations/kms-properties/XAAUDIT.DB.FLAVOUR", "MYSQL")
-xa_audit_db_name = default("/configurations/kms-properties/XAAUDIT.DB.DATABASE_NAME", "ranger_audit")
-xa_audit_db_user = default("/configurations/kms-properties/XAAUDIT.DB.USER_NAME", "rangerlogger")
-xa_audit_db_password = default("/configurations/kms-properties/XAAUDIT.DB.PASSWORD", "rangerlogger")
-xa_db_host = default("/configurations/kms-properties/XAAUDIT.DB.HOSTNAME", "localhost")
-db_enabled = default("/configurations/kms-properties/XAAUDIT.DB.IS_ENABLED", "false")
-hdfs_enabled = default("/configurations/kms-properties/XAAUDIT.HDFS.IS_ENABLED", "false")
-hdfs_dest_dir = default("/configurations/kms-properties/XAAUDIT.HDFS.DESTINATION_DIRECTORY", "hdfs://__REPLACE__NAME_NODE_HOST:8020/ranger/audit/app-type/time:yyyyMMdd")
-hdfs_buffer_dir = default("/configurations/kms-properties/XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit")
-hdfs_archive_dir = default("/configurations/kms-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY", "__REPLACE__LOG_DIR/hadoop/app-type/audit/archive")
-hdfs_dest_file = default("/configurations/kms-properties/XAAUDIT.HDFS.DESTINTATION_FILE", "hostname-audit.log")
-hdfs_dest_flush_int_sec = default("/configurations/kms-properties/XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS", "900")
-hdfs_dest_rollover_int_sec = default("/configurations/kms-properties/XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS", "86400")
-hdfs_dest_open_retry_int_sec = default("/configurations/kms-properties/XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS", "60")
-hdfs_buffer_file = default("/configurations/kms-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FILE", "time:yyyyMMdd-HHmm.ss.log")
-hdfs_buffer_flush_int_sec = default("/configurations/kms-properties/XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS", "60")
-hdfs_buffer_rollover_int_sec = default("/configurations/kms-properties/XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS", "600")
-hdfs_archive_max_file_count = default("/configurations/kms-properties/XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT", "10")
-ssl_keystore_file = default("/configurations/kms-properties/SSL_KEYSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-keystore.jks")
-ssl_keystore_password = default("/configurations/kms-properties/SSL_KEYSTORE_PASSWORD", "myKeyFilePassword")
-ssl_truststore_file = default("/configurations/kms-properties/SSL_TRUSTSTORE_FILE_PATH", "/etc/hadoop/conf/ranger-plugin-truststore.jks")
-ssl_truststore_password = default("/configurations/kms-properties/SSL_TRUSTSTORE_PASSWORD", "changeit")
-solr_enabled = default("/configurations/kms-properties/XAAUDIT.SOLR.IS_ENABLED", "false")
-solr_max_queue_size = default("/configurations/kms-properties/XAAUDIT.SOLR.MAX_QUEUE_SIZE", "1")
-solr_max_flush_interval = default("/configurations/kms-properties/XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS", "1000")
-solr_url = default("/configurations/kms-properties/XAAUDIT.SOLR.SOLR_URL", "http://localhost:6083/solr/ranger_audits")
+policymgr_mgr_url = format('http://{ranger_admin_hosts}:6080')
+sql_connector_jar = config['configurations']['kms-properties']['SQL_CONNECTOR_JAR']
+db_flavor = config['configurations']['kms-properties']['DB_FLAVOR']
+xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
+xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+xa_db_host = config['configurations']['admin-properties']['db_host']
+repo_name = str(config['clusterName']) + '_kms'
 
-repo_config_username = default("/configurations/kms-properties/REPOSITORY_CONFIG_USERNAME", "kms")
-repo_config_password = default("/configurations/kms-properties/REPOSITORY_CONFIG_PASSWORD", "kms")
+repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
+repo_config_password = config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD']
 
-kms_host_name = config['clusterHostInfo']['ranger_kms_server_hosts'][0]
+admin_uname = config['configurations']['ranger-env']['admin_username']
+admin_password = config['configurations']['ranger-env']['admin_password']
 
-admin_uname = default("/configurations/ranger-env/admin_username", "admin")
-admin_password = default("/configurations/ranger-env/admin_password", "admin")
+ambari_ranger_admin = config['configurations']['ranger-env']['ranger_admin_username']
+ambari_ranger_password = config['configurations']['ranger-env']['ranger_admin_password']
+
 admin_uname_password = format("{admin_uname}:{admin_password}")
 
-ambari_ranger_admin = default("/configurations/ranger-env/ranger_admin_username", "amb_ranger_admin")
-ambari_ranger_password = default("/configurations/ranger-env/ranger_admin_password", "ambari123")
-
 java_share_dir = '/usr/share/java'
-if db_flavor and db_flavor.lower() == 'mysql':
-  jdbc_symlink_name = "mysql-jdbc-driver.jar"
-  jdbc_jar_name = "mysql-connector-java.jar"
+if has_ranger_admin:
+  if db_flavor.lower() == 'mysql':
+    jdbc_symlink_name = "mysql-jdbc-driver.jar"
+    jdbc_jar_name = "mysql-connector-java.jar"
+  elif db_flavor.lower() == 'oracle':
+    jdbc_jar_name = "ojdbc6.jar"
+    jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  elif db_flavor.lower() == 'postgres':
+    jdbc_jar_name = "postgresql.jar"
+    jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  elif db_flavor.lower() == 'sqlserver':
+    jdbc_jar_name = "sqljdbc4.jar"
+    jdbc_symlink_name = "mssql-jdbc-driver.jar"   
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+if has_ranger_admin:
+  if xa_audit_db_flavor.lower() == 'mysql':
+    jdbc_symlink = "mysql-jdbc-driver.jar"
+    jdbc_jar = "mysql-connector-java.jar"
+  elif xa_audit_db_flavor.lower() == 'oracle':
+    jdbc_jar = "ojdbc6.jar"
+    jdbc_symlink = "oracle-jdbc-driver.jar"
+  elif xa_audit_db_flavor.lower() == 'postgres':
+    jdbc_jar = "postgresql.jar"
+    jdbc_symlink = "postgres-jdbc-driver.jar"
+  elif xa_audit_db_flavor.lower() == 'sqlserver':
+    jdbc_jar = "sqljdbc4.jar"
+    jdbc_symlink = "mssql-jdbc-driver.jar"
+
+downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}")
+
+driver_source = format("{jdk_location}/{jdbc_symlink}")
+driver_target = format("{java_share_dir}/{jdbc_jar}")    
+
+kms_plugin_config = {
+  'username' : repo_config_username,
+  'password' : repo_config_password,
+  'provider' : format('kms://http@{kms_host}:{kms_port}/kms') 
+}
+
+kms_ranger_plugin_repo = {
+  'isEnabled' : 'true',
+  'configs' : kms_plugin_config,
+  'description' : 'kms repo',
+  'name' : repo_name,
+  'type' : 'kms'
+}

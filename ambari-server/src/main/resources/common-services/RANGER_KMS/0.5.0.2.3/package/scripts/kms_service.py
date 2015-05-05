@@ -28,14 +28,11 @@ def kms_service(action='start'):
   # Note: params/status_params should already be imported before calling kms_service()
   if action == 'start':
     no_op_test = format('ps -ef | grep proc_rangerkms | grep -v grep')
-    cmd = format('{kms_home}/ranger-kms-services.sh start')
-    Execute(cmd, not_if=no_op_test)
+    cmd = format('{kms_home}/ranger-kms start')
+    Execute(cmd, not_if=no_op_test, user=format('{kms_user}'))
   elif action == 'stop':
-    ps_cmd = "ps -ef | grep proc_rangerkms | grep -v grep | awk '{print $2}'"
-    return_code, output = shell.call(ps_cmd, timeout=20)
-    pid = output.strip()
-    cmd = format('kill -9 {pid}')
-    Execute(cmd)
+    cmd = format('{kms_home}/ranger-kms stop')
+    Execute(cmd, user=format('{kms_user}'))
   elif action == 'status':
     cmd = 'ps -ef | grep proc_rangerkms | grep -v grep'
     code, output = shell.call(cmd, timeout=20)
