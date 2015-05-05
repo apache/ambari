@@ -18,16 +18,18 @@
 
 package org.apache.ambari.server.view;
 
-import java.net.URL;
-import java.net.URLClassLoader;
+import org.eclipse.jetty.webapp.WebAppClassLoader;
+import org.eclipse.jetty.webapp.WebAppContext;
 
+import java.io.IOException;
+import java.net.URL;
 
 /**
  * Class loader used to load classes and resources from a search path of URLs referring to both JAR files
  * and directories.  The URLs will be searched in the order specified for classes and resources before
  * searching the parent class loader.
  */
-public class ViewClassLoader extends URLClassLoader {
+public class ViewClassLoader extends WebAppClassLoader {
 
   // ----- Constructors ------------------------------------------------------
 
@@ -38,7 +40,7 @@ public class ViewClassLoader extends URLClassLoader {
    *
    * @param urls  the URLs from which to load classes and resources
    */
-  public ViewClassLoader(URL[] urls) {
+  public ViewClassLoader(URL[] urls) throws IOException {
     this(null, urls);
   }
 
@@ -50,69 +52,14 @@ public class ViewClassLoader extends URLClassLoader {
    * @param parent  the parent class loader
    * @param urls    the URLs from which to load classes and resources
    */
-  public ViewClassLoader(ClassLoader parent, URL[] urls) {
-    super(new URL[]{}, selectParentClassLoader(parent));
+  public ViewClassLoader(ClassLoader parent, URL[] urls) throws IOException {
+    // Use no-arg web app context to initialize the class loader.  For now we are just using the default context
+    // values for things like parent loader priority and server classes.  In the future we may allow overrides at
+    // the view level.
+    super(parent, new WebAppContext());
 
     for (URL url : urls) {
       addURL(url);
     }
-  }
-
-
-  // ----- ClassLoader -------------------------------------------------------
-
-  @Override
-  public synchronized URL getResource(String name) {
-    URL resource = this.findResource(name);
-
-    if (resource == null) {
-      ClassLoader parentClassLoader = getParent();
-      if (parentClassLoader != null) {
-        resource = parentClassLoader.getResource(name);
-      }
-    }
-    return resource;
-  }
-
-  @Override
-  protected synchronized Class loadClass(String name, boolean resolve) throws ClassNotFoundException {
-    Class clazz = findLoadedClass(name);
-
-    if (clazz == null) {
-      try {
-        clazz = this.findClass(name);
-      } catch (ClassNotFoundException e) {
-        ClassLoader parentClassLoader = getParent();
-        if (parentClassLoader != null) {
-          clazz = parentClassLoader.loadClass(name);
-        }
-
-        if (clazz == null) {
-          throw e;
-        }
-      }
-    }
-
-    if (resolve) {
-      resolveClass(clazz);
-    }
-    return clazz;
-  }
-
-
-  // ----- helper methods ----------------------------------------------------
-
-  // Get an appropriate parent class loader.
-  private static ClassLoader selectParentClassLoader(ClassLoader parentClassLoader) {
-
-    if (parentClassLoader == null) {
-
-      parentClassLoader = Thread.currentThread().getContextClassLoader();
-
-      if (parentClassLoader == null) {
-        parentClassLoader = ViewClassLoader.class.getClassLoader();
-      }
-    }
-    return parentClassLoader;
   }
 }

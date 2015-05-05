@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.LinkedList;
@@ -180,7 +181,7 @@ public class ViewExtractor {
 
   // get a class loader for the given archive directory
   private ClassLoader getArchiveClassLoader(File archiveDir)
-      throws MalformedURLException {
+      throws MalformedURLException, IOException {
 
     String    archivePath = archiveDir.getAbsolutePath();
     List<URL> urlList     = new LinkedList<URL>();

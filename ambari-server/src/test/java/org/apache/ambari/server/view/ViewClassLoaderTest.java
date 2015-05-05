@@ -70,6 +70,7 @@ public class ViewClassLoaderTest {
     expect(parentClassLoader.getPackage("org.apache.ambari.server.view")).andReturn(null).anyTimes();
     expect(parentClassLoader.loadClass("java.lang.Object")).andReturn(parentClass).anyTimes();
     expect(parentClassLoader.loadClass("ParentClass")).andReturn(parentClass).once();
+    expect(parentClassLoader.loadClass("javax.xml.parsers.SAXParserFactory")).andReturn(parentClass).once();
 
     replay(parentClassLoader);
 
@@ -85,6 +86,11 @@ public class ViewClassLoaderTest {
     Assert.assertNotNull(clazz);
 
     clazz = classLoader.loadClass("ParentClass");
+
+    Assert.assertNotNull(clazz);
+    Assert.assertSame(parentClass, clazz);
+
+    clazz = classLoader.loadClass("javax.xml.parsers.SAXParserFactory");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
