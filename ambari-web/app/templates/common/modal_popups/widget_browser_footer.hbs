@@ -15,16 +15,13 @@
 * See the License for the specific language governing permissions and
 * limitations under the License.
 }}
-<div>
-  {{{view.parentView.statusMessage}}}
-</div>
-{{#if view.parentView.additionalWarningMsg}}
-  <br />
-  <div class='alert'>
-    {{view.parentView.additionalWarningMsg}}
-  </div>
-{{/if}}
-{{#if view.parentView.putInMaintenance}}
-  <label class="checkbox">{{view Ember.Checkbox checkedBinding="view.parentView.runMmOperation"}} {{view.parentView.turnOnMmMsg}}</label>
-{{/if}}
 
+<div class="modal-footer">
+  {{#isAccessible ADMIN}}
+    <label id="footer-checkbox">
+      {{view Ember.Checkbox classNames="checkbox" checkedBinding="view.parentView.isShowMineOnly"}} &nbsp;
+      {{t dashboard.widgets.browser.footer.checkbox}}
+    </label>
+  {{/isAccessible}}
+  <button class="btn btn-success" {{action onPrimary target="view"}}>{{t common.close}}</button>
+</div>

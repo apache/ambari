@@ -517,8 +517,9 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   deleteWidget: function (event) {
     var widget = event.context;
     var self = this;
+    var confirmMsg =  widget.get('isShared') ? Em.I18n.t('dashboard.widgets.browser.action.delete.shared.bodyMsg').format(widget.widgetName) :  Em.I18n.t('dashboard.widgets.browser.action.delete.mine.bodyMsg').format(widget.widgetName);
     var bodyMessage = Em.Object.create({
-      confirmMsg: Em.I18n.t('dashboard.widgets.browser.action.delete.bodyMsg').format(widget.displayName),
+      confirmMsg: confirmMsg,
       confirmButton: Em.I18n.t('dashboard.widgets.browser.action.delete.btnMsg')
     });
     return App.showConfirmationFeedBackPopup(function (query) {
@@ -609,16 +610,11 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       autoHeight: false,
       isHideBodyScroll: false,
       footerClass: Ember.View.extend({
-        template: Ember.Handlebars.compile('<div class="modal-footer">' +
-          '<label id="footer-checkbox">' +
-          '{{view Ember.Checkbox classNames="checkbox" checkedBinding="view.parentView.isShowMineOnly"}} &nbsp;' +
-          '{{t dashboard.widgets.browser.footer.checkbox}}</label>'+
-          '<button class="btn btn-success" {{action onPrimary target="view"}}>{{t common.close}}</button></div>'),
+        templateName: require('templates/common/modal_popups/widget_browser_footer'),
         isShowMineOnly: false,
         onPrimary: function() {
           this.get('parentView').onPrimary();
         }
-
       }),
       isShowMineOnly: false,
       bodyClass: Ember.View.extend({

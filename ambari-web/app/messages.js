@@ -2297,7 +2297,12 @@ Em.I18n.translations = {
   'dashboard.widgets.browser.action.share': 'Share',
   'dashboard.widgets.browser.action.share.confirmation': 'You are about to make this a shared widget. All cluster operators will be able to modify or delete this widget. Are you sure you want to share this widget?',
   'dashboard.widgets.browser.shareIcon.tooltip': 'Shared',
-  'dashboard.widgets.browser.action.delete.bodyMsg': 'You are about to permanently delete widget: {0}. You can add it back through creating new widget.',
+  'dashboard.widgets.browser.action.delete.shared.bodyMsg': 'You are about to permanently delete the <b>{0}</b> widget. ' +
+    'This widget is a shared and this operation will delete the widget from the shared widget library and remove the ' +
+    'widget from all users.<br /> <br /> <b>Are you sure you wish to permanently delete this shared widget?</b>',
+  'dashboard.widgets.browser.action.delete.mine.bodyMsg': 'You are about to permanently delete the <b>{0}</b> widget. ' +
+    'This operation will delete the widget from your widget library.<br /><br /><b>Are you sure you wish to permanently ' +
+    'delete this widget?</b>',
   'dashboard.widgets.browser.action.delete.btnMsg': 'Confirm Delete',
 
   'dashboard.widgets.NameNodeHeap': 'NameNode Heap',
