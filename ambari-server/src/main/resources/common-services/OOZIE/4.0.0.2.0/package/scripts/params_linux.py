@@ -141,6 +141,11 @@ oozie_log_dir = config['configurations']['oozie-env']['oozie_log_dir']
 oozie_data_dir = config['configurations']['oozie-env']['oozie_data_dir']
 oozie_server_port = get_port_from_url(config['configurations']['oozie-site']['oozie.base.url'])
 oozie_server_admin_port = config['configurations']['oozie-env']['oozie_admin_port']
+if config['configurations']['oozie-site']['oozie.base.url'].startswith('https'):
+  oozie_secure = '-secure'
+else:
+  oozie_secure = ''
+
 fs_root = config['configurations']['core-site']['fs.defaultFS']
 
 if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2"):

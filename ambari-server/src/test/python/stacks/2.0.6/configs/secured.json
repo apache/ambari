@@ -97,7 +97,7 @@
             "oozie.service.ActionService.executor.ext.classes": "\n            org.apache.oozie.action.email.EmailActionExecutor,\n            org.apache.oozie.action.hadoop.HiveActionExecutor,\n            org.apache.oozie.action.hadoop.ShellActionExecutor,\n            org.apache.oozie.action.hadoop.SqoopActionExecutor,\n            org.apache.oozie.action.hadoop.DistcpActionExecutor", 
             "oozie.service.HadoopAccessorService.kerberos.principal": "oozie/c6402.ambari.apache.org@EXAMPLE.COM", 
             "oozie.service.AuthorizationService.authorization.enabled": "true", 
-            "oozie.base.url": "http://c6402.ambari.apache.org:11000/oozie", 
+            "oozie.base.url": "https://c6402.ambari.apache.org:11000/oozie",
             "oozie.service.JPAService.jdbc.password": "asd", 
             "oozie.service.coord.normal.default.timeout": "120", 
             "oozie.service.AuthorizationService.security.enabled": "true", 

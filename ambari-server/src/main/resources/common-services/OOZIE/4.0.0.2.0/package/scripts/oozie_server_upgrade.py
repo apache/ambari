@@ -197,7 +197,7 @@ def upgrade_oozie():
   Execute(command, user=params.oozie_user)
 
   # prepare the oozie WAR
-  command = format("{oozie_setup_sh} prepare-war -d {oozie_libext_customer_dir}")
+  command = format("{oozie_setup_sh} prepare-war {oozie_secure} -d {oozie_libext_customer_dir}")
   return_code, oozie_output = shell.call(command)
 
   if return_code != 0 or "New Oozie WAR file with added" not in oozie_output:

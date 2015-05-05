@@ -238,7 +238,7 @@ def oozie_server_specific():
       not_if  = no_op_test,
     )
 
-  Execute(format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war"),
+  Execute(format("cd {oozie_tmp_dir} && {oozie_setup_sh} prepare-war {oozie_secure}"),
     user = params.oozie_user,
     not_if  = no_op_test
   )
