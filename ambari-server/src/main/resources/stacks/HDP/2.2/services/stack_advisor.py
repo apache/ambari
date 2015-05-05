@@ -306,8 +306,11 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
     putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
 
+    container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
+    container_size_bytes = int(container_size)*1024*1024
     # Memory
-    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(int(container_size)*1024*1024/3))
+    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(container_size_bytes/3))
+    putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
     putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # CBO

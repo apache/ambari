@@ -909,6 +909,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.vectorized.execution.reduce.enabled': 'false'
         },
        'property_attributes': {
+         'hive.auto.convert.join.noconditionaltask.size': {'maximum': '268435456'},
          'hive.server2.authentication.pam.services': {'delete': 'true'}, 
          'hive.server2.custom.authentication.class': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 
