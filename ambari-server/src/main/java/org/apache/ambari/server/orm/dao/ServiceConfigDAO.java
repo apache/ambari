@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.orm.dao;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -212,13 +213,13 @@ public class ServiceConfigDAO {
    */
   @RequiresSession
   public Long findNextServiceConfigVersion(long clusterId, String serviceName) {
-    TypedQuery<Long> query = entityManagerProvider.get().createNamedQuery(
-        "ServiceConfigEntity.findNextServiceConfigVersion", Long.class);
+    TypedQuery<Number> query = entityManagerProvider.get().createNamedQuery(
+        "ServiceConfigEntity.findNextServiceConfigVersion", Number.class);
 
     query.setParameter("clusterId", clusterId);
     query.setParameter("serviceName", serviceName);
 
-    return daoUtils.selectSingle(query);
+    return daoUtils.selectSingle(query).longValue();
   }
 
   @Transactional

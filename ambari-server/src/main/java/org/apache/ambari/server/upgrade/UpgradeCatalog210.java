@@ -498,14 +498,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("widget_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("widget_type", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("metrics", String.class,  32672,   null, true));
+    columns.add(new DBColumnInfo("metrics", byte[].class,  null,   null, true));
     columns.add(new DBColumnInfo("time_created", Long.class,  null,   null, false));
     columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("description", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("display_name", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("scope", String.class,  255,   null, true));
-    columns.add(new DBColumnInfo("widget_values", String.class,  4000,   null, true));
-    columns.add(new DBColumnInfo("properties", String.class,  4000,   null, true));
+    columns.add(new DBColumnInfo("widget_values", byte[].class,  null,   null, true));
+    columns.add(new DBColumnInfo("properties", byte[].class, null, null, true));
     columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
     dbAccessor.createTable(WIDGET_TABLE, columns, "id");
 

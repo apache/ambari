@@ -17,13 +17,16 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.Basic;
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
 import javax.persistence.NamedQueries;
 import javax.persistence.NamedQuery;
@@ -67,7 +70,9 @@ public class WidgetEntity {
   @Column(name = "widget_type", nullable = false, length = 255)
   private String widgetType;
 
-  @Column(name = "metrics", length = 32672)
+  @Lob
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "metrics")
   private String metrics;
 
   @Column(name = "time_created", nullable = false, length = 255)
@@ -85,10 +90,14 @@ public class WidgetEntity {
   @Column(name = "scope", length = 255)
   private String scope;
 
-  @Column(name = "widget_values", length = 4000)
+  @Lob
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "widget_values")
   private String widgetValues;
 
-  @Column(name = "properties", length = 4000)
+  @Lob
+  @Basic(fetch = FetchType.LAZY)
+  @Column(name = "properties")
   private String properties;
 
   @Column(name = "cluster_id", nullable = false)

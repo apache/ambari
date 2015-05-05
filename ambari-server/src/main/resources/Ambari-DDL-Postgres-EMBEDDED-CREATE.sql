@@ -626,8 +626,8 @@ CREATE TABLE ambari.widget (
   description VARCHAR(255),
   display_name VARCHAR(255),
   scope VARCHAR(255),
-  widget_values VARCHAR(4000),
-  properties VARCHAR(4000),
+  widget_values TEXT,
+  properties TEXT,
   cluster_id BIGINT NOT NULL,
   PRIMARY KEY(id)
 );
