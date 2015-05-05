@@ -380,11 +380,25 @@
     <name>yarn.node-labels.enabled</name>
     <value>false</value>
     <description>
-      Enabled node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
+      Enable node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
     </description>
     <display-name>Enable Node Labels</display-name>
     <value-attributes>
       <type>boolean</type>
+    </value-attributes>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
   <property>
@@ -420,7 +434,18 @@
     <value>false</value>
     <display-name>Enable Pre-emption</display-name>
     <value-attributes>
-      <type>boolean</type>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
     </value-attributes>
   </property>
 </configuration>

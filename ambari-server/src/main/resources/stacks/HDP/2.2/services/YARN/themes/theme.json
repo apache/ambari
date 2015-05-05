@@ -220,19 +220,19 @@
       {
         "config": "yarn-site/yarn.node-labels.enabled",
         "widget": {
-          "type": "checkbox"
+          "type": "toggle"
         }
       },
       {
         "config": "yarn-env/yarn_cgroups_enabled",
         "widget": {
-          "type": "checkbox"
+          "type": "toggle"
         }
       },
       {
         "config": "yarn-site/yarn.resourcemanager.scheduler.monitor.enable",
         "widget": {
-          "type": "checkbox"
+          "type": "toggle"
         }
       },
       {
