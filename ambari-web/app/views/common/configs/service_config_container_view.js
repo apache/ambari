@@ -45,6 +45,14 @@ App.ServiceConfigContainerView = Em.ContainerView.extend({
           didInsertElement: function () {
             $('.loading').empty();
             this._super();
+          },
+          setActiveTab: function (event) {
+            if (event.context.get('isHiddenByFilter')) return false;
+            this.get('tabs').forEach(function (tab) {
+              tab.set('isActive', false);
+            });
+            var currentTab = event.context;
+            currentTab.set('isActive', true);
           }
         }));
       }

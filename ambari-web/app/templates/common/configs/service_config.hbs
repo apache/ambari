@@ -96,22 +96,20 @@
   {{#if view.supportsConfigLayout}}
     <ul class="nav nav-tabs mbm">
       {{#each tab in view.tabs}}
-        {{#unless tab.isHiddenByFilter}}
-          <li {{bindAttr class="tab.isActive:active" }}>
-            <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
-              {{tab.displayName}}
-                {{#if tab.isAdvanced}}
-                  {{#if controller.errorsCount}}
-                  <span class="badge badge-important">{{controller.errorsCount}}</span>
-                {{/if}}
-              {{else}}
-                {{#if tab.errorsCount}}
-                  <span class="badge badge-important">{{tab.errorsCount}}</span>
-                {{/if}}
+        <li {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" }}>
+          <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
+            {{tab.displayName}}
+              {{#if tab.isAdvanced}}
+                {{#if controller.errorsCount}}
+                <span class="badge badge-important">{{controller.errorsCount}}</span>
               {{/if}}
-            </a>
-          </li>
-        {{/unless}}
+            {{else}}
+              {{#if tab.errorsCount}}
+                <span class="badge badge-important">{{tab.errorsCount}}</span>
+              {{/if}}
+            {{/if}}
+          </a>
+        </li>
       {{/each}}
     </ul>
     <div class="tab-content service-config-tab-content">

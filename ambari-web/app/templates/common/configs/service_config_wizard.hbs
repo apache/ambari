@@ -51,8 +51,8 @@
 {{#if view.supportsConfigLayout}}
   <ul class="nav nav-tabs mbm">
     {{#each tab in view.tabs}}
-      <li {{bindAttr class="tab.isActive:active" }}>
-        <a href="#" {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
+      <li {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" }}>
+        <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
           {{tab.displayName}}
           {{#if tab.isAdvanced}}
             {{#if controller.errorsCount}}

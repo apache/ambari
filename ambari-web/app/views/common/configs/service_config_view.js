@@ -92,6 +92,7 @@ App.ServiceConfigView = Em.View.extend({
   ),
 
   setActiveTab: function (event) {
+    if (event.context.get('isHiddenByFilter')) return false;
     this.get('tabs').forEach(function (tab) {
       tab.set('isActive', false);
     });
