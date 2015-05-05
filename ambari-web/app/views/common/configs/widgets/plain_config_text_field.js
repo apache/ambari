@@ -24,11 +24,14 @@
 var App = require('app');
 require('views/common/controls_view');
 
-App.PlainConfigTextField = Ember.TextField.extend(App.SupportsDependentConfigs, {
-
+App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, {
+  templateName: require('templates/common/configs/widgets/plain_config_text_field'),
   valueBinding: 'serviceConfig.value',
-  classNames: ['span10'],
+  classNames: ['span10', 'widget-config-plain-text-field'],
   placeholderBinding: 'serviceConfig.defaultValue',
+  unit: function() {
+    return Em.getWithDefault(this, 'serviceConfig.stackConfigProperty.valueAttributes.unit', false);
+  }.property('serviceConfig.stackConfigProperty.valueAttributes.unit'),
 
   focusOut: function () {
     this.sendRequestRorDependentConfigs(this.get('serviceConfig'));

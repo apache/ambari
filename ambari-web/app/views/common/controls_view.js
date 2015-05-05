@@ -177,7 +177,9 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
   //Set editDone false for all current category config text field parameter
   focusIn: function () {
     if (!this.get('serviceConfig.isOverridden') && !this.get('serviceConfig.isComparison')) {
-      this.get("parentView.categoryConfigsAll").setEach("editDone", false);
+      if (this.get('parentView.categoryConfigsAll')) {
+        this.get("parentView.categoryConfigsAll").setEach("editDone", false);
+      }
     }
   },
 
