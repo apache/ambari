@@ -31,7 +31,9 @@ import org.apache.ambari.server.controller.utilities.PredicateBuilder;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.WidgetDAO;
 import org.apache.ambari.server.orm.dao.WidgetLayoutDAO;
+import org.apache.ambari.server.orm.entities.WidgetEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutEntity;
 import org.apache.ambari.server.orm.entities.WidgetLayoutUserWidgetEntity;
 import org.apache.ambari.server.state.Cluster;
@@ -42,6 +44,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.easymock.EasyMock.anyLong;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.capture;
 import static org.easymock.EasyMock.createMock;
@@ -68,11 +72,13 @@ import static org.junit.Assert.assertEquals;
 public class WidgetLayoutResourceProviderTest {
 
   private WidgetLayoutDAO dao = null;
+  private WidgetDAO widgetDAO = null;
   private Injector m_injector;
 
   @Before
   public void before() {
     dao = createStrictMock(WidgetLayoutDAO.class);
+    widgetDAO = createStrictMock(WidgetDAO.class);
 
     m_injector = Guice.createInjector(Modules.override(
         new InMemoryDefaultTestModule()).with(new MockModule()));
@@ -155,7 +161,12 @@ public class WidgetLayoutResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    replay(amc, clusters, cluster, dao);
+    WidgetEntity widgetEntity = new WidgetEntity();
+    widgetEntity.setId(1l);
+    widgetEntity.setListWidgetLayoutUserWidgetEntity(new ArrayList<WidgetLayoutUserWidgetEntity>());
+    expect(widgetDAO.findById(anyLong())).andReturn(widgetEntity).anyTimes();
+
+    replay(amc, clusters, cluster, dao, widgetDAO);
 
     WidgetLayoutResourceProvider provider = createProvider(amc);
 
@@ -167,6 +178,9 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set widgetsInfo = new LinkedHashSet();
+    Map<String, String> widget = new HashMap<String, String>();
+    widget.put("id","1");
+    widgetsInfo.add(widget);
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     Request request = PropertyHelper.getCreateRequest(Collections.singleton(requestProps), null);
@@ -184,8 +198,11 @@ public class WidgetLayoutResourceProviderTest {
     Assert.assertEquals("section_name", entity.getSectionName());
     Assert.assertEquals("admin", entity.getUserName());
     Assert.assertNotNull(entity.getListWidgetLayoutUserWidgetEntity());
+    Assert.assertNotNull(entity.getListWidgetLayoutUserWidgetEntity().get(0));
+    Assert.assertNotNull(entity.getListWidgetLayoutUserWidgetEntity().get(0).
+            getWidget().getListWidgetLayoutUserWidgetEntity());
 
-    verify(amc, clusters, cluster, dao);
+    verify(amc, clusters, cluster, dao, widgetDAO);
   }
 
   /**
@@ -359,6 +376,7 @@ public class WidgetLayoutResourceProviderTest {
       binder.bind(Cluster.class).toInstance(
           EasyMock.createNiceMock(Cluster.class));
       binder.bind(ActionMetadata.class);
+      binder.bind(WidgetDAO.class).toInstance(widgetDAO);
     }
   }
 }

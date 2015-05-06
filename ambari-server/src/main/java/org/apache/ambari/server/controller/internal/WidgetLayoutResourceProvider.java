@@ -172,7 +172,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
             widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
             widgetLayoutUserWidgetEntity.setWidgetLayout(entity);
             widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
-
+            widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
           }
 
           entity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
@@ -301,7 +301,7 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
             widgetLayoutUserWidgetEntity.setWidgetOrder(order++);
             widgetLayoutUserWidgetEntity.setWidgetLayout(entity);
             widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidgetEntity);
-
+            widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidgetEntity);
           }
 
           entity.setListWidgetLayoutUserWidgetEntity(widgetLayoutUserWidgetEntityList);
