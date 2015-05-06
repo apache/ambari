@@ -36,6 +36,9 @@ HIVE_SERVER_PRINCIPAL_KEY = '{{hive-site/hive.server2.authentication.kerberos.pr
 SMOKEUSER_KEYTAB_KEY = '{{cluster-env/smokeuser_keytab}}'
 SMOKEUSER_PRINCIPAL_KEY = '{{cluster-env/smokeuser_principal_name}}'
 SMOKEUSER_KEY = '{{cluster-env/smokeuser}}'
+HIVE_SSL = '{{hive-site/hive.server2.use.SSL}}'
+HIVE_SSL_KEYSTORE_PATH = '{{hive-site/hive.server2.keystore.path}}'
+HIVE_SSL_KEYSTORE_PASSWORD = '{{hive-site/hive.server2.keystore.password}}'
 
 # The configured Kerberos executable search paths, if any
 KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY = '{{kerberos-env/executable_search_paths}}'
@@ -62,10 +65,11 @@ def get_tokens():
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (HIVE_SERVER_THRIFT_PORT_KEY,SECURITY_ENABLED_KEY, SMOKEUSER_KEY,
-    HIVE_SERVER2_AUTHENTICATION_KEY,HIVE_SERVER_PRINCIPAL_KEY,
-    SMOKEUSER_KEYTAB_KEY,SMOKEUSER_PRINCIPAL_KEY,HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
-    HIVE_SERVER_TRANSPORT_MODE_KEY,KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
+  return (HIVE_SERVER_THRIFT_PORT_KEY, SECURITY_ENABLED_KEY, SMOKEUSER_KEY,
+          HIVE_SERVER2_AUTHENTICATION_KEY, HIVE_SERVER_PRINCIPAL_KEY,
+          SMOKEUSER_KEYTAB_KEY, SMOKEUSER_PRINCIPAL_KEY, HIVE_SERVER_THRIFT_HTTP_PORT_KEY,
+          HIVE_SERVER_TRANSPORT_MODE_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, HIVE_SSL,
+          HIVE_SSL_KEYSTORE_PATH, HIVE_SSL_KEYSTORE_PASSWORD)
 
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -88,7 +92,7 @@ def execute(configurations={}, parameters={}, host_name=None):
   port = THRIFT_PORT_DEFAULT
   if transport_mode.lower() == 'binary' and HIVE_SERVER_THRIFT_PORT_KEY in configurations:
     port = int(configurations[HIVE_SERVER_THRIFT_PORT_KEY])
-  elif  transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in configurations:
+  elif transport_mode.lower() == 'http' and HIVE_SERVER_THRIFT_HTTP_PORT_KEY in configurations:
     port = int(configurations[HIVE_SERVER_THRIFT_HTTP_PORT_KEY])
 
   security_enabled = False
@@ -98,6 +102,18 @@ def execute(configurations={}, parameters={}, host_name=None):
   hive_server2_authentication = HIVE_SERVER2_AUTHENTICATION_DEFAULT
   if HIVE_SERVER2_AUTHENTICATION_KEY in configurations:
     hive_server2_authentication = configurations[HIVE_SERVER2_AUTHENTICATION_KEY]
+
+  hive_ssl = False
+  if HIVE_SSL in configurations:
+    hive_ssl = configurations[HIVE_SSL]
+
+  hive_ssl_keystore_path = None
+  if HIVE_SSL_KEYSTORE_PATH in configurations:
+    hive_ssl_keystore_path = configurations[HIVE_SSL_KEYSTORE_PATH]
+
+  hive_ssl_keystore_password = None
+  if HIVE_SSL_KEYSTORE_PASSWORD in configurations:
+    hive_ssl_keystore_password = configurations[HIVE_SSL_KEYSTORE_PASSWORD]
 
   # defaults
   smokeuser_keytab = SMOKEUSER_KEYTAB_DEFAULT
@@ -151,10 +167,9 @@ def execute(configurations={}, parameters={}, host_name=None):
     start_time = time.time()
 
     try:
-      hive_check.check_thrift_port_sasl(host_name, port,
-        hive_server2_authentication, hive_server_principal, kinitcmd, smokeuser,
-        transport_mode = transport_mode)
-
+      hive_check.check_thrift_port_sasl(host_name, port, hive_server2_authentication, hive_server_principal,
+                                        kinitcmd, smokeuser, transport_mode=transport_mode, ssl=hive_ssl,
+                                        ssl_keystore=hive_ssl_keystore_path, ssl_password=hive_ssl_keystore_password)
       result_code = 'OK'
       total_time = time.time() - start_time
       label = OK_MESSAGE.format(total_time, port)

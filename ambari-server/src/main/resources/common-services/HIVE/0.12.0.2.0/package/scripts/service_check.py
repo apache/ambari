@@ -63,7 +63,9 @@ class HiveServiceCheckDefault(HiveServiceCheck):
       try:
         check_thrift_port_sasl(address, port, params.hive_server2_authentication,
                                params.hive_server_principal, kinitcmd, params.smokeuser,
-                               transport_mode=params.hive_transport_mode)
+                               transport_mode=params.hive_transport_mode, http_endpoint=params.hive_http_endpoint,
+                               ssl=params.hive_ssl, ssl_keystore=params.hive_ssl_keystore_path,
+                               ssl_password=params.hive_ssl_keystore_password)
         print "Successfully connected to %s on port %s" % (address, port)
         workable_server_available = True
       except:

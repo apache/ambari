@@ -76,13 +76,16 @@ class TestHiveServer(RMFTestCase):
                               tries=5,
                               try_sleep=10
     )
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertNoMoreResources()
 
 
   @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
-  @patch("socket.socket")
-  def test_start_default_no_copy(self, socket_mock, get_tar_mock):
-    s = socket_mock.return_value
+  def test_start_default_no_copy(self, get_tar_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -109,17 +112,16 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)
-    self.assertTrue(s.close.called)
     self.assertFalse(get_tar_mock.called)
 
   @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
-  @patch("socket.socket")
-  def test_start_default_alt_tmp(self, socket_mock, get_tar_mock):
-    s = socket_mock.return_value
-
+  def test_start_default_alt_tmp(self, get_tar_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -145,18 +147,17 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)
-    self.assertTrue(s.close.called)
     self.assertFalse(get_tar_mock.called)
 
 
   @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
-  @patch("socket.socket")
-  def test_start_default_alt_nn_ha_tmp(self, socket_mock, get_tar_mock):
-    s = socket_mock.return_value
-
+  def test_start_default_alt_nn_ha_tmp(self, get_tar_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -182,15 +183,16 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-
+    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
+                              user = 'ambari-qa',
+                              timeout = 30,
+                              )
     self.assertNoMoreResources()
-    self.assertTrue(socket_mock.called)
-    self.assertTrue(s.close.called)
     self.assertFalse(get_tar_mock.called)
 
-  @patch("socket.socket")
   @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
-  def test_stop_default(self, socket_mock):
+  def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "stop",
@@ -263,7 +265,7 @@ class TestHiveServer(RMFTestCase):
                               user='ambari-qa',
     )
     self.assertResourceCalled('Execute',
-                              "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
+                              "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
                               path=['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
                               user='ambari-qa',
                               timeout=30,

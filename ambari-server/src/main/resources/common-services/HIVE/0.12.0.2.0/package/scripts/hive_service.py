@@ -89,9 +89,7 @@ def hive_service(name, action='start', rolling_restart=False):
     # AMBARI-5800 - wait for the server to come up instead of just the PID existance
     if name == 'hiveserver2':
       SOCKET_WAIT_SECONDS = 120
-      address=params.hostname
-      port=int(params.hive_server_port)
-      
+
       start_time = time.time()
       end_time = start_time + SOCKET_WAIT_SECONDS
 
@@ -103,9 +101,11 @@ def hive_service(name, action='start', rolling_restart=False):
         kinitcmd=None
       while time.time() < end_time:
         try:
-          check_thrift_port_sasl(address, port, params.hive_server2_authentication,
+          check_thrift_port_sasl(params.hostname, params.hive_server_port, params.hive_server2_authentication,
                                  params.hive_server_principal, kinitcmd, params.smokeuser,
-                                 transport_mode=params.hive_transport_mode)
+                                 transport_mode=params.hive_transport_mode, http_endpoint=params.hive_http_endpoint,
+                                 ssl=params.hive_ssl, ssl_keystore=params.hive_ssl_keystore_path,
+                                 ssl_password=params.hive_ssl_keystore_password)
           is_service_socket_valid = True
           break
         except Exception, e:
@@ -113,10 +113,12 @@ def hive_service(name, action='start', rolling_restart=False):
 
       elapsed_time = time.time() - start_time
       
-      if is_service_socket_valid == False: 
-        raise Fail("Connection to Hive server %s on port %s failed after %d seconds" % (address, port, elapsed_time))
+      if not is_service_socket_valid:
+        raise Fail("Connection to Hive server %s on port %s failed after %d seconds" %
+                   (params.hostname, params.hive_server_port, elapsed_time))
       
-      print "Successfully connected to Hive at %s on port %s after %d seconds" % (address, port, elapsed_time)    
+      print "Successfully connected to Hive at %s on port %s after %d seconds" %\
+            (params.hostname, params.hive_server_port, elapsed_time)
             
   elif action == 'stop':
 

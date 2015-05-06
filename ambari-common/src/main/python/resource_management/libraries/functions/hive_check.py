@@ -22,35 +22,47 @@ from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
 import socket
 
-def check_thrift_port_sasl(address, port, hive_auth = "NOSASL", key = None, kinitcmd = None, smokeuser = 'ambari-qa',
-                           transport_mode = "binary"):
+
+def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',
+                           transport_mode="binary", http_endpoint="cliservice", ssl=False, ssl_keystore=None,
+                           ssl_password=None):
   """
   Hive thrift SASL port check
   """
-  BEELINE_CHECK_TIMEOUT = 30
 
+  # check params to be correctly passed, if not - try to cast them
+  if isinstance(port, str):
+    port = int(port)
+
+  if isinstance(ssl, str):
+    ssl = bool(ssl)
+
+  # to pass as beeline argument
+  ssl_str = str(ssl).lower()
+  beeline_check_timeout = 30
+  beeline_url = ['jdbc:hive2://{address}:{port}/', "transportMode={transport_mode}"]
+
+  # append url according to used transport
+  if transport_mode == "http":
+    beeline_url.append('httpPath={http_endpoint}')
+
+  # append url according to used auth
+  if hive_auth == "NOSASL":
+    beeline_url.append('auth=noSasl')
+
+  # append url according to ssl configuration
+  if ssl and ssl_keystore is not None and ssl_password is not None:
+    beeline_url.extend(['ssl={ssl_str}', 'sslTrustStore={ssl_keystore}', 'trustStorePassword={ssl_password!p}'])
+
+  # append url according to kerberos setting
   if kinitcmd:
-    url = format("jdbc:hive2://{address}:{port}/;principal={key}")
-    Execute(kinitcmd,
-            user=smokeuser
-    )
-  else:
-    url = format("jdbc:hive2://{address}:{port}")
+    beeline_url.append('principal={key}')
+    Execute(kinitcmd, user=smokeuser)
 
-  if hive_auth != "NOSASL" and transport_mode != "http":
-    cmd = format("! beeline -u '{url}' -e '' ") + "2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'"
-    Execute(cmd,
-            user=smokeuser,
-            path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
-            timeout=BEELINE_CHECK_TIMEOUT
-    )
-  else:
-    s = socket.socket()
-    s.settimeout(1)
-    try:
-      s.connect((address, port))
-    except socket.error, e:
-      raise
-    finally:
-      s.close()
-
+  cmd = "! beeline -u '%s' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'" % \
+        format(";".join(beeline_url))
+  Execute(cmd,
+          user=smokeuser,
+          path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+          timeout=beeline_check_timeout
+  )
