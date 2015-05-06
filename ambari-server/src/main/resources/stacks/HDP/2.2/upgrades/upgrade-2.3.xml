@@ -169,16 +169,6 @@
       </service>
     </group>
 
-    <group xsi:type="cluster" name="PRE_CLIENTS" title="Confirm skipped services">
-      <skippable>true</skippable>
-      <execute-stage title="Confirm skipped services">
-        <direction>UPGRADE</direction>
-        <task xsi:type="manual">
-          <message>Please confirm skipped services.</message>
-        </task>
-      </execute-stage>
-    </group>
-
     <group name="CLIENTS" title="Client Components">
       <service-check>false</service-check>
       <service name="ZOOKEEPER">
