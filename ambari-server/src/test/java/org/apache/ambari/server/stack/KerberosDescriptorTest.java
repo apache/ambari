@@ -119,14 +119,7 @@ public class KerberosDescriptorTest {
 
   @Test
   public void testCommonOozieServiceDescriptor() throws IOException {
-    KerberosDescriptor descriptor;
-
-    descriptor = getKerberosDescriptor(commonServicesDirectory, "OOZIE", "4.0.0.2.0");
-    Assert.notNull(descriptor);
-    Assert.notNull(descriptor.getServices());
-    Assert.notNull(descriptor.getService("OOZIE"));
-
-    descriptor = getKerberosDescriptor(commonServicesDirectory, "OOZIE", "5.0.0.2.3");
+    KerberosDescriptor descriptor = getKerberosDescriptor(commonServicesDirectory, "OOZIE", "4.0.0.2.0");
     Assert.notNull(descriptor);
     Assert.notNull(descriptor.getServices());
     Assert.notNull(descriptor.getService("OOZIE"));
