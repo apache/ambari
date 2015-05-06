@@ -362,6 +362,9 @@ ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-hive-plugin-properties']
 policy_user = config['configurations']['ranger-hive-plugin-properties']['policy_user']
 
+if security_enabled:
+  hive_principal = hive_server_principal.replace('_HOST',hostname.lower())
+  
 #For curl command in ranger plugin to get db connector
 if has_ranger_admin:
   if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
@@ -398,6 +401,3 @@ if has_ranger_admin:
     'repositoryType': 'hive',
     'assetType': '3'
   }
-
-if security_enabled:
-  hive_principal = hive_server_principal.replace('_HOST',hostname.lower())
