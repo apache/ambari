@@ -27,6 +27,13 @@ App.TemplateWidgetView = Em.View.extend(App.WidgetMixin, {
   value: '',
 
   /**
+   * @type {string}
+   */
+  displayValue: function () {
+    return (this.get('value')) ? this.get('value') : Em.I18n.t('common.na');
+  }.property('value'),
+
+  /**
    * common metrics container
    * @type {Array}
    */

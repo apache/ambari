@@ -151,13 +151,6 @@ App.WidgetType.FIXTURES = [
     icon_path: '/img/widget-template.png',
     display_name: 'Template',
     description: Em.I18n.t('widget.type.template.description'),
-    properties: [
-      {
-        name : 'display_unit',
-        isRequired: false,
-        value: '',
-        placeholder: 'Optional: MB, ms, etc.'
-      }
-    ]
+    properties: []
   }
 ];

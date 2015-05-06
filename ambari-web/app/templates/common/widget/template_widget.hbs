@@ -30,7 +30,7 @@
         <i class="icon-edit"></i>
       </a>
     {{/isAccessible}}
-    <div class="content"> {{view.value}}</div>
+    <div {{bindAttr class="view.contentColor :content"}}>{{view.displayValue}}</div>
     {{#if view.content.description}}
       <div class="hidden-description">
         {{view.content.description}}

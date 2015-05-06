@@ -275,7 +275,15 @@ describe('App.WidgetMixin', function() {
         value: '${a}'
       }]);
       mixinObject.calculateValues();
-      expect(mixinObject.get('content.values')[0].computedValue).to.equal(Em.I18n.t('common.na'));
+      expect(mixinObject.get('content.values')[0].computedValue).to.be.empty;
+    });
+    it("value is null", function() {
+      this.mock.returns({'${a}': null});
+      mixinObject.set('content.values', [{
+        value: '${a}'
+      }]);
+      mixinObject.calculateValues();
+      expect(mixinObject.get('content.values')[0].computedValue).to.be.empty;
     });
   });
 

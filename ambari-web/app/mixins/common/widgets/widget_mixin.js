@@ -71,6 +71,14 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   content: null,
 
+  /**
+   * color of content calculated by thresholds
+   * @type {string}
+   */
+  contentColor: function () {
+    return this.get('value') ? 'green' : 'grey';
+  }.property('value'),
+
   beforeRender: function () {
     this.get('metrics').clear();
     this.loadMetrics();
@@ -350,7 +358,7 @@ App.WidgetMixin = Ember.Mixin.create({
   drawWidget: function () {
     if (this.get('isLoaded')) {
       this.calculateValues();
-      this.set('value', this.get('content.values')[0] && this.get('content.values')[0].computedValue);
+      this.set('value', (this.get('content.values')[0]) ? this.get('content.values')[0].computedValue : '');
     }
   },
 
@@ -358,13 +366,15 @@ App.WidgetMixin = Ember.Mixin.create({
    * calculate series datasets for graph widgets
    */
   calculateValues: function () {
-    var metrics = this.get('metrics');
-    var displayUnit = this.get('content.properties.display_unit');
-
     this.get('content.values').forEach(function (value) {
-      var computeExpression = this.computeExpression(this.extractExpressions(value), metrics);
+      var computeExpression = this.computeExpression(this.extractExpressions(value), this.get('metrics'));
       value.computedValue = value.value.replace(this.get('EXPRESSION_REGEX'), function (match) {
-        return (!Em.isNone(computeExpression[match])) ? computeExpression[match] + (displayUnit || "") : Em.I18n.t('common.na');
+        var float = parseFloat(computeExpression[match]);
+        if (isNaN(float)) {
+          return computeExpression[match] || "";
+        } else {
+          return String((float % 1 !== 0) ? float.toFixed(2) : float);
+        }
       });
     }, this);
   },

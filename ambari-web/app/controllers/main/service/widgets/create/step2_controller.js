@@ -126,7 +126,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
    * @returns {boolean}
    */
   isExpressionComplete: function (expression) {
-    return expression && !expression.get('isInvalid') && !expression.get('isEmpty');
+    return Boolean(expression && !expression.get('isInvalid') && !expression.get('isEmpty'));
   },
 
   /**
@@ -155,10 +155,12 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   isTemplateDataComplete: function (expressions, templateValue) {
     var isComplete = Boolean(expressions.length > 0 && templateValue.trim() !== '');
 
-    for (var i = 0; i < expressions.length; i++) {
-      if (!this.isExpressionComplete(expressions[i])) {
-        isComplete = false;
-        break;
+    if (isComplete) {
+      for (var i = 0; i < expressions.length; i++) {
+        if (!this.isExpressionComplete(expressions[i])) {
+          isComplete = false;
+          break;
+        }
       }
     }
     return isComplete;

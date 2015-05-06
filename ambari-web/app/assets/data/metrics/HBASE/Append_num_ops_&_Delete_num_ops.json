@@ -6,6 +6,10 @@
     "service_name" : "HBASE"
   },
   "metrics" : {
+    "network": {
+      "bytes_in": 7.698,
+      "bytes_out": 2.23342
+    },
     "jvm": {
       "HeapMemoryUsed": 61,
       "HeapMemoryMax": 100

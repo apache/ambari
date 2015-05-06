@@ -26,13 +26,14 @@ App.NumberWidgetView = Em.View.extend(App.WidgetMixin, {
    */
   value: '',
 
+  /**
+   * @type {string}
+   */
   displayValue: function () {
     var value = parseFloat(this.get('value'));
     if (isNaN(value)) return Em.I18n.t('common.na');
-    value = value % 1 != 0? value.toFixed(2): value;
-    var unit = this.get('content.properties.display_unit')? this.get('content.properties.display_unit'): '';
-    return value + unit;
-  }.property('value'),
+    return value + (this.get('content.properties.display_unit') || '');
+  }.property('value', 'content.properties.display_unit'),
 
   /**
    * common metrics container
