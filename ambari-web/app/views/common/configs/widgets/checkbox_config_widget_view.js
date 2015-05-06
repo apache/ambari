@@ -45,7 +45,7 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
   configView: App.ServiceConfigCheckbox.extend({
     serviceConfigBinding: 'parentView.config',
     // @TODO maybe find use case of this method for widget
-    focusIn: function() {},
+    focusIn: Em.K,
     toggleValue: function() {
       this._super();
       this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
@@ -59,6 +59,13 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
   restoreValue: function () {
     this.$('input[type="checkbox"]:eq(0)').checkbox('click');
     this._super();
+  },
+
+  /**
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function () {
+    this.set('config.value', this.get('config.recommendedValue'));
   }
 
 });

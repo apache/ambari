@@ -116,6 +116,13 @@
                       </a>
                     {{/if}}
                   {{/unless}}
+                  {{#if recommendedValueExists}}
+                    <a class="btn btn-small" href="#" data-toggle="tooltip"
+                      {{action "setRecommendedValue" this target="view"}}
+                      {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
+                      <i class="icon-arrow-down text-info"></i>
+                    </a>
+                  {{/if}}
                 {{/if}}
                 <span class="help-inline">{{errorMessage}}</span>
                 <span class="help-inline">{{warnMessage}}</span>

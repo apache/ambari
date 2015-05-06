@@ -1751,6 +1751,7 @@ Em.I18n.translations = {
   'services.service.config.configHistory.dismissIcon.tooltip': 'Dismiss',
   'services.service.config.configHistory.makeCurrent.message': 'Created from service config version {0}',
   'services.service.config.configHistory.comparing': 'Comparing',
+  'services.service.config.setRecommendedValue': 'Set Recommended Value',
 
   'services.service.widgets.list-widget.nothingSelected': 'Nothing selected',
 

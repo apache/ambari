@@ -37,6 +37,12 @@ App.ServiceConfigView = Em.View.extend({
     }
   }.property('controller.name', 'controller.selectedService'),
 
+  isOnTheServicePage: function () {
+    return this.get('controller.name') === 'mainServiceInfoConfigsController';
+  }.property('controller.name'),
+
+  classNameBindings: ['isOnTheServicePage:serviceConfigs'],
+
   /**
    * Check for layout config supports.
    * @returns {Boolean}

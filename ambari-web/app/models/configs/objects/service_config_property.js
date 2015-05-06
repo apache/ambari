@@ -64,7 +64,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   showLabel: true,
   error: false,
   warn: false,
-  overrideErrorTrigger: 0, //Trigger for overrridable property error
+  overrideErrorTrigger: 0, //Trigger for overridable property error
   isRestartRequired: false,
   restartRequiredMessage: 'Restart required',
   index: null, //sequence number in category
@@ -78,7 +78,14 @@ App.ServiceConfigProperty = Em.Object.extend({
    * value that is returned from server as recommended
    * @type {String}
    */
-  recommendedValue: '',
+  recommendedValue: null,
+
+  /**
+   * @type {boolean}
+   */
+  recommendedValueExists: function () {
+    return !Em.isNone(this.get('recommendedValue'));
+  }.property('recommendedValue'),
 
   /**
    * Usage example see on <code>App.ServiceConfigRadioButtons.handleDBConnectionProperty()</code>

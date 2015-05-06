@@ -240,6 +240,14 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function () {
+    this.set('config.value', this.get('config.recommendedValue'));
+    this.calculateInitVal();
+  },
+
+  /**
    * Just a small checkbox-wrapper with modified click-handler
    * Should call <code>parentView.toggleOption</code>
    * User may click on the checkbox or on the link which wraps it, but action in both cases should be the same (<code>toggleOption</code>)

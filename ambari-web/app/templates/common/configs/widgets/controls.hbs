@@ -42,6 +42,12 @@
              data-toggle="tooltip" {{translateAttr data-original-title="config.infoMessage.wrong.value.for.widget"}}></i>
         {{/if}}
       {{/if}}
+      {{#if config.recommendedValueExists}}
+        <a href="#"
+          {{bindAttr class=":icon-repeat :widget-action-set-recommended view.isHover::hide :widget-action"}}
+          {{action "setRecommendedValue" target="view"}} data-toggle="tooltip" {{translateAttr data-original-title="services.service.config.setRecommendedValue"}}>
+        </a>
+      {{/if}}
     </div>
     <div class="widget-col right">
       {{#if view.config.supportsFinal}}

@@ -598,6 +598,16 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   },
 
   /**
+   * Set config's value to recommended
+   * @param event
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function (event) {
+    var serviceConfigProperty = event.contexts[0];
+    serviceConfigProperty.set('value', serviceConfigProperty.get('recommendedValue'));
+  },
+
+  /**
    * Restores given property's value to be its default value.
    * Does not update if there is no default value.
    * @method doRestoreDefaultValue

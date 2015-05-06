@@ -120,6 +120,13 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function () {
+    this.setConfigValue({ context: this.get('config.recommendedValue')});
+  },
+
+  /**
    * Delegate event from text input in combo widget to trigger dropdown
    */
   click: function(event) {

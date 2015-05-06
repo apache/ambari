@@ -363,6 +363,11 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       return true;
     }
     return this.isValueCompatibleWithWidget();
-  }.property('config.value', 'showAsTextBox')
+  }.property('config.value', 'showAsTextBox'),
+
+  /**
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: Em.required(Function)
 
 });

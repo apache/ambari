@@ -160,6 +160,13 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function () {
+    this.setValue(this.get('config.recommendedValue'));
+  },
+
+  /**
    * Enable/disable switcher basing on config isEditable value
    * @method toggleWidgetState
    */

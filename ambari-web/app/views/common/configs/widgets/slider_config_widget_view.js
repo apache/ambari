@@ -97,7 +97,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * Default value of config property transformed according widget format
    * @returns {Number}
    */
-  widgetDefaultValue: function() {
+  widgetDefaultValue: function () {
     var parseFunction = this.get('mirrorValueParseFunction');
     return parseFunction(this.widgetValueByConfigAttributes(this.get('config.defaultValue')));
   }.property('config.defaultValue'),
@@ -106,7 +106,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * Default value of config property transformed according widget format
    * @returns {Number}
    */
-  widgetRecommendedValue: function() {
+  widgetRecommendedValue: function () {
     var parseFunction = this.get('mirrorValueParseFunction');
     return parseFunction(this.widgetValueByConfigAttributes(this.get('config.recommendedValue')));
   }.property('config.recommendedValue'),
@@ -117,15 +117,15 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * unit type of widget
    * @type {String}
    */
-   unitType: function() {
-     var widgetUnit = this.get('config.stackConfigProperty.widget.units.length') && this.get('config.stackConfigProperty.widget.units')[0]['unit-name'].toLowerCase();
-     var configUnit = this.get('config.stackConfigProperty.valueAttributes.type').toLowerCase();
-     if (widgetUnit) {
+  unitType: function () {
+    var widgetUnit = this.get('config.stackConfigProperty.widget.units.length') && this.get('config.stackConfigProperty.widget.units')[0]['unit-name'].toLowerCase();
+    var configUnit = this.get('config.stackConfigProperty.valueAttributes.type').toLowerCase();
+    if (widgetUnit) {
       return this.get('units').indexOf(widgetUnit) > this.get('units').indexOf(configUnit) ? 'float' : this.get('config.stackConfigProperty.valueAttributes.type')
-     } else {
+    } else {
       return 'float';
-     }
-   }.property('config.stackConfigProperty.widget.units.@each.unit-name'),
+    }
+  }.property('config.stackConfigProperty.widget.units.@each.unit-name'),
   /**
    * Function used to parse widget mirror value
    * For integer - parseInt, for float - parseFloat
@@ -413,6 +413,14 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   restoreValue: function () {
     this._super();
     this.get('slider').setValue(this.get('widgetDefaultValue'));
+  },
+
+  /**
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function () {
+    this.setValue(this.get('config.recommendedValue'));
+    this.get('slider').setValue(this.get('mirrorValue'));
   },
 
   /**

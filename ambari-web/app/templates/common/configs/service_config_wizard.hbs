@@ -49,7 +49,7 @@
 {{/if}}
 
 {{#if view.supportsConfigLayout}}
-  <ul class="nav nav-tabs mbm">
+  <ul class="nav nav-tabs mbm config-tabs">
     {{#each tab in view.tabs}}
       <li {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" }}>
         <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
