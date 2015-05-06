@@ -41,3 +41,6 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
         putTezAttribute("tez.runtime.io.sort.mb", "maximum", 2047)
+
+  def isComponentUsingCardinalityForLayout(self, componentName):
+    return componentName == 'NFS_GATEWAY'
