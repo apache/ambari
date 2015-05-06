@@ -526,9 +526,10 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
     putMapredProperty('mapreduce.map.memory.mb', int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]))
     putMapredProperty('mapreduce.reduce.memory.mb', min(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(nodemanagerMinRam)))
-    putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]))) + "m")
+    mapredMapXmx = int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]));
+    putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(mapredMapXmx) + "m")
     putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.reduce.memory.mb"]))) + "m")
-    putMapredProperty('mapreduce.task.io.sort.mb', str(min(int(0.7*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"])), 2047)))
+    putMapredProperty('mapreduce.task.io.sort.mb', str(min(int(0.7*mapredMapXmx), 2047)))
     # Property Attributes
     putMapredPropertyAttribute = self.putPropertyAttribute(configurations, "mapred-site")
     yarnMinAllocationSize = int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])

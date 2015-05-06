@@ -1109,7 +1109,7 @@ class TestHDP22StackAdvisor(TestCase):
           "mapreduce.reduce.java.opts": "-Xmx160m",
           "yarn.app.mapreduce.am.resource.mb": "100",
           "mapreduce.map.java.opts": "-Xmx80m",
-          "mapreduce.task.io.sort.mb": "70"
+          "mapreduce.task.io.sort.mb": "56"
         },
         "property_attributes": {
           'mapreduce.task.io.sort.mb': {'maximum': '2047'},
