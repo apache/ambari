@@ -50,7 +50,7 @@ def _ret_append_stdout(ret, stdout):
   temp_stderr = ret['log'][1]
   if stdout:
     if temp_stdout:
-      temp_stdout += "\n"
+      temp_stdout += os.linesep
     temp_stdout += stdout
   ret['log'] = (temp_stdout, temp_stderr)
 
@@ -59,7 +59,7 @@ def _ret_append_stderr(ret, stderr):
   temp_stderr = ret['log'][1]
   if stderr:
     if temp_stderr:
-      temp_stderr += "\n"
+      temp_stderr += os.linesep
     temp_stderr += stderr
   ret['log'] = (temp_stdout, temp_stderr)
 
@@ -69,11 +69,11 @@ def _ret_merge(ret, retcode, stdout, stderr):
   temp_stderr = ret['log'][1]
   if stdout:
     if temp_stdout:
-      temp_stdout += "\n"
+      temp_stdout += os.linesep
     temp_stdout += stdout
   if stderr:
     if temp_stderr:
-      temp_stderr += "\n"
+      temp_stderr += os.linesep
     temp_stderr += stderr
   ret['log'] = (temp_stdout, temp_stderr)
   return ret
@@ -89,13 +89,12 @@ def execOsCommand(osCommand, tries=1, try_sleep=0, ret=None, cwd=None):
   for i in range(0, tries):
     if i > 0:
       time.sleep(try_sleep)
+      _ret_append_stderr(ret, "Retrying " + str(osCommand))
 
     retcode, stdout, stderr = run_os_command(osCommand, cwd=cwd)
     _ret_merge(ret, retcode, stdout, stderr)
     if retcode == 0:
       break
-
-    _ret_append_stdout(ret, "\nRetrying " + str(osCommand))
 
   return ret
 
