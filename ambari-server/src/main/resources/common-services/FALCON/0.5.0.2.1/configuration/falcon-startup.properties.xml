@@ -122,6 +122,12 @@
     <description></description>
   </property>
   <property>
+    <name>*.hive.shared.libs</name>
+    <value>hive-exec,hive-metastore,hive-common,hive-service,hive-hcatalog-server-extensions,\
+hive-hcatalog-core,hive-jdbc,hive-webhcat-java-client</value>
+    <description></description>
+  </property>
+  <property>
     <name>*.entity.topic</name>
     <value>FALCON.ENTITY.TOPIC</value>
     <description></description>
