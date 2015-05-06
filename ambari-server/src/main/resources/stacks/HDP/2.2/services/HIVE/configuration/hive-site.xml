@@ -1398,7 +1398,7 @@ limitations under the License.
     <display-name>For Map Join, per Map memory threshold</display-name>
     <value-attributes>
       <type>int</type>
-      <minimum>1073741824</minimum>
+      <minimum>8192</minimum>
       <maximum>17179869184</maximum>
       <unit>B</unit>
       <step-increment></step-increment>
