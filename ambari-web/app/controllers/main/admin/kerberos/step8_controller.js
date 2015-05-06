@@ -22,6 +22,7 @@ App.KerberosWizardStep8Controller = App.KerberosProgressPageController.extend({
   commands: ['startServices'],
 
   startServices: function () {
+    var skipServiceCheck = App.router.get('clusterController.ambariProperties')['skip.service.checks'] === "true";
     App.ajax.send({
       name: 'common.services.update',
       sender: this,
@@ -30,7 +31,7 @@ App.KerberosWizardStep8Controller = App.KerberosProgressPageController.extend({
         "ServiceInfo": {
           "state": "STARTED"
         },
-        urlParams: "params/run_smoke_test=true"
+        urlParams: "params/run_smoke_test=" + !skipServiceCheck
       },
       success: 'startPolling',
       error: 'onTaskError'

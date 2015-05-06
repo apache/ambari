@@ -969,6 +969,12 @@ describe('App.ReassignMasterWizardStep4Controller', function () {
   });
 
   describe('#startServices()', function () {
+    before(function () {
+      sinon.stub(App.router, 'get').returns({"skip.service.checks": "false"});
+    });
+    after(function () {
+      App.router.get.restore();
+    });
     it('', function () {
       controller.startServices();
       expect(App.ajax.send.calledOnce).to.be.true;

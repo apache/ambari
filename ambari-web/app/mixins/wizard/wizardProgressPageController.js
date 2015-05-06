@@ -426,6 +426,7 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
    * @returns {$.ajax}
    */
   startServices: function (runSmokeTest, excludedServices) {
+    var skipServiceCheck = App.router.get('clusterController.ambariProperties')['skip.service.checks'] === "true";
     var data = {
       'ServiceInfo': {
         'state': 'STARTED'
@@ -443,7 +444,8 @@ App.wizardProgressPageControllerMixin = Em.Mixin.create({
     }
 
     if (runSmokeTest) {
-      data.urlParams = data.urlParams ? data.urlParams + '&params/run_smoke_test=true' : 'params/run_smoke_test=true';
+      data.urlParams = data.urlParams ? data.urlParams + '&' : '';
+      data.urlParams += 'params/run_smoke_test=' + !skipServiceCheck;
     }
 
     return App.ajax.send({
