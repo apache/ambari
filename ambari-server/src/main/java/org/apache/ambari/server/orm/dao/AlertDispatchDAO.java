@@ -45,6 +45,8 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.NotificationState;
 import org.apache.ambari.server.state.Service;
+import org.eclipse.persistence.config.HintValues;
+import org.eclipse.persistence.config.QueryHints;
 
 import com.google.inject.Inject;
 import com.google.inject.Provider;
@@ -301,6 +303,7 @@ public class AlertDispatchDAO {
         "AlertGroupEntity.findByAssociatedDefinition", AlertGroupEntity.class);
 
     query.setParameter("alertDefinition", definitionEntity);
+    query.setHint(QueryHints.REFRESH, HintValues.TRUE);
 
     return daoUtils.selectList(query);
   }
