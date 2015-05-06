@@ -710,7 +710,7 @@ class DefaultStackAdvisor(StackAdvisor):
           if type in requestedProperties.keys() and \
                   name in requestedProperties[type]:
             if type not in filteredConfigs.keys():
-              filteredConfigs[type] = {'property_Attributes': {}}
+              filteredConfigs[type] = {'property_attributes': {}}
             elif 'property_attributes' not in filteredConfigs[type].keys():
               filteredConfigs[type]['property_attributes'] = {}
             filteredConfigs[type]['property_attributes'][name] = \
