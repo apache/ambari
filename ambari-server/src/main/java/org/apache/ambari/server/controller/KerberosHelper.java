@@ -67,7 +67,6 @@ import org.apache.ambari.server.serveraction.kerberos.KerberosOperationHandlerFa
 import org.apache.ambari.server.serveraction.kerberos.KerberosRealmException;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
 import org.apache.ambari.server.serveraction.kerberos.UpdateKerberosConfigsServerAction;
-import org.apache.ambari.server.serveraction.kerberos.CleanupServerAction;
 import org.apache.ambari.server.stageplanner.RoleGraph;
 import org.apache.ambari.server.stageplanner.RoleGraphFactory;
 import org.apache.ambari.server.state.Cluster;
@@ -912,7 +911,7 @@ public class KerberosHelper {
             hostParamsJson, event, roleCommandOrder, kerberosDetails, dataDirectory,
             requestStageContainer, serviceComponentHostsToProcess, hostsWithValidKerberosClient);
 
-        // Add the finalize stage...
+        // Add the cleanup stage...
         handler.addFinalizeOperationStage(cluster, clusterHostInfoJson, hostParamsJson, event,
             dataDirectory, roleCommandOrder, requestStageContainer);
 
@@ -2451,7 +2450,7 @@ public class KerberosHelper {
                                           RoleCommandOrder roleCommandOrder, RequestStageContainer requestStageContainer)
         throws AmbariException {
 
-      // Add the finalize stage...
+      // Add the cleanup stage...
       Map<String, String> commandParameters = new HashMap<String, String>();
       commandParameters.put(KerberosServerAction.AUTHENTICATED_USER_NAME, ambariManagementController.getAuthName());
       commandParameters.put(KerberosServerAction.DATA_DIRECTORY, dataDirectory.getAbsolutePath());
@@ -2472,31 +2471,6 @@ public class KerberosHelper {
       roleGraph.build(stage);
       requestStageContainer.addStages(roleGraph.getStages());
     }
-
-    public void addCleanupStage(Cluster cluster, String clusterHostInfoJson,
-                                String hostParamsJson, ServiceComponentHostServerActionEvent event,
-                                Map<String, String> commandParameters,
-                                RoleCommandOrder roleCommandOrder, RequestStageContainer requestStageContainer)
-      throws AmbariException {
-      Stage stage = createServerActionStage(requestStageContainer.getLastStageId(),
-        cluster,
-        requestStageContainer.getId(),
-        "Kerberization Clean Up",
-        clusterHostInfoJson,
-        "{}",
-        hostParamsJson,
-        CleanupServerAction.class,
-        event,
-        commandParameters,
-        "Kerberization Clean Up",
-        1200);
-
-      RoleGraph roleGraph = roleGraphFactory.createNew(roleCommandOrder);
-      roleGraph.build(stage);
-      requestStageContainer.addStages(roleGraph.getStages());
-    }
-
-
   }
 
   /**
@@ -2824,10 +2798,6 @@ public class KerberosHelper {
         // Create stage to delete keytabs
         addDeleteKeytabFilesStage(cluster, serviceComponentHosts, clusterHostInfoJson,
             hostParamsJson, commandParameters, roleCommandOrder, requestStageContainer, hostsWithValidKerberosClient);
-        // *****************************************************************
-        // Create stage to perform data cleanups (e.g. kerberos descriptor artifact database leftovers)
-        addCleanupStage(cluster, clusterHostInfoJson, hostParamsJson, event, commandParameters,
-          roleCommandOrder, requestStageContainer);
       }
 
       return requestStageContainer.getLastStageId();

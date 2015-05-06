@@ -1425,13 +1425,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(anyObject(List.class));
     expectLastCall().once();
-    // Finalize Stage
-    expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
-    expect(requestStageContainer.getId()).andReturn(1L).once();
-    requestStageContainer.addStages(anyObject(List.class));
-    expectLastCall().once();
-
-    // Cleanup Stage
+    // Clean-up/Finalize Stage
     expect(requestStageContainer.getLastStageId()).andReturn(3L).anyTimes();
     expect(requestStageContainer.getId()).andReturn(1L).once();
     requestStageContainer.addStages(anyObject(List.class));
