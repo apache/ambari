@@ -426,12 +426,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
       if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
-        putHbaseSiteProperty("hbase.regionserver.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
+        putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
         putHbaseSiteProperty("hbase.rpc.controllerfactory.class", "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory")
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec')
       else:
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
-        putHbaseSitePropertyAttributes('hbase.regionserver.rpc.scheduler.factory.class', 'delete', 'true')
+        putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
         putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
