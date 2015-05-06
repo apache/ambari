@@ -2560,6 +2560,7 @@ Em.I18n.translations = {
   'widget.edit.button.primary': 'Edit Shared',
   'widget.edit.button.secondary': 'Clone and Edit',
 
+  'dashboard.widgets.wizard.step2.dataSeries': 'Data Series {0}',
   'dashboard.widgets.wizard.step2.addMetrics': 'Add Metrics and operators here...',
   'dashboard.widgets.wizard.step2.newMetric': '+ Add Metric',
   'dashboard.widgets.wizard.step2.newOperator': '+ Add Operator',
@@ -2569,6 +2570,7 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.selectMetric': 'Select a Metric',
   'dashboard.widgets.wizard.step2.addMetric': 'Add Metric',
   'dashboard.widgets.wizard.step2.aggregateFunction': 'Aggregator Function',
+  'dashboard.widgets.wizard.step2.aggregateFunction.scanOps': 'Select Aggregation',
   'dashboard.widgets.wizard.step2.aggregateTooltip': 'This mathematical function will be applied to compute single value for selected metric across all host components',
   'dashboard.widgets.wizard.step2.threshold.ok.tooltip': 'This is the threshold value at which the widget color changes from green (OK) to orange (Warning)',
   'dashboard.widgets.wizard.step2.threshold.warning.tooltip': 'This is the threshold value at which the widget color changes from orange (Warning) to red (Critical)',

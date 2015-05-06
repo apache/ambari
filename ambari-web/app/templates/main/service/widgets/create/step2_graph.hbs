@@ -23,10 +23,7 @@
 
 {{#each dataSet in dataSets}}
   <fieldset>
-    <legend>{{t common.dataSet}}&nbsp;{{dataSet.id}}</legend>
-    <h5>
-      {{t common.label}}:&nbsp;{{view Ember.TextField valueBinding="dataSet.label"}}
-    </h5>
+    <h5>{{view Ember.TextField valueBinding="dataSet.label"}}</h5>
     <h5>{{t common.expression}}:</h5>
     {{view App.WidgetWizardExpressionView expressionBinding="dataSet.expression"}}
     {{#if dataSet.isRemovable}}

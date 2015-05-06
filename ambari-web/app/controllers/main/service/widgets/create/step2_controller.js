@@ -177,7 +177,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
 
     this.get('dataSets').pushObject(Em.Object.create({
       id: id,
-      label: '',
+      label: Em.I18n.t('dashboard.widgets.wizard.step2.dataSeries').format(id),
       isRemovable: !isDefault,
       expression: Em.Object.create({
         data: [],

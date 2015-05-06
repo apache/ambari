@@ -16,64 +16,50 @@
 * limitations under the License.
 }}
 
-<div class="row-fluid">
-  <div class="span3">{{t dashboard.widgets.wizard.step2.Component}}</div>
-  <div class="btn-group component-select span5">
-    {{#if view.selectedComponent}}
-      <button class="btn dropdown-toggle" data-toggle="dropdown">
-        {{view.selectedComponent.displayName}}<span class="caret pull-right"></span>
-      </button>
-    {{else}}
-      <button class="btn dropdown-toggle" data-toggle="dropdown">
-        {{t dashboard.widgets.wizard.step2.selectComponent}}<span class="caret pull-right"></span>
-      </button>
-    {{/if}}
-    <ul class="dropdown-menu accordion" id="accordion2">
-      {{#each service in view.componentMap}}
-        <li class="accordion-group keep-open">
-          <div class="accordion-heading">
-            <a class="accordion-toggle collapsed" data-toggle="collapse" {{bindAttr href="service.href"}}>
-              <i class="icon-caret-down"></i><i class="icon-caret-right"></i>{{service.displayName}}
-            </a>
-          </div>
-          <div {{bindAttr id="service.serviceName"}} class="accordion-body collapse">
-            <ul class="accordion-inner">
-              {{#each component in service.components}}
-                <li>
-                  <a href="#" {{action selectComponents component target="view"}}> {{component.displayName}}</a>
-                </li>
-              {{/each}}
+<div class="btn-group dropdown span2">
+  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">{{t dashboard.widgets.wizard.step2.newMetric}}&nbsp;<span class="caret"></span></a>
+  <ul class="dropdown-menu service-level-dropdown">
+      <!--service level-->
+    {{#each service in view.componentMap}}
+      <li class="dropdown-submenu keep-open">
+        <a class="" tabindex="-1" href="javascript:void(null);">{{service.displayName}}</a>
+        <ul class="dropdown-menu">
+          {{#each component in service.components}}
+            <!--component level-->
+            <li class="dropdown-submenu keep-open">
+            <a href="javascript:void(null);">{{component.displayName}}</a>
+            <ul class="dropdown-menu select-options-dropdown">
+              <!--metrics level-->
+              <li class="keep-open metric-select" {{action selectComponents component target="view"}}>
+                <select class="metrics-select chosen-select" >
+                    <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.selectMetric}}</option>
+                  {{#each metric in component.metrics}}
+                    <option>{{unbound metric}}</option>
+                  {{/each}}
+                </select>
+              </li>
+              <!--select aggregare function -->
+              <li {{bindAttr class=":keep-open :aggregator-select component.showAggregateSelect::hidden"}}
+                {{action selectComponents component target="view"}}
+                {{translateAttr data-original-title="dashboard.widgets.wizard.step2.aggregateTooltip"}}>
+                  <select class="aggregate-function-select chosen-select" >
+                      <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.aggregateFunction.scanOps}}</option>
+                    {{#each function in view.parentView.AGGREGATE_FUNCTIONS}}
+                      <option>{{unbound function}}</option>
+                    {{/each}}
+                  </select>
+              </li>
+              <li class="actions-buttons">
+                <button class="btn" href="#" {{action cancel target="view"}}>{{t common.cancel}}</button>
+                <button {{bindAttr class=":btn :btn-primary component.isAddEnabled::disabled"}} href="#"
+                  {{action addMetric component target="view"}}>{{t common.add}}</button>
+              </li>
             </ul>
-          </div>
-        </li>
-      {{/each}}
-    </ul>
-  </div>
+            </li>
+          {{/each}}
+        </ul>
+      </li>
+    {{/each}}
+  </ul>
 </div>
 
-<div class="row-fluid">
-  <div class="span3">{{t dashboard.widgets.wizard.step2.Metric}}</div>
-  <div class="span9">
-    <select class="chosen-select">
-      <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.selectMetric}}</option>
-      {{#each metric in view.selectedComponent.metrics}}
-        <option>{{unbound metric}}</option>
-      {{/each}}
-    </select>
-  </div>
-</div>
-
-<div class="row-fluid" {{bindAttr class=":row-fluid view.showAggregateSelect::hidden"}}>
-  <div class="span3">{{t dashboard.widgets.wizard.step2.aggregateFunction}}</div>
-  <div class="btn-group aggregator-select span5" {{translateAttr data-original-title="dashboard.widgets.wizard.step2.aggregateTooltip"}}>
-    <button class="btn dropdown-toggle" data-toggle="dropdown">
-      {{view.parentView.aggregateFunction}}
-      <span class="caret pull-right"></span>
-    </button>
-    <ul class="dropdown-menu">
-      {{#each aggregation in view.parentView.AGGREGATE_FUNCTIONS}}
-        <li><a href="#" {{action selectAggregation aggregation target="view"}}>{{aggregation}}</a></li>
-      {{/each}}
-    </ul>
-  </div>
-</div>

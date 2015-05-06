@@ -318,25 +318,31 @@
     }
     .is-invalid.controls,
     .metric-container.is-invalid {
-      border-color: red;
+      .metric-field {
+        border-color: red;
+      }
     }
     .metric-container {
       position: relative;
-      margin-bottom: 50px;
-      height: 200px;
-      border: 1px solid @border-color;
-      button,
-      div.btn-group {
-       margin: 5px;
-      }
+      margin-top: 10px;
+      margin-bottom: 15px;
+      height: 250px;
       .placeholder {
         color: #999999;
         padding: 50px;
       }
+      .actions-field {
+        margin-bottom: 5px;
+        height: 14%;
+        .add-operator {
+          margin-left: 25px;
+        }
+      }
       .metric-field {
-        height: 100%;
+        height: 85%;
         background-color: #f5f5f5;
         overflow: scroll;
+        border: 1px solid @border-color;
       }
       .metric-instance {
         font-weight: bold;
@@ -421,79 +427,46 @@
   }
 }
 
-.add-metric-modal.modal-690px-width {
-  .modal {
-    max-height: 600px;
-    .modal-body {
-      min-height: 380px;;
+#add-metric-menu{
+  .select-options-dropdown {
+    width: 240px;
+    max-height: 123px;
+    padding: 0px;
+    border-bottom: 200px transparent solid;
+    border-right: 150px transparent solid;
+    border-left: none;
+    border-top: none;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+  }
+  li.metric-select {
+    padding: 5px;
+    padding-bottom: 0px;
+    border: 1px #ccc solid;
+    border-bottom: none;
+  }
+  li.aggregator-select {
+    padding: 5px;
+    padding-bottom: 0px;
+    border: 1px #ccc solid;
+    border-bottom: none;
+    border-top: none;
+  }
+  li.actions-buttons{
+    padding: 5px;
+    padding-left: 8px;
+    border: 1px #ccc solid;
+    border-top: none;
+    button {
+      margin-right: 5px;
     }
   }
-}
-#add-metric-popup {
-  min-height: 200px;
-  div.row-fluid {
-    margin: 20px 10px;
-    div {
-      line-height: 30px;
-    }
-  }
-  .aggregator-select,
-  .component-select {
-    .btn.dropdown-toggle {
-      border-radius: 4px;
-      -webkit-border-radius: 4px;
-      -moz-border-radius: 4px;
-      width: 220px;
-      text-align: left;
-      white-space: normal;
-    }
-    ul.dropdown-menu {
-      overflow: auto;
-      max-height: 280px;
-    }
-    .accordion-group {
-      border: none;
-    }
-    .accordion-toggle {
-      text-decoration: none;
-      padding: 3px 15px;
-      .icon-caret-down {
-        width: 10px;
-        display: inline-block;
-      }
-      .icon-caret-right {
-        display: none;
-      }
-    }
-    .accordion-toggle.collapsed {
-      text-decoration: none;
-      .icon-caret-down {
-        display: none;
-      }
-      .icon-caret-right {
-        width: 10px;
-        display: inline-block;
-      }
-    }
-    .accordion-inner {
-      padding: 0 15px;
-      border-top: none;
-      li {
-        list-style: none;
-      }
-    }
-    .link {
-      cursor: pointer;
-      color: #0088cc;
-    }
-    .link:hover {
-      background: transparent;
-    }
-  }
-  .chosen-container-single {
-    width: 250px;
+  .chosen-container.chosen-container-single {
+    margin: 3px;
     .chosen-single {
       height: 30px;
+      width: 220px;
       line-height: 20px;
       color: #333333;
       font-size: 14px;
@@ -529,7 +502,7 @@
       margin-top: 2px;
       overflow: auto;
       width: 300px;
-      max-height: 280px;
+      max-height: 260px;
       border: 1px solid rgba(0, 0, 0, 0.2);
       -webkit-border-radius: 0px;
       -moz-border-radius: 0px;

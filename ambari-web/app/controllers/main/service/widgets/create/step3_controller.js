@@ -106,7 +106,8 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   },
 
   isSubmitDisabled: function () {
-    return !(this.get('widgetName').trim());
+    var widgetName = this.get('widgetName')? this.get('widgetName').trim(): null;
+    return !(widgetName);
   }.property('widgetName'),
 
   /**
@@ -148,7 +149,9 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     App.router.send('complete', this.collectWidgetData());
     var editController = App.router.get('widgetEditController');
     editController.finish();
-    editController.get('popup').hide();
+    if (editController.get('popup')) {
+      editController.get('popup').hide();
+    }
     var serviceName = editController.get('content.widgetService');
     var service = App.Service.find().findProperty('serviceName', serviceName);
     App.router.transitionTo('main.services.service', service);

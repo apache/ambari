@@ -16,7 +16,20 @@
 * limitations under the License.
 }}
 
-
+<div class="actions-field row-fluid">
+  {{view App.AddMetricExpressionView}}
+  <div class="btn-group span2 add-operator">
+    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
+      {{t dashboard.widgets.wizard.step2.newOperator}}
+        <span class="caret"></span>
+    </a>
+    <ul class="dropdown-menu">
+      {{#each operator in view.OPERATORS}}
+          <li><a href="#" {{action addOperator operator target="view"}}>{{operator}}</a></li>
+      {{/each}}
+    </ul>
+  </div>
+</div>
 <div class="metric-field">
   {{#if view.expression.isRemovable}}
       <a {{action removeExpression view.expression target="controller"}} class="remove-link"><i class="icon-trash"></i></a>
@@ -31,20 +44,4 @@
     <div class="placeholder">{{t dashboard.widgets.wizard.step2.addMetrics}}</div>
   {{/if}}
 </div>
-<div class="pull-left">
-  <button class="btn" {{action addMetric target="view"}}>{{t dashboard.widgets.wizard.step2.newMetric}}</button>
-  <div class="btn-group pull-right">
-    <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">
-      {{t dashboard.widgets.wizard.step2.newOperator}}
-      <span class="caret"></span>
-    </a>
-    <ul class="dropdown-menu">
-      {{#each operator in view.OPERATORS}}
-        <li><a href="#" {{action addOperator operator target="view"}}>{{operator}}</a></li>
-      {{/each}}
-    </ul>
-  </div>
-</div>
-<div {{bindAttr class="view.isInvalid:is-invalid :controls"}}>
-  <button class="btn" {{action cancelEdit target="view"}}>{{t common.reset}}</button>
-</div>
+

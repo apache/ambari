@@ -97,14 +97,6 @@ App.WidgetWizardExpressionView = Em.View.extend({
   },
 
   /**
-   * discard changes and disable metric edit area
-   */
-  cancelEdit: function () {
-    this.set('expression.data', []);
-    this.propertyDidChange('expression');
-  },
-
-  /**
    * remove metric or operator from expression
    * @param {object} event
    */
@@ -145,209 +137,200 @@ App.WidgetWizardExpressionView = Em.View.extend({
   }.observes('expression.data.length'),
 
   /**
-   * show popup that provide ability to add metric
+   * @type {Array}
+   * @const
    */
-  addMetric: function () {
-    return App.ModalPopup.show({
-      header: Em.I18n.t('dashboard.widgets.wizard.step2.addMetric'),
-      classNames: ['modal-690px-width', 'add-metric-modal'],
-      disablePrimary: function () {
-        return Em.isNone(this.get('selectedMetric'));
-      }.property('selectedMetric'),
-      isHideBodyScroll: true,
-      expression: this.get('expression'),
+  AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max']
+});
 
-      /**
-       * @type {Array}
-       * @const
-       */
-      AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max'],
 
-      /**
-       * @type {object|null}
-       */
-      selectedMetric: null,
-
-      /**
-       * @type {string|null}
-       */
-      aggregateFunction: null,
-
-      /**
-       * @type {Ember.View}
-       * @class
-       */
-      bodyClass: Em.View.extend({
-        templateName: require('templates/main/service/widgets/create/step2_add_metric'),
-        controller: this.get('controller'),
-        elementId: 'add-metric-popup',
-        didInsertElement: function () {
-          var self = this;
-
-          //prevent dropdown closing on checkbox click
-          $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
-            $(this).hasClass('keep-open') && e.stopPropagation();
+/**
+ * show menu view that provide ability to add metric
+ */
+App.AddMetricExpressionView = Em.View.extend({
+  templateName: require('templates/main/service/widgets/create/step2_add_metric'),
+  controller: function () {
+    return this.get('parentView.controller');
+  }.property('parentView.controller'),
+  elementId: 'add-metric-menu',
+  didInsertElement: function () {
+    //prevent dropdown closing on click select
+    $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
+      $(this).hasClass('keep-open') && e.stopPropagation();
+    });
+    $('html').on('click.dropdown', '.dropdown-menu chosen-drop', function (e) {
+      $(this).hasClass('keep-open') && e.stopPropagation();
+    });
+    var self = this;
+    Em.run.later(this, function () {
+      $(".metrics-select.chosen-select").chosen({
+        placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
+        no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
+      }).change(function (event, obj) {
+          var filteredComponentMetrics = self.get('controller.filteredMetrics').filterProperty('component_name', self.get('currentSelectedComponent.componentName')).filterProperty('level',self.get('currentSelectedComponent.level'));
+          var filteredMetric = filteredComponentMetrics.findProperty('name', obj.selected);
+          var selectedMetric =  Em.Object.create({
+            name: obj.selected,
+            componentName: self.get('selectedComponent.componentName'),
+            serviceName: self.get('selectedComponent.serviceName'),
+            metricPath: filteredMetric.widget_id,
+            isMetric: true
           });
-          App.tooltip($('#' + this.get('elementId') + ' .aggregator-select'));
-          this.propertyDidChange('selectedComponent');
-
-          $(".chosen-select").chosen({
-            placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
-            no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
-          }).change(function (event, obj) {
-            var filteredComponentMetrics = self.get('controller.filteredMetrics').filterProperty('component_name', self.get('selectedComponent.componentName')).filterProperty('level',self.get('selectedComponent.level'));
-            var filteredMetric = filteredComponentMetrics.findProperty('name', obj.selected);
-            var selectedMetric =  Em.Object.create({
-              name: obj.selected,
-              componentName: self.get('selectedComponent.componentName'),
-              serviceName: self.get('selectedComponent.serviceName'),
-              metricPath: filteredMetric.widget_id,
-              isMetric: true
-            });
-            if (self.get('selectedComponent.hostComponentCriteria')) {
-              selectedMetric.hostComponentCriteria = self.get('selectedComponent.hostComponentCriteria');
-            }
-            self.set('parentView.selectedMetric', selectedMetric);
-          });
-        },
-
-        /**
-         * @type {Ember.Object}
-         * @default null
-         */
-        selectedComponent: null,
-
-        /**
-         * @type {boolean}
-         */
-        showAggregateSelect: function () {
-          return Boolean(this.get('selectedComponent') && this.get('selectedComponent.level') === 'COMPONENT');
-        }.property('selectedComponent.level'),
-
-        /**
-         * select component
-         * @param {object} event
-         */
-        selectComponents: function (event) {
-          var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))
-            .get('components').findProperty('id', event.context.get('id'));
-          $('#add-metric-popup .component-select').removeClass('open');
-
-          this.set('selectedComponent', component);
-          if (this.get('showAggregateSelect')) {
-            this.set('parentView.aggregateFunction', this.get('parentView.AGGREGATE_FUNCTIONS').objectAt(0));
-          } else {
-            this.set('parentView.aggregateFunction', null);
+          if (self.get('currentSelectedComponent.hostComponentCriteria')) {
+            selectedMetric.hostComponentCriteria = self.get('currentSelectedComponent.hostComponentCriteria');
           }
-          this.set('parentView.selectedMetric', null);
-          Em.run.next(function () {
-            $('.chosen-select option').first().attr('selected','selected');
-            $('.chosen-select').trigger('chosen:updated');
-          });
-        },
+          self.set('currentSelectedComponent.selectedMetric', selectedMetric);
+      });
 
-        /**
-         * select aggregation function
-         * @param {object} event
-         */
-        selectAggregation: function(event) {
-          this.set('parentView.aggregateFunction', event.context);
-        },
+      $(".aggregate-function-select.chosen-select").chosen({
+        placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps')
+      }).change(function (event, obj) {
+          self.set('currentSelectedComponent.selectedAggregation', obj.selected);
+      });
+    }, 1000);
 
-        /**
-         * map of components
-         * has following hierarchy: service -> component -> metrics
-         */
-        componentMap: function () {
-          var servicesMap = {};
-          var result = [];
-          var components = [];
-          var masterNames = App.StackServiceComponent.find().filterProperty('isMaster').mapProperty('componentName');
+  },
 
-          this.get('controller.filteredMetrics').forEach(function (metric) {
-            var service = servicesMap[metric.service_name];
-            var componentId = masterNames.contains(metric.component_name) ? metric.component_name + '_' + metric.level : metric.component_name;
-            if (service) {
-              service.count++;
-              if (service.components[componentId]) {
-                service.components[componentId].count++;
-                service.components[componentId].metrics.push(metric.name);
-              } else {
-                service.components[componentId] = {
-                  component_name: metric.component_name,
-                  level: metric.level,
-                  count: 1,
-                  hostComponentCriteria: metric.host_component_criteria,
-                  metrics: [metric.name]
-                };
-              }
-            } else {
-              servicesMap[metric.service_name] = {
-                count: 1,
-                components: {}
-              };
-            }
-          }, this);
+  /**
+   * @type {Ember.Object}
+   * @default null
+   */
+  currentSelectedComponent: null,
 
-          for (var serviceName in servicesMap) {
-            components = [];
-            for (var componentId in servicesMap[serviceName].components) {
+  /**
+   * select component
+   * @param {object} event
+   */
+  selectComponents: function (event) {
+    var component = this.get('componentMap').findProperty('serviceName', event.context.get('serviceName'))
+      .get('components').findProperty('id', event.context.get('id'));
+    this.set('currentSelectedComponent', component);
+  },
 
-              //HBase service should not show "Active HBase master"
-              if (servicesMap[serviceName].components[componentId].component_name === 'HBASE_MASTER' &&
-                servicesMap[serviceName].components[componentId].level === 'HOSTCOMPONENT') continue;
-
-              var component = Em.Object.create({
-                componentName: servicesMap[serviceName].components[componentId].component_name,
-                level: servicesMap[serviceName].components[componentId].level,
-                displayName: function() {
-                  var stackComponent = App.StackServiceComponent.find(this.get('componentName'));
-                  if (stackComponent.get('isMaster')) {
-                    if (this.get('level') === 'HOSTCOMPONENT') {
-                      return Em.I18n.t('widget.create.wizard.step2.activeComponents').format(stackComponent.get('displayName'));
-                    }
-                  }
-                  return Em.I18n.t('widget.create.wizard.step2.allComponents').format(stackComponent.get('displayName'));
-                }.property('componentName', 'level'),
-                count: servicesMap[serviceName].components[componentId].count,
-                metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
-                selected: false,
-                id: componentId,
-                serviceName: serviceName
-              });
-              if (component.get('level') === 'HOSTCOMPONENT') {
-                component.set('hostComponentCriteria', servicesMap[serviceName].components[componentId].hostComponentCriteria);
-              }
-              components.push(component);
-            }
-            result.push(Em.Object.create({
-              serviceName: serviceName,
-              //in order to support accordion lists
-              href: '#' + serviceName,
-              displayName: App.StackService.find(serviceName).get('displayName'),
-              count: servicesMap[serviceName].count,
-              components: components
-            }));
-          }
-
-          return result;
-        }.property('controller.filteredMetrics')
-      }),
-      primary: Em.I18n.t('common.add'),
-      onPrimary: function () {
-        var data = this.get('expression.data'),
-            id = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) + 1 : 1,
-            selectedMetric = this.get('selectedMetric'),
-            aggregateFunction = this.get('aggregateFunction');
-
-        selectedMetric.set('id', id);
-        if (aggregateFunction && aggregateFunction !== 'avg') {
-          selectedMetric.set('metricPath', selectedMetric.get('metricPath') + '._' + aggregateFunction);
-          selectedMetric.set('name', selectedMetric.get('name') + '._' + aggregateFunction);
-        }
-        data.pushObject(selectedMetric);
-        this.hide();
+  /**
+   * add current metrics and aggregation to expression
+   * @param event
+   */
+  addMetric: function (event) {
+    var selectedMetric = event.context.get('selectedMetric'),
+      aggregateFunction = event.context.get('selectedAggregation');
+    var isAddEnabled = event.context.get('isAddEnabled');
+    var result =  jQuery.extend(true, {}, selectedMetric);
+    if (isAddEnabled) {
+      var data = this.get('parentView').get('expression.data'),
+        id = (data.length > 0) ? Math.max.apply(this.get('parentView'), data.mapProperty('id')) + 1 : 1;
+      result.set('id', id);
+      if (event.context.get('showAggregateSelect') && aggregateFunction !== 'avg') {
+        result.set('metricPath', result.get('metricPath') + '._' + aggregateFunction);
+        result.set('name', result.get('name') + '._' + aggregateFunction);
       }
-    })
-  }
+      data.pushObject(result);
+      this.cancel();
+    }
+  },
+
+  /**
+   * cancel adding metric, close add metric menu
+   */
+  cancel: function () {
+    $(".service-level-dropdown").parent().removeClass('open');
+  },
+
+
+  /**
+   * map of components
+   * has following hierarchy: service -> component -> metrics
+   */
+  componentMap: function () {
+    var servicesMap = {};
+    var result = [];
+    var components = [];
+    var masterNames = App.StackServiceComponent.find().filterProperty('isMaster').mapProperty('componentName');
+    var parentView = this.get('parentView');
+
+    if (this.get('controller.filteredMetrics')) {
+      this.get('controller.filteredMetrics').forEach(function (metric) {
+        var service = servicesMap[metric.service_name];
+        var componentId = masterNames.contains(metric.component_name) ? metric.component_name + '_' + metric.level : metric.component_name;
+        if (service) {
+          service.count++;
+          if (service.components[componentId]) {
+            service.components[componentId].count++;
+            service.components[componentId].metrics.push(metric.name);
+          } else {
+            service.components[componentId] = {
+              component_name: metric.component_name,
+              level: metric.level,
+              count: 1,
+              hostComponentCriteria: metric.host_component_criteria,
+              metrics: [metric.name]
+            };
+          }
+        } else {
+          servicesMap[metric.service_name] = {
+            count: 1,
+            components: {}
+          };
+        }
+      }, this);
+    }
+
+    for (var serviceName in servicesMap) {
+      components = [];
+      for (var componentId in servicesMap[serviceName].components) {
+
+        //HBase service should not show "Active HBase master"
+        if (servicesMap[serviceName].components[componentId].component_name === 'HBASE_MASTER' &&
+          servicesMap[serviceName].components[componentId].level === 'HOSTCOMPONENT') continue;
+
+        var component = Em.Object.create({
+          componentName: servicesMap[serviceName].components[componentId].component_name,
+          level: servicesMap[serviceName].components[componentId].level,
+          displayName: function() {
+            var stackComponent = App.StackServiceComponent.find(this.get('componentName'));
+            if (stackComponent.get('isMaster')) {
+              if (this.get('level') === 'HOSTCOMPONENT') {
+                return Em.I18n.t('widget.create.wizard.step2.activeComponents').format(stackComponent.get('displayName'));
+              }
+            }
+            return Em.I18n.t('widget.create.wizard.step2.allComponents').format(stackComponent.get('displayName'));
+          }.property('componentName', 'level'),
+          count: servicesMap[serviceName].components[componentId].count,
+          metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
+          selected: false,
+          id: componentId,
+          serviceName: serviceName,
+          showAggregateSelect: function () {
+            return this.get('level') === 'COMPONENT';
+          }.property('level'),
+          selectedMetric: null,
+          selectedAggregation: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'),
+          isAddEnabled: function () {
+            var selectedMetric = this.get('selectedMetric'),
+              aggregateFunction = this.get('selectedAggregation');
+            if (this.get('showAggregateSelect')) {
+              return (!!selectedMetric && !!aggregateFunction &&
+                aggregateFunction != Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'));
+            } else {
+              return (!!selectedMetric);
+            }
+          }.property('selectedMetric', 'selectedAggregation')
+        });
+        if (component.get('level') === 'HOSTCOMPONENT') {
+          component.set('hostComponentCriteria', servicesMap[serviceName].components[componentId].hostComponentCriteria);
+        }
+        components.push(component);
+      }
+      result.push(Em.Object.create({
+        serviceName: serviceName,
+        //in order to support accordion lists
+        href: '#' + serviceName,
+        displayName: App.StackService.find(serviceName).get('displayName'),
+        count: servicesMap[serviceName].count,
+        components: components
+      }));
+    }
+
+    return result;
+  }.property('controller.filteredMetrics')
 });
