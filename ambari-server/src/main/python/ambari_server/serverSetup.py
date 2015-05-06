@@ -210,18 +210,18 @@ class AmbariUserChecksWindows(AmbariUserChecks):
     self.NR_DEFAULT_USER = "NT AUTHORITY\\SYSTEM"
     self.NR_SYSTEM_USERS = ["NT AUTHORITY\\SYSTEM", "NT AUTHORITY\\NetworkService", "NT AUTHORITY\\LocalService"]
 
-    self.username = options.svc_user
+    self.user = options.svc_user
     self.password = options.svc_password
 
   def _create_custom_user(self):
     user = get_validated_string_input(
-      "Enter user account for ambari-server service ({0}):".format(self.username),
-      self.username, None,
+      "Enter user account for ambari-server service ({0}):".format(self.user),
+      self.user, None,
       "Invalid username.",
       False
     )
     if user in self.NR_SYSTEM_USERS:
-      self.username = user
+      self.user = user
       return 0
 
     from ambari_commons.os_windows import UserHelper
@@ -265,7 +265,7 @@ class AmbariUserChecksWindows(AmbariUserChecks):
     if user.find('\\') == -1:
       user = '.\\' + user
 
-    self.username = user
+    self.user = user
     return 0
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)
