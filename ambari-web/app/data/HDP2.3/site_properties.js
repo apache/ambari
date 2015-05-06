@@ -26,7 +26,8 @@ var excludedConfigs = [
   'SQL_COMMAND_INVOKER',
   'db_name',
   'db_root_user',
-  'db_root_password'
+  'db_root_password',
+  'nimbus.host'
 ];
 
 var hdp23properties = hdp22properties.filter(function (item) {

@@ -645,7 +645,8 @@
             "storm_user": "storm",
             "storm_principal_name": "storm",
             "storm_ui_keytab" : "/etc/security/keytabs/spnego.service.keytab",
-            "storm_ui_principal_name" : "HTTP/_HOST"
+            "storm_ui_principal_name" : "HTTP/_HOST",
+            "nimbus_seeds_supported" : false
         }, 
         "falcon-env": {
             "falcon_port": "15000", 
