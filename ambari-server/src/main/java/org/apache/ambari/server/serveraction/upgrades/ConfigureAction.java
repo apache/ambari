@@ -18,7 +18,10 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import java.text.MessageFormat;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentMap;
 
@@ -34,10 +37,14 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigHelper;
+import org.apache.ambari.server.state.ConfigMergeHelper;
+import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
 
 /**
@@ -70,7 +77,12 @@ public class ConfigureAction extends AbstractServerAction {
    * The Ambari configuration.
    */
   @Inject
-  private Configuration configuration;
+  private Configuration m_configuration;
+
+  @Inject
+  private ConfigMergeHelper m_mergeHelper;
+
+  private Gson m_gson = new Gson();
 
   /**
    * Aside from the normal execution, this method performs the following logic, with
@@ -126,24 +138,31 @@ public class ConfigureAction extends AbstractServerAction {
     }
 
     String clusterName = commandParameters.get("clusterName");
-    String key = commandParameters.get(ConfigureTask.PARAMETER_KEY);
-    String value = commandParameters.get(ConfigureTask.PARAMETER_VALUE);
-
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
 
-    // if the two required properties are null, then assume that no
-    // conditions were met and let the action complete
-    if (null == configType && null == key) {
+    String key = commandParameters.get(ConfigureTask.PARAMETER_KEY);
+    String value = commandParameters.get(ConfigureTask.PARAMETER_VALUE);
+
+    List<ConfigureTask.Transfer> transfers = Collections.emptyList();
+    String transferJson = commandParameters.get(ConfigureTask.PARAMETER_TRANSFERS);
+    if (null != transferJson) {
+      transfers = m_gson.fromJson(
+        transferJson, new TypeToken<List<ConfigureTask.Transfer>>(){}.getType());
+    }
+
+    // if the two required properties are null and no transfer properties, then
+    // assume that no conditions were met and let the action complete
+    if (null == configType && null == key && transfers.isEmpty()) {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "",
           "Skipping configuration task");
     }
 
-    // if only 1 of the required properties was null, then something went
-    // wrong
-    if (null == clusterName || null == configType || null == key) {
-      String message = "cluster={0}, type={1}, key={2}";
-      message = MessageFormat.format(message, clusterName, configType, key);
+    // if only 1 of the required properties was null and no transfer properties,
+    // then something went wrong
+    if (null == clusterName || null == configType || (null == key && transfers.isEmpty())) {
+      String message = "cluster={0}, type={1}, key={2}, transfers={3}";
+      message = MessageFormat.format(message, clusterName, configType, key, transfers);
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "", message);
     }
 
@@ -157,25 +176,88 @@ public class ConfigureAction extends AbstractServerAction {
     StackId targetStack = cluster.getDesiredStackVersion();
     StackId configStack = config.getStackId();
 
-    String oldValue = config.getProperties().get(key);
-    // !!! values are not changing, so make this a no-op
-    if (null != oldValue && value.equals(oldValue)) {
-      if (currentStack.equals(targetStack)) {
-        return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-            MessageFormat.format("{0}/{1} for cluster {2} would not change, skipping setting",
-                configType, key, clusterName),
-            "");
+    // !!! initial reference values
+    Map<String, String> base = config.getProperties();
+    Map<String, String> newValues = new HashMap<String, String>(base);
+
+    boolean changedValues = false;
+
+    // !!! do transfers first before setting defined values
+    for (ConfigureTask.Transfer transfer : transfers) {
+      switch (transfer.operation) {
+        case COPY:
+          if (null == transfer.fromType && base.containsKey(transfer.fromKey)) {
+            newValues.put(transfer.toKey, base.get(transfer.fromKey));
+            changedValues = true;
+          } else {
+            // !!! copying from another configuration
+            Config other = cluster.getDesiredConfigByType(transfer.fromType);
+
+            if (null != other) {
+              Map<String, String> otherValues = other.getProperties();
+
+              if (otherValues.containsKey(transfer.fromKey)) {
+                newValues.put(transfer.toKey, otherValues.get(transfer.fromKey));
+                changedValues = true;
+              }
+            }
+          }
+          break;
+        case MOVE:
+          if (newValues.containsKey(transfer.fromKey)) {
+            newValues.put(transfer.toKey, newValues.remove(transfer.fromKey));
+            changedValues = true;
+          }
+
+          break;
+        case DELETE:
+          if ("*".equals(transfer.deleteKey)) {
+            newValues.clear();
+
+            for (String keeper : transfer.keepKeys) {
+              newValues.put(keeper, base.get(keeper));
+            }
+
+            // !!! with preserved edits, find the values that are different
+            // from the stack-defined and keep them
+            if (transfer.preserveEdits) {
+              List<String> edited = findChangedValues(clusterName, config);
+              for (String changed : edited) {
+                newValues.put(changed, base.get(changed));
+              }
+            }
+            changedValues = true;
+          } else {
+            newValues.remove(transfer.deleteKey);
+            changedValues = true;
+          }
+
+          break;
       }
     }
 
-    Map<String, String> propertiesToChange = new HashMap<String, String>();
-    propertiesToChange.put(key, value);
-    config.updateProperties(propertiesToChange);
+
+    if (null != key) {
+      String oldValue = base.get(key);
+
+      // !!! values are not changing, so make this a no-op
+      if (null != oldValue && value.equals(oldValue)) {
+        if (currentStack.equals(targetStack) && !changedValues) {
+          return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
+              MessageFormat.format("{0}/{1} for cluster {2} would not change, skipping setting",
+                  configType, key, clusterName),
+              "");
+        }
+      }
+    }
+
+    newValues.put(key, value);
 
     // !!! check to see if we're going to a new stack and double check the
     // configs are for the target.  Then simply update the new properties instead
     // of creating a whole new history record since it was already done
     if (!targetStack.equals(currentStack) && targetStack.equals(configStack)) {
+      config.setProperties(newValues);
       config.persist(false);
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
@@ -191,15 +273,51 @@ public class ConfigureAction extends AbstractServerAction {
     String auditName = getExecutionCommand().getRoleParams().get(ServerAction.ACTION_USER_NAME);
 
     if (auditName == null) {
-      auditName = configuration.getAnonymousAuditName();
+      auditName = m_configuration.getAnonymousAuditName();
     }
 
     m_configHelper.createConfigType(cluster, m_controller, configType,
-        config.getProperties(), auditName, serviceVersionNote);
+        newValues, auditName, serviceVersionNote);
 
     String message = "Updated ''{0}'' with ''{1}={2}''";
     message = MessageFormat.format(message, configType, key, value);
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", message, "");
   }
+
+
+  /**
+   * @param clusterName the cluster name
+   * @param config      the config with the tag to find conflicts
+   * @return            the list of changed property keys
+   * @throws AmbariException
+   */
+  private List<String> findChangedValues(String clusterName, Config config)
+      throws AmbariException {
+
+    Map<String, Map<String, ThreeWayValue>> conflicts =
+        m_mergeHelper.getConflicts(clusterName, config.getStackId());
+
+    Map<String, ThreeWayValue> conflictMap = conflicts.get(config.getType());
+
+    if (null == conflictMap || conflictMap.isEmpty()) {
+      return Collections.emptyList();
+    }
+
+    List<String> result = new ArrayList<String>();
+
+    for (Map.Entry<String, ThreeWayValue> entry : conflictMap.entrySet()) {
+      ThreeWayValue twv = entry.getValue();
+      if (null == twv.oldStackValue) {
+        result.add(entry.getKey());
+      } else if (null != twv.savedValue && !twv.oldStackValue.equals(twv.savedValue)) {
+        result.add(entry.getKey());
+      }
+    }
+
+    return result;
+  }
+
+
+
 }

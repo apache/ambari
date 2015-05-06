@@ -573,6 +573,11 @@
           <task xsi:type="manual">
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
+          <task xsi:type="configure" summary="Setting nimbus.seeds from nimbus.host">
+            <type>storm-site</type>
+            <transfer operation="COPY" from-key="nimbus.host"
+              to-type="storm-site" to-key="nimbus.seeds" />
+          </task>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />

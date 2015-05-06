@@ -18,10 +18,14 @@
 package org.apache.ambari.server.serveraction.upgrades;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
@@ -38,6 +42,7 @@ import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
 import org.apache.ambari.server.orm.entities.StackEntity;
+import org.apache.ambari.server.serveraction.ServerAction;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
@@ -46,10 +51,12 @@ import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.Gson;
 import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
@@ -207,8 +214,111 @@ public class ConfigureActionTest {
     assertNotNull(config);
     assertEquals("version2", config.getTag());
     assertEquals("11", config.getProperties().get("initLimit"));
-
   }
 
+  @Test
+  public void testConfigTransferCopy() throws Exception {
+    makeUpgradeCluster();
+
+    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    c.setDesiredStackVersion(HDP_21_STACK);
+    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
+          put("initLimit", "10");
+          put("copyIt", "10");
+          put("moveIt", "10");
+          put("deleteIt", "10");
+        }}, new HashMap<String, Map<String,String>>());
+    config.setTag("version2");
+    config.persist();
+
+    c.addConfig(config);
+    c.addDesiredConfig("user", Collections.singleton(config));
+    assertEquals(2, c.getConfigsByType("zoo.cfg").size());
+
+
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put("upgrade_direction", "upgrade");
+    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("clusterName", "c1");
+    commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
+    commandParams.put(ConfigureTask.PARAMETER_KEY, "initLimit");
+    commandParams.put(ConfigureTask.PARAMETER_VALUE, "11");
+
+    List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
+    ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.COPY;
+    transfer.fromKey = "copyIt";
+    transfer.toKey = "copyKey";
+    transfers.add(transfer);
+
+    transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.MOVE;
+    transfer.fromKey = "moveIt";
+    transfer.toKey = "movedKey";
+    transfers.add(transfer);
+
+    transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.DELETE;
+    transfer.deleteKey = "deleteIt";
+    transfers.add(transfer);
+
+    commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, new Gson().toJson(transfers));
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null,
+        null, null);
+
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(
+        executionCommand));
+
+    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+
+    assertEquals(3, c.getConfigsByType("zoo.cfg").size());
+
+    config = c.getDesiredConfigByType("zoo.cfg");
+    assertNotNull(config);
+    assertFalse("version2".equals(config.getTag()));
+
+    Map<String, String> map = config.getProperties();
+    assertEquals("11", map.get("initLimit"));
+    assertEquals("10", map.get("copyIt"));
+    assertTrue(map.containsKey("copyKey"));
+    assertEquals(map.get("copyIt"), map.get("copyKey"));
+    assertFalse(map.containsKey("moveIt"));
+    assertTrue(map.containsKey("movedKey"));
+    assertFalse(map.containsKey("deletedKey"));
+
+    transfers.clear();
+    transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.DELETE;
+    transfer.deleteKey = "*";
+    transfer.preserveEdits = true;
+    transfer.keepKeys.add("copyKey");
+    transfers.add(transfer);
+    commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, new Gson().toJson(transfers));
+
+    report = action.execute(null);
+    assertNotNull(report);
+
+    assertEquals(4, c.getConfigsByType("zoo.cfg").size());
+    config = c.getDesiredConfigByType("zoo.cfg");
+    map = config.getProperties();
+    assertEquals(2, map.size());
+    assertTrue(map.containsKey("initLimit")); // it just changed to 11 from 10
+    assertTrue(map.containsKey("copyKey")); // is new
+  }
 
 }

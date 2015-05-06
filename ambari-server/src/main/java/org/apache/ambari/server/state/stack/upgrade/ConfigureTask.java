@@ -17,6 +17,8 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +96,12 @@ public class ConfigureTask extends ServerSideActionTask {
   public static final String PARAMETER_VALUE = "configure-task-value";
 
   /**
+   * Transfers can be several per task, so they're passed in as a json-ified list of
+   * objects.
+   */
+  public static final String PARAMETER_TRANSFERS = "configure-task-transfers";
+
+  /**
    * Constructor.
    *
    */
@@ -119,10 +127,21 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlElement(name = "condition")
   private List<Condition> conditions;
 
+  @XmlElement(name = "transfer")
+  private List<Transfer> transfers;
+
   @Override
   public Type getType() {
     return type;
   }
+
+  /**
+   * @return the config type
+   */
+  public String getConfigType() {
+    return configType;
+  }
+
 
   /**
    * A conditional element that will only perform the configuration if the
@@ -148,6 +167,64 @@ public class ConfigureTask extends ServerSideActionTask {
 
     @XmlElement(name = "value")
     private String value;
+  }
+
+  /**
+   * A {@code transfer} element will copy, move, or delete the value of one type/key to another type/key.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "transfer")
+  public static class Transfer {
+    @XmlAttribute(name = "operation")
+    public TransferOperation operation;
+
+    @XmlAttribute(name = "from-type")
+    public String fromType;
+
+    @XmlAttribute(name = "from-key")
+    public String fromKey;
+
+    @XmlAttribute(name = "to-key")
+    public String toKey;
+
+    @XmlAttribute(name = "delete-key")
+    public String deleteKey;
+
+    @XmlAttribute(name = "preserve-edits")
+    public boolean preserveEdits = false;
+
+    @XmlElement(name = "keep-key")
+    public List<String> keepKeys = new ArrayList<String>();
+
+  }
+
+  /**
+   * @return the list of transfers, checking for appropriate null fields.
+   */
+  public List<Transfer> getTransfers() {
+    if (null == transfers) {
+      return Collections.<Transfer>emptyList();
+    }
+
+    List<Transfer> list = new ArrayList<Transfer>();
+    for (Transfer t : transfers) {
+      switch (t.operation) {
+        case COPY:
+        case MOVE:
+          if (null != t.fromKey && null != t.toKey) {
+            list.add(t);
+          }
+          break;
+        case DELETE:
+          if (null != t.deleteKey) {
+            list.add(t);
+          }
+
+          break;
+      }
+    }
+
+    return list;
   }
 
   /**

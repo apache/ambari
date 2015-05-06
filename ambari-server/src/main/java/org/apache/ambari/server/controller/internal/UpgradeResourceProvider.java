@@ -98,6 +98,7 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -189,6 +190,8 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static HostDAO s_hostDAO = null;
+
+  private static Gson s_gson = new Gson();
 
 
   /**
@@ -1015,14 +1018,16 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       case CONFIGURE: {
         ConfigureTask ct = (ConfigureTask) task;
         Map<String, String> configProperties = ct.getConfigurationProperties(cluster);
+        List<ConfigureTask.Transfer> transfers = ct.getTransfers();
 
         // if the properties are empty it means that the conditions in the
         // task did not pass;
-        if (configProperties.isEmpty()) {
+        if (configProperties.isEmpty() && transfers.isEmpty()) {
           stageText = "No conditions were met for this configuration task.";
           itemDetail = stageText;
         } else {
           commandParams.putAll(configProperties);
+          commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, s_gson.toJson(transfers));
 
           // extract the config type, key and value to use to build the
           // summary and detail
@@ -1030,8 +1035,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
           String key = configProperties.get(ConfigureTask.PARAMETER_KEY);
           String value = configProperties.get(ConfigureTask.PARAMETER_VALUE);
 
-          itemDetail = String.format("Updating config %s/%s to %s", configType,
-              key, value);
+          StringBuilder detail = new StringBuilder(String.format("Updating config %s", configType));
+
+          if (null != key && null != value) {
+            detail.append(String.format("/%s to %s", key, value));
+          }
+
+          if (!transfers.isEmpty()) {
+            detail.append(String.format("; transferring %d properties", transfers.size()));
+          }
+
+          itemDetail = detail.toString();
 
           if (null != ct.summary) {
             stageText = ct.summary;

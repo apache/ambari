@@ -183,6 +183,15 @@
           <task xsi:type="execute">
             <command>ls</command>
           </task>
+          <task xsi:type="configure">
+            <type>core-site</type>
+            <transfer operation="COPY" from-key="copy-key" to-key="copy-key-to" />
+            <transfer operation="COPY" from-type="my-site" from-key="my-copy-key" to-key="my-copy-key-to" />
+            <transfer operation="MOVE" from-key="move-key" to-key="move-key-to" />
+            <transfer operation="DELETE" delete-key="delete-key" preserve-edits="true">
+              <keep-key>important-key</keep-key>
+            </transfer>
+          </task>
         </pre-upgrade>
       </component>
     </service>
