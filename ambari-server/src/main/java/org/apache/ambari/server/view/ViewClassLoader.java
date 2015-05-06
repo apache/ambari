@@ -53,13 +53,25 @@ public class ViewClassLoader extends WebAppClassLoader {
    * @param urls    the URLs from which to load classes and resources
    */
   public ViewClassLoader(ClassLoader parent, URL[] urls) throws IOException {
-    // Use no-arg web app context to initialize the class loader.  For now we are just using the default context
-    // values for things like parent loader priority and server classes.  In the future we may allow overrides at
-    // the view level.
-    super(parent, new WebAppContext());
+    super(parent, getInitContext());
 
     for (URL url : urls) {
       addURL(url);
     }
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  // Get a context to initialize the class loader.
+  private static WebAppContext getInitContext() {
+    // For now we are using defaults or setting the values for things like parent loader priority and
+    // system classes.  In the future we may allow overrides at the view level.
+    WebAppContext webAppContext = new WebAppContext();
+
+    // add com.google.inject as system classes to allow for injection in view components using the google annotation
+    webAppContext.addSystemClass("com.google.inject.");
+
+    return webAppContext;
   }
 }
