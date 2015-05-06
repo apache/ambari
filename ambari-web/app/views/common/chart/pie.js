@@ -71,6 +71,7 @@ App.ChartPieView = Em.View.extend({
         .append("svg:g")
         .attr("render-order", 1)
         .append("svg:text")
+        .style('fill', thisChart.get('centerTextColor'))
         .attr("stroke", thisChart.get('centerTextColor'))
         .attr("font-size", 17)
         .attr("transform", "translate(" + thisChart.get('w') / 2 + "," + ((thisChart.get('h') / 2) + 3) + ")")

@@ -33,7 +33,7 @@ App.GaugeWidgetView = Em.View.extend(App.WidgetMixin, {
   metrics: [],
 
   chartView: App.ChartPieView.extend({
-    stroke: '#D6DDDF',
+    stroke: '#D6DDDF',  //light grey
     innerR: 25,
 
     /**
