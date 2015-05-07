@@ -62,7 +62,7 @@ CREATE TABLE ambari.clusterconfig (
   cluster_id BIGINT NOT NULL,
   stack_id BIGINT NOT NULL,
   config_data TEXT NOT NULL,
-  config_attributes VARCHAR(32000),
+  config_attributes TEXT,
   create_timestamp BIGINT NOT NULL,
   PRIMARY KEY (config_id),
   FOREIGN KEY (stack_id) REFERENCES ambari.stack(stack_id));
@@ -458,7 +458,7 @@ CREATE TABLE ambari.blueprint_configuration (
   blueprint_name varchar(255) NOT NULL,
   type_name varchar(255) NOT NULL,
   config_data TEXT NOT NULL,
-  config_attributes varchar(32000),
+  config_attributes TEXT,
   PRIMARY KEY(blueprint_name, type_name));
 
 CREATE TABLE ambari.hostgroup_configuration (
@@ -466,7 +466,7 @@ CREATE TABLE ambari.hostgroup_configuration (
   hostgroup_name VARCHAR(255) NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data TEXT NOT NULL,
-  config_attributes varchar(32000),
+  config_attributes TEXT,
   PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
 
 GRANT ALL PRIVILEGES ON TABLE ambari.blueprint TO :username;

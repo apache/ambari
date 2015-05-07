@@ -413,7 +413,7 @@ CREATE TABLE blueprint_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data LONGTEXT NOT NULL,
-  config_attributes VARCHAR(32000),
+  config_attributes LONGTEXT,
   PRIMARY KEY(blueprint_name, type_name));
 
 CREATE TABLE hostgroup_configuration (
@@ -421,7 +421,7 @@ CREATE TABLE hostgroup_configuration (
   hostgroup_name VARCHAR(255) NOT NULL,
   type_name VARCHAR(255) NOT NULL,
   config_data LONGTEXT NOT NULL,
-  config_attributes TEXT,
+  config_attributes LONGTEXT,
   PRIMARY KEY(blueprint_name, hostgroup_name, type_name));
 
 CREATE TABLE viewmain (

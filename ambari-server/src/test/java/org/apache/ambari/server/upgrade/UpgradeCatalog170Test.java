@@ -185,6 +185,8 @@ public class UpgradeCatalog170Test {
     expectLastCall();
 
     Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> hostgroupConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
+    Capture<DBAccessor.DBColumnInfo> blueprintConfigAttributesColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> systemColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
     Capture<DBAccessor.DBColumnInfo> maskedColumnCapture = new Capture<DBAccessor.DBColumnInfo>();
@@ -210,7 +212,9 @@ public class UpgradeCatalog170Test {
 
     setViewExpectations(dbAccessor, maskColumnCapture, systemColumnCapture);
     setViewParameterExpectations(dbAccessor, maskedColumnCapture);
-    setClusterConfigExpectations(dbAccessor, clusterConfigAttributesColumnCapture);
+    setConfigAttributesColumnExpectations(dbAccessor, clusterConfigAttributesColumnCapture, "clusterconfig");
+    setConfigAttributesColumnExpectations(dbAccessor, hostgroupConfigAttributesColumnCapture, "hostgroup_configuration");
+    setConfigAttributesColumnExpectations(dbAccessor, blueprintConfigAttributesColumnCapture, "blueprint_configuration");
     setStageExpectations(dbAccessor, stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
 
     dbAccessor.createTable(eq("alert_definition"),
@@ -266,6 +270,8 @@ public class UpgradeCatalog170Test {
     verify(dbAccessor, configuration, resultSet, connection, stmt);
 
     assertClusterConfigColumns(clusterConfigAttributesColumnCapture);
+    assertHostgroupConfigColumns(hostgroupConfigAttributesColumnCapture);
+    assertBlueprintConfigColumns(blueprintConfigAttributesColumnCapture);
     assertViewColumns(maskColumnCapture, systemColumnCapture);
     assertViewParameterColumns(maskedColumnCapture);
     assertStageColumns(stageCommandParamsColumnCapture, stageHostParamsColumnCapture);
@@ -672,18 +678,31 @@ public class UpgradeCatalog170Test {
 
   private void assertClusterConfigColumns(Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture) {
     DBAccessor.DBColumnInfo column = clusterConfigAttributesColumnCapture.getValue();
+    assertConfigAttriburesColumn(column);
+  }
+
+  private void assertHostgroupConfigColumns(Capture<DBAccessor.DBColumnInfo> hostgroupConfigAttributesColumnCapture) {
+    DBAccessor.DBColumnInfo column = hostgroupConfigAttributesColumnCapture.getValue();
+    assertConfigAttriburesColumn(column);
+  }
+
+  private void assertBlueprintConfigColumns(Capture<DBAccessor.DBColumnInfo> blueprintConfigAttributesColumnCapture) {
+    DBAccessor.DBColumnInfo column = blueprintConfigAttributesColumnCapture.getValue();
+    assertConfigAttriburesColumn(column);
+  }
+
+  private void assertConfigAttriburesColumn(DBAccessor.DBColumnInfo column) {
     assertEquals("config_attributes", column.getName());
-    assertEquals(32000, (int) column.getLength());
-    assertEquals(String.class, column.getType());
+    assertEquals(Character[].class, column.getType());
     assertEquals(null, column.getDefaultValue());
     assertTrue(column.isNullable());
   }
 
-  private void setClusterConfigExpectations(DBAccessor dbAccessor,
-                                   Capture<DBAccessor.DBColumnInfo> clusterConfigAttributesColumnCapture)
+  private void setConfigAttributesColumnExpectations(DBAccessor dbAccessor,
+                                   Capture<DBAccessor.DBColumnInfo> configAttributesColumnCapture, String tableName)
       throws SQLException {
-    dbAccessor.addColumn(eq("clusterconfig"),
-        capture(clusterConfigAttributesColumnCapture));
+    dbAccessor.addColumn(eq(tableName),
+        capture(configAttributesColumnCapture));
   }
 
   private void setStageExpectations(DBAccessor dbAccessor,

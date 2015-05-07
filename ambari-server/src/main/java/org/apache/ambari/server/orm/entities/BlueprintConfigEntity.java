@@ -50,7 +50,8 @@ public class BlueprintConfigEntity implements BlueprintConfiguration {
   private String configData;
 
   @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false)
-  @Basic
+  @Basic(fetch = FetchType.LAZY)
+  @Lob
   private String configAttributes;
 
   @ManyToOne

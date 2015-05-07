@@ -475,8 +475,8 @@ CREATE TABLE hostgroup_component (
 CREATE TABLE blueprint_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
   type_name VARCHAR(255) NOT NULL,
-  config_data TEXT NOT NULL,
-  config_attributes VARCHAR(8000),
+  config_data VARCHAR(MAX) NOT NULL,
+  config_attributes VARCHAR(MAX),
   PRIMARY KEY CLUSTERED (
     blueprint_name,
     type_name
@@ -487,8 +487,8 @@ CREATE TABLE hostgroup_configuration (
   blueprint_name VARCHAR(255) NOT NULL,
   hostgroup_name VARCHAR(255) NOT NULL,
   type_name VARCHAR(255) NOT NULL,
-  config_data TEXT NOT NULL,
-  config_attributes TEXT,
+  config_data VARCHAR(MAX) NOT NULL,
+  config_attributes VARCHAR(MAX),
   PRIMARY KEY CLUSTERED (
     blueprint_name,
     hostgroup_name,
