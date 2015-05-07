@@ -19,7 +19,7 @@
   <property>
     <name>yarn.scheduler.capacity.resource-calculator</name>
     <value>org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator</value>
-    <display-name>Enable CPU Scheduling</display-name>
+    <display-name>CPU Scheduling</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>

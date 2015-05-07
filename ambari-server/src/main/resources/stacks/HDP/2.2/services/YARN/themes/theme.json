@@ -15,7 +15,7 @@
               "sections": [
                 {
                   "name": "section-nm-sizing",
-                  "display-name": "Memory Sizing",
+                  "display-name": "Memory",
                   "row-index": "0",
                   "column-index": "0",
                   "row-span": "1",
@@ -25,6 +25,7 @@
                   "subsections": [
                     {
                       "name": "subsection-nm-sizing-col1",
+                      "display-name": "Node",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -32,6 +33,7 @@
                     },
                     {
                       "name": "subsection-nm-sizing-col2",
+                      "display-name": "Container",
                       "row-index": "0",
                       "column-index": "1",
                       "row-span": "1",
@@ -41,7 +43,7 @@
                 },
                 {
                   "name": "section-yarn-platform-features",
-                  "display-name": "YARN Platform Features",
+                  "display-name": "YARN Features",
                   "row-index": "0",
                   "column-index": "2",
                   "row-span": "1",
@@ -60,7 +62,7 @@
                 },
                 {
                   "name": "section-container-sizing",
-                  "display-name": "CPU Sizing",
+                  "display-name": "CPU",
                   "row-index": "1",
                   "column-index": "0",
                   "row-span": "1",
@@ -70,6 +72,7 @@
                   "subsections": [
                     {
                       "name": "subsection-container-sizing-col1",
+                      "display-name": "Node",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
@@ -77,6 +80,7 @@
                     },
                     {
                       "name": "subsection-container-sizing-col2",
+                      "display-name": "Container",
                       "row-index": "0",
                       "column-index": "1",
                       "row-span": "1",
@@ -122,11 +126,11 @@
           "subsection-name": "subsection-container-sizing-col1"
         },
         {
-          "config": "yarn-site/yarn.nodemanager.resource.cpu-vcores",
+          "config": "yarn-site/yarn.nodemanager.resource.percentage-physical-cpu-limit",
           "subsection-name": "subsection-container-sizing-col1"
         },
         {
-          "config": "yarn-site/yarn.nodemanager.resource.percentage-physical-cpu-limit",
+          "config": "yarn-site/yarn.nodemanager.resource.cpu-vcores",
           "subsection-name": "subsection-container-sizing-col1"
         },
         {

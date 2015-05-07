@@ -187,18 +187,24 @@
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>8</value>
     <description></description>
-    <display-name>Total NM CPU vCores</display-name>
+    <display-name>Number of virtual cores</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
       <maximum>32</maximum>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
     <value>80</value>
     <description>The amount of CPU allocated for YARN containers - only effective when used with CGroups</description>
-    <display-name>%ge of Total NM CPU</display-name>
+    <display-name>Percentage of physical CPU allocated for all containers on a node</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -344,7 +350,7 @@
     <name>yarn.scheduler.minimum-allocation-vcores</name>
     <value>1</value>
     <description></description>
-    <display-name>YARN Container Minimum vCores</display-name>
+    <display-name>Minimum Container Size (VCores)</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -362,7 +368,7 @@
     <name>yarn.scheduler.maximum-allocation-vcores</name>
     <value>8</value>
     <description></description>
-    <display-name>YARN Container Maximum vCores</display-name>
+    <display-name>Maximum Container Size (VCores)</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -382,7 +388,7 @@
     <description>
       Enable node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
     </description>
-    <display-name>Enable Node Labels</display-name>
+    <display-name>Node Labels</display-name>
     <value-attributes>
       <type>boolean</type>
     </value-attributes>
@@ -432,7 +438,7 @@
   <property>
     <name>yarn.resourcemanager.scheduler.monitor.enable</name>
     <value>false</value>
-    <display-name>Enable Pre-emption</display-name>
+    <display-name>Pre-emption</display-name>
     <value-attributes>
       <type>value-list</type>
       <entries>

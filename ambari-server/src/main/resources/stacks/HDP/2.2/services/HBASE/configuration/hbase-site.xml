@@ -139,7 +139,7 @@
   </property>
   <property>
     <name>hbase.coprocessor.regionserver.classes</name>
-    <value> </value>
+    <value></value>
     <depends-on>
       <property>
         <type>hbase-site</type>

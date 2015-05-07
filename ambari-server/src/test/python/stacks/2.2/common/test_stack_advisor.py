@@ -683,7 +683,7 @@ class TestHDP22StackAdvisor(TestCase):
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
-          'yarn.nodemanager.resource.cpu-vcores': {'maximum': '4'},
+          'yarn.nodemanager.resource.cpu-vcores': {'maximum': '2'},
           'yarn.scheduler.minimum-allocation-vcores': {'maximum': '2'},
           'yarn.scheduler.maximum-allocation-vcores': {'maximum': '2'},
           'yarn.scheduler.minimum-allocation-mb': {'maximum': '1280'},
@@ -830,6 +830,41 @@ class TestHDP22StackAdvisor(TestCase):
 
     self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
+
+    # Test host NodeManager CPU cores
+    hosts["items"][2]["Hosts"]["cpu_count"] = 6
+    services["changed-configurations"].remove({
+          "type": "yarn-site",
+          "name": "yarn.nodemanager.resource.cpu-vcores"
+        })
+    configurations["yarn-site"]["properties"].pop("yarn.nodemanager.resource.cpu-vcores", None)
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '4'
+    expected["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-vcores"] = '1'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '4'
+    expected["yarn-site"]["property_attributes"]["yarn.nodemanager.resource.cpu-vcores"]["maximum"] = '12'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '4'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '4'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    # Test host NodeManager CPU cores and 'yarn.nodemanager.resource.percentage-physical-cpu-limit'
+    hosts["items"][2]["Hosts"]["cpu_count"] = 10
+    configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
+    services["changed-configurations"].append({
+          "type": "yarn-site",
+          "name": "yarn.nodemanager.resource.percentage-physical-cpu-limit"
+        })
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"] = '5'
+    expected["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-vcores"] = '1'
+    expected["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-vcores"] = '5'
+    expected["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"] = '0.5'
+    expected["yarn-site"]["property_attributes"]["yarn.nodemanager.resource.cpu-vcores"]["maximum"] = '20'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.minimum-allocation-vcores"]["maximum"] = '5'
+    expected["yarn-site"]["property_attributes"]["yarn.scheduler.maximum-allocation-vcores"]["maximum"] = '5'
+    self.stackAdvisor.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+    
+
 
   def test_recommendHiveConfigurationAttributes(self):
     self.maxDiff = None
@@ -1125,16 +1160,16 @@ class TestHDP22StackAdvisor(TestCase):
         "properties": {
           "yarn.nodemanager.resource.memory-mb": "1280",
           "yarn.scheduler.minimum-allocation-mb": "100",
-          "yarn.scheduler.maximum-allocation-vcores": "4",
+          "yarn.scheduler.maximum-allocation-vcores": "1",
           "yarn.scheduler.minimum-allocation-vcores": "1",
           "yarn.scheduler.maximum-allocation-mb": "1280",
-          "yarn.nodemanager.resource.cpu-vcores": "2"
+          "yarn.nodemanager.resource.cpu-vcores": "1"
         },
         "property_attributes": {
           'yarn.nodemanager.resource.memory-mb': {'maximum': '1877'},
-          'yarn.nodemanager.resource.cpu-vcores': {'maximum': '4'},
-          'yarn.scheduler.minimum-allocation-vcores': {'maximum': '2'},
-          'yarn.scheduler.maximum-allocation-vcores': {'maximum': '2'},
+          'yarn.nodemanager.resource.cpu-vcores': {'maximum': '2'},
+          'yarn.scheduler.minimum-allocation-vcores': {'maximum': '1'},
+          'yarn.scheduler.maximum-allocation-vcores': {'maximum': '1'},
           'yarn.scheduler.minimum-allocation-mb': {'maximum': '1280'},
           'yarn.scheduler.maximum-allocation-mb': {'maximum': '1280'}
         }
@@ -2028,19 +2063,19 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
           "yarn.scheduler.minimum-allocation-mb": "3584",
-          "yarn.scheduler.maximum-allocation-vcores": "6",
+          "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
-          "yarn.nodemanager.resource.cpu-vcores": "12",
+          "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
           "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
         },
         "property_attributes": {
           "yarn.scheduler.minimum-allocation-vcores": {
-            "maximum": "12"
+            "maximum": "4"
           },
           "yarn.scheduler.maximum-allocation-vcores": {
-            "maximum": "12"
+            "maximum": "4"
           },
           "yarn.nodemanager.resource.memory-mb": {
             "maximum": "49152"
@@ -2049,7 +2084,7 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "39424"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
-            "maximum": "24"
+            "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
             "maximum": "39424"
@@ -2081,9 +2116,9 @@ class TestHDP22StackAdvisor(TestCase):
           "yarn.nodemanager.container-executor.cgroups.mount": "true",
           "yarn.nodemanager.resource.memory-mb": "39424",
           "yarn.scheduler.minimum-allocation-mb": "3584",
-          "yarn.scheduler.maximum-allocation-vcores": "6",
+          "yarn.scheduler.maximum-allocation-vcores": "4",
           "yarn.scheduler.minimum-allocation-vcores": "1",
-          "yarn.nodemanager.resource.cpu-vcores": "12",
+          "yarn.nodemanager.resource.cpu-vcores": "4",
           "yarn.nodemanager.container-executor.cgroups.hierarchy": " /yarn",
           "yarn.scheduler.maximum-allocation-mb": "39424",
           "yarn.nodemanager.container-executor.resources-handler.class": "org.apache.hadoop.yarn.server.nodemanager.util.CgroupsLCEResourcesHandler"
@@ -2099,10 +2134,10 @@ class TestHDP22StackAdvisor(TestCase):
             "delete": "true"
           },
           "yarn.scheduler.minimum-allocation-vcores": {
-            "maximum": "12"
+            "maximum": "4"
           },
           "yarn.scheduler.maximum-allocation-vcores": {
-            "maximum": "12"
+            "maximum": "4"
           },
           "yarn.nodemanager.resource.memory-mb": {
             "maximum": "49152"
@@ -2111,7 +2146,7 @@ class TestHDP22StackAdvisor(TestCase):
             "maximum": "39424"
           },
           "yarn.nodemanager.resource.cpu-vcores": {
-            "maximum": "24"
+            "maximum": "12"
           },
           "yarn.scheduler.maximum-allocation-mb": {
             "maximum": "39424"

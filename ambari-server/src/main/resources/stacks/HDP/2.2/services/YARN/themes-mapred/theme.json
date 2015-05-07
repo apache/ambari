@@ -15,27 +15,43 @@
               "sections": [
                 {
                   "name": "section-mr-scheduler",
-                  "display-name": "MR Scheduler Defaults",
+                  "display-name": "MapReduce",
                   "row-index": "0",
                   "column-index": "0",
                   "row-span": "1",
-                  "column-span": "2",
-                  "section-columns": "2",
+                  "column-span": "1",
+                  "section-columns": "3",
                   "section-rows": "1",
                   "subsections": [
                     {
-                      "name": "subsection-mr-scheduler-col1",
+                      "name": "subsection-mr-scheduler-row1-col1",
+                      "display-name": "MapReduce Framework",
                       "row-index": "0",
                       "column-index": "0",
                       "row-span": "1",
                       "column-span": "1"
                     },
                     {
-                      "name": "subsection-mr-scheduler-col2",
+                      "name": "subsection-mr-scheduler-row1-col2",
                       "row-index": "0",
                       "column-index": "1",
                       "row-span": "1",
                       "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-mr-scheduler-row1-col3",
+                      "row-index": "0",
+                      "column-index": "2",
+                      "row-span": "1",
+                      "column-span": "1"
+                    },
+                    {
+                      "name": "subsection-mr-scheduler-row2-col1",
+                      "display-name": "MapReduce AppMaster",
+                      "row-index": "1",
+                      "column-index": "0",
+                      "row-span": "1",
+                      "column-span": "3"
                     }
                   ]
                 }
@@ -50,19 +66,19 @@
       "configs": [
         {
           "config": "mapred-site/mapreduce.map.memory.mb",
-          "subsection-name": "subsection-mr-scheduler-col1"
+          "subsection-name": "subsection-mr-scheduler-row1-col1"
         },
         {
           "config": "mapred-site/mapreduce.reduce.memory.mb",
-          "subsection-name": "subsection-mr-scheduler-col1"
+          "subsection-name": "subsection-mr-scheduler-row1-col2"
         },
         {
           "config": "mapred-site/yarn.app.mapreduce.am.resource.mb",
-          "subsection-name": "subsection-mr-scheduler-col2"
+          "subsection-name": "subsection-mr-scheduler-row2-col1"
         },
         {
           "config": "mapred-site/mapreduce.task.io.sort.mb",
-          "subsection-name": "subsection-mr-scheduler-col2"
+          "subsection-name": "subsection-mr-scheduler-row1-col3"
         }
       ]
     },

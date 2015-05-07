@@ -31,7 +31,7 @@
       The total amount of buffer memory to use while sorting files, in megabytes.
       By default, gives each merge stream 1MB, which should minimize seeks.
     </description>
-    <display-name>MapReduce Sort Allocation</display-name>
+    <display-name>Sort Allocation Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>0</minimum>
@@ -184,7 +184,7 @@
     <name>mapreduce.map.memory.mb</name>
     <value>512</value>
     <description>Virtual memory for single Map task</description>
-    <display-name>MR Map RAM Allocation</display-name>
+    <display-name>Map Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
@@ -208,7 +208,7 @@
     <name>mapreduce.reduce.memory.mb</name>
     <value>1024</value>
     <description>Virtual memory for single Reduce task</description>
-    <display-name>MR Reduce RAM Allocation</display-name>
+    <display-name>Reduce Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
@@ -287,7 +287,7 @@
     <name>yarn.app.mapreduce.am.resource.mb</name>
     <value>512</value>
     <description>The amount of memory the MR AppMaster needs.</description>
-    <display-name>MR AppMaster RAM Allocation </display-name>
+    <display-name>AppMaster Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>512</minimum>
