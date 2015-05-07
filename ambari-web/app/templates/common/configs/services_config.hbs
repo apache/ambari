@@ -46,5 +46,12 @@
           {{issuesFilterText}} <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
         </div>
       {{/unless}}
+    {{else}}
+      {{#unless submitButtonClicked}}
+        <div class="alert alert-success">
+          <span class="icon-check"></span> {{t installer.step7.noIssues}}<br />
+          <a href="#" {{action toggleIssuesFilter target="controller"}}>{{issuesFilterLinkText}}</a>
+        </div>
+      {{/unless}}
     {{/if}}
 {{/if}}

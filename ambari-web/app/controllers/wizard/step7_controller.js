@@ -235,6 +235,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
   issuesFilterLinkText: function () {
+    if (this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected')) {
+      return Em.I18n.t('installer.step7.showAllProperties');
+    }
+
     return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked')) ?
       (
         this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected') ?
@@ -1313,5 +1317,4 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   toggleIssuesFilter: function () {
     this.get('filterColumns').findProperty('attributeName', 'isValid').toggleProperty('selected');
   }
-
 });

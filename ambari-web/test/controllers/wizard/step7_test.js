@@ -29,7 +29,7 @@ var installerStep7Controller,
       submitButtonClicked: true,
       isIssuesFilterActive: true,
       issuesFilterText: '',
-      issuesFilterLinkText: '',
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
       title: 'issues filter on, submit button clicked'
     },
     {
@@ -61,7 +61,7 @@ var installerStep7Controller,
       submitButtonClicked: false,
       isIssuesFilterActive: true,
       issuesFilterText: '',
-      issuesFilterLinkText: '',
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
       title: 'issues filter on, submit button enabled'
     },
     {
@@ -71,6 +71,22 @@ var installerStep7Controller,
       issuesFilterText: '',
       issuesFilterLinkText: '',
       title: 'issues filter off, submit button enabled'
+    },
+    {
+      isSubmitDisabled: false,
+      submitButtonClicked: false,
+      isIssuesFilterActive: true,
+      issuesFilterText: '',
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
+      title: 'issues filter on, submit button not clicked but active'
+    },
+    {
+      isSubmitDisabled: false,
+      submitButtonClicked: true,
+      isIssuesFilterActive: true,
+      issuesFilterText: '',
+      issuesFilterLinkText: Em.I18n.t('installer.step7.showAllProperties'),
+      title: 'issues filter on, submit button clicked and active'
     }
   ],
   issuesFilterTestSetup = function (controller, testCase) {
@@ -487,7 +503,7 @@ describe('App.InstallerStep7Controller', function () {
     afterEach(function(){
       App.StackService.find.restore();
     });
-    
+
     it('should return serviceConfigTags', function () {
       var desired_configs = {
         site1: {
@@ -1701,7 +1717,7 @@ describe('App.InstallerStep7Controller', function () {
         filename: 'ams-hbase-site.xml'
       }
     ];
-      
+
     it('should handle properties with the same name', function () {
       var services = Em.A([
         Em.Object.create({

@@ -733,6 +733,7 @@ Em.I18n.translations = {
   'installer.step7.header':'Customize Services',
   'installer.step7.body':'We have come up with recommended configurations for the services you selected. Customize them as you see fit.',
   'installer.step7.attentionNeeded':'<b>Attention:</b> Some configurations need your attention before you can proceed.',
+  'installer.step7.noIssues':'All configurations have been addressed.',
   'installer.step7.showPropertiesWithIssues':'Show me properties with issues',
   'installer.step7.showingPropertiesWithIssues':'Showing properties with issues.',
   'installer.step7.showAllProperties':'Show all properties',
