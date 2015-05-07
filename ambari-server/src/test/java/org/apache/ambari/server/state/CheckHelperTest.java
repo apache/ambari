@@ -58,7 +58,7 @@ public class CheckHelperTest {
    */
 
   @Test
-  public void performPreUpgradeChecksTest_ok() throws Exception {
+  public void testPreUpgradeCheck() throws Exception {
     final CheckHelper helper = new CheckHelper();
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
@@ -73,7 +73,7 @@ public class CheckHelperTest {
   }
 
   @Test
-  public void performPreUpgradeChecksTest_notApplicable() throws Exception {
+  public void testPreUpgradeCheckNotApplicable() throws Exception {
     final CheckHelper helper = new CheckHelper();
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
@@ -85,7 +85,7 @@ public class CheckHelperTest {
   }
 
   @Test
-  public void performPreUpgradeChecksTest_throwsException() throws Exception {
+  public void testPreUpgradeCheckThrowsException() throws Exception {
     final CheckHelper helper = new CheckHelper();
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
     AbstractCheckDescriptor descriptor = EasyMock.createNiceMock(AbstractCheckDescriptor.class);
@@ -102,7 +102,7 @@ public class CheckHelperTest {
   }
 
   @Test
-  public void performPreUpgradeChecksTest_clusterIsMissing() throws Exception {
+  public void testPreUpgradeCheckClusterMissing() throws Exception {
     final Clusters clusters = Mockito.mock(Clusters.class);
     Mockito.when(clusters.getCluster(Mockito.anyString())).thenAnswer(new Answer<Cluster>() {
       @Override
@@ -115,6 +115,7 @@ public class CheckHelperTest {
         }
       }
     });
+
     final Injector injector = Guice.createInjector(new AbstractModule() {
 
       @Override
@@ -124,11 +125,15 @@ public class CheckHelperTest {
         bind(RepositoryVersionDAO.class).toProvider(Providers.<RepositoryVersionDAO>of(null));
         bind(RepositoryVersionHelper.class).toProvider(Providers.<RepositoryVersionHelper>of(null));
         bind(AmbariMetaInfo.class).toProvider(Providers.<AmbariMetaInfo>of(null));
+        bind(ServicesUpCheck.class).toInstance(new ServicesUpCheck());
       }
     });
+
     final CheckHelper helper = injector.getInstance(CheckHelper.class);
     List<AbstractCheckDescriptor> updateChecksRegistry = new ArrayList<AbstractCheckDescriptor>();
-    updateChecksRegistry.add(injector.getInstance(ServicesUpCheck.class)); //mocked Cluster has no services, so the check should always be PASS
+
+    // mocked Cluster has no services, so the check should always be PASS
+    updateChecksRegistry.add(injector.getInstance(ServicesUpCheck.class));
     List<PrerequisiteCheck> upgradeChecks = helper.performChecks(new PrereqCheckRequest("existing"), updateChecksRegistry);
     Assert.assertEquals(PrereqCheckStatus.PASS, upgradeChecks.get(0).getStatus());
     upgradeChecks = helper.performChecks(new PrereqCheckRequest("non-existing"), updateChecksRegistry);

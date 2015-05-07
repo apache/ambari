@@ -28,6 +28,17 @@ import org.apache.ambari.server.state.stack.PrereqCheckType;
  */
 public enum CheckDescription {
 
+  CLIENT_RETRY(PrereqCheckType.SERVICE,
+      "Client Retry Properties",
+      new HashMap<String, String>() {{
+        put(ClientRetryPropertyCheck.HDFS_CLIENT_RETRY_MISSING_KEY,
+          "The hdfs-site.xml property dfs.client.retry.policy.enabled should be set to true.");
+        put(ClientRetryPropertyCheck.HIVE_CLIENT_RETRY_MISSING_KEY,
+          "The hive-site.xml property hive.metastore.failure.retries should be set to a positive value.");
+        put(ClientRetryPropertyCheck.OOZIE_CLIENT_RETRY_MISSING_KEY,
+          "The oozie-env.sh script must contain a retry count such as export OOZIE_CLIENT_OPTS=\"${OOZIE_CLIENT_OPTS} -Doozie.connection.retry.count=5\"");
+      }}),
+
   HOSTS_HEARTBEAT(PrereqCheckType.HOST,
       "All hosts must be heartbeating with the Ambari Server unless they are in Maintenance Mode",
       new HashMap<String, String>() {{
@@ -87,7 +98,7 @@ public enum CheckDescription {
       }}),
 
   SERVICES_NAMENODE_HA(PrereqCheckType.SERVICE,
-      "NameNode High Availability must  be enabled",
+      "NameNode High Availability must be enabled",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
           "NameNode High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
@@ -121,6 +132,31 @@ public enum CheckDescription {
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
           "YARN should have work preserving restart enabled. The yarn-site.xml property yarn.resourcemanager.work-preserving-recovery.enabled property should be set to true.");
+      }}),
+
+  SERVICES_YARN_RM_HA(PrereqCheckType.SERVICE,
+      "YARN ResourceManager HA should be enabled to prevent a disruption in service during the upgrade",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+          "YARN ResourceManager High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
+      }}),
+
+  SERVICES_YARN_TIMELINE_ST(PrereqCheckType.SERVICE,
+      "YARN Timeline state preserving restart should be enabled",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+          "YARN should have state preserving restart enabled for the Timeline server. The yarn-site.xml property yarn.timeline-service.recovery.enabled should be set to true.");
+      }}),
+
+  SERVICES_HIVE_DYNAMIC_SERVICE_DISCOVERY(PrereqCheckType.SERVICE,
+      "Hive Dynamic Service Discovery",
+      new HashMap<String, String>() {{
+        put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_DISCOVERY_ENABLED_KEY,
+          "The hive-site.xml property hive.server2.support.dynamic.service.discovery should be set to true.");
+        put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_ZK_QUORUM_KEY,
+          "The hive-site.xml property hive.zookeeper.quorum should be set to a comma-separate list of ZooKeeper hosts:port pairs.");
+        put(HiveDynamicServiceDiscoveryCheck.HIVE_DYNAMIC_SERVICE_ZK_NAMESPACE_KEY,
+          "The hive-site.xml property hive.server2.zookeeper.namespace should be set to the value for the root namespace on ZooKeeper.");
       }}),
 
   CONFIG_MERGE(PrereqCheckType.CLUSTER,

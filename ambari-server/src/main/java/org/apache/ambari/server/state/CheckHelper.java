@@ -37,27 +37,31 @@ public class CheckHelper {
    */
   private static Logger LOG = LoggerFactory.getLogger(CheckHelper.class);
 
-
   /**
    * Executes all registered pre-requisite checks.
    *
-   * @param request pre-requisite check request
+   * @param request
+   *          pre-requisite check request
    * @return list of pre-requisite check results
    */
-  public List<PrerequisiteCheck> performChecks(PrereqCheckRequest request, List<AbstractCheckDescriptor> checksRegistry) {
+  public List<PrerequisiteCheck> performChecks(PrereqCheckRequest request,
+      List<AbstractCheckDescriptor> checksRegistry) {
 
     final String clusterName = request.getClusterName();
     final List<PrerequisiteCheck> prerequisiteCheckResults = new ArrayList<PrerequisiteCheck>();
     for (AbstractCheckDescriptor checkDescriptor : checksRegistry) {
       final PrerequisiteCheck prerequisiteCheck = new PrerequisiteCheck(
           checkDescriptor.getDescription(), clusterName);
-      try {
-        if (checkDescriptor.isApplicable(request)) {
-          checkDescriptor.perform(prerequisiteCheck, request);
-          prerequisiteCheckResults.add(prerequisiteCheck);
 
-          request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
+      try {
+        if (!checkDescriptor.isApplicable(request)) {
+          continue;
         }
+
+        checkDescriptor.perform(prerequisiteCheck, request);
+        prerequisiteCheckResults.add(prerequisiteCheck);
+
+        request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
       } catch (ClusterNotFoundException ex) {
         prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
         prerequisiteCheck.setFailReason("Cluster with name " + clusterName + " doesn't exists");
@@ -72,18 +76,7 @@ public class CheckHelper {
 
         request.addResult(checkDescriptor.getDescription(), prerequisiteCheck.getStatus());
       }
-
-
-
-
-
-
-
-
-
-
     }
-
 
     return prerequisiteCheckResults;
   }

@@ -28,6 +28,8 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.Config;
+import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckType;
@@ -46,8 +48,8 @@ import com.google.inject.Provider;
 public abstract class AbstractCheckDescriptor {
 
   private static final Logger LOG = LoggerFactory.getLogger(AbstractCheckDescriptor.class);
-  private static final StackId STACK_HDP_22 = new StackId("HDP", "2.2");
-  private static final StackId STACK_HDP_23 = new StackId("HDP", "2.3");
+  protected static final StackId STACK_HDP_22 = new StackId("HDP", "2.2");
+  protected static final StackId STACK_HDP_23 = new StackId("HDP", "2.3");
 
   protected static final String DEFAULT = "default";
 
@@ -175,6 +177,37 @@ public abstract class AbstractCheckDescriptor {
    */
   protected String getFailReason(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) {
     return getFailReason(DEFAULT, prerequisiteCheck, request);
+  }
+
+  /**
+   * Gets a cluster configuration property if it exists, or {@code null}
+   * otherwise.
+   *
+   * @param request
+   *          the request (not {@code null}).
+   * @param configType
+   *          the configuration type, such as {@code hdfs-site} (not
+   *          {@code null}).
+   * @param propertyName
+   *          the name of the property (not {@code null}).
+   * @return the property value or {@code null} if not found.
+   * @throws AmbariException
+   */
+  protected String getProperty(PrereqCheckRequest request, String configType, String propertyName)
+      throws AmbariException {
+    final String clusterName = request.getClusterName();
+    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
+    final Map<String, DesiredConfig> desiredConfigs = cluster.getDesiredConfigs();
+    final DesiredConfig desiredConfig = desiredConfigs.get(configType);
+
+    if (null == desiredConfig) {
+      return null;
+    }
+
+    final Config config = cluster.getConfig(configType, desiredConfig.getTag());
+
+    Map<String, String> properties = config.getProperties();
+    return properties.get(propertyName);
   }
 
   /**

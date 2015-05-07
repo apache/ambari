@@ -31,9 +31,13 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.StringUtils;
 
+import com.google.inject.Singleton;
+
 /**
  * Checks that Tez jobs reference hadoop libraries from the distributed cache.
  */
+@Singleton
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 4.0f)
 public class ServicesTezDistributedCacheCheck extends AbstractCheckDescriptor {
 
   static final String KEY_LIB_URI_MISSING = "tez_lib_uri_missing";

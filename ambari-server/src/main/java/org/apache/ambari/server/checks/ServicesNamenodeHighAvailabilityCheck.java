@@ -28,9 +28,13 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.inject.Singleton;
+
 /**
  * Checks that namenode high availability is enabled.
  */
+@Singleton
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 1.0f)
 public class ServicesNamenodeHighAvailabilityCheck extends AbstractCheckDescriptor {
 
   /**

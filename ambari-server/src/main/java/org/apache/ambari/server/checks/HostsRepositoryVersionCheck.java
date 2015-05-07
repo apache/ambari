@@ -32,9 +32,13 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.inject.Singleton;
+
 /**
  * Checks that all hosts have particular repository version.
  */
+@Singleton
+@UpgradeCheck(group = UpgradeCheckGroup.REPOSITORY_VERSION)
 public class HostsRepositoryVersionCheck extends AbstractCheckDescriptor {
 
   static final String KEY_NO_REPO_VERSION = "no_repo_version";

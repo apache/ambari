@@ -29,9 +29,12 @@ import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.inject.Singleton;
+
 /**
  * Checks that there are no services in decommission state.
  */
+@Singleton
 public class ServicesDecommissionCheck extends AbstractCheckDescriptor {
 
   /**

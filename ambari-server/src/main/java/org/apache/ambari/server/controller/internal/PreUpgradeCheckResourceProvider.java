@@ -17,29 +17,15 @@
  */
 package org.apache.ambari.server.controller.internal;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.StaticallyInject;
-import org.apache.ambari.server.checks.AbstractCheckDescriptor;
-import org.apache.ambari.server.checks.ConfigurationMergeCheck;
-import org.apache.ambari.server.checks.HostsHeartbeatCheck;
-import org.apache.ambari.server.checks.HostsMasterMaintenanceCheck;
-import org.apache.ambari.server.checks.HostsRepositoryVersionCheck;
-import org.apache.ambari.server.checks.SecondaryNamenodeDeletedCheck;
-import org.apache.ambari.server.checks.ServicesDecommissionCheck;
-import org.apache.ambari.server.checks.ServicesMaintenanceModeCheck;
-import org.apache.ambari.server.checks.ServicesMapReduceDistributedCacheCheck;
-import org.apache.ambari.server.checks.ServicesNamenodeHighAvailabilityCheck;
-import org.apache.ambari.server.checks.ServicesTezDistributedCacheCheck;
-import org.apache.ambari.server.checks.ServicesUpCheck;
-import org.apache.ambari.server.checks.ServicesYarnWorkPreservingCheck;
+import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
@@ -80,65 +66,13 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version");
 
   @Inject
-  private static ServicesMaintenanceModeCheck servicesMaintenanceModeCheck;
-
-  @Inject
-  private static HostsMasterMaintenanceCheck hostsMasterMaintenanceCheck;
-
-  @Inject
-  private static HostsRepositoryVersionCheck hostsRepositoryVersionCheck;
-
-  @Inject
-  private static ServicesNamenodeHighAvailabilityCheck servicesNamenodeHighAvailabilityCheck;
-
-  @Inject
-  private static SecondaryNamenodeDeletedCheck secondaryNamenodeDeletedCheck;
-
-  @Inject
-  private static ServicesYarnWorkPreservingCheck servicesYarnWorkPreservingCheck;
-
-  @Inject
-  private static ServicesDecommissionCheck servicesDecommissionCheck;
-
-  @Inject
-  private static ServicesMapReduceDistributedCacheCheck servicesJobsDistributedCacheCheck;
-
-  @Inject
-  private static HostsHeartbeatCheck heartbeatCheck;
-
-  @Inject
-  private static ServicesUpCheck servicesUpCheck;
-
-  @Inject
-  private static ServicesTezDistributedCacheCheck servicesTezDistributedCacheCheck;
-
-  @Inject
-  private static ConfigurationMergeCheck configMergeCheck;
-
-  @Inject
   private static Provider<Clusters> clustersProvider;
 
   @Inject
   private static RepositoryVersionDAO repositoryVersionDAO;
 
-  /**
-   * List of the registered upgrade checks.  Make sure that if a check that
-   * depends on the result of another check comes earlier in the list.
-   * For example, MR2 and Tez distributed cache checks rely on NN-HA check passing.
-   */
-  private List<AbstractCheckDescriptor> updateChecksRegistry = Arrays.asList(
-      hostsMasterMaintenanceCheck,
-      hostsRepositoryVersionCheck,
-      servicesMaintenanceModeCheck,
-      servicesNamenodeHighAvailabilityCheck,
-      secondaryNamenodeDeletedCheck,
-      servicesYarnWorkPreservingCheck,
-      servicesDecommissionCheck,
-      servicesJobsDistributedCacheCheck,
-      heartbeatCheck,
-      servicesUpCheck,
-      servicesTezDistributedCacheCheck,
-      configMergeCheck);
+  @Inject
+  private static UpgradeCheckRegistry upgradeCheckRegistry;
 
   private static Set<String> pkPropertyIds = Collections.singleton(UPGRADE_CHECK_ID_PROPERTY_ID);
 
@@ -203,7 +137,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         upgradeCheckRequest.setTargetStackId(repositoryVersionEntity.getStackId());
       }
 
-      for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, updateChecksRegistry)) {
+      for (PrerequisiteCheck prerequisiteCheck : checkHelper.performChecks(upgradeCheckRequest, upgradeCheckRegistry.getUpgradeChecks())) {
         final Resource resource = new ResourceImpl(Resource.Type.PreUpgradeCheck);
         setResourceProperty(resource, UPGRADE_CHECK_ID_PROPERTY_ID, prerequisiteCheck.getId(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_PROPERTY_ID, prerequisiteCheck.getDescription(), requestedIds);

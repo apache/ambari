@@ -17,28 +17,35 @@
  */
 package org.apache.ambari.server.checks;
 
+import java.util.Map;
+
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.ambari.server.utils.VersionUtils;
 import org.apache.commons.lang.BooleanUtils;
 
 import com.google.inject.Singleton;
 
 /**
- * Checks that YARN has work-preserving restart enabled.
+ * The {@link YarnTimelineServerStatePreservingCheck} is used to check that the
+ * YARN Timeline server has state preserving mode enabled. This value is only
+ * present in HDP 2.2.4.2+.
  */
 @Singleton
 @UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
-public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
+public class YarnTimelineServerStatePreservingCheck extends AbstractCheckDescriptor {
+
+  private final static String YARN_TIMELINE_STATE_RECOVERY_ENABLED_KEY = "yarn.timeline-service.recovery.enabled";
 
   /**
    * Constructor.
    */
-  public ServicesYarnWorkPreservingCheck() {
-    super(CheckDescription.SERVICES_YARN_WP);
+  public YarnTimelineServerStatePreservingCheck() {
+    super(CheckDescription.SERVICES_YARN_TIMELINE_ST);
   }
 
   /**
@@ -51,11 +58,22 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
     }
 
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
-    try {
-      cluster.getService("YARN");
-    } catch (ServiceNotFoundException ex) {
+    Map<String, Service> services = cluster.getServices();
+    if (!services.containsKey("YARN")) {
       return false;
     }
+
+    // not applicable if not HDP 2.2.4.2 or later
+    String stackName = cluster.getCurrentStackVersion().getStackName();
+    if (!"HDP".equals(stackName)) {
+      return false;
+    }
+
+    String currentClusterRepositoryVersion = cluster.getCurrentClusterVersion().getRepositoryVersion().getVersion();
+    if (VersionUtils.compareVersions(currentClusterRepositoryVersion, "2.2.4.2") < 0) {
+      return false;
+    }
+
     return true;
   }
 
@@ -65,7 +83,7 @@ public class ServicesYarnWorkPreservingCheck extends AbstractCheckDescriptor {
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
     String propertyValue = getProperty(request, "yarn-site",
-        "yarn.resourcemanager.work-preserving-recovery.enabled");
+        YARN_TIMELINE_STATE_RECOVERY_ENABLED_KEY);
 
     if (null == propertyValue || !BooleanUtils.toBoolean(propertyValue)) {
       prerequisiteCheck.getFailedOn().add("YARN");

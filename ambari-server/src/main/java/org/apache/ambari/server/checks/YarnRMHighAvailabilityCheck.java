@@ -23,42 +23,57 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.State;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
+import org.apache.commons.lang.BooleanUtils;
 
 import com.google.inject.Singleton;
 
 /**
- * Checks that services are up.
+ * The {@link YarnRMHighAvailabilityCheck} checks that YARN has HA mode enabled
+ * for ResourceManager..
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 2.0f)
-public class ServicesUpCheck extends AbstractCheckDescriptor {
+@UpgradeCheck(group = UpgradeCheckGroup.DEFAULT, order = 1.0f)
+public class YarnRMHighAvailabilityCheck extends AbstractCheckDescriptor {
 
   /**
    * Constructor.
    */
-  public ServicesUpCheck() {
-    super(CheckDescription.SERVICES_UP);
+  public YarnRMHighAvailabilityCheck() {
+    super(CheckDescription.SERVICES_YARN_RM_HA);
   }
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
-  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-
-    final String clusterName = request.getClusterName();
-    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
-    for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
-
-      final Service service = serviceEntry.getValue();
-
-      if (!service.isClientOnlyService() && service.getDesiredState() != State.STARTED) {
-        prerequisiteCheck.getFailedOn().add(service.getName());
-      }
+  public boolean isApplicable(PrereqCheckRequest request) throws AmbariException {
+    if (!super.isApplicable(request)) {
+      return false;
     }
 
-    if (!prerequisiteCheck.getFailedOn().isEmpty()) {
-      prerequisiteCheck.setStatus(PrereqCheckStatus.FAIL);
+    final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
+    Map<String, Service> services = cluster.getServices();
+    if (!services.containsKey("YARN")) {
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
+    // pretty weak sauce here; probably should do a bit more, like query JMX to
+    // see that there is at least 1 RM active and 1 in standby
+    String propertyValue = getProperty(request, "yarn-site", "yarn.resourcemanager.ha.enabled");
+
+    if (null == propertyValue || !BooleanUtils.toBoolean(propertyValue)) {
+      prerequisiteCheck.getFailedOn().add("YARN");
+      prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
   }

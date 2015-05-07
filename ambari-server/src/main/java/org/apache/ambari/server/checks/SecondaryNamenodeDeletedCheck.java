@@ -34,10 +34,13 @@ import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Checks that the Secondary NameNode is not present on any of the hosts.
  */
+@Singleton
+@UpgradeCheck(group = UpgradeCheckGroup.NAMENODE_HA, order = 2.0f)
 public class SecondaryNamenodeDeletedCheck extends AbstractCheckDescriptor {
   @Inject
   HostComponentStateDAO hostComponentStateDao;

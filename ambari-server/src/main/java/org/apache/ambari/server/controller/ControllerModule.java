@@ -56,6 +56,8 @@ import org.apache.ambari.server.actionmanager.HostRoleCommandFactoryImpl;
 import org.apache.ambari.server.actionmanager.RequestFactory;
 import org.apache.ambari.server.actionmanager.StageFactory;
 import org.apache.ambari.server.actionmanager.StageFactoryImpl;
+import org.apache.ambari.server.checks.AbstractCheckDescriptor;
+import org.apache.ambari.server.checks.UpgradeCheckRegistry;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.configuration.Configuration.ConnectionPoolType;
 import org.apache.ambari.server.configuration.Configuration.DatabaseType;
@@ -144,6 +146,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
  */
 public class ControllerModule extends AbstractModule {
   private static Logger LOG = LoggerFactory.getLogger(ControllerModule.class);
+  private static final String AMBARI_PACKAGE = "org.apache.ambari.server";
 
   private final Configuration configuration;
   private final OsFamily os_family;
@@ -329,6 +332,7 @@ public class ControllerModule extends AbstractModule {
 
     bindByAnnotation(null);
     bindNotificationDispatchers();
+    registerUpgradeChecks();
   }
 
 
@@ -451,7 +455,7 @@ public class ControllerModule extends AbstractModule {
         scanner.addIncludeFilter(new AnnotationTypeFilter(cls));
       }
 
-      beanDefinitions = scanner.findCandidateComponents("org.apache.ambari.server");
+      beanDefinitions = scanner.findCandidateComponents(AMBARI_PACKAGE);
     }
 
     if (null == beanDefinitions || beanDefinitions.size() == 0) {
@@ -555,6 +559,54 @@ public class ControllerModule extends AbstractModule {
         LOG.error("Unable to bind and register notification dispatcher {}",
             clazz, exception);
       }
+    }
+  }
+
+  /**
+   * Searches for all instances of {@link AbstractCheckDescriptor} on the
+   * classpath and registers each as a singleton with the
+   * {@link UpgradeCheckRegistry}.
+   */
+  @SuppressWarnings("unchecked")
+  private void registerUpgradeChecks() {
+    ClassPathScanningCandidateComponentProvider scanner = new ClassPathScanningCandidateComponentProvider(
+        false);
+
+    // make the registry a singleton
+    UpgradeCheckRegistry registry = new UpgradeCheckRegistry();
+    bind(UpgradeCheckRegistry.class).toInstance(registry);
+
+    // match all implementations of the base check class
+    AssignableTypeFilter filter = new AssignableTypeFilter(AbstractCheckDescriptor.class);
+    scanner.addIncludeFilter(filter);
+
+    Set<BeanDefinition> beanDefinitions = scanner.findCandidateComponents(AMBARI_PACKAGE);
+
+    // no dispatchers is a problem
+    if (null == beanDefinitions || beanDefinitions.size() == 0) {
+      LOG.error("No instances of {} found to register", AbstractCheckDescriptor.class);
+      return;
+    }
+
+    // for every discovered check, singleton-ize them and register with the
+    // registry
+    for (BeanDefinition beanDefinition : beanDefinitions) {
+      String className = beanDefinition.getBeanClassName();
+      Class<?> clazz = ClassUtils.resolveClassName(className, ClassUtils.getDefaultClassLoader());
+
+      try {
+        AbstractCheckDescriptor upgradeCheck = (AbstractCheckDescriptor) clazz.newInstance();
+        bind((Class<AbstractCheckDescriptor>) clazz).toInstance(upgradeCheck);
+        registry.register(upgradeCheck);
+      } catch (Exception exception) {
+        LOG.error("Unable to bind and register upgrade check {}", clazz, exception);
+      }
+    }
+
+    // log the order of the pre-upgrade checks
+    List<AbstractCheckDescriptor> upgradeChecks = registry.getUpgradeChecks();
+    for (AbstractCheckDescriptor upgradeCheck : upgradeChecks) {
+      LOG.error("Registered pre-upgrade check {}", upgradeCheck.getClass());
     }
   }
 }

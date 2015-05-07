@@ -34,9 +34,13 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.apache.ambari.server.state.stack.UpgradePack.ProcessingComponent;
 
+import com.google.inject.Singleton;
+
 /**
  * Checks that all hosts in maintenance state do not have master components.
  */
+@Singleton
+@UpgradeCheck(group = UpgradeCheckGroup.MAINTENANCE_MODE, order = 1.0f)
 public class HostsMasterMaintenanceCheck extends AbstractCheckDescriptor {
 
   static final String KEY_NO_UPGRADE_NAME = "no_upgrade_name";

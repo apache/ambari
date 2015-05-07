@@ -28,9 +28,13 @@ import org.apache.ambari.server.state.MaintenanceState;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 
+import com.google.inject.Singleton;
+
 /**
  * Checks that all hosts are either in maintenance mode or heartbeating with the server.
  */
+@Singleton
+@UpgradeCheck(group = UpgradeCheckGroup.LIVELINESS, order = 1.0f)
 public class HostsHeartbeatCheck extends AbstractCheckDescriptor {
 
   /**

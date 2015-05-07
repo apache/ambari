@@ -33,10 +33,13 @@ import org.apache.ambari.server.state.stack.PrerequisiteCheck;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.inject.Inject;
+import com.google.inject.Singleton;
 
 /**
  * Checks for configuration merge conflicts.
  */
+@Singleton
+@UpgradeCheck(order = 99.0f)
 public class ConfigurationMergeCheck extends AbstractCheckDescriptor {
 
   @Inject
