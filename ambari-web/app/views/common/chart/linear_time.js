@@ -209,7 +209,7 @@ App.ChartLinearTimeView = Ember.View.extend({
    * @type: Function
    */
   _showMessage: function(type, title, message) {
-    var chartOverlay = '#' + this.id;
+    var chartOverlay = '#' + this.get('id');
     var chartOverlayId = chartOverlay + '-chart';
     var chartOverlayY = chartOverlay + '-yaxis';
     var chartOverlayX = chartOverlay + '-xaxis';
