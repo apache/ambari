@@ -73,6 +73,7 @@ public class KerberosServerActionTest {
           @Override
           protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
                                                   KerberosOperationHandler operationHandler,
+                                                  Map<String, String> kerberosConfiguration,
                                                   Map<String, Object> requestSharedDataContext)
               throws AmbariException {
             Assert.assertNotNull(requestSharedDataContext);
