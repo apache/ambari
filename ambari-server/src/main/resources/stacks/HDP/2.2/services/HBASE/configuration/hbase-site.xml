@@ -137,4 +137,14 @@
       </property>
     </depends-on>
   </property>
+  <property>
+    <name>hbase.coprocessor.regionserver.classes</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>

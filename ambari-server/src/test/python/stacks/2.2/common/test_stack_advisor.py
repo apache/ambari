@@ -1425,6 +1425,9 @@ class TestHDP22StackAdvisor(TestCase):
           "properties": {
             "phoenix_sql_enabled": "true"
           }
+        },
+        "hbase-site": {
+          "properties": {}
         }
       }
     }
@@ -1438,6 +1441,11 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.bucketcache.percentage.in.combinedcache": "",
           "hbase.regionserver.global.memstore.upperLimit": "0.4",
           "hbase.bucketcache.ioengine": ""
+        },
+        'property_attributes': {
+          'hbase.coprocessor.regionserver.classes': {
+            'delete': 'true'
+          }
         }
       },
       "hbase-env": {
@@ -1459,7 +1467,7 @@ class TestHDP22StackAdvisor(TestCase):
     # Test when phoenix_sql_enabled = false
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
-    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}}
+    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}, 'hbase.coprocessor.regionserver.classes': {'delete': 'true'}}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
@@ -1491,9 +1499,39 @@ class TestHDP22StackAdvisor(TestCase):
                         }]})
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
-    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}}
+    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}, 'hbase.coprocessor.regionserver.classes': {'delete': 'true'}}
     expected['hbase-env']['property_attributes'] = {'hbase_master_heapsize': {'maximum': '49152'}}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
+    self.assertEquals(configurations, expected)
+
+    # Test when hbase.security.authentication = kerberos
+    services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.token.TokenProvider'
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+    # Test when hbase.security.authentication = simple
+    services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'simple'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = ''
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+    # Test when hbase.security.authentication = kerberos AND class already there
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
+    services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
+    services['configurations']['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d'
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'a.b.c.d,org.apache.hadoop.hbase.security.token.TokenProvider'
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
+    self.assertEquals(configurations, expected)
+
+    # Test when hbase.security.authentication = kerberos AND authorization = true
+    configurations['hbase-site']['properties'].pop('hbase.coprocessor.region.classes', None)
+    services['configurations']['hbase-site']['properties']['hbase.security.authentication'] = 'kerberos'
+    services['configurations']['hbase-site']['properties']['hbase.security.authorization'] = 'true'
+    expected['hbase-site']['properties']['hbase.coprocessor.master.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
+    expected['hbase-site']['properties']['hbase.coprocessor.region.classes'] = 'org.apache.hadoop.hbase.security.access.AccessController,org.apache.hadoop.hbase.security.token.TokenProvider'
+    expected['hbase-site']['properties']['hbase.coprocessor.regionserver.classes'] = "org.apache.hadoop.hbase.security.access.AccessController"
+    self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
 

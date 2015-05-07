@@ -481,6 +481,45 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
       putHbaseEnvProperty('hbase_max_direct_memory_size', '')
 
+    # Authorization
+    # If configurations has it - it has priority as it is calculated. Then, the service's configurations will be used.
+    hbase_security_authorization = None
+    if 'hbase-site' in configurations and 'hbase.security.authorization' in configurations['hbase-site']['properties']:
+      hbase_security_authorization = configurations['hbase-site']['properties']['hbase.security.authorization']
+    elif 'hbase-site' in services['configurations'] and 'hbase.security.authorization' in services['configurations']['hbase-site']['properties']:
+      hbase_security_authorization = services['configurations']['hbase-site']['properties']['hbase.security.authorization']
+    if hbase_security_authorization:
+      if 'true' == hbase_security_authorization.lower():
+        putHbaseProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+      else:
+        putHbaseProperty('hbase.coprocessor.master.classes', "")
+        putHbaseProperty('hbase.coprocessor.region.classes', "")
+        putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
+    else:
+      putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
+
+    # Authentication
+    if 'hbase-site' in services['configurations'] and 'hbase.security.authentication' in services['configurations']['hbase-site']['properties']:
+      hbase_coprocessor_region_classes = None
+      if 'hbase.coprocessor.region.classes' in configurations["hbase-site"]["properties"]:
+        hbase_coprocessor_region_classes = configurations["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
+      elif 'hbase.coprocessor.region.classes' in services['configurations']["hbase-site"]["properties"]:
+        hbase_coprocessor_region_classes = services['configurations']["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
+      if hbase_coprocessor_region_classes:
+        coprocessorRegionClassList = hbase_coprocessor_region_classes.split(',')
+      else:
+        coprocessorRegionClassList = []
+      if 'kerberos' == services['configurations']['hbase-site']['properties']['hbase.security.authentication'].lower():
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in coprocessorRegionClassList:
+          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.token.TokenProvider')
+          putHbaseProperty('hbase.coprocessor.region.classes', ','.join(coprocessorRegionClassList))
+      else:
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' in coprocessorRegionClassList:
+          coprocessorRegionClassList.remove('org.apache.hadoop.hbase.security.token.TokenProvider')
+          putHbaseProperty('hbase.coprocessor.region.classes', ','.join(coprocessorRegionClassList))
+
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
     putTezProperty = self.putProperty(configurations, "tez-site")
@@ -848,6 +887,18 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       validationItems.append({"config-name": prop_name3,
                               "item": self.getWarnItem(
                                 "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
+
+    # Validate hbase.security.authentication. 
+    # Kerberos works only when security enabled.
+    if "hbase.security.authentication" in properties:
+      hbase_security_kerberos = properties["hbase.security.authentication"].lower() == "kerberos"
+      core_site_properties = getSiteProperties(configurations, "core-site")
+      security_enabled = False
+      if core_site_properties:
+        security_enabled = core_site_properties['hadoop.security.authentication'] == 'kerberos' and core_site_properties['hadoop.security.authorization'] == 'true'
+      if not security_enabled and hbase_security_kerberos:
+        validationItems.append({"config-name": "hbase.security.authentication",
+                              "item": self.getWarnItem("Cluster must be secured with Kerberos before hbase.security.authentication's value of kerberos will have effect")})
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
 

@@ -333,8 +333,7 @@
   <property>
     <name>hbase.security.authentication</name>
     <value>simple</value>
-    <description>  Controls whether or not secure authentication is enabled for HBase. Possible values are 'simple'
-      (no authentication), and 'kerberos'.
+    <description>Select Simple or Kerberos authentication. Note: Kerberos must be set up before the Kerberos option will take effect.
     </description>
     <display-name>Enable Authentication</display-name>
     <value-attributes>
@@ -364,11 +363,11 @@
       <entries>
         <entry>
           <value>true</value>
-          <label>Enabled</label>
+          <label>Native</label>
         </entry>
         <entry>
           <value>false</value>
-          <label>Disabled</label>
+          <label>Off</label>
         </entry>
       </entries>
       <selection-cardinality>1</selection-cardinality>
@@ -384,6 +383,16 @@
     it in HBase's classpath and add the fully qualified class name here.
     A coprocessor can also be loaded on demand by setting HTableDescriptor.
     </description>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authentication</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -396,6 +405,12 @@
       implementing your own MasterObserver, just put it in HBase's classpath
       and add the fully qualified class name here.
     </description>
+    <depends-on>
+      <property>
+        <type>hbase-site</type>
+        <name>hbase.security.authorization</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
