@@ -137,10 +137,10 @@ App.SelectHostView = Em.Select.extend(App.SelectHost, {
   }.observes('controller.hostNameCheckTrigger'),
 
   /**
-   * On click handler
-   * @method click
+   * On change DOM event handler
+   * @method change
    */
-  click: function () {
+  change: function () {
     this.initContent();
   }
 

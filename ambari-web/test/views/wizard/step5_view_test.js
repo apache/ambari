@@ -62,7 +62,7 @@ describe('App.SelectHostView', function() {
     });
   });
 
-  describe('#click', function() {
+  describe('#change', function() {
 
     beforeEach(function() {
       sinon.stub(view, 'initContent', Em.K);
@@ -75,7 +75,7 @@ describe('App.SelectHostView', function() {
     });
 
     it('should call initContent', function() {
-      view.click();
+      view.change();
       expect(view.initContent.calledOnce).to.be.true;
     });
   });
