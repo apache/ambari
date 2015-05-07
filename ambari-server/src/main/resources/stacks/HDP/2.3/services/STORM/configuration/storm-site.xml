@@ -22,7 +22,7 @@
   <property>
     <name>nimbus.seeds</name>
     <value>localhost</value>
-    <description>The host that the nimbus server is running on.</description>
+    <description>Comma-delimited list of the hosts running nimbus server.</description>
   </property>
   <property>
     <name>topology.min.replication.count</name>

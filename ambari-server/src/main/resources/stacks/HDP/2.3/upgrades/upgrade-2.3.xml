@@ -569,11 +569,6 @@
 
     <service name="STORM">
       <component name="NIMBUS">
-        <pre-upgrade>
-          <task xsi:type="manual">
-            <message>Before continuing, please deactivate and kill any currently running topologies.</message>
-          </task>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -597,11 +592,6 @@
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
-        <post-upgrade>
-          <task xsi:type="manual">
-            <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>
-          </task>
-        </post-upgrade>
       </component>
     </service>
 

@@ -24,7 +24,7 @@ import resource_management
 from resource_management.core.source import InlineTemplate
 from resource_management.core.resources.system import File
 
-def escape_yaml_propetry(value):
+def escape_yaml_property(value):
   unquouted = False
   unquouted_values = ["null","Null","NULL","true","True","TRUE","false","False","FALSE","YES","Yes","yes","NO","No","no","ON","On","on","OFF","Off","off"]
   if value in unquouted_values:
@@ -61,18 +61,18 @@ def replace_jaas_placeholder(name, security_enabled, conf_dir):
   else:
     return name
 
-storm_yaml_template = """{% for key, value in configurations|dictsort if not key.startswith('_') %}{{key}} : {{ escape_yaml_propetry(replace_jaas_placeholder(resource_management.core.source.InlineTemplate(value).get_content().strip(), security_enabled, conf_dir)) }}
+storm_yaml_template = """{% for key, value in configurations|dictsort if not key.startswith('_') %}{{key}} : {{ escape_yaml_property(replace_jaas_placeholder(resource_management.core.source.InlineTemplate(value).get_content().strip(), security_enabled, conf_dir)) }}
 {% endfor %}"""
 
 def yaml_config_template(configurations):
   return InlineTemplate(storm_yaml_template, configurations=configurations,
-                        extra_imports=[escape_yaml_propetry, replace_jaas_placeholder, resource_management,
+                        extra_imports=[escape_yaml_property, replace_jaas_placeholder, resource_management,
                                        resource_management.core, resource_management.core.source])
 
 def yaml_config(filename, configurations = None, conf_dir = None, owner = None, group = None):
   import params
-  config_content = InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_propetry(value) }}
-{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_propetry])
+  config_content = InlineTemplate('''{% for key, value in configurations_dict.items() %}{{ key }}: {{ escape_yaml_property(value) }}
+{% endfor %}''', configurations_dict=configurations, extra_imports=[escape_yaml_property])
 
   File (os.path.join(params.conf_dir, filename),
         content = config_content,

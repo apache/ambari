@@ -81,8 +81,12 @@ user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
 jps_binary = format("{java64_home}/bin/jps")
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
-nimbus_seeds_supported = config['configurations']['storm-env']['nimbus_seeds_supported']
-nimbus_host = config['configurations']['storm-site']['nimbus.seeds'] if nimbus_seeds_supported else config['configurations']['storm-site']['nimbus.host']
+
+# nimbus.seeds is supported in HDP 2.3.0.0 and higher
+nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)
+nimbus_host = default('/configurations/storm-site/nimbus.host', None)
+nimbus_seeds = default('/configurations/storm-site/nimbus.seeds', None)
+
 rest_api_port = "8745"
 rest_api_admin_port = "8746"
 rest_api_conf_file = format("{conf_dir}/config.yaml")

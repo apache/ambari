@@ -1035,7 +1035,6 @@ var hdp2properties = [
     "name": "nimbus.seeds",
     "displayName": "nimbus.seeds",
     "displayType": "masterHosts",
-    "isOverridable": false,
     "serviceName": "STORM",
     "filename": "storm-site.xml",
     "category": "NIMBUS",
