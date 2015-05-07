@@ -49,18 +49,13 @@ public class CleanupServerAction extends KerberosServerAction {
    * @param operationHandler         a KerberosOperationHandler used to perform Kerberos-related
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
-   * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
    *                                 to a given request
    * @return null, always
-   * @throws AmbariException if an error occurs while processing the identity record
+   * @throws AmbariException
    */
   @Override
-  protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
-                                          KerberosOperationHandler operationHandler,
-                                          Map<String, String> kerberosConfiguration,
-                                          Map<String, Object> requestSharedDataContext)
-      throws AmbariException {
+  protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal, KerberosOperationHandler operationHandler, Map<String, Object> requestSharedDataContext) throws AmbariException {
     return null;
   }
 
@@ -110,5 +105,4 @@ public class CleanupServerAction extends KerberosServerAction {
       throw new AmbariException("An unknown error occurred while trying to delete the cluster Kerberos descriptor", e);
     }
   }
-
 }

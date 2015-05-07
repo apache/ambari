@@ -104,54 +104,6 @@
     <value>/usr/bin, /usr/kerberos/bin, /usr/sbin, /usr/lib/mit/bin, /usr/lib/mit/sbin</value>
   </property>
 
-  <property>
-    <name>password_length</name>
-    <description>
-      The length required length for generated passwords.
-    </description>
-    <value>20</value>
-  </property>
-
-  <property>
-    <name>password_min_lowercase_letters</name>
-    <description>
-      The minimum number of lowercase letters (a-z) required in generated passwords
-    </description>
-    <value>1</value>
-  </property>
-
-  <property>
-    <name>password_min_uppercase_letters</name>
-    <description>
-      The minimum number of uppercase letters (A-Z) required in generated passwords
-    </description>
-    <value>1</value>
-  </property>
-
-  <property>
-    <name>password_min_digits</name>
-    <description>
-      The minimum number of digits (0-9) required in generated passwords
-    </description>
-    <value>1</value>
-  </property>
-
-  <property>
-    <name>password_min_punctuation</name>
-    <description>
-      The minimum number of punctuation characters (?.!$%^*()-_+=~) required in generated passwords
-    </description>
-    <value>1</value>
-  </property>
-
-  <property>
-    <name>password_min_whitespace</name>
-    <description>
-      The minimum number of whitespace characters required in generated passwords
-    </description>
-    <value>0</value>
-  </property>
-
   <property require-input="true">
     <name>create_attributes_template</name>
     <description>

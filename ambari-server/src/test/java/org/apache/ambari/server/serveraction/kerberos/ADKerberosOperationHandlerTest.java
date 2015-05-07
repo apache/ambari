@@ -511,16 +511,16 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
 
     evaluatedPrincipal = "nn/c6501.ambari.apache.org@" + DEFAULT_REALM;
     if (handler.principalExists(evaluatedPrincipal)) {
-      handler.setPrincipalPassword(evaluatedPrincipal, "some password");
+      handler.setPrincipalPassword(evaluatedPrincipal, handler.createSecurePassword());
     } else {
-      handler.createPrincipal(evaluatedPrincipal, "some password", true);
+      handler.createPrincipal(evaluatedPrincipal, handler.createSecurePassword(), true);
     }
 
     evaluatedPrincipal = "hdfs@" + DEFAULT_REALM;
     if (handler.principalExists(evaluatedPrincipal)) {
-      handler.setPrincipalPassword(evaluatedPrincipal, "some password");
+      handler.setPrincipalPassword(evaluatedPrincipal, handler.createSecurePassword());
     } else {
-      handler.createPrincipal(evaluatedPrincipal, "some password", true);
+      handler.createPrincipal(evaluatedPrincipal, handler.createSecurePassword(), true);
     }
 
     kerberosEnvMap.put(ADKerberosOperationHandler.KERBEROS_ENV_CREATE_ATTRIBUTES_TEMPLATE,
@@ -552,11 +552,11 @@ public class ADKerberosOperationHandlerTest extends KerberosOperationHandlerTest
     handler.removePrincipal("abcdefg");
     handler.removePrincipal("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM);
 
-    handler.createPrincipal("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, "some password", true);
-    handler.createPrincipal("abcdefg@" + DEFAULT_REALM, "some password", false);
+    handler.createPrincipal("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, handler.createSecurePassword(), true);
+    handler.createPrincipal("abcdefg@" + DEFAULT_REALM, handler.createSecurePassword(), false);
 
     //update the password
-    handler.setPrincipalPassword("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, "some password");
+    handler.setPrincipalPassword("abcdefg/c1509.ambari.apache.org@" + DEFAULT_REALM, handler.createSecurePassword());
 
     handler.close();
   }

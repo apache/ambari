@@ -18,7 +18,6 @@
 
 package org.apache.ambari.server.serveraction.kerberos;
 
-import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.apache.ambari.server.utils.ShellCommandUtil;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.directory.server.kerberos.shared.crypto.encryption.KerberosKeyFactory;
@@ -35,6 +34,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
@@ -52,6 +52,13 @@ import java.util.Set;
  */
 public abstract class KerberosOperationHandler {
   private final static Logger LOG = LoggerFactory.getLogger(KerberosOperationHandler.class);
+
+  private final static SecureRandom SECURE_RANDOM = new SecureRandom();
+
+  /**
+   * The number of characters to generate for a secure password
+   */
+  protected final static int SECURE_PASSWORD_LENGTH = 18;
 
   /**
    * Kerberos-env configuration property name: ldap_url
@@ -87,6 +94,12 @@ public abstract class KerberosOperationHandler {
    * Kerberos-env configuration property name: executable_search_paths
    */
   public final static String KERBEROS_ENV_EXECUTABLE_SEARCH_PATHS = "executable_search_paths";
+
+  /**
+   * The set of available characters to use when generating a secure password
+   */
+  private final static char[] SECURE_PASSWORD_CHARS =
+      "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?.!$%^*()-_+=~".toCharArray();
 
   /**
    * An array of String values declaring the default (ordered) list of path to search for executables
@@ -195,6 +208,45 @@ public abstract class KerberosOperationHandler {
    */
   private String[] executableSearchPaths = null;
 
+
+  /**
+   * Create a secure (random) password using a secure random number generator and a set of (reasonable)
+   * characters.
+   *
+   * @return a String containing the new password
+   */
+  public String createSecurePassword() {
+    return createSecurePassword(SECURE_PASSWORD_LENGTH);
+  }
+
+  /**
+   * Create a secure (random) password using a secure random number generator and a set of (reasonable)
+   * characters.
+   *
+   * @param length an integer value declaring the length of the password to create,
+   *               if <1, a default will be used.
+   * @return a String containing the new password
+   */
+  public String createSecurePassword(int length) {
+    StringBuilder passwordBuilder;
+
+    // If the supplied length is less than 1 use the default value.
+    if (length < 1) {
+      length = SECURE_PASSWORD_LENGTH;
+    }
+
+    // Create a new StringBuilder and ensure its capacity is set for the length of the password to
+    // be generated
+    passwordBuilder = new StringBuilder(length);
+
+    // For each character to be added to the password, (securely) generate a random number to pull
+    // a random character from the character array
+    for (int i = 0; i < length; i++) {
+      passwordBuilder.append(SECURE_PASSWORD_CHARS[SECURE_RANDOM.nextInt(SECURE_PASSWORD_CHARS.length)]);
+    }
+
+    return passwordBuilder.toString();
+  }
 
   /**
    * Prepares and creates resources to be used by this KerberosOperationHandler.

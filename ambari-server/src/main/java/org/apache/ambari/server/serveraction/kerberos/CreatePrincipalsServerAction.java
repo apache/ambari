@@ -24,7 +24,6 @@ import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalDAO;
 import org.apache.ambari.server.orm.dao.KerberosPrincipalHostDAO;
-import org.apache.ambari.server.security.SecurePasswordHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +35,7 @@ import java.util.concurrent.ConcurrentMap;
  * <p/>
  * This class mainly relies on the KerberosServerAction to iterate through metadata identifying
  * the Kerberos principals that need to be created. For each identity in the metadata, this implementation's
- * {@link KerberosServerAction#processIdentity(Map, String, KerberosOperationHandler, Map, Map)}
+ * {@link KerberosServerAction#processIdentity(java.util.Map, String, KerberosOperationHandler, java.util.Map)}
  * is invoked attempting the creation of the relevant principal.
  */
 public class CreatePrincipalsServerAction extends KerberosServerAction {
@@ -53,12 +52,6 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    */
   @Inject
   private KerberosPrincipalHostDAO kerberosPrincipalHostDAO;
-
-  /**
-   * SecurePasswordHelper used to generate secure passwords for newly created principals
-   */
-  @Inject
-  private SecurePasswordHelper securePasswordHelper;
 
   /**
    * Called to execute this action.  Upon invocation, calls
@@ -85,7 +78,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * an assume to be configured KDC.
    * <p/>
    * If a password has not been previously created the current evaluatedPrincipal, create a "secure"
-   * password using {@link SecurePasswordHelper#createSecurePassword()}.  Then if the principal
+   * password using {@link KerberosOperationHandler#createSecurePassword()}.  Then if the principal
    * does not exist in the KDC, create it using the generated password; else if it does exist update
    * its password.  Finally store the generated password in the shared principal-to-password map and
    * store the new key numbers in the shared principal-to-key_number map so that subsequent process
@@ -96,16 +89,14 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
    * @param operationHandler         a KerberosOperationHandler used to perform Kerberos-related
    *                                 tasks for specific Kerberos implementations
    *                                 (MIT, Active Directory, etc...)
-   * @param kerberosConfiguration    a Map of configuration properties from kerberos-env
    * @param requestSharedDataContext a Map to be used a shared data among all ServerActions related
-   *                                 to a given request  @return a CommandReport, indicating an error
-   *                                 condition; or null, indicating a success condition
+   *                                 to a given request
+   * @return a CommandReport, indicating an error condition; or null, indicating a success condition
    * @throws AmbariException if an error occurs while processing the identity record
    */
   @Override
   protected CommandReport processIdentity(Map<String, String> identityRecord, String evaluatedPrincipal,
                                           KerberosOperationHandler operationHandler,
-                                          Map<String, String> kerberosConfiguration,
                                           Map<String, Object> requestSharedDataContext)
       throws AmbariException {
     CommandReport commandReport = null;
@@ -123,31 +114,7 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
         LOG.info(message);
         actionLog.writeStdOut(message);
 
-        Integer length;
-        Integer minLowercaseLetters;
-        Integer minUppercaseLetters;
-        Integer minDigits;
-        Integer minPunctuation;
-        Integer minWhitespace;
-
-        if(kerberosConfiguration == null) {
-          length = null;
-          minLowercaseLetters= null;
-          minUppercaseLetters= null;
-          minDigits= null;
-          minPunctuation= null;
-          minWhitespace= null;
-        }
-        else {
-          length = toInt(kerberosConfiguration.get("password_length"));
-          minLowercaseLetters = toInt(kerberosConfiguration.get("password_min_lowercase_letters"));
-          minUppercaseLetters = toInt(kerberosConfiguration.get("password_min_uppercase_letters"));
-          minDigits = toInt(kerberosConfiguration.get("password_min_digits"));
-          minPunctuation = toInt(kerberosConfiguration.get("password_min_punctuation"));
-          minWhitespace = toInt(kerberosConfiguration.get("password_min_whitespace"));
-        }
-
-        password = securePasswordHelper.createSecurePassword(length, minLowercaseLetters, minUppercaseLetters, minDigits, minPunctuation, minWhitespace);
+        password = operationHandler.createSecurePassword();
 
         try {
           boolean servicePrincipal = "service".equalsIgnoreCase(identityRecord.get(KerberosIdentityDataFileReader.PRINCIPAL_TYPE));
@@ -204,26 +171,5 @@ public class CreatePrincipalsServerAction extends KerberosServerAction {
     }
 
     return commandReport;
-  }
-
-  /**
-   * Translates a String containing an integer value to an Integer.
-   * <p/>
-   * If the string is null, empty or not a number, returns null; otherwise returns an Integer value
-   * representing the integer value of the string.
-   *
-   * @param string the string to parse
-   * @return an Integer or null
-   */
-  private Integer toInt(String string) {
-    if ((string == null) || string.isEmpty()) {
-      return null;
-    } else {
-      try {
-        return Integer.parseInt(string);
-      } catch (NumberFormatException e) {
-        return null;
-      }
-    }
   }
 }
