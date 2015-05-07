@@ -54,6 +54,8 @@ public abstract class AbstractTimelineMetricsSink {
 
   public AbstractTimelineMetricsSink() {
     LOG = LogFactory.getLog(this.getClass());
+    httpClient.getParams().setSoTimeout(getTimeoutSeconds() * 1000);
+    httpClient.getParams().setConnectionManagerTimeout(getTimeoutSeconds() * 1000);
   }
 
   protected void emitMetrics(TimelineMetrics metrics) throws IOException {
@@ -65,10 +67,11 @@ public abstract class AbstractTimelineMetricsSink {
 
       PostMethod postMethod = new PostMethod(connectUrl);
       postMethod.setRequestEntity(requestEntity);
-      postMethod.setParameter(HttpMethodParams.SO_TIMEOUT, String.valueOf(getTimeoutSeconds() * 1000));
       int statusCode = httpClient.executeMethod(postMethod);
+
       if (statusCode != 200) {
-        LOG.info("Unable to POST metrics to collector, " + connectUrl);
+        LOG.info("Unable to POST metrics to collector, " + connectUrl + ", " +
+          "statusCode = " + statusCode);
       } else {
         LOG.debug("Metrics posted to Collector " + connectUrl);
       }
