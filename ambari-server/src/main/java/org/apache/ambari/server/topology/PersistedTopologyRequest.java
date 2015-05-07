@@ -10,8 +10,7 @@
  *     http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distribut
- * ed on an "AS IS" BASIS,
+ * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
@@ -20,28 +19,23 @@
 package org.apache.ambari.server.topology;
 
 /**
- * Task which is executed by the TopologyManager.
+ * Wrapper around a TopologyRequest which adds an id that can be used
+ * to refer to the persisted entity.
  */
-public interface TopologyTask extends Runnable {
-  /**
-   * Task type.
-   */
-  public enum Type {
-    RESOURCE_CREATION,
-    CONFIGURE,
-    INSTALL,
-    START
+public class PersistedTopologyRequest {
+  private final long id;
+  private final TopologyRequest request;
+
+  public PersistedTopologyRequest(long id, TopologyRequest request) {
+    this.id = id;
+    this.request = request;
   }
 
-  /**
-   * injection of topology and ambari context
-   */
-  public void init(ClusterTopology topology, AmbariContext ambariContext);
+  public long getId() {
+    return id;
+  }
 
-  /**
-   * Get the task type.
-   *
-   * @return the type of task
-   */
-  public Type getType();
+  public TopologyRequest getRequest() {
+    return request;
+  }
 }

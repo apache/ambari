@@ -355,13 +355,13 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
 
     installProperties.put(HOST_COMPONENT_DESIRED_STATE_PROPERTY_ID, "INSTALLED");
     Map<String, String> requestInfo = new HashMap<String, String>();
-    requestInfo.put("context", "Install components on added hosts");
+    requestInfo.put("context", String.format("Install components on host %s", hostname));
     Request installRequest = PropertyHelper.getUpdateRequest(installProperties, requestInfo);
 
     Predicate statePredicate = new EqualsPredicate<String>(HOST_COMPONENT_STATE_PROPERTY_ID, "INIT");
     Predicate clusterPredicate = new EqualsPredicate<String>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
     // single host
-    Predicate hostPredicate = new EqualsPredicate(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostname);
+    Predicate hostPredicate = new EqualsPredicate<String>(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostname);
     //Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
     Predicate hostAndStatePredicate = new AndPredicate(statePredicate, hostPredicate);
     Predicate installPredicate = new AndPredicate(hostAndStatePredicate, clusterPredicate);
@@ -387,10 +387,10 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
       UnsupportedPropertyException, NoSuchParentResourceException {
 
     Map<String, String> requestInfo = new HashMap<String, String>();
-    requestInfo.put("context", "Start components on added hosts");
+    requestInfo.put("context", String.format("Start components on host %s", hostName));
 
     Predicate clusterPredicate = new EqualsPredicate<String>(HOST_COMPONENT_CLUSTER_NAME_PROPERTY_ID, cluster);
-    Predicate hostPredicate = new EqualsPredicate(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostName);
+    Predicate hostPredicate = new EqualsPredicate<String>(HOST_COMPONENT_HOST_NAME_PROPERTY_ID, hostName);
     //Predicate hostPredicate = new OrPredicate(hostPredicates.toArray(new Predicate[hostPredicates.size()]));
 
     RequestStageContainer requestStages;
@@ -742,12 +742,32 @@ public class HostComponentResourceProvider extends AbstractControllerResourcePro
     RequestStageContainer requestStages = modifyResources(new Command<RequestStageContainer>() {
       @Override
       public RequestStageContainer invoke() throws AmbariException {
-        return updateHostComponents(stages, requests, request.getRequestInfoProperties(),
-            runSmokeTest);
+        RequestStageContainer stageContainer = null;
+        int retriesRemaining = 100;
+        do {
+          try {
+            stageContainer = updateHostComponents(stages, requests, request.getRequestInfoProperties(),
+                runSmokeTest);
+          } catch (Exception e) {
+            LOG.info("Caught an exception while updating host components, retrying : " + e);
+            if (--retriesRemaining == 0) {
+              e.printStackTrace();
+              throw new RuntimeException("Update Host request submission failed: " + e, e);
+            } else {
+              try {
+                Thread.sleep(250);
+              } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException("Update Host request submission failed: " + e, e);
+              }
+            }
+          }
+        } while (stageContainer == null);
+
+        return stageContainer;
       }
     });
     notifyUpdate(Resource.Type.HostComponent, request, predicate);
-
     return requestStages;
   }
 

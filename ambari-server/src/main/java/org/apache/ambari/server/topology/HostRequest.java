@@ -18,144 +18,122 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.ActionManager;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
-import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
-import org.apache.ambari.server.actionmanager.HostRoleStatus;
-import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.ConfigGroupRequest;
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.RequestStatusResponse;
-import org.apache.ambari.server.controller.ServiceComponentHostRequest;
 import org.apache.ambari.server.controller.ShortTaskStatus;
-import org.apache.ambari.server.controller.internal.ConfigGroupResourceProvider;
-import org.apache.ambari.server.controller.internal.HostComponentResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
-import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.Stack;
-import org.apache.ambari.server.controller.spi.NoSuchParentResourceException;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
-import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
-import org.apache.ambari.server.controller.spi.SystemException;
-import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
-import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Clusters;
-import org.apache.ambari.server.state.Config;
-import org.apache.ambari.server.state.ConfigHelper;
-import org.apache.ambari.server.state.ConfigImpl;
-import org.apache.ambari.server.state.StackId;
-import org.apache.ambari.server.state.configgroup.ConfigGroup;
+import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
+import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 import org.apache.ambari.server.state.host.HostImpl;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-
-import static org.apache.ambari.server.controller.AmbariServer.getController;
 
 /**
  * Represents a set of requests to a single host such as install, start, etc.
  */
 public class HostRequest implements Comparable<HostRequest> {
 
+  private final static Logger LOG = LoggerFactory.getLogger(HostRequest.class);
+
   private long requestId;
   private String blueprint;
   private HostGroup hostGroup;
   private String hostgroupName;
   private Predicate predicate;
-  private int cardinality = -1;
   private String hostname = null;
   private String cluster;
   private boolean containsMaster;
-  private long stageId = -1;
-  //todo: should be able to use the presence of hostName for this
-  private boolean outstanding = true;
+  private final long id;
+  private boolean isOutstanding = true;
 
-  //todo: remove
-  private Map<String, Long> logicalInstallTaskIds = new HashMap<String, Long>();
-  //todo: remove
-  private Map<String, Long> logicalStartTaskIds = new HashMap<String, Long>();
+  private Map<TopologyTask, Map<String, Long>> logicalTaskMap = new HashMap<TopologyTask, Map<String, Long>>();
 
-  Collection<HostRoleCommand> logicalTasks = new ArrayList<HostRoleCommand>();
+  Map<Long, HostRoleCommand> logicalTasks = new HashMap<Long, HostRoleCommand>();
 
   // logical task id -> physical tasks
-  private Map<Long, Collection<Long>> physicalTasks = new HashMap<Long, Collection<Long>>();
+  private Map<Long, Long> physicalTasks = new HashMap<Long, Long>();
 
-  private static HostResourceProvider hostResourceProvider;
+  private List<TopologyTask> topologyTasks = new ArrayList<TopologyTask>();
 
-  private HostComponentResourceProvider hostComponentResourceProvider;
+  private ClusterTopology topology;
 
-  private AmbariManagementController controller = getController();
-  private ActionManager actionManager = controller.getActionManager();
-  private ConfigHelper configHelper = controller.getConfigHelper();
-  private AmbariMetaInfo metaInfoManager = controller.getAmbariMetaInfo();
+  private static PredicateCompiler predicateCompiler = new PredicateCompiler();
 
-  //todo: temporary refactoring step
-  private TopologyManager.ClusterTopologyContext topologyContext;
-
-  private static HostRoleCommandFactory hostRoleCommandFactory;
-
-  public static void init(HostRoleCommandFactory factory) {
-    hostRoleCommandFactory = factory;
-  }
-
-  public HostRequest(long requestId, long stageId, String cluster, String blueprintName, HostGroup hostGroup,
-                     int cardinality, Predicate predicate, TopologyManager.ClusterTopologyContext topologyContext) {
+  public HostRequest(long requestId, long id, String cluster, String hostname, String blueprintName,
+                     HostGroup hostGroup, Predicate predicate, ClusterTopology topology) {
     this.requestId = requestId;
-    this.stageId = stageId;
+    this.id = id;
     this.cluster = cluster;
     this.blueprint = blueprintName;
     this.hostGroup = hostGroup;
     this.hostgroupName = hostGroup.getName();
-    this.cardinality = cardinality;
     this.predicate = predicate;
     this.containsMaster = hostGroup.containsMasterComponent();
-    this.topologyContext = topologyContext;
+    this.topology = topology;
 
     createTasks();
-    System.out.println("HostRequest: Created request: Host Association Pending");
+    System.out.println("HostRequest: Created request for host: " +
+        (hostname == null ? "Host Assignment Pending" : hostname));
   }
 
-  public HostRequest(long requestId, long stageId, String cluster, String blueprintName, HostGroup hostGroup,
-                     String hostname, Predicate predicate, TopologyManager.ClusterTopologyContext topologyContext) {
-    this.requestId = requestId;
-    this.stageId = stageId;
-    this.cluster = cluster;
-    this.blueprint = blueprintName;
-    this.hostGroup = hostGroup;
-    this.hostgroupName = hostGroup.getName();
-    this.hostname = hostname;
-    this.predicate = predicate;
-    this.containsMaster = hostGroup.containsMasterComponent();
-    this.topologyContext = topologyContext;
+  /**
+   * Only to be used when replaying persisted requests upon server startup.
+   *
+   * @param requestId    logical request id
+   * @param id           host request id
+   * @param predicate    host predicate
+   * @param topology     cluster topology
+   * @param entity       host request entity
+   */
+  public HostRequest(long requestId, long id, String predicate,
+                     ClusterTopology topology, TopologyHostRequestEntity entity) {
 
-    createTasks();
-    System.out.println("HostRequest: Created request for host: " + hostname);
+    this.requestId = requestId;
+    this.id = id;
+    this.cluster = topology.getClusterName();
+    this.blueprint = topology.getBlueprint().getName();
+    this.hostgroupName = entity.getTopologyHostGroupEntity().getName();
+    this.hostGroup = topology.getBlueprint().getHostGroup(hostgroupName);
+    this.hostname = entity.getHostName();
+    this.predicate = toPredicate(predicate);
+    this.containsMaster = hostGroup.containsMasterComponent();
+    this.topology = topology;
+
+    createTasksForReplay(entity);
+
+    //todo: we may be able to simplify by just checking hostname
+    isOutstanding = hostname == null || !topology.getAmbariContext().
+        isHostRegisteredWithCluster(cluster, hostname);
+
+    System.out.println("HostRequest: Successfully recovered host request for host: " +
+        (hostname == null ? "Host Assignment Pending" : hostname));
   }
 
   //todo: synchronization
   public synchronized HostOfferResponse offer(HostImpl host) {
-    if (! outstanding) {
+    if (!isOutstanding) {
       return new HostOfferResponse(HostOfferResponse.Answer.DECLINED_DONE);
     }
     if (matchesHost(host)) {
-      outstanding = false;
+      isOutstanding = false;
       hostname = host.getHostName();
-      List<TopologyTask> tasks = provision(host);
-
-      return new HostOfferResponse(HostOfferResponse.Answer.ACCEPTED, hostGroup.getName(), tasks);
+      setHostOnTasks(host);
+      return new HostOfferResponse(HostOfferResponse.Answer.ACCEPTED, id, hostGroup.getName(), topologyTasks);
     } else {
       return new HostOfferResponse(HostOfferResponse.Answer.DECLINED_PREDICATE);
     }
@@ -184,32 +162,28 @@ public class HostRequest implements Comparable<HostRequest> {
     return hostgroupName;
   }
 
-  public int getCardinality() {
-    return cardinality;
-  }
-
   public Predicate getPredicate() {
     return predicate;
   }
 
-
-  private List<TopologyTask> provision(HostImpl host) {
-    List<TopologyTask> tasks = new ArrayList<TopologyTask>();
-
-    tasks.add(new CreateHostResourcesTask(topologyContext.getClusterTopology(), host, getHostgroupName()));
-    setHostOnTasks(host);
-
-    HostGroup hostGroup = getHostGroup();
-    tasks.add(new ConfigureConfigGroup(getConfigurationGroupName(hostGroup.getBlueprintName(),
-        hostGroup.getName()), getClusterName(), hostname));
-
-    tasks.add(getInstallTask());
-    tasks.add(getStartTask());
-
-    return tasks;
+  public boolean isCompleted() {
+    return ! isOutstanding;
   }
 
   private void createTasks() {
+    // high level topology tasks such as INSTALL, START, ...
+    topologyTasks.add(new PersistHostResourcesTask());
+    topologyTasks.add(new RegisterWithConfigGroupTask());
+
+    InstallHostTask installTask = new InstallHostTask();
+    topologyTasks.add(installTask);
+    StartHostTask startTask = new StartHostTask();
+    topologyTasks.add(startTask);
+
+    logicalTaskMap.put(installTask, new HashMap<String, Long>());
+    logicalTaskMap.put(startTask, new HashMap<String, Long>());
+
+    // lower level logical component level tasks which get mapped to physical tasks
     HostGroup hostGroup = getHostGroup();
     for (String component : hostGroup.getComponents()) {
       if (component == null || component.equals("AMBARI_SERVER")) {
@@ -221,79 +195,90 @@ public class HostRequest implements Comparable<HostRequest> {
           getHostName() :
           "PENDING HOST ASSIGNMENT : HOSTGROUP=" + getHostgroupName();
 
-      HostRoleCommand installTask = hostRoleCommandFactory.create(hostName, Role.valueOf(component), null, RoleCommand.INSTALL);
-      installTask.setStatus(HostRoleStatus.PENDING);
-      installTask.setTaskId(topologyContext.getNextTaskId());
-      installTask.setRequestId(getRequestId());
-      installTask.setStageId(stageId);
-
-      //todo: had to add requestId to ShortTaskStatus
-      //todo: revert addition of requestId when we are using LogicalTask
-      installTask.setRequestId(getRequestId());
-
-      logicalTasks.add(installTask);
-      registerLogicalInstallTaskId(component, installTask.getTaskId());
+      AmbariContext context = topology.getAmbariContext();
+      HostRoleCommand logicalInstallTask = context.createAmbariTask(
+          getRequestId(), id, component, hostName, AmbariContext.TaskType.INSTALL);
+      logicalTasks.put(logicalInstallTask.getTaskId(), logicalInstallTask);
+      logicalTaskMap.get(installTask).put(component, logicalInstallTask.getTaskId());
 
       Stack stack = hostGroup.getStack();
-      try {
-        // if component isn't a client, add a start task
-        if (! metaInfoManager.getComponent(stack.getName(), stack.getVersion(), stack.getServiceForComponent(component), component).isClient()) {
-          HostRoleCommand startTask = hostRoleCommandFactory.create(hostName, Role.valueOf(component), null, RoleCommand.START);
-          startTask.setStatus(HostRoleStatus.PENDING);
-          startTask.setRequestId(getRequestId());
-          startTask.setTaskId(topologyContext.getNextTaskId());
-          startTask.setRequestId(getRequestId());
-          startTask.setStageId(stageId);
-          logicalTasks.add(startTask);
-          registerLogicalStartTaskId(component, startTask.getTaskId());
-        }
-      } catch (AmbariException e) {
-        e.printStackTrace();
-        //todo: how to handle
-        throw new RuntimeException(e);
+      // if component isn't a client, add a start task
+      if (! stack.getComponentInfo(component).isClient()) {
+        HostRoleCommand logicalStartTask = context.createAmbariTask(
+            getRequestId(), id, component, hostName, AmbariContext.TaskType.START);
+        logicalTasks.put(logicalStartTask.getTaskId(), logicalStartTask);
+        logicalTaskMap.get(startTask).put(component, logicalStartTask.getTaskId());
       }
     }
   }
 
-  /**
-   * Get a config group name based on a bp and host group.
-   *
-   * @param bpName         blueprint name
-   * @param hostGroupName  host group name
-   * @return  config group name
-   */
-  protected String getConfigurationGroupName(String bpName, String hostGroupName) {
-    return String.format("%s:%s", bpName, hostGroupName);
+  private void createTasksForReplay(TopologyHostRequestEntity entity) {
+    topologyTasks.add(new PersistHostResourcesTask());
+    topologyTasks.add(new RegisterWithConfigGroupTask());
+    InstallHostTask installTask = new InstallHostTask();
+    topologyTasks.add(installTask);
+    StartHostTask startTask = new StartHostTask();
+    topologyTasks.add(startTask);
+
+    logicalTaskMap.put(installTask, new HashMap<String, Long>());
+    logicalTaskMap.put(startTask, new HashMap<String, Long>());
+
+    AmbariContext ambariContext = topology.getAmbariContext();
+    // lower level logical component level tasks which get mapped to physical tasks
+    for (TopologyHostTaskEntity topologyTaskEntity : entity.getTopologyHostTaskEntities()) {
+      TopologyTask.Type taskType = TopologyTask.Type.valueOf(topologyTaskEntity.getType());
+      for (TopologyLogicalTaskEntity logicalTaskEntity : topologyTaskEntity.getTopologyLogicalTaskEntities()) {
+        Long logicalTaskId = logicalTaskEntity.getId();
+        String component = logicalTaskEntity.getComponentName();
+
+        AmbariContext.TaskType logicalTaskType = getLogicalTaskType(taskType);
+        HostRoleCommand task = ambariContext.createAmbariTask(logicalTaskId, getRequestId(), id,
+            component, entity.getHostName(), logicalTaskType);
+
+        logicalTasks.put(logicalTaskId, task);
+        Long physicalTaskId = logicalTaskEntity.getPhysicalTaskId();
+        if (physicalTaskId != null) {
+          registerPhysicalTaskId(logicalTaskId, physicalTaskId);
+        }
+
+        //assumes only one task per type
+        for (TopologyTask topologyTask : topologyTasks) {
+          if (taskType == topologyTask.getType()) {
+            logicalTaskMap.get(topologyTask).put(component, logicalTaskId);
+          }
+        }
+      }
+    }
+  }
+
+  private static AmbariContext.TaskType getLogicalTaskType(TopologyTask.Type topologyTaskType) {
+    return topologyTaskType ==
+        TopologyTask.Type.INSTALL ?
+        AmbariContext.TaskType.INSTALL :
+        AmbariContext.TaskType.START;
   }
 
   private void setHostOnTasks(HostImpl host) {
-    for (HostRoleCommand task : getTasks()) {
+    for (HostRoleCommand task : getLogicalTasks()) {
       task.setHostEntity(host.getHostEntity());
     }
   }
 
-  //todo: analyze all all configuration needs for dealing with deprecated properties
-  /**
-   * Since global configs are deprecated since 1.7.0, but still supported.
-   * We should automatically map any globals used, to *-env dictionaries.
-   *
-   * @param blueprintConfigurations  map of blueprint configurations keyed by type
-   */
-  private void handleGlobalsBackwardsCompability(Stack stack,
-                                                 Map<String, Map<String, String>> blueprintConfigurations) {
-
-    StackId stackId = new StackId(stack.getName(), stack.getVersion());
-    configHelper.moveDeprecatedGlobals(stackId, blueprintConfigurations, getClusterName());
+  public List<TopologyTask> getTopologyTasks() {
+    return topologyTasks;
   }
 
-  public Collection<HostRoleCommand> getTasks() {
+  public Collection<HostRoleCommand> getLogicalTasks() {
     // sync logical task state with physical tasks
-    for (HostRoleCommand logicalTask : logicalTasks) {
-      Collection<Long> physicalTaskIds = physicalTasks.get(logicalTask.getTaskId());
-      if (physicalTaskIds != null) {
-        //todo: for now only one physical task per logical task
-        long physicalTaskId = physicalTaskIds.iterator().next();
-        HostRoleCommand physicalTask = actionManager.getTaskById(physicalTaskId);
+    for (HostRoleCommand logicalTask : logicalTasks.values()) {
+      // set host on command detail if it is set to null
+      String commandDetail = logicalTask.getCommandDetail();
+      if (commandDetail != null && commandDetail.contains("null")) {
+        logicalTask.setCommandDetail(commandDetail.replace("null", hostname));
+      }
+      Long physicalTaskId = physicalTasks.get(logicalTask.getTaskId());
+      if (physicalTaskId != null) {
+        HostRoleCommand physicalTask = topology.getAmbariContext().getPhysicalTask(physicalTaskId);
         if (physicalTask != null) {
           logicalTask.setStatus(physicalTask.getStatus());
           logicalTask.setCommandDetail(physicalTask.getCommandDetail());
@@ -313,12 +298,20 @@ public class HostRequest implements Comparable<HostRequest> {
         }
       }
     }
-    return logicalTasks;
+    return logicalTasks.values();
+  }
+
+  public Map<String, Long> getLogicalTasksForTopologyTask(TopologyTask topologyTask) {
+    return new HashMap<String, Long>(logicalTaskMap.get(topologyTask));
+  }
+
+  public HostRoleCommand getLogicalTask(long logicalTaskId) {
+    return logicalTasks.get(logicalTaskId);
   }
 
   public Collection<HostRoleCommandEntity> getTaskEntities() {
     Collection<HostRoleCommandEntity> taskEntities = new ArrayList<HostRoleCommandEntity>();
-    for (HostRoleCommand task : logicalTasks) {
+    for (HostRoleCommand task : logicalTasks.values()) {
       HostRoleCommandEntity entity = task.constructNewPersistenceEntity();
       // the above method doesn't set all of the fields for some unknown reason
       entity.setRequestId(task.getRequestId());
@@ -328,11 +321,9 @@ public class HostRequest implements Comparable<HostRequest> {
       entity.setErrorLog(task.errorLog);
 
       // set state from physical task
-      Collection<Long> physicalTaskIds = physicalTasks.get(task.getTaskId());
-      if (physicalTaskIds != null) {
-        //todo: for now only one physical task per logical task
-        long physicalTaskId = physicalTaskIds.iterator().next();
-        HostRoleCommand physicalTask = actionManager.getTaskById(physicalTaskId);
+      Long physicalTaskId = physicalTasks.get(task.getTaskId());
+      if (physicalTaskId != null) {
+        HostRoleCommand physicalTask = topology.getAmbariContext().getPhysicalTask(physicalTaskId);
         if (physicalTask != null) {
           entity.setStatus(physicalTask.getStatus());
           entity.setCommandDetail(physicalTask.getCommandDetail());
@@ -361,41 +352,26 @@ public class HostRequest implements Comparable<HostRequest> {
   }
 
   public boolean matchesHost(HostImpl host) {
-    if (hostname != null) {
-      return host.getHostName().equals(hostname);
-    } else if (predicate != null) {
-      return predicate.evaluate(new HostResourceAdapter(host));
-    } else {
-      return true;
-    }
+    return (hostname != null) ?
+        host.getHostName().equals(hostname) :
+        predicate == null || predicate.evaluate(new HostResourceAdapter(host));
   }
 
   public String getHostName() {
     return hostname;
   }
 
+  public long getId() {
+    return id;
+  }
+
   public long getStageId() {
-    return stageId;
+    // stage id is same as host request id
+    return getId();
   }
 
-  //todo: remove
-  private void registerLogicalInstallTaskId(String component, long taskId) {
-    logicalInstallTaskIds.put(component, taskId);
-  }
-
-  //todo: remove
-  private void registerLogicalStartTaskId(String component, long taskId) {
-    logicalStartTaskIds.put(component, taskId);
-  }
-
-  //todo: remove
-  private long getLogicalInstallTaskId(String component) {
-    return logicalInstallTaskIds.get(component);
-  }
-
-  //todo: remove
-  private long getLogicalStartTaskId(String component) {
-    return logicalStartTaskIds.get(component);
+  public Long getPhysicalTaskId(long logicalTaskId) {
+    return physicalTasks.get(logicalTaskId);
   }
 
   //todo: since this is used to determine equality, using hashCode() isn't safe as it can return the same
@@ -411,152 +387,27 @@ public class HostRequest implements Comparable<HostRequest> {
 
   //todo: once we have logical tasks, move tracking of physical tasks there
   public void registerPhysicalTaskId(long logicalTaskId, long physicalTaskId) {
-    Collection<Long> physicalTasksForId = physicalTasks.get(logicalTaskId);
-    if (physicalTasksForId == null) {
-      physicalTasksForId = new HashSet<Long>();
-      physicalTasks.put(logicalTaskId, physicalTasksForId);
-    }
-    physicalTasksForId.add(physicalTaskId);
+    physicalTasks.put(logicalTaskId, physicalTaskId);
+
+    topology.getAmbariContext().getPersistedTopologyState().
+        registerPhysicalTask(logicalTaskId, physicalTaskId);
   }
 
-  //todo: temporary step
-  public TopologyTask getInstallTask() {
-    return new InstallHostTask();
-  }
-
-  //todo: temporary step
-  public TopologyTask getStartTask() {
-    return new StartHostTask();
-  }
-
-  //todo: temporary refactoring step
-  public HostGroupInfo createHostGroupInfo(HostGroup group) {
-    HostGroupInfo info = new HostGroupInfo(group.getName());
-    info.setConfiguration(group.getConfiguration());
-
-    return info;
-  }
-
-  private synchronized HostResourceProvider getHostResourceProvider() {
-    if (hostResourceProvider == null) {
-      hostResourceProvider = (HostResourceProvider)
-          ClusterControllerHelper.getClusterController().ensureResourceProvider(Resource.Type.Host);
-
-    }
-    return hostResourceProvider;
-  }
-
-  private synchronized HostComponentResourceProvider getHostComponentResourceProvider() {
-    if (hostComponentResourceProvider == null) {
-      hostComponentResourceProvider = (HostComponentResourceProvider)
-          ClusterControllerHelper.getClusterController().ensureResourceProvider(Resource.Type.HostComponent);
-    }
-    return hostComponentResourceProvider;
-  }
-
-  //todo: extract
-  private class InstallHostTask implements TopologyTask {
-    //todo: use future to obtain returned Response which contains the request id
-    //todo: error handling
-    //todo: monitor status of requests
-
-    @Override
-    public Type getType() {
-      return Type.INSTALL;
-    }
-
-    @Override
-    public void run() {
-      try {
-        System.out.println("HostRequest.InstallHostTask: Executing INSTALL task for host: " + hostname);
-        RequestStatusResponse response = getHostResourceProvider().install(getHostName(), cluster);
-        // map logical install tasks to physical install tasks
-        List<ShortTaskStatus> underlyingTasks = response.getTasks();
-        for (ShortTaskStatus task : underlyingTasks) {
-          Long logicalInstallTaskId = getLogicalInstallTaskId(task.getRole());
-          //todo: for now only one physical task per component
-          long taskId = task.getTaskId();
-          //physicalTasks.put(logicalInstallTaskId, Collections.singleton(taskId));
-          registerPhysicalTaskId(logicalInstallTaskId, taskId);
-
-          //todo: move this to provision
-          //todo: shouldn't have to iterate over all tasks to find install task
-          //todo: we are doing the same thing in the above registerPhysicalTaskId() call
-          // set attempt count on task
-          for (HostRoleCommand logicalTask : logicalTasks) {
-            if (logicalTask.getTaskId() == logicalInstallTaskId) {
-              logicalTask.incrementAttemptCount();
-            }
-          }
-        }
-      } catch (ResourceAlreadyExistsException e) {
-        e.printStackTrace();
-      } catch (SystemException e) {
-        e.printStackTrace();
-      } catch (NoSuchParentResourceException e) {
-        e.printStackTrace();
-      } catch (UnsupportedPropertyException e) {
-        e.printStackTrace();
-      } catch (Exception e) {
-        e.printStackTrace();
+  private Predicate toPredicate(String predicate) {
+    Predicate compiledPredicate = null;
+    try {
+      if (predicate != null && ! predicate.isEmpty()) {
+        compiledPredicate = predicateCompiler.compile(predicate);
       }
+    } catch (InvalidQueryException e) {
+      // log error and proceed without predicate
+      LOG.error("Unable to compile predicate for host request: " + e, e);
     }
+    return compiledPredicate;
   }
 
-  //todo: extract
-  private class StartHostTask implements TopologyTask {
-    //todo: use future to obtain returned Response which contains the request id
-    //todo: error handling
-    //todo: monitor status of requests
-
-    @Override
-    public Type getType() {
-      return Type.START;
-    }
-
-    @Override
-    public void run() {
-      try {
-        System.out.println("HostRequest.StartHostTask: Executing START task for host: " + hostname);
-        RequestStatusResponse response = getHostComponentResourceProvider().start(cluster, hostname);
-        // map logical install tasks to physical install tasks
-        List<ShortTaskStatus> underlyingTasks = response.getTasks();
-        for (ShortTaskStatus task : underlyingTasks) {
-          String component = task.getRole();
-          Long logicalStartTaskId = getLogicalStartTaskId(component);
-          // for now just set on outer map
-          registerPhysicalTaskId(logicalStartTaskId, task.getTaskId());
-
-          //todo: move this to provision
-          // set attempt count on task
-          for (HostRoleCommand logicalTask : logicalTasks) {
-            if (logicalTask.getTaskId() == logicalStartTaskId) {
-              logicalTask.incrementAttemptCount();
-            }
-          }
-        }
-      } catch (SystemException e) {
-        e.printStackTrace();
-      } catch (UnsupportedPropertyException e) {
-        e.printStackTrace();
-      } catch (NoSuchParentResourceException e) {
-        e.printStackTrace();
-      } catch (Exception e) {
-        e.printStackTrace();
-      }
-    }
-  }
-
-  private class CreateHostResourcesTask implements TopologyTask {
-    private ClusterTopology topology;
-    private HostImpl host;
-    private String groupName;
-
-    public CreateHostResourcesTask(ClusterTopology topology, HostImpl host, String groupName) {
-      this.topology = topology;
-      this.host = host;
-      this.groupName = groupName;
-    }
+  private class PersistHostResourcesTask implements TopologyTask {
+    private AmbariContext ambariContext;
 
     @Override
     public Type getType() {
@@ -564,52 +415,24 @@ public class HostRequest implements Comparable<HostRequest> {
     }
 
     @Override
+    public void init(ClusterTopology topology, AmbariContext ambariContext) {
+      this.ambariContext = ambariContext;
+    }
+
+    @Override
     public void run() {
-      try {
-        createHostResources();
-      } catch (AmbariException e) {
-        //todo: report error to caller
-        e.printStackTrace();
-        System.out.println("An error occurred when creating host resources: " + e.toString());
+      HostGroup group = topology.getBlueprint().getHostGroup(getHostgroupName());
+      Map<String, Collection<String>> serviceComponents = new HashMap<String, Collection<String>>();
+      for (String service : group.getServices()) {
+        serviceComponents.put(service, new HashSet<String> (group.getComponents(service)));
       }
-    }
-
-    private void createHostResources() throws AmbariException {
-      Map<String, Object> properties = new HashMap<String, Object>();
-      properties.put(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID, getClusterName());
-      properties.put(HostResourceProvider.HOST_NAME_PROPERTY_ID, host.getHostName());
-      properties.put(HostResourceProvider.HOST_RACK_INFO_PROPERTY_ID, host.getRackInfo());
-
-      getHostResourceProvider().createHosts(new RequestImpl(null, Collections.singleton(properties), null, null));
-      createHostComponentResources();
-    }
-
-    private void createHostComponentResources() throws AmbariException {
-      Set<ServiceComponentHostRequest> requests = new HashSet<ServiceComponentHostRequest>();
-      Stack stack = topology.getBlueprint().getStack();
-      for (String component : topology.getBlueprint().getHostGroup(groupName).getComponents()) {
-        //todo: handle this in a generic manner.  These checks are all over the code
-        if (! component.equals("AMBARI_SERVER")) {
-          requests.add(new ServiceComponentHostRequest(topology.getClusterName(),
-              stack.getServiceForComponent(component), component, host.getHostName(), null));
-        }
-      }
-
-      controller.createHostComponents(requests);
+      ambariContext.createAmbariHostResources(getClusterName(), getHostName(), serviceComponents);
     }
   }
 
-  //todo: extract
-  private class ConfigureConfigGroup implements TopologyTask {
-    private String groupName;
-    private String clusterName;
-    private String hostName;
-
-    public ConfigureConfigGroup(String groupName, String clusterName, String hostName) {
-      this.groupName = groupName;
-      this.clusterName = clusterName;
-      this.hostName = hostName;
-    }
+  private class RegisterWithConfigGroupTask implements TopologyTask {
+    private ClusterTopology clusterTopology;
+    private AmbariContext ambariContext;
 
     @Override
     public Type getType() {
@@ -617,127 +440,91 @@ public class HostRequest implements Comparable<HostRequest> {
     }
 
     @Override
-    public void run() {
-      try {
-        //todo: add task to offer response
-        if (! addHostToExistingConfigGroups()) {
-          createConfigGroupsAndRegisterHost();
-        }
-      } catch (Exception e) {
-        //todo: handle exceptions
-        e.printStackTrace();
-        throw new RuntimeException("Unable to register config group for host: " + hostname);
-      }
+    public void init(ClusterTopology topology, AmbariContext ambariContext) {
+      this.clusterTopology = topology;
+      this.ambariContext = ambariContext;
     }
 
-    /**
-     * Add the new host to an existing config group.
-     *
-     * @throws SystemException                an unknown exception occurred
-     * @throws UnsupportedPropertyException   an unsupported property was specified in the request
-     * @throws NoSuchParentResourceException  a parent resource doesn't exist
-     */
-    private boolean addHostToExistingConfigGroups()
-        throws SystemException,
-        UnsupportedPropertyException,
-        NoSuchParentResourceException {
+    @Override
+    public void run() {
+      ambariContext.registerHostWithConfigGroup(getHostName(), clusterTopology, getHostgroupName());
+    }
+  }
 
-      boolean addedHost = false;
+  //todo: extract
+  private class InstallHostTask implements TopologyTask {
+    private ClusterTopology clusterTopology;
 
-      Clusters clusters;
-      Cluster cluster;
-      try {
-        clusters = controller.getClusters();
-        cluster = clusters.getCluster(clusterName);
-      } catch (AmbariException e) {
-        throw new IllegalArgumentException(
-            String.format("Attempt to add hosts to a non-existent cluster: '%s'", clusterName));
-      }
-      // I don't know of a method to get config group by name
-      //todo: add a method to get config group by name
-      Map<Long, ConfigGroup> configGroups = cluster.getConfigGroups();
-      for (ConfigGroup group : configGroups.values()) {
-        if (group.getName().equals(groupName)) {
-          try {
-            group.addHost(clusters.getHost(hostName));
-            group.persist();
-            addedHost = true;
-          } catch (AmbariException e) {
-            // shouldn't occur, this host was just added to the cluster
-            throw new SystemException(String.format(
-                "Unable to obtain newly created host '%s' from cluster '%s'", hostName, clusterName));
+    @Override
+    public Type getType() {
+      return Type.INSTALL;
+    }
+
+    @Override
+    public void init(ClusterTopology topology, AmbariContext ambariContext) {
+      this.clusterTopology = topology;
+    }
+
+    @Override
+    public void run() {
+      System.out.println("HostRequest.InstallHostTask: Executing INSTALL task for host: " + hostname);
+      RequestStatusResponse response = clusterTopology.installHost(hostname);
+      // map logical install tasks to physical install tasks
+      List<ShortTaskStatus> underlyingTasks = response.getTasks();
+      for (ShortTaskStatus task : underlyingTasks) {
+        Long logicalInstallTaskId = logicalTaskMap.get(this).get(task.getRole());
+        //todo: for now only one physical task per component
+        long taskId = task.getTaskId();
+        registerPhysicalTaskId(logicalInstallTaskId, taskId);
+
+        //todo: move this to provision
+        //todo: shouldn't have to iterate over all tasks to find install task
+        //todo: we are doing the same thing in the above registerPhysicalTaskId() call
+        // set attempt count on task
+        for (HostRoleCommand logicalTask : logicalTasks.values()) {
+          if (logicalTask.getTaskId() == logicalInstallTaskId) {
+            logicalTask.incrementAttemptCount();
           }
         }
       }
-      return addedHost;
+    }
+  }
+
+  //todo: extract
+  private class StartHostTask implements TopologyTask {
+    private ClusterTopology clusterTopology;
+
+    @Override
+    public Type getType() {
+      return Type.START;
     }
 
-    /**
-     * Register config groups for host group scoped configuration.
-     * For each host group with configuration specified in the blueprint, a config group is created
-     * and the hosts associated with the host group are assigned to the config group.
-     *
-     * @throws ResourceAlreadyExistsException attempt to create a config group that already exists
-     * @throws SystemException                an unexpected exception occurs
-     * @throws UnsupportedPropertyException   an invalid property is provided when creating a config group
-     * @throws NoSuchParentResourceException  attempt to create a config group for a non-existing cluster
-     */
-    private void createConfigGroupsAndRegisterHost() throws
-        ResourceAlreadyExistsException, SystemException,
-        UnsupportedPropertyException, NoSuchParentResourceException {
+    @Override
+    public void init(ClusterTopology topology, AmbariContext ambariContext) {
+      this.clusterTopology = topology;
+    }
 
-      //HostGroupEntity entity = hostGroup.getEntity();
-      HostGroup hostGroup = getHostGroup();
-      Map<String, Map<String, Config>> groupConfigs = new HashMap<String, Map<String, Config>>();
+    @Override
+    public void run() {
+      System.out.println("HostRequest.StartHostTask: Executing START task for host: " + hostname);
+      RequestStatusResponse response = clusterTopology.startHost(hostname);
+      // map logical install tasks to physical install tasks
+      List<ShortTaskStatus> underlyingTasks = response.getTasks();
+      for (ShortTaskStatus task : underlyingTasks) {
+        String component = task.getRole();
+        Long logicalStartTaskId = logicalTaskMap.get(this).get(component);
+        // for now just set on outer map
+        registerPhysicalTaskId(logicalStartTaskId, task.getTaskId());
 
-      Stack stack = hostGroup.getStack();
-
-      // get the host-group config with cluster creation template overrides
-      Configuration topologyHostGroupConfig = topologyContext.getClusterTopology().
-          getHostGroupInfo().get(hostGroup.getName()).getConfiguration();
-
-      //handling backwards compatibility for group configs
-      //todo: doesn't belong here
-      handleGlobalsBackwardsCompability(stack, topologyHostGroupConfig.getProperties());
-
-      // iterate over topo host group configs which were defined in CCT/HG and BP/HG only, no parent configs
-      for (Map.Entry<String, Map<String, String>> entry: topologyHostGroupConfig.getProperties().entrySet()) {
-        String type = entry.getKey();
-        String service = stack.getServiceForConfigType(type);
-        Config config = new ConfigImpl(type);
-        config.setTag(hostGroup.getName());
-        config.setProperties(entry.getValue());
-        //todo: attributes
-        Map<String, Config> serviceConfigs = groupConfigs.get(service);
-        if (serviceConfigs == null) {
-          serviceConfigs = new HashMap<String, Config>();
-          groupConfigs.put(service, serviceConfigs);
+        //todo: move this to provision
+        // set attempt count on task
+        for (HostRoleCommand logicalTask : logicalTasks.values()) {
+          if (logicalTask.getTaskId() == logicalStartTaskId) {
+            logicalTask.incrementAttemptCount();
+          }
         }
-        serviceConfigs.put(type, config);
-      }
-
-      String bpName = topologyContext.getClusterTopology().getBlueprint().getName();
-      for (Map.Entry<String, Map<String, Config>> entry : groupConfigs.entrySet()) {
-        String service = entry.getKey();
-        Map<String, Config> serviceConfigs = entry.getValue();
-        String absoluteGroupName = getConfigurationGroupName(bpName, hostGroup.getName());
-        Collection<String> groupHosts;
-
-        groupHosts = topologyContext.getClusterTopology().getHostGroupInfo().
-            get(hostgroupName).getHostNames();
-
-        ConfigGroupRequest request = new ConfigGroupRequest(
-            null, getClusterName(), absoluteGroupName, service, "Host Group Configuration",
-            new HashSet<String>(groupHosts), serviceConfigs);
-
-        // get the config group provider and create config group resource
-        ConfigGroupResourceProvider configGroupProvider = (ConfigGroupResourceProvider)
-            ClusterControllerHelper.getClusterController().ensureResourceProvider(Resource.Type.ConfigGroup);
-        configGroupProvider.createResources(Collections.singleton(request));
       }
     }
-
-
   }
 
   private class HostResourceAdapter implements Resource {

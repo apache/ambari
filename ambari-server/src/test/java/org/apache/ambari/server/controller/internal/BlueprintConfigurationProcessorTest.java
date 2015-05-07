@@ -39,6 +39,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.apache.ambari.server.state.ServiceInfo;
+import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.Cardinality;
 import org.apache.ambari.server.topology.ClusterTopology;
@@ -48,7 +49,6 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupImpl;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
-import org.apache.commons.collections.map.HashedMap;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -58,6 +58,7 @@ import org.junit.Test;
  */
 public class BlueprintConfigurationProcessorTest {
 
+  private static final String CLUSTER_NAME = "test-cluster";
   private static final Configuration EMPTY_CONFIG = new Configuration(Collections.<String, Map<String, String>>emptyMap(),
       Collections.<String, Map<String, Map<String, String>>>emptyMap());
 
@@ -67,6 +68,7 @@ public class BlueprintConfigurationProcessorTest {
   //private final AmbariMetaInfo metaInfo = createNiceMock(AmbariMetaInfo.class);
   private final ServiceInfo serviceInfo = createNiceMock(ServiceInfo.class);
   private final Stack stack = createNiceMock(Stack.class);
+  private final AmbariContext ambariConext = createNiceMock(AmbariContext.class);
 
   @Before
   public void init() throws Exception {
@@ -146,7 +148,7 @@ public class BlueprintConfigurationProcessorTest {
 
   @After
   public void tearDown() {
-    reset(bp, serviceInfo, stack);
+    reset(bp, serviceInfo, stack, ambariConext);
   }
 
   @Test
@@ -174,7 +176,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -206,7 +208,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -239,7 +241,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -285,7 +287,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -332,7 +334,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -379,7 +381,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -413,7 +415,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -446,7 +448,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -484,7 +486,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -544,7 +546,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -601,7 +603,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -637,7 +639,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -699,7 +701,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -775,7 +777,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -839,7 +841,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -915,7 +917,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
     configProcessor.doUpdateForBlueprintExport();
 
@@ -1003,7 +1005,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1101,7 +1103,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1192,7 +1194,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1272,7 +1274,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1352,7 +1354,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1401,7 +1403,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1440,7 +1442,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -1478,7 +1480,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -1513,7 +1515,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     //todo: should throw a checked exception, not the exception expected by the api
@@ -1556,7 +1558,7 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
 
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     try {
@@ -1595,7 +1597,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("APP_TIMELINE_SERVER")).andReturn(new Cardinality("0-1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -1627,7 +1629,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedVal = topology.getConfiguration().getFullProperties().get("core-site").get("fs.defaultFS");
@@ -1672,7 +1674,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedVal = topology.getConfiguration().getFullProperties().get("hbase-site").get("hbase.zookeeper.quorum");
@@ -1729,7 +1731,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
     String updatedVal = topology.getConfiguration().getFullProperties().get("webhcat-site").get("templeton.zookeeper.hosts");
@@ -1814,7 +1816,7 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
     expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -1886,7 +1888,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -1942,7 +1944,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("HIVE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2014,7 +2016,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("HIVE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2062,7 +2064,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2122,7 +2124,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2179,7 +2181,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("RESOURCEMANAGER")).andReturn(new Cardinality("1-2")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2238,7 +2240,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
     updater.doUpdateForClusterCreate();
 
@@ -2287,7 +2289,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group3);
 
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2336,7 +2338,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2368,7 +2370,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2400,7 +2402,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2432,7 +2434,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2464,7 +2466,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2496,7 +2498,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2542,7 +2544,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2600,7 +2602,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2658,7 +2660,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2699,7 +2701,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2745,7 +2747,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group2);
     hostGroups.add(group3);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2798,7 +2800,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2834,7 +2836,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2867,7 +2869,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2904,7 +2906,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -2950,7 +2952,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -2992,7 +2994,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -3030,7 +3032,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -3071,7 +3073,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level cluster config update method
@@ -3111,7 +3113,7 @@ public class BlueprintConfigurationProcessorTest {
 
     expect(stack.getCardinality("GANGLIA_SERVER")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -3159,7 +3161,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
     hostGroups.add(group1);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -3247,7 +3249,7 @@ public class BlueprintConfigurationProcessorTest {
     expect(stack.getCardinality("NAMENODE")).andReturn(new Cardinality("1-2")).anyTimes();
     expect(stack.getCardinality("SECONDARY_NAMENODE")).andReturn(new Cardinality("1")).anyTimes();
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3340,7 +3342,7 @@ public class BlueprintConfigurationProcessorTest {
     Collection<TestHostGroup> hostGroups = new ArrayList<TestHostGroup>();
     hostGroups.add(group);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     updater.doUpdateForClusterCreate();
@@ -3475,7 +3477,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -3517,7 +3519,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -3558,7 +3560,7 @@ public class BlueprintConfigurationProcessorTest {
     hostGroups.add(group1);
     hostGroups.add(group2);
 
-    ClusterTopology topology = createClusterTopology("c1", bp, clusterConfig, hostGroups);
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
     BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
 
     // call top-level export method
@@ -3585,12 +3587,12 @@ public class BlueprintConfigurationProcessorTest {
     return hostName + ":" + portNumber;
   }
 
-  private ClusterTopology createClusterTopology(String clusterName, Blueprint blueprint, Configuration configuration,
+  private ClusterTopology createClusterTopology(Blueprint blueprint, Configuration configuration,
                                                 Collection<TestHostGroup> hostGroups)
       throws InvalidTopologyException {
 
 
-    replay(stack, serviceInfo);
+    replay(stack, serviceInfo, ambariConext);
 
     Map<String, HostGroupInfo> hostGroupInfo = new HashMap<String, HostGroupInfo>();
     Collection<String> allServices = new HashSet<String>();
@@ -3627,7 +3629,7 @@ public class BlueprintConfigurationProcessorTest {
 
     replay(bp);
 
-    return new ClusterTopologyImpl(clusterName, blueprint, configuration, hostGroupInfo);
+    return new ClusterTopologyImpl(ambariConext, CLUSTER_NAME, blueprint, configuration, hostGroupInfo);
   }
 
   private class TestHostGroup {

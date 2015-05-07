@@ -99,7 +99,8 @@ public class TopologyRequestDAOTest {
     Collection<TopologyHostInfoEntity> infoEntities = hostGroupEntity.getTopologyHostInfoEntities();
     Assert.assertEquals(1, infoEntities.size());
     TopologyHostInfoEntity infoEntity = infoEntities.iterator().next();
-    Assert.assertEquals(hostGroupEntity.getName(), infoEntity.getGroupName());
+    Assert.assertEquals("hg1", hostGroupEntity.getName());
+    Assert.assertEquals(hostGroupEntity.getId(), infoEntity.getGroupId());
     Assert.assertEquals("fqdn", infoEntity.getFqdn());
     Assert.assertEquals(12, infoEntity.getHostCount().intValue());
     Assert.assertEquals("predicate", infoEntity.getPredicate());

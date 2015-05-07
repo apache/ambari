@@ -22,14 +22,15 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
 
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
+import java.util.Collection;
 import java.util.List;
 
 @Singleton
-public class TopologyHostGroupDAO {
+public class TopologyHostTaskDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
@@ -37,38 +38,36 @@ public class TopologyHostGroupDAO {
   DaoUtils daoUtils;
 
   @RequiresSession
-  public TopologyHostGroupEntity findById(Long id) {
-    return entityManagerProvider.get().find(TopologyHostGroupEntity.class, id);
+  public TopologyHostTaskEntity findById(Long id) {
+    return entityManagerProvider.get().find(TopologyHostTaskEntity.class, id);
+  }
+
+  public Collection<TopologyHostTaskEntity> findByHostRequest(Long id) {
+    TypedQuery<TopologyHostTaskEntity> query = entityManagerProvider.get()
+        .createNamedQuery("TopologyHostTaskEntity.findByHostRequest", TopologyHostTaskEntity.class);
+
+    query.setParameter("hostRequestId", id);
+    return daoUtils.selectList(query);
   }
 
   @RequiresSession
-  public TopologyHostGroupEntity findByRequestIdAndName(long topologyRequestId, String name) {
-    TypedQuery<TopologyHostGroupEntity> query = entityManagerProvider.get().createNamedQuery(
-        "TopologyHostGroupEntity.findByRequestIdAndName", TopologyHostGroupEntity.class);
-
-    query.setParameter("requestId", topologyRequestId);
-    query.setParameter("name", name);
-
-    return query.getSingleResult();
-  }
-
-  @RequiresSession
-  public List<TopologyHostGroupEntity> findAll() {
-    return daoUtils.selectAll(entityManagerProvider.get(), TopologyHostGroupEntity.class);
+  public List<TopologyHostTaskEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), TopologyHostTaskEntity.class);
   }
 
   @Transactional
-  public void create(TopologyHostGroupEntity hostGroupEntity) {
-    entityManagerProvider.get().persist(hostGroupEntity);
+  public void create(TopologyHostTaskEntity requestEntity) {
+    entityManagerProvider.get().persist(requestEntity);
   }
 
   @Transactional
-  public TopologyHostGroupEntity merge(TopologyHostGroupEntity hostGroupEntity) {
-    return entityManagerProvider.get().merge(hostGroupEntity);
+  public TopologyHostTaskEntity merge(TopologyHostTaskEntity requestEntity) {
+    return entityManagerProvider.get().merge(requestEntity);
   }
 
   @Transactional
-  public void remove(TopologyHostGroupEntity hostGroupEntity) {
-    entityManagerProvider.get().remove(hostGroupEntity);
+  public void remove(TopologyHostTaskEntity requestEntity) {
+    entityManagerProvider.get().remove(requestEntity);
   }
 }
+

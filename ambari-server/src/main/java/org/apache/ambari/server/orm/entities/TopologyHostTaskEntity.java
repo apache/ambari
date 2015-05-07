@@ -25,6 +25,8 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
 import javax.persistence.Table;
@@ -36,6 +38,10 @@ import java.util.Collection;
 @TableGenerator(name = "topology_host_task_id_generator", table = "ambari_sequences",
   pkColumnName = "sequence_name", valueColumnName = "sequence_value",
   pkColumnValue = "topology_host_task_id_seq", initialValue = 0)
+@NamedQueries({
+  @NamedQuery(name = "TopologyHostTaskEntity.findByHostRequest",
+      query = "SELECT req FROM TopologyHostTaskEntity req WHERE req.topologyHostRequestEntity.id = :hostRequestId")
+})
 public class TopologyHostTaskEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_host_task_id_generator")

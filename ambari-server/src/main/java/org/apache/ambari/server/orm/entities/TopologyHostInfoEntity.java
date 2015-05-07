@@ -48,7 +48,7 @@ public class TopologyHostInfoEntity {
   private String predicate;
 
   @ManyToOne
-  @JoinColumn(name = "group_name", referencedColumnName = "name", nullable = false)
+  @JoinColumn(name = "group_id", referencedColumnName = "id", nullable = false)
   private TopologyHostGroupEntity topologyHostGroupEntity;
 
   public Long getId() {
@@ -59,8 +59,8 @@ public class TopologyHostInfoEntity {
     this.id = id;
   }
 
-  public String getGroupName() {
-    return topologyHostGroupEntity != null ? topologyHostGroupEntity.getName() : null;
+  public Long getGroupId() {
+    return topologyHostGroupEntity.getId();
   }
 
   public String getFqdn() {

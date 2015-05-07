@@ -229,8 +229,7 @@ public class BlueprintImpl implements Blueprint {
   }
 
   /**
-   * Process blueprint configurations.  This includes obtaining the default configuration properties
-   * from the stack and overlaying configuration properties specified in the blueprint.
+   * Process blueprint configurations.
    */
   private void processConfiguration(Collection<BlueprintConfigEntity> configs) {
     // not setting stack configuration as parent until after host groups are parsed in constructor

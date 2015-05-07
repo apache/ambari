@@ -32,12 +32,9 @@ import java.util.Collection;
 
 @Entity
 @Table(name = "topology_host_request")
-@TableGenerator(name = "topology_host_request_id_generator", table = "ambari_sequences",
-  pkColumnName = "sequence_name", valueColumnName = "sequence_value",
-  pkColumnValue = "topology_host_request_id_seq", initialValue = 0)
 public class TopologyHostRequestEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_request_id_generator")
+//  @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_host_request_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 
@@ -52,7 +49,7 @@ public class TopologyHostRequestEntity {
   private TopologyLogicalRequestEntity topologyLogicalRequestEntity;
 
   @ManyToOne
-  @JoinColumn(name = "group_name", referencedColumnName = "name", nullable = false)
+  @JoinColumn(name = "group_id", referencedColumnName = "id", nullable = false)
   private TopologyHostGroupEntity topologyHostGroupEntity;
 
   @OneToMany(mappedBy = "topologyHostRequestEntity", cascade = CascadeType.ALL, orphanRemoval = true)
@@ -70,8 +67,8 @@ public class TopologyHostRequestEntity {
     return topologyLogicalRequestEntity != null ? topologyLogicalRequestEntity.getTopologyRequestId() : null;
   }
 
-  public String getHostGroupName() {
-    return topologyHostGroupEntity != null ? topologyHostGroupEntity.getName() : null;
+  public Long getHostGroupId() {
+    return topologyHostGroupEntity.getId();
   }
 
   public Long getStageId() {

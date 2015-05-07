@@ -18,6 +18,9 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.controller.RequestStatusResponse;
+import org.apache.ambari.server.state.SecurityType;
+
 import java.util.Collection;
 import java.util.Map;
 
@@ -113,4 +116,31 @@ public interface ClusterTopology {
    * @return true if NameNode HA is enabled; false otherwise
    */
   public boolean isNameNodeHAEnabled();
+
+  /**
+   * Determine if the cluster is kerberos enabled.
+   *
+   * @return true if the cluster is kerberos enabled; false otherwise
+   */
+  public boolean isClusterKerberosEnabled();
+
+  /**
+   * Install the specified host.
+   *
+   * @param hostName  host name
+   * @return install response
+   */
+  public RequestStatusResponse installHost(String hostName);
+
+  /**
+   * Start the specified host.
+   *
+   * @param hostName  host name
+   * @return start response
+   */
+  public RequestStatusResponse startHost(String hostName);
+
+  //todo: don't expose ambari context from this class
+  public AmbariContext getAmbariContext();
+
 }

@@ -86,6 +86,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
   }
 
   @Override
+  public Type getType() {
+    return Type.EXPORT;
+  }
+
+  @Override
   public Blueprint getBlueprint() {
     return blueprint;
   }
@@ -103,6 +108,11 @@ public class ExportBlueprintRequest implements TopologyRequest {
   @Override
   public List<TopologyValidator> getTopologyValidators() {
     return Collections.emptyList();
+  }
+
+  @Override
+  public String getCommandDescription() {
+    return String.format("Export Command For Cluster '%s'", clusterName);
   }
 
   // ----- private instance methods ------------------------------------------

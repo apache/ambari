@@ -19,11 +19,8 @@
 package org.apache.ambari.server.topology;
 
 import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.controller.AmbariManagementController;
-import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.ClusterRequest;
 import org.apache.ambari.server.controller.ConfigurationRequest;
-import org.apache.ambari.server.controller.internal.AbstractResourceProvider;
 import org.apache.ambari.server.controller.internal.BlueprintConfigurationProcessor;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.ConfigurationTopologyException;
@@ -47,18 +44,21 @@ public class ClusterConfigurationRequest {
 
   protected final static Logger LOG = LoggerFactory.getLogger(ClusterConfigurationRequest.class);
 
+  private AmbariContext ambariContext;
   private ClusterTopology clusterTopology;
   private BlueprintConfigurationProcessor configurationProcessor;
-  private AmbariManagementController controller = AmbariServer.getController();
   private Stack stack;
 
-  public ClusterConfigurationRequest(ClusterTopology clusterTopology) throws AmbariException {
+  public ClusterConfigurationRequest(AmbariContext ambariContext, ClusterTopology clusterTopology, boolean setInitial) {
+    this.ambariContext = ambariContext;
+    this.clusterTopology = clusterTopology;
     Blueprint blueprint = clusterTopology.getBlueprint();
     this.stack = blueprint.getStack();
-    this.clusterTopology = clusterTopology;
     // set initial configuration (not topology resolved)
     this.configurationProcessor = new BlueprintConfigurationProcessor(clusterTopology);
-    setConfigurationsOnCluster(clusterTopology, "INITIAL");
+    if (setInitial) {
+      setConfigurationsOnCluster(clusterTopology, TopologyManager.INITIAL_CONFIG_TAG);
+    }
   }
 
   // get names of required host groups
@@ -74,17 +74,15 @@ public class ClusterConfigurationRequest {
       //log and continue to set configs on cluster to make progress
       LOG.error("An exception occurred while doing configuration topology update: " + e, e);
     }
-    setConfigurationsOnCluster(clusterTopology, "TOPOLOGY_RESOLVED");
+    setConfigurationsOnCluster(clusterTopology, TopologyManager.TOPOLOGY_RESOLVED_TAG);
   }
 
   /**
    * Set all configurations on the cluster resource.
    * @param clusterTopology  cluster topology
    * @param tag              config tag
-   *
-   * @throws AmbariException unable to set config on cluster
    */
-  public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag) throws AmbariException {
+  public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag)  {
     //todo: also handle setting of host group scoped configuration which is updated by config processor
     List<BlueprintServiceConfigRequest> listofConfigRequests = new LinkedList<BlueprintServiceConfigRequest>();
 
@@ -134,11 +132,9 @@ public class ClusterConfigurationRequest {
    * This method will also send these requests to the management controller.
    *
    * @param listOfBlueprintConfigRequests a list of requests to send to the AmbariManagementController.
-   *
-   * @throws AmbariException upon any error that occurs during updateClusters
    */
   private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> listOfBlueprintConfigRequests,
-                                          String tag) throws AmbariException {
+                                          String tag)  {
     // iterate over services to deploy
     for (BlueprintServiceConfigRequest blueprintConfigRequest : listOfBlueprintConfigRequests) {
       ClusterRequest clusterRequest = null;
@@ -189,9 +185,7 @@ public class ClusterConfigurationRequest {
               null);
         }
 
-        //todo: made getConfigurationRequests static so that I could access from here, where does it belong?
-        List<ConfigurationRequest> listOfRequests =
-            AbstractResourceProvider.getConfigurationRequests("Clusters", clusterProperties);
+        List<ConfigurationRequest> listOfRequests = ambariContext.createConfigurationRequests(clusterProperties);
         requestsPerService.addAll(listOfRequests);
       }
 
@@ -199,7 +193,7 @@ public class ClusterConfigurationRequest {
       if (clusterRequest != null) {
         clusterRequest.setDesiredConfig(requestsPerService);
         LOG.info("Sending cluster config update request for service = " + blueprintConfigRequest.getServiceName());
-        controller.updateClusters(Collections.singleton(clusterRequest), null);
+        ambariContext.setConfigurationOnCluster(clusterRequest);
       } else {
         LOG.error("ClusterRequest should not be null for service = " + blueprintConfigRequest.getServiceName());
       }

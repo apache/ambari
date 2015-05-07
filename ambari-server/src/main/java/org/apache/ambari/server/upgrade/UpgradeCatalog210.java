@@ -167,28 +167,28 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.createTable(TOPOLOGY_REQUEST_TABLE, columns, "id");
 
     columns.clear();
+    columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("name", String.class, 255, null, false));
     columns.add(new DBColumnInfo("group_properties", byte[].class, null, null, false));
     columns.add(new DBColumnInfo("group_attributes", byte[].class, null, null, false));
     columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
 
-    dbAccessor.createTable(TOPOLOGY_HOST_GROUP_TABLE, columns, "name");
+    dbAccessor.createTable(TOPOLOGY_HOST_GROUP_TABLE, columns, "id");
     dbAccessor.addFKConstraint(TOPOLOGY_HOST_GROUP_TABLE, "FK_hostgroup_req_id", "request_id", TOPOLOGY_REQUEST_TABLE, "id", true, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("group_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("fqdn", String.class, 255, null, true));
     columns.add(new DBColumnInfo("host_count", Integer.class, null, null, true));
     columns.add(new DBColumnInfo("predicate", String.class, 2048, null, true));
 
     dbAccessor.createTable(TOPOLOGY_HOST_INFO_TABLE, columns, "id");
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_INFO_TABLE, "FK_hostinfo_group_name", "group_name", TOPOLOGY_HOST_GROUP_TABLE, "name", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_INFO_TABLE, "FK_hostinfo_group_id", "group_id", TOPOLOGY_HOST_GROUP_TABLE, "id", true, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("description", String.class, 1024, null, false));
 
     dbAccessor.createTable(TOPOLOGY_LOGICAL_REQUEST_TABLE, columns, "id");
@@ -197,22 +197,20 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("logical_request_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("group_name", String.class, 255, null, false));
+    columns.add(new DBColumnInfo("group_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("stage_id", Integer.class, null, null, false));
     columns.add(new DBColumnInfo("host_name", String.class, 255, null, true));
 
     dbAccessor.createTable(TOPOLOGY_HOST_REQUEST_TABLE, columns, "id");
     dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_logicalreq_id", "logical_request_id", TOPOLOGY_LOGICAL_REQUEST_TABLE, "id", true, false);
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_group_name", "group_name", TOPOLOGY_HOST_GROUP_TABLE, "name", true, false);
+    dbAccessor.addFKConstraint(TOPOLOGY_HOST_REQUEST_TABLE, "FK_hostreq_group_id", "group_id", TOPOLOGY_HOST_GROUP_TABLE, "id", true, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("host_request_id", Long.class, null, null, false));
-    columns.add(new DBColumnInfo("logical_request_id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("type", String.class, 255, null, false));
     dbAccessor.createTable(TOPOLOGY_HOST_TASK_TABLE, columns, "id");
     dbAccessor.addFKConstraint(TOPOLOGY_HOST_TASK_TABLE, "FK_hosttask_req_id", "host_request_id", TOPOLOGY_HOST_REQUEST_TABLE, "id", true, false);
-    dbAccessor.addFKConstraint(TOPOLOGY_HOST_TASK_TABLE, "FK_hosttask_lreq_id", "logical_request_id", TOPOLOGY_LOGICAL_REQUEST_TABLE, "id", true, false);
 
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
@@ -230,6 +228,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0)", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0)", false);
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0)", false);
+    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0)", false);
   }
 
   /**

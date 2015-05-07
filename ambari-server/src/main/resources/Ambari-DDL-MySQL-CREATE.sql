@@ -593,17 +593,17 @@ CREATE TABLE topology_request (
 );
 
 CREATE TABLE topology_hostgroup (
+  id BIGINT NOT NULL,
   name VARCHAR(255) NOT NULL,
   group_properties TEXT,
   group_attributes TEXT,
   request_id BIGINT NOT NULL,
-  PRIMARY KEY (name)
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE topology_host_info (
   id BIGINT NOT NULL,
-  request_id BIGINT NOT NULL,
-  group_name VARCHAR(255) NOT NULL,
+  group_id BIGINT NOT NULL,
   fqdn VARCHAR(255),
   host_count INTEGER,
   predicate VARCHAR(2048),
@@ -620,7 +620,7 @@ CREATE TABLE topology_logical_request (
 CREATE TABLE topology_host_request (
   id BIGINT NOT NULL,
   logical_request_id BIGINT NOT NULL,
-  group_name VARCHAR(255) NOT NULL,
+  group_id BIGINT NOT NULL,
   stage_id BIGINT NOT NULL,
   host_name VARCHAR(255),
   PRIMARY KEY (id)
@@ -629,7 +629,6 @@ CREATE TABLE topology_host_request (
 CREATE TABLE topology_host_task (
   id BIGINT NOT NULL,
   host_request_id BIGINT NOT NULL,
-  logical_request_id BIGINT NOT NULL,
   type VARCHAR(255) NOT NULL,
   PRIMARY KEY (id)
 );
@@ -637,7 +636,7 @@ CREATE TABLE topology_host_task (
 CREATE TABLE topology_logical_task (
   id BIGINT NOT NULL,
   host_task_id BIGINT NOT NULL,
-  physical_task_id BIGINT NOT NULL,
+  physical_task_id BIGINT,
   component VARCHAR(255) NOT NULL,
   PRIMARY KEY (id)
 );
@@ -721,12 +720,11 @@ ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resourc
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id);
 ALTER TABLE topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
-ALTER TABLE topology_host_info ADD CONSTRAINT FK_hostinfo_group_name FOREIGN KEY (group_name) REFERENCES topology_hostgroup(name);
+ALTER TABLE topology_host_info ADD CONSTRAINT FK_hostinfo_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id);
 ALTER TABLE topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
 ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id);
-ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_group_name FOREIGN KEY (group_name) REFERENCES topology_hostgroup(name);
+ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id);
 ALTER TABLE topology_host_task ADD CONSTRAINT FK_hosttask_req_id FOREIGN KEY (host_request_id) REFERENCES topology_host_request (id);
-ALTER TABLE topology_host_task ADD CONSTRAINT FK_hosttask_lreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request (id);
 ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hosttask_id FOREIGN KEY (host_task_id) REFERENCES topology_host_task (id);
 ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hrc_id FOREIGN KEY (physical_task_id) REFERENCES host_role_command (task_id);
 
@@ -936,6 +934,7 @@ INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_ho
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_request_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_logical_task_id_seq', 0);
 INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_request_id_seq', 0);
+INSERT INTO ambari_sequences(sequence_name, sequence_value) values ('topology_host_group_id_seq', 0);
 
 insert into adminresourcetype (resource_type_id, resource_type_name)
   select 1, 'AMBARI'

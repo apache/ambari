@@ -27,7 +27,10 @@ import java.util.Map;
 //todo: naming
 public interface TopologyRequest {
 
+  public enum Type { PROVISION, SCALE, EXPORT }
+
   public String getClusterName();
+  public Type getType();
   //todo: only a single BP may be specified so all host groups have the same bp.
   //todo: There is no reason really that we couldn't allow hostgroups from different blueprints assuming that
   //todo: the stack matches across the groups.  For scaling operations, we allow different blueprints (rather arbitrary)
@@ -37,4 +40,5 @@ public interface TopologyRequest {
   public Configuration getConfiguration();
   public Map<String, HostGroupInfo> getHostGroupInfo();
   public List<TopologyValidator> getTopologyValidators();
+  public String getCommandDescription();
 }

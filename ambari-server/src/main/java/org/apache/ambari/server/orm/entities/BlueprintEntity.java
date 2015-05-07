@@ -63,9 +63,6 @@ public class BlueprintEntity {
   @OneToMany(cascade = CascadeType.ALL, mappedBy = "blueprint")
   private Collection<BlueprintConfigEntity> configurations;
 
-  @Transient
-  private static Gson jsonSerializer = new Gson();
-
 
   /**
    * Get the blueprint name.

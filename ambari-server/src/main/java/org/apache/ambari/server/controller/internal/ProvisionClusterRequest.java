@@ -21,7 +21,6 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.topology.Blueprint;
 import org.apache.ambari.server.topology.BlueprintFactory;
@@ -46,7 +45,6 @@ import java.util.Map;
 public class ProvisionClusterRequest implements TopologyRequest {
 
   private static BlueprintFactory blueprintFactory;
-  private static PredicateCompiler predicateCompiler = new PredicateCompiler();
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
   private String clusterName;
@@ -90,6 +88,11 @@ public class ProvisionClusterRequest implements TopologyRequest {
   }
 
   @Override
+  public Type getType() {
+    return Type.PROVISION;
+  }
+
+  @Override
   public Blueprint getBlueprint() {
     return blueprint;
   }
@@ -108,6 +111,11 @@ public class ProvisionClusterRequest implements TopologyRequest {
   @Override
   public List<TopologyValidator> getTopologyValidators() {
     return Collections.<TopologyValidator>singletonList(new RequiredPasswordValidator(defaultPassword));
+  }
+
+  @Override
+  public String getCommandDescription() {
+    return String.format("Provision Cluster '%s'", clusterName);
   }
 
   private void parseBlueprint(Map<String, Object> properties) throws NoSuchStackException, NoSuchBlueprintException {
@@ -154,7 +162,7 @@ public class ProvisionClusterRequest implements TopologyRequest {
           String predicate = hostProperties.get("host_predicate");
           if (predicate != null && ! predicate.isEmpty()) {
             try {
-              hostGroupInfo.setPredicate(predicateCompiler.compile(predicate));
+              hostGroupInfo.setPredicate(predicate);
             } catch (InvalidQueryException e) {
               throw new InvalidTopologyTemplateException(
                   String.format("Unable to compile host predicate '%s': %s", predicate, e), e);

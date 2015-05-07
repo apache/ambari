@@ -22,19 +22,37 @@ import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.Lob;
 import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+import javax.persistence.TableGenerator;
 import java.util.Collection;
 
 @Entity
 @Table(name = "topology_hostgroup")
+@NamedQueries({
+  @NamedQuery(name = "TopologyHostGroupEntity.findByRequestIdAndName",
+    query = "SELECT req FROM TopologyHostGroupEntity req WHERE req.topologyRequestEntity.id = :requestId AND req.name = :name")
+})
+@TableGenerator(name = "topology_host_group_id_generator", table = "ambari_sequences",
+  pkColumnName = "sequence_name", valueColumnName = "sequence_value",
+  pkColumnValue = "topology_host_group_id_seq", initialValue = 0)
 public class TopologyHostGroupEntity {
   @Id
-  @Column(name = "name", length = 255, nullable = false)
+  @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_host_group_id_generator")
+  @Column(name = "id", nullable = false, updatable = false)
+  private Long id;
+
+  @Column(name = "name", nullable = false, updatable = false)
+  @Basic(fetch = FetchType.LAZY)
+  @Lob
   private String name;
 
   @Column(name = "group_properties")
@@ -56,6 +74,14 @@ public class TopologyHostGroupEntity {
 
   @OneToMany(mappedBy = "topologyHostGroupEntity", cascade = CascadeType.ALL)
   private Collection<TopologyHostRequestEntity> topologyHostRequestEntities;
+
+  public Long getId() {
+    return id;
+  }
+
+  public void setId(Long id) {
+    this.id = id;
+  }
 
   public String getName() {
     return name;

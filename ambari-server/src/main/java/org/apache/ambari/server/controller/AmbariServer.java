@@ -90,8 +90,8 @@ import org.apache.ambari.server.security.unsecured.rest.CertificateDownload;
 import org.apache.ambari.server.security.unsecured.rest.CertificateSign;
 import org.apache.ambari.server.security.unsecured.rest.ConnectionInfo;
 import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.BlueprintFactory;
-import org.apache.ambari.server.topology.HostRequest;
 import org.apache.ambari.server.topology.TopologyManager;
 import org.apache.ambari.server.topology.TopologyRequestFactoryImpl;
 import org.apache.ambari.server.utils.StageUtils;
@@ -618,7 +618,7 @@ public class AmbariServer {
     BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
     ProvisionClusterRequest.init(injector.getInstance(BlueprintFactory.class));
     ScaleClusterRequest.init(injector.getInstance(BlueprintFactory.class));
-    HostRequest.init(injector.getInstance(HostRoleCommandFactory.class));
+    AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
     ViewPermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));

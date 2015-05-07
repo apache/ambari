@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.StackServiceRequest;
 import org.apache.ambari.server.controller.StackServiceResponse;
 import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.AutoDeployInfo;
+import org.apache.ambari.server.state.ComponentInfo;
 import org.apache.ambari.server.state.DependencyInfo;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.topology.Cardinality;
@@ -140,11 +141,8 @@ public class Stack {
    *          the management controller (not {@code null}).
    * @throws AmbariException
    */
-  public Stack(StackEntity stack,
-      AmbariManagementController ambariManagementController)
-      throws AmbariException {
-    this(stack.getStackName(), stack.getStackVersion(),
-        ambariManagementController);
+  public Stack(StackEntity stack, AmbariManagementController ambariManagementController) throws AmbariException {
+    this(stack.getStackName(), stack.getStackVersion(), ambariManagementController);
   }
 
   /**
@@ -233,6 +231,28 @@ public class Stack {
       serviceComponents.put(service, components);
     }
     return serviceComponents;
+  }
+
+  /**
+   * Get info for the specified component.
+   *
+   * @param component  component name
+   *
+   * @return component information for the requested component
+   *         or null if the component doesn't exist in the stack
+   */
+  public ComponentInfo getComponentInfo(String component) {
+    ComponentInfo componentInfo = null;
+    String service = getServiceForComponent(component);
+    if (service != null) {
+      try {
+        componentInfo = controller.getAmbariMetaInfo().getComponent(
+            getName(), getVersion(), service, component);
+      } catch (AmbariException e) {
+        // just return null if component doesn't exist
+      }
+    }
+    return componentInfo;
   }
 
   /**

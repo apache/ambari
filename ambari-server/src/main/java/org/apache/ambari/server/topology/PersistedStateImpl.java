@@ -1,0 +1,408 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.ambari.server.topology;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.google.gson.Gson;
+import com.google.inject.Inject;
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.StaticallyInject;
+import org.apache.ambari.server.actionmanager.HostRoleCommand;
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.orm.dao.HostRoleCommandDAO;
+import org.apache.ambari.server.orm.dao.TopologyHostGroupDAO;
+import org.apache.ambari.server.orm.dao.TopologyHostRequestDAO;
+import org.apache.ambari.server.orm.dao.TopologyLogicalTaskDAO;
+import org.apache.ambari.server.orm.dao.TopologyRequestDAO;
+import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostInfoEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostTaskEntity;
+import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
+import org.apache.ambari.server.orm.entities.TopologyRequestEntity;
+import org.apache.ambari.server.stack.NoSuchStackException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Implementation which uses Ambari Database DAO and Entity objects for persistence
+ * of topology related information.
+ */
+@StaticallyInject
+public class PersistedStateImpl implements PersistedState {
+
+  protected final static Logger LOG = LoggerFactory.getLogger(PersistedState.class);
+
+  @Inject
+  private static TopologyRequestDAO topologyRequestDAO;
+
+  @Inject
+  private static TopologyHostGroupDAO hostGroupDAO;
+
+  @Inject
+  private static TopologyHostRequestDAO hostRequestDAO;
+
+  @Inject
+  private static TopologyLogicalTaskDAO topologyLogicalTaskDAO;
+
+  @Inject
+  private static HostRoleCommandDAO hostRoleCommandDAO;
+
+  @Inject
+  private static HostRoleCommandDAO physicalTaskDAO;
+
+  @Inject
+  private static BlueprintFactory blueprintFactory;
+
+  @Inject
+  private static LogicalRequestFactory logicalRequestFactory;
+
+  @Inject
+  private static AmbariContext ambariContext;
+
+  private static Gson jsonSerializer = new Gson();
+
+
+  @Override
+  public  PersistedTopologyRequest persistTopologyRequest(TopologyRequest request) {
+    TopologyRequestEntity requestEntity = toEntity(request);
+    topologyRequestDAO.create(requestEntity);
+    return new PersistedTopologyRequest(requestEntity.getId(), request);
+  }
+
+  @Override
+  public void persistLogicalRequest(LogicalRequest logicalRequest, long topologyRequestId) {
+    TopologyRequestEntity topologyRequestEntity = topologyRequestDAO.findById(topologyRequestId);
+    TopologyLogicalRequestEntity entity = toEntity(logicalRequest, topologyRequestEntity);
+    topologyRequestEntity.setTopologyLogicalRequestEntity(entity);
+    //todo: how to handle missing topology request entity?
+
+    //logicalRequestDAO.create(entity);
+
+    topologyRequestDAO.merge(topologyRequestEntity);
+  }
+
+  @Override
+  public void registerPhysicalTask(long logicalTaskId, long physicalTaskId) {
+    TopologyLogicalTaskEntity entity = topologyLogicalTaskDAO.findById(logicalTaskId);
+    HostRoleCommandEntity physicalEntity = hostRoleCommandDAO.findByPK(physicalTaskId);
+    entity.setHostRoleCommandEntity(physicalEntity);
+
+    topologyLogicalTaskDAO.merge(entity);
+  }
+
+  @Override
+  public void registerHostName(long hostRequestId, String hostName) {
+    TopologyHostRequestEntity entity = hostRequestDAO.findById(hostRequestId);
+    if (entity.getHostName() == null) {
+      entity.setHostName(hostName);
+      hostRequestDAO.merge(entity);
+    }
+  }
+
+  @Override
+  public Map<ClusterTopology, List<LogicalRequest>> getAllRequests() {
+    //todo: we only currently support a single request per ambari instance so there should only
+    //todo: be a single cluster topology
+    Map<ClusterTopology, List<LogicalRequest>> allRequests = new HashMap<ClusterTopology, List<LogicalRequest>>();
+    Collection<TopologyRequestEntity> entities = topologyRequestDAO.findAll();
+
+    Map<String, ClusterTopology> topologyRequests = new HashMap<String, ClusterTopology>();
+    for (TopologyRequestEntity entity : entities) {
+      TopologyRequest replayedRequest = new ReplayedTopologyRequest(entity);
+      ClusterTopology clusterTopology = topologyRequests.get(replayedRequest.getClusterName());
+      if (clusterTopology == null) {
+        try {
+          clusterTopology = new ClusterTopologyImpl(ambariContext, replayedRequest);
+          topologyRequests.put(replayedRequest.getClusterName(), clusterTopology);
+          allRequests.put(clusterTopology, new ArrayList<LogicalRequest>());
+        } catch (InvalidTopologyException e) {
+          throw new RuntimeException("Failed to construct cluster topology while replaying request: " + e, e);
+        }
+      } else {
+        // ensure all host groups are provided in the combined cluster topology
+        for (Map.Entry<String, HostGroupInfo> groupInfoEntry : replayedRequest.getHostGroupInfo().entrySet()) {
+          String name = groupInfoEntry.getKey();
+          if (! clusterTopology.getHostGroupInfo().containsKey(name)) {
+            clusterTopology.getHostGroupInfo().put(name, groupInfoEntry.getValue());
+          }
+        }
+      }
+
+      TopologyLogicalRequestEntity logicalRequestEntity = entity.getTopologyLogicalRequestEntity();
+      Long logicalId = logicalRequestEntity.getId();
+
+      try {
+        //todo: fix initialization of ActionManager.requestCounter to account for logical requests
+        //todo: until this is fixed, increment the counter for every recovered logical request
+        //todo: this will cause gaps in the request id's after recovery
+        ambariContext.getNextRequestId();
+        allRequests.get(clusterTopology).add(logicalRequestFactory.createRequest(
+            logicalId, replayedRequest, clusterTopology, logicalRequestEntity));
+      } catch (AmbariException e) {
+        throw new RuntimeException("Failed to construct logical request during replay: " + e, e);
+      }
+    }
+
+    return allRequests;
+  }
+
+  private TopologyRequestEntity toEntity(TopologyRequest request) {
+    TopologyRequestEntity entity = new TopologyRequestEntity();
+
+    //todo: this isn't set for a scaling operation because we had intended to allow multiple
+    //todo: bp's to be used to scale a cluster although this isn't currently supported by
+    //todo: new topology infrastructure
+    entity.setAction(request.getType().name());
+    if (request.getBlueprint() != null) {
+      entity.setBlueprintName(request.getBlueprint().getName());
+    }
+
+    entity.setClusterAttributes(attributesAsString(request.getConfiguration().getAttributes()));
+    entity.setClusterName(request.getClusterName());
+    entity.setClusterProperties(propertiesAsString(request.getConfiguration().getProperties()));
+    entity.setDescription(request.getCommandDescription());
+
+    // host groups
+    Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<TopologyHostGroupEntity>();
+    for (HostGroupInfo groupInfo : request.getHostGroupInfo().values())  {
+      hostGroupEntities.add(toEntity(groupInfo, entity));
+    }
+    entity.setTopologyHostGroupEntities(hostGroupEntities);
+
+    return entity;
+  }
+
+  private TopologyLogicalRequestEntity toEntity(LogicalRequest request, TopologyRequestEntity topologyRequestEntity) {
+    TopologyLogicalRequestEntity entity = new TopologyLogicalRequestEntity();
+
+    entity.setDescription(request.getRequestContext());
+    entity.setId(request.getRequestId());
+    entity.setTopologyRequestEntity(topologyRequestEntity);
+    entity.setTopologyRequestId(topologyRequestEntity.getId());
+
+    // host requests
+    Collection<TopologyHostRequestEntity> hostRequests = new ArrayList<TopologyHostRequestEntity>();
+    entity.setTopologyHostRequestEntities(hostRequests);
+    for (HostRequest hostRequest : request.getHostRequests()) {
+      hostRequests.add(toEntity(hostRequest, entity));
+    }
+    return entity;
+  }
+
+  private TopologyHostRequestEntity toEntity(HostRequest request, TopologyLogicalRequestEntity logicalRequestEntity) {
+    TopologyHostRequestEntity entity = new TopologyHostRequestEntity();
+    entity.setHostName(request.getHostName());
+    entity.setId(request.getId());
+    entity.setStageId(request.getStageId());
+
+    entity.setTopologyLogicalRequestEntity(logicalRequestEntity);
+    entity.setTopologyHostGroupEntity(hostGroupDAO.findByRequestIdAndName(
+        logicalRequestEntity.getTopologyRequestId(), request.getHostgroupName()));
+
+    // logical tasks
+    Collection<TopologyHostTaskEntity> hostRequestTaskEntities = new ArrayList<TopologyHostTaskEntity>();
+    entity.setTopologyHostTaskEntities(hostRequestTaskEntities);
+    // for now only worry about install and start tasks
+    for (TopologyTask task : request.getTopologyTasks()) {
+      if (task.getType() == TopologyTask.Type.INSTALL || task.getType() == TopologyTask.Type.START) {
+        TopologyHostTaskEntity topologyTaskEntity = new TopologyHostTaskEntity();
+        hostRequestTaskEntities.add(topologyTaskEntity);
+        topologyTaskEntity.setType(task.getType().name());
+        topologyTaskEntity.setTopologyHostRequestEntity(entity);
+        Collection<TopologyLogicalTaskEntity> logicalTaskEntities = new ArrayList<TopologyLogicalTaskEntity>();
+        topologyTaskEntity.setTopologyLogicalTaskEntities(logicalTaskEntities);
+        for (Long logicalTaskId : request.getLogicalTasksForTopologyTask(task).values()) {
+          TopologyLogicalTaskEntity logicalTaskEntity = new TopologyLogicalTaskEntity();
+          logicalTaskEntities.add(logicalTaskEntity);
+          HostRoleCommand logicalTask = request.getLogicalTask(logicalTaskId);
+          logicalTaskEntity.setId(logicalTaskId);
+          logicalTaskEntity.setComponentName(logicalTask.getRole().name());
+          logicalTaskEntity.setTopologyHostTaskEntity(topologyTaskEntity);
+          Long physicalId = request.getPhysicalTaskId(logicalTaskId);
+          if (physicalId != null) {
+            logicalTaskEntity.setHostRoleCommandEntity(physicalTaskDAO.findByPK(physicalId));
+          }
+          logicalTaskEntity.setTopologyHostTaskEntity(topologyTaskEntity);
+        }
+      }
+    }
+    return entity;
+  }
+
+  private TopologyHostGroupEntity toEntity(HostGroupInfo groupInfo, TopologyRequestEntity topologyRequestEntity) {
+    TopologyHostGroupEntity entity = new TopologyHostGroupEntity();
+    entity.setGroupAttributes(attributesAsString(groupInfo.getConfiguration().getAttributes()));
+    entity.setGroupProperties(propertiesAsString(groupInfo.getConfiguration().getProperties()));
+    entity.setName(groupInfo.getHostGroupName());
+    entity.setTopologyRequestEntity(topologyRequestEntity);
+
+    // host info
+    Collection<TopologyHostInfoEntity> hostInfoEntities = new ArrayList<TopologyHostInfoEntity>();
+    entity.setTopologyHostInfoEntities(hostInfoEntities);
+
+    Collection<String> hosts = groupInfo.getHostNames();
+    if (hosts.isEmpty()) {
+      TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
+      hostInfoEntity.setTopologyHostGroupEntity(entity);
+      hostInfoEntity.setHostCount(groupInfo.getRequestedHostCount());
+      if (groupInfo.getPredicate() != null) {
+        hostInfoEntity.setPredicate(groupInfo.getPredicateString());
+      }
+      hostInfoEntities.add(hostInfoEntity);
+    } else {
+      for (String hostName : hosts) {
+        TopologyHostInfoEntity hostInfoEntity = new TopologyHostInfoEntity();
+        hostInfoEntity.setTopologyHostGroupEntity(entity);
+        if (groupInfo.getPredicate() != null) {
+          hostInfoEntity.setPredicate(groupInfo.getPredicateString());
+        }
+        hostInfoEntity.setFqdn(hostName);
+        hostInfoEntity.setHostCount(0);
+        hostInfoEntities.add(hostInfoEntity);
+      }
+    }
+    return entity;
+  }
+
+
+  private static String propertiesAsString(Map<String, Map<String, String>> configurationProperties) {
+    return jsonSerializer.toJson(configurationProperties);
+  }
+
+  private static String attributesAsString(Map<String, Map<String, Map<String, String>>> configurationAttributes) {
+    return jsonSerializer.toJson(configurationAttributes);
+  }
+
+  private static class ReplayedTopologyRequest implements TopologyRequest {
+    private final String clusterName;
+    private final Type type;
+    private final String description;
+    private final Blueprint blueprint;
+    private final Configuration configuration;
+    private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+
+    public ReplayedTopologyRequest(TopologyRequestEntity entity) {
+      clusterName = entity.getClusterName();
+      type = Type.valueOf(entity.getAction());
+      description = entity.getDescription();
+
+      try {
+        blueprint = blueprintFactory.getBlueprint(entity.getBlueprintName());
+      } catch (NoSuchStackException e) {
+        throw new RuntimeException("Unable to load blueprint while replaying topology request: " + e, e);
+      }
+      configuration = createConfiguration(entity.getClusterProperties(), entity.getClusterAttributes());
+      configuration.setParentConfiguration(blueprint.getConfiguration());
+
+      parseHostGroupInfo(entity);
+    }
+
+    @Override
+    public String getClusterName() {
+      return clusterName;
+    }
+
+    @Override
+    public Type getType() {
+      return type;
+    }
+
+    @Override
+    public Blueprint getBlueprint() {
+      return blueprint;
+    }
+
+    @Override
+    public Configuration getConfiguration() {
+      return configuration;
+    }
+
+    @Override
+    public Map<String, HostGroupInfo> getHostGroupInfo() {
+      return hostGroupInfoMap;
+    }
+
+    @Override
+    public List<TopologyValidator> getTopologyValidators() {
+      return Collections.emptyList();
+    }
+
+    @Override
+    public String getCommandDescription() {
+      return description;
+    }
+
+    private Configuration createConfiguration(String propString, String attributeString) {
+      Map<String, Map<String, String>> properties = jsonSerializer.
+          <Map<String, Map<String, String>>>fromJson(propString, Map.class);
+
+      Map<String, Map<String, Map<String, String>>> attributes = jsonSerializer.
+          <Map<String, Map<String, Map<String, String>>>>fromJson(attributeString, Map.class);
+
+      //todo: config parent
+      return new Configuration(properties, attributes);
+    }
+
+    private void parseHostGroupInfo(TopologyRequestEntity entity) {
+      for (TopologyHostGroupEntity hostGroupEntity : entity.getTopologyHostGroupEntities()) {
+        for (TopologyHostInfoEntity hostInfoEntity : hostGroupEntity.getTopologyHostInfoEntities()) {
+          String groupName = hostGroupEntity.getName();
+          HostGroupInfo groupInfo = hostGroupInfoMap.get(groupName);
+          if (groupInfo == null) {
+            groupInfo = new HostGroupInfo(groupName);
+            hostGroupInfoMap.put(groupName, groupInfo);
+          }
+
+          // if host names are specified, there will be one group info entity per name
+          // otherwise there is a single entity with requested count and predicate
+          String hostname = hostInfoEntity.getFqdn();
+          if (hostname != null && ! hostname.isEmpty()) {
+            groupInfo.addHost(hostname);
+          } else {
+            // should not be more than one group info if host count is specified
+            groupInfo.setRequestedCount(hostInfoEntity.getHostCount());
+            String hostPredicate = hostInfoEntity.getPredicate();
+            if (hostPredicate != null) {
+              try {
+                groupInfo.setPredicate(hostPredicate);
+              } catch (InvalidQueryException e) {
+                // log error but proceed with now predicate set
+                LOG.error(String.format(
+                    "Failed to compile predicate '%s' during request replay: %s", hostPredicate, e), e);
+              }
+            }
+          }
+
+          String groupConfigProperties = hostGroupEntity.getGroupProperties();
+          String groupConfigAttributes = hostGroupEntity.getGroupAttributes();
+          groupInfo.setConfiguration(createConfiguration(groupConfigProperties, groupConfigAttributes));
+        }
+      }
+    }
+  }
+}

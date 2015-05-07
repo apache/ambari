@@ -22,14 +22,13 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 import org.apache.ambari.server.orm.RequiresSession;
-import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyLogicalTaskEntity;
 
 import javax.persistence.EntityManager;
-import javax.persistence.TypedQuery;
 import java.util.List;
 
 @Singleton
-public class TopologyHostGroupDAO {
+public class TopologyLogicalTaskDAO {
   @Inject
   Provider<EntityManager> entityManagerProvider;
 
@@ -37,38 +36,28 @@ public class TopologyHostGroupDAO {
   DaoUtils daoUtils;
 
   @RequiresSession
-  public TopologyHostGroupEntity findById(Long id) {
-    return entityManagerProvider.get().find(TopologyHostGroupEntity.class, id);
+  public TopologyLogicalTaskEntity findById(Long id) {
+    return entityManagerProvider.get().find(TopologyLogicalTaskEntity.class, id);
   }
 
   @RequiresSession
-  public TopologyHostGroupEntity findByRequestIdAndName(long topologyRequestId, String name) {
-    TypedQuery<TopologyHostGroupEntity> query = entityManagerProvider.get().createNamedQuery(
-        "TopologyHostGroupEntity.findByRequestIdAndName", TopologyHostGroupEntity.class);
-
-    query.setParameter("requestId", topologyRequestId);
-    query.setParameter("name", name);
-
-    return query.getSingleResult();
-  }
-
-  @RequiresSession
-  public List<TopologyHostGroupEntity> findAll() {
-    return daoUtils.selectAll(entityManagerProvider.get(), TopologyHostGroupEntity.class);
+  public List<TopologyLogicalTaskEntity> findAll() {
+    return daoUtils.selectAll(entityManagerProvider.get(), TopologyLogicalTaskEntity.class);
   }
 
   @Transactional
-  public void create(TopologyHostGroupEntity hostGroupEntity) {
-    entityManagerProvider.get().persist(hostGroupEntity);
+  public void create(TopologyLogicalTaskEntity logicalTaskEntity) {
+    entityManagerProvider.get().persist(logicalTaskEntity);
   }
 
   @Transactional
-  public TopologyHostGroupEntity merge(TopologyHostGroupEntity hostGroupEntity) {
-    return entityManagerProvider.get().merge(hostGroupEntity);
+  public TopologyLogicalTaskEntity merge(TopologyLogicalTaskEntity logicalTaskEntity) {
+    return entityManagerProvider.get().merge(logicalTaskEntity);
   }
 
   @Transactional
-  public void remove(TopologyHostGroupEntity hostGroupEntity) {
-    entityManagerProvider.get().remove(hostGroupEntity);
+  public void remove(TopologyLogicalTaskEntity logicalTaskEntity) {
+    entityManagerProvider.get().remove(logicalTaskEntity);
   }
 }
+

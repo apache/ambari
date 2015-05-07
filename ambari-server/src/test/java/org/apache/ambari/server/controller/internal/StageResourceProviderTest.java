@@ -57,6 +57,7 @@ import org.apache.ambari.server.state.Clusters;
 import org.easymock.EasyMock;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Binder;
@@ -143,6 +144,7 @@ public class StageResourceProviderTest {
   }
 
   @Test
+  @Ignore
   public void testGetResources() throws Exception {
     StageResourceProvider provider = new StageResourceProvider(managementController);
 
@@ -174,6 +176,7 @@ public class StageResourceProviderTest {
   }
 
   @Test
+  @Ignore
   public void testQueryForResources() throws Exception {
     StageResourceProvider provider = new StageResourceProvider(managementController);
 

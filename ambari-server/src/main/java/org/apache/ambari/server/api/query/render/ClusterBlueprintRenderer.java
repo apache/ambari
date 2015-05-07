@@ -33,6 +33,7 @@ import org.apache.ambari.server.controller.internal.ExportBlueprintRequest;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.Stack;
 import org.apache.ambari.server.controller.spi.Resource;
+import org.apache.ambari.server.topology.AmbariContext;
 import org.apache.ambari.server.topology.ClusterTopology;
 import org.apache.ambari.server.topology.ClusterTopologyImpl;
 import org.apache.ambari.server.topology.Configuration;
@@ -40,7 +41,6 @@ import org.apache.ambari.server.topology.HostGroup;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyException;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
-import org.apache.ambari.server.topology.NoSuchHostGroupException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -253,7 +253,7 @@ public class ClusterBlueprintRenderer extends BaseRenderer implements Renderer {
   protected ClusterTopology createClusterTopology(TreeNode<Resource> clusterNode)
       throws InvalidTopologyTemplateException, InvalidTopologyException {
 
-    return new ClusterTopologyImpl(new ExportBlueprintRequest(clusterNode));
+    return new ClusterTopologyImpl(new AmbariContext(), new ExportBlueprintRequest(clusterNode));
   }
 
   /**

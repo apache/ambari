@@ -18,15 +18,12 @@
 
 package org.apache.ambari.server.topology;
 
-import org.apache.ambari.server.controller.spi.Predicate;
-import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -49,8 +46,8 @@ import static org.powermock.api.easymock.PowerMock.verify;
 public class ClusterTopologyImplTest {
 
   private static final String CLUSTER_NAME = "cluster_name";
+  private static final String predicate = "Hosts/host_name=foo";
   private static final Blueprint blueprint = createNiceMock(Blueprint.class);
-  private static final Predicate predicate = createNiceMock(Predicate.class);
   private static final HostGroup group1 = createNiceMock(HostGroup.class);
   private static final HostGroup group2 = createNiceMock(HostGroup.class);
   private static final HostGroup group3 = createNiceMock(HostGroup.class);
@@ -61,7 +58,7 @@ public class ClusterTopologyImplTest {
   private static Configuration configuration;
 
   @Before
-  public void setUp() {
+  public void setUp() throws Exception {
 
     configuration = new Configuration(new HashMap<String, Map<String, String>>(),
         new HashMap<String, Map<String, Map<String, String>>>());
@@ -129,8 +126,8 @@ public class ClusterTopologyImplTest {
 
   @After
   public void tearDown() {
-    verify(blueprint, predicate, group1, group2, group3, group4);
-    reset(blueprint, predicate, group1, group2, group3, group4);
+    verify(blueprint, group1, group2, group3, group4);
+    reset(blueprint, group1, group2, group3, group4);
 
     topologyValidators.clear();
     hostGroupInfoMap.clear();
@@ -138,12 +135,12 @@ public class ClusterTopologyImplTest {
   }
 
   private void replayAll() {
-    replay(blueprint, predicate, group1, group2, group3, group4);
+    replay(blueprint, group1, group2, group3, group4);
   }
 
   @Test(expected = InvalidTopologyException.class)
   public void testCreate_validatorFails() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest();
+    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
     TopologyValidator validator = createStrictMock(TopologyValidator.class);
     topologyValidators.add(validator);
@@ -154,12 +151,12 @@ public class ClusterTopologyImplTest {
     replayAll();
     replay(validator);
     // should throw exception due to validation failure
-    new ClusterTopologyImpl(request);
+    new ClusterTopologyImpl(null, request);
   }
 
   @Test
   public void testCreate_validatorSuccess() throws Exception {
-    TestTopologyRequest request = new TestTopologyRequest();
+    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
     TopologyValidator validator = createStrictMock(TopologyValidator.class);
     topologyValidators.add(validator);
@@ -169,7 +166,7 @@ public class ClusterTopologyImplTest {
     replayAll();
     replay(validator);
 
-    new ClusterTopologyImpl(request);
+    new ClusterTopologyImpl(null, request);
   }
 
   @Test(expected = InvalidTopologyException.class)
@@ -177,17 +174,28 @@ public class ClusterTopologyImplTest {
     // add a duplicate host
     hostGroupInfoMap.get("group2").addHost("host1");
 
-    TestTopologyRequest request = new TestTopologyRequest();
+    TestTopologyRequest request = new TestTopologyRequest(TopologyRequest.Type.PROVISION);
 
     replayAll();
     // should throw exception due to duplicate host
-    new ClusterTopologyImpl(request);
+    new ClusterTopologyImpl(null, request);
   }
 
   private class TestTopologyRequest implements TopologyRequest {
+    private Type type;
+
+    public TestTopologyRequest(Type type) {
+      this.type = type;
+    }
+
     @Override
     public String getClusterName() {
       return CLUSTER_NAME;
+    }
+
+    @Override
+    public Type getType() {
+      return type;
     }
 
     @Override
@@ -208,6 +216,11 @@ public class ClusterTopologyImplTest {
     @Override
     public List<TopologyValidator> getTopologyValidators() {
       return topologyValidators;
+    }
+
+    @Override
+    public String getCommandDescription() {
+      return "Test Request";
     }
   }
 }

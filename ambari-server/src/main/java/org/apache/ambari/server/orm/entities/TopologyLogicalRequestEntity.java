@@ -33,12 +33,8 @@ import java.util.Collection;
 
 @Entity
 @Table(name = "topology_logical_request")
-@TableGenerator(name = "topology_logical_request_id_generator", table = "ambari_sequences",
-  pkColumnName = "sequence_name", valueColumnName = "sequence_value",
-  pkColumnValue = "topology_logical_request_id_seq", initialValue = 0)
 public class TopologyLogicalRequestEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.TABLE, generator = "topology_logical_request_id_generator")
   @Column(name = "id", nullable = false, updatable = false)
   private Long id;
 

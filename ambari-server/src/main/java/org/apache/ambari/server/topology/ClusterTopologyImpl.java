@@ -19,6 +19,8 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.controller.RequestStatusResponse;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -39,13 +41,13 @@ public class ClusterTopologyImpl implements ClusterTopology {
   //todo: for example: provision using bp1 and scale using bp2
   private Blueprint blueprint;
   private Configuration configuration;
-  private final Map<String, HostGroupInfo> hostGroupInfoMap =
-      new HashMap<String, HostGroupInfo>();
+  private final Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
+  private final AmbariContext ambariContext;
 
 
   //todo: will need to convert all usages of hostgroup name to use fully qualified name (BP/HG)
   //todo: for now, restrict scaling to the same BP
-  public ClusterTopologyImpl(TopologyRequest topologyRequest) throws InvalidTopologyException {
+  public ClusterTopologyImpl(AmbariContext ambariContext, TopologyRequest topologyRequest) throws InvalidTopologyException {
     this.clusterName = topologyRequest.getClusterName();
     // provision cluster currently requires that all hostgroups have same BP so it is ok to use root level BP here
     this.blueprint = topologyRequest.getBlueprint();
@@ -54,10 +56,12 @@ public class ClusterTopologyImpl implements ClusterTopology {
     registerHostGroupInfo(topologyRequest.getHostGroupInfo());
 
     validateTopology(topologyRequest.getTopologyValidators());
+    this.ambariContext = ambariContext;
   }
 
   //todo: only used in tests, remove.  Validators not invoked when this constructor is used.
-  public ClusterTopologyImpl(String clusterName,
+  public ClusterTopologyImpl(AmbariContext ambariContext,
+                             String clusterName,
                              Blueprint blueprint,
                              Configuration configuration,
                              Map<String, HostGroupInfo> hostGroupInfo)
@@ -68,6 +72,7 @@ public class ClusterTopologyImpl implements ClusterTopology {
     this.configuration = configuration;
 
     registerHostGroupInfo(hostGroupInfo);
+    this.ambariContext = ambariContext;
   }
 
   @Override
@@ -172,6 +177,26 @@ public class ClusterTopologyImpl implements ClusterTopology {
     for (TopologyValidator validator : validators) {
       validator.validate(this);
     }
+  }
+
+  @Override
+  public boolean isClusterKerberosEnabled() {
+    return ambariContext.isClusterKerberosEnabled(getClusterName());
+  }
+
+  @Override
+  public RequestStatusResponse installHost(String hostName) {
+    return ambariContext.installHost(hostName, getClusterName());
+  }
+
+  @Override
+  public RequestStatusResponse startHost(String hostName) {
+    return ambariContext.startHost(hostName, getClusterName());
+  }
+
+  @Override
+  public AmbariContext getAmbariContext() {
+    return ambariContext;
   }
 
   private void registerHostGroupInfo(Map<String, HostGroupInfo> groupInfoMap) throws InvalidTopologyException {

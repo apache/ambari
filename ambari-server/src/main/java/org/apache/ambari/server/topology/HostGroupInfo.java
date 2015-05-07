@@ -18,6 +18,8 @@
 
 package org.apache.ambari.server.topology;
 
+import org.apache.ambari.server.api.predicate.InvalidQueryException;
+import org.apache.ambari.server.api.predicate.PredicateCompiler;
 import org.apache.ambari.server.controller.spi.Predicate;
 
 import java.util.Collection;
@@ -27,6 +29,8 @@ import java.util.HashSet;
  * Host Group information specific to a cluster instance.
  */
 public class HostGroupInfo {
+
+  private static PredicateCompiler predicateCompiler = new PredicateCompiler();
 
   private String hostGroupName;
   /**
@@ -38,7 +42,7 @@ public class HostGroupInfo {
 
   Configuration configuration;
 
-
+  String predicateString;
   Predicate predicate;
 
 
@@ -81,11 +85,16 @@ public class HostGroupInfo {
     return configuration;
   }
 
-  public void setPredicate(Predicate predicate) {
-    this.predicate = predicate;
+  public void setPredicate(String predicateString) throws InvalidQueryException {
+    this.predicate = predicateCompiler.compile(predicateString);
+    this.predicateString = predicateString;
   }
 
   public Predicate getPredicate() {
     return predicate;
+  }
+
+  public String getPredicateString() {
+    return predicateString;
   }
 }

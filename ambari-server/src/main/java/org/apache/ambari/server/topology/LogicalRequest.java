@@ -22,12 +22,16 @@ import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.actionmanager.Request;
-import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.RequestStatusResponse;
 import org.apache.ambari.server.controller.ShortTaskStatus;
 import org.apache.ambari.server.orm.dao.HostRoleCommandStatusSummaryDTO;
 import org.apache.ambari.server.orm.entities.HostRoleCommandEntity;
 import org.apache.ambari.server.orm.entities.StageEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostGroupEntity;
+import org.apache.ambari.server.orm.entities.TopologyHostRequestEntity;
+import org.apache.ambari.server.orm.entities.TopologyLogicalRequestEntity;
 import org.apache.ambari.server.state.host.HostImpl;
 
 import java.util.ArrayList;
@@ -38,30 +42,49 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeSet;
-
-import static org.apache.ambari.server.controller.AmbariServer.getController;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Logical Request implementation.
  */
 public class LogicalRequest extends Request {
 
-  private Collection<HostRequest> allHostRequests = new ArrayList<HostRequest>();
+  private final Collection<HostRequest> allHostRequests = new ArrayList<HostRequest>();
   // sorted set with master host requests given priority
-  private Collection<HostRequest> outstandingHostRequests = new TreeSet<HostRequest>();
-  private Map<String, HostRequest> requestsWithReservedHosts = new HashMap<String, HostRequest>();
+  private final Collection<HostRequest> outstandingHostRequests = new TreeSet<HostRequest>();
+  private final Map<String, HostRequest> requestsWithReservedHosts = new HashMap<String, HostRequest>();
 
   private final ClusterTopology topology;
 
+  private static AmbariManagementController controller;
 
-  //todo: topologyContext is a temporary refactoring step
-  public LogicalRequest(TopologyRequest requestRequest, TopologyManager.ClusterTopologyContext topologyContext) throws AmbariException {
+  private static final AtomicLong hostIdCounter = new AtomicLong(1);
+
+
+  public LogicalRequest(Long id, TopologyRequest request, ClusterTopology topology)
+      throws AmbariException {
+
     //todo: abstract usage of controller, etc ...
-    super(getController().getActionManager().getNextRequestId(), getController().getClusters().getCluster(
-        requestRequest.getClusterName()).getClusterId(), getController().getClusters());
+    super(id, getController().getClusters().getCluster(
+        request.getClusterName()).getClusterId(), getController().getClusters());
 
-    this.topology = topologyContext.getClusterTopology();
-    createHostRequests(requestRequest, topologyContext);
+    setRequestContext(String.format("Logical Request: %s", request.getCommandDescription()));
+
+    this.topology = topology;
+    createHostRequests(request, topology);
+  }
+
+  public LogicalRequest(Long id, TopologyRequest request, ClusterTopology topology,
+                        TopologyLogicalRequestEntity requestEntity) throws AmbariException {
+
+    //todo: abstract usage of controller, etc ...
+    super(id, getController().getClusters().getCluster(
+        request.getClusterName()).getClusterId(), getController().getClusters());
+
+    setRequestContext(String.format("Logical Request: %s", request.getCommandDescription()));
+
+    this.topology = topology;
+    createHostRequests(topology, requestEntity);
   }
 
   public HostOfferResponse offer(HostImpl host) {
@@ -71,7 +94,7 @@ public class LogicalRequest extends Request {
       if (hostRequest != null) {
         HostOfferResponse response = hostRequest.offer(host);
         if (response.getAnswer() != HostOfferResponse.Answer.ACCEPTED) {
-          //todo: error handling.  This is really a system exception and shouldn't happen
+          // host request rejected host that it explicitly requested
           throw new RuntimeException("LogicalRequest declined host offer of explicitly requested host: " +
               host.getHostName());
         }
@@ -100,29 +123,39 @@ public class LogicalRequest extends Request {
     }
     // if at least one outstanding host request rejected for predicate or we have an outstanding request
     // with a reserved host decline due to predicate, otherwise decline due to all hosts being resolved
-    //todo: could also check if outstandingHostRequests is empty
     return predicateRejected || ! requestsWithReservedHosts.isEmpty() ?
         new HostOfferResponse(HostOfferResponse.Answer.DECLINED_PREDICATE) :
         new HostOfferResponse(HostOfferResponse.Answer.DECLINED_DONE);
-  }
-
-  //todo
-  @Override
-  public Collection<Stage> getStages() {
-    return super.getStages();
   }
 
   @Override
   public List<HostRoleCommand> getCommands() {
     List<HostRoleCommand> commands = new ArrayList<HostRoleCommand>();
     for (HostRequest hostRequest : allHostRequests) {
-      commands.addAll(new ArrayList<HostRoleCommand>(hostRequest.getTasks()));
+      commands.addAll(new ArrayList<HostRoleCommand>(hostRequest.getLogicalTasks()));
     }
     return commands;
   }
 
   public Collection<String> getReservedHosts() {
     return requestsWithReservedHosts.keySet();
+  }
+
+  public boolean hasCompleted() {
+    return requestsWithReservedHosts.isEmpty() && outstandingHostRequests.isEmpty();
+  }
+
+  public Collection<HostRequest> getCompletedHostRequests() {
+    Collection<HostRequest> completedHostRequests = new ArrayList<HostRequest>(allHostRequests);
+    completedHostRequests.removeAll(outstandingHostRequests);
+    completedHostRequests.removeAll(requestsWithReservedHosts.values());
+
+    return completedHostRequests;
+  }
+
+  //todo: this is only here for toEntity() functionality
+  public Collection<HostRequest> getHostRequests() {
+    return new ArrayList<HostRequest>(allHostRequests);
   }
 
   //todo: account for blueprint name?
@@ -157,9 +190,7 @@ public class LogicalRequest extends Request {
     return hostComponentMap;
   }
 
-  //todo: currently we are just returning all stages for all requests
-  //todo: and relying on the StageResourceProvider to convert each to a resource and do a predicate eval on each
-  //todo: needed to change the name to avoid a name collision.
+  // currently we are just returning all stages for all requests
   public Collection<StageEntity> getStageEntities() {
     Collection<StageEntity> stages = new ArrayList<StageEntity>();
     for (HostRequest hostRequest : allHostRequests) {
@@ -182,8 +213,6 @@ public class LogicalRequest extends Request {
   public RequestStatusResponse getRequestStatus() {
     RequestStatusResponse requestStatus = new RequestStatusResponse(getRequestId());
     requestStatus.setRequestContext(getRequestContext());
-    //todo: other request status fields
-    //todo: ordering of tasks?
 
     // convert HostRoleCommands to ShortTaskStatus
     List<ShortTaskStatus> shortTasks = new ArrayList<ShortTaskStatus>();
@@ -191,7 +220,6 @@ public class LogicalRequest extends Request {
       shortTasks.add(new ShortTaskStatus(task));
     }
     requestStatus.setTasks(shortTasks);
-    //todo: null tasks?
 
     return requestStatus;
   }
@@ -249,13 +277,10 @@ public class LogicalRequest extends Request {
             timedout += 1;
             break;
           default:
-            //todo: proper log msg
             System.out.println("Unexpected status when creating stage summaries: " + taskStatus);
         }
       }
 
-      //todo: skippable.  I only see a skippable field on the stage, not the tasks
-      //todo: time related fields
       HostRoleCommandStatusSummaryDTO stageSummary = new HostRoleCommandStatusSummaryDTO(stage.isSkippable() ? 1 : 0, 0, 0,
           stage.getStageId(), aborted, completed, failed, holding, holdingFailed, holdingTimedout, inProgress, pending, queued, timedout);
       summaryMap.put(stage.getStageId(), stageSummary);
@@ -263,45 +288,69 @@ public class LogicalRequest extends Request {
     return summaryMap;
   }
 
-  //todo: context is a temporary refactoring step
-  private void createHostRequests(TopologyRequest requestRequest, TopologyManager.ClusterTopologyContext topologyContext) {
-    //todo: consistent stage ordering
-    //todo: confirm that stages don't need to be unique across requests
-    long stageIdCounter = 0;
-    Map<String, HostGroupInfo> hostGroupInfoMap = requestRequest.getHostGroupInfo();
+  private void createHostRequests(TopologyRequest request, ClusterTopology topology) {
+    Map<String, HostGroupInfo> hostGroupInfoMap = request.getHostGroupInfo();
+    Blueprint blueprint = topology.getBlueprint();
     for (HostGroupInfo hostGroupInfo : hostGroupInfoMap.values()) {
       String groupName = hostGroupInfo.getHostGroupName();
-      Blueprint blueprint = topology.getBlueprint();
-      int hostCardinality;
-      List<String> hostnames;
-
-      hostCardinality = hostGroupInfo.getRequestedHostCount();
-      hostnames = new ArrayList<String>(hostGroupInfo.getHostNames());
-
+      int hostCardinality = hostGroupInfo.getRequestedHostCount();
+      List<String> hostnames = new ArrayList<String>(hostGroupInfo.getHostNames());
 
       for (int i = 0; i < hostCardinality; ++i) {
         if (! hostnames.isEmpty()) {
           // host names are specified
           String hostname = hostnames.get(i);
-          //todo: pass in HostGroupInfo
-          HostRequest hostRequest = new HostRequest(getRequestId(), stageIdCounter++, getClusterName(),
-              blueprint.getName(), blueprint.getHostGroup(groupName), hostname, hostGroupInfo.getPredicate(),
-              topologyContext);
+          HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterName(),
+              hostname, blueprint.getName(), blueprint.getHostGroup(groupName), null, topology);
           synchronized (requestsWithReservedHosts) {
             requestsWithReservedHosts.put(hostname, hostRequest);
           }
         } else {
           // host count is specified
-          //todo: pass in HostGroupInfo
-          HostRequest hostRequest = new HostRequest(getRequestId(), stageIdCounter++, getClusterName(),
-              blueprint.getName(), blueprint.getHostGroup(groupName), hostCardinality, hostGroupInfo.getPredicate(),
-              topologyContext);
+          HostRequest hostRequest = new HostRequest(getRequestId(), hostIdCounter.getAndIncrement(), getClusterName(),
+              null, blueprint.getName(), blueprint.getHostGroup(groupName), hostGroupInfo.getPredicate(), topology);
           outstandingHostRequests.add(hostRequest);
         }
       }
     }
-
     allHostRequests.addAll(outstandingHostRequests);
     allHostRequests.addAll(requestsWithReservedHosts.values());
+  }
+
+  private void createHostRequests(ClusterTopology topology,
+                                  TopologyLogicalRequestEntity requestEntity) {
+
+    for (TopologyHostRequestEntity hostRequestEntity : requestEntity.getTopologyHostRequestEntities()) {
+      Long hostRequestId = hostRequestEntity.getId();
+      synchronized (hostIdCounter) {
+        if (hostIdCounter.get() <= hostRequestId) {
+          hostIdCounter.set(hostRequestId + 1);
+        }
+      }
+      TopologyHostGroupEntity hostGroupEntity = hostRequestEntity.getTopologyHostGroupEntity();
+
+      String reservedHostName = hostGroupEntity.
+          getTopologyHostInfoEntities().iterator().next().getFqdn();
+
+      //todo: move predicate processing to host request
+      HostRequest hostRequest = new HostRequest(getRequestId(), hostRequestId,
+          reservedHostName, topology, hostRequestEntity);
+
+      allHostRequests.add(hostRequest);
+      if (! hostRequest.isCompleted()) {
+        if (reservedHostName != null) {
+          requestsWithReservedHosts.put(reservedHostName, hostRequest);
+        } else {
+          outstandingHostRequests.add(hostRequest);
+        }
+      }
+    }
+  }
+
+  private synchronized static AmbariManagementController getController() {
+    if (controller == null) {
+      controller = AmbariServer.getController();
+    }
+    return controller;
   }
 }

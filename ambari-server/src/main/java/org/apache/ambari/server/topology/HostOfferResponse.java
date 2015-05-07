@@ -29,6 +29,7 @@ public class HostOfferResponse {
 
   private final Answer answer;
   private final String hostGroupName;
+  private final long hostRequestId;
   private final List<TopologyTask> tasks;
 
   public HostOfferResponse(Answer answer) {
@@ -36,18 +37,24 @@ public class HostOfferResponse {
       throw new IllegalArgumentException("For accepted response, hostgroup name and tasks must be set");
     }
     this.answer = answer;
+    this.hostRequestId = -1;
     this.hostGroupName = null;
     this.tasks = null;
   }
 
-  public HostOfferResponse(Answer answer, String hostGroupName, List<TopologyTask> tasks) {
+  public HostOfferResponse(Answer answer, long hostRequestId, String hostGroupName, List<TopologyTask> tasks) {
     this.answer = answer;
+    this.hostRequestId = hostRequestId;
     this.hostGroupName = hostGroupName;
     this.tasks = tasks;
   }
 
   public Answer getAnswer() {
     return answer;
+  }
+
+  public long getHostRequestId() {
+    return hostRequestId;
   }
 
   //todo: for now assumes a host was added
