@@ -726,7 +726,7 @@ public class UpgradeCatalog200Test {
     final DBAccessor dbAccessor = createNiceMock(DBAccessor.class);
     UpgradeCatalog upgradeCatalog = getUpgradeCatalog(dbAccessor);
 
-    Assert.assertEquals("2.0.0", upgradeCatalog.getTargetVersion());
+    Assert.assertEquals("2.0.1", upgradeCatalog.getTargetVersion());
   }
 
   private void setViewInstancePropertyExpectations(DBAccessor dbAccessor,
