@@ -80,7 +80,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @type {boolean}
    */
   showTimeRangeControl: function () {
-    return this.get('isServiceWithEnhancedWidgets') && this.get('widgets').filterProperty('widgetType', 'GRAPH').length > 0;
+    return !this.get('isServiceWithEnhancedWidgets') || this.get('widgets').filterProperty('widgetType', 'GRAPH').length > 0;
   }.property('isServiceWithEnhancedWidgets', 'widgets.length'),
 
   /**
