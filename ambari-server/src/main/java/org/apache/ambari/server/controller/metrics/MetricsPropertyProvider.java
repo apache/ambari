@@ -52,7 +52,9 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
 
   protected final ComponentSSLConfiguration configuration;
 
-  protected MetricsPaddingMethod metricsPaddingMethod =
+  protected MetricsPaddingMethod metricsPaddingMethod;
+
+  private static final MetricsPaddingMethod DEFAULT_PADDING_METHOD =
     new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
 
   protected MetricsPropertyProvider(Map<String, Map<String,
@@ -129,12 +131,16 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
       return resources;
     }
 
-    Map<String, Object> predicateProperties = PredicateHelper.getProperties(predicate);
-    if (predicateProperties != null && predicateProperties.keySet().contains(ZERO_PADDING_PARAM)) {
-      String paddingStr = (String) predicateProperties.get(ZERO_PADDING_PARAM);
-      for (MetricsPaddingMethod.PADDING_STRATEGY strategy : MetricsPaddingMethod.PADDING_STRATEGY.values()) {
-        if (paddingStr.equalsIgnoreCase(strategy.name())) {
-          metricsPaddingMethod = new MetricsPaddingMethod(strategy);
+    // Re-initialize in case of reuse.
+    metricsPaddingMethod = DEFAULT_PADDING_METHOD;
+
+    Set<String> requestPropertyIds = request.getPropertyIds();
+    if (requestPropertyIds != null && !requestPropertyIds.isEmpty()) {
+      for (String propertyId : requestPropertyIds) {
+        if (propertyId.startsWith(ZERO_PADDING_PARAM)) {
+          String paddingStrategyStr = propertyId.substring(ZERO_PADDING_PARAM.length() + 1);
+          metricsPaddingMethod = new MetricsPaddingMethod(
+            MetricsPaddingMethod.PADDING_STRATEGY.valueOf(paddingStrategyStr));
         }
       }
     }

@@ -35,6 +35,8 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import java.util.Map;
 import java.util.Set;
+
+import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.GANGLIA;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
@@ -79,6 +81,17 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
       default:
         break;
     }
+  }
+
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    Set<String> checkedPropertyIds = super.checkPropertyIds(propertyIds);
+    for (String propertyId : checkedPropertyIds) {
+      if (propertyId.startsWith(ZERO_PADDING_PARAM)) {
+        checkedPropertyIds.remove(propertyId);
+      }
+    }
+    return checkedPropertyIds;
   }
 
   private void createHostPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,

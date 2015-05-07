@@ -20,6 +20,7 @@ package org.apache.ambari.server.api.resources;
 
 
 import org.apache.ambari.server.api.query.render.DefaultRenderer;
+import org.apache.ambari.server.api.query.render.MetricsPaddingRenderer;
 import org.apache.ambari.server.api.query.render.MinimalRenderer;
 import org.apache.ambari.server.api.query.render.Renderer;
 import org.apache.ambari.server.api.services.Request;
@@ -125,6 +126,10 @@ public abstract class BaseResourceDefinition implements ResourceDefinition {
       return new DefaultRenderer();
     } else if (name.equals("minimal")) {
       return new MinimalRenderer();
+    } else if (name.contains("null_padding")
+              || name.contains("no_padding")
+              || name.contains("zero_padding")) {
+      return new MetricsPaddingRenderer(name);
     } else {
       throw new IllegalArgumentException("Invalid renderer name: " + name +
           " for resource of type: " + m_type);

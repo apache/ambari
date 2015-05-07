@@ -18,7 +18,6 @@
 package org.apache.ambari.server.controller.metrics;
 
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -64,9 +63,9 @@ class MetricNoDownsampling extends MetricsDownsamplingMethod {
 class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
   class Accumulo {
     public long ts;
-    public double val;
+    public Double val;
 
-    public Accumulo(long t, double v) {
+    public Accumulo(long t, Double v) {
       this.ts = t;
       this.val = v;
     }
@@ -79,7 +78,7 @@ class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
     if (ci.hasNext()) {
       Map.Entry<Long, Double> e0 = ci.next();
       long t0 = e0.getKey() / 1000;
-      double s0 = e0.getValue();
+      Double s0 = e0.getValue();
       int nSamples = 1;
 
       while(ci.hasNext()) {
@@ -87,18 +86,19 @@ class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
         long t = e0.getKey() / 1000;
 
         if (t != t0) {
-          cache.add(new Accumulo(t0, dataTransferMethod.getData(s0 / nSamples)));
+          cache.add(new Accumulo(t0, s0 != null ? dataTransferMethod.getData(s0 / nSamples) : null));
           t0 = t;
           s0 = e0.getValue();
           nSamples = 1;
         } else {
-          s0 += e0.getValue();
+          // Zero value contributes to nothing for downsampling method
+          s0 += e0.getValue() != null ? e0.getValue() : 0;
           nSamples++;
         }
       }
 
       //Add the last entry into the cache
-      cache.add(new Accumulo(t0, dataTransferMethod.getData(s0 / nSamples)));
+      cache.add(new Accumulo(t0, s0 != null ? dataTransferMethod.getData(s0 / nSamples) : null));
     }
 
     Number[][] datapointsArray = new Number[cache.size()][2];

@@ -309,6 +309,8 @@ public class PhoenixHBaseAccessor {
         clusterDailyTtl));
 
       conn.commit();
+
+      LOG.info("Metrics schema initialized.");
     } catch (SQLException sql) {
       if (sql.getErrorCode() ==
         SQLExceptionCode.SET_UNSUPPORTED_PROP_ON_ALTER_TABLE.getErrorCode()) {
