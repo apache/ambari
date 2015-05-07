@@ -44,7 +44,12 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
    * @type {number}
    */
   timeRange: function () {
-    return this.get('customTimeRange') || parseInt(this.get('content.properties.time_range')) * this.get('TIME_FACTOR');
+    var timeRange = parseInt(this.get('content.properties.time_range'));
+    if (isNaN(timeRange)) {
+      //1h - default time range
+      timeRange = 1;
+    }
+    return this.get('customTimeRange') || timeRange * this.get('TIME_FACTOR');
   }.property('content.properties.time_range', 'customTimeRange'),
 
   /**

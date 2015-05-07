@@ -77,6 +77,13 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   ],
 
   /**
+   * @type {boolean}
+   */
+  showTimeRangeControl: function () {
+    return this.get('isServiceWithEnhancedWidgets') && this.get('widgets').filterProperty('widgetType', 'GRAPH').length > 0;
+  }.property('isServiceWithEnhancedWidgets', 'widgets.length'),
+
+  /**
    * Set initial Ranger plugins data
    * @method setRangerPlugins
    */
@@ -354,7 +361,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {object|null} data
    */
   loadAllSharedWidgetsSuccessCallback: function (data) {
-    var widgetIds = this.get('widgets') ? this.get('widgets').mapProperty('id'): [];
+    var widgetIds = this.get('widgets').mapProperty('id');
     if (data.items[0] && data.items.length) {
       this.set("allSharedWidgets",
         data.items.filter(function (widget) {
@@ -404,7 +411,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {object|null} data
    */
   loadMineWidgetsSuccessCallback: function (data) {
-    var widgetIds = this.get('widgets') ? this.get('widgets').mapProperty('id'): [];
+    var widgetIds = this.get('widgets').mapProperty('id');
     if (data.items[0] && data.items.length) {
       this.set("mineWidgets",
         data.items.filter(function (widget) {

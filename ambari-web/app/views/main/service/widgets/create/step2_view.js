@@ -51,6 +51,7 @@ App.WidgetWizardStep2View = Em.View.extend({
   didInsertElement: function () {
     var controller = this.get('controller');
     this.ensureTooltip();
+    controller.convertData();
     controller.initWidgetData();
     controller.renderProperties();
     controller.updateExpressions();

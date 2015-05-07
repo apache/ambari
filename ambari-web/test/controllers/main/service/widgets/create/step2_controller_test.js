@@ -275,4 +275,41 @@ describe('App.WidgetWizardStep2Controller', function () {
     });
   });
 
+  describe("#initWidgetData()", function() {
+    it("new data", function() {
+      controller.set('expressions', []);
+      controller.set('dataSets', []);
+      controller.get('content').setProperties({
+        widgetProperties: {a:1},
+        widgetValues: [1],
+        widgetMetrics: [2]
+      });
+
+      controller.initWidgetData();
+
+      expect(controller.get('widgetProperties')).to.eql({a:1});
+      expect(controller.get('widgetValues')).to.eql([]);
+      expect(controller.get('widgetMetrics')).to.eql([]);
+      expect(controller.get('expressions')).to.not.be.empty;
+      expect(controller.get('dataSets')).to.not.be.empty;
+    });
+    it("previously edited", function() {
+      controller.set('expressions', [{}]);
+      controller.set('dataSets', [{}]);
+      controller.get('content').setProperties({
+        widgetProperties: {a:1},
+        widgetValues: [1],
+        widgetMetrics: [2]
+      });
+
+      controller.initWidgetData();
+
+      expect(controller.get('widgetProperties')).to.eql({a:1});
+      expect(controller.get('widgetValues')).to.eql([1]);
+      expect(controller.get('widgetMetrics')).to.eql([2]);
+      expect(controller.get('expressions')).to.not.be.empty;
+      expect(controller.get('dataSets')).to.not.be.empty;
+    });
+  });
+
 });

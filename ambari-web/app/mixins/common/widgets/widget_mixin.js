@@ -121,7 +121,7 @@ App.WidgetMixin = Ember.Mixin.create({
         });
       }
     }
-  }.observes('customTimeRange'),
+  }.observes('customTimeRange', 'content.properties.time_range'),
 
   /**
    * get data formatted for request

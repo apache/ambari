@@ -93,10 +93,9 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     if (this.get('isWidgetsLoaded')) {
       if (this.get('activeWidgetLayout.widgets')) {
         return this.get('activeWidgetLayout.widgets').toArray();
-      } else {
-        return [];
       }
     }
+    return [];
   }.property('isWidgetsLoaded'),
 
 

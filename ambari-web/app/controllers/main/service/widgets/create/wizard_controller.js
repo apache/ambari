@@ -34,7 +34,7 @@ App.WidgetWizardController = App.WizardController.extend({
   content: Em.Object.create({
     controllerName: 'widgetWizardController',
     widgetService: null,
-    widgetType: '',
+    widgetType: "",
 
     /**
      * @type {number}
@@ -87,11 +87,8 @@ App.WidgetWizardController = App.WizardController.extend({
      * }]
      */
     widgetValues: [],
-    expressions: [],
-    dataSets: [],
-    templateValue: null,
-    widgetName: null,
-    widgetDescription: null,
+    widgetName: "",
+    widgetDescription: "",
     widgetAuthor: function () {
       return App.router.get('loginName');
     }.property('App.router.loginName'),

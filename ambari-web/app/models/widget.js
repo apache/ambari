@@ -133,11 +133,6 @@ App.WidgetType.FIXTURES = [
         value: 'LINE'
       },
       {
-        name : 'time_range',
-        isRequired: true,
-        value: "1"
-      },
-      {
         name : 'display_unit',
         isRequired: false,
         value: '',

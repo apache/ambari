@@ -75,9 +75,6 @@ App.WidgetEditController = App.WidgetWizardController.extend({
      * }]
      */
     widgetValues: [],
-    expressions: [],
-    dataSets: [],
-    templateValue: null,
     widgetName: null,
     widgetDescription: null,
     widgetScope: null,
@@ -91,12 +88,9 @@ App.WidgetEditController = App.WidgetWizardController.extend({
         type: 'sync',
         callback: function () {
           this.load('widgetType');
-          this.load('widgetProperties');
-          this.load('widgetValues');
-          this.load('widgetMetrics');
-          this.load('expressions');
-          this.load('dataSets');
-          this.load('templateValue');
+          this.load('widgetProperties', true);
+          this.load('widgetValues', true);
+          this.load('widgetMetrics', true);
         }
       },
       {

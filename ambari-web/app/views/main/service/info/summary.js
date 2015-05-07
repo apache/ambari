@@ -441,16 +441,17 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
 
   /**
    * time range options for service metrics, a dropdown will list all options
+   * value set in hours
    */
   timeRangeOptions: [
-    {index: 0, name: Em.I18n.t('graphs.timeRange.hour'), seconds: 3600},
-    {index: 1, name: Em.I18n.t('graphs.timeRange.twoHours'), seconds: 7200},
-    {index: 2, name: Em.I18n.t('graphs.timeRange.fourHours'), seconds: 14400},
-    {index: 3, name: Em.I18n.t('graphs.timeRange.twelveHours'), seconds: 43200},
-    {index: 4, name: Em.I18n.t('graphs.timeRange.day'), seconds: 86400},
-    {index: 5, name: Em.I18n.t('graphs.timeRange.week'), seconds: 604800},
-    {index: 6, name: Em.I18n.t('graphs.timeRange.month'), seconds: 2592000},
-    {index: 7, name: Em.I18n.t('graphs.timeRange.year'), seconds: 31104000}
+    {index: 0, name: Em.I18n.t('graphs.timeRange.hour'), value: '1'},
+    {index: 1, name: Em.I18n.t('graphs.timeRange.twoHours'), value: '2'},
+    {index: 2, name: Em.I18n.t('graphs.timeRange.fourHours'), value: '4'},
+    {index: 3, name: Em.I18n.t('graphs.timeRange.twelveHours'), value: '12'},
+    {index: 4, name: Em.I18n.t('graphs.timeRange.day'), value: '24'},
+    {index: 5, name: Em.I18n.t('graphs.timeRange.week'), value: '168'},
+    {index: 6, name: Em.I18n.t('graphs.timeRange.month'), value: '720'},
+    {index: 7, name: Em.I18n.t('graphs.timeRange.year'), value: '8760'}
   ],
 
   currentTimeRangeIndex: 0,
@@ -460,28 +461,14 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
 
   /**
    * onclick handler for a time range option
+   * @param {object} event
    */
   setTimeRange: function (event) {
-    var self = this;
-    if (event && event.context) {
-      self.postUserPref(self.get('persistKey'), event.context.index);
-      self.set('currentTimeRangeIndex', event.context.index);
-      var svcName = self.get('service.serviceName');
-      if (svcName) {
-        var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
-        var allServices = require('data/service_graph_config').getServiceGraphConfig();
-        allServices[svcName.toLowerCase()].forEach(function(graphName) {
-          graphObjects.push(App["ChartServiceMetrics" + graphName].extend({
-            currentTimeIndex : event.context.index
-          }));
-        });
-        while(graphObjects.length) {
-          result.push(graphObjects.splice(0, chunkSize));
-        }
-        self.set('serviceMetricGraphs', result);
-        self.set('isServiceMetricLoaded', true);
-      }
-    }
+    this.set('currentTimeRangeIndex', event.context.index);
+
+    this.get('controller.widgets').filterProperty('widgetType', 'GRAPH').forEach(function (widget) {
+      widget.set('properties.time_range', event.context.value);
+    }, this);
   },
 
   loadServiceSummary: function () {

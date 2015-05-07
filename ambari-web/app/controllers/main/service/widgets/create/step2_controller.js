@@ -236,14 +236,6 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     this.set('widgetProperties', this.get('content.widgetProperties'));
     this.set('widgetValues', this.get('content.widgetValues'));
     this.set('widgetMetrics', this.get('content.widgetMetrics'));
-    this.set('expressions', this.get('content.expressions').map(function (item) {
-      return Em.Object.create(item);
-    }, this));
-    this.set('dataSets', this.get('content.dataSets').map(function (item) {
-      item.expression = Em.Object.create(item.expression);
-      return Em.Object.create(item);
-    }, this));
-    this.set('templateValue', this.get('content.templateValue'));
     if (this.get('expressions.length') === 0) {
       this.addExpression(null, true);
     }
@@ -262,6 +254,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       values: [],
       metrics: []
     };
+
     if (this.get('expressions').length > 0 && this.get('dataSets').length > 0) {
       switch (widgetType) {
         case 'GAUGE':
@@ -404,43 +397,42 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   /**
    * convert data with model format to editable format
    * Note: in order to edit widget expression it should be converted to editable format
-   * @param {App.Widget} content
-   * @param {Ember.Controller} widgetController
    */
-  convertData: function(content, widgetController) {
+  convertData: function() {
     var self = this;
     var expressionId = 0;
+    var widgetValues = this.get('content.widgetValues');
+    var widgetMetrics = this.get('content.widgetMetrics');
 
     this.get('expressions').clear();
     this.get('dataSets').clear();
 
-    switch (content.get('widgetType')) {
-      case 'NUMBER':
-      case 'GAUGE':
-        var id = this.addExpression(null, true);
-        this.get('expressions').findProperty('id', id).set('data', this.parseValue(content.get('values')[0].value, content.get('metrics'))[0]);
-        break;
-      case 'TEMPLATE':
-        this.parseValue(content.get('values')[0].value, content.get('metrics')).forEach(function(item, index) {
-          var id = this.addExpression(null, (index === 0));
-          this.get('expressions').findProperty('id', id).set('data', item);
-        }, this);
-        this.set('templateValue', content.get('values')[0].value.replace(this.get('EXPRESSION_REGEX'), function(){
-          return '{{' + self.get('EXPRESSION_PREFIX') + ++expressionId + '}}';
-        }));
-        break;
-      case 'GRAPH':
-        content.get('values').forEach(function (value, index) {
-          var id = this.addDataSet(null, (index === 0));
-          var dataSet = this.get('dataSets').findProperty('id', id);
-          dataSet.set('label', value.name);
-          dataSet.set('expression.data', this.parseValue(value.value, content.get('metrics'))[0]);
-        }, this);
-        break;
+    if (widgetValues.length > 0) {
+      switch (this.get('content.widgetType')) {
+        case 'NUMBER':
+        case 'GAUGE':
+          var id = this.addExpression(null, true);
+          this.get('expressions').findProperty('id', id).set('data', this.parseValue(widgetValues[0].value, widgetMetrics)[0]);
+          break;
+        case 'TEMPLATE':
+          this.parseValue(widgetValues[0].value, widgetMetrics).forEach(function (item, index) {
+            var id = this.addExpression(null, (index === 0));
+            this.get('expressions').findProperty('id', id).set('data', item);
+          }, this);
+          this.set('templateValue', widgetValues[0].value.replace(this.get('EXPRESSION_REGEX'), function () {
+            return '{{' + self.get('EXPRESSION_PREFIX') + ++expressionId + '}}';
+          }));
+          break;
+        case 'GRAPH':
+          widgetValues.forEach(function (value, index) {
+            var id = this.addDataSet(null, (index === 0));
+            var dataSet = this.get('dataSets').findProperty('id', id);
+            dataSet.set('label', value.name);
+            dataSet.set('expression.data', this.parseValue(value.value, widgetMetrics)[0]);
+          }, this);
+          break;
+      }
     }
-    widgetController.save('templateValue', this.get('templateValue'));
-    widgetController.save('expressions', this.get('expressions'));
-    widgetController.save('dataSets', this.get('dataSets'));
   },
 
   /**

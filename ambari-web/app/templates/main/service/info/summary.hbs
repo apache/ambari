@@ -79,7 +79,7 @@
         <div class="box">
           <div class="box-header">
             <h4>{{t services.service.metrics}}</h4>
-            {{#unless isServiceWithEnhancedWidgets}}
+            {{#if showTimeRangeControl}}
               <div class="btn-group pull-right">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
                   {{view.currentTimeRange.name}} &nbsp;<span class="caret"></span>
@@ -90,7 +90,7 @@
                   {{/each}}
                 </ul>
               </div>
-            {{/unless}}
+            {{/if}}
             {{#if isServiceWithEnhancedWidgets}}
               <div class="btn-group pull-right actions">
                 <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
