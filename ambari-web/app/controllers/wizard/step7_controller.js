@@ -640,6 +640,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         self.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
       }
       self.setStepConfigs(configs, storedConfigs);
+      self.updateDependentConfigs();
+      self.clearDependentConfigs();
       self.checkHostOverrideInstaller();
       self.activateSpecialConfigs();
       self.selectProperService();

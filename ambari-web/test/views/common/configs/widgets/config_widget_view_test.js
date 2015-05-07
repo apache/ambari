@@ -170,7 +170,7 @@ describe('App.ConfigWidgetView', function () {
     beforeEach(function() {
       view = App.ConfigWidgetView.create({
         controller: Em.Object.create({
-          _updateDependentConfigs: function() {}
+          updateDependentConfigs: function() {}
         }),
         config: Em.Object.create({ name: 'config1'})
       });

@@ -442,8 +442,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         if (!c.get('recommendedValue')) {
           c.set('recommendedValue', advanced.get('value'));
         }
-      }
-      else {
+      } else if (advanced.get('widget')) {
         configs.pushObject(App.ServiceConfigProperty.create({
           name: advanced.get('name'),
           displayName: advanced.get('displayName'),

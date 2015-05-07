@@ -281,7 +281,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   dependenciesSuccess: function (data, opt, params) {
     this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations);
     if (!params.initial) {
-      this._updateDependentConfigs();
+      this.updateDependentConfigs();
     }
   },
 
@@ -293,7 +293,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
     var self = this;
     if (this.get('_dependentConfigValues.length') > 0) {
       App.showDependentConfigsPopup(this.get('_dependentConfigValues'), function() {
-        self._updateDependentConfigs();
+        self.updateDependentConfigs();
         if (callback) {
           callback();
         }
@@ -348,8 +348,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * saves values from response for dependent config properties to <code>_dependentConfigValues<code>
    * @param data
-   * @param updateOnlyBoundaries
-   * @param changedConfigs
+   * @param [updateOnlyBoundaries=false]
+   * @param [changedConfigs=null]
    * @method saveRecommendedValues
    * @private
    */
@@ -528,9 +528,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * save values that are stored in <code>_dependentConfigValues<code>
    * to step configs
-   * @private
    */
-  _updateDependentConfigs: function() {
+  updateDependentConfigs: function() {
     var self = this;
     this.get('stepConfigs').forEach(function(serviceConfigs) {
       var selectedGroup = self.getGroupForService(serviceConfigs.get('serviceName'));
@@ -559,17 +558,19 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           if (Em.get(propertyToAdd, 'isDeleted')) {
             this.get('_dependentConfigValues').removeObject(propertyToAdd);
           }
-          stepConfigs.get('configs').pushObject(App.ServiceConfigProperty.create({
+          var addedProperty = App.ServiceConfigProperty.create({
             name: Em.get(propertyToAdd, 'propertyName'),
             displayName: Em.get(propertyToAdd, 'propertyName'),
             value: Em.get(propertyToAdd, 'recommendedValue'),
             defaultValue: Em.get(propertyToAdd, 'recommendedValue'),
-            category: 'Custom ' + Em.get(propertyToAdd, 'fileName'),
+            category: 'Advanced ' + Em.get(propertyToAdd, 'fileName'),
             serviceName: stepConfigs.get('serviceName'),
             filename: App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')),
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
-            isRequired: false
-          }));
+            isRequired: true
+          });
+          stepConfigs.get('configs').pushObject(addedProperty);
+          addedProperty.validate();
         } else {
           var cp = stepConfigs.get('configs').filterProperty('name', Em.get(propertyToAdd, 'propertyName')).findProperty('filename', App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')));
           if (Em.get(propertyToAdd, 'isDeleted')) {
