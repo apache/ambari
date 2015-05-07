@@ -1340,4 +1340,27 @@ describe("App.MainServiceInfoConfigsController", function () {
 
   });
 
+  describe('#mergeWithStackProperties', function () {
+
+    it('should set recommended value', function () {
+      mainServiceInfoConfigsController.reopen({
+        advancedConfigs: [
+          Em.Object.create({
+            name: 'n1',
+            value: 'v1'
+          })
+        ]
+      });
+      var configs = [
+        Em.Object.create({
+          name: 'n1',
+          recommendedValue: null
+        })
+      ];
+      configs = mainServiceInfoConfigsController.mergeWithStackProperties(configs);
+      expect(configs.findProperty('name', 'n1').get('recommendedValue')).to.equal('v1');
+    });
+
+  });
+
 });

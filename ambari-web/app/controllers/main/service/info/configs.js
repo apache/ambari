@@ -405,7 +405,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
        * if property defined in stack but somehow it missed from cluster properties (can be after stack upgrade)
        * ui should add this properties to step configs
        */
-      configs = self.addMissedPropertiesFromStack(configs);
+      configs = self.mergeWithStackProperties(configs);
 
       //put properties from capacity-scheduler.xml into one config with textarea view
       if (self.get('content.serviceName') === 'YARN') {
@@ -430,13 +430,20 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   /**
    * adds properties form stack that doesn't belong to cluster
    * to step configs
+   * also set recommended value if isn't exists
    *
    * @return {App.ServiceConfigProperty[]}
-   * @method addMissedPropertiesFromStack
+   * @method mergeWithStackProperties
    */
-  addMissedPropertiesFromStack: function(configs) {
+  mergeWithStackProperties: function(configs) {
     this.get('advancedConfigs').forEach(function(advanced) {
-      if (!configs.someProperty('name', advanced.get('name'))) {
+      var c = configs.findProperty('name', advanced.get('name'));
+      if (c) {
+        if (!c.get('recommendedValue')) {
+          c.set('recommendedValue', advanced.get('value'));
+        }
+      }
+      else {
         configs.pushObject(App.ServiceConfigProperty.create({
           name: advanced.get('name'),
           displayName: advanced.get('displayName'),
@@ -445,6 +452,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           filename: advanced.get('fileName'),
           isUserProperty: false,
           isNotSaved: true,
+          recommendedValue: advanced.get('value'),
           isFinal: advanced.get('isFinal'),
           defaultIsFinal: advanced.get('defaultIsFinal'),
           serviceName: advanced.get('serviceName'),
