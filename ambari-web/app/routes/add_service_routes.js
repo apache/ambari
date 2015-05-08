@@ -184,6 +184,8 @@ module.exports = App.WizardRoute.extend({
           addServiceController.get('content').set('serviceConfigProperties', null);
           addServiceController.setDBProperty('serviceConfigProperties', null);
           addServiceController.setDBProperty('groupsToDelete', []);
+          addServiceController.setDBProperty('recommendationsConfigs', null);
+          router.get('wizardStep7Controller').set('recommendationsConfigs', null);
           router.transitionTo('step4');
         });
       });
