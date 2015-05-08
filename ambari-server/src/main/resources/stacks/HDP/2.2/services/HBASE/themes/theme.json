@@ -170,7 +170,7 @@
           "subsection-name": "subsection-hbase-memory-col1"
         },
         {
-          "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
+          "config": "hbase-site/hbase.regionserver.global.memstore.size",
           "subsection-name": "subsection-hbase-memory-col1"
         },
         {
@@ -202,7 +202,7 @@
           "subsection-name": "subsection-hbase-disk-col2"
         },
         {
-          "config": "hbase-site/hbase.hstore.compactionThreshold",
+          "config": "hbase-site/hbase.hstore.compaction.max",
           "subsection-name": "subsection-hbase-disk-col3"
         },
         {
@@ -266,7 +266,7 @@
         }
       },
       {
-        "config": "hbase-site/hbase.regionserver.global.memstore.upperLimit",
+        "config": "hbase-site/hbase.regionserver.global.memstore.size",
         "widget": {
           "type": "slider",
           "units": [
@@ -349,7 +349,7 @@
         }
       },
       {
-        "config": "hbase-site/hbase.hstore.compactionThreshold",
+        "config": "hbase-site/hbase.hstore.compaction.max",
         "widget": {
           "type": "combo"
         }

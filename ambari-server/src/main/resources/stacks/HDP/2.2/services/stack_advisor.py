@@ -428,7 +428,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
     putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
-    putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
+    putHbaseSiteProperty("hbase.regionserver.global.memstore.size", '0.4')
 
     if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
       if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
@@ -468,7 +468,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
       # Set values in hbase-site
       putHbaseProperty = self.putProperty(configurations, "hbase-site", services)
       putHbaseProperty('hfile.block.cache.size', hfile_block_cache_size)
-      putHbaseProperty('hbase.regionserver.global.memstore.upperLimit', hbase_regionserver_global_memstore_size)
+      putHbaseProperty('hbase.regionserver.global.memstore.size', hbase_regionserver_global_memstore_size)
       putHbaseProperty('hbase.bucketcache.ioengine', 'offheap')
       putHbaseProperty('hbase.bucketcache.size', hbase_bucketcache_size)
       putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', hbase_bucketcache_percentage_in_combinedcache_str)
@@ -823,7 +823,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     hbase_site = properties
     validationItems = []
 
-    prop_name1 = 'hbase.regionserver.global.memstore.upperLimit'
+    prop_name1 = 'hbase.regionserver.global.memstore.size'
     prop_name2 = 'hfile.block.cache.size'
     props_max_sum = 0.8
 

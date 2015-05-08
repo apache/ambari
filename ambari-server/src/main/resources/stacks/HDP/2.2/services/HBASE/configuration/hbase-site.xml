@@ -147,4 +147,60 @@
       </property>
     </depends-on>
   </property>
+  <property>
+    <name>hbase.hstore.compaction.max</name>
+    <value>10</value>
+    <description>The maximum number of StoreFiles which will be selected for a single minor
+      compaction, regardless of the number of eligible StoreFiles. Effectively, the value of
+      hbase.hstore.compaction.max controls the length of time it takes a single compaction to
+      complete. Setting it larger means that more StoreFiles are included in a compaction. For most
+      cases, the default value is appropriate.
+    </description>
+    <display-name>Maximum Files in a Store before Compaction</display-name>
+    <value-attributes>
+      <type>int</type>
+      <entries>
+        <entry>
+          <value>8</value>
+        </entry>
+        <entry>
+          <value>9</value>
+        </entry>
+        <entry>
+          <value>10</value>
+        </entry>
+        <entry>
+          <value>11</value>
+        </entry>
+        <entry>
+          <value>12</value>
+        </entry>
+        <entry>
+          <value>13</value>
+        </entry>
+        <entry>
+          <value>14</value>
+        </entry>
+        <entry>
+          <value>15</value>
+        </entry>
+      </entries>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hbase.regionserver.global.memstore.size</name>
+    <value>0.4</value>
+    <description>Percentage of RegionServer memory to allocate to write buffers.
+      Each column family within each region is allocated a smaller pool (the memstore) within this shared write pool.
+      If this buffer is full, updates are blocked and data is flushed from memstores until a global low watermark
+      (hbase.regionserver.global.memstore.size.lower.limit) is reached.
+    </description>
+    <display-name>% of RegionServer Allocated to Write Buffers</display-name>
+    <value-attributes>
+      <type>float</type>
+      <minimum>0</minimum>
+      <maximum>0.8</maximum>
+      <increment-step>0.01</increment-step>
+    </value-attributes>
+  </property>
 </configuration>

@@ -1474,7 +1474,7 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
           "hbase.bucketcache.size": "",
           "hbase.bucketcache.percentage.in.combinedcache": "",
-          "hbase.regionserver.global.memstore.upperLimit": "0.4",
+          "hbase.regionserver.global.memstore.size": "0.4",
           "hbase.bucketcache.ioengine": ""
         },
         'property_attributes': {
