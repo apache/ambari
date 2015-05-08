@@ -191,8 +191,7 @@ public class HBaseTimelineMetricStore extends AbstractService
     return metricValues;
   }
 
-  public static HashMap<String, List<Function>>
-  parseMetricNamesToAggregationFunctions(List<String> metricNames) {
+  public static HashMap<String, List<Function>> parseMetricNamesToAggregationFunctions(List<String> metricNames) {
     HashMap<String, List<Function>> metricsFunctions = new HashMap<String,
       List<Function>>();
 

@@ -38,7 +38,7 @@ public class TimelineMetricReadHelper {
   }
 
   public TimelineMetric getTimelineMetricFromResultSet(ResultSet rs)
-    throws SQLException, IOException {
+      throws SQLException, IOException {
     TimelineMetric metric = getTimelineMetricCommonsFromResultSet(rs);
     Map<Long, Double> sortedByTimeMetrics = new TreeMap<Long, Double>(
         PhoenixHBaseAccessor.readMetricFromJSON(rs.getString("METRICS")));
@@ -50,7 +50,7 @@ public class TimelineMetricReadHelper {
    * Returns common part of timeline metrics record without the values.
    */
   public TimelineMetric getTimelineMetricCommonsFromResultSet(ResultSet rs)
-    throws SQLException {
+      throws SQLException {
     TimelineMetric metric = new TimelineMetric();
     metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setAppId(rs.getString("APP_ID"));
@@ -76,7 +76,7 @@ public class TimelineMetricReadHelper {
   }
 
   public MetricClusterAggregate getMetricClusterTimeAggregateFromResultSet(ResultSet rs)
-    throws SQLException {
+      throws SQLException {
     MetricClusterAggregate agg = new MetricClusterAggregate();
     agg.setSum(rs.getDouble("METRIC_SUM"));
     agg.setMax(rs.getDouble("METRIC_MAX"));
@@ -98,5 +98,28 @@ public class TimelineMetricReadHelper {
       rs.getString("UNITS"));
   }
 
+  public MetricHostAggregate getMetricHostAggregateFromResultSet(ResultSet rs)
+      throws SQLException {
+    MetricHostAggregate metricHostAggregate = new MetricHostAggregate();
+    metricHostAggregate.setSum(rs.getDouble("METRIC_SUM"));
+    metricHostAggregate.setMax(rs.getDouble("METRIC_MAX"));
+    metricHostAggregate.setMin(rs.getDouble("METRIC_MIN"));
+    metricHostAggregate.setNumberOfSamples(rs.getLong("METRIC_COUNT"));
+
+    metricHostAggregate.setDeviation(0.0);
+    return metricHostAggregate;
+  }
+
+  public TimelineMetric getTimelineMetricKeyFromResultSet(ResultSet rs)
+      throws SQLException, IOException {
+    TimelineMetric metric = new TimelineMetric();
+    metric.setMetricName(rs.getString("METRIC_NAME"));
+    metric.setAppId(rs.getString("APP_ID"));
+    metric.setInstanceId(rs.getString("INSTANCE_ID"));
+    metric.setHostName(rs.getString("HOSTNAME"));
+    metric.setTimestamp(rs.getLong("SERVER_TIME"));
+    metric.setType(rs.getString("UNITS"));
+    return metric;
+  }
 }
 

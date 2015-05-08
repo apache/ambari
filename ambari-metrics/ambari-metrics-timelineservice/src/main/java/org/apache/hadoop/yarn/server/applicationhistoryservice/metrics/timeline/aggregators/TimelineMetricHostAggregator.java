@@ -34,6 +34,7 @@ import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.ti
 
 public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
   private static final Log LOG = LogFactory.getLog(TimelineMetricHostAggregator.class);
+  TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
   public TimelineMetricHostAggregator(PhoenixHBaseAccessor hBaseAccessor,
                                       Configuration metricsConf,
@@ -79,14 +80,14 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
       throws IOException, SQLException {
     TimelineMetric existingMetric = null;
     MetricHostAggregate hostAggregate = null;
-    Map<TimelineMetric, MetricHostAggregate> hostAggregateMap =
-      new HashMap<TimelineMetric, MetricHostAggregate>();
+    Map<TimelineMetric, MetricHostAggregate> hostAggregateMap =  new HashMap<TimelineMetric, MetricHostAggregate>();
+
 
     while (rs.next()) {
       TimelineMetric currentMetric =
-        PhoenixHBaseAccessor.getTimelineMetricKeyFromResultSet(rs);
+        readHelper.getTimelineMetricKeyFromResultSet(rs);
       MetricHostAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricHostAggregateFromResultSet(rs);
+        readHelper.getMetricHostAggregateFromResultSet(rs);
 
       if (existingMetric == null) {
         // First row

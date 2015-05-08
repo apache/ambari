@@ -99,4 +99,30 @@ public class TimelineMetrics {
       allMetrics.add(metric);
     }
   }
+
+  // Optimization that addresses too many TreeMaps from getting created.
+  public void addOrMergeTimelineMetric(SingleValuedTimelineMetric metric) {
+    TimelineMetric metricToMerge = null;
+
+    if (!allMetrics.isEmpty()) {
+      for (TimelineMetric timelineMetric : allMetrics) {
+        if (metric.equalsExceptTime(timelineMetric)) {
+          metricToMerge = timelineMetric;
+          break;
+        }
+      }
+    }
+
+    if (metricToMerge != null) {
+      metricToMerge.getMetricValues().put(metric.getTimestamp(), metric.getValue());
+      if (metricToMerge.getTimestamp() > metric.getTimestamp()) {
+        metricToMerge.setTimestamp(metric.getTimestamp());
+      }
+      if (metricToMerge.getStartTime() > metric.getStartTime()) {
+        metricToMerge.setStartTime(metric.getStartTime());
+      }
+    } else {
+      allMetrics.add(metric.getTimelineMetric());
+    }
+  }
 }

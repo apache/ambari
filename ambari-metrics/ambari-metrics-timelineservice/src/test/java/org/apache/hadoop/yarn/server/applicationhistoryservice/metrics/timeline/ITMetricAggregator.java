@@ -23,6 +23,7 @@ import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.MetricHostAggregate;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregator;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricAggregatorFactory;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.TimelineMetricReadHelper;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.Condition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.DefaultCondition;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL;
@@ -107,6 +108,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregatorMinute =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorMinute(hdb, new Configuration());
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
 
     long startTime = System.currentTimeMillis();
     long ctime = startTime;
@@ -137,9 +139,9 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     int count = 0;
     while (rs.next()) {
       TimelineMetric currentMetric =
-        PhoenixHBaseAccessor.getTimelineMetricKeyFromResultSet(rs);
+        readHelper.getTimelineMetricKeyFromResultSet(rs);
       MetricHostAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricHostAggregateFromResultSet(rs);
+        readHelper.getMetricHostAggregateFromResultSet(rs);
 
       if ("disk_free".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
@@ -167,6 +169,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregator =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorHourly(hdb, new Configuration());
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
     long startTime = System.currentTimeMillis();
 
     MetricHostAggregate expectedAggregate =
@@ -210,9 +213,9 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
     while (rs.next()) {
       TimelineMetric currentMetric =
-        PhoenixHBaseAccessor.getTimelineMetricKeyFromResultSet(rs);
+        readHelper.getTimelineMetricKeyFromResultSet(rs);
       MetricHostAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricHostAggregateFromResultSet(rs);
+        readHelper.getMetricHostAggregateFromResultSet(rs);
 
       if ("disk_used".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
@@ -229,6 +232,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     // GIVEN
     TimelineMetricAggregator aggregator =
       TimelineMetricAggregatorFactory.createTimelineMetricAggregatorDaily(hdb, new Configuration());
+    TimelineMetricReadHelper readHelper = new TimelineMetricReadHelper(false);
     long startTime = System.currentTimeMillis();
 
     MetricHostAggregate expectedAggregate =
@@ -270,9 +274,9 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
 
     while (rs.next()) {
       TimelineMetric currentMetric =
-        PhoenixHBaseAccessor.getTimelineMetricKeyFromResultSet(rs);
+        readHelper.getTimelineMetricKeyFromResultSet(rs);
       MetricHostAggregate currentHostAggregate =
-        PhoenixHBaseAccessor.getMetricHostAggregateFromResultSet(rs);
+        readHelper.getMetricHostAggregateFromResultSet(rs);
 
       if ("disk_used".equals(currentMetric.getMetricName())) {
         assertEquals(2.0, currentHostAggregate.getMax());
@@ -301,9 +305,7 @@ public class ITMetricAggregator extends AbstractMiniHBaseClusterTest {
     return metrics;
   }
 
-  private TimelineMetric createMetric(long startTime,
-                                      String metricName,
-                                      String host) {
+  private TimelineMetric createMetric(long startTime, String metricName, String host) {
     TimelineMetric m = new TimelineMetric();
     m.setAppId("host");
     m.setHostName(host);

@@ -135,7 +135,6 @@ public class ITClusterAggregator extends AbstractMiniHBaseClusterTest {
     }
   }
 
-
   @Test
   public void testShouldAggregateClusterIgnoringInstance() throws Exception {
     // GIVEN

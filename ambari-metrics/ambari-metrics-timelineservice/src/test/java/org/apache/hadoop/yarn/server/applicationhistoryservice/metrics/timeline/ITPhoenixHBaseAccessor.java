@@ -86,20 +86,20 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     long ctime = startTime;
     long minute = 60 * 1000;
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
-        "disk_free", 1));
+      "disk_free", 1));
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
-        "disk_free", 2));
+      "disk_free", 2));
     ctime += minute;
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
-        "disk_free", 2));
+      "disk_free", 2));
     hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
-        "disk_free", 1));
+      "disk_free", 1));
 
     // WHEN
     long endTime = ctime + minute;
     Condition condition = new DefaultCondition(
-        Collections.singletonList("disk_free"), "local1", null, null, startTime,
-        endTime, Precision.SECONDS, null, true);
+      Collections.singletonList("disk_free"), "local1", null, null, startTime,
+      endTime, Precision.SECONDS, null, true);
     TimelineMetrics timelineMetrics = hdb.getMetricRecords(condition,
       singletonValueFunctionMap("disk_free"));
 
@@ -237,6 +237,46 @@ public class ITPhoenixHBaseAccessor extends AbstractMiniHBaseClusterTest {
     assertEquals("disk_free", metric.getMetricName());
     assertEquals(8, metric.getMetricValues().size());
     assertEquals(1.5, metric.getMetricValues().values().iterator().next(), 0.00001);
+  }
+
+  @Test
+  public void testGetClusterMetricRecordLatestWithFunction() throws Exception {
+    // GIVEN
+    TimelineMetricAggregator agg =
+      TimelineMetricAggregatorFactory.createTimelineClusterAggregatorMinute(hdb, new Configuration());
+
+    long startTime = System.currentTimeMillis();
+    long ctime = startTime + 1;
+    long minute = 60 * 1000;
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "disk_free", 1));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "disk_free", 2));
+    ctime += minute;
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local1",
+      "disk_free", 2));
+    hdb.insertMetricRecords(prepareSingleTimelineMetric(ctime, "local2",
+      "disk_free", 1));
+
+    long endTime = ctime + minute + 1;
+    boolean success = agg.doWork(startTime, endTime);
+    assertTrue(success);
+
+    // WHEN
+    Condition condition = new DefaultCondition(
+      Collections.singletonList("disk_free"), null, null, null,
+      null, null, Precision.SECONDS, null, true);
+    TimelineMetrics timelineMetrics = hdb.getAggregateMetricRecords(condition,
+      Collections.singletonMap("disk_free",
+        Collections.singletonList(new Function(Function.ReadFunction.SUM, null))));
+
+    //THEN
+    assertEquals(1, timelineMetrics.getMetrics().size());
+    TimelineMetric metric = timelineMetrics.getMetrics().get(0);
+
+    assertEquals("disk_free._sum", metric.getMetricName());
+    assertEquals(1, metric.getMetricValues().size());
+    assertEquals(3, metric.getMetricValues().values().iterator().next().intValue());
   }
 
   @Test
