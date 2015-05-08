@@ -8,6 +8,7 @@
         {
           "widget_name": "Reads and Writes",
           "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -61,6 +62,7 @@
         {
           "widget_name": "Read Latency",
           "description": "Widget shows 95% Read Latency",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -86,6 +88,7 @@
         {
           "widget_name": "Write Latency",
           "description": "This widget shows 95th percentile of the write latency.",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -141,6 +144,7 @@
         {
           "widget_name": "Open Connections",
           "description": "This widget shows number of current open connections",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -167,6 +171,7 @@
         {
           "widget_name": "Request Handlers",
           "widget_type": "GRAPH",
+          "default_section_name": "HBASE_SUMMARY",
           "is_visible": true,
           "metrics": [
             {
@@ -200,6 +205,7 @@
         {
           "widget_name": "Files Local",
           "description": "This widget shows weighted average for local files.",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "NUMBER",
           "is_visible": true,
           "metrics": [
@@ -225,6 +231,7 @@
         {
           "widget_name": "Blocked Updates",
           "description": "Number of milliseconds updates have been blocked so the memstore can be flushed",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -250,6 +257,7 @@
         {
           "widget_name": "Cluster CPU",
           "description": "ReqionServer widget for CPU utilization",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -299,6 +307,7 @@
         {
           "widget_name": "Cluster Network",
           "description": "ReqionServer widget for network utilization",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -333,6 +342,7 @@
         {
           "widget_name": "Cluster Disk",
           "description": "ReqionServer widget for Disk utilization",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [

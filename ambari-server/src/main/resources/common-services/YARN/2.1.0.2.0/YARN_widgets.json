@@ -268,8 +268,9 @@
           }
         },
         {
-          "widget_name": "Cluster(NodeManager) Disk",
+          "widget_name": "Cluster Disk",
           "description": "NodeManager widget for disk utilization",
+          "default_section_name": "YARN_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -298,8 +299,9 @@
           }
         },
         {
-          "widget_name": "Cluster(NodeManager) Network",
+          "widget_name": "Cluster Network",
           "description": "NodeManager widget for network utilization",
+          "default_section_name": "YARN_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [
@@ -332,8 +334,9 @@
           }
         },
         {
-          "widget_name": "Cluster(NodeManager) CPU",
+          "widget_name": "Cluster CPU",
           "description": "NodeManager widget for CPU utilization",
+          "default_section_name": "YARN_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": true,
           "metrics": [

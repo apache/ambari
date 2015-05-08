@@ -62,7 +62,6 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
   public static final String WIDGET_ID_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "id");
   public static final String WIDGET_CLUSTER_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "cluster_name");
   public static final String WIDGET_WIDGET_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "widget_name");
-  public static final String WIDGET_DISPLAY_NAME_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "display_name");
   public static final String WIDGET_WIDGET_TYPE_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "widget_type");
   public static final String WIDGET_TIME_CREATED_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "time_created");
   public static final String WIDGET_AUTHOR_PROPERTY_ID                 = PropertyHelper.getPropertyId("WidgetInfo", "author");
@@ -88,7 +87,6 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
     {
       add(WIDGET_ID_PROPERTY_ID);
       add(WIDGET_WIDGET_NAME_PROPERTY_ID);
-      add(WIDGET_DISPLAY_NAME_PROPERTY_ID);
       add(WIDGET_WIDGET_TYPE_PROPERTY_ID);
       add(WIDGET_TIME_CREATED_PROPERTY_ID);
       add(WIDGET_CLUSTER_NAME_PROPERTY_ID);
@@ -141,7 +139,6 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
           final String[] requiredProperties = {
               WIDGET_CLUSTER_NAME_PROPERTY_ID,
               WIDGET_WIDGET_NAME_PROPERTY_ID,
-              WIDGET_DISPLAY_NAME_PROPERTY_ID,
               WIDGET_WIDGET_TYPE_PROPERTY_ID,
               WIDGET_SCOPE_PROPERTY_ID
           };
@@ -158,11 +155,9 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
             throw new AmbariException("Only cluster operator can create widgets with cluster scope");
           }
 
-          entity.setDisplayName(properties.get(WIDGET_DISPLAY_NAME_PROPERTY_ID).toString());
           entity.setWidgetName(properties.get(WIDGET_WIDGET_NAME_PROPERTY_ID).toString());
           entity.setWidgetType(properties.get(WIDGET_WIDGET_TYPE_PROPERTY_ID).toString());
           entity.setClusterId(getManagementController().getClusters().getCluster(clusterName).getClusterId());
-          entity.setDisplayName(properties.get(WIDGET_DISPLAY_NAME_PROPERTY_ID).toString());
           entity.setScope(scope);
 
           String metrics = (properties.containsKey(WIDGET_METRICS_PROPERTY_ID)) ?
@@ -240,7 +235,6 @@ public class WidgetResourceProvider extends AbstractControllerResourceProvider {
       setResourceProperty(resource, WIDGET_TIME_CREATED_PROPERTY_ID, entity.getTimeCreated(), requestedIds);
       resource.setProperty(WIDGET_AUTHOR_PROPERTY_ID, entity.getAuthor());
       setResourceProperty(resource, WIDGET_DESCRIPTION_PROPERTY_ID, entity.getDescription(), requestedIds);
-      resource.setProperty(WIDGET_DISPLAY_NAME_PROPERTY_ID, entity.getDisplayName());
       resource.setProperty(WIDGET_SCOPE_PROPERTY_ID, entity.getScope());
       setResourceProperty(resource, WIDGET_VALUES_PROPERTY_ID, entity.getWidgetValues(), requestedIds);
       setResourceProperty(resource, WIDGET_PROPERTIES_PROPERTY_ID, entity.getProperties(), requestedIds);

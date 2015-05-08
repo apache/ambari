@@ -63,12 +63,13 @@ public class WidgetDAO {
   }
 
   @RequiresSession
-  public List<WidgetEntity> findByName(Long clusterId, String widgetName, String author) {
+  public List<WidgetEntity> findByName(Long clusterId, String widgetName, String author, String defaultSectionName) {
     TypedQuery<WidgetEntity> query = entityManagerProvider.get()
       .createNamedQuery("WidgetEntity.findByName", WidgetEntity.class);
     query.setParameter("clusterId", clusterId);
     query.setParameter("widgetName", widgetName);
     query.setParameter("author", author);
+    query.setParameter("defaultSectionName", defaultSectionName);
 
     return daoUtils.selectList(query);
   }

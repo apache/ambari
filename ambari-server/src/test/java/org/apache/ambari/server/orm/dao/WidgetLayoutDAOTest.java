@@ -79,7 +79,7 @@ public class WidgetLayoutDAOTest {
 
     for (int i=0; i<3; i++) {
       WidgetEntity widgetEntity = new WidgetEntity();
-      widgetEntity.setDisplayName("display name" + i);
+      widgetEntity.setDefaultSectionName("display name" + i);
       widgetEntity.setAuthor("author");
       widgetEntity.setClusterId(clusterId);
       widgetEntity.setMetrics("metrics");

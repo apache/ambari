@@ -107,7 +107,6 @@ public class WidgetResourceProviderTest {
     Request request = PropertyHelper.getReadRequest(
       WidgetResourceProvider.WIDGET_ID_PROPERTY_ID,
       WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID,
-      WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID,
       WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID,
       WidgetResourceProvider.WIDGET_TIME_CREATED_PROPERTY_ID,
       WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID,
@@ -143,7 +142,6 @@ public class WidgetResourceProviderTest {
     Assert.assertEquals("GAUGE", r.getPropertyValue(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID));
     Assert.assertEquals("USER", r.getPropertyValue(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID));
     Assert.assertEquals("username", r.getPropertyValue(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID));
-    Assert.assertEquals("displ_name", r.getPropertyValue(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID));
     Assert.assertEquals("widget name", r.getPropertyValue(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID));
     Object metrics = r.getPropertyValue(WidgetResourceProvider.WIDGET_METRICS_PROPERTY_ID);
     Assert.assertEquals("[{\"widget_id\":\"metrics/jvm/HeapMemoryUsed\"," +
@@ -187,7 +185,6 @@ public class WidgetResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID, "widget name");
-    requestProps.put(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID, "display_name");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
@@ -212,7 +209,7 @@ public class WidgetResourceProviderTest {
     Assert.assertEquals(Long.valueOf(1), entity.getClusterId());
     Assert.assertEquals("USER", entity.getScope());
     Assert.assertEquals("widget name", entity.getWidgetName());
-    Assert.assertEquals("display_name", entity.getDisplayName());
+    Assert.assertEquals(null, entity.getDefaultSectionName());
     Assert.assertEquals("GAUGE", entity.getWidgetType());
     Assert.assertEquals("admin", entity.getAuthor());
     Assert.assertEquals("[{\"name\":\"value\",\"name2\":\"value2\"}]", entity.getMetrics());
@@ -243,7 +240,6 @@ public class WidgetResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID, "widget name");
-    requestProps.put(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID, "display_name");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
@@ -289,7 +285,6 @@ public class WidgetResourceProviderTest {
     requestProps.put(WidgetResourceProvider.WIDGET_ID_PROPERTY_ID, "1");
     requestProps.put(WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID, "widget name2");
-    requestProps.put(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID, "display_name");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
@@ -313,7 +308,7 @@ public class WidgetResourceProviderTest {
     Assert.assertEquals("[{\"name\":\"new_value\",\"new_name\":\"new_value2\"}]",entity.getMetrics());
     Assert.assertEquals("{\"new_property\":\"new_value2\",\"property1\":\"new_value1\"}",entity.getProperties());
     Assert.assertEquals("widget name2",entity.getWidgetName());
-    Assert.assertEquals("display_name",entity.getDisplayName());
+    Assert.assertEquals(null,entity.getDefaultSectionName());
 
     verify(amc, clusters, cluster, dao);
   }
@@ -341,7 +336,6 @@ public class WidgetResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID, "widget name");
-    requestProps.put(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID, "display_name");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "USER");
@@ -406,7 +400,6 @@ public class WidgetResourceProviderTest {
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(WidgetResourceProvider.WIDGET_CLUSTER_NAME_PROPERTY_ID, "c1");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_NAME_PROPERTY_ID, "widget name");
-    requestProps.put(WidgetResourceProvider.WIDGET_DISPLAY_NAME_PROPERTY_ID, "display_name");
     requestProps.put(WidgetResourceProvider.WIDGET_WIDGET_TYPE_PROPERTY_ID, "GAUGE");
     requestProps.put(WidgetResourceProvider.WIDGET_AUTHOR_PROPERTY_ID, "admin");
     requestProps.put(WidgetResourceProvider.WIDGET_SCOPE_PROPERTY_ID, "CLUSTER");
@@ -440,7 +433,7 @@ public class WidgetResourceProviderTest {
     widgetEntity.setWidgetType("GAUGE");
     widgetEntity.setAuthor("username");
     widgetEntity.setScope("USER");
-    widgetEntity.setDisplayName("displ_name");
+    widgetEntity.setDefaultSectionName("default_section_name");
     widgetEntity.setDescription("Description");
     widgetEntity.setMetrics("[{\"widget_id\":\"metrics/jvm/HeapMemoryUsed\"," +
             "\"host_component_criteria\":\"host_components/metrics/dfs/FSNamesystem/HAState\\u003dactive\"," +

@@ -548,7 +548,7 @@ CREATE TABLE widget (
   time_created BIGINT NOT NULL,
   author VARCHAR(255),
   description VARCHAR(255),
-  display_name VARCHAR(255),
+  default_section_name VARCHAR(255),
   scope VARCHAR(255),
   widget_values TEXT,
   properties TEXT,

@@ -359,7 +359,7 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "HDFS Bytes Read",
-          "display_name": "HDFS Bytes Read",
+          "default_section_name": "HDFS_HEATMAPS",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": true,
@@ -480,7 +480,7 @@
         },
         {
           "widget_name": "DataNode Process Disk I/O Utilization",
-          "display_name": "DataNode Process Disk I/O Utilization",
+          "default_section_name": "HDFS_HEATMAPS",
           "description": "",
           "widget_type": "HEATMAP",
           "is_visible": false,

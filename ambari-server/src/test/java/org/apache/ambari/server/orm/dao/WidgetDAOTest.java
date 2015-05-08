@@ -61,8 +61,8 @@ public class WidgetDAOTest {
   private void createRecords() {
     for (int i=0; i<3; i++) {
       WidgetEntity widgetEntity = new WidgetEntity();
-      widgetEntity.setDisplayName("display name" + i);
       widgetEntity.setAuthor("author");
+      widgetEntity.setDefaultSectionName("section_name");
       widgetEntity.setClusterId(clusterId);
       widgetEntity.setMetrics("metrics");
       widgetEntity.setDescription("description");
@@ -111,6 +111,12 @@ public class WidgetDAOTest {
   public void testFindAll() {
     createRecords();
     Assert.assertEquals(3, widgetDAO.findAll().size());
+  }
+
+  @Test
+  public void testFindByName() {
+    createRecords();
+    Assert.assertEquals(1, widgetDAO.findByName(clusterId, "widget0", "author", "section_name").size());
   }
 
   @After

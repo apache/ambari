@@ -6,7 +6,6 @@
       "widgetLayoutInfo": [
         {
           "widget_name": "RS_READS_WRITES",
-          "display_name": "RegionServer Reads and Writes",
           "description": "This widget shows all the read requests and write requests on all regions for a RegionServer",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -73,7 +72,6 @@
         },
         {
           "widget_name": "OPEN_CONNECTIONS",
-          "display_name": "Open Connections",
           "description": "This widget shows number of current open connections",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -100,7 +98,7 @@
         },
         {
           "widget_name": "ACTIVE_HANDLER",
-          "display_name": "Active Handlers vs Calls in General Queue",
+          "default_section_name": "HBASE_SUMMARY",
           "widget_type": "GRAPH",
           "is_visible": false,
           "metrics": [
@@ -136,7 +134,7 @@
         },
         {
           "widget_name": "FILES_LOCAL",
-          "display_name": "Files Local",
+          "default_section_name": "HBASE_SUMMARY",
           "description": "This widget shows percentage of files local.",
           "widget_type": "NUMBER",
           "is_visible": true,
@@ -161,7 +159,7 @@
         },
         {
           "widget_name": "UPDATED_BLOCKED_TIME",
-          "display_name": "Updated Blocked Time",
+          "default_section_name": "HBASE_SUMMARY",
           "description": "",
           "widget_type": "GRAPH",
           "is_visible": true,

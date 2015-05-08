@@ -501,7 +501,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("time_created", Long.class,  null,   null, false));
     columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("description", String.class,  255,   null, true));
-    columns.add(new DBColumnInfo("display_name", String.class,  255,   null, true));
+    columns.add(new DBColumnInfo("default_section_name", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("scope", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("widget_values", byte[].class,  null,   null, true));
     columns.add(new DBColumnInfo("properties", byte[].class, null, null, true));

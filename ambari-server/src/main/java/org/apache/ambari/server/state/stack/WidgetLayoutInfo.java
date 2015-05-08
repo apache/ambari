@@ -26,8 +26,8 @@ import java.util.Map;
 public class WidgetLayoutInfo {
   @SerializedName("widget_name")
   private String widgetName;
-  @SerializedName("display_name")
-  private String displayName;
+  @SerializedName("default_section_name")
+  private String defaultSectionName = null;
   @SerializedName("description")
   private String description;
   @SerializedName("widget_type")
@@ -50,13 +50,13 @@ public class WidgetLayoutInfo {
     this.widgetName = widgetName;
   }
 
-  @JsonProperty("display_name")
-  public String getDisplayName() {
-    return displayName;
+  @JsonProperty("default_section_name")
+  public String getDefaultSectionName() {
+    return defaultSectionName;
   }
 
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
+  public void setDefaultSectionName(String defaultSectionName) {
+    this.defaultSectionName = defaultSectionName;
   }
 
   @JsonProperty("description")

@@ -169,7 +169,7 @@ public class WidgetResponse {
     response.setMetrics(entity.getMetrics());
     response.setTimeCreated(entity.getTimeCreated());
     response.setAuthor(entity.getAuthor());
-    response.setDisplayName(entity.getDisplayName());
+    response.setDisplayName(entity.getDefaultSectionName());
     response.setScope(entity.getScope());
     response.setWidgetValues(entity.getWidgetValues());
     response.setProperties(entity.getProperties());

@@ -47,7 +47,12 @@ import java.util.List;
 @NamedQueries({
     @NamedQuery(name = "WidgetEntity.findAll", query = "SELECT widget FROM WidgetEntity widget"),
     @NamedQuery(name = "WidgetEntity.findByCluster", query = "SELECT widget FROM WidgetEntity widget WHERE widget.clusterId = :clusterId"),
-    @NamedQuery(name = "WidgetEntity.findByName", query = "SELECT widget FROM WidgetEntity widget WHERE widget.clusterId = :clusterId AND widget.widgetName = :widgetName AND widget.author = :author"),
+    @NamedQuery(name = "WidgetEntity.findByName", query =
+            "SELECT widget FROM WidgetEntity widget " +
+                    "WHERE widget.clusterId = :clusterId " +
+                    "AND widget.widgetName = :widgetName " +
+                    "AND widget.author = :author " +
+                    "AND widget.defaultSectionName = :defaultSectionName"),
     @NamedQuery(name = "WidgetEntity.findBySectionName", query =
                 "SELECT widget FROM WidgetEntity widget " +
                 "INNER JOIN widget.listWidgetLayoutUserWidgetEntity widgetLayoutUserWidget " +
@@ -84,8 +89,8 @@ public class WidgetEntity {
   @Column(name = "description", length = 255)
   private String description;
 
-  @Column(name = "display_name",  length = 255)
-  private String displayName;
+  @Column(name = "default_section_name",  length = 255, nullable = true)
+  private String defaultSectionName;
 
   @Column(name = "scope", length = 255)
   private String scope;
@@ -166,12 +171,12 @@ public class WidgetEntity {
     this.description = description;
   }
 
-  public String getDisplayName() {
-    return displayName;
+  public String getDefaultSectionName() {
+    return defaultSectionName;
   }
 
-  public void setDisplayName(String displayName) {
-    this.displayName = displayName;
+  public void setDefaultSectionName(String displayName) {
+    this.defaultSectionName = displayName;
   }
 
   public String getScope() {

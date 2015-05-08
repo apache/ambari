@@ -539,7 +539,7 @@ CREATE TABLE widget (
   time_created NUMBER(19) NOT NULL,
   author VARCHAR2(255),
   description VARCHAR2(255),
-  display_name VARCHAR2(255),
+  default_section_name VARCHAR2(255),
   scope VARCHAR2(255),
   widget_values CLOB,
   properties CLOB,

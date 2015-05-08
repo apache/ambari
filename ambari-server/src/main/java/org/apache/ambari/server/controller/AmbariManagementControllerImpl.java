@@ -4014,7 +4014,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
   private WidgetEntity addIfNotExistsWidgetEntity(WidgetLayoutInfo layoutInfo, ClusterEntity clusterEntity,
                                           String user, long createTime) {
     List<WidgetEntity> createdEntities =
-      widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(), user);
+      widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(),
+              user, layoutInfo.getDefaultSectionName());
 
     if (createdEntities == null || createdEntities.isEmpty()) {
       WidgetEntity widgetEntity = new WidgetEntity();
@@ -4022,7 +4023,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
       widgetEntity.setClusterEntity(clusterEntity);
       widgetEntity.setScope(WidgetResourceProvider.SCOPE.CLUSTER.name());
       widgetEntity.setWidgetName(layoutInfo.getWidgetName());
-      widgetEntity.setDisplayName(layoutInfo.getDisplayName());
+      widgetEntity.setDefaultSectionName(layoutInfo.getDefaultSectionName());
       widgetEntity.setAuthor(user);
       widgetEntity.setDescription(layoutInfo.getDescription());
       widgetEntity.setTimeCreated(createTime);
@@ -4035,7 +4036,8 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
         "cluster = " + clusterEntity.getClusterName());
       widgetDAO.create(widgetEntity);
 
-      createdEntities = widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(), user);
+      createdEntities = widgetDAO.findByName(clusterEntity.getClusterId(), layoutInfo.getWidgetName(),
+              user, layoutInfo.getDefaultSectionName());
       if (createdEntities != null && !createdEntities.isEmpty()) {
         return createdEntities.iterator().next();
       }
@@ -4076,6 +4078,9 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
           int order = 0;
           for (WidgetLayoutInfo layoutInfo : widgetLayout.getWidgetLayoutInfoList()) {
+            if (layoutInfo.getDefaultSectionName() == null) {
+              layoutInfo.setDefaultSectionName(layoutEntity.getSectionName());
+            }
             WidgetEntity widgetEntity = addIfNotExistsWidgetEntity(layoutInfo, clusterEntity, user, now);
             // Add to layout if visibility is true and widget was newly added
             if (widgetEntity != null && layoutInfo.isVisible()) {
