@@ -34,8 +34,8 @@
   <property>
     <name>hbase_regionserver_heapsize</name>
     <value>4096</value>
-    <description>HBase RegionServer Heap Size.</description>
-    <display-name>RegionServer Maximum Memory</display-name>
+    <description>Maximum amount of memory each HBase RegionServer can use.</description>
+    <display-name>HBase RegionServer Maximum Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>1024</minimum>
@@ -61,8 +61,8 @@ and the -Xmn ratio (hbase_regionserver_xmn_ratio) exceeds this value.
   <property>
     <name>hbase_master_heapsize</name>
     <value>4096</value>
-    <description>HBase Master Heap Size</description>
-    <display-name>Master Maximum Memory</display-name>
+    <description>Maximum amount of memory each HBase Master can use.</description>
+    <display-name>HBase Master Maximum Memory</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>1024</minimum>

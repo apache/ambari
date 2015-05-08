@@ -81,8 +81,12 @@
   <property>
     <name>hbase.regionserver.global.memstore.upperLimit</name>
     <value>0.4</value>
-    <description>Maximum size of all memstores in a region server before new
-      updates are blocked and flushes are forced. Defaults to 40% of heap
+    <description>
+      Percentage of RegionServer memory to allocate to write buffers.
+      Each column family within each region is allocated a smaller
+      pool (the memstore) within this shared write pool. If this buffer is full,
+      updates are blocked and data is flushed from memstores until a global low
+      watermark (hbase.regionserver.global.memstore.size.lower.limit) is reached.
     </description>
     <display-name>% of RegionServer Allocated to Write Buffers</display-name>
     <value-attributes>
@@ -95,9 +99,9 @@
   <property>
     <name>hbase.regionserver.handler.count</name>
     <value>30</value>
-    <description>Count of RPC Listener instances spun up on RegionServers.
-    Same property is used by the Master for count of master handlers.
-    Default is 10.
+    <description>
+      Count of RPC Listener instances spun up on RegionServers.
+      Same property is used by the Master for count of master handlers.
     </description>
     <display-name>Number of Handlers per RegionServer</display-name>
     <value-attributes>
@@ -110,9 +114,8 @@
   <property>
     <name>hbase.hregion.majorcompaction</name>
     <value>604800000</value>
-    <description>The time (in milliseconds) between 'major' compactions of all
-    HStoreFiles in a region.  Default: 1 day.
-    Set to 0 to disable automated major compactions.
+    <description>
+      Time between major compactions. Set to 0 to disable automatic major compactions.
     </description>
     <display-name>Major Compaction Interval</display-name>
     <value-attributes>
@@ -136,12 +139,9 @@
   <property>
     <name>hbase.hregion.memstore.block.multiplier</name>
     <value>4</value>
-    <description>Block updates if memstore has hbase.hregion.memstore.block.multiplier
-    time hbase.hregion.flush.size bytes.  Useful preventing
-    runaway memstore during spikes in update traffic.  Without an
-    upper-bound, memstore fills such that when it flushes the
-    resultant flush files take a long time to compact or split, or
-    worse, we OOME
+    <description>
+      Block updates if a memstore's size spikes this many times above the size that would cause it to be flushed.
+      Useful to prevent runaway memstores during a sudden spike in update traffic.
     </description>
     <display-name>Per-Column Family Memstore Block Multiplier</display-name>
     <value-attributes>
@@ -164,9 +164,7 @@
     <name>hbase.hregion.memstore.flush.size</name>
     <value>134217728</value>
     <description>
-    Memstore will be flushed to disk if size of the memstore
-    exceeds this number of bytes.  Value is checked by a thread that runs
-    every hbase.server.thread.wakefrequency.
+      The size of an individual memstore. Each column familiy within each region is allocated its own memstore.
     </description>
     <display-name>Per-Column Family Memstore Flush Size</display-name>
     <value-attributes>
@@ -191,9 +189,8 @@
     <name>hbase.hregion.max.filesize</name>
     <value>10737418240</value>
     <description>
-    Maximum HStoreFile size. If any one of a column families' HStoreFiles has
-    grown to exceed this value, the hosting HRegion is split in two.
-    Default: 1G.
+      Maximum HFile size. If the sum of the sizes of a region's HFiles has grown to exceed this
+      value, the region is split in two.
     </description>
     <display-name>Maximum Region File Size</display-name>
     <value-attributes>
@@ -226,11 +223,15 @@
     <name>zookeeper.session.timeout</name>
     <value>90000</value>
     <description>ZooKeeper session timeout.
-      HBase passes this to the zk quorum as suggested maximum time for a
-      session (This setting becomes zookeeper's 'maxSessionTimeout').  See
-      http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions
-      "The client sends a requested timeout, the server responds with the
-      timeout that it can give the client. " In milliseconds.
+      ZooKeeper session timeout in milliseconds. It is used in two different ways.
+      First, this value is used in the ZK client that HBase uses to connect to the ensemble.
+      It is also used by HBase when it starts a ZK server and it is passed as the 'maxSessionTimeout'. See
+      http://hadoop.apache.org/zookeeper/docs/current/zookeeperProgrammers.html#ch_zkSessions.
+      For example, if a HBase region server connects to a ZK ensemble that's also managed by HBase, then the
+      session timeout will be the one specified by this configuration. But, a region server that connects
+      to an ensemble managed with a different configuration will be subjected that ensemble's maxSessionTimeout. So,
+      even though HBase might propose using 90 seconds, the ensemble can have a max timeout lower than this and
+      it will take precedence.
     </description>
     <display-name>Zookeeper Session Timeout</display-name>
     <value-attributes>
@@ -244,12 +245,13 @@
   <property>
     <name>hbase.client.keyvalue.maxsize</name>
     <value>1048576</value>
-    <description>Specifies the combined maximum allowed size of a KeyValue
-    instance. This is to set an upper boundary for a single entry saved in a
-    storage file. Since they cannot be split it helps avoiding that a region
-    cannot be split any further because the data is too large. It seems wise
-    to set this to a fraction of the maximum region size. Setting it to zero
-    or less disables the check.
+    <description>
+      Specifies the combined maximum allowed size of a KeyValue
+      instance. This is to set an upper boundary for a single entry saved in a
+      storage file. Since they cannot be split it helps avoiding that a region
+      cannot be split any further because the data is too large. It seems wise
+      to set this to a fraction of the maximum region size. Setting it to zero
+      or less disables the check.
     </description>
     <display-name>Maximum Record Size</display-name>
     <value-attributes>
@@ -264,10 +266,11 @@
     <name>hbase.hstore.compactionThreshold</name>
     <value>3</value>
     <description>
-    If more than this number of HStoreFiles in any one HStore
-    (one HStoreFile is written per flush of memstore) then a compaction
-    is run to rewrite all HStoreFiles files as one.  Larger numbers
-    put off compaction but when it runs, it takes longer to complete.
+      The maximum number of StoreFiles which will be selected for a single minor
+      compaction, regardless of the number of eligible StoreFiles. Effectively, the value of
+      hbase.hstore.compaction.max controls the length of time it takes a single compaction to
+      complete. Setting it larger means that more StoreFiles are included in a compaction. For most
+      cases, the default value is appropriate.
     </description>
     <display-name>Maximum Store Files before Minor Compaction</display-name>
     <value-attributes>
@@ -306,11 +309,7 @@
   <property>
     <name>hfile.block.cache.size</name>
     <value>0.40</value>
-    <description>
-        Percentage of maximum heap (-Xmx setting) to allocate to block cache
-        used by HFile/StoreFile. Default of 0.25 means allocate 25%.
-        Set to 0 to disable but it's not recommended.
-    </description>
+    <description>Percentage of RegionServer memory to allocate to read buffers.</description>
     <display-name>% of RegionServer Allocated to Read Buffers</display-name>
     <value-attributes>
       <type>float</type>
@@ -333,7 +332,8 @@
   <property>
     <name>hbase.security.authentication</name>
     <value>simple</value>
-    <description>Select Simple or Kerberos authentication. Note: Kerberos must be set up before the Kerberos option will take effect.
+    <description>
+      Select Simple or Kerberos authentication. Note: Kerberos must be set up before the Kerberos option will take effect.
     </description>
     <display-name>Enable Authentication</display-name>
     <value-attributes>
@@ -355,8 +355,7 @@
   <property>
     <name>hbase.security.authorization</name>
     <value>false</value>
-    <description>Enables HBase authorization. Set the value of this property to false to disable HBase authorization.
-    </description>
+    <description> Set Authorization Method.</description>
     <display-name>Enable Authorization</display-name>
     <value-attributes>
       <type>value-list</type>
@@ -478,10 +477,12 @@
   <property>
     <name>hbase.rpc.timeout</name>
     <value>90000</value>
-    <description>This is for the RPC layer to define how long HBase client applications
-        take for a remote call to time out. It uses pings to check connections
-        but will eventually throw a TimeoutException.</description>
-    <display-name>RPC Timeout</display-name>
+    <description>
+      This is for the RPC layer to define how long HBase client applications
+      take for a remote call to time out. It uses pings to check connections
+      but will eventually throw a TimeoutException.
+    </description>
+    <display-name>HBase RPC Timeout</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>10000</minimum>
@@ -498,7 +499,7 @@
   <property>
     <name>phoenix.query.timeoutMs</name>
     <value>60000</value>
-    <description>Number of milliseconds after which a query will timeout on the client.</description>
+    <description>Number of milliseconds after which a Phoenix query will timeout on the client.</description>
     <display-name>Phoenix Query Timeout</display-name>
     <value-attributes>
       <type>int</type>
