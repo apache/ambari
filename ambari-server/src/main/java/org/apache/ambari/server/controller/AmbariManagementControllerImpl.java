@@ -3119,6 +3119,11 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
     ExecuteCommandJson jsons = customCommandExecutionHelper.getCommandJson(actionExecContext, cluster);
     String commandParamsForStage = jsons.getCommandParamsForStage();
 
+    // Ensure that the specified requestContext (if any) is set as the request context
+    if (!requestContext.isEmpty()) {
+      requestStageContainer.setRequestContext(requestContext);
+    }
+
     // If the request is to perform the Kerberos service check, set up the stages to
     // ensure that the (cluster-level) smoke user principal and keytab is available on all hosts
     boolean kerberosServiceCheck = Role.KERBEROS_SERVICE_CHECK.name().equals(actionRequest.getCommandName());

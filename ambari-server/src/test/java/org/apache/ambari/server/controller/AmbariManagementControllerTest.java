@@ -2563,6 +2563,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.HBASE_MASTER, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+    assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // RS stops
     s.getServiceComponent("HBASE_REGIONSERVER").getServiceComponentHost("h2").setState(State.INSTALLED);
@@ -2597,6 +2598,7 @@ public class AmbariManagementControllerTest {
     cmdParams = command.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
     Assert.assertTrue(cmdParams.containsKey("mark_draining_only"));
     Assert.assertEquals("true", cmdParams.get("mark_draining_only"));
+    assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     //Recommission
     params = new HashMap<String, String>() {{
@@ -2621,6 +2623,7 @@ public class AmbariManagementControllerTest {
     cmdParams = command.getExecutionCommandWrapper().getExecutionCommand().getCommandParams();
     Assert.assertTrue(cmdParams.containsKey("mark_draining_only"));
     Assert.assertEquals("false", cmdParams.get("mark_draining_only"));
+    assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     Assert.assertTrue(cmdParams.containsKey("excluded_hosts"));
     Assert.assertEquals("", cmdParams.get("excluded_hosts"));
@@ -4021,6 +4024,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
     Assert.assertNotNull(hostParametersStage.get("jdk_location"));
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     resourceFilters.clear();
     resourceFilter = new RequestResourceFilter("", "", null);
@@ -4049,6 +4053,7 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(commandParametersStage.containsKey("test"));
     Assert.assertEquals("HDFS", cmd.getServiceName());
     Assert.assertEquals("DATANODE", cmd.getComponentName());
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     hosts = new ArrayList<String>() {{add("h3");}};
     resourceFilters.clear();
@@ -4060,6 +4065,7 @@ public class AmbariManagementControllerTest {
     assertEquals(1, response.getTasks().size());
     taskStatus = response.getTasks().get(0);
     Assert.assertEquals("h3", taskStatus.getHostName());
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
   @Test
@@ -4161,6 +4167,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals("CLIENT", roleParams.get(ExecutionCommand.KeyNames.COMPONENT_CATEGORY));
     Assert.assertTrue(hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().containsKey("hdfs_client"));
     Assert.assertEquals("abc", hrc.getExecutionCommandWrapper().getExecutionCommand().getCommandParams().get("hdfs_client"));
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
   @SuppressWarnings("serial")
@@ -4515,6 +4522,7 @@ public class AmbariManagementControllerTest {
     assertNotNull(hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations());
     assertEquals(2, hostRoleCommand.getExecutionCommandWrapper().getExecutionCommand().getConfigurations().size());
     assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), stage.getRequestContext());
+    assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     actionRequest = new ExecuteActionRequest("c1", Role.MAPREDUCE_SERVICE_CHECK.name(), null, false);
     resourceFilter = new RequestResourceFilter("MAPREDUCE", null, null);
@@ -4533,6 +4541,7 @@ public class AmbariManagementControllerTest {
     response = controller.createAction(actionRequest, requestProperties);
 
     assertEquals(1, response.getTasks().size());
+    assertEquals("", response.getRequestContext());
   }
 
   private void createUser(String userName) throws Exception {
@@ -5776,6 +5785,7 @@ public class AmbariManagementControllerTest {
       }
     }
     Assert.assertEquals("Expect only one service check.", 1, commandCount);
+    Assert.assertEquals("", response.getRequestContext());
   }
 
   @Test
@@ -6051,6 +6061,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // Decommission the other datanode
     params = new HashMap<String, String>(){{
@@ -6079,6 +6090,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(HostComponentAdminState.DECOMMISSIONED, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.ON, scHost.getMaintenanceState());
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // Recommission the other datanode  (while adding NameNode HA)
     createServiceComponentHost(clusterName, serviceName, componentName1,
@@ -6135,6 +6147,7 @@ public class AmbariManagementControllerTest {
     scHost.setComponentAdminState(null);
     Assert.assertEquals(HostComponentAdminState.INSERVICE, scHost.getComponentAdminState());
     Assert.assertEquals(MaintenanceState.OFF, scHost.getMaintenanceState());
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
   @Test
@@ -6235,6 +6248,7 @@ public class AmbariManagementControllerTest {
       Map<String, String> commandParamsStage = StageUtils.getGson().fromJson(stage.getCommandParamsStage(), type);
       Assert.assertTrue(commandParamsStage.containsKey("test"));
     }
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
   @Test
@@ -6327,6 +6341,7 @@ public class AmbariManagementControllerTest {
 
     Assert.assertEquals("Restart 2 datanodes and 1 Resourcemanager.", 3,
         expectedRestartCount);
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
 
     // Test service checks - specific host
     resourceFilters.clear();
@@ -6341,8 +6356,9 @@ public class AmbariManagementControllerTest {
     storedTasks = actionDB.getRequestTasks(response.getRequestId());
     Assert.assertNotNull(storedTasks);
     Assert.assertEquals(Role.HDFS_SERVICE_CHECK.name(),
-      storedTasks.get(0).getRole().name());
+        storedTasks.get(0).getRole().name());
     Assert.assertEquals("h1", storedTasks.get(0).getHostName());
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
 
@@ -6833,6 +6849,7 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(Role.NAMENODE, command.getRole());
     Assert.assertEquals(RoleCommand.CUSTOM_COMMAND, command.getRoleCommand());
     Assert.assertEquals("DECOMMISSION", execCmd.getHostLevelParams().get("custom_command"));
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
   @Test
@@ -10121,6 +10138,8 @@ public class AmbariManagementControllerTest {
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
 
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
+
     // !!! target two hosts
 
     hosts = Arrays.asList(hostname1, hostname2);
@@ -10160,6 +10179,8 @@ public class AmbariManagementControllerTest {
     Assert.assertTrue(commandParamsStage.containsKey("some_custom_param"));
     Assert.assertEquals(null, cmd.getServiceName());
     Assert.assertEquals(null, cmd.getComponentName());
+
+    Assert.assertEquals(requestProperties.get(REQUEST_CONTEXT_PROPERTY), response.getRequestContext());
   }
 
   @Test

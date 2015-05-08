@@ -179,7 +179,8 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       if ((stdOut != null) && stdOut.contains(String.format("Principal \"%s\" created", principal))) {
         return getKeyNumber(principal);
       } else {
-        throw new KerberosOperationException(String.format("Failed to create service principal for %s", principal));
+        throw new KerberosOperationException(String.format("Failed to create service principal for %s\nSTDOUT: %s\nSTDERR: %s",
+            principal, stdOut, result.getStderr()));
       }
     }
   }
