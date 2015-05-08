@@ -1,0 +1,49 @@
+{
+  "services": [
+    {
+      "name": "KAFKA",
+      "identities": [
+        {
+          "name": "/smokeuser"
+        },
+      ],
+      "configurations": [
+        {
+          "kafka-broker": {
+              "authorizer.class.name": "kafka.security.auth.SimpleAclAuthorizer",
+              "principal.to.local.class":"kafka.security.auth.KerberosPrincipalToLocal",
+              "super.users": "user:${kafka-env/kafka_user}",
+              "security.inter.broker.protocol": "PLAINTEXTSASL"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "KAFKA_BROKER",
+          "identities": [
+            {
+              "name": "kafka_broker",
+              "principal": {
+                "value": "${kafka-env/kafka_user}/_HOST@${realm}",
+                "type": "service",
+                "configuration": "kafka-env/kafka_principal_name"
+              },
+              "keytab": {
+                "file": "${keytab_dir}/kafka.service.keytab",
+                "owner": {
+                  "name": "${kafka-env/kafka_user}",
+                  "access": "r"
+                },
+                "group": {
+                  "name": "${cluster-env/user_group}",
+                  "access": ""
+                },
+                "configuration": "kafka-env/kafka_keytab"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

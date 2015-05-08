@@ -39,6 +39,9 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+      <configuration-dependencies>
+        <config-type>kafka-broker</config-type>
+      </configuration-dependencies>
     </service>
   </services>
 </metainfo>

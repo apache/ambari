@@ -1866,6 +1866,20 @@ var hdp2properties = [
     "category": "KAFKA_BROKER",
     "index": 0
   },
+    {
+    "id": "site property",
+    "name": "listeners",
+    "displayName": "listeners",
+    "value": "",
+    "defaultValue": "",
+    "displayType": "advanced",
+    "serviceName": "KAFKA",
+    "filename": "kafka-broker.xml",
+    "category": "KAFKA_BROKER",
+    "stack": {
+      "HDP": "2.3"
+    }
+  },
   {
     "id": "site property",
     "name": "log.roll.hours",

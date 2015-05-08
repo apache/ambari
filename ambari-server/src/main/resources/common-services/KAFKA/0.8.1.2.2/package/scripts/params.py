@@ -19,10 +19,12 @@ limitations under the License.
 """
 from resource_management.libraries.functions import format
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.default import default
+from utils import get_bare_principal
 
 import status_params
+
 
 # server configurations
 config = Script.get_config()
@@ -44,14 +46,13 @@ conf_dir = "/etc/kafka/conf"
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   kafka_home = '/usr/hdp/current/kafka-broker/'
   kafka_bin = kafka_home+'bin/kafka'
-  conf_dir = "/usr/hdp/current/kafka-broker/conf"
+  conf_dir = "/usr/hdp/current/kafka-broker/config"
 
 
 kafka_user = config['configurations']['kafka-env']['kafka_user']
 kafka_log_dir = config['configurations']['kafka-env']['kafka_log_dir']
 kafka_pid_dir = status_params.kafka_pid_dir
 kafka_pid_file = kafka_pid_dir+"/kafka.pid"
-
 # This is hardcoded on the kafka bash process lifecycle on which we have no control over
 kafka_managed_pid_dir = "/var/run/kafka"
 kafka_managed_log_dir = "/var/log/kafka"
@@ -102,3 +103,16 @@ if has_metric_collector:
 
 # Security-related params
 security_enabled = config['configurations']['cluster-env']['security_enabled']
+kafka_kerberos_enabled = ('security.inter.broker.protocol' in config['configurations']['kafka-broker'] and
+                          config['configurations']['kafka-broker']['security.inter.broker.protocol'] == "PLAINTEXTSASL")
+
+print kafka_kerberos_enabled
+if security_enabled and hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.3') >= 0:
+    _hostname_lowercase = config['hostname'].lower()
+    _kafka_principal_name = config['configurations']['kafka-env']['kafka_principal_name']
+    kafka_jaas_principal = _kafka_principal_name.replace('_HOST',_hostname_lowercase)
+    kafka_keytab_path = config['configurations']['kafka-env']['kafka_keytab']
+    kafka_bare_jaas_principal = get_bare_principal(_kafka_principal_name)
+    kafka_kerberos_params = "-Djava.security.auth.login.config="+ conf_dir +"/kafka_jaas.conf"
+else:
+    kafka_kerberos_params = ''

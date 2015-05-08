@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 from properties_config import properties_config
+from resource_management.libraries.resources.template_config import TemplateConfig
 import sys, os
 from copy import deepcopy
 
@@ -36,7 +37,23 @@ def kafka():
     brokerid = str(sorted(params.kafka_hosts).index(params.hostname))
     kafka_server_config = mutable_config_dict(params.config['configurations']['kafka-broker'])
     kafka_server_config['broker.id'] = brokerid
-    kafka_server_config['host.name'] = params.hostname
+
+    #listeners and advertised.listeners are only added in 2.3.0.0 onwards.
+    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.3.0.0') >= 0:
+        if params.security_enabled and params.kafka_kerberos_enabled:
+            listeners = kafka_server_config['listeners'].replace("localhost", params.hostname).replace("PLAINTEXT", "PLAINTEXTSASL")
+            kafka_server_config['listeners'] = listeners
+            kafka_server_config['advertised.listeners'] = listeners
+        else:
+            listeners = kafka_server_config['listeners'].replace("localhost", params.hostname)
+            kafka_server_config['listeners'] = listeners
+            if 'advertised.listeners' in kafka_server_config:
+                advertised_listeners = kafka_server_config['advertised.listeners'].replace("localhost", params.hostname)
+                kafka_server_config['advertised.listeners'] = advertised_listeners
+    else:
+        kafka_server_config['host.name'] = params.hostname
+
+
     kafka_server_config['kafka.metrics.reporters'] = params.kafka_metrics_reporters
     if(params.has_metric_collector):
             kafka_server_config['kafka.timeline.metrics.host'] = params.metric_collector_host
@@ -70,6 +87,11 @@ def kafka():
              owner=params.kafka_user,
              content=params.log4j_props
          )
+
+    if params.security_enabled and params.kafka_kerberos_enabled:
+        TemplateConfig(format("{conf_dir}/kafka_jaas.conf"),
+                         owner=params.kafka_user)
+
 
     setup_symlink(params.kafka_managed_pid_dir, params.kafka_pid_dir)
     setup_symlink(params.kafka_managed_log_dir, params.kafka_log_dir)
@@ -113,8 +135,7 @@ def setup_symlink(kafka_managed_dir, kafka_ambari_managed_dir):
               cd_access='a',
               owner=params.kafka_user,
               group=params.user_group,
-              recursive=True
-    )
+              recursive=True)
 
   if backup_folder_path:
     # Restore backed up files to current relevant dirs if needed - will be triggered only when changing to/from default path;
@@ -147,6 +168,3 @@ def backup_dir_contents(dir_path, backup_folder_suffix):
          content = StaticFile(os.path.join(dir_path,file)))
 
   return backup_destination_path
-
-
-
