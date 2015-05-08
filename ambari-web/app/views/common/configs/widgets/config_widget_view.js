@@ -112,6 +112,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   isComparisonBinding: 'config.isComparison',
 
+  classNameBindings:['isComparison:compare-mode'],
+
   issueView: Em.View.extend({
 
     tagName: 'i',

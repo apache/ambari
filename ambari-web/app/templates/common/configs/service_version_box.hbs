@@ -28,9 +28,7 @@
       <div class="stack-label">{{serviceVersion.stackVersion}}</div>
       {{#if serviceVersion.isCurrent}}
         <div class="current-label">
-          <span class="label label-success">
-            {{t common.current}}
-            <i {{bindAttr class=":icon-refresh :restart-required-service serviceVersion.isRestartRequired::hidden"}}></i>
+          <span class="label label-success label-current icon-ok" data-toggle="tooltip" title="Current">
           </span>
         </div>
       {{/if}}

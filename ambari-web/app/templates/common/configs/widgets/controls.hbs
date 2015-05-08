@@ -96,12 +96,11 @@
 {{/if}}
 
 {{#if view.isComparison}}
-  <div class="widget-config-controls">
+  <div class="widget-config-controls version-labels">
     {{#if controller.selectedConfigGroup.isDefault}}
-      <span
-        class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
+      <span class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
       {{#if controller.isCurrentSelected}}
-        <span class="label label-success">{{t common.current}}</span>
+        <span class="label label-success icon-ok label-current" data-toggle="tooltip" title="Current"></span>
       {{/if}}
     {{else}}
       <span class="label label-info">{{t common.default}}

@@ -68,6 +68,12 @@
     margin-left: 10px;
     min-height: 65px;
     min-width: 39px;
+    &.version-labels {
+      min-width: 52px;
+      .label-current {
+        padding: 2px 3px 3px 5px;
+      }
+    }
     .widget-col {
       width: 18px;
       &.left {
@@ -412,4 +418,13 @@
     width: 70%;
     float: left;
   }
+}
+
+.label-current.icon-ok {
+  color: white;
+}
+
+.compare-mode {
+  background-color: rgba(211, 237, 247, 0.39);
+  padding: 10px 5px 0px 10px;
 }
