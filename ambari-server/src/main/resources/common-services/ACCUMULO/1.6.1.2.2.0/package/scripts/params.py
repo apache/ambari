@@ -16,7 +16,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-"""HBASE/0.96.0.2.0/package/scripts/params_linux.py
+"""
 from resource_management.libraries.functions import conf_select
 from resource_management import *
 from resource_management.libraries.functions import format
