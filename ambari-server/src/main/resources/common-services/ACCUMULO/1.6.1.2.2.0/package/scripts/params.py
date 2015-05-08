@@ -72,6 +72,10 @@ accumulo_tserver_heapsize = config['configurations']['accumulo-env']['accumulo_t
 accumulo_monitor_heapsize = config['configurations']['accumulo-env']['accumulo_monitor_heapsize']
 accumulo_gc_heapsize = config['configurations']['accumulo-env']['accumulo_gc_heapsize']
 accumulo_other_heapsize = config['configurations']['accumulo-env']['accumulo_other_heapsize']
+accumulo_monitor_bind_all = config['configurations']['accumulo-env']['accumulo_monitor_bind_all']
+monitor_bind_str = "false"
+if accumulo_monitor_bind_all:
+  monitor_bind_str = "true"
 env_sh_template = config['configurations']['accumulo-env']['content']
 server_env_sh_template = config['configurations']['accumulo-env']['server_content']
 

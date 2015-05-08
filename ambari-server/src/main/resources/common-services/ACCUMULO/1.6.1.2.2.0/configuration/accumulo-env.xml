@@ -92,6 +92,11 @@
     <description>Heap size for other Accumulo processes.</description>
   </property>
   <property>
+    <name>accumulo_monitor_bind_all</name>
+    <value>false</value>
+    <description>Controls whether the monitor binds to all interfaces.</description>
+  </property>
+  <property>
     <name>content</name>
     <description>The template for a client accumulo-env.sh file.</description>
     <value>
@@ -130,6 +135,7 @@ export ACCUMULO_MONITOR_OPTS="-Xmx{{accumulo_monitor_heapsize}}m -Xms{{accumulo_
 export ACCUMULO_GC_OPTS="-Xmx{{accumulo_gc_heapsize}}m -Xms{{accumulo_gc_heapsize}}m"
 export ACCUMULO_GENERAL_OPTS="-XX:+UseConcMarkSweepGC -XX:CMSInitiatingOccupancyFraction=75 -Djava.net.preferIPv4Stack=true ${ACCUMULO_GENERAL_OPTS}"
 export ACCUMULO_OTHER_OPTS="-Xmx{{accumulo_other_heapsize}}m -Xms{{accumulo_other_heapsize}}m ${ACCUMULO_OTHER_OPTS}"
+export ACCUMULO_MONITOR_BIND_ALL={{monitor_bind_str}}
 # what do when the JVM runs out of heap memory
 export ACCUMULO_KILL_CMD='kill -9 %p'
     </value>

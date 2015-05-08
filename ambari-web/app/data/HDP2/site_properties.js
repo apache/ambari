@@ -2080,6 +2080,16 @@ var hdp2properties = [
     "category": "Advanced accumulo-env"
   },
   {
+    "id": "puppet var",
+    "name": "accumulo_monitor_bind_all",
+    "displayName": "Monitor Bind All Interfaces",
+    "displayType": "checkbox",
+    "defaultValue": false,
+    "serviceName": "ACCUMULO",
+    "filename": "accumulo-env.xml",
+    "category": "Advanced accumulo-env"
+  },
+  {
     "id": "site property",
     "name": "instance.volumes",
     "displayName": "instance.volumes",

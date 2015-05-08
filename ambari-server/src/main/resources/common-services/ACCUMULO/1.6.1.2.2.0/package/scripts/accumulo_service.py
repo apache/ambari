@@ -36,7 +36,10 @@ def accumulo_service( name,
                 not_if=pid_exists,
                 user=params.accumulo_user
         )
-      daemon_cmd = format("{daemon_script} {role} --address {params.hostname} > {log_dir}/accumulo-{role}.out 2>{log_dir}/accumulo-{role}.err & echo $! > {pid_file}")
+      address = params.hostname
+      if name == 'monitor' and params.accumulo_monitor_bind_all:
+        address = '0.0.0.0'
+      daemon_cmd = format("{daemon_script} {role} --address {address} > {log_dir}/accumulo-{role}.out 2>{log_dir}/accumulo-{role}.err & echo $! > {pid_file}")
       Execute ( daemon_cmd,
         not_if=pid_exists,
         user=params.accumulo_user
