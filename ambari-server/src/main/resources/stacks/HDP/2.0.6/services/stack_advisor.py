@@ -340,8 +340,36 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               print("Recommendations: %s\n********\n" % str(siteRecommendations))
               resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
               items.extend(resultItems)
+    clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
+    items.extend(clusterWideItems)
     self.validateMinMax(items, recommendedDefaults, configurations)
     return items
+
+  def validateClusterConfigurations(self, configurations, services, hosts):
+    validationItems = []
+    hostComponents = {}
+    failureMessage = ""
+
+    for service in services["services"]:
+      for component in service["components"]:
+        if component["StackServiceComponents"]["hostnames"] is not None:
+          for hostName in component["StackServiceComponents"]["hostnames"]:
+            if hostName not in hostComponents.keys():
+              hostComponents[hostName] = []
+            hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
+
+    for host in hosts["items"]:
+      # Not enough physical memory
+      requiredMemory = getMemorySizeRequired(hostComponents[host["Hosts"]["host_name"]], configurations)
+      if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
+        failureMessage += "Not enough physical RAM on the host {0}. " \
+                          "At least {1} MB is recommended based on components assigned.\n" \
+          .format(host["Hosts"]["host_name"], requiredMemory/1048576)  # MB
+    if failureMessage:
+      notEnoughMemoryItem = self.getWarnItem(failureMessage)
+      validationItems.extend([{"config-name": "", "item": notEnoughMemoryItem}])
+
+    return self.toConfigurationValidationProblems(validationItems, "")
 
   def getServiceConfigurationValidators(self):
     return {
@@ -447,16 +475,12 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
     masterHostItem = None
 
     if masterItem is None:
-      hostComponents = {}
       hostMasterComponents = {}
 
       for service in services["services"]:
         for component in service["components"]:
           if component["StackServiceComponents"]["hostnames"] is not None:
             for hostName in component["StackServiceComponents"]["hostnames"]:
-              if hostName not in hostComponents.keys():
-                hostComponents[hostName] = []
-              hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
               if self.isMasterComponent(component):
                 if hostName not in hostMasterComponents.keys():
                   hostMasterComponents[hostName] = []
@@ -478,17 +502,6 @@ class HDP206StackAdvisor(DefaultStackAdvisor):
               masterHostItem = self.getWarnItem(
                 masterHostMessage.format(
                   collectorHostName, str(", ".join(hostMasterComponents[collectorHostName]))))
-
-            # Not enough physical memory
-            requiredMemory = getMemorySizeRequired(hostComponents[collectorHostName], configurations)
-            if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-              message = "Not enough total RAM on the host {0}, " \
-                        "at least {1} MB required for the components({2})" \
-                .format(collectorHostName, requiredMemory/1048576,
-                        str(", ".join(hostComponents[collectorHostName])))  # MB
-              regionServerItem = self.getErrorItem(message)
-              masterItem = self.getErrorItem(message)
-              break
       pass
 
     # Check RS memory in distributed mode since we set default as 512m
