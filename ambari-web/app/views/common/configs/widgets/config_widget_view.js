@@ -238,6 +238,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     if (this.get('config.supportsFinal')) {
       this.get('config').set('isFinal', this.get('config.defaultIsFinal'));
     }
+    Em.$('body > .tooltip').remove();
   },
 
   /**

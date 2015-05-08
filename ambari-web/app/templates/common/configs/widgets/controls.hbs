@@ -18,7 +18,7 @@
 
 {{#if view.canEdit}}
   {{#if view.supportSwitchToCheckBox}}
-    <div {{bindAttr class="view.showAsTextBox::hide :left"}}>
+    <div {{bindAttr class="view.showAsTextBox::hide :left :widget-config-raw"}}>
       {{view App.PlainConfigTextField serviceConfigBinding="view.config"}}
     </div>
   {{/if}}
@@ -26,7 +26,9 @@
     <div class="widget-col left">
       {{#if view.config.isNotDefaultValue}}
         {{#if view.undoAllowed}}
-          <a class="widget-action widget-action-undo" href="#" {{action "restoreValue" target="view"}}>
+            <a class="widget-action widget-action-undo" href="#"
+               data-toggle="tooltip" {{translateAttr data-original-title="common.undo"}}
+               {{action "restoreValue" target="view"}}>
             <i class="icon-undo"></i>
           </a>
         {{/if}}
@@ -34,6 +36,7 @@
       {{#if view.showPencil}}
         {{#if view.isWidgetViewAllowed}}
           <a href="#"
+            data-toggle="tooltip" {{translateAttr data-original-title="common.edit"}}
             {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.showAsTextBox::active"}}
             {{action "toggleWidgetView" target="view"}}>
           </a>

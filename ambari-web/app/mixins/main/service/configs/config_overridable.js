@@ -65,6 +65,7 @@ App.ConfigOverridable = Em.Mixin.create({
     else {
       serviceConfigController.addOverrideProperty(serviceConfigProperty, selectedConfigGroup, serviceConfigProperty.get('widget') ? serviceConfigProperty.get('value') : null);
     }
+    Em.$('body>.tooltip').remove();
   },
 
   /**
