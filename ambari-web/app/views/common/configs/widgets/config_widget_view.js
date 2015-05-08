@@ -202,11 +202,9 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
 
   /**
    * Error message computed in config property model
-   * @type {String|Boolean}
+   * @type {String}
    */
-  configErrorMessage: function() {
-    return this.get('config.errorMessage') || false;
-  }.property('config.errorMessage'),
+  configErrorMessageBinding: 'config.errorMessage',
 
   /**
    * Determines if config-value was changed
@@ -261,11 +259,20 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     return !config.get('cantBeUndone') && config.get('isNotDefaultValue');
   }.property('config.cantBeUndone', 'config.isNotDefaultValue', 'isOriginalSCP', 'disabled'),
 
+  /**
+   * Determines if "final"-button should be shown
+   * @type {boolean}
+   */
   showFinalConfig: function () {
     var config = this.get('config');
     return config.get('isFinal') || (!config.get('isNotEditable') && this.get('isHover'));
   }.property('config.isFinal', 'config.isNotEditable', 'isHover'),
 
+  /**
+   *
+   * @param {{context: App.ServiceConfigProperty}} event
+   * @method toggleFinalFlag
+   */
   toggleFinalFlag: function (event) {
     var configProperty = event.context;
     if (configProperty.get('isNotEditable')) {

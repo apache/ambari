@@ -30,6 +30,7 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method createOverrideProperty
    */
   createOverrideProperty: function (event) {
+    $('.tooltip').remove();
     var serviceConfigProperty = event.contexts[0];
     var serviceConfigController = this.get('isView') ? this.get('controller') : this;
     var selectedConfigGroup = serviceConfigController.get('selectedConfigGroup');
