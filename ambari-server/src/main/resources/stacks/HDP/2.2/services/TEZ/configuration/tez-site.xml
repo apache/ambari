@@ -90,6 +90,16 @@
     <description>The amount of memory to be used by launched tasks.
       Used only if the value is not specified explicitly by the DAG definition.
     </description>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.scheduler.minimum-allocation-mb</name>
+      </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>

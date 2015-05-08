@@ -374,6 +374,10 @@ limitations under the License.
         <type>yarn-site</type>
         <name>yarn.scheduler.minimum-allocation-mb</name>
       </property>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.scheduler.maximum-allocation-mb</name>
+      </property>
     </depends-on>
   </property>
 

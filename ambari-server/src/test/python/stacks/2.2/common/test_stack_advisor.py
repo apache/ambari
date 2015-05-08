@@ -68,7 +68,14 @@ class TestHDP22StackAdvisor(TestCase):
     return self.get_system_min_uid_real()
 
   def test_recommendTezConfigurations(self):
-    configurations = {}
+    configurations = {
+        "yarn-site": {
+            "properties": {
+                "yarn.scheduler.minimum-allocation-mb": "256",
+                "yarn.scheduler.maximum-allocation-mb": "2048",
+                },
+            }
+    }
     clusterData = {
       "mapMemory": 3000,
       "amMemory": 2000,
@@ -84,13 +91,26 @@ class TestHDP22StackAdvisor(TestCase):
           "tez.runtime.io.sort.mb": "307",
           "tez.runtime.unordered.output.buffer.size-mb": "57"
         }
+      },
+      'yarn-site': {
+        'properties': {
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.scheduler.maximum-allocation-mb': '2048'
+        }
       }
     }
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_amMemoryMoreThan3072(self):
-    configurations = {}
+    configurations = {
+      "yarn-site": {
+        "properties": {
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "2048",
+          },
+        }
+    }
     clusterData = {
       "mapMemory": 4000,
       "amMemory": 3100,
@@ -106,13 +126,26 @@ class TestHDP22StackAdvisor(TestCase):
           "tez.runtime.io.sort.mb": "307",
           "tez.runtime.unordered.output.buffer.size-mb": "57"
         }
+      },
+      'yarn-site': {
+        'properties': {
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.scheduler.maximum-allocation-mb': '2048'
+        }
       }
     }
     self.stackAdvisor.recommendTezConfigurations(configurations, clusterData, None, None)
     self.assertEquals(configurations, expected)
 
   def test_recommendTezConfigurations_mapMemoryLessThan768(self):
-    configurations = {}
+    configurations = {
+      "yarn-site": {
+        "properties": {
+          "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "2048",
+          },
+        }
+    }
     clusterData = {
       "mapMemory": 760,
       "amMemory": 2000,
@@ -127,6 +160,12 @@ class TestHDP22StackAdvisor(TestCase):
           "tez.task.resource.memory.mb": "760",
           "tez.runtime.io.sort.mb": "304",
           "tez.runtime.unordered.output.buffer.size-mb": "57"
+        }
+      },
+      'yarn-site': {
+        'properties': {
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.scheduler.maximum-allocation-mb': '2048'
         }
       }
     }
@@ -872,6 +911,7 @@ class TestHDP22StackAdvisor(TestCase):
       "yarn-site": {
         "properties": {
           "yarn.scheduler.minimum-allocation-mb": "256",
+          "yarn.scheduler.maximum-allocation-mb": "8192",
         },
       },
       "capacity-scheduler": {
@@ -896,7 +936,8 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'yarn-site': {
         'properties': {
-          'yarn.scheduler.minimum-allocation-mb': '256'
+          'yarn.scheduler.minimum-allocation-mb': '256',
+          'yarn.scheduler.maximum-allocation-mb': '8192'
         }
       },
       'hive-env': {
@@ -910,7 +951,7 @@ class TestHDP22StackAdvisor(TestCase):
       },
       'hive-site': {
         'properties': {
-          'hive.auto.convert.join.noconditionaltask.size': '89478485',
+          'hive.auto.convert.join.noconditionaltask.size': '268435456',
           'hive.cbo.enable': 'true',
           'hive.compactor.initiator.on': 'false',
           'hive.compactor.worker.threads': '0',
@@ -936,7 +977,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.stats.fetch.partition.stats': 'true',
           'hive.support.concurrency': 'false',
           'hive.tez.auto.reducer.parallelism': 'true',
-          'hive.tez.container.size': '256',
+          'hive.tez.container.size': '768',
           'hive.tez.dynamic.partition.pruning': 'true',
           'hive.tez.java.opts': '-server -Xmx615m -Djava.net.preferIPv4Stack=true -XX:NewRatio=8 -XX:+UseNUMA -XX:+UseParallelGC -XX:+PrintGCDetails -verbose:gc -XX:+PrintGCTimeStamps',
           'hive.txn.manager': 'org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager',
@@ -944,7 +985,7 @@ class TestHDP22StackAdvisor(TestCase):
           'hive.vectorized.execution.reduce.enabled': 'false'
         },
        'property_attributes': {
-         'hive.auto.convert.join.noconditionaltask.size': {'maximum': '268435456'},
+         'hive.auto.convert.join.noconditionaltask.size': {'maximum': '805306368'},
          'hive.server2.authentication.pam.services': {'delete': 'true'}, 
          'hive.server2.custom.authentication.class': {'delete': 'true'}, 
          'hive.server2.authentication.ldap.baseDN': {'delete': 'true'}, 

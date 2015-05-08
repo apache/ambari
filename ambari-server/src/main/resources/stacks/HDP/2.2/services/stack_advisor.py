@@ -302,10 +302,12 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     if not "yarn-site" in configurations:
       self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    #properties below should be always present as they are provided in HDP206 stack advisor at least
+    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+    #duplicate tez task resource calc logic, direct dependency doesn't look good here (in case of Hive without Tez)
+    container_size = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
+    container_size = min(clusterData['containers'] * clusterData['ramPerContainer'], container_size, yarnMaxAllocationSize)
 
-    if "yarn-site" in configurations and \
-      "yarn.scheduler.minimum-allocation-mb" in configurations["yarn-site"]["properties"]:
-      container_size = configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]
     putHiveSiteProperty("hive.tez.container.size", container_size)
     putHiveSiteProperty("hive.prewarm.enabled", "false")
     putHiveSiteProperty("hive.prewarm.numcontainers", "3")
@@ -528,11 +530,16 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
 
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
+    if not "yarn-site" in configurations:
+      self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    #properties below should be always present as they are provided in HDP206 stack advisor
+    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory']))
 
     taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
-    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory)
+    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory, yarnMaxAllocationSize)
     putTezProperty("tez.task.resource.memory.mb", taskResourceMemory)
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
