@@ -35,7 +35,7 @@ def hcat_service_check():
 def hcat_service_check():
     import params
     unique = get_unique_id_and_date()
-    output_file = format("/apps/hive/warehouse/hcatsmoke{unique}")
+    output_file = format("{hive_apps_whs_dir}/hcatsmoke{unique}")
     test_cmd = format("fs -test -e {output_file}")
 
     if params.security_enabled:
