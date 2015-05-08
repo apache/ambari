@@ -80,6 +80,63 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
     newWindow.focus();
   },
 
+  /**
+   * Send request to post kerberos descriptor
+   * @param kerberosDescriptor
+   * @returns {$.ajax|*}
+   */
+  postKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.create',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      }
+    });
+  },
+
+  /**
+   * Send request to update kerberos descriptor
+   * @param kerberosDescriptor
+   * @returns {$.ajax|*}
+   */
+  putKerberosDescriptor: function (kerberosDescriptor) {
+    return App.ajax.send({
+      name: 'admin.kerberos.cluster.artifact.update',
+      sender: this,
+      data: {
+        artifactName: 'kerberos_descriptor',
+        data: {
+          artifact_data: kerberosDescriptor
+        }
+      },
+      success: 'unkerberizeCluster',
+      error: 'unkerberizeCluster'
+    });
+  },
+
+  /**
+   * Send request to unkerberisze cluster
+   * @returns {$.ajax}
+   */
+  unkerberizeCluster: function () {
+    return App.ajax.send({
+      name: 'admin.unkerberize.cluster',
+      sender: this,
+      success: 'goToNextStep',
+      error: 'goToNextStep'
+    });
+  },
+
+
+  goToNextStep: function() {
+    this.clearStage();
+    App.router.transitionTo('step5');
+  },
+
   isSubmitDisabled: function () {
     return !["COMPLETED", "FAILED"].contains(this.get('status'));
   }.property('status')

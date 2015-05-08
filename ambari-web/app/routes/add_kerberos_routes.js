@@ -240,7 +240,16 @@ module.exports = App.WizardRoute.extend({
       }
     },
     next: function (router) {
-      router.transitionTo('step5');
+      var kerberosWizardController = router.get('kerberosWizardController');
+      var step5Controller = router.get('kerberosWizardStep5Controller');
+      var kerberosDescriptor = kerberosWizardController.get('kerberosDescriptorConfigs');
+      step5Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result, request) {
+        if (result === 'error' && data.status === 409) {
+          step5Controller.putKerberosDescriptor(kerberosDescriptor);
+        } else {
+          step5Controller.unkerberizeCluster();
+        }
+      });
     }
   }),
 
@@ -305,15 +314,7 @@ module.exports = App.WizardRoute.extend({
       var kerberosWizardController = router.get('kerberosWizardController');
       kerberosWizardController.setDBProperty('tasksStatuses', null);
       kerberosWizardController.setDBProperty('tasksRequestIds', null);
-      var step7Controller = router.get('kerberosWizardStep7Controller');
-      var kerberosDescriptor = kerberosWizardController.get('kerberosDescriptorConfigs');
-      step7Controller.postKerberosDescriptor(kerberosDescriptor).always(function (data, result, request) {
-        if (result === 'error' && data.status === 409) {
-          step7Controller.putKerberosDescriptor(kerberosDescriptor);
-        } else {
-          step7Controller.unkerberizeCluster();
-        }
-      });
+      router.transitionTo('step7');
     }
   }),
 
