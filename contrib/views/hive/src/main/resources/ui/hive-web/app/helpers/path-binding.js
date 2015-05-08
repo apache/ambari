@@ -18,7 +18,7 @@
 
 import Ember from 'ember';
 
-export function pathBinding(data, key) {
+export function pathBinding (data, key) {
   if (!data || !key) {
     return;
   }

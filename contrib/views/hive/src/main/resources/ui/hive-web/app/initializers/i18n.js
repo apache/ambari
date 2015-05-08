@@ -22,7 +22,7 @@ var TRANSLATIONS;
 
 export default {
   name: 'i18n',
-  initialize: function() {
+  initialize: function () {
     Ember.ENV.I18N_COMPILE_WITHOUT_HANDLEBARS = true;
     Ember.FEATURES.I18N_TRANSLATE_HELPER_SPAN = false;
     Ember.I18n.translations = TRANSLATIONS;
@@ -33,8 +33,14 @@ export default {
 TRANSLATIONS = {
   tooltips: {
     refresh: 'Refresh database',
-    loadSample: 'Load sample data'
+    loadSample: 'Load sample data',
+    query: 'Query',
+    settings: 'Settings',
+    visualExplain: 'Visual Explain',
+    tez: 'Tez',
+    notifications: 'Notifications'
   },
+
   alerts: {
     errors: {
       save: {
@@ -58,6 +64,7 @@ TRANSLATIONS = {
       }
     }
   },
+
   modals: {
     delete: {
       heading: 'Confirm deletion',
@@ -76,6 +83,7 @@ TRANSLATIONS = {
       csv: 'Download results as CSV'
     }
   },
+
   titles: {
     database: 'Database Explorer',
     explorer: 'Databases',
@@ -87,11 +95,13 @@ TRANSLATIONS = {
       process: 'Query Process Results',
       parameters: 'Parameters',
       visualExplain: 'Visual Explain',
-      tez: 'TEZ'
+      tez: 'TEZ',
+      messages: 'Messages'
     },
     download: 'Save results...',
     tableSample: '{{tableName}} sample'
   },
+
   placeholders: {
     search: {
       tables: 'Search tables...',
@@ -119,6 +129,7 @@ TRANSLATIONS = {
       value: '1'
     }
   },
+
   menus: {
     query: 'Query',
     savedQueries: 'Saved Queries',
@@ -128,6 +139,7 @@ TRANSLATIONS = {
     results: 'Results',
     explain: 'Explain'
   },
+
   columns: {
     id: 'id',
     shortQuery: 'preview',
@@ -142,6 +154,7 @@ TRANSLATIONS = {
     expand: '',
     actions: ''
   },
+
   buttons: {
     addItem: 'Add new item...',
     insert: 'Insert',
@@ -168,10 +181,12 @@ TRANSLATIONS = {
     saveCsv: 'Download as CSV',
     runOnTez: 'Run on Tez'
   },
+
   labels: {
     noTablesMatch: 'No tables match',
     table: 'Table '
   },
+
   popover: {
     visualExplain: {
       statistics: "Statistics"
@@ -186,6 +201,7 @@ TRANSLATIONS = {
     },
     add: 'Add'
   },
+
   tez: {
     errors: {
       'not.deployed': "Tez View isn't deployed.",

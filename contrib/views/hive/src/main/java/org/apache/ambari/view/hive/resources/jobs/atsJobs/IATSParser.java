@@ -23,6 +23,8 @@ import java.util.List;
 public interface IATSParser {
   List<HiveQueryId> getHiveQueryIdsList(String username);
 
+  List<TezVertexId> getVerticesForDAGId(String dagId);
+
   HiveQueryId getHiveQueryIdByOperationId(String guidString);
 
   TezDagId getTezDAGByName(String name);

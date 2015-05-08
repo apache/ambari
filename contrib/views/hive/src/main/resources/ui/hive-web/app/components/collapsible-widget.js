@@ -30,7 +30,7 @@ export default Ember.Component.extend({
       }
     },
 
-    sendControlAction: function(action) {
+    sendControlAction: function (action) {
       this.set('controlAction', action);
       this.sendAction('controlAction', this.get('heading'), this.get('toggledParam'));
     }

@@ -37,7 +37,7 @@ test('External actions', function() {
     data: 'data'
   });
 
-  var $component = this.append();
+  var $component = this.render();
 
   $component.trigger('click');
 });

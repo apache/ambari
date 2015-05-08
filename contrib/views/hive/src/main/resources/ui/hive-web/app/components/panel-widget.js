@@ -22,7 +22,7 @@ export default Ember.Component.extend(Ember.I18n.TranslateableProperties, {
   tagName: 'panel',
 
   actions: {
-    sendMenuItemAction: function(action) {
+    sendMenuItemAction: function (action) {
       this.set('menuItemAction', action);
       this.sendAction('menuItemAction');
     }

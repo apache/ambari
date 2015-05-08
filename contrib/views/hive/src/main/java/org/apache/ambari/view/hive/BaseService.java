@@ -18,12 +18,12 @@
 
 package org.apache.ambari.view.hive;
 
-import com.google.inject.Inject;
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.hive.utils.HdfsApi;
 import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.inject.Inject;
 
 
 /**

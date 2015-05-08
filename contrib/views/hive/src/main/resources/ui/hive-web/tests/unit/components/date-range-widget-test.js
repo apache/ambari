@@ -42,11 +42,13 @@ test('Date fields are set correctly', function() {
     max: max.toString()
   });
 
+  component.set('dateRange', Ember.Object.create());
+
+  var $component = this.render();
+
   Ember.run(function() {
     component.set('dateRange', dateRange);
   });
-
-  var $component = this.append();
 
   equal($component.find('.fromDate').val(), moment(from).format('MM/DD/YYYY'), "From date is set correctly");
   equal($component.find('.toDate').val(), moment(to).format('MM/DD/YYYY'), "To date is set correctly");
@@ -73,7 +75,7 @@ test('Date fields updates when the date is changed', function() {
     component.set('dateRange', dateRange);
   });
 
-  var $component = this.append();
+  var $component = this.render();
   $component.find('.fromDate').datepicker('setDate', '10/10/2014');
   $component.find('.toDate').datepicker('setDate', '11/11/2014');
 
@@ -123,7 +125,7 @@ test('If from/to are not passed they are set to min/max', function() {
     component.set('dateRange', dateRange);
   });
 
-  var $component = this.append();
+  var $component = this.render();
 
   equal(component.get('dateRange.from'), min.toString(), "From date is to min date");
   equal(component.get('dateRange.to'), max.toString(), "To date is set to max date");

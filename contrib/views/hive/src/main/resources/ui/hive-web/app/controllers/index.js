@@ -29,7 +29,8 @@ export default Ember.Controller.extend({
            constants.namingConventions.jobExplain,
            constants.namingConventions.settings,
            constants.namingConventions.visualExplain,
-           constants.namingConventions.tezUI
+           constants.namingConventions.tezUI,
+           constants.namingConventions.jobProgress,
   ],
 
   openQueries: Ember.computed.alias('controllers.' + constants.namingConventions.openQueries),
@@ -41,19 +42,7 @@ export default Ember.Controller.extend({
   settings: Ember.computed.alias('controllers.' + constants.namingConventions.settings),
   visualExplain: Ember.computed.alias('controllers.' + constants.namingConventions.visualExplain),
   tezUI: Ember.computed.alias('controllers.' + constants.namingConventions.tezUI),
-
-  isQueryTabActive: function() {
-    return !this.get('tezUI.showOverlay') && !this.get('visualExplain.showOverlay') && !this.get('settings.showOverlay');
-  }.property('tezUI.showOverlay', 'visualExplain.showOverlay', 'settings.showOverlay'),
-
-  shouldShowTez: function() {
-    return this.get('model.dagId') && this.get('tezUI.isTezViewAvailable');
-  }.property('model.dagId', 'tezUI.isTezViewAvailable'),
-
-  shouldShowVisualExplain: function () {
-    return this.get('openQueries.currentQuery.fileContent');
-  }.property('openQueries.currentQuery.fileContent'),
-
+  jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
 
   canExecute: function () {
     var isModelRunning = this.get('model.isRunning');
@@ -199,10 +188,26 @@ export default Ember.Controller.extend({
   },
 
   prependQuerySettings: function (query) {
-    var settings = this.get('settings').getSettingsString();
+    var validSettings = this.get('settings').getCurrentValidSettings();
+    var regex = new RegExp(utils.regexes.setSetting);
+    var existingSettings = query.match(regex);
 
-    if (settings.length) {
-      return settings + "\n\n" + query;
+    //clear previously added settings
+    if (existingSettings) {
+      existingSettings.forEach(function (setting) {
+        query = query.replace(setting, '');
+      });
+    }
+
+    query = query.trim();
+
+    //update with the current settings
+    if (validSettings) {
+      query = '\n' + query;
+
+      validSettings.forEach(function (setting) {
+        query = setting + '\n' + query;
+      });
     }
 
     return query;
@@ -221,16 +226,16 @@ export default Ember.Controller.extend({
     }
 
     queries = queryComponents.queryString.split(';');
-    queries = queries.map(function(s) {
+    queries = queries.map(function (s) {
       return s.trim();
     });
     queries = queries.filter(Boolean);
 
     // return false if multiple queries are selected
     // @FIXME: Remove this to support multiple queries
-    if (queries.length > 1) {
-      return false;
-    }
+    // if (queries.length > 1) {
+    //   return false;
+    // }
 
     queries = queries.map(function (query) {
       if (shouldExplain) {
@@ -335,7 +340,7 @@ export default Ember.Controller.extend({
     });
   }.observes('content'),
 
-  selectedDatabaseChanged: function() {
+  selectedDatabaseChanged: function () {
     this.set('content.dataBase', this.get('databases.selectedDatabase.name'));
   }.observes('databases.selectedDatabase'),
 
@@ -447,7 +452,7 @@ export default Ember.Controller.extend({
       this.saveToHDFS();
     },
 
-    downloadAsCSV: function() {
+    downloadAsCSV: function () {
       var self = this,
           defer = Ember.RSVP.defer();
 
@@ -467,7 +472,7 @@ export default Ember.Controller.extend({
     },
 
     insertUdf: function (item) {
-      var query = this.get('openQueries').getQueryForModel(this.get('model'));
+      var query = this.get('openQueries.currentQuery');
 
       var queryString = query.get('fileContent');
 
@@ -523,7 +528,8 @@ export default Ember.Controller.extend({
       //case 4. Update an existing query tab. -> route doesn't change
 
       var self = this,
-          defer = Ember.RSVP.defer();
+          defer = Ember.RSVP.defer(),
+          currentQuery = this.get('openQueries.currentQuery');
 
       this.set('model.dataBase', this.get('databases.selectedDatabase.name'));
 
@@ -536,6 +542,8 @@ export default Ember.Controller.extend({
       });
 
       defer.promise.then(function (result) {
+        currentQuery.set('fileContent', self.prependQuerySettings(currentQuery.get('fileContent')));
+
         if (result.get('overwrite')) {
           self.get('openQueries').save(self.get('content'), null, true, result.get('text'));
         } else {
@@ -578,41 +586,6 @@ export default Ember.Controller.extend({
       }, function (err) {
         this.notify.error(err.responseJSON.message, err.responseJSON.trace);
       });
-    },
-
-    toggleOverlay: function (targetController) {
-      var self = this;
-
-      if (this.get('visualExplain.showOverlay') && targetController !== 'visualExplain') {
-        this.set('visualExplain.showOverlay', false);
-      } else if (this.get('tezUI.showOverlay') && targetController !== 'tezUI') {
-        this.set('tezUI.showOverlay', false);
-      } else if (this.get('settings.showOverlay') && targetController !== 'settings') {
-        this.set('settings.showOverlay', false);
-      }
-
-      if (!targetController) {
-        return;
-      }
-
-      if (targetController !== 'settings') {
-        //set content for visual explain and tez ui.
-        this.set(targetController + '.content', this.get('content'));
-      }
-
-      if (targetController === 'visualExplain' && !this.get(targetController + '.showOverlay')) {
-        this._executeQuery(true, true).then(function (json) {
-          //this condition should be changed once we change the way of retrieving this json
-          if (json['STAGE PLANS']['Stage-1']) {
-            self.set(targetController + '.json', json);
-            self.toggleProperty(targetController + '.showOverlay');
-          }
-        }, function (err) {
-          self.notify.error(err.responseJSON.message, err.responseJSON.trace);
-        });
-      } else {
-        this.toggleProperty(targetController + '.showOverlay');
-      }
     }
   }
 });

@@ -35,7 +35,7 @@ test('Component expand/collapse toggle action', function () {
     expanded: 'expanded'
   });
 
-  var $component = this.append();
+  var $component = this.render();
 
   Ember.run(function() {
     component.set('isExpanded', false);

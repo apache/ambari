@@ -25,7 +25,7 @@
     "broccoli-asset-rev": "^2.0.0",
     "broccoli-sass": "0.6.3",
     "ember-cli": "0.2.2",
-    "ember-cli-blanket": "^0.4.0",
+    "ember-cli-blanket": "^0.5.0",
     "ember-cli-content-security-policy": "0.3.0",
     "ember-cli-font-awesome": "0.0.4",
     "ember-cli-htmlbars": "0.7.4",

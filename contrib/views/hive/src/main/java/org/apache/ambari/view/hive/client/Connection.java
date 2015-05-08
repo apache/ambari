@@ -18,6 +18,7 @@
 
 package org.apache.ambari.view.hive.client;
 
+import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.shims.ShimLoader;
@@ -347,10 +348,10 @@ public class Connection {
   public String getLogs(TOperationHandle handle) {
     LogsCursor results = new LogsCursor(this, handle);
     results.reset(); // we have to read from FIRST line, to get
-                     // logs from beginning on every call this function
+    // logs from beginning on every call this function
     List<String> logLineList = results.getValuesInColumn(0);
     StringBuilder log = new StringBuilder();
-    for(String line : logLineList) {
+    for (String line : logLineList) {
       log.append(line);
       log.append('\n');
     }

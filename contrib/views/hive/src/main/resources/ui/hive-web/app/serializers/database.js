@@ -31,8 +31,8 @@ export default DS.JSONSerializer.extend({
     return this._super(store, primaryType, payload);
   },
 
-  normalizePayload: function(payload) {
-    var normalized = payload.databases.map(function(database) {
+  normalizePayload: function (payload) {
+    var normalized = payload.databases.map(function (database) {
       return database;
     });
 

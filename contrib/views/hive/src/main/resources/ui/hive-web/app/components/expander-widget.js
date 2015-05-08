@@ -21,6 +21,12 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   tagName: 'expander',
 
+  didInsertElement: function () {
+    if (this.get('isExpanded')) {
+      this.$('.accordion-body').toggle();
+    }
+  },
+
   actions: {
     toggle: function () {
       this.toggleProperty('isExpanded');

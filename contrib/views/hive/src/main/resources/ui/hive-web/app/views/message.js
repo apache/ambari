@@ -25,11 +25,11 @@ export default NotificationView.extend({
   removeMessage: 'removeMessage',
 
   actions: {
-    expand: function() {
+    expand: function () {
       this.toggleProperty('isExpanded');
     },
 
-    close: function() {
+    close: function () {
       this.get('controller').send('removeMessage', this.get('notification'));
     }
   }

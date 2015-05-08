@@ -21,10 +21,11 @@ import constants from 'hive/utils/constants';
 export default Ember.Service.extend({
   types: constants.notify,
 
-  messages      : Ember.ArrayProxy.create({ content : [] }),
-  notifications : Ember.ArrayProxy.create({ content : [] }),
+  messages       : Ember.ArrayProxy.create({ content : [] }),
+  notifications  : Ember.ArrayProxy.create({ content : [] }),
+  unseenMessages : Ember.ArrayProxy.create({ content : [] }),
 
-  add: function(type, message, body) {
+  add: function (type, message, body) {
     var formattedBody = this.formatMessageBody(body);
 
     var notification = Ember.Object.create({
@@ -35,25 +36,26 @@ export default Ember.Service.extend({
 
     this.messages.pushObject(notification);
     this.notifications.pushObject(notification);
+    this.unseenMessages.pushObject(notification);
   },
 
-  info: function(message, body) {
+  info: function (message, body) {
     this.add(this.types.INFO, message, body);
   },
 
-  warn: function(message, body) {
+  warn: function (message, body) {
     this.add(this.types.WARN, message, body);
   },
 
-  error: function(message, body) {
+  error: function (message, body) {
     this.add(this.types.ERROR, message, body);
   },
 
-  success: function(message, body) {
+  success: function (message, body) {
     this.add(this.types.SUCCESS, message, body);
   },
 
-  formatMessageBody: function(body) {
+  formatMessageBody: function (body) {
     if (!body) {
       return;
     }
@@ -72,17 +74,22 @@ export default Ember.Service.extend({
     }
   },
 
-  removeMessage: function(message) {
+  removeMessage: function (message) {
     this.messages.removeObject(message);
     this.notifications.removeObject(message);
   },
 
-  removeNotification: function(notification) {
+  removeNotification: function (notification) {
     this.notifications.removeObject(notification);
   },
 
-  removeAllMessages: function() {
+  removeAllMessages: function () {
     this.messages.removeAt(0, this.messages.get('length'));
-  }
+  },
 
+  markMessagesAsSeen: function () {
+    if (this.unseenMessages.get('length')) {
+      this.unseenMessages.removeAt(0, this.unseenMessages.get('length'));
+    }
+  }
 });

@@ -21,12 +21,12 @@ import Ember from 'ember';
 
 export default Ember.Component.extend({
   tagName: 'notifications',
-  classNames: ['notifications-container'],
-  notifications : Ember.computed.alias('notify.notifications'),
+  classNames: [ 'notifications-container' ],
+  removeNotificationAction: 'removeNotification',
 
   actions: {
-    removeNotification: function(notification) {
-      this.notify.removeNotification(notification);
+    removeNotification: function (notification) {
+      this.sendAction('removeNotificationAction', notification);
     }
   }
 });

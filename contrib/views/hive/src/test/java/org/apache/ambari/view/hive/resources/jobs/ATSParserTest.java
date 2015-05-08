@@ -6,9 +6,9 @@
  * to you under the Apache License, Version 2.0 (the
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
+ * <p/>
+ * http://www.apache.org/licenses/LICENSE-2.0
+ * <p/>
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -90,6 +90,11 @@ public class ATSParserTest {
     }
 
     @Override
+    public String tezVerticesListForDAGUrl(String dagId) {
+      return null;
+    }
+
+    @Override
     public JSONObject hiveQueryIdList(String username) {
       return (JSONObject) JSONValue.parse(
           "{ \"entities\" : [ { \"domain\" : \"DEFAULT\",\n" +
@@ -116,12 +121,12 @@ public class ATSParserTest {
       );
     }
 
-      @Override
-      public JSONObject hiveQueryIdByOperationId(String operationId) {
-          throw new NotImplementedException();
-      }
+    @Override
+    public JSONObject hiveQueryIdByOperationId(String operationId) {
+      throw new NotImplementedException();
+    }
 
-      @Override
+    @Override
     public JSONObject tezDagByName(String name) {
       return (JSONObject) JSONValue.parse(
           "{ \"entities\" : [ { \"domain\" : \"DEFAULT\",\n" +
@@ -427,6 +432,11 @@ public class ATSParserTest {
               "        \"starttime\" : 1423493325578\n" +
               "      } ] }"
       );
+    }
+
+    @Override
+    public JSONObject tezVerticesListForDAG(String dagId) {
+      return null;
     }
   }
 }

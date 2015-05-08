@@ -64,6 +64,23 @@ export default Ember.ArrayController.extend(FilterableMixin, {
 
     add: function () {
       this.store.createRecord(constants.namingConventions.udf);
+    },
+
+    clearFilters: function () {
+      var columns = this.get('columns');
+
+      if (columns) {
+        columns.forEach(function (column) {
+          var filterValue = column.get('filterValue');
+
+          if (filterValue && typeof filterValue === 'string') {
+            column.set('filterValue');
+          }
+        });
+      }
+
+      //call clear filters from Filterable mixin
+      this.clearFilters();
     }
   }
 });

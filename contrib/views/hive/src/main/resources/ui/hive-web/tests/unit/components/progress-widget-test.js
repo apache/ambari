@@ -19,7 +19,7 @@
 import Ember from 'ember';
 import { moduleForComponent, test } from 'ember-qunit';
 
-moduleForComponent('progress-widget', 'ProgressWidgetComponent');
+moduleForComponent('progress-widget_', 'ProgressWidgetComponent');
 
 test('Setting progress attributes', function () {
   expect(3);
@@ -33,7 +33,7 @@ test('Setting progress attributes', function () {
     formattedStages: Ember.ArrayProxy.create({ content: [] })
   });
 
-  var $component = this.append();
+  var $component = this.render();
 
   Ember.run(function() {
     component.formatStages();

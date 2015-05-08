@@ -92,14 +92,7 @@ public class PersonalCRUDResourceManager<T extends PersonalResource> extends CRU
     return result;
   }
 
-  protected static String getUsername(ViewContext context) {
-    String userName = context.getProperties().get("dataworker.username");
-    if (userName == null || userName.compareTo("null") == 0 || userName.compareTo("") == 0)
-      userName = context.getUsername();
-    return userName;
-  }
-
   protected String getUsername() {
-    return getUsername(context);
+    return context.getUsername();
   }
 }

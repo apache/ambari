@@ -21,30 +21,42 @@ import Ember from 'ember';
 export default Ember.Component.extend({
   didInsertElement: function () {
     var self = this;
+    var numberRange = this.get('numberRange');
 
-    var slider;
-
-    if (!self.get('numberRange.from') && !self.get('numberRange.to')) {
-      self.get('numberRange').set('from', self.get('numberRange.min'));
-      self.get('numberRange').set('to', self.get('numberRange.max'));
+    if (!numberRange.get('from') && !numberRange.get('to')) {
+      numberRange.set('from', numberRange.get('min'));
+      numberRange.set('to', numberRange.get('max'));
     }
 
-    slider = self.$( ".slider" ).slider({
+    this.$('.slider').slider({
       range: true,
-      min: self.get('numberRange.min'),
-      max: self.get('numberRange.max'),
-      units: self.get('numberRange.units'),
-      values: [ self.get('numberRange.from'), self.get('numberRange.to') ],
+      min: numberRange.get('min'),
+      max: numberRange.get('max'),
+      units: numberRange.get('units'),
+      values: [numberRange.get('from'), numberRange.get('to')],
+
       slide: function (event, ui) {
-        self.set('numberRange.from', ui.values[0]);
-        self.set('numberRange.to', ui.values[1]);
+        numberRange.set('from', ui.values[0]);
+        numberRange.set('to', ui.values[1]);
       },
 
       change: function () {
-        self.sendAction('rangeChanged', self.get('numberRange'));
+        self.sendAction('rangeChanged', numberRange);
       }
     });
 
-    this.set('slider', slider);
-  }
+    this.set('rendered', true);
+  },
+
+  updateMin: function () {
+    if (this.get('rendered')) {
+      this.$('.slider').slider('values', 0, this.get('numberRange.from'));
+    }
+  }.observes('numberRange.from'),
+
+  updateMax: function () {
+    if (this.get('rendered')) {
+      this.$('.slider').slider('values', 1, this.get('numberRange.to'));
+    }
+  }.observes('numberRange.to')
 });

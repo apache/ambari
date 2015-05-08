@@ -142,6 +142,31 @@ export default Ember.ArrayController.extend(FilterableMixin, {
       job.destroyRecord().then(function () {
         self.store.find(constants.namingConventions.job, id);
       });
+    },
+
+    clearFilters: function () {
+      var columns = this.get('columns');
+
+      if (columns) {
+        columns.forEach(function (column) {
+          var filterValue = column.get('filterValue');
+          var rangeFilter;
+
+          if (filterValue) {
+            if (typeof filterValue === 'string') {
+              column.set('filterValue');
+            } else {
+              rangeFilter = column.get('numberRange') || column.get('dateRange');
+
+              rangeFilter.set('from', rangeFilter.get('min'));
+              rangeFilter.set('to', rangeFilter.get('max'));
+            }
+          }
+        });
+      }
+
+      //call clear filters from Filterable mixin
+      this.clearFilters();
     }
   }
 });

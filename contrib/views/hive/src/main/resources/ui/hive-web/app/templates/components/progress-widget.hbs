@@ -17,9 +17,7 @@
 }}
 
 <div class="progress">
-  {{#each stage in formattedStages}}
-  <div {{bind-attr class="stage.className :progress-bar"}} {{bind-attr style=stage.progress}}>
-      <span class="sr-only">35% Complete (success)</span>
-    </div>
-  {{/each}}
+  <div {{bind-attr class=":progress-bar :progress-bar-success" style=style}}>
+    {{percentage}}
+  </div>
 </div>

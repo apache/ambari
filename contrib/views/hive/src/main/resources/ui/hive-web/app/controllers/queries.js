@@ -31,9 +31,6 @@ export default Ember.ArrayController.extend(FilterableMixin, {
   sortProperties: [],
 
   init: function () {
-    var oneYearAgo = new Date();
-    oneYearAgo.setFullYear(oneYearAgo.getFullYear() - 1);
-
     this._super();
 
     this.set('columns', Ember.ArrayProxy.create({ content: Ember.A([
@@ -106,6 +103,23 @@ export default Ember.ArrayController.extend(FilterableMixin, {
         this.set('sortAscending', true);
         this.set('sortProperties', [ property ]);
       }
+    },
+
+    clearFilters: function () {
+      var columns = this.get('columns');
+
+      if (columns) {
+        columns.forEach(function (column) {
+          var filterValue = column.get('filterValue');
+
+          if (filterValue && typeof filterValue === 'string') {
+            column.set('filterValue');
+          }
+        });
+      }
+
+      //call clear filters from Filterable mixin
+      this.clearFilters();
     }
   }
 });

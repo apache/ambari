@@ -16,15 +16,17 @@
 * limitations under the License.
 }}
 
-<div class="editor-overlay messages-container">
-  <h3>Messages
-    {{#if messages.length}}
-      <button class="btn btn-danger btn-xs" {{action 'removeAllMessages'}}><i class="fa fa-minus"></i> Clear All</button>
-    {{/if}}
-  </h3>
+<div id="messages" class="index-overlay">
+  {{#panel-widget headingTranslation="titles.query.messages"}}
+    <div class="messages-controls">
+      {{#if messages.length}}
+        <button class="btn btn-danger btn-xs" {{action 'removeAllMessages'}}><i class="fa fa-minus"></i> Clear All</button>
+      {{/if}}
+    </div>
 
 
-  {{#each message in messages}}
-    {{view 'message' notification=message}}
-  {{/each}}
+    {{#each message in messages}}
+      {{view 'message' notification=message}}
+    {{/each}}
+  {{/panel-widget}}
 </div>

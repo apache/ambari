@@ -19,18 +19,18 @@
 import Ember from 'ember';
 
 export default Ember.View.extend({
-  closeAfter         : 500000,
+  closeAfter         : 5000,
   isHovering         : false,
   templateName       : 'notification',
   removeNotification : 'removeNotification',
 
-  setup: function() {
+  setup: function () {
     this.set('typeClass', this.get('notification.type.typeClass'));
     this.set('typeIcon', this.get('notification.type.typeIcon'));
   }.on('init'),
 
-  removeLater: function() {
-    Ember.run.later(this, function() {
+  removeLater: function () {
+    Ember.run.later(this, function () {
       if (this.get('isHovering')) {
         this.removeLater();
       } else if (this.element) {
@@ -39,11 +39,11 @@ export default Ember.View.extend({
     }, this.get('closeAfter'));
   }.on('didInsertElement'),
 
-  mouseEnter: function() { this.set('isHovering', true);  },
-  mouseLeave: function() { this.set('isHovering', false); },
+  mouseEnter: function () { this.set('isHovering', true);  },
+  mouseLeave: function () { this.set('isHovering', false); },
 
   actions: {
-    close: function() {
+    close: function () {
       this.remove();
       this.get('parentView').send('removeNotification', this.get('notification'));
     }

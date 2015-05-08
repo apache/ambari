@@ -130,7 +130,7 @@ public class Aggregator {
   }
 
   public Job readATSJob(Job viewJob) throws ItemNotFound {
-    TOperationHandle operationHandle = operationHandleResourceManager.getHandleForJob(viewJob);
+    TOperationHandle operationHandle = operationHandleResourceManager.getHandleForJob(viewJob).toTOperationHandle();
 
     String hexGuid = Hex.encodeHexString(operationHandle.getOperationId().getGuid());
     HiveQueryId atsHiveQuery = ats.getHiveQueryIdByOperationId(hexStringToUrlSafeBase64(hexGuid));
@@ -174,12 +174,12 @@ public class Aggregator {
     if (viewJob.getDagName() == null || viewJob.getDagName().isEmpty()) {
       if (hiveQueryId.dagNames != null && hiveQueryId.dagNames.size() > 0) {
         viewJob.setDagName(hiveQueryId.dagNames.get(0));
-        viewJob.setDagId(tezDagId.entity);
         viewJobResourceManager.update(viewJob, viewJob.getId());
       }
     }
     if ((tezDagId.status.compareToIgnoreCase(Job.JOB_STATE_UNKNOWN) != 0) &&
         !viewJob.getStatus().equals(tezDagId.status)) {
+      viewJob.setDagId(tezDagId.entity);
       viewJob.setStatus(tezDagId.status);
       viewJobResourceManager.update(viewJob, viewJob.getId());
     }

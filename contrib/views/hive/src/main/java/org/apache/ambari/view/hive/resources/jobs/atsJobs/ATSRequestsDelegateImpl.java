@@ -63,6 +63,11 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
   }
 
   @Override
+  public String tezVerticesListForDAGUrl(String dagId) {
+    return atsUrl + "/ws/v1/timeline/TEZ_VERTEX_ID?primaryFilter=TEZ_DAG_ID:" + dagId;
+  }
+
+  @Override
   public JSONObject hiveQueryIdList(String username) {
     String hiveQueriesListUrl = atsUrl + "/ws/v1/timeline/HIVE_QUERY_ID?primaryFilter=requestuser:" + username;
     String response = readFromWithDefault(hiveQueriesListUrl, "{ \"entities\" : [  ] }");
@@ -83,10 +88,16 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
     return (JSONObject) JSONValue.parse(response);
   }
 
-  protected String readFromWithDefault(String hiveQueriesListUrl, String defaultResponse) {
+  @Override
+  public JSONObject tezVerticesListForDAG(String dagId) {
+    String response = readFromWithDefault(tezVerticesListForDAGUrl(dagId), "{ \"entities\" : [  ] }");
+    return (JSONObject) JSONValue.parse(response);
+  }
+
+  protected String readFromWithDefault(String atsUrl, String defaultResponse) {
     String response;
     try {
-      InputStream responseInputStream = context.getURLStreamProvider().readFrom(hiveQueriesListUrl, "GET",
+      InputStream responseInputStream = context.getURLStreamProvider().readFrom(atsUrl, "GET",
           null, new HashMap<String, String>());
       response = IOUtils.toString(responseInputStream);
     } catch (IOException e) {

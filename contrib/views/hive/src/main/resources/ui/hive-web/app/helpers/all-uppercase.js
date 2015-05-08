@@ -18,8 +18,8 @@
 
 import Ember from 'ember';
 
-export function allUppercase(input) {
+export function allUppercase (input) {
   return input ? input.toUpperCase() : input;
-};
+}
 
 export default Ember.Handlebars.makeBoundHelper(allUppercase);

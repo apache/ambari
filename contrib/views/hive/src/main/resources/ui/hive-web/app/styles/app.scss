@@ -66,9 +66,13 @@ a {
 
 #visual-explain {
   white-space: nowrap;
+
+  .panel-body {
+    overflow: hidden;
+  }
 }
 
-#visual-explain, #tez-ui {
+.index-overlay {
   position: absolute;
   left: 0;
   width: 0;
@@ -150,6 +154,30 @@ aside  hr {
 
 .modal-backdrop {
   background-color: white;
+}
+
+.gray {
+  background-color: gray;
+}
+
+.green {
+  background-color: #99CC00;
+}
+
+.red {
+  background-color: #ff3300;
+}
+
+.orange {
+  background-color: #FF9933;
+}
+
+.yellow {
+  background-color: #CCCC00;
+}
+
+.blue {
+  background-color: blue;
 }
 
 .UNKNOWN {
@@ -372,6 +400,7 @@ tree-view ul li {
   font-weight: 800;
 
   .edge-path {
+    margin-top: -55px;
     height: 2px;
     background-color: #dedede;
     position: absolute;
@@ -436,6 +465,19 @@ tree-view ul li {
           color: green;
         }
       }
+
+      .progress {
+        border-radius: 0;
+        margin: 0 10px 10px 10px;
+      }
+
+      .progress-bar {
+        min-width: 2em;
+      }
     }
   }
+}
+
+.messages-controls {
+  margin: 0 0 10px;
 }

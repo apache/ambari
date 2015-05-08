@@ -24,7 +24,7 @@ export default Ember.Component.extend({
       this.sendAction('removeMessage', this.get('message'));
     },
 
-    toggleMessage: function() {
+    toggleMessage: function () {
       this.toggleProperty('message.isExpanded');
 
       if (!this.get('message.isExpanded')) {

@@ -32,12 +32,12 @@ public class OperationHandleControllerFactory {
     operationHandlesStorage = new OperationHandleResourceManager(connectionsFabric);
   }
 
-  public OperationHandleController createControllerForHandle(TOperationHandle storedOperationHandle) {
+  public OperationHandleController createControllerForHandle(StoredOperationHandle storedOperationHandle) {
     return new OperationHandleController(connectionsFabric, storedOperationHandle, operationHandlesStorage);
   }
 
   public OperationHandleController getHandleForJob(Job job) throws ItemNotFound {
-    TOperationHandle handle = operationHandlesStorage.getHandleForJob(job);
+    StoredOperationHandle handle = operationHandlesStorage.getHandleForJob(job);
     return createControllerForHandle(handle);
   }
 }

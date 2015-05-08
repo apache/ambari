@@ -12,34 +12,19 @@
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
+ * See the License for the specific `language governing permissions and
  * limitations under the License.
  */
-
-// this component is a work in progress
 
 import Ember from 'ember';
 
 export default Ember.Component.extend({
-  formattedStages: Ember.ArrayProxy.create({ content: [] }),
+  tagName: 'progress-bar',
 
-  formatStages: function() {
-    var formattedStages = this.get('formattedStages');
-    var stages = this.get('stages');
-    var currentStage;
+  updateValue: function () {
+    var progress = this.get('value') || 0;
 
-    stages.forEach(function(stage) {
-      currentStage = formattedStages.findBy('name', stage.get('name'));
-
-      if(currentStage) {
-        currentStage.set('progress', 'width: %@%'.fmt(stage.get('value')))
-      } else {
-        formattedStages.pushObject(Ember.Object.create({
-          name: stage.get('name'),
-          className: stage.get('className'),
-          progress: 'width: %@%'.fmt(stage.get('value'))
-        }));
-      }
-    });
-  }.observes('stages.@each.value').on('init')
+    this.set('style', 'width: %@%'.fmt(progress));
+    this.set('percentage', '%@%'.fmt(progress));
+  }.observes('value').on('didInsertElement')
 });

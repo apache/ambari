@@ -38,7 +38,7 @@ test('Component is initialized correctly', function () {
     optionValuePath: 'content.id',
     optionLabelPath: 'content.name'
   });
-  var $component = this.append();
+  var $component = this.render();
 
   equal(component.get('content.length'), items.length, 'Items are set');
   equal(component.get('selection'), items[0], 'First object is set as default value');

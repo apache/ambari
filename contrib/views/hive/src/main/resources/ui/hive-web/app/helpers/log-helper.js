@@ -18,7 +18,7 @@
 
 import Ember from 'ember';
 
-export function log(text) {
+export function log (text) {
   text = Ember.Handlebars.Utils.escapeExpression(text);
   text = text.replace(/(\r\n|\n|\r)/gm, '<br>');
 

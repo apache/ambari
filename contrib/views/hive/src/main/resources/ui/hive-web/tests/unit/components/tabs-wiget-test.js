@@ -32,7 +32,7 @@ test('First tab active by default', function() {
   ])});
 
   var component = this.subject({ tabs: tabs });
-  var $component = this.append();
+  var $component = this.render();
 
   ok(component.get('tabs.firstObject.active'), 'First tab is active');
   ok(!component.get('tabs.lastObject.active'), 'Second tab is not active');

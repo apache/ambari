@@ -79,8 +79,6 @@ test('Expanding a table will retrieve the first page of columns for that table.'
       click(targetTable);
 
       andThen(function () {
-        console.log(find('.columns'));
-
         equal(find('.columns').length, 1, 'Columns container was loaded.');
         equal(find('.columns strong').length, 3, '3 columns were loaded for selected table.');
       });

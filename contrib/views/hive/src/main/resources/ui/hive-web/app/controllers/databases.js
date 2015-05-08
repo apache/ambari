@@ -209,24 +209,24 @@ export default Ember.ArrayController.extend({
   }.property(),
 
   actions: {
-    refreshDatabaseExplorer: function() {
+    refreshDatabaseExplorer: function () {
       var self = this;
       var selectedDatabase = this.get('selectedDatabase');
 
       this.store.unloadAll('database');
-      this.store.fetchAll('database').then(function() {
+      this.store.fetchAll('database').then(function () {
         var database = self.get('model').findBy('id', selectedDatabase.get('id'));
         self.set('selectedDatabase', database);
-      }).catch(function(response) {
+      }).catch(function (response) {
         self.notify.error(response.responseJSON.message, response.responseJSON.trace);
       });
     },
 
-    loadSampleData: function(tableName, database) {
+    loadSampleData: function (tableName, database) {
       var self = this;
       this.send('addQuery', Ember.I18n.t('titles.tableSample', { tableName: tableName }));
 
-      Ember.run.later(function() {
+      Ember.run.later(function () {
         var query = constants.sampleDataQuery.fmt(tableName);
 
         self.set('selectedDatabase', database);

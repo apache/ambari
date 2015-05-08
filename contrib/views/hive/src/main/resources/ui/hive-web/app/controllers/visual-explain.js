@@ -17,6 +17,31 @@
  */
 
 import Ember from 'ember';
+import constants from 'hive/utils/constants';
 
-export default Ember.ObjectController.extend({
+export default Ember.Controller.extend({
+  needs: [ constants.namingConventions.index,
+           constants.namingConventions.jobProgress ],
+
+  index: Ember.computed.alias('controllers.' + constants.namingConventions.index),
+  jobProgress: Ember.computed.alias('controllers.' + constants.namingConventions.jobProgress),
+
+  updateProgress: function () {
+    this.set('verticesProgress', this.get('jobProgress.stages'));
+  }.observes('jobProgress.stages', 'jobProgress.stages.@each.value'),
+
+  actions: {
+    onTabOpen: function () {
+      var self = this;
+
+      this.get('index')._executeQuery(true, true).then(function (json) {
+        //this condition should be changed once we change the way of retrieving this json
+        if (json['STAGE PLANS']['Stage-1']) {
+          self.set('json', json);
+        }
+      }, function (err) {
+        self.notify.error(err.responseJSON.message, err.responseJSON.trace);
+      });
+    }
+  }
 });

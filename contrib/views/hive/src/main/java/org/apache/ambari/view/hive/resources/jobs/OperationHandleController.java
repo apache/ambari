@@ -22,6 +22,7 @@ package org.apache.ambari.view.hive.resources.jobs;
 import org.apache.ambari.view.hive.client.Cursor;
 import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.client.IConnectionFactory;
+import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive.utils.HiveClientFormattedException;
 import org.apache.hive.service.cli.thrift.TGetOperationStatusResp;
@@ -32,23 +33,21 @@ import org.slf4j.LoggerFactory;
 public class OperationHandleController {
   private final static Logger LOG =
       LoggerFactory.getLogger(OperationHandleController.class);
+  private final IConnectionFactory connectionsFabric;
 
-  private IConnectionFactory connectionsFabric;
-  private TOperationHandle operationHandle;
-  private IOperationHandleResourceManager operationHandlesStorage;
+  private final TOperationHandle operationHandle;
+  private final StoredOperationHandle storedOperationHandle;
+  private final IOperationHandleResourceManager operationHandlesStorage;
 
-  public OperationHandleController(IConnectionFactory connectionsFabric, TOperationHandle storedOperationHandle, IOperationHandleResourceManager operationHandlesStorage) {
+  public OperationHandleController(IConnectionFactory connectionsFabric, StoredOperationHandle storedOperationHandle, IOperationHandleResourceManager operationHandlesStorage) {
     this.connectionsFabric = connectionsFabric;
-    this.operationHandle = storedOperationHandle;
+    this.storedOperationHandle = storedOperationHandle;
+    this.operationHandle = storedOperationHandle.toTOperationHandle();
     this.operationHandlesStorage = operationHandlesStorage;
   }
 
-  public TOperationHandle getStoredOperationHandle() {
-    return operationHandle;
-  }
-
-  public void setStoredOperationHandle(TOperationHandle storedOperationHandle) {
-    this.operationHandle = storedOperationHandle;
+  public StoredOperationHandle getStoredOperationHandle() {
+    return storedOperationHandle;
   }
 
   public OperationStatus getOperationStatus() throws NoOperationStatusSetException, HiveClientException {
@@ -107,7 +106,15 @@ public class OperationHandleController {
   }
 
   public String getLogs() {
-    return connectionsFabric.getHiveConnection().getLogs(operationHandle);
+    String logs;
+    try {
+      logs = connectionsFabric.getHiveConnection().getLogs(operationHandle);
+    } catch (HiveClientFormattedException ex) {
+      logs = "";
+      LOG.info(String.format("Logs are not available yet for job #%s [%s]\n%s",
+          storedOperationHandle.getJobId(), storedOperationHandle.getGuid(), ex.toString()));
+    }
+    return logs;
   }
 
   public Cursor getResults() {

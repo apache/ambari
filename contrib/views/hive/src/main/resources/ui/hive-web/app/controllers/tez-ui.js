@@ -31,7 +31,7 @@ export default Ember.Controller.extend({
 
   isTezViewAvailable: Ember.computed.bool('tezViewURL'),
 
-  dagId: function() {
+  dagId: function () {
     if (this.get('isTezViewAvailable')) {
       return this.get('index.model.dagId');
     }
@@ -39,7 +39,7 @@ export default Ember.Controller.extend({
     return false;
   }.property('index.model.dagId', 'isTezViewAvailable'),
 
-  dagURL: function() {
+  dagURL: function () {
     if (this.get('dagId')) {
       return "%@%@%@".fmt(this.get('tezViewURL'), this.get('tezDagPath'), this.get('dagId'));
     }
@@ -47,27 +47,27 @@ export default Ember.Controller.extend({
     return false;
   }.property('dagId'),
 
-  getTezView: function() {
+  getTezView: function () {
     if (this.get('isTezViewAvailable')) {
       return;
     }
 
     var self = this;
     Ember.$.getJSON(this.get('tezApiURL'))
-      .then(function(response) {
+      .then(function (response) {
         self.getTezViewInstance(response);
       })
-      .fail(function(response) {
+      .fail(function (response) {
         self.setTezViewError(response);
       });
   }.on('init'),
 
-  getTezViewInstance: function(data) {
+  getTezViewInstance: function (data) {
     var self = this;
     var url = data.versions[0].href;
 
     Ember.$.getJSON(url)
-      .then(function(response) {
+      .then(function (response) {
         if (!response.instances.length) {
           self.setTezViewError(response);
           return;
@@ -80,7 +80,7 @@ export default Ember.Controller.extend({
       });
   },
 
-  setTezViewURL: function(instance) {
+  setTezViewURL: function (instance) {
     var url = "%@/%@/%@".fmt(
       this.get('tezURLPrefix'),
       instance.version,
@@ -90,7 +90,7 @@ export default Ember.Controller.extend({
     this.set('tezViewURL', url);
   },
 
-  setTezViewError: function(data) {
+  setTezViewError: function (data) {
     // status: 404 => Tev View isn't deployed
     if (data.status && data.status === 404) {
       this.set('error', 'tez.errors.not.deployed');
@@ -100,7 +100,6 @@ export default Ember.Controller.extend({
     // no instance created
     if (data.instances && !data.instances.length) {
       this.set('error', 'tez.errors.no.instance');
-      return;
     }
   }
 });

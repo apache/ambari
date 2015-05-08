@@ -17,7 +17,7 @@
 */
 import Ember from 'ember';
 
-export function preformattedString(string) {
+export function preformattedString (string) {
   string = string.replace(/\\n/g, '&#10;'); // newline
   string = string.replace(/\\t/g, '&#09;'); // tabs
   string = string.replace(/^\s+|\s+$/g, ''); // trim

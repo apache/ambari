@@ -80,74 +80,75 @@ export default Ember.Object.create({
     databaseSearch: 'databases-search-results',
     tables: 'tables',
     columns: 'columns',
-    settings: 'settings'
+    settings: 'settings',
+    jobProgress: 'job-progress',
+    queryTabs: 'query-tabs'
   },
 
   hiveParameters: [
     {
       name: 'hive.tez.container.size',
-      values: [
-        Ember.Object.create({ value: 'true' }),
-        Ember.Object.create({ value: 'false' })
-      ]
-    },
-    {
-      name: 'hive.prewarm.enabled',
       validate: helpers.regexes.digits
     },
     {
+      name: 'hive.prewarm.enabled',
+      values: helpers.validationValues.bool
+    },
+    {
       name: 'hive.prewarm.numcontainers',
-      values: [
-        Ember.Object.create({ value: 'one' }),
-        Ember.Object.create({ value: 'two' }),
-        Ember.Object.create({ value: 'three' })
-      ]
+      validate: helpers.regexes.digits
     },
     {
       name: 'hive.tez.auto.reducer.parallelism',
-      value: 'test'
+      values: helpers.validationValues.bool
     },
     {
-      name: 'hive.execution.engine'
+      name: 'hive.execution.engine',
+      values: helpers.validationValues.execEngine
     },
     {
-      name: 'hive.vectorized.execution.enabled'
+      name: 'hive.vectorized.execution.enabled',
+      values: helpers.validationValues.bool
     },
     {
-      name: 'tez.am.resource.memory.mb'
+      name: 'tez.am.resource.memory.mb',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.am.container.idle.release-timeout-min.millis'
+      name: 'tez.am.container.idle.release-timeout-min.millis',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.am.container.idle.release-timeout-max.millis'
+      name: 'tez.am.container.idle.release-timeout-max.millis',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.queue.name'
+      name: 'tez.queue.name',
+      validate: helpers.regexes.name
     },
     {
-      name: 'tez.runtime.io.sort.mb'
+      name: 'tez.runtime.io.sort.mb',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.runtime.sort.threads'
+      name: 'tez.runtime.sort.threads',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.runtime.optimize.shared.fetch'
+      name: 'tez.runtime.compress.codec',
+      validate: helpers.regexes.dotPath
     },
     {
-      name: 'tez.runtime.compress.codec'
+      name: 'tez.grouping.min-size',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.runtime.shuffle.keep-alive.enabled'
+      name: 'tez.grouping.max-size',
+      validate: helpers.regexes.digits
     },
     {
-      name: 'tez.grouping.min-size'
-    },
-    {
-      name: 'tez.grouping.max-size'
-    },
-    {
-      name: 'tez.generate.debug.artifacts'
+      name: 'tez.generate.debug.artifacts',
+      values: helpers.validationValues.bool
     }
   ],
 

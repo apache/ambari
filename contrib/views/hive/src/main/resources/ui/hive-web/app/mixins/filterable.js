@@ -87,7 +87,9 @@ export default Ember.Mixin.create({
   },
 
   clearFilters: function () {
-    if (!this.get('filters') || this.get('filters.length')) {
+    var filters = this.get('filters');
+
+    if (!filters || filters.get('length')) {
       this.set('filters', Ember.A());
     }
   },
@@ -95,10 +97,6 @@ export default Ember.Mixin.create({
   actions: {
     filter: function (property, filterValue) {
       this.updateFilters(property, filterValue);
-    },
-
-    clearFilters: function () {
-      this.clearFilters();
     }
   }
 });

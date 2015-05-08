@@ -16,10 +16,21 @@
  * limitations under the License.
  */
 
-/* globals blanket */
+/*globals blanket, module */
 
-blanket.options({
-   filter: "//.*hive/.*/",
-   antifilter: ["//.*(tests).*/", "//.*(templates).*/"],
-   loaderExclusions: ['ember-cli-jquery-ui']
-});
+var options = {
+  modulePrefix: "hive",
+  filter: "//.*hive/.*/",
+  antifilter: "//.*(tests|template).*/",
+  loaderExclusions: ['ember-cli-jquery-ui', 'hive/config/environment'],
+  enableCoverage: true,
+  cliOptions: {
+    reporters: ['json']
+  }
+};
+
+if (typeof exports === 'undefined') {
+  blanket.options(options);
+} else {
+  module.exports = options;
+}

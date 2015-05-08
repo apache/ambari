@@ -23,7 +23,6 @@
     </aside>
 
     <div class="col-md-9 col-xs-12 query-container">
-
       {{#panel-widget headingTranslation="titles.query.editor" classNames="query-editor-panel"}}
         {{render 'open-queries'}}
 
@@ -46,6 +45,11 @@
           <button type="button" class="btn btn-sm btn-primary  pull-right" {{action "addQuery"}}>{{t "buttons.newQuery"}}</button>
         </div>
       {{/panel-widget}}
+
+      {{#if jobProgress.stages}}
+        {{#progress-widget value=jobProgress.totalProgress}}
+        {{/progress-widget}}
+      {{/if}}
 
       {{#if queryParams}}
         {{#panel-widget headingTranslation="titles.query.parameters"}}
@@ -87,6 +91,6 @@
       </ul>
     {{/popover-widget}}
 
-    {{query-tabs}}
+    {{render 'query-tabs'}}
   </div>
 </div>

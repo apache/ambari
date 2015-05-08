@@ -27,7 +27,7 @@ export default Ember.Component.extend({
     }
   },
 
-  isSorted: (function() {
+  isSorted: (function () {
     var sortProperties = this.get('sortProperties');
 
     if (sortProperties) {

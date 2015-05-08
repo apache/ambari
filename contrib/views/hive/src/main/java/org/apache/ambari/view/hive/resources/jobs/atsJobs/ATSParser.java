@@ -58,6 +58,24 @@ public class ATSParser implements IATSParser {
   }
 
   @Override
+  public List<TezVertexId> getVerticesForDAGId(String dagId) {
+    JSONObject entities = delegate.tezVerticesListForDAG(dagId);
+    JSONArray vertices = (JSONArray) entities.get("entities");
+
+    List<TezVertexId> parsedVertices = new LinkedList<TezVertexId>();
+    for(Object vertex : vertices) {
+      try {
+        TezVertexId parsedVertex = parseVertex((JSONObject) vertex);
+        parsedVertices.add(parsedVertex);
+      } catch (Exception ex) {
+        LOG.error("Error while parsing the vertex", ex);
+      }
+    }
+
+    return parsedVertices;
+  }
+
+  @Override
   public HiveQueryId getHiveQueryIdByOperationId(String guidString) {
     JSONObject entities = delegate.hiveQueryIdByOperationId(guidString);
     JSONArray jobs = (JSONArray) entities.get("entities");
@@ -129,6 +147,15 @@ public class ATSParser implements IATSParser {
     parsedJob.dagNames = dagIds;
     parsedJob.stages = stagesList;
     return parsedJob;
+  }
+
+  private TezVertexId parseVertex(JSONObject vertex) {
+    TezVertexId tezVertexId = new TezVertexId();
+    tezVertexId.entity = (String)vertex.get("entity");
+    JSONObject otherinfo = (JSONObject)vertex.get("otherinfo");
+    if (otherinfo != null)
+      tezVertexId.vertexName = (String)otherinfo.get("vertexName");
+    return tezVertexId;
   }
 
   private JSONObject getLastEvent(JSONObject atsEntity) {

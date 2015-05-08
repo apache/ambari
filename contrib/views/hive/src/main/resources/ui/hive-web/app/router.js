@@ -24,7 +24,7 @@ var Router = Ember.Router.extend({
   location: config.locationType
 });
 
-Router.map(function() {
+Router.map(function () {
   var savedQueryPath = constants.namingConventions.routes.queries + '/:' + constants.namingConventions.savedQuery + '_id';
   var historyQueryPath = constants.namingConventions.routes.history + '/:' + constants.namingConventions.job + '_id';
 

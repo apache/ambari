@@ -20,7 +20,7 @@
 
 import Ember from 'ember';
 
-export function pathBinding(data, key) {
+export function pathBinding (data, key) {
   return moment(data.get(key)).fromNow();
 }
 

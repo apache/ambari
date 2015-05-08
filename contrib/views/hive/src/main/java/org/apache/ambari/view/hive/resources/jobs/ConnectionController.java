@@ -68,6 +68,7 @@ public class ConnectionController {
     } catch (HiveClientException e) {
       throw new HiveClientFormattedException(e);
     }
-    return operationHandleControllerFactory.createControllerForHandle(operationHandle);
+    StoredOperationHandle storedOperationHandle = StoredOperationHandle.buildFromTOperationHandle(operationHandle);
+    return operationHandleControllerFactory.createControllerForHandle(storedOperationHandle);
   }
 }

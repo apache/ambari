@@ -19,15 +19,19 @@ import Ember from 'ember';
 
 export default Ember.Controller.extend({
   messages: Ember.computed.alias('notify.messages'),
-  count: Ember.computed.alias('messages.length'),
+  count: Ember.computed.alias('notify.unseenMessages.length'),
 
   actions: {
-    removeMessage: function(message) {
+    removeMessage: function (message) {
       this.notify.removeMessage(message);
     },
 
-    removeAllMessages: function() {
+    removeAllMessages: function () {
       this.notify.removeAllMessages();
+    },
+
+    markMessagesAsSeen: function () {
+      this.notify.markMessagesAsSeen();
     }
   }
 });

@@ -87,14 +87,14 @@ export default Ember.Component.extend({
 
     editor = this.get('editor');
 
-    editor.on('cursorActivity', function() {
+    editor.on('cursorActivity', function () {
       self.set('highlightedText', editor.getSelections());
     });
 
     editor.setValue(this.get('query') || '');
 
     editor.on('change', function (instance) {
-      Ember.run(function() {
+      Ember.run(function () {
         self.set('query', instance.getValue());
       });
     });
@@ -110,7 +110,7 @@ export default Ember.Component.extend({
     this.tablesChanged();
   }.on('didInsertElement'),
 
-  updateValue: function() {
+  updateValue: function () {
     var query = this.get('query');
     var editor = this.get('editor');
 

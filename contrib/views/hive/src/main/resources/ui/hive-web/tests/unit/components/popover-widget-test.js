@@ -27,7 +27,7 @@ test('Component initializes correctly', function () {
   var component = this.subject({
     template: Ember.Handlebars.compile("test")
   });
-  var $component = this.append();
+  var $component = this.render();
 
   ok($component, "Popover element is initialized");
   equal($component.attr('data-content').trim(), "test", "data-content is populated");

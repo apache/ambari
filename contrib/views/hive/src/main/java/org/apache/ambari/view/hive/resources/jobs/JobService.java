@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.hive.resources.jobs;
 
-import com.google.inject.Inject;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.backgroundjobs.BackgroundJobController;
@@ -26,13 +25,9 @@ import org.apache.ambari.view.hive.client.Connection;
 import org.apache.ambari.view.hive.client.Cursor;
 import org.apache.ambari.view.hive.client.HiveClientException;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
-import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSRequestsDelegate;
-import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSRequestsDelegateImpl;
-import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParser;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.*;
 import org.apache.ambari.view.hive.utils.*;
-import org.apache.ambari.view.hive.utils.HdfsApi;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -41,6 +36,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
@@ -87,8 +83,7 @@ public class JobService extends BaseService {
 
   protected Aggregator getAggregator() {
     if (aggregator == null) {
-      ATSRequestsDelegate transport = new ATSRequestsDelegateImpl(context, "http://127.0.0.1:8188");
-      IATSParser atsParser = new ATSParser(transport);
+      IATSParser atsParser = getSharedObjectsFactory().getATSParser();
       aggregator = new Aggregator(getResourceManager(), getOperationHandleResourceManager(), atsParser);
     }
     return aggregator;
@@ -314,6 +309,29 @@ public class JobService extends BaseService {
       return Response.ok().build();
     } catch (WebApplicationException ex) {
       throw ex;
+    } catch (Exception ex) {
+      throw new ServiceFormattedException(ex.getMessage(), ex);
+    }
+  }
+
+  /**
+   * Get progress info
+   */
+  @GET
+  @Path("{jobId}/progress")
+  @Produces(MediaType.APPLICATION_JSON)
+  public Response getProgress(@PathParam("jobId") String jobId) {
+    try {
+      final JobController jobController = getResourceManager().readController(jobId);
+
+      ProgressRetriever.Progress progress = new ProgressRetriever(jobController.getJob(), getSharedObjectsFactory()).
+          getProgress();
+
+      return Response.ok(progress).build();
+    } catch (WebApplicationException ex) {
+      throw ex;
+    } catch (ItemNotFound itemNotFound) {
+      throw new NotFoundFormattedException(itemNotFound.getMessage(), itemNotFound);
     } catch (Exception ex) {
       throw new ServiceFormattedException(ex.getMessage(), ex);
     }

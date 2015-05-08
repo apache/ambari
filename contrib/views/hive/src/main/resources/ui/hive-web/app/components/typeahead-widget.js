@@ -20,7 +20,7 @@ import Typeahead from 'ember-cli-selectize/components/ember-selectize';
 import Ember from 'ember';
 
 export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
-  didInsertElement: function() {
+  didInsertElement: function () {
     this._super();
 
     if (!this.get('selection') && this.get('content.firstObject')) {
@@ -30,8 +30,7 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
     this.selectize.on('dropdown_close', Ember.$.proxy(this.onClose, this));
   },
 
-  removeExcludedObserver: function() {
-    var self    = this;
+  removeExcludedObserver: function () {
     var options = this.get('content');
 
     if (!options) {
@@ -42,8 +41,7 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
     }
   }.observes('excluded.@each.key').on('init'),
 
-  removeExcluded: function(shouldReturn) {
-    var self            = this;
+  removeExcluded: function (shouldReturn) {
     var excluded        = this.get('excluded') || [];
     var options         = this.get('options');
     var selection       = this.get('selection');
@@ -59,9 +57,12 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
       objectToModify = Ember.copy(options);
     }
 
+    var valuePath = this.get('optionValuePath');
+    var selectionName = selection ? selection[valuePath] : selection;
+
     if (options) {
-      options.forEach(function(option, index) {
-        if (excluded.contains(option) && option !== selection) {
+      options.forEach(function (option) {
+        if (excluded.contains(option) && option.name !== selectionName) {
           objectsToRemove.push(option);
         } else if (!objectToModify.contains(option)) {
           objectsToAdd.push(option);
@@ -75,13 +76,13 @@ export default Typeahead.extend(Ember.I18n.TranslateableProperties, {
     return objectToModify;
   },
 
-  onClose: function() {
+  onClose: function () {
     if (!this.get('selection') && this.get('prevSelection')) {
       this.set('selection', this.get('prevSelection'));
     }
   },
 
-  _onItemAdd: function(value) {
+  _onItemAdd: function (value) {
     this._super(value);
 
     this.set('prevSelection', this.get('selection'));

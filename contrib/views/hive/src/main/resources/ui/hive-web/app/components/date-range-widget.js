@@ -29,34 +29,57 @@ export default Ember.Component.extend({
     return moment(this.get('dateRange.to')).format('MM/DD/YYYY');
   }.property('dateRange.to'),
 
+  updateMinDate: function () {
+    if (this.get('rendered')) {
+      this.$('.toDate').datepicker("option", "minDate", new Date(this.get('dateRange.from')));
+    }
+  }.observes('dateRange.from'),
+
+  updateMaxDate: function () {
+    if (this.get('rendered')) {
+      this.$('.fromDate').datepicker("option", "maxDate", new Date(this.get('dateRange.to')));
+    }
+  }.observes('dateRange.to'),
+
   didInsertElement: function () {
     var self = this;
+    var dateRange = this.get('dateRange');
 
-    if (!this.get('dateRange.min') && !this.get('dateRange.max')) {
-      this.set('dateRange.max', new Date());
+    if (!dateRange.get('min') && !dateRange.get('max')) {
+      dateRange.set('max', new Date());
     }
 
-    if (!this.get('dateRange.from') && !this.get('dateRange.to')) {
-      this.set('dateRange.from', this.get('dateRange.min'));
-      this.set('dateRange.to', this.get('dateRange.max'));
+    if (!dateRange.get('from') && !dateRange.get('to')) {
+      dateRange.set('from', dateRange.get('min'));
+      dateRange.set('to', dateRange.get('max'));
     }
 
     this.$(".fromDate").datepicker({
-      defaultDate: this.get("dateRange.from"),
+      defaultDate: new Date(dateRange.get("from")),
+      maxDate: new Date(dateRange.get('to')),
+
       onSelect: function (selectedDate) {
         self.$(".toDate").datepicker("option", "minDate", selectedDate);
-        self.set('dateRange.from', new Date(selectedDate));
-        self.sendAction('rangeChanged', self.get('dateRange'));
+
+        dateRange.set('from', new Date(selectedDate).getTime());
+        self.sendAction('rangeChanged', dateRange);
       }
     });
 
     this.$(".toDate").datepicker({
-      defaultDate: this.get('dateRange.to'),
+      defaultDate: new Date(dateRange.get('to')),
+      minDate: new Date(dateRange.get('from')),
+
       onSelect: function (selectedDate) {
+        selectedDate += ' 23:59';
+
         self.$(".fromDate").datepicker("option", "maxDate", selectedDate);
-        self.set('dateRange.to', new Date(selectedDate + " 23:59"));
-        self.sendAction('rangeChanged', self.get('dateRange'));
+
+        dateRange.set('to', new Date(selectedDate).getTime());
+        self.sendAction('rangeChanged', dateRange);
       }
     });
+
+    this.set('rendered', true);
   }
 });

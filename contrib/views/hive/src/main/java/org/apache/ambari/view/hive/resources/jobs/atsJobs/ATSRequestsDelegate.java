@@ -29,9 +29,13 @@ public interface ATSRequestsDelegate {
 
   String tezDagNameUrl(String name);
 
+  String tezVerticesListForDAGUrl(String dagId);
+
   JSONObject hiveQueryIdList(String username);
 
   JSONObject hiveQueryIdByOperationId(String operationId);
 
   JSONObject tezDagByName(String name);
+
+  JSONObject tezVerticesListForDAG(String dagId);
 }

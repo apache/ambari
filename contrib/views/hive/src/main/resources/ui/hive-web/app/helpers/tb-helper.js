@@ -18,7 +18,7 @@
 
 import Ember from 'ember';
 
-export function tb(key, data) {
+export function tb (key, data) {
   var path = data.get ? data.get(key) : data[key];
 
   if (!path && key) {

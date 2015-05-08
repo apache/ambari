@@ -29,6 +29,8 @@ import org.apache.ambari.view.hive.resources.jobs.ConnectionController;
 import org.apache.ambari.view.hive.resources.jobs.OperationHandleControllerFactory;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParser;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.ATSParserFactory;
+import org.apache.ambari.view.hive.resources.jobs.rm.RMParser;
+import org.apache.ambari.view.hive.resources.jobs.rm.RMParserFactory;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.IJobControllerFactory;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobControllerFactory;
 import org.apache.ambari.view.hive.resources.savedQueries.SavedQueryResourceManager;
@@ -43,9 +45,10 @@ import java.util.Map;
  */
 public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory {
   private ViewContext context;
-  private IConnectionFactory hiveConnectionFactory;
-  private IStorageFactory storageFactory;
-  private ATSParserFactory atsParserFactory;
+  private final IConnectionFactory hiveConnectionFactory;
+  private final IStorageFactory storageFactory;
+  private final ATSParserFactory atsParserFactory;
+  private final RMParserFactory rmParserFactory;
 
   private static final Map<Class, Map<String, Object>> localObjects = new HashMap<Class, Map<String, Object>>();
 
@@ -54,6 +57,7 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
     this.hiveConnectionFactory = new ConnectionFactory(context);
     this.storageFactory = new StorageFactory(context);
     this.atsParserFactory = new ATSParserFactory(context);
+    this.rmParserFactory = new RMParserFactory(context);
 
     synchronized (localObjects) {
       if (localObjects.size() == 0) {
@@ -64,6 +68,7 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
         localObjects.put(ATSParser.class, new HashMap<String, Object>());
         localObjects.put(SavedQueryResourceManager.class, new HashMap<String, Object>());
         localObjects.put(HdfsApi.class, new HashMap<String, Object>());
+        localObjects.put(RMParser.class, new HashMap<String, Object>());
       }
     }
   }
@@ -124,6 +129,13 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
   }
 
   // =============================
+  public RMParser getRMParser() {
+    if (!localObjects.get(RMParser.class).containsKey(getTagName()))
+      localObjects.get(RMParser.class).put(getTagName(), rmParserFactory.getRMParser());
+    return (RMParser) localObjects.get(RMParser.class).get(getTagName());
+  }
+
+  // =============================
   public HdfsApi getHdfsApi() {
     if (!localObjects.get(HdfsApi.class).containsKey(getTagName()))
       localObjects.get(HdfsApi.class).put(getTagName(), HdfsApi.connectToHDFSApi(context));
@@ -135,6 +147,8 @@ public class SharedObjectsFactory implements IStorageFactory, IConnectionFactory
    * @return tag name
    */
   public String getTagName() {
+    if (context == null)
+      return "<null>";
     return String.format("%s:%s", context.getInstanceName(), context.getUsername());
   }
 

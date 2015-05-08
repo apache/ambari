@@ -106,7 +106,6 @@ test('validate', function() {
   });
 
   var currentSettings = controller.get('model.firstObject.settings');
-  console.log(currentSettings);
   ok(!currentSettings.get('firstObject.valid'), "First setting doesn\' pass validataion");
   ok(currentSettings.get('lastObject.valid'), 'Second setting passes validation');
 });

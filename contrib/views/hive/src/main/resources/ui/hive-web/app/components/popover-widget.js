@@ -20,8 +20,9 @@ import Ember from 'ember';
 
 export default Ember.Component.extend(Ember.I18n.TranslateableProperties, {
   tagName: 'popover',
-  attributeBindings: ['title', 'content:data-content'],
-  didInsertElement: function() {
+  attributeBindings: [ 'title', 'content:data-content' ],
+
+  didInsertElement: function () {
     this.$().popover({
       html: true,
       placement: 'left',

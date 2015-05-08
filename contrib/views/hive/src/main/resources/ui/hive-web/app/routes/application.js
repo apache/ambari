@@ -53,17 +53,28 @@ export default Ember.Route.extend({
       });
     },
 
-    openOverlay: function(overlay) {
+    openOverlay: function (overlay) {
       return this.render(overlay.template, {
         outlet: overlay.outlet,
         into: overlay.into
       });
     },
-    closeOverlay: function(overlay) {
+    closeOverlay: function (overlay) {
       return this.disconnectOutlet({
         outlet: overlay.outlet,
         parentView: overlay.into
       });
+    },
+
+    removeNotification: function (notification) {
+      this.notify.removeNotification(notification);
+    },
+
+    willTransition: function(transition) {
+      // close active overlay if we transition
+      this.controllerFor('queryTabs').setDefaultActive();
+
+      return transition;
     }
   }
 });

@@ -16,6 +16,8 @@
  * limitations under the License.
  */
 
+/* globals dagre */
+
 import Ember from 'ember';
 import dagRules from '../utils/dag-rules';
 
@@ -24,10 +26,6 @@ export default Ember.View.extend({
     this.set('verticesGroups', []);
     this.set('edges', []);
     this.set('graph', new dagre.graphlib.Graph());
-
-    if (this.get('controller.json')) {
-      this.renderDag();
-    }
   },
 
   didInsertElement: function () {
@@ -38,7 +36,7 @@ export default Ember.View.extend({
     target.css('min-height', $('.main-content').height());
     target.animate({ width: $('.main-content').width() }, 'fast');
 
-    Ember.run.scheduleOnce('afterRender', this, this.afterRenderEvent);
+    this.$('#visual-explain-graph').draggable();
   },
 
   willDestroyElement: function () {
@@ -47,6 +45,31 @@ export default Ember.View.extend({
     target.css('min-height', 0);
     target.css('width', 0);
   },
+
+  updateProgress: function () {
+    var verticesProgress = this.get('controller.verticesProgress');
+    var verticesGroups = this.get('verticesGroups');
+
+    if (!verticesGroups || !verticesProgress || !verticesProgress.length) {
+      return;
+    }
+
+    verticesGroups.forEach(function (verticesGroup) {
+      verticesGroup.contents.forEach(function (node) {
+        var progress = verticesProgress.findBy('name', node.get('label'));
+
+        if (progress) {
+          node.set('progress', progress.get('value'));
+        }
+      });
+    });
+  }.observes('controller.verticesProgress', 'verticesGroups'),
+
+  jsonChanged: function () {
+    if (this.get('controller.json')) {
+      this.renderDag();
+    }
+  }.observes('controller.json'),
 
   getOffset: function (el) {
     var _x = 0;
@@ -106,24 +129,6 @@ export default Ember.View.extend({
     });
   },
 
-  afterRenderEvent : function () {
-    var g = this.get('graph');
-    var self = this;
-
-    //draw edges after the slide aniamtion for the visual explain container is done
-    Ember.run.later(function () {
-      g.edges().forEach(function (value) {
-        var edge = g.edge(value);
-        var v = value.v;
-
-        var firstNode = self.$("[title='" + value.v + "']")[0];
-        var secondNode = self.$("[title='" + value.w + "']")[0];
-
-        self.addEdge(firstNode, secondNode, 2, g.edge(value).type);
-      });
-    }, 300);
-  },
-
   getNodeContents: function (operator, contents, table, vertex) {
     var currentTable = table,
       contents = contents || [],
@@ -132,6 +137,8 @@ export default Ember.View.extend({
       ruleNode,
       nodeLabelValue,
       self = this;
+    
+    contents = contents || [];  
 
     if (operator.constructor === Array) {
       operator.forEach(function (childOperator) {
@@ -165,7 +172,7 @@ export default Ember.View.extend({
             return {
               label: field.label,
               value: value
-            }
+            };
           })
         });
 
@@ -222,18 +229,16 @@ export default Ember.View.extend({
       var currentTable;
 
       if (vertex.name.indexOf('Map') > -1) {
-        operator = vertex.value['Map Operator Tree:'][0];
-        currentTable = operator["TableScan"]["alias:"];
+        if (vertex.value && vertex.value['Map Operator Tree:']) {
+          operator = vertex.value['Map Operator Tree:'][0];
+          currentTable = operator["TableScan"]["alias:"];
+        } else {
+          //https://hortonworks.jira.com/browse/BUG-36168
+          operator = "None";
+        }
       } else if (vertex.name.indexOf('Reducer') > -1) {
         operator = vertex.value['Reduce Operator Tree:'];
       }
-
-      // else if (vertex.name.indexOf('Union') > -1) {
-      //   g.setNode(vertex, {
-      //     id: vertex.name,
-      //     label: vertex.name
-      //   });
-      // }
 
       if (operator) {
         contents = self.getNodeContents(operator, null, currentTable, vertex.name);
@@ -251,7 +256,6 @@ export default Ember.View.extend({
 
   //sets edges between operator nodes
   setEdges: function (edges) {
-    var i;
     var g = this.get('graph');
     var invalidEdges = [];
     var edgesToBeRemoved = [];
@@ -296,6 +300,7 @@ export default Ember.View.extend({
     });
 
     invalidEdges.forEach(function (invalidEdge) {
+      var parent;
       var targetEdge = g.edges().find(function (graphEdge) {
         return graphEdge.v === invalidEdge.edge.parent ||
                graphEdge.w === invalidEdge.edge.parent;
@@ -335,7 +340,7 @@ export default Ember.View.extend({
       var table;
       var id;
 
-      if (vertex.name.indexOf('Map') > -1) {
+      if (vertex.name.indexOf('Map') > -1 && vertex.value && vertex.value['Map Operator Tree:']) {
         operator = vertex.value['Map Operator Tree:'][0];
         for (var node in operator) {
           table = operator[node]['alias:'];
@@ -349,6 +354,8 @@ export default Ember.View.extend({
         }
       }
     });
+
+    dagre.layout(g);
 
     return this;
   },
@@ -368,10 +375,10 @@ export default Ember.View.extend({
         if (!existentRow) {
            groupedNodes.pushObject({
               topOffset: node.y,
-              contents: [ node ]
+              contents: [ Ember.Object.create(node) ]
            });
         } else {
-          existentRow.contents.pushObject(node);
+          existentRow.contents.pushObject(Ember.Object.create(node));
         }
       }
     });
@@ -388,12 +395,28 @@ export default Ember.View.extend({
     g.setEdge(fileOutputOperator.title, lastRowNode.id);
 
     groupedNodes.pushObject({
-      contents: [ g.node(fileOutputOperator.title) ]
+      contents: [ Ember.Object.create(g.node(fileOutputOperator.title)) ]
     });
 
     lastRowNode.contents.removeObject(fileOutputOperator);
 
     this.set('verticesGroups', groupedNodes);
+
+    return this;
+  },
+
+  renderEdges: function () {
+    var self = this;
+    var g = this.get('graph');
+
+    Ember.run.later(function () {
+      g.edges().forEach(function (value) {
+        var firstNode = self.$("[title='" + value.v + "']")[0];
+        var secondNode = self.$("[title='" + value.w + "']")[0];
+
+        self.addEdge(firstNode, secondNode, 2, g.edge(value).type);
+      });
+    }, 200);
   },
 
   renderDag: function () {
@@ -427,10 +450,9 @@ export default Ember.View.extend({
 
     this.setNodes(vertices)
         .setEdges(edges)
-        .setTableNodesAndEdges(vertices);
-
-    dagre.layout(g);
-
-    this.createNodeGroups();
+        .setTableNodesAndEdges(vertices)
+        .createNodeGroups()
+        .renderEdges();
   }
 });
+

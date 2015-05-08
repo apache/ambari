@@ -24,19 +24,19 @@ export default Ember.ObjectController.extend({
   cachedResults: [],
   formattedResults: [],
 
-  processResults: function() {
+  processResults: function () {
     var results = this.get('results');
 
     if (!results || !results.schema || !results.rows) {
       return;
     }
 
-    var schema = results.schema.map(function(column) {
+    var schema = results.schema.map(function (column) {
       return {
         name: column[0],
         type: column[1],
         index: column[2]
-      }
+      };
     });
 
     this.set('formattedResults', { schema: schema, rows: results.rows });

@@ -18,6 +18,7 @@
 
 import Ember from 'ember';
 import constants from 'hive/utils/constants';
+import utils from 'hive/utils/functions';
 
 export default Ember.ArrayController.extend({
   needs: [
@@ -34,11 +35,11 @@ export default Ember.ArrayController.extend({
 
   predefinedSettings: constants.hiveParameters,
 
-  selectedSettings: function() {
+  selectedSettings: function () {
     var predefined = this.get('predefinedSettings');
     var current = this.get('currentSettings.settings');
 
-    return predefined.filter(function(setting) {
+    return predefined.filter(function (setting) {
       return current.findBy('key.name', setting.name);
     });
   }.property('currentSettings.settings.@each.key'),
@@ -47,7 +48,7 @@ export default Ember.ArrayController.extend({
     var currentId = this.get('index.model.id');
     var targetSettings = this.findBy('id', currentId);
 
-   if (!targetSettings) {
+   if (!targetSettings && currentId) {
       targetSettings = this.pushObject(Ember.Object.create({
         id: currentId,
         settings: []
@@ -55,64 +56,54 @@ export default Ember.ArrayController.extend({
     }
 
     return targetSettings;
-  }.property('index.model.id'),
+  }.property('openQueries.currentQuery'),
 
   updateSettingsId: function (oldId, newId) {
     this.filterBy('id', oldId).setEach('id', newId);
   },
 
-  getSettingsString: function () {
-    var currentId = this.get('index.model.id');
+  getCurrentValidSettings: function () {
+    var currentSettings = this.get('currentSettings');
+    var validSettings = [];
 
-    var querySettings = this.findBy('id', currentId);
-
-    if (!querySettings) {
-      return "";
+    if (!currentSettings) {
+      return '';
     }
 
-    var settings = querySettings.get('settings').map(function (setting) {
-      return 'set %@ = %@;'.fmt(setting.get('key.name'), setting.get('value'));
+    currentSettings.get('settings').map(function (setting) {
+      if (setting.get('valid')) {
+        validSettings.pushObject('set %@ = %@;'.fmt(setting.get('key.name'), setting.get('value')));
+      }
     });
 
-    return settings.join("\n");
+    return validSettings;
   },
 
   hasSettings: function (id) {
-    id = id ? id : this.get('index.model.id');
-    var settings = this.findBy('id', id);
+    var settings;
+    var settingId = id ? id : this.get('index.model.id');
+
+    settings = this.findBy('id', settingId);
 
     return settings && settings.get('settings.length');
   },
 
   parseQuerySettings: function () {
-    var id = this.get('index.model.id');
     var query = this.get('openQueries.currentQuery');
     var content = query.get('fileContent');
     var self = this;
+    var regex = new RegExp(utils.regexes.setSetting);
+    var settings = content.match(regex) || [];
+    var targetSettings = this.findBy('id', this.get('index.model.id'));
 
-    var regex = new RegExp(/^set\s+[\w-.]+(\s+|\s?)=(\s+|\s?)[\w-.]+(\s+|\s?);/gim);
-    var settings = content.match(regex);
-
-    if (!settings) {
+    if (!query || !targetSettings) {
       return;
     }
 
-    var Setting = Ember.Object.extend({
-      key: Ember.Object.create(),
-      valid: true,
-      selection: Ember.Object.create(),
-      value: Ember.computed.alias('selection.value')
-    });
-
-    query.set('fileContent', content.replace(regex, '').trim());
     settings = settings.map(function (setting) {
-      var KV = setting.split('=');
-      var name = KV[0].replace('set', '').trim();
-      var value = KV[1].replace(';', '').trim();
-
-      var newSetting = Setting.create({});
-      newSetting.set('key.name', name);
-      newSetting.set('selection.value', value);
+      var KeyValue = setting.split('=');
+      var name     = KeyValue[0].replace('set', '').trim();
+      var value    = KeyValue[1].replace(';', '').trim();
 
       if (!self.get('predefinedSettings').findBy('name', name)) {
         self.get('predefinedSettings').pushObject({
@@ -120,37 +111,32 @@ export default Ember.ArrayController.extend({
         });
       }
 
-      return newSetting;
+      var settingObj = Ember.Object.createWithMixins({
+        key: Ember.Object.create({ name: 'nam' }),
+        selection : Ember.Object.create({ value: 'val'}),
+
+        value: Ember.computed.alias('selection.value'),
+        valid: true
+      });
+
+      settingObj.set('key.name', name);
+      settingObj.set('selection.value', value);
+
+      return settingObj;
     });
 
-    this.setSettingForQuery(id, settings);
-  }.observes('openQueries.currentQuery', 'openQueries.tabUpdated'),
+    targetSettings.set('settings', settings);
+  }.observes('openQueries.currentQuery', 'openQueries.currentQuery.fileContent', 'openQueries.tabUpdated'),
 
-  setSettingForQuery: function (id, settings) {
-    var querySettings = this.findBy('id', id);
-
-    if (!querySettings) {
-      this.pushObject(Ember.Object.create({
-        id: id,
-        settings: settings
-      }));
-    } else {
-      querySettings.setProperties({
-        'settings': settings
-      });
-    }
-  },
-
-  validate: function() {
+  validate: function () {
     var settings = this.get('currentSettings.settings') || [];
     var predefinedSettings = this.get('predefinedSettings');
 
-    settings.forEach(function(setting) {
-      var predefined = predefinedSettings.filterProperty('name', setting.get('key.name'));
-      if (!predefined.length) {
+    settings.forEach(function (setting) {
+      var predefined = predefinedSettings.findBy('name', setting.get('key.name'));
+
+      if (!predefined) {
         return;
-      } else {
-        predefined = predefined[0];
       }
 
       if (predefined.values && predefined.values.contains(setting.get('value'))) {
@@ -172,14 +158,14 @@ export default Ember.ArrayController.extend({
     });
   }.observes('currentSettings.[]', 'currentSettings.settings.[]', 'currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
 
-  currentSettingsAreValid: function() {
+  currentSettingsAreValid: function () {
     var currentSettings = this.get('currentSettings.settings');
     var invalid = currentSettings.filterProperty('valid', false);
 
     return invalid.length ? false : true;
   }.property('currentSettings.settings.@each.value', 'currentSettings.settings.@each.key'),
 
-  loadSessionStatus: function() {
+  loadSessionStatus: function () {
     var model         = this.get('index.model');
     var sessionActive = this.get('sessionActive');
     var sessionTag    = this.get('sessionTag');
@@ -188,10 +174,10 @@ export default Ember.ArrayController.extend({
 
     if (sessionTag && sessionActive === undefined) {
       adapter.ajax(url, 'GET')
-        .then(function(response) {
+        .then(function (response) {
           model.set('sessionActive', response.session.actual);
         })
-        .catch(function() {
+        .catch(function () {
           model.set('sessionActive', false);
         });
     }
@@ -199,20 +185,25 @@ export default Ember.ArrayController.extend({
 
   actions: {
     add: function () {
-      var currentId = this.get('index.model.id'),
-          querySettings = this.findBy('id', currentId);
-
-      var Setting = Ember.Object.extend({
+      var setting = Ember.Object.createWithMixins({
         valid: true,
         selection: Ember.Object.create(),
         value: Ember.computed.alias('selection.value')
       });
 
-      querySettings.get('settings').pushObject(Setting.create({}));
+      this.get('currentSettings.settings').pushObject(setting);
     },
 
     remove: function (setting) {
-      this.findBy('id', this.get('index.model.id')).settings.removeObject(setting);
+      var currentQuery = this.get('openQueries.currentQuery');
+      var currentQueryContent = currentQuery.get('fileContent');
+      var keyValue = 'set %@ = %@;\n'.fmt(setting.get('key.name'), setting.get('value'));
+
+      this.get('currentSettings.settings').removeObject(setting);
+
+      if (currentQueryContent.indexOf(keyValue) > -1) {
+        currentQuery.set('fileContent', currentQueryContent.replace(keyValue, ''));
+      }
     },
 
     addKey: function (param) {
@@ -223,14 +214,17 @@ export default Ember.ArrayController.extend({
       this.get('currentSettings.settings').findBy('key', null).set('key', newKey);
     },
 
-    removeAll: function() {
-      var currentId = this.get('index.model.id'),
-          querySettings = this.findBy('id', currentId);
+    removeAll: function () {
+      var currentQuery = this.get('openQueries.currentQuery'),
+          currentQueryContent = currentQuery.get('fileContent'),
+          regex = new RegExp(utils.regexes.setSetting),
+          settings = currentQueryContent.match(regex);
 
-      querySettings.set('settings', []);
+      currentQuery.set('fileContent', currentQueryContent.replace(settings, ''));
+      this.get('currentSettings').set('settings', []);
     },
 
-    invalidateSession: function() {
+    invalidateSession: function () {
       var self       = this;
       var sessionTag = this.get('sessionTag');
       var adapter    = this.container.lookup('adapter:application');
@@ -238,7 +232,7 @@ export default Ember.ArrayController.extend({
       var model = this.get('index.model');
 
       // @TODO: Split this into then/catch once the BE is fixed
-      adapter.ajax(url, 'DELETE').catch(function(response) {
+      adapter.ajax(url, 'DELETE').catch(function (response) {
         if ([200, 404].contains(response.status)) {
           model.set('sessionActive', false);
           self.notify.success('alerts.success.sessions.deleted');

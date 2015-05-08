@@ -28,7 +28,7 @@ test('initEditor sets the editor on didInsertElement', function () {
 
   equal(component.get('editor'), undefined, 'element not rendered. Editor not set.');
 
-  this.append();
+  this.render();
 
   ok(component.get('editor'), 'element rendered. Editor set.');
 });
@@ -40,7 +40,7 @@ test('updateValue sets the query value on the editor.', function () {
 
   var query = 'select something';
 
-  this.append();
+  this.render();
 
   Ember.run(function () {
     component.set(('query'), query);

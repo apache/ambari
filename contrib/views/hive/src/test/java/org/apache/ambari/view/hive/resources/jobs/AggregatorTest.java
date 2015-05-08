@@ -24,6 +24,7 @@ import org.apache.ambari.view.hive.resources.IResourceManager;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.HiveQueryId;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.IATSParser;
 import org.apache.ambari.view.hive.resources.jobs.atsJobs.TezDagId;
+import org.apache.ambari.view.hive.resources.jobs.atsJobs.TezVertexId;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.Job;
 import org.apache.ambari.view.hive.resources.jobs.viewJobs.JobImpl;
 import org.apache.hive.service.cli.thrift.TOperationHandle;
@@ -307,6 +308,16 @@ public class AggregatorTest {
     }
 
     @Override
+    public List<Job> getHandleRelatedJobs(StoredOperationHandle operationHandle) {
+      return new LinkedList<Job>();
+    }
+
+    @Override
+    public Job getJobByHandle(StoredOperationHandle handle) throws ItemNotFound {
+      throw new ItemNotFound();
+    }
+
+    @Override
     public void putHandleForJob(TOperationHandle h, Job job) {
 
     }
@@ -317,11 +328,11 @@ public class AggregatorTest {
     }
 
     @Override
-    public TOperationHandle getHandleForJob(Job job) throws ItemNotFound {
+    public StoredOperationHandle getHandleForJob(Job job) throws ItemNotFound {
       List<StoredOperationHandle> handles = readJobRelatedHandles(job);
       if (handles.size() == 0)
         throw new ItemNotFound();
-      return handles.get(0).toTOperationHandle();
+      return handles.get(0);
     }
 
     @Override
@@ -373,6 +384,21 @@ public class AggregatorTest {
     @Override
     public List<HiveQueryId> getHiveQueryIdsList(String username) {
       return hiveQueryIds;
+    }
+
+    @Override
+    public List<TezVertexId> getVerticesForDAGId(String dagId) {
+      List<TezVertexId> vertices = new LinkedList<TezVertexId>();
+      TezVertexId tezVertexId1 = new TezVertexId();
+      tezVertexId1.entity = "vertex_1234567_99_99_01";
+      tezVertexId1.vertexName = "Map 1";
+      vertices.add(tezVertexId1);
+
+      TezVertexId tezVertexId2 = new TezVertexId();
+      tezVertexId2.entity = "vertex_1234567_99_99_00";
+      tezVertexId2.vertexName = "Reduce 1";
+      vertices.add(tezVertexId2);
+      return vertices;
     }
 
     @Override

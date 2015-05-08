@@ -26,6 +26,8 @@ import org.slf4j.LoggerFactory;
 import javax.ws.rs.WebApplicationException;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.security.AccessControlException;
 import java.util.HashMap;
 
@@ -60,15 +62,25 @@ public class ServiceFormattedException extends WebApplicationException {
 
   protected static Response errorEntity(String message, Throwable e, int status, String header) {
     HashMap<String, Object> response = new HashMap<String, Object>();
-    response.put("message", message);
+
     String trace = null;
-    if (e != null)
-      trace = ExceptionUtils.getStackTrace(e);
+
+    response.put("message", message);
+    if (e != null) {
+      trace = e.toString() + "\n\n";
+      StringWriter sw = new StringWriter();
+      e.printStackTrace(new PrintWriter(sw));
+      trace += sw.toString();
+
+      if (message == null) {
+        response.put("message", "E090 " + e.getClass().getSimpleName());
+      }
+    }
     response.put("trace", trace);
     response.put("status", status);
 
     if(message != null) LOG.error(message);
-    if(trace != null) LOG.debug(trace);
+    if(trace != null) LOG.error(trace);
 
     Response.ResponseBuilder responseBuilder = Response.status(status).entity(new JSONObject(response)).type(MediaType.APPLICATION_JSON);
     if (header != null)

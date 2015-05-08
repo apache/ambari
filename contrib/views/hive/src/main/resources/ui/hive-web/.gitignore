@@ -33,3 +33,5 @@ tmp/
 public/
 
 _generators/
+
+coverage.json

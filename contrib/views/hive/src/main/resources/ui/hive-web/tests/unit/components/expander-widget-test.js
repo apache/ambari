@@ -26,7 +26,7 @@ test('should set the heading when provided.', function () {
   expect(2);
 
   var component = this.subject();
-  var $component = this.append();
+  var $component = this.render();
   var heading = 'some header';
 
   equal($component.find('.accordion-toggle').text(), '');
@@ -42,7 +42,7 @@ test('should correctly toggle isExpanded property.', function () {
   expect(2);
 
   var component = this.subject();
-  this.append();
+  this.render();
 
   Ember.run(function(){
     component.send('toggle');

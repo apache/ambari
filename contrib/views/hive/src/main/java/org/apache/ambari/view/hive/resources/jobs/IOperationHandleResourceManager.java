@@ -28,9 +28,13 @@ import java.util.List;
 public interface IOperationHandleResourceManager extends IResourceManager<StoredOperationHandle> {
   List<StoredOperationHandle> readJobRelatedHandles(Job job);
 
+  List<Job> getHandleRelatedJobs(StoredOperationHandle operationHandle);
+
+  Job getJobByHandle(StoredOperationHandle handle) throws ItemNotFound;
+
   void putHandleForJob(TOperationHandle h, Job job);
 
   boolean containsHandleForJob(Job job);
 
-  TOperationHandle getHandleForJob(Job job) throws ItemNotFound;
+  StoredOperationHandle getHandleForJob(Job job) throws ItemNotFound;
 }

@@ -26,7 +26,7 @@ export default Ember.ObjectController.extend({
   files: Ember.computed.alias('controllers.' + constants.namingConventions.loadedFiles),
 
   canStop: function () {
-    return utils.insensitiveCompare(this.get('status'), constants.statuses.running, constants.statuses.initialized, constants.statuses.pending)
+    return utils.insensitiveCompare(this.get('status'), constants.statuses.running, constants.statuses.initialized, constants.statuses.pending);
   }.property('status'),
 
   actions: {

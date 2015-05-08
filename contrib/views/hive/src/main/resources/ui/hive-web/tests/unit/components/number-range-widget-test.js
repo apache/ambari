@@ -27,7 +27,7 @@ moduleForComponent('number-range-widget', 'NumberRangeWidgetComponent', {
 
 
 test('Component is initialized correctly', function() {
-  expect(3);
+  expect(2);
 
   var numberRange = Ember.Object.create({
     max: 1,
@@ -35,9 +35,7 @@ test('Component is initialized correctly', function() {
   });
 
   var component = this.subject({ numberRange: numberRange });
-  var $component = this.append();
-
-  ok(component.get('slider'), 'Slider is set');
+  var $component = this.render();
 
   equal(component.get('numberRange.from'), numberRange.get('min'), 'from is set to min');
   equal(component.get('numberRange.to'), numberRange.get('max'), 'to is set to max');
@@ -64,9 +62,9 @@ test('external change action is called', function() {
     rangeChanged: 'rangeChanged'
   });
 
-  var $component = this.append();
+  var $component = this.render();
 
   Ember.run(function() {
-    component.get('slider').slider('value', 1);
+    $component.find('.slider').slider('value', 1);
   });
 });

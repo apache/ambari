@@ -17,7 +17,7 @@
 <view>
     <name>HIVE</name>
     <label>Hive</label>
-    <version>0.2.0</version>
+    <version>0.3.0</version>
 
     <min-ambari-version>1.7.*</min-ambari-version>
 
@@ -51,9 +51,9 @@
     <!-- General Configs -->
 
     <parameter>
-        <name>dataworker.username</name>
-        <description>The dataworker username. By default, users the currently logged-in Ambari user.</description>
-        <label>Dataworker Username</label>
+        <name>views.tez.instance</name>
+        <description>Instance name of Tez view.</description>
+        <label>Instance name of Tez view</label>
         <required>false</required>
     </parameter>
 
@@ -104,7 +104,16 @@
     <parameter>
         <name>yarn.ats.url</name>
         <description>The URL to the YARN Application Timeline Server, used to provide Jobs information, typically, this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration.</description>
+        <label>YARN Application Timeline Server URL</label>
         <placeholder>http://yarn.ats.address:8188</placeholder>
+        <required>true</required>
+    </parameter>
+
+    <parameter>
+        <name>yarn.resourcemanager.url</name>
+        <description>The URL to the YARN ResourceManager, used to provide YARN Application data.</description>
+        <label>YARN ResourceManager URL</label>
+        <placeholder>http://yarn.resourcemanager.address:8088</placeholder>
         <required>true</required>
     </parameter>
 

@@ -55,6 +55,38 @@ public class OperationHandleResourceManager extends SharedCRUDResourceManager<St
   }
 
   @Override
+  public StoredOperationHandle getHandleForJob(Job job) throws ItemNotFound {
+    List<StoredOperationHandle> jobRelatedHandles = readJobRelatedHandles(job);
+    if (jobRelatedHandles.size() == 0)
+      throw new ItemNotFound();
+    return jobRelatedHandles.get(0);
+  }
+
+  @Override
+  public List<Job> getHandleRelatedJobs(final StoredOperationHandle operationHandle) {
+    return storageFactory.getStorage().loadAll(Job.class, new FilteringStrategy() {
+      @Override
+      public boolean isConform(Indexed item) {
+        Job job = (Job) item;
+        return (job.getId() != null && job.getId().equals(operationHandle.getJobId()));
+      }
+
+      @Override
+      public String whereStatement() {
+        return "id = '" + operationHandle.getJobId() + "'";
+      }
+    });
+  }
+
+  @Override
+  public Job getJobByHandle(StoredOperationHandle handle) throws ItemNotFound {
+    List<Job> handleRelatedJobs = getHandleRelatedJobs(handle);
+    if (handleRelatedJobs.size() == 0)
+      throw new ItemNotFound();
+    return handleRelatedJobs.get(0);
+  }
+
+  @Override
   public void putHandleForJob(TOperationHandle h, Job job) {
     StoredOperationHandle handle = StoredOperationHandle.buildFromTOperationHandle(h);
     handle.setJobId(job.getId());
@@ -76,13 +108,5 @@ public class OperationHandleResourceManager extends SharedCRUDResourceManager<St
   public boolean containsHandleForJob(Job job) {
     List<StoredOperationHandle> jobRelatedHandles = readJobRelatedHandles(job);
     return jobRelatedHandles.size() > 0;
-  }
-
-  @Override
-  public TOperationHandle getHandleForJob(Job job) throws ItemNotFound {
-    List<StoredOperationHandle> jobRelatedHandles = readJobRelatedHandles(job);
-    if (jobRelatedHandles.size() == 0)
-      throw new ItemNotFound();
-    return jobRelatedHandles.get(0).toTOperationHandle();
   }
 }

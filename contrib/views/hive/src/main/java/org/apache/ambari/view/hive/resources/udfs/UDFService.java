@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.hive.resources.udfs;
 
-import com.google.inject.Inject;
 import org.apache.ambari.view.ViewResourceHandler;
 import org.apache.ambari.view.hive.BaseService;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
@@ -30,6 +29,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;

@@ -17,7 +17,7 @@
 */
 export default {
   name: 'notify',
-  initialize: function(container, app) {
+  initialize: function (container, app) {
     app.inject('route', 'notify', 'service:notify');
     app.inject('controller', 'notify', 'service:notify');
     app.inject('component', 'notify', 'service:notify');

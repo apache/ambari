@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.hive.resources.jobs;
 
-import com.google.inject.Inject;
 import org.apache.ambari.view.*;
 import org.apache.ambari.view.hive.persistence.utils.ItemNotFound;
 import org.apache.ambari.view.hive.persistence.utils.OnlyOwnersFilteringStrategy;
@@ -27,6 +26,7 @@ import org.apache.ambari.view.hive.utils.SharedObjectsFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashSet;
 import java.util.Map;
@@ -61,6 +61,8 @@ public class JobResourceProvider implements ResourceProvider<Job> {
 
   @Override
   public Set<Job> getResources(ReadRequest readRequest) throws SystemException, NoSuchResourceException, UnsupportedPropertyException {
+    if (context == null)
+      return new HashSet();
     return new HashSet<Job>(getResourceManager().readAll(
         new OnlyOwnersFilteringStrategy(this.context.getUsername())));
   }

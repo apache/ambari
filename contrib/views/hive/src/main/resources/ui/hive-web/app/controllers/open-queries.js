@@ -200,7 +200,7 @@ export default Ember.ArrayController.extend({
 
       tab.set('isDirty', false);
 
-      var content = self.get('index').prependQuerySettings(query.get('fileContent'));
+      var content = query.get('fileContent');
       //update query tab path with saved model id if its a new record
       if (wasNew) {
         self.get('settings').updateSettingsId(originalId, updatedModel.get('id'));
@@ -274,7 +274,7 @@ export default Ember.ArrayController.extend({
          hasSettings;
   },
 
-  isDirty: function(model) {
+  isDirty: function (model) {
     var query = this.getQueryForModel(model);
 
     if (model.get('isNew') && !query.get('fileContent')) {
@@ -286,8 +286,6 @@ export default Ember.ArrayController.extend({
     }
 
     return !!(!model.get('queryId') && model.get('isDirty'));
-
-
   },
 
   updatedDeletedQueryTab: function (model) {

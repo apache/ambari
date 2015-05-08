@@ -80,7 +80,6 @@ export default Ember.ObjectController.extend({
         currentNode,
         currentNodeWhitespace,
         previousNode,
-        formattedExplain = [],
         getLeadingWhitespacesCount = function (str) {
           return str.replace(utils.regexes.whitespaces, '$1').length;
         };
@@ -96,7 +95,7 @@ export default Ember.ObjectController.extend({
                       text: str,
                       parentNode: null,
                       contents: []
-                    }
+                    };
                   });
 
     for (var i = 0; i < explainSet.length; i++) {

@@ -21,8 +21,10 @@ import constants from 'hive/utils/constants';
 import utils from 'hive/utils/functions';
 
 export default Ember.ObjectController.extend({
-  needs: [ constants.namingConventions.loadedFiles ],
+  needs: [ constants.namingConventions.queryTabs,
+           constants.namingConventions.loadedFiles ],
 
+  queryTabs: Ember.computed.alias('controllers.' + constants.namingConventions.queryTabs),
   files: Ember.computed.alias('controllers.' + constants.namingConventions.loadedFiles),
 
   reloadJobLogs: function (job) {
@@ -68,19 +70,22 @@ export default Ember.ObjectController.extend({
 
       this.reloadJobLogs(job).then(function () {
         var stillRunning = self.isJobRunning(job);
+        var currentContentId = self.get('content.id');
+        var currentActiveTab = self.get('queryTabs.activeTab.name');
 
         //if the current model is the same with the one displayed, continue reloading job
-        if (stillRunning && job.get('id') === self.get('content.id')) {
+        if (stillRunning && job.get('id') === currentContentId) {
           self.listenForUpdates(job);
         } else if (!stillRunning) {
           job.set('isRunning', undefined);
 
-          if (job.get('id') === self.get('content.id')) {
+          if (job.get('id') === currentContentId &&
+              currentActiveTab === constants.namingConventions.index) {
             self.transitionToRoute(constants.namingConventions.subroutes.jobResults);
           }
         }
       });
-    }, 2000);
+    }, 10000);
   },
 
   isJobRunning: function (job) {

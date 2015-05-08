@@ -18,7 +18,6 @@
 
 package org.apache.ambari.view.hive.resources.files;
 
-import com.google.inject.Inject;
 import com.jayway.jsonpath.JsonPath;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.ViewResourceHandler;
@@ -32,6 +31,7 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.inject.Inject;
 import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
