@@ -283,24 +283,24 @@ App.ClusterController = Em.Controller.extend({
         });
 
         updater.updateServiceMetric(function () {
-          App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName'));
+          App.config.loadConfigsFromStack(App.Service.find().mapProperty('serviceName')).complete(function() {
+            updater.updateComponentConfig(function () {
+              self.updateLoadStatus('componentConfigs');
+            });
 
-          updater.updateComponentConfig(function () {
-            self.updateLoadStatus('componentConfigs');
-          });
+            updater.updateComponentsState(function () {
+              self.updateLoadStatus('componentsState');
+            });
+            self.updateLoadStatus('serviceMetrics');
 
-          updater.updateComponentsState(function () {
-            self.updateLoadStatus('componentsState');
-          });
-          self.updateLoadStatus('serviceMetrics');
-
-          updater.updateAlertGroups(function () {
-            updater.updateAlertDefinitions(function() {
-              updater.updateAlertDefinitionSummary(function () {
-                updater.updateUnhealthyAlertInstances(function () {
-                  self.updateLoadStatus('alertGroups');
-                  self.updateLoadStatus('alertDefinitions');
-                  self.updateLoadStatus('alertInstancesUnhealthy');
+            updater.updateAlertGroups(function () {
+              updater.updateAlertDefinitions(function() {
+                updater.updateAlertDefinitionSummary(function () {
+                  updater.updateUnhealthyAlertInstances(function () {
+                    self.updateLoadStatus('alertGroups');
+                    self.updateLoadStatus('alertDefinitions');
+                    self.updateLoadStatus('alertInstancesUnhealthy');
+                  });
                 });
               });
             });
