@@ -25,6 +25,7 @@ import re
 
 from ambari_commons.os_check import OSCheck
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -66,7 +67,7 @@ hadoop_bin = "/usr/lib/hadoop/sbin"
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = "/usr/lib/hadoop"
 hadoop_secure_dn_user = hdfs_user
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
@@ -75,10 +76,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = "/usr/hdp/current/hadoop-client"
-
-  # the configuration direction for HDFS/YARN/MapR is the hadoop config
-  # directory, which is symlinked by hadoop-client only
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
   if not security_enabled:
     hadoop_secure_dn_user = '""'

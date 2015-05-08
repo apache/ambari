@@ -18,6 +18,7 @@ limitations under the License.
 Ambari Agent
 
 """
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -49,7 +50,7 @@ hadoop_home = '/usr/hdp/current/hadoop-client'
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config
 # directory, which is symlinked by hadoop-client only
-hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

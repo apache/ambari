@@ -19,6 +19,7 @@ Ambari Agent
 
 """
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -38,8 +39,8 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 version = default("/commandParams/version", None)
 
 # hadoop default parameters
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 pig_conf_dir = "/etc/pig/conf"
-hadoop_conf_dir = "/etc/hadoop/conf"
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
 pig_bin_dir = ""
@@ -47,7 +48,6 @@ pig_bin_dir = ""
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   pig_conf_dir = "/usr/hdp/current/pig-client/conf"
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   pig_bin_dir = '/usr/hdp/current/pig-client/bin'

@@ -20,6 +20,7 @@ limitations under the License.
 
 from ambari_commons import OSCheck
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -69,7 +70,7 @@ else:
   webhcat_user = config['configurations']['hive-env']['webhcat_user']
 
   # default configuration directories
-  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
   webhcat_conf_dir = '/etc/hive-webhcat/conf'
   hive_etc_dir_prefix = "/etc/hive"
   hive_conf_dir = "/etc/hive/conf"
@@ -78,7 +79,6 @@ else:
 
   # HDP 2.2+
   if Script.is_hdp_stack_greater_or_equal("2.2"):
-    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
     webhcat_conf_dir = '/usr/hdp/current/hive-webhcat/conf'
     hive_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
     hive_client_conf_dir = format("/usr/hdp/current/{component_directory}/conf")

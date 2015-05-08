@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from ambari_commons import OSCheck
 
 config = Script.get_config()
@@ -50,13 +51,7 @@ else:
   yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
   mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
 
-  # Security related/required params
-  hadoop_conf_dir = "/etc/hadoop/conf"
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
-    # the configuration direction for HDFS/YARN/MapR is the hadoop config
-    # directory, which is symlinked by hadoop-client only
-    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
-
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
   hostname = config['hostname']
   kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))

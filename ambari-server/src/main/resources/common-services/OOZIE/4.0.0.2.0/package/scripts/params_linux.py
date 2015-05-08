@@ -19,6 +19,7 @@ limitations under the License.
 """
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -45,6 +46,8 @@ upgrade_direction = default("/commandParams/upgrade_direction", None)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+
 #hadoop params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   # start out assuming client libraries
@@ -70,9 +73,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   conf_dir = format("/usr/hdp/current/{oozie_root}/conf")
   hive_conf_dir = format("{conf_dir}/action-conf/hive")
 
-  # the configuration direction for HDFS/YARN/MapR is the hadoop config
-  # directory, which is symlinked by hadoop-client only
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 else:
   hadoop_bin_dir = "/usr/bin"
   hadoop_lib_home = "/usr/lib/hadoop/lib"
@@ -86,7 +86,6 @@ else:
   oozie_home = "/usr/lib/oozie"
   oozie_bin_dir = "/usr/bin"
   falcon_home = '/usr/lib/falcon'
-  hadoop_conf_dir = "/etc/hadoop/conf"
   conf_dir = "/etc/oozie/conf"
   hive_conf_dir = "/etc/oozie/conf/action-conf/hive"
 

@@ -19,6 +19,7 @@ limitations under the License.
 """
 import os
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
@@ -42,7 +43,7 @@ version = default("/commandParams/version", None)
 # default hadoop parameters
 hadoop_home = '/usr'
 hadoop_bin_dir = "/usr/bin"
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 tez_etc_dir = "/etc/tez"
 config_dir = "/etc/tez/conf"
 path_to_tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
@@ -50,7 +51,6 @@ path_to_tez_examples_jar = "/usr/lib/tez/tez-mapreduce-examples*.jar"
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
   path_to_tez_examples_jar = "/usr/hdp/{hdp_version}/tez/tez-examples*.jar"
 
 # tez only started linking /usr/hdp/x.x.x.x/tez-client/conf in HDP 2.3+

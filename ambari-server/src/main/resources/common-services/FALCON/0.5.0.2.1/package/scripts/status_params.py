@@ -18,6 +18,7 @@ limitations under the License.
 """
 from ambari_commons import OSCheck
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -42,10 +43,10 @@ else:
   falcon_pid_dir = config['configurations']['falcon-env']['falcon_pid_dir']
   server_pid_file = format('{falcon_pid_dir}/falcon.pid')
 
-  hadoop_conf_dir = "/etc/hadoop/conf"
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+
   falcon_conf_dir = "/etc/falcon/conf"
   if Script.is_hdp_stack_greater_or_equal("2.2"):
-    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
     falcon_conf_dir = format("/usr/hdp/current/{component_directory}/conf")
 
   # Security related/required params

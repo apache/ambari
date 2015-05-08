@@ -19,6 +19,7 @@ limitations under the License.
 
 from ambari_commons import OSCheck
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -49,12 +50,7 @@ else:
   hdfs_user_principal = config['configurations']['hadoop-env']['hdfs_principal_name']
   hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 
-  hadoop_conf_dir = "/etc/hadoop/conf"
-  if Script.is_hdp_stack_greater_or_equal("2.2"):
-    # the configuration direction for HDFS/YARN/MapR is the hadoop config
-    # directory, which is symlinked by hadoop-client only
-    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
-
+  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
   kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
   tmp_dir = Script.get_tmp_dir()

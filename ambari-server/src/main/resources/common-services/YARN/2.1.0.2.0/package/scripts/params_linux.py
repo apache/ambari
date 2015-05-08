@@ -20,6 +20,7 @@ Ambari Agent
 """
 import os
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.version import format_hdp_stack_version
@@ -62,7 +63,7 @@ hostname = config['hostname']
 hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 hadoop_bin = "/usr/lib/hadoop/sbin"
 hadoop_bin_dir = "/usr/bin"
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
 mapred_bin = "/usr/lib/hadoop-mapreduce/sbin"
@@ -93,10 +94,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_yarn_home = format("/usr/hdp/current/{yarn_role_root}")
   yarn_bin = format("/usr/hdp/current/{yarn_role_root}/sbin")
   yarn_container_bin = format("/usr/hdp/current/{yarn_role_root}/bin")
-
-  # the configuration direction for HDFS/YARN/MapR is the hadoop config
-  # directory, which is symlinked by hadoop-client only
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
 
 limits_conf_dir = "/etc/security/limits.d"

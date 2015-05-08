@@ -17,6 +17,7 @@ limitations under the License.
 
 """
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
 from resource_management import *
@@ -35,7 +36,7 @@ hadoop_lib_home = "/usr/lib/hadoop/lib"
 hadoop_bin = "/usr/lib/hadoop/sbin"
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 
 # HDP 2.2+ params
@@ -46,9 +47,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   create_lib_snappy_symlinks = False
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
-  default_topology_script_file_path = "/usr/hdp/current/hadoop-client/conf/topology_script.py"
-
+  
 current_service = config['serviceName']
 
 #security params

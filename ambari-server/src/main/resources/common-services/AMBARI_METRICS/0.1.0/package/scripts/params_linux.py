@@ -19,6 +19,7 @@ limitations under the License.
 """
 
 from resource_management import *
+from resource_management.libraries.functions import conf_select
 from ambari_commons import OSCheck
 
 config = Script.get_config()
@@ -41,5 +42,5 @@ region_mover = "/usr/lib/ams-hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/ams-hbase/bin/draining_servers.rb"
 hbase_cmd = "/usr/lib/ams-hbase/bin/hbase"
 
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hbase_conf_dir = "/etc/ams-hbase/conf"

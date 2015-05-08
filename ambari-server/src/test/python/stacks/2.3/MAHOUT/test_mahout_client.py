@@ -71,6 +71,10 @@ class TestMahoutClient(RMFTestCase):
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
+    # test to make sure conf_select is working correctly
+    json_content['commandParams']['upgrade_direction'] = 'upgrade'
+    json_content['hostLevelParams']['stack_name'] = 'HDP'
+    json_content['hostLevelParams']['stack_version'] = '2.3'
 
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mahout_client.py",
@@ -79,17 +83,26 @@ class TestMahoutClient(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None)],
+                       call_mocks = [(0, None), (0, None), (0, None), (0, None)],
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
                               ('hdp-select', 'set', 'mahout-client', version), sudo = True)
     self.assertNoMoreResources()
 
-    self.assertEquals(2, mocks_dict['call'].call_count)
+    import sys
+    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf", sys.modules["params"].hadoop_conf_dir)
+
+    self.assertEquals(4, mocks_dict['call'].call_count)
     self.assertEquals(
-      "conf-select create-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
+      "conf-select create-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
        mocks_dict['call'].call_args_list[0][0][0])
     self.assertEquals(
-      "conf-select set-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
+      "conf-select set-conf-dir --package hadoop --stack-version 2.3.0.0-1234 --conf-version 0",
        mocks_dict['call'].call_args_list[1][0][0])
+    self.assertEquals(
+      "conf-select create-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[2][0][0])
+    self.assertEquals(
+      "conf-select set-conf-dir --package mahout --stack-version 2.3.0.0-1234 --conf-version 0",
+       mocks_dict['call'].call_args_list[3][0][0])

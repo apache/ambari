@@ -24,6 +24,7 @@ import status_params
 from setup_spark import *
 
 import resource_management.libraries.functions
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -59,11 +60,10 @@ version = default("/commandParams/version", None)
 #stack_is_hdp22_or_further = hdp_stack_version != "" and compare_versions(hdp_stack_version, '2.2.1.0') >= 0
 
 spark_conf = '/etc/spark/conf'
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_home = "/usr/hdp/current/hadoop-client"
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
   hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   spark_conf = format("/usr/hdp/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']

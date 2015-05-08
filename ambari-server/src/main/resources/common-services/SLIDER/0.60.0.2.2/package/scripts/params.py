@@ -19,6 +19,7 @@ limitations under the License.
 """
 from ambari_commons.os_check import OSCheck
 from resource_management.libraries.functions import format
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
@@ -47,7 +48,7 @@ slider_bin_dir = "/usr/lib/slider/bin"
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   slider_bin_dir = '/usr/hdp/current/slider-client/bin'
 
-hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 slider_conf_dir = "/usr/hdp/current/slider-client/conf"
 
 smokeuser = config['configurations']['cluster-env']['smokeuser']

@@ -22,6 +22,7 @@ __all__ = ["select", "create"]
 
 import version
 from resource_management.core import shell
+from resource_management.libraries.script.script import Script
 
 TEMPLATE = "conf-select {0} --package {1} --stack-version {2} --conf-version 0"
 
@@ -45,8 +46,7 @@ def create(stack_name, package, version):
   if not _valid(stack_name, package, version):
     return
 
-  shell.call(TEMPLATE.format("create-conf-dir", package, version))
-
+  shell.call(TEMPLATE.format("create-conf-dir", package, version), logoutput=False, quiet=True)
 
 def select(stack_name, package, version, try_create=True):
   """
@@ -64,5 +64,34 @@ def select(stack_name, package, version, try_create=True):
   if try_create:
     create(stack_name, package, version)
 
-  shell.call(TEMPLATE.format("set-conf-dir", package, version), logoutput=True)
+  shell.call(TEMPLATE.format("set-conf-dir", package, version), logoutput=False, quiet=False)
 
+def get_hadoop_conf_dir():
+  """
+  Gets the shared hadoop conf directory using:
+  1.  Start with /etc/hadoop/conf
+  2.  When the stack is greater than HDP-2.2, use /usr/hdp/current/hadoop-client/conf
+  3.  Only when doing a RU and HDP-2.3 or higher, use the value as computed
+      by conf-select.  This is in the form /usr/hdp/VERSION/hadoop/conf to make sure
+      the configs are written in the correct place
+  """
+
+  config = Script.get_config()
+  hadoop_conf_dir = "/etc/hadoop/conf"
+
+  if Script.is_hdp_stack_greater_or_equal("2.2"):
+    from resource_management.libraries.functions.default import default
+
+    hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+
+    direction = default("/commandParams/upgrade_direction", None)
+    ver = default("/commandParams/version", None)
+    stack_name = default("/hostLevelParams/stack_name", None)
+
+    if direction and ver and stack_name and Script.is_hdp_stack_greater_or_equal("2.3"):
+      select(stack_name, "hadoop", ver)
+      hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(ver)
+
+  return hadoop_conf_dir
+
+    

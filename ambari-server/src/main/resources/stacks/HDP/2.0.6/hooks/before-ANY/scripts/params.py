@@ -17,11 +17,12 @@ limitations under the License.
 
 """
 
+import collections
+import json
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
 from resource_management import *
-import collections
-import json
 
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
@@ -76,7 +77,7 @@ hadoop_home = "/usr/lib/hadoop"
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params
@@ -84,7 +85,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
   hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_home = "/usr/hdp/current/hadoop-client"
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
   # not supported in HDP 2.2+
   hadoop_conf_empty_dir = None

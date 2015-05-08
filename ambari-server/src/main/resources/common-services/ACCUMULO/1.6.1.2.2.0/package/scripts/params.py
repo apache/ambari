@@ -17,6 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -51,7 +52,7 @@ zookeeper_home = "/usr/hdp/current/zookeeper-client"
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config
 # directory, which is symlinked by hadoop-client only
-hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 
 # accumulo local directory structure
 log_dir = config['configurations']['accumulo-env']['accumulo_log_dir']

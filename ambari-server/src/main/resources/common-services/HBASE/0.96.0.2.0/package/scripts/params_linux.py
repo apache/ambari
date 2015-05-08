@@ -24,6 +24,7 @@ from functions import calc_xmn_from_xms
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -48,7 +49,7 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
 hadoop_bin_dir = "/usr/bin"
-hadoop_conf_dir = "/etc/hadoop/conf"
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
 region_drainer = "/usr/lib/hbase/bin/draining_servers.rb"
@@ -56,7 +57,6 @@ hbase_cmd = "/usr/lib/hbase/bin/hbase"
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
-  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
   hadoop_bin_dir = format("/usr/hdp/current/hadoop-client/bin")
   daemon_script = format('/usr/hdp/current/hbase-client/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase-client/bin/region_mover.rb')

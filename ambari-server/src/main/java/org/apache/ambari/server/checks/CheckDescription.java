@@ -104,6 +104,12 @@ public enum CheckDescription {
           "NameNode High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
       }}),
 
+  SERVICES_NAMENODE_TRUNCATE(PrereqCheckType.SERVICE,
+      "NameNode Truncate must not be allowed",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+          "NameNode Truncate is allowed. Verify that dfs.allow.truncate is set to 'false' in hdfs-site.xml.");
+      }}),
 
   SERVICES_TEZ_DISTRIBUTED_CACHE(PrereqCheckType.SERVICE,
       "Tez should reference Hadoop libraries from the distributed cache in HDFS",
@@ -165,6 +171,7 @@ public enum CheckDescription {
         put(AbstractCheckDescriptor.DEFAULT,
           "The following config types will have values overwritten: %s");
       }});
+
 
   private PrereqCheckType m_type;
   private String m_description;
