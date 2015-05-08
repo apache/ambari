@@ -249,12 +249,6 @@ describe('App.ManageAlertNotificationsController', function () {
         OIDs: {
           value: ''
         },
-        OIDSubject: {
-          value: ''
-        },
-        OIDBody: {
-          value: ''
-        },
         community: {
           value: ''
         },
@@ -324,8 +318,6 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         version: {},
         OIDs: {},
-        OIDSubject: {},
-        OIDBody: {},
         community: {},
         host: {
           value: 'test1@test.test, test2@test.test'
@@ -355,8 +347,6 @@ describe('App.ManageAlertNotificationsController', function () {
           'customName': 'customValue',
           'ambari.dispatch.snmp.version': 'SNMPv1',
           'ambari.dispatch.snmp.oids.trap': '1',
-          'ambari.dispatch.snmp.oids.subject': 'OID Subject',
-          'ambari.dispatch.snmp.oids.body': 'OID Body',
           'ambari.dispatch.snmp.community': 'snmp',
           'ambari.dispatch.snmp.port': 161
 
@@ -416,12 +406,6 @@ describe('App.ManageAlertNotificationsController', function () {
           value: ''
         },
         OIDs: {
-          value: ''
-        },
-        OIDSubject: {
-          value: ''
-        },
-        OIDBody: {
           value: ''
         },
         community: {
@@ -484,12 +468,6 @@ describe('App.ManageAlertNotificationsController', function () {
         },
         OIDs: {
           value: '1'
-        },
-        OIDSubject: {
-          value: 'OID Subject'
-        },
-        OIDBody: {
-          value:'OID Body'
         },
         community: {
           value: 'snmp'
