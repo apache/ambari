@@ -267,9 +267,14 @@ public class ConfigureAction extends AbstractServerAction {
               "");
         }
       }
-    }
 
-    newValues.put(key, value);
+      // !!! only put a key/value into this map of new configurations if there
+      // was a key, otherwise this will put something like null=null into the
+      // configs which will cause NPEs after upgrade - this is a byproduct of
+      // the configure being able to take a list of transfers without a
+      // key/value to set
+      newValues.put(key, value);
+    }
 
     // !!! check to see if we're going to a new stack and double check the
     // configs are for the target.  Then simply update the new properties instead
