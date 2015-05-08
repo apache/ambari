@@ -98,6 +98,11 @@ def hdfs(name=None):
        owner=tc_owner,
        content=Template("slaves.j2")
   )
+
+  # for source-code of jar goto contrib/fast-hdfs-resource
+  File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
+       content=StaticFile("fast-hdfs-resource.jar")
+  )
   
   if params.lzo_enabled and len(params.lzo_packages) > 0:
       Package(params.lzo_packages)

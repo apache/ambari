@@ -168,18 +168,21 @@ def create_name_dirs(directories):
 def create_hdfs_directories(check):
   import params
 
-  params.HdfsDirectory("/tmp",
-                       action="create_delayed",
+  params.HdfsResource("/tmp",
+                       type="directory",
+                       action="create_on_execute",
                        owner=params.hdfs_user,
                        mode=0777
   )
-  params.HdfsDirectory(params.smoke_hdfs_user_dir,
-                       action="create_delayed",
+  params.HdfsResource(params.smoke_hdfs_user_dir,
+                       type="directory",
+                       action="create_on_execute",
                        owner=params.smoke_user,
                        mode=params.smoke_hdfs_user_mode
   )
-  params.HdfsDirectory(None, action="create",
-                       only_if=check #skip creation when HA not active
+  params.HdfsResource(None, 
+                      action="execute",
+                      only_if=check #skip creation when HA not active
   )
 
 def format_namenode(force=None):

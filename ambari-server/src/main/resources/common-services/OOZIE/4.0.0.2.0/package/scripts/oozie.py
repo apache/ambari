@@ -85,11 +85,13 @@ def oozie(is_server=False):
   import params
 
   if is_server:
-    params.HdfsDirectory(params.oozie_hdfs_user_dir,
-                         action="create",
+    params.HdfsResource(params.oozie_hdfs_user_dir,
+                         type="directory",
+                         action="create_on_execute",
                          owner=params.oozie_user,
                          mode=params.oozie_hdfs_user_mode
     )
+    params.HdfsResource(None, action="execute")
   Directory(params.conf_dir,
              recursive = True,
              owner = params.oozie_user,

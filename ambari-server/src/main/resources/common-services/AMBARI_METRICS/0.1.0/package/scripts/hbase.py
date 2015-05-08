@@ -167,23 +167,25 @@ def hbase(name=None # 'master' or 'regionserver' or 'client'
     hbase_TemplateConfig( format("hbase_client_jaas.conf"), user=params.hbase_user)
     hbase_TemplateConfig( format("ams_zookeeper_jaas.conf"), user=params.hbase_user)
 
-  if name in ["master","regionserver"]:
+  if name == "master":
 
     if params.is_hbase_distributed:
 
-      params.HdfsDirectory(params.hbase_root_dir,
-                           action="create_delayed",
+      params.HdfsResource(params.hbase_root_dir,
+                           type="directory",
+                           action="create_on_execute",
                            owner=params.hbase_user,
                            mode=0775
       )
 
-      params.HdfsDirectory(params.hbase_staging_dir,
-                           action="create_delayed",
+      params.HdfsResource(params.hbase_staging_dir,
+                           type="directory",
+                           action="create_on_execute",
                            owner=params.hbase_user,
                            mode=0711
       )
 
-      params.HdfsDirectory(None, action="create")
+      params.HdfsResource(None, action="execute")
 
     else:
 

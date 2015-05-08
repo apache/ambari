@@ -122,30 +122,31 @@ class TestFalconServer(RMFTestCase):
                               owner = 'falcon',
                               recursive = True
                               )
-    self.assertResourceCalled('HdfsDirectory', '/apps/falcon',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
-                              owner = 'falcon',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed']
-                              )
+    self.assertResourceCalled('HdfsResource', '/apps/falcon',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        owner = 'falcon',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        action = ['create_on_execute'],
+        mode = 0777,
+    )
     self.assertResourceCalled('Directory', '/hadoop/falcon/store',
-                              owner = 'falcon',
-                              recursive = True
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              bin_dir = '/usr/bin',
-                              action = ['create'],
-                              )
+        owner = 'falcon',
+        recursive = True,
+    )
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+    )
     self.assertResourceCalled('Directory', '/hadoop/falcon',
                               owner = 'falcon',
                               recursive = True,

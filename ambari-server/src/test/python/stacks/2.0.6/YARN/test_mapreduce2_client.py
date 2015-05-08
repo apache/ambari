@@ -19,6 +19,7 @@ limitations under the License.
 '''
 import json
 from mock.mock import MagicMock, call, patch
+from resource_management.libraries.functions import version
 from stacks.utils.RMFTestCase import *
 import os
 
@@ -27,6 +28,7 @@ origin_exists = os.path.exists
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
+@patch.object(version, "get_hdp_build_version", new = MagicMock(return_value="2.2.0.0-1234"))
 class TestMapReduce2Client(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -354,6 +356,7 @@ class TestMapReduce2Client(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch.object(version, "get_hdp_build_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/mapreduce2_client.py",
                    classname = "MapReduce2Client",

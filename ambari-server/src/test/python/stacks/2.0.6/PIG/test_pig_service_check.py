@@ -4,7 +4,7 @@
 Licensed to the Apache Software Foundation (ASF) under one
 or more contributor license agreements.  See the NOTICE file
 distributed with this work for additional information
-regarding copyright ownership.  The ASF licenses this file
+regarding copyright ownership.  The ASF licenses this file`
 to you under the Apache License, Version 2.0 (the
 "License"); you may not use this file except in compliance
 with the License.  You may obtain a copy of the License at
@@ -32,16 +32,35 @@ class TestPigServiceCheck(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr pigsmoke.out passwd; hadoop --config /etc/hadoop/conf dfs -put /etc/passwd passwd ',
-      try_sleep = 5,
-      tries = 3,
-      user = 'ambari-qa',
-      conf_dir = '/etc/hadoop/conf',
-      security_enabled = False,
-      principal = UnknownConfigurationMock(),
-      keytab = UnknownConfigurationMock(),
-      bin_dir = '/usr/bin',
-      kinit_path_local = '/usr/bin/kinit'
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/pigsmoke.out',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'ambari-qa',
+        action = ['delete_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        source = '/etc/passwd',
+        user = 'ambari-qa',
+        action = ['create_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'file',
+    )
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
     )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
@@ -56,7 +75,7 @@ class TestPigServiceCheck(RMFTestCase):
       try_sleep = 5,
     )
        
-    self.assertResourceCalled('ExecuteHadoop', 'fs -test -e pigsmoke.out',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/pigsmoke.out',
       user = 'ambari-qa',
       bin_dir = '/usr/bin',
       conf_dir = '/etc/hadoop/conf',
@@ -72,16 +91,35 @@ class TestPigServiceCheck(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     
-    self.assertResourceCalled('ExecuteHadoop', 'dfs -rmr pigsmoke.out passwd; hadoop --config /etc/hadoop/conf dfs -put /etc/passwd passwd ',
-      try_sleep = 5,
-      tries = 3,
-      user = 'ambari-qa',
-      principal = 'ambari-qa@EXAMPLE.COM',
-      conf_dir = '/etc/hadoop/conf',
-      security_enabled = True, 
-      keytab = '/etc/security/keytabs/smokeuser.headless.keytab',
-      bin_dir = '/usr/bin',
-      kinit_path_local = '/usr/bin/kinit'
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/pigsmoke.out',
+        security_enabled = True,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'ambari-qa',
+        action = ['delete_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/passwd',
+        security_enabled = True,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        kinit_path_local = '/usr/bin/kinit',
+        source = '/etc/passwd',
+        user = 'ambari-qa',
+        action = ['create_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'file',
+    )
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = True,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
     )
        
     self.assertResourceCalled('File', '/tmp/pigSmoke.sh',
@@ -96,7 +134,7 @@ class TestPigServiceCheck(RMFTestCase):
       try_sleep = 5,
     )
        
-    self.assertResourceCalled('ExecuteHadoop', 'fs -test -e pigsmoke.out',
+    self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/pigsmoke.out',
       user = 'ambari-qa',
       bin_dir = '/usr/bin',
       conf_dir = '/etc/hadoop/conf',

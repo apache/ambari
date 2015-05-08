@@ -19,7 +19,6 @@ limitations under the License.
 
 from resource_management import *
 from utils import service
-from utils import hdfs_directory
 from ambari_commons.os_family_impl import OsFamilyImpl, OsFamilyFuncImpl
 from ambari_commons import OSConst
 

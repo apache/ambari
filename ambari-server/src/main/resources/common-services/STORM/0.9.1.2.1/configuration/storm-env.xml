@@ -62,12 +62,10 @@ export STORM_LOG_DIR={{log_dir}}
     </value>
   </property>
 
-  <configuration>
-    <property>
-      <name>nimbus_seeds_supported</name>
-      <value>false</value>
-      <description></description>
-    </property>
-  </configuration>
+   <property>
+     <name>nimbus_seeds_supported</name>
+     <value>false</value>
+     <description></description>
+   </property>
 
 </configuration>

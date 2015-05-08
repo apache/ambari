@@ -26,6 +26,7 @@ from resource_management.libraries.script import Script
 from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 import os
+import glob
 
 
 class OozieServiceCheck(Script):
@@ -39,30 +40,53 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     env.set_params(params)
 
     # on HDP1 this file is different
+    prepare_hdfs_file_name = 'prepareOozieHdfsDirectories.sh'
     smoke_test_file_name = 'oozieSmoke2.sh'
 
-    OozieServiceCheckDefault.oozie_smoke_shell_file(smoke_test_file_name)
+    OozieServiceCheckDefault.oozie_smoke_shell_file(smoke_test_file_name, prepare_hdfs_file_name)
 
   @staticmethod
-  def oozie_smoke_shell_file(file_name):
+  def oozie_smoke_shell_file(file_name, prepare_hdfs_file_name):
     import params
 
     File(format("{tmp_dir}/{file_name}"),
          content=StaticFile(file_name),
          mode=0755
     )
+    File(format("{tmp_dir}/{prepare_hdfs_file_name}"),
+         content=StaticFile(prepare_hdfs_file_name),
+         mode=0755
+    )
 
     os_family = System.get_instance().os_family
+    oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
+    
+    Execute(format("{tmp_dir}/{prepare_hdfs_file_name} {conf_dir} {oozie_examples_dir} {hadoop_conf_dir} "),
+            tries=3,
+            try_sleep=5,
+            logoutput=True
+    )
+    
+    params.HdfsResource(format('/user/{smokeuser}/examples'),
+      action = "create_on_execute",
+      type = "directory",
+      source = format("{oozie_examples_dir}/examples"),
+    )
+    params.HdfsResource(format('/user/{smokeuser}/input-data'),
+      action = "create_on_execute",
+      type = "directory",
+      source = format("{oozie_examples_dir}/examples/input-data"),
+    )
+    params.HdfsResource(None, action="execute")
 
     if params.security_enabled:
       sh_cmd = format(
-        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
+        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled} {smokeuser_keytab} {kinit_path_local} {smokeuser_principal}")
     else:
       sh_cmd = format(
-        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
-
-    Execute(format("{tmp_dir}/{file_name}"),
-            command=sh_cmd,
+        "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
+    
+    Execute(sh_cmd,
             path=params.execute_path,
             tries=3,
             try_sleep=5,
