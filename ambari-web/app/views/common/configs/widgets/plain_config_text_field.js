@@ -35,6 +35,11 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, {
 
   focusOut: function () {
     this.sendRequestRorDependentConfigs(this.get('serviceConfig'));
+  },
+
+  didInsertElement: function() {
+    this._super();
+    this.set('serviceConfig.displayType', Em.getWithDefault(this, 'serviceConfig.stackConfigProperty.valueAttributes.type', 'string'));
   }
 
 });
