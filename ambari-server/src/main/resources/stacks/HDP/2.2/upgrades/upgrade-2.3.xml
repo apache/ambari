@@ -351,6 +351,20 @@
 
     <service name="MAPREDUCE2">
       <component name="HISTORYSERVER">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>mapred-site</type>
+            <transfer operation="MOVE" from-key="mapreduce.job.speculative.speculativecap" to-key="mapreduce.job.speculative.speculative-cap-running-tasks" default-value="0.1" />
+            <transfer operation="DELETE" delete-key="mapreduce.task.tmp.dir" />
+          </task>
+
+          <task xsi:type="configure">
+            <type>mapred-site</type>
+            <key>mapreduce.fileoutputcommitter.algorithm.version</key>
+            <value>1</value>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -365,12 +379,38 @@
 
     <service name="YARN">
       <component name="APP_TIMELINE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>yarn-site</type>
+            <key>yarn.timeline-service.recovery.enabled</key>
+            <value>true</value>
+          </task>
+
+          <task xsi:type="configure">
+            <type>yarn-site</type>
+            <transfer operation="COPY" from-key="yarn.timeline-service.leveldb-timeline-store.path" to-key="yarn.timeline-service.leveldb-state-store.path"/>
+          </task>
+
+          <task xsi:type="configure">
+            <type>yarn-site</type>
+            <key>yarn.timeline-service.state-store-class</key>
+            <value>org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore</value>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
       </component>
 
       <component name="RESOURCEMANAGER">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>yarn-site</type>
+            <key>yarn.node-labels.enabled</key>
+            <value>false</value>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -575,8 +615,7 @@
           </task>
           <task xsi:type="configure" summary="Setting nimbus.seeds from nimbus.host">
             <type>storm-site</type>
-            <transfer operation="COPY" from-key="nimbus.host"
-              to-type="storm-site" to-key="nimbus.seeds" />
+            <transfer operation="COPY" from-key="nimbus.host" to-key="nimbus.seeds" />
           </task>
         </pre-upgrade>
         <upgrade>

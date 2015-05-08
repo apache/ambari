@@ -247,6 +247,7 @@ public class ConfigureActionTest {
     commandParams.put(ConfigureTask.PARAMETER_KEY, "initLimit");
     commandParams.put(ConfigureTask.PARAMETER_VALUE, "11");
 
+    // normal copy
     List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
     ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
     transfer.operation = TransferOperation.COPY;
@@ -254,10 +255,27 @@ public class ConfigureActionTest {
     transfer.toKey = "copyKey";
     transfers.add(transfer);
 
+    // copy with default
+    transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.COPY;
+    transfer.fromKey = "copiedFromMissingKeyWithDefault";
+    transfer.toKey = "copiedToMissingKeyWithDefault";
+    transfer.defaultValue = "defaultValue";
+    transfers.add(transfer);
+
+    // normal move
     transfer = new ConfigureTask.Transfer();
     transfer.operation = TransferOperation.MOVE;
     transfer.fromKey = "moveIt";
     transfer.toKey = "movedKey";
+    transfers.add(transfer);
+
+    // move with default
+    transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.MOVE;
+    transfer.fromKey = "movedFromKeyMissingWithDefault";
+    transfer.toKey = "movedToMissingWithDefault";
+    transfer.defaultValue = "defaultValue2";
     transfers.add(transfer);
 
     transfer = new ConfigureTask.Transfer();
@@ -300,6 +318,10 @@ public class ConfigureActionTest {
     assertFalse(map.containsKey("moveIt"));
     assertTrue(map.containsKey("movedKey"));
     assertFalse(map.containsKey("deletedKey"));
+    assertTrue(map.containsKey("copiedToMissingKeyWithDefault"));
+    assertEquals("defaultValue", map.get("copiedToMissingKeyWithDefault"));
+    assertTrue(map.containsKey("movedToMissingWithDefault"));
+    assertEquals("defaultValue2", map.get("movedToMissingWithDefault"));
 
     transfers.clear();
     transfer = new ConfigureTask.Transfer();

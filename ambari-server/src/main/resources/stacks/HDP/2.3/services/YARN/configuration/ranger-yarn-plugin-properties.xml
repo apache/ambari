@@ -210,7 +210,7 @@
 
   <property>
     <name>SSL_KEYSTORE_FILE_PATH</name>
-    <value>/etc/hadoop/conf/ranger-plugin-keystore.jks</value>
+    <value>/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks</value>
     <description></description>
   </property>
 
@@ -222,7 +222,7 @@
 
   <property>
     <name>SSL_TRUSTSTORE_FILE_PATH</name>
-    <value>/etc/hadoop/conf/ranger-plugin-truststore.jks</value>
+    <value>/usr/hdp/current/hadoop-client/conf/ranger-plugin-truststore.jks</value>
     <description></description>
   </property>
 

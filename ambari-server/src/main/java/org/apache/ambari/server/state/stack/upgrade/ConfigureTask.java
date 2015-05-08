@@ -193,6 +193,9 @@ public class ConfigureTask extends ServerSideActionTask {
     @XmlAttribute(name = "preserve-edits")
     public boolean preserveEdits = false;
 
+    @XmlAttribute(name = "default-value")
+    public String defaultValue;
+
     @XmlElement(name = "keep-key")
     public List<String> keepKeys = new ArrayList<String>();
 

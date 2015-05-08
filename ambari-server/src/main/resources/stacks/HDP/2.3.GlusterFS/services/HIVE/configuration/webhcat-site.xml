@@ -31,7 +31,7 @@ limitations under the License.
 
   <property>
     <name>templeton.hadoop.conf.dir</name>
-    <value>/etc/hadoop/conf</value>
+    <value>/usr/hdp/current/hadoop-client/conf</value>
     <description>The path to the Hadoop configuration.</description>
   </property>
 

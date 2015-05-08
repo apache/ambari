@@ -42,6 +42,7 @@ import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -186,9 +187,17 @@ public class ConfigureAction extends AbstractServerAction {
     for (ConfigureTask.Transfer transfer : transfers) {
       switch (transfer.operation) {
         case COPY:
-          if (null == transfer.fromType && base.containsKey(transfer.fromKey)) {
-            newValues.put(transfer.toKey, base.get(transfer.fromKey));
-            changedValues = true;
+          // if copying from the current configuration type, then first
+          // determine if the key already exists; if it does not, then set a
+          // default if a default exists
+          if (null == transfer.fromType) {
+            if (base.containsKey(transfer.fromKey)) {
+              newValues.put(transfer.toKey, base.get(transfer.fromKey));
+              changedValues = true;
+            } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
+              newValues.put(transfer.toKey, transfer.defaultValue);
+              changedValues = true;
+            }
           } else {
             // !!! copying from another configuration
             Config other = cluster.getDesiredConfigByType(transfer.fromType);
@@ -199,13 +208,22 @@ public class ConfigureAction extends AbstractServerAction {
               if (otherValues.containsKey(transfer.fromKey)) {
                 newValues.put(transfer.toKey, otherValues.get(transfer.fromKey));
                 changedValues = true;
+              } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
+                newValues.put(transfer.toKey, transfer.defaultValue);
+                changedValues = true;
               }
             }
           }
           break;
         case MOVE:
+          // if the value existed previously, then update the maps with the new
+          // key; otherwise if there is a default value specified, set the new
+          // key with the default
           if (newValues.containsKey(transfer.fromKey)) {
             newValues.put(transfer.toKey, newValues.remove(transfer.fromKey));
+            changedValues = true;
+          } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
+            newValues.put(transfer.toKey, transfer.defaultValue);
             changedValues = true;
           }
 
@@ -261,9 +279,7 @@ public class ConfigureAction extends AbstractServerAction {
       config.persist(false);
 
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          MessageFormat.format("Updated ''{0}'' with ''{1}={2}''",
-              configType, key, value),
-          "");
+          MessageFormat.format("Updated configuration ''{0}''", configType), "");
     }
 
     // !!! values are different and within the same stack.  create a new
@@ -279,7 +295,7 @@ public class ConfigureAction extends AbstractServerAction {
     m_configHelper.createConfigType(cluster, m_controller, configType,
         newValues, auditName, serviceVersionNote);
 
-    String message = "Updated ''{0}'' with ''{1}={2}''";
+    String message = "Updated configuration ''{0}'' with ''{1}={2}''";
     message = MessageFormat.format(message, configType, key, value);
 
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", message, "");
