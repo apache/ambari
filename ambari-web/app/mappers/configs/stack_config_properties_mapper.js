@@ -61,7 +61,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
               config.StackConfigurations.property_depended_by.push({
                 type : dep.StackConfigurationDependency.dependency_type,
                 name : dep.StackConfigurationDependency.dependency_name
-              })
+              });
             });
           }
           /**
@@ -81,20 +81,6 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
   /******************* METHODS TO MERGE STACK PROPERTIES WITH STORED ON UI (NOT USED FOR NOW)*********************************/
 
   /**
-   * configs that are stored on UI
-   * @type {Object[]};
-   */
-  preDefinedSiteProperties: function () {
-    if (App.get('isHadoop23Stack')) {
-      return require('data/HDP2.3/site_properties').configProperties;
-    }
-    if (App.get('isHadoop22Stack')) {
-      return require('data/HDP2.2/site_properties').configProperties;
-    }
-    return require('data/HDP2/site_properties').configProperties;
-  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
-
-  /**
    * find UI config with current name and fileName
    * if there is such property - adds some info to config object
    * @param {Object} config
@@ -102,11 +88,12 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    */
   mergeWithUI: function(config) {
     var uiConfigProperty = this.getUIConfig(config.StackConfigurations.property_name, config.StackConfigurations.type);
+    var displayType = App.permit(App.config.advancedConfigIdentityData(config.StackConfigurations), 'displayType').displayType || 'string';
     if (!config.StackConfigurations.property_display_name) {
       config.StackConfigurations.property_display_name = uiConfigProperty && uiConfigProperty.displayName ? uiConfigProperty.displayName : config.StackConfigurations.property_name;
     }
     config.category = uiConfigProperty ? uiConfigProperty.category : 'Advanced ' + App.config.getConfigTagFromFileName(config.StackConfigurations.type);
-    config.display_type = uiConfigProperty ? uiConfigProperty.displayType : 'string';
+    config.display_type = uiConfigProperty ? uiConfigProperty.displayType || displayType : displayType;
   },
 
   /**
@@ -118,6 +105,6 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
    * @method getUIConfig
    */
   getUIConfig: function(propertyName, siteName) {
-    return this.get('preDefinedSiteProperties').filterProperty('filename', siteName).findProperty('name', propertyName);
+    return App.config.get('preDefinedSiteProperties').filterProperty('filename', siteName).findProperty('name', propertyName);
   }
 });
