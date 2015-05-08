@@ -56,7 +56,7 @@ public class ClusterConfigEntity {
   private String configJson;
 
   @Basic(fetch = FetchType.LAZY)
-  @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false, length = 32000)
+  @Column(name = "config_attributes", nullable = true, insertable = true, updatable = false)
   @Lob
   private String configAttributesJson;
 

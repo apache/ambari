@@ -253,13 +253,11 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
 
     dbAccessor.insertRow("adminprivilege", new String[]{"privilege_id", "permission_id", "resource_id", "principal_id"}, new String[]{"1", "1", "1", "1"}, true);
 
-    if (databaseType == DatabaseType.ORACLE) {
-      dbAccessor.executeQuery("ALTER TABLE clusterconfig ADD config_attributes CLOB NULL");
-    } else {
-      DBColumnInfo clusterConfigAttributesColumn = new DBColumnInfo(
-          "config_attributes", String.class, 32000, null, true);
-      dbAccessor.addColumn("clusterconfig", clusterConfigAttributesColumn);
-    }
+    String [] configAttributesTableNames = {"clusterconfig", "hostgroup_configuration", "blueprint_configuration"};
+
+    for(String tableName : configAttributesTableNames) {
+      addConfigAttributesColumn(tableName);
+     }
 
     // Add columns
     dbAccessor.addColumn("viewmain", new DBColumnInfo("mask",
@@ -489,6 +487,21 @@ public class UpgradeCatalog170 extends AbstractUpgradeCatalog {
     dbAccessor.executeQuery("ALTER TABLE groups ADD CONSTRAINT UNQ_groups_0 UNIQUE (group_name, ldap_group)");
     dbAccessor.executeQuery("ALTER TABLE members ADD CONSTRAINT UNQ_members_0 UNIQUE (group_id, user_id)");
     dbAccessor.executeQuery("ALTER TABLE adminpermission ADD CONSTRAINT UQ_perm_name_resource_type_id UNIQUE (permission_name, resource_type_id)");
+  }
+
+  /**
+   * @param tableName
+   * @throws SQLException
+   */
+  private void addConfigAttributesColumn(String tableName) throws SQLException {
+    final DatabaseType databaseType = configuration.getDatabaseType();
+    if (databaseType == DatabaseType.ORACLE) {
+      dbAccessor.executeQuery("ALTER TABLE " + tableName + " ADD config_attributes CLOB NULL");
+    } else {
+      DBColumnInfo clusterConfigAttributesColumn = new DBColumnInfo(
+          "config_attributes", Character[].class, null, null, true);
+      dbAccessor.addColumn(tableName, clusterConfigAttributesColumn);
+    }
   }
 
   /**
