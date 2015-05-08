@@ -126,16 +126,6 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
       value: '',
       defaultValue: ''
     },
-    OIDSubject: {
-      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.OIDSubject'),
-      value: '',
-      defaultValue: ''
-    },
-    OIDBody: {
-      label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.OIDBody'),
-      value: '',
-      defaultValue: ''
-    },
     community: {
       label: Em.I18n.t('alerts.actions.manage_alert_notifications_popup.community'),
       value: '',
@@ -346,8 +336,6 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     inputFields.set('emailFrom.value', selectedAlertNotification.get('properties')['mail.smtp.from']);
     inputFields.set('version.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.version']);
     inputFields.set('OIDs.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.oids.trap']);
-    inputFields.set('OIDSubject.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.oids.subject']);
-    inputFields.set('OIDBody.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.oids.body']);
     inputFields.set('community.value', selectedAlertNotification.get('properties')['ambari.dispatch.snmp.community']);
     inputFields.set('host.value', selectedAlertNotification.get('properties')['ambari.dispatch.recipients'] ?
       selectedAlertNotification.get('properties')['ambari.dispatch.recipients'].join(', ') : '');
@@ -665,8 +653,8 @@ App.ManageAlertNotificationsController = Em.Controller.extend({
     } else {
       properties['ambari.dispatch.snmp.version'] = inputFields.get('version.value');
       properties['ambari.dispatch.snmp.oids.trap'] = inputFields.get('OIDs.value');
-      properties['ambari.dispatch.snmp.oids.subject'] = inputFields.get('OIDSubject.value');
-      properties['ambari.dispatch.snmp.oids.body'] = inputFields.get('OIDBody.value');
+      properties['ambari.dispatch.snmp.oids.subject'] = inputFields.get('OIDs.value');
+      properties['ambari.dispatch.snmp.oids.body'] = inputFields.get('OIDs.value');
       properties['ambari.dispatch.snmp.community'] = inputFields.get('community.value');
       properties['ambari.dispatch.recipients'] = inputFields.get('host.value').replace(/\s/g, '').split(',');
       properties['ambari.dispatch.snmp.port'] = inputFields.get('port.value');
