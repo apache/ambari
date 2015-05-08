@@ -13,11 +13,57 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# stop on all errors
+# Stop on all errors
 $ErrorActionPreference = 'Stop';
-$packageName = $Env:chocolateyPackageName
-$packageVersion = $Env:chocolateyPackageVersion
-$unzipLocation = "C:\ambari"
 
-cmd /c rmdir "$unzipLocation\$packageName"
-cmd /c rmdir /s/q "$unzipLocation\$packageName-$packageVersion"
+# Package Name
+$packageName = $Env:chocolateyPackageName
+# Package Version
+$packageVersion = $Env:chocolateyPackageVersion
+# Package Folder
+$packageFolder = $Env:chocolateyPackageFolder
+# Package Parameters
+$packageParameters = $env:chocolateyPackageParameters
+
+$arguments = @{}
+$ambariRoot = "C:\ambari"
+$retries = 5
+# Parse the packageParameters
+#   /AmbariRoot:C:\ambari /Retries:5
+if ($packageParameters) {
+  $match_pattern = "\/(?<option>([a-zA-Z]+)):(?<value>([`"'])?([a-zA-Z0-9- _\\:\.]+)([`"'])?)|\/(?<option>([a-zA-Z]+))"
+  $option_name = 'option'
+  $value_name = 'value'
+
+  if ($packageParameters -match $match_pattern ){
+    $results = $packageParameters | Select-String $match_pattern -AllMatches
+    $results.matches | % {
+      $arguments.Add(
+        $_.Groups[$option_name].Value.Trim(),
+        $_.Groups[$value_name].Value.Trim())
+    }
+  } else {
+    Throw "Package Parameters were found but were invalid (REGEX Failure)"
+  }
+  if ($arguments.ContainsKey("AmbariRoot")) {
+    Write-Debug "AmbariRoot Argument Found"
+    $ambariRoot = $arguments["AmbariRoot"]
+  }
+  if ($arguments.ContainsKey("Retries")) {
+    Write-Debug "Retries Argument Found"
+    $retries = $arguments["Retries"]
+  }
+} else {
+  Write-Debug "No Package Parameters Passed in"
+}
+
+$modulesFolder = "$(Join-Path $packageFolder modules)"
+$contentFolder = "$(Join-Path $packageFolder content)"
+$link = "$ambariRoot\$packageName"
+$target = "$ambariRoot\$packageName-$packageVersion"
+
+Import-Module "$modulesFolder\link.psm1"
+Import-Module "$modulesFolder\retry.psm1"
+
+Retry-Command -Command "Remove-Symlink-IfExists" -Arguments @{Link = $link} -Retries $retries
+Retry-Command -Command "Remove-Item" -Arguments @{ Path = $target; Recurse = $true; Force = $true }

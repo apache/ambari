@@ -38,7 +38,9 @@ if OSCheck.is_windows_family():
 AMBARI_PASSPHRASE_VAR = "AMBARI_PASSPHRASE"
 PROJECT_VERSION_DEFAULT = "DEFAULT"
 
-AMBARI_AGENT_INSTALL_SYMLINK = "C:\\ambari\\ambari-agent"
+INSTALL_DRIVE =  os.path.splitdrive(__file__.replace('/', os.sep))[0]
+AMBARI_INSTALL_ROOT = os.path.join(INSTALL_DRIVE, os.sep, "ambari")
+AMBARI_AGENT_INSTALL_SYMLINK = os.path.join(AMBARI_INSTALL_ROOT, "ambari-agent")
 
 def _ret_init(ret):
   if not ret:
@@ -124,7 +126,8 @@ def installAgent(projectVersion, ret=None):
     # add * to end of version in case of some test releases
     Command = ["apt-get", "install", "-y", "--allow-unauthenticated", "ambari-agent=" + projectVersion + "*"]
   elif OSCheck.is_windows_family():
-    Command = ["cmd", "/c", "choco", "install", "-y", "ambari-agent", "--version=" + projectVersion]
+    packageParams = "/AmbariRoot:" + AMBARI_INSTALL_ROOT
+    Command = ["cmd", "/c", "choco", "install", "-y", "ambari-agent", "--version=" + projectVersion, "--params=\"" + packageParams + "\""]
   else:
     Command = ["yum", "-y", "install", "--nogpgcheck", "ambari-agent-" + projectVersion]
   return execOsCommand(Command, tries=3, try_sleep=10, ret=ret)

@@ -39,4 +39,13 @@
       <outputDirectory>tools</outputDirectory>
     </file>
   </files>
+  <fileSets>
+    <fileSet>
+      <directory>${basedir}/../ambari-common/src/main/windows</directory>
+      <outputDirectory>modules</outputDirectory>
+      <includes>
+        <include>*.psm1</include>
+      </includes>
+    </fileSet>
+  </fileSets>
 </assembly>

@@ -182,7 +182,6 @@
             <exclude>**/*.iml</exclude>
             <exclude>**/*.json</exclude>
             <exclude>**/*.sql</exclude>
-            <exclude>**/*.wxs</exclude>
             <exclude>**/repo_suse_rhel.j2</exclude>
             <exclude>**/repo_debian.j2</exclude>
             <exclude>**/cluster.properties.j2</exclude>
@@ -1377,32 +1376,6 @@
             <version>1.2.1</version>
             <executions>
               <execution>
-                <id>run-heat</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>heat.exe</executable>
-                  <arguments>
-                    <argument>dir</argument>
-                    <argument>"."</argument>
-                    <argument>-dr</argument>
-                    <argument>"SERVER_INSTALL_DIRECTORY"</argument>
-                    <argument>-platform</argument>
-                    <argument>Win64</argument>
-                    <argument>-cg</argument>
-                    <argument>"AmbariServerGroup"</argument>
-                    <argument>-gg</argument>
-                    <argument>-ke</argument>
-                    <argument>-srd</argument>
-                    <argument>-o</argument>
-                    <argument>".\..\..\ambari-server-files.wxs"</argument>
-                  </arguments>
-                  <workingDirectory>target/ambari-server-${project.version}-dist/ambari-server-${project.version}</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
                 <id>build-choco-package</id>
                 <phase>package</phase>
                 <goals>
@@ -1420,59 +1393,8 @@
               </execution>
             </executions>
           </plugin>
-          <plugin>
-            <groupId>org.apache.npanday.plugins</groupId>
-            <artifactId>wix-maven-plugin</artifactId>
-            <version>1.4.0-incubating</version>
-            <extensions>true</extensions>
-            <configuration>
-              <sourceFiles>
-                <sourceFile>target/ambari-server.wxs</sourceFile>
-                <sourceFile>target/ambari-server-files.wxs</sourceFile>
-              </sourceFiles>
-              <outputDirectory>target</outputDirectory>
-              <objectFiles>
-                <objectFile>target/ambari-server.wixobj</objectFile>
-                <objectFile>target/ambari-server-files.wixobj</objectFile>
-              </objectFiles>
-              <outputFile>target/ambari-server-${project.version}.msi</outputFile>
-              <extensions>
-                <extension>WixUIExtension</extension>
-              </extensions>
-            </configuration>
-            <executions>
-              <execution>
-                <id>wix-candle</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>candle</goal>
-                </goals>
-                <configuration>
-                  <arguments>-arch x64</arguments>
-                </configuration>
-              </execution>
-              <execution>
-                <id>wix-light</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>light</goal>
-                </goals>
-                <configuration>
-                  <arguments>-b ${basedir}/target/ambari-server-${project.version}-dist/ambari-server-${project.version}</arguments>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
         </plugins>
       </build>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.npanday.plugins</groupId>
-          <artifactId>wix-maven-plugin</artifactId>
-          <version>1.4.0-incubating</version>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
     </profile>
     <profile>
       <id>linux</id>

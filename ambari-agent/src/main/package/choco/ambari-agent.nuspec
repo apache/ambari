@@ -21,5 +21,6 @@
   <files>
     <file src="tools\**" target="tools" />
     <file src="content\**" target="content" />
+    <file src="modules\**" target="modules" />
   </files>
 </package>

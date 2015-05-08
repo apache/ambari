@@ -13,18 +13,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# stop on all errors
+# Stop on all errors
 $ErrorActionPreference = 'Stop';
 
+# Package Name
 $packageName = $Env:chocolateyPackageName
+# Package Version
 $packageVersion = $Env:chocolateyPackageVersion
-$toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
-$rootDir = "$(Split-Path -parent $toolsDir)"
-$contentDir = "$(Join-Path $rootDir content)"
+# Package Folder
+$packageFolder = $Env:chocolateyPackageFolder
+# Package Parameters
+$packageParameters = $env:chocolateyPackageParameters
 
-$zipFile = "$(Join-Path $contentDir $packageName-$packageVersion-windows-dist.zip)"
+$arguments = @{}
 $ambariRoot = "C:\ambari"
-$specificFolder = ""
+$retries = 5
+# Parse the packageParameters
+#   /AmbariRoot:C:\ambari /Retries:5
+if ($packageParameters) {
+  $match_pattern = "\/(?<option>([a-zA-Z]+)):(?<value>([`"'])?([a-zA-Z0-9- _\\:\.]+)([`"'])?)|\/(?<option>([a-zA-Z]+))"
+  $option_name = 'option'
+  $value_name = 'value'
 
-Get-ChocolateyUnzip "$zipFile" "$ambariRoot\$packageName-$packageVersion" $specificFolder $packageName
-cmd /c mklink /D "$ambariRoot\$packageName" "$ambariRoot\$packageName-$packageVersion"
+  if ($packageParameters -match $match_pattern ){
+    $results = $packageParameters | Select-String $match_pattern -AllMatches
+    $results.matches | % {
+      $arguments.Add(
+        $_.Groups[$option_name].Value.Trim(),
+        $_.Groups[$value_name].Value.Trim())
+    }
+  } else {
+    Throw "Package Parameters were found but were invalid (REGEX Failure)"
+  }
+  if ($arguments.ContainsKey("AmbariRoot")) {
+    Write-Debug "AmbariRoot Argument Found"
+    $ambariRoot = $arguments["AmbariRoot"]
+  }
+  if ($arguments.ContainsKey("Retries")) {
+    Write-Debug "Retries Argument Found"
+    $retries = $arguments["Retries"]
+  }
+} else {
+  Write-Debug "No Package Parameters Passed in"
+}
+
+$modulesFolder = "$(Join-Path $packageFolder modules)"
+$contentFolder = "$(Join-Path $packageFolder content)"
+$zipFile = "$(Join-Path $contentFolder $packageName-$packageVersion-windows-dist.zip)"
+$specificFolder = ""
+$link = "$ambariRoot\$packageName"
+$target = "$ambariRoot\$packageName-$packageVersion"
+
+Import-Module "$modulesFolder\link.psm1"
+Import-Module "$modulesFolder\retry.psm1"
+
+Retry-Command -Command "Get-ChocolateyUnzip" -Arguments @{ FileFullPath = $zipFile; Destination = $target; SpecificFolder = $specificFolder; PackageName = $packageName} -Retries $retries
+Retry-Command -Command "Remove-Symlink-IfExists" -Arguments @{Link = $link} -Retries $retries
+Retry-Command -Command "New-Symlink" -Arguments @{ Link = $link; Target = $target } -Retries $retries

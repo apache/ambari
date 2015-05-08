@@ -51,11 +51,6 @@ DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/data/tmp"
 DEFAULT_AGENT_DATA_FOLDER = "/var/lib/ambari-agent/data"
 DEFAULT_AGENT_LIB_FOLDER = "/var/lib/ambari-agent"
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER
-CREATE_REMOTING_DIR_SCRIPT_NAME = "Create-RemotingDir.ps1"
-SEND_REMOTING_FILE_SCRIPT_NAME = "Send-RemotingFile.ps1"
-UNZIP_REMOTING_SCRIPT_NAME = "Unzip-RemotingFile.ps1"
-RUN_REMOTING_SCRIPT_NAME = "Run-RemotingScript.ps1"
-
 
 class HostLog:
   """ Provides per-host logging. """
@@ -266,7 +261,17 @@ class Bootstrap(threading.Thread):
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class BootstrapWindows(Bootstrap):
-  bootstrapArchiveName = "bootstrap.zip"
+  CREATE_REMOTING_DIR_SCRIPT_NAME = "Create-RemotingDir.ps1"
+  SEND_REMOTING_FILE_SCRIPT_NAME = "Send-RemotingFile.ps1"
+  UNZIP_REMOTING_SCRIPT_NAME = "Unzip-RemotingFile.ps1"
+  RUN_REMOTING_SCRIPT_NAME = "Run-RemotingScript.ps1"
+  CONFIGURE_CHOCOLATEY_SCRIPT_NAME = "Configure-Chocolatey.ps1"
+
+  BOOTSTRAP_ARCHIVE_NAME = "bootstrap.zip"
+  CHOCOLATEY_INSTALL_VAR_NAME = "ChocolateyInstall"
+  CHOCOLATEY_CONFIG_DIR = "config"
+  CHOCOLATEY_CONFIG_FILENAME = "chocolatey.config"
+  chocolateyConfigName = "chocolatey.config"
 
   def getTempFolder(self):
     installationDrive = os.path.splitdrive(self.shared_state.script_dir)[0]
@@ -276,7 +281,7 @@ class BootstrapWindows(Bootstrap):
     # Creating target dir
     self.host_log.write("==========================\n")
     self.host_log.write("Creating target directory...")
-    command = os.path.join(self.shared_state.script_dir, CREATE_REMOTING_DIR_SCRIPT_NAME)
+    command = os.path.join(self.shared_state.script_dir, self.CREATE_REMOTING_DIR_SCRIPT_NAME)
     psr = PSR(command, self.host, self.host_log, params="{0} {1}".format(self.host, self.getTempFolder()))
     retcode = psr.run()
     self.host_log.write("\n")
@@ -284,10 +289,10 @@ class BootstrapWindows(Bootstrap):
 
   def unzippingBootstrapArchive(self):
     # Unzipping bootstrap archive
-    zipFile = os.path.join(self.getTempFolder(), self.bootstrapArchiveName)
+    zipFile = os.path.join(self.getTempFolder(), self.BOOTSTRAP_ARCHIVE_NAME)
     self.host_log.write("==========================\n")
     self.host_log.write("Unzipping bootstrap archive...")
-    command = os.path.join(self.shared_state.script_dir, UNZIP_REMOTING_SCRIPT_NAME)
+    command = os.path.join(self.shared_state.script_dir, self.UNZIP_REMOTING_SCRIPT_NAME)
     psr = PSR(command, self.host, self.host_log, params="{0} {1} {2}".format(self.host, zipFile, self.getTempFolder()))
     result = psr.run()
     self.host_log.write("\n")
@@ -296,11 +301,33 @@ class BootstrapWindows(Bootstrap):
   def copyBootstrapArchive(self):
     # Copying the bootstrap archive file
     fileToCopy = os.path.join(self.shared_state.script_dir, os.path.dirname(self.shared_state.script_dir), self.shared_state.setup_agent_file)
-    target = os.path.join(self.getTempFolder(), self.bootstrapArchiveName)
+    target = os.path.join(self.getTempFolder(), self.BOOTSTRAP_ARCHIVE_NAME)
     self.host_log.write("==========================\n")
     self.host_log.write("Copying bootstrap archive...")
-    command = os.path.join(self.shared_state.script_dir, SEND_REMOTING_FILE_SCRIPT_NAME)
+    command = os.path.join(self.shared_state.script_dir, self.SEND_REMOTING_FILE_SCRIPT_NAME)
     psr = PSR(command, self.host, self.host_log, params="{0} {1} {2}".format(self.host, fileToCopy, target))
+    result = psr.run()
+    self.host_log.write("\n")
+    return result
+
+  def copyChocolateyConfig(self):
+    # Copying chocolatey.config file
+    fileToCopy = os.path.join(os.environ[self.CHOCOLATEY_INSTALL_VAR_NAME], self.CHOCOLATEY_CONFIG_DIR, self.CHOCOLATEY_CONFIG_FILENAME)
+    target = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
+    self.host_log.write("==========================\n")
+    self.host_log.write("Copying chocolatey config file...")
+    command = os.path.join(self.shared_state.script_dir, self.SEND_REMOTING_FILE_SCRIPT_NAME)
+    psr = PSR(command, self.host, self.host_log, params="{0} {1} {2}".format(self.host, fileToCopy, target))
+    result = psr.run()
+    self.host_log.write("\n")
+    return result
+
+  def configureChocolatey(self):
+    self.host_log.write("==========================\n")
+    self.host_log.write("Running configure chocolatey script...")
+    tmpConfig = os.path.join(self.getTempFolder(), self.CHOCOLATEY_CONFIG_FILENAME)
+    command = os.path.join(self.shared_state.script_dir, self.CONFIGURE_CHOCOLATEY_SCRIPT_NAME)
+    psr = PSR(command, self.host, self.host_log, params="{0} {1}".format(self.host, tmpConfig))
     result = psr.run()
     self.host_log.write("\n")
     return result
@@ -316,7 +343,7 @@ class BootstrapWindows(Bootstrap):
   def runSetupAgent(self):
     self.host_log.write("==========================\n")
     self.host_log.write("Running setup agent script...")
-    command = os.path.join(self.shared_state.script_dir, RUN_REMOTING_SCRIPT_NAME)
+    command = os.path.join(self.shared_state.script_dir, self.RUN_REMOTING_SCRIPT_NAME)
     psr = PSR(command, self.host, self.host_log, params="{0} \"{1}\"".format(self.host, self.getRunSetupCommand(self.host)))
     retcode = psr.run()
     self.host_log.write("\n")
@@ -329,6 +356,8 @@ class BootstrapWindows(Bootstrap):
     action_queue = [self.createTargetDir,
                     self.copyBootstrapArchive,
                     self.unzippingBootstrapArchive,
+                    self.copyChocolateyConfig,
+                    self.configureChocolatey,
                     self.runSetupAgent
     ]
     # Execution of action queue

@@ -76,11 +76,6 @@
       <source>${project.build.directory}/version</source>
       <outputDirectory>ambari-server-${project.version}/</outputDirectory>
     </file>
-    <file>
-      <source>${basedir}/src/main/package/msi/ambari-server.wxs</source>
-      <outputDirectory>../../</outputDirectory>
-      <filtered>true</filtered>
-    </file>
   </files>
   <fileSets>
     <!-- Distro files, readme, licenses, etc -->
