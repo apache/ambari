@@ -99,8 +99,8 @@ public class TopologyManager {
     String clusterName = topology.getClusterName();
     clusterTopologyMap.put(clusterName, topology);
 
-    LogicalRequest logicalRequest = processRequest(persistedRequest, topology);
     addClusterConfigRequest(new ClusterConfigurationRequest(ambariContext, topology, true));
+    LogicalRequest logicalRequest = processRequest(persistedRequest, topology);
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
     //todo: be tied to cluster state
@@ -422,8 +422,21 @@ public class TopologyManager {
     }
   }
 
+  /**
+   * Making it a synchronous call as resolution of initial configurations need to happen before
+   * any tasks are created
+   * TODO - needs further review
+   */
   private void addClusterConfigRequest(ClusterConfigurationRequest configurationRequest) {
-    executor.execute(new ConfigureClusterTask(configurationRequest));
+    ConfigureClusterTask cct = new ConfigureClusterTask(configurationRequest);
+    cct.run();
+    //executor.execute(new ConfigureClusterTask(configurationRequest));
+    //try {
+    //  executor.awaitTermination(10, TimeUnit.SECONDS);
+    //  LOG.info("Resolved cluster topology configuration.");
+    //}catch(InterruptedException ex) {
+    //  LOG.warn("Failed to resolve topology configuration");
+    //}
   }
 
   private class ConfigureClusterTask implements Runnable {

@@ -72,6 +72,9 @@ public class TopologyManagerTest {
   private final ConfigurationRequest configurationRequest = createNiceMock(ConfigurationRequest.class);
   private final ConfigurationRequest configurationRequest2 = createNiceMock(ConfigurationRequest.class);
   private final ConfigurationRequest configurationRequest3 = createNiceMock(ConfigurationRequest.class);
+  private final ConfigurationRequest configurationRequest4 = createNiceMock(ConfigurationRequest.class);
+  private final ConfigurationRequest configurationRequest5 = createNiceMock(ConfigurationRequest.class);
+  private final ConfigurationRequest configurationRequest6 = createNiceMock(ConfigurationRequest.class);
   private final RequestStatusResponse requestStatusResponse = createNiceMock(RequestStatusResponse.class);
   private final ExecutorService executor = createStrictMock(ExecutorService.class);
   private final PersistedState persistedState = createStrictMock(PersistedState.class);
@@ -115,6 +118,9 @@ public class TopologyManagerTest {
   private Capture<Map<String, Object>> configRequestPropertiesCapture;
   private Capture<Map<String, Object>> configRequestPropertiesCapture2;
   private Capture<Map<String, Object>> configRequestPropertiesCapture3;
+  private Capture<Map<String, Object>> configRequestPropertiesCapture4;
+  private Capture<Map<String, Object>> configRequestPropertiesCapture5;
+  private Capture<Map<String, Object>> configRequestPropertiesCapture6;
   private Capture<ClusterRequest> updateClusterConfigRequestCapture;
   private Capture<Runnable> updateConfigTaskCapture;
 
@@ -125,6 +131,9 @@ public class TopologyManagerTest {
     configRequestPropertiesCapture = new Capture<Map<String, Object>>();
     configRequestPropertiesCapture2 = new Capture<Map<String, Object>>();
     configRequestPropertiesCapture3 = new Capture<Map<String, Object>>();
+    configRequestPropertiesCapture4 = new Capture<Map<String, Object>>();
+    configRequestPropertiesCapture5 = new Capture<Map<String, Object>>();
+    configRequestPropertiesCapture6 = new Capture<Map<String, Object>>();
     updateClusterConfigRequestCapture = new Capture<ClusterRequest>();
     updateConfigTaskCapture = new Capture<Runnable>();
 
@@ -245,13 +254,19 @@ public class TopologyManagerTest {
         andReturn(Collections.singletonList(configurationRequest2)).once();
     expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture3))).
         andReturn(Collections.singletonList(configurationRequest3)).once();
+    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture4))).
+        andReturn(Collections.singletonList(configurationRequest4)).once();
+    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture5))).
+        andReturn(Collections.singletonList(configurationRequest5)).once();
+    expect(ambariContext.createConfigurationRequests(capture(configRequestPropertiesCapture6))).
+        andReturn(Collections.singletonList(configurationRequest6)).once();
     ambariContext.setConfigurationOnCluster(capture(updateClusterConfigRequestCapture));
-    expectLastCall().times(3);
+    expectLastCall().times(6);
     ambariContext.persistInstallStateForUI(CLUSTER_NAME, STACK_NAME, STACK_VERSION);
     expectLastCall().once();
 
-    executor.execute(capture(updateConfigTaskCapture));
-    expectLastCall().once();
+    //executor.execute(capture(updateConfigTaskCapture));
+    //expectLastCall().times(0);
 
     expect(persistedState.getAllRequests()).andReturn(Collections.<ClusterTopology,
         List<LogicalRequest>>emptyMap()).once();
