@@ -112,7 +112,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hive_tar_destination = config['configurations']['cluster-env']['hive_tar_destination_folder']  + "/" + os.path.basename(hive_tar_source)
   pig_tar_destination = config['configurations']['cluster-env']['pig_tar_destination_folder'] + "/" + os.path.basename(pig_tar_source)
   hadoop_streaming_tar_destination_dir = config['configurations']['cluster-env']['hadoop-streaming_tar_destination_folder']
-  sqoop_tar_destination = config['configurations']['cluster-env']['sqoop_tar_destination_folder'] + "/" + os.path.basename(sqoop_tar_source)
+  sqoop_tar_destination_dir = config['configurations']['cluster-env']['sqoop_tar_destination_folder'] + "/" + os.path.basename(sqoop_tar_source)
   mapreduce_tar_destination = config['configurations']['cluster-env']['mapreduce_tar_destination_folder'] + "/" + os.path.basename(mapreduce_tar_source)
   tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
 
