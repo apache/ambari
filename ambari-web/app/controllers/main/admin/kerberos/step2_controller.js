@@ -21,7 +21,14 @@ require('controllers/wizard/step7_controller');
 
 App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   name: "kerberosWizardStep2Controller",
+
   isKerberosWizard: true,
+
+  kdcTypesValues: {
+    'mit-kdc'         : Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
+    'active-directory': Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
+    'none'            : Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
+  },
 
   selectedServiceNames: ['KERBEROS'],
 
@@ -248,14 +255,32 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
       }
     }, this);
     this.tweakKdcTypeValue(properties);
+    this.tweakManualKdcProperties(properties);
     return {"type": site, "tag": tag, "properties": properties};
   },
 
   tweakKdcTypeValue: function (properties) {
-    if (properties['kdc_type'] === Em.I18n.t('admin.kerberos.wizard.step1.option.kdc')) {
-      properties['kdc_type'] = "mit-kdc";
-    } else if (properties['kdc_type'] === Em.I18n.t('admin.kerberos.wizard.step1.option.ad')) {
-      properties['kdc_type'] = "active-directory";
+    for (var prop in this.get('kdcTypesValues')) {
+      if (this.get('kdcTypesValues').hasOwnProperty(prop)) {
+        if (this.get('kdcTypesValues')[prop] === properties['kdc_type']) {
+          properties['kdc_type'] = prop;
+        }
+      }
+    }
+  },
+
+  tweakManualKdcProperties: function (properties) {
+    var kerberosWizardController = this.controllers.get('kerberosWizardController');
+    if (properties['kdc_type'] === 'none' || kerberosWizardController.get('skipClientInstall')) {
+      if (properties.hasOwnProperty('manage_identities')) {
+        properties['manage_identities'] = 'false';
+      }
+      if (properties.hasOwnProperty('install_packages')) {
+        properties['install_packages'] = 'false';
+      }
+      if (properties.hasOwnProperty('manage_krb5_conf')) {
+        properties['manage_krb5_conf'] = 'false';
+      }
     }
   },
 

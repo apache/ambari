@@ -21,7 +21,7 @@ var App = require('app');
 
 App.KerberosWizardController = App.WizardController.extend({
 
-  exceptionsOnSkipClient: ['realm', 'kdc_type', 'kdc_host', 'executable_search_paths'],
+  exceptionsOnSkipClient: ['realm', 'executable_search_paths'],
 
   name: 'kerberosWizardController',
 
@@ -140,14 +140,8 @@ App.KerberosWizardController = App.WizardController.extend({
   },
 
   saveKerberosOption: function (stepController) {
-    // the server does not support this kdc_type and will fail on install
-    //TODO: make sure the server supports all kdc_types
-    var selectedItem = stepController.get('selectedItem');
-    if (selectedItem === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
-      selectedItem = Em.I18n.t('admin.kerberos.wizard.step1.option.kdc');
-    }
-    this.setDBProperty('kerberosOption', selectedItem);
-    this.set('content.kerberosOption', selectedItem);
+    this.setDBProperty('kerberosOption', stepController.get('selectedItem'));
+    this.set('content.kerberosOption', stepController.get('selectedItem'));
   },
 
   /**
@@ -179,8 +173,6 @@ App.KerberosWizardController = App.WizardController.extend({
     this.set('kerberosDescriptorConfigs', kerberosDescriptorConfigs);
   },
 
-
-
   /**
    * Overide the visibility of a list of form items with a new value
    *
@@ -194,12 +186,6 @@ App.KerberosWizardController = App.WizardController.extend({
     for (var i=0; i < itemsArray.length; i += 1) {
       if (self.get('exceptionsOnSkipClient').indexOf(itemsArray[i].get('name')) < 0) {
         itemsArray[i].set('isVisible', newValue);
-
-        // if it was required, but we're making it not visible, also
-        // make the input value not required any more
-        if (itemsArray[i].get('isRequiredByAgent') && !newValue) {
-          itemsArray[i].set('isRequiredByAgent', newValue)
-        }
       }
     }
   },
