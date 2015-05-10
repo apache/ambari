@@ -5246,12 +5246,22 @@ public class AmbariManagementControllerTest {
     configs.put("a", "b");
     Map<String, String> configs2 = new HashMap<String, String>();
     configs2.put("c", "d");
+    Map<String, String> configs3 = new HashMap<String, String>();
 
-    ConfigurationRequest cr1,cr2,cr3;
+    ConfigurationRequest cr1,cr2,cr3,cr4;
     cr1 = new ConfigurationRequest(clusterName, "core-site","version1",
       configs, null);
     cr2 = new ConfigurationRequest(clusterName, "hdfs-site","version1",
       configs, null);
+    cr4 = new ConfigurationRequest(clusterName, "kerberos-env", "version1",
+      configs3, null);
+
+    ConfigFactory cf = injector.getInstance(ConfigFactory.class);
+    Config config1 = cf.createNew(cluster, "kerberos-env",
+        new HashMap<String, String>(), new HashMap<String, Map<String,String>>());
+    config1.setTag("version1");
+
+    cluster.addConfig(config1);
 
     ClusterRequest crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr1));
@@ -5259,12 +5269,15 @@ public class AmbariManagementControllerTest {
     crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
     crReq.setDesiredConfig(Collections.singletonList(cr2));
     controller.updateClusters(Collections.singleton(crReq), null);
+    crReq = new ClusterRequest(cluster.getClusterId(), clusterName, null, null);
+    crReq.setDesiredConfig(Collections.singletonList(cr4));
+    controller.updateClusters(Collections.singleton(crReq), null);
 
     // Install
     long requestId1 = installService(clusterName, serviceName1, true, false);
 
     List<Stage> stages = actionDB.getAllStages(requestId1);
-    Assert.assertEquals(2, stages.get(0).getOrderedHostRoleCommands().get(0)
+    Assert.assertEquals(3, stages.get(0).getOrderedHostRoleCommands().get(0)
       .getExecutionCommandWrapper().getExecutionCommand()
       .getConfigurationTags().size());
 
@@ -5320,7 +5333,7 @@ public class AmbariManagementControllerTest {
     Assert.assertNotNull(hdfsCmdHost2);
     ExecutionCommand execCmd = hdfsCmdHost3.getExecutionCommandWrapper()
       .getExecutionCommand();
-    Assert.assertEquals(2, execCmd.getConfigurationTags().size());
+    Assert.assertEquals(3, execCmd.getConfigurationTags().size());
     Assert.assertEquals("version122", execCmd.getConfigurationTags().get
       ("core-site").get("tag"));
     Assert.assertEquals("d", execCmd.getConfigurations().get("core-site")

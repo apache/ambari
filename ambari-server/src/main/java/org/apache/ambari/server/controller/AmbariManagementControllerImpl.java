@@ -1282,6 +1282,7 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
           clusterConfigProperties = clusterConfig.getProperties();
         } else {
           isConfigurationCreationNeeded = true;
+          break;
         }
         if (requestConfigProperties == null || requestConfigProperties.isEmpty()) {
           Config existingConfig = cluster.getConfig(desiredConfig.getType(), desiredConfig.getVersionTag());
