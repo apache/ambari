@@ -101,7 +101,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    */
   showAdConfigs: function (configs) {
     var kdcType = this.get('content.kerberosOption');
-    var configNames = ['ldap_url', 'container_dn'];
+    var configNames = ['ldap_url', 'container_dn', 'create_attributes_template'];
     configNames.forEach(function (_configName) {
       var config = configs.findProperty('name', _configName);
       config.isVisible = kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.ad');
