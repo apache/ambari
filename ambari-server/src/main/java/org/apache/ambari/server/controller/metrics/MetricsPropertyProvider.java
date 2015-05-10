@@ -58,13 +58,13 @@ public abstract class MetricsPropertyProvider extends AbstractPropertyProvider {
     new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
 
   protected MetricsPropertyProvider(Map<String, Map<String,
-    PropertyInfo>> componentPropertyInfoMap,
-                                 StreamProvider streamProvider,
-                                 ComponentSSLConfiguration configuration,
-                                 MetricHostProvider hostProvider,
-                                 String clusterNamePropertyId,
-                                 String hostNamePropertyId,
-                                 String componentNamePropertyId) {
+       PropertyInfo>> componentPropertyInfoMap,
+       StreamProvider streamProvider,
+       ComponentSSLConfiguration configuration,
+       MetricHostProvider hostProvider,
+       String clusterNamePropertyId,
+       String hostNamePropertyId,
+       String componentNamePropertyId) {
 
     super(componentPropertyInfoMap);
 

@@ -27,6 +27,7 @@ import org.apache.ambari.server.controller.utilities.PredicateHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.commons.lang.StringUtils;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -40,49 +41,57 @@ public class AMSComponentPropertyProvider extends AMSPropertyProvider {
                                           String clusterNamePropertyId,
                                           String componentNamePropertyId) {
 
-    super(componentPropertyInfoMap, streamProvider, configuration, hostProvider,
+    super(updateComponentMetricsWithAggregateFunctionSupport(componentPropertyInfoMap),
+      streamProvider, configuration, hostProvider,
       clusterNamePropertyId, null, componentNamePropertyId);
   }
 
-  @Override
-  protected Set<String> getRequestPropertyIds(Request request, Predicate predicate) {
-    Set<String> supportedPropertyIds = super.getRequestPropertyIds(request, predicate);
+  /**
+   * This method adds supported propertyInfo for component metrics with
+   * aggregate function ids. API calls with multiple aggregate functions
+   * applied to a single metric need this support.
+   *
+   * Currently this support is added only for Component metrics,
+   * this can be easily extended to all levels by moving this method to the
+   * base class: @AMSPropertyProvider.
+   */
+  private static Map<String, Map<String, PropertyInfo>> updateComponentMetricsWithAggregateFunctionSupport(
+        Map<String, Map<String, PropertyInfo>> componentMetrics) {
 
-    Set<String> unsupportedPropertyIds = new HashSet<String>(request.getPropertyIds());
-    if (predicate != null) {
-      unsupportedPropertyIds.addAll(PredicateHelper.getPropertyIds(predicate));
+    if (componentMetrics == null || componentMetrics.isEmpty()) {
+      return componentMetrics;
     }
-    unsupportedPropertyIds.removeAll(supportedPropertyIds);
-    // Allow for aggregate function names to be a part of metrics names
-    if (!unsupportedPropertyIds.isEmpty()) {
-      for (String propertyId : unsupportedPropertyIds) {
-        String[] idWithFunctionArray = stripFunctionFromMetricName(propertyId);
-        if (idWithFunctionArray != null) {
-          propertyIdAggregateFunctionMap.put(idWithFunctionArray[0], idWithFunctionArray[1]);
-          supportedPropertyIds.add(idWithFunctionArray[0]);
+
+    // For every component
+    for (Map<String, PropertyInfo> componentMetricInfo : componentMetrics.values()) {
+      Map<String, PropertyInfo> aggregateMetrics = new HashMap<String, PropertyInfo>();
+      // For every metric
+      for (Map.Entry<String, PropertyInfo> metricEntry : componentMetricInfo.entrySet()) {
+        // For each aggregate function id
+        for (String identifierToAdd : aggregateFunctionIdentifierMap.values()) {
+          String metricInfoKey = metricEntry.getKey() + identifierToAdd;
+          // This disallows metric key suffix of the form "._sum._sum" for
+          // the sake of avoiding duplicates
+          if (componentMetricInfo.containsKey(metricInfoKey)) {
+            continue;
+          }
+
+          PropertyInfo propertyInfo = metricEntry.getValue();
+          PropertyInfo metricInfoValue = new PropertyInfo(
+            propertyInfo.getPropertyId() + identifierToAdd,
+            propertyInfo.isTemporal(),
+            propertyInfo.isPointInTime());
+          metricInfoValue.setAmsHostMetric(propertyInfo.isAmsHostMetric());
+          metricInfoValue.setAmsId(propertyInfo.getAmsId());
+          metricInfoValue.setUnit(propertyInfo.getUnit());
+
+          aggregateMetrics.put(metricInfoKey, metricInfoValue);
         }
       }
+      componentMetricInfo.putAll(aggregateMetrics);
     }
 
-    return supportedPropertyIds;
-  }
-
-  /**
-   * Return array of function identifier and metricsName stripped of function
-   * identifier for metricsNames with aggregate function identifiers as
-   * trailing suffixes.
-   */
-  protected String[] stripFunctionFromMetricName(String propertyId) {
-    for (Map.Entry<AGGREGATE_FUNCTION_IDENTIFIER, String> identifierEntry :
-        aggregateFunctionIdentifierMap.entrySet()) {
-      if (propertyId.endsWith(identifierEntry.getValue())) {
-        String[] retVal = new String[2];
-        retVal[0] = StringUtils.removeEnd(propertyId, identifierEntry.getValue());
-        retVal[1] = identifierEntry.getValue();
-        return retVal;
-      }
-    }
-    return null;
+    return componentMetrics;
   }
 
   @Override

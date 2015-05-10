@@ -83,15 +83,19 @@ public class MetricsPropertyProviderProxy extends AbstractPropertyProvider {
     }
   }
 
+  /**
+   * Allow delegates to support special properties not stack defined.
+   */
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    MetricsService metricsService = metricsServiceProvider.getMetricsServiceType();
     Set<String> checkedPropertyIds = super.checkPropertyIds(propertyIds);
-    for (String propertyId : checkedPropertyIds) {
-      if (propertyId.startsWith(ZERO_PADDING_PARAM)) {
-        checkedPropertyIds.remove(propertyId);
-      }
+
+    if (metricsService != null && metricsService.equals(TIMELINE_METRICS)) {
+      return amsPropertyProvider.checkPropertyIds(checkedPropertyIds);
+    } else {
+      return checkedPropertyIds;
     }
-    return checkedPropertyIds;
   }
 
   private void createHostPropertyProviders(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,

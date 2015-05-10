@@ -3186,5 +3186,21 @@
         }
       }
     ]
+  },
+  "HBASE_REGIONSERVER": {
+    "Component": [
+      {
+        "type": "ganglia",
+        "metrics": {
+          "default": {
+            "metrics/rpc/NumOpenConnections": {
+              "metric": "rpc.rpc.NumOpenConnections",
+              "pointInTime": true,
+              "temporal": true
+            }
+          }
+        }
+      }
+    ]
   }
 }

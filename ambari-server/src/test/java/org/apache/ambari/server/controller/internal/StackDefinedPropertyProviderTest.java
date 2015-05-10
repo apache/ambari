@@ -29,6 +29,7 @@ import java.util.Set;
 
 import org.apache.ambari.server.controller.jmx.TestStreamProvider;
 import org.apache.ambari.server.controller.metrics.JMXPropertyProviderTest;
+import org.apache.ambari.server.controller.metrics.MetricsServiceProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProviderTest.TestGangliaHostProvider;
 import org.apache.ambari.server.controller.metrics.ganglia.GangliaPropertyProviderTest.TestGangliaServiceProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -1032,6 +1033,56 @@ public class StackDefinedPropertyProviderTest {
 
     }
 
+  }
+
+  @Test
+  public void testPopulateResourcesWithAggregateFunctionMetrics() throws Exception {
+
+    String metric = "metrics/rpc/NumOpenConnections._sum";
+
+    org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider streamProvider =
+      new org.apache.ambari.server.controller.metrics.ganglia.TestStreamProvider("ams/aggregate_component_metric.json");
+
+    JMXPropertyProviderTest.TestJMXHostProvider jmxHostProvider = new JMXPropertyProviderTest.TestJMXHostProvider(true);
+    TestGangliaHostProvider hostProvider = new TestGangliaHostProvider();
+    MetricsServiceProvider serviceProvider = new MetricsServiceProvider() {
+      @Override
+      public MetricsService getMetricsServiceType() {
+        return MetricsService.TIMELINE_METRICS;
+      }
+    };
+
+    StackDefinedPropertyProvider propertyProvider = new StackDefinedPropertyProvider(
+      Resource.Type.Component,
+      jmxHostProvider,
+      hostProvider,
+      serviceProvider,
+      streamProvider,
+      PropertyHelper.getPropertyId("HostRoles", "cluster_name"),
+      PropertyHelper.getPropertyId("HostRoles", "host_name"),
+      PropertyHelper.getPropertyId("HostRoles", "component_name"),
+      PropertyHelper.getPropertyId("HostRoles", "state"),
+      new EmptyPropertyProvider(),
+      new EmptyPropertyProvider());
+
+
+    Resource resource = new ResourceImpl(Resource.Type.Component);
+
+    resource.setProperty("HostRoles/cluster_name", "c1");
+    resource.setProperty("HostRoles/service_name", "HBASE");
+    resource.setProperty(HOST_COMPONENT_COMPONENT_NAME_PROPERTY_ID, "HBASE_REGIONSERVER");
+
+    // only ask for one property
+    Map<String, TemporalInfo> temporalInfoMap = new HashMap<String, TemporalInfo>();
+    temporalInfoMap.put(metric, new TemporalInfoImpl(1429824611300L, 1429825241400L, 1L));
+    Request request = PropertyHelper.getReadRequest(Collections.singleton(metric), temporalInfoMap);
+
+    Assert.assertEquals(1, propertyProvider.populateResources(Collections.singleton(resource), request, null).size());
+
+    Assert.assertEquals(4, PropertyHelper.getProperties(resource).size());
+    Assert.assertNotNull(resource.getPropertyValue(metric));
+    Number[][] metricsArray = (Number[][]) resource.getPropertyValue(metric);
+    Assert.assertEquals(32, metricsArray.length);
   }
 
 }

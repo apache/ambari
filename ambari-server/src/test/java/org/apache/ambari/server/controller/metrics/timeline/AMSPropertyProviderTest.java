@@ -404,7 +404,7 @@ public class AMSPropertyProviderTest {
     uriBuilder.addParameter("startTime", "1429824611300");
     uriBuilder.addParameter("endTime", "1429825241400");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
-    Number[][] val = (Number[][]) res.getPropertyValue(propertyProvider.stripFunctionFromMetricName(propertyId)[0]);
+    Number[][] val = (Number[][]) res.getPropertyValue(propertyId);
     Assert.assertEquals(32, val.length);
   }
 

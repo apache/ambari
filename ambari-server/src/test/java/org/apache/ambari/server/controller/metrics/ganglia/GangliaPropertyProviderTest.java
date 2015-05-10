@@ -789,11 +789,7 @@ public class GangliaPropertyProviderTest {
     Assert.assertEquals(11, PropertyHelper.getProperties(resource).size());
     Assert.assertNotNull(resource.getPropertyValue(FLUME_CHANNEL_CAPACITY_PROPERTY));
   }
-  
 
-
-
-  
   private boolean isUrlParamsEquals(URIBuilder actualUri, URIBuilder expectedUri) {
     for (final NameValuePair expectedParam : expectedUri.getQueryParams()) {
       NameValuePair actualParam = (NameValuePair) CollectionUtils.find(actualUri.getQueryParams(), new Predicate() {

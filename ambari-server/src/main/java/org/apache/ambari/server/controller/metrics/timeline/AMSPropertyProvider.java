@@ -53,6 +53,7 @@ import java.util.regex.Pattern;
 import static org.apache.ambari.server.Role.HBASE_MASTER;
 import static org.apache.ambari.server.Role.HBASE_REGIONSERVER;
 import static org.apache.ambari.server.Role.METRICS_COLLECTOR;
+import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
 import static org.codehaus.jackson.map.annotate.JsonSerialize.Inclusion;
 
@@ -70,8 +71,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   }
   protected static final EnumMap<AGGREGATE_FUNCTION_IDENTIFIER, String> aggregateFunctionIdentifierMap =
     new EnumMap<AGGREGATE_FUNCTION_IDENTIFIER, String>(AGGREGATE_FUNCTION_IDENTIFIER.class);
-  // Map to store aggregate functions that apply to metrics.
-  protected Map<String, String> propertyIdAggregateFunctionMap = new HashMap<String, String>();
 
   static {
     TIMELINE_APPID_MAP.put(HBASE_MASTER.name(), "HBASE");
@@ -111,6 +110,32 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       return  "*";
     }
     return componentName;
+  }
+
+  /**
+   * Support properties with aggregate functions and metrics padding method.
+   */
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    for (String propertyId : propertyIds) {
+      if (propertyId.startsWith(ZERO_PADDING_PARAM)
+          || hasAggregateFunctionSuffix(propertyId)) {
+        propertyIds.remove(propertyId);
+      }
+    }
+    return propertyIds;
+  }
+
+  /**
+   * Check if property ends with a trailing suffix
+   */
+  protected boolean hasAggregateFunctionSuffix(String propertyId) {
+    for (String aggregateFunctionId : aggregateFunctionIdentifierMap.values()) {
+      if (propertyId.endsWith(aggregateFunctionId)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   /**
@@ -437,9 +462,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       }
     }
 
-    // Clear function map
-    propertyIdAggregateFunctionMap.clear();
-
     return resources;
   }
 
@@ -515,10 +537,7 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
         for (Map.Entry<String, PropertyInfo> entry : propertyInfoMap.entrySet()) {
           String propertyId = entry.getKey();
           PropertyInfo propertyInfo = entry.getValue();
-          // For regex properties this propertyId != id
-          String amsPropertyId = getPropertyIdWithAggregateFunctionId(propertyInfo, id, false);
-          String ambariPropertyId = getPropertyIdWithAggregateFunctionId(propertyInfo, id, true);
-          TemporalInfo temporalInfo = request.getTemporalInfo(ambariPropertyId);
+          TemporalInfo temporalInfo = request.getTemporalInfo(id);
 
           if ((temporalInfo == null && propertyInfo.isPointInTime()) ||
             (temporalInfo != null && propertyInfo.isTemporal())) {
@@ -531,10 +550,10 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
               requests.put(temporalInfo, metricsRequest);
             }
             metricsRequest.putResource(getHostName(resource), resource);
-            metricsRequest.putPropertyId(amsPropertyId, propertyId);
+            metricsRequest.putPropertyId(propertyInfo.getPropertyId(), propertyId);
             // If request is for a host metric we need to create multiple requests
             if (propertyInfo.isAmsHostMetric()) {
-              metricsRequest.putHosComponentHostMetric(amsPropertyId);
+              metricsRequest.putHosComponentHostMetric(propertyInfo.getPropertyId());
             }
           }
         }
@@ -542,22 +561,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     }
 
     return requestMap;
-  }
-
-  /**
-   * Return a property Id with aggregate function identifier.
-   * @param propertyInfo @PropertyInfo
-   * @param propertyId Property Id from request / predicate
-   * @param ambariPropertyId True: Return ambari property id,
-   *                         else return id using PropertyInfo
-   */
-  private String getPropertyIdWithAggregateFunctionId(PropertyInfo propertyInfo,
-                                  String propertyId, boolean ambariPropertyId) {
-    if (propertyIdAggregateFunctionMap.containsKey(propertyId)) {
-      return (ambariPropertyId ? propertyId : propertyInfo.getPropertyId()) +
-        propertyIdAggregateFunctionMap.get(propertyId);
-    }
-    return ambariPropertyId ? propertyId : propertyInfo.getPropertyId();
   }
 
   static URIBuilder getAMSUriBuilder(String hostname, int port) {
