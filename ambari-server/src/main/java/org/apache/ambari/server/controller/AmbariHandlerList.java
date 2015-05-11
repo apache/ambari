@@ -17,23 +17,7 @@
  */
 package org.apache.ambari.server.controller;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
+import org.apache.ambari.server.api.AmbariPersistFilter;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 import org.apache.ambari.server.orm.entities.ViewInstanceEntity;
 import org.apache.ambari.server.view.ViewContextImpl;
@@ -51,6 +35,20 @@ import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.filter.DelegatingFilterProxy;
+
+import javax.inject.Inject;
+import javax.inject.Provider;
+import javax.inject.Singleton;
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * An Ambari specific extension of the FailsafeHandlerList that allows for the addition
@@ -77,13 +75,23 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
   @Inject
   SessionManager sessionManager;
 
+  /**
+   * The web app context provider.
+   */
   @Inject
-  DelegatingFilterProxy springSecurityFilter;
+  Provider<WebAppContext> webAppContextProvider;
 
   /**
-   * The Handler factory.
+   * The persistence filter.
    */
-  private final HandlerFactory handlerFactory;
+  @Inject
+  AmbariPersistFilter persistFilter;
+
+  /**
+   * The security filter.
+   */
+  @Inject
+  DelegatingFilterProxy springSecurityFilter;
 
   /**
    * Mapping of view instance entities to handlers.
@@ -108,30 +116,6 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    */
   public AmbariHandlerList() {
     super(true);
-    this.handlerFactory = new HandlerFactory() {
-      @Override
-      public Handler create(ViewInstanceEntity viewInstanceDefinition, String webApp, String contextPath) {
-
-        WebAppContext context = new WebAppContext(webApp, contextPath);
-
-        context.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
-        context.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
-        context.setSessionHandler(new SharedSessionHandler(sessionManager));
-        context.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
-
-        return context;
-      }
-    };
-  }
-
-  /**
-   * Construct an AmbariHandlerList with the given handler factory.
-   *
-   * @param handlerFactory  the handler factory.
-   */
-  protected AmbariHandlerList(HandlerFactory handlerFactory) {
-    super(true);
-    this.handlerFactory = handlerFactory;
   }
 
 
@@ -241,8 +225,19 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
    */
   private Handler getHandler(ViewInstanceEntity viewInstanceDefinition)
       throws SystemException {
-    ViewEntity viewDefinition = viewInstanceDefinition.getViewEntity();
-    return handlerFactory.create(viewInstanceDefinition, viewDefinition.getArchive(), viewInstanceDefinition.getContextPath());
+
+    ViewEntity    viewDefinition = viewInstanceDefinition.getViewEntity();
+    WebAppContext webAppContext  = webAppContextProvider.get();
+
+    webAppContext.setWar(viewDefinition.getArchive());
+    webAppContext.setContextPath(viewInstanceDefinition.getContextPath());
+    webAppContext.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
+    webAppContext.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
+    webAppContext.setSessionHandler(new SharedSessionHandler(sessionManager));
+    webAppContext.addFilter(new FilterHolder(persistFilter), "/*", 1);
+    webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
+
+    return webAppContext;
   }
 
   /**
@@ -256,24 +251,6 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     Matcher matcher = VIEW_RESOURCE_TARGET_PATTERN.matcher(target);
 
     return matcher.matches() ? viewRegistry.getDefinition(matcher.group(2), matcher.group(3)) : null;
-  }
-
-
-  // ----- inner interface : HandlerFactory ----------------------------------
-
-  /**
-   * Factory for creating Handler instances.
-   */
-  protected interface HandlerFactory {
-    /**
-     * Create a Handler.
-     *
-     * @param webApp       the web app archive
-     * @param contextPath  the context path
-     *
-     * @return a new Handler instance
-     */
-    public Handler create(ViewInstanceEntity viewInstanceDefinition, String webApp, String contextPath);
   }
 
 
