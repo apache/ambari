@@ -20,8 +20,8 @@
   <services>
     <service>
       <name>ATLAS</name>
-      <extends>common-services/ATLAS/0.1.0.2.3.0.0</extends>
-      <version>0.1.0.2.3.0.0</version>
+      <extends>common-services/ATLAS/0.1.0.2.3</extends>
+      <version>0.1.0.2.3</version>
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>

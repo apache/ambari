@@ -25,7 +25,7 @@ import sys
 
 
 class TestMetadataServer(RMFTestCase):
-  COMMON_SERVICES_PACKAGE_DIR = "ATLAS/0.1.0.2.3.0.0/package"
+  COMMON_SERVICES_PACKAGE_DIR = "ATLAS/0.1.0.2.3/package"
   STACK_VERSION = "2.3"
 
   @patch("shutil.copy2", new = MagicMock())
