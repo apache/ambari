@@ -22,6 +22,9 @@
           }
         }
       ],
+      "auth_to_local_properties" : [
+        "falcon-startup.properties/*.falcon.http.authentication.kerberos.name.rules"
+      ],
       "components": [
         {
           "name": "FALCON_SERVER",
