@@ -1020,6 +1020,8 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.progressPage.notice.inProgress': 'Please wait while cluster is being kerberized',
   'admin.kerberos.wizard.step4.info.body': 'Configure principal name and keytab location for service users and hadoop service components.',
   'admin.kerberos.wizard.step5.info.body': 'Please review the configuration before continuing the setup process',
+  'admin.kerberos.wizard.step5.moreInfoNonManual.body': 'Using the <b>Download CSV button</b>, you can download a csv file which contains a list of the principals and keytabs that will automatically be created by Ambari.',
+  'admin.kerberos.wizard.step5.moreInfoManual.body': 'Important: Use the <b>Download CSV</b> button to obtain a list of the <b>required</b> principals and keytabs that are needed by Ambari to enable Kerberos in the cluster. <b>Do not proceed</b> until you have manually created and distributed the principals and keytabs to the cluster hosts.',
   'admin.kerberos.wizard.step5.realm.label': 'Realm Name',
   'admin.kerberos.wizard.step5.exitWizard': 'Exit Wizard',
   'admin.kerberos.wizard.step5.downloadCSV': 'Download CSV',

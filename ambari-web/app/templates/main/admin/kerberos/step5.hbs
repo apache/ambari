@@ -19,9 +19,21 @@
   <div id="confirm-configuration">
     <h2>{{t admin.kerberos.wizard.step5.header}}</h2>
 
-    <p class="alert alert-info">
-      {{t admin.kerberos.wizard.step5.info.body}}
-    </p>
+    <div class="alert alert-info">
+      <p>
+        {{t admin.kerberos.wizard.step5.info.body}}
+      </p>
+      {{#unless App.router.kerberosWizardController.skipClientInstall}}
+        <p>
+          {{t admin.kerberos.wizard.step5.moreInfoNonManual.body}}
+        </p>
+      {{/unless}}
+      {{#if App.router.kerberosWizardController.skipClientInstall}}
+        <p>
+          {{t admin.kerberos.wizard.step5.moreInfoManual.body}}
+        </p>
+      {{/if}}
+    </div>
 
     <div class="well pre-scrollable">
       <p><strong>{{t installer.step0.clusterName.tooltip.title}}</strong>: {{App.router.clusterController.clusterName}}</p>
@@ -33,9 +45,9 @@
       {{/each}}
     </div>
 
-    <div class="additional btn-area">
-      <button class="btn btn-danger" {{action exitWizard}}>{{t admin.kerberos.wizard.step5.exitWizard}}</button>
-      <button class="btn btn-primary pull-right" {{action downloadCSV}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</button>
+    <div class="additional btn-area clearfix">
+      <button class="btn btn-primary pull-right mls" {{action downloadCSV}}>{{t admin.kerberos.wizard.step5.downloadCSV}}</button>
+      <button class="btn pull-right" {{action exitWizard}}>{{t admin.kerberos.wizard.step5.exitWizard}}</button>
     </div>
 
     <div class="btn-area">

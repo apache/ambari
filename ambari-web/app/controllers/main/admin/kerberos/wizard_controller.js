@@ -21,7 +21,7 @@ var App = require('app');
 
 App.KerberosWizardController = App.WizardController.extend({
 
-  exceptionsOnSkipClient: ['realm', 'executable_search_paths'],
+  exceptionsOnSkipClient: [{'KDC': 'realm'}, {'KDC': 'kdc_type'}, {'Advanced kerberos-env': 'executable_search_paths'}],
 
   name: 'kerberosWizardController',
 
@@ -184,7 +184,8 @@ App.KerberosWizardController = App.WizardController.extend({
     newValue = newValue || false;
 
     for (var i=0; i < itemsArray.length; i += 1) {
-      if (self.get('exceptionsOnSkipClient').indexOf(itemsArray[i].get('name')) < 0) {
+      var isException = self.get('exceptionsOnSkipClient').filterProperty(itemsArray[i].get('category'), itemsArray[i].get('name'));
+      if (!isException.length) {
         itemsArray[i].set('isVisible', newValue);
       }
     }

@@ -177,7 +177,6 @@ module.exports = App.WizardRoute.extend({
         kerberosWizardStep2Controller.get('stepConfigs')[0].get('configs').findProperty('name', 'manage_identities').set('value', 'false');
         kerberosWizardStep2Controller.get('stepConfigs')[0].get('configs').findProperty('name', 'install_packages').set('value', 'false');
         kerberosWizardStep2Controller.get('stepConfigs')[0].get('configs').findProperty('name', 'manage_krb5_conf').set('value', 'false');
-        kerberosWizardStep2Controller.get('stepConfigs')[0].get('configs').findProperty('name', 'kdc_type').set('value', 'none');
       }
 
       kerberosWizardController.saveServiceConfigProperties(kerberosWizardStep2Controller);

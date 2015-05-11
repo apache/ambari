@@ -98,7 +98,7 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
     //STEP 4: Add advanced configs
     App.config.addAdvancedConfigs(configs, advancedConfigs);
-    this.showAdConfigs(configs);
+    this.filterConfigs(configs);
     this.applyServicesConfigs(configs, storedConfigs);
   },
 
@@ -106,13 +106,18 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
    * Make Active Directory specific configs visible if user has selected AD option
    * @param configs
    */
-  showAdConfigs: function (configs) {
+  filterConfigs: function (configs) {
     var kdcType = this.get('content.kerberosOption');
     var configNames = ['ldap_url', 'container_dn', 'create_attributes_template'];
     configNames.forEach(function (_configName) {
       var config = configs.findProperty('name', _configName);
       config.isVisible = kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.ad');
     }, this);
+    if (kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
+      var host = configs.findProperty('name', 'kdc_host');
+      host.isRequiredByAgent = false;
+      host.isVisible = false;
+    }
   },
 
   submit: function () {
