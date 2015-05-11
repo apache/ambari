@@ -470,7 +470,7 @@ App.WidgetMixin = Ember.Mixin.create({
 
   /**
    * collect all needed data to create new widget
-   * @returns {{WidgetInfo: {widget_name: *, display_name: *, widget_type: *, description: *, scope: *, metrics: *, values: *, properties: *}}}
+   * @returns {{WidgetInfo: {widget_name: *, widget_type: *, description: *, scope: *, metrics: *, values: *, properties: *}}}
    */
   collectWidgetData: function () {
     return {
@@ -504,8 +504,6 @@ App.WidgetMixin = Ember.Mixin.create({
     var data = this.collectWidgetData();
     if (isClone) {
       data.WidgetInfo.widget_name += this.get('CLONE_SUFFIX');
-      //TODO remove setting display_name once API supports it
-      data.WidgetInfo.display_name = data.WidgetInfo.widget_name;
       data.WidgetInfo.scope = 'USER';
     }
     var successCallback =  isEditClonedWidget ? 'editNewClonedWidget' :  'postWidgetDefinitionSuccessCallback';

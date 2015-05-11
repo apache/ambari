@@ -274,8 +274,6 @@ App.WidgetWizardController = App.WizardController.extend({
    * @returns {$.ajax}
    */
   postWidgetDefinition: function (data) {
-    //TODO remove setting diplay_name once API supports it
-    data.WidgetInfo.display_name = data.WidgetInfo.widget_name;
     return App.ajax.send({
       name: 'widgets.wizard.add',
       sender: this,

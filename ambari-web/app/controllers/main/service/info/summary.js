@@ -373,7 +373,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           return Em.Object.create({
             id: widgetId,
             widgetName: widgetName,
-            displayName: widget.WidgetInfo.display_name,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",
@@ -423,7 +422,6 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           return Em.Object.create({
             id: widget.WidgetInfo.id,
             widgetName: widgetName,
-            displayName: widget.WidgetInfo.display_name,
             description: widget.WidgetInfo.description,
             widgetType: widgetType,
             iconPath: "/img/widget-" + widgetType.toLowerCase() + ".png",

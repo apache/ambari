@@ -232,7 +232,7 @@
           }
         },
         {
-          "widget_name": "Cluster(NodeManager) Memory",
+          "widget_name": "Cluster Memory",
           "description": "Memory utilization on NodeManager hosts",
           "widget_type": "GRAPH",
           "is_visible": true,
@@ -258,7 +258,7 @@
           ],
           "values": [
             {
-              "name": "Memory utilization on NameNode host",
+              "name": "Memory utilization on NodeManager hosts",
               "value": "${(mem_total._sum - mem_free._sum - mem_cached._sum)/mem_total._sum}"
             }
           ],
