@@ -18,6 +18,7 @@ limitations under the License.
 """
 import status_params
 
+from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
@@ -37,8 +38,9 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 etc_prefix_dir = "/etc/falcon"
 
 # hadoop params
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 
   # if this is a server action, then use the server binaries; smoke tests
   # use the client binaries
@@ -53,7 +55,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   falcon_webapp_dir = format('/usr/hdp/current/{falcon_root}/webapp')
   falcon_home = format('/usr/hdp/current/{falcon_root}')
 else:
-  hadoop_bin_dir = "/usr/bin"
   falcon_webapp_dir = '/var/lib/falcon/webapp'
   falcon_home = '/usr/lib/falcon'
 

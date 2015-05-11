@@ -47,13 +47,11 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
+hadoop_lib_home = conf_select.get_hadoop_dir("lib")
 
 #hadoop params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
-  # start out assuming client libraries
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
-  hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
-
   # oozie-server or oozie-client, depending on role
   oozie_root = status_params.component_directory
 
@@ -74,8 +72,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hive_conf_dir = format("{conf_dir}/action-conf/hive")
 
 else:
-  hadoop_bin_dir = "/usr/bin"
-  hadoop_lib_home = "/usr/lib/hadoop/lib"
   oozie_lib_dir = "/var/lib/oozie"
   oozie_setup_sh = "/usr/lib/oozie/bin/oozie-setup.sh"
   oozie_webapps_dir = "/var/lib/oozie/oozie-server/webapps/"

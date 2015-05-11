@@ -60,9 +60,9 @@ version = default("/commandParams/version", None)
 hostname = config['hostname']
 
 # hadoop default parameters
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-hadoop_bin = "/usr/lib/hadoop/sbin"
-hadoop_bin_dir = "/usr/bin"
+hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
+hadoop_bin = conf_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 hadoop_yarn_home = '/usr/lib/hadoop-yarn'
 hadoop_mapred2_jar_location = "/usr/lib/hadoop-mapreduce"
@@ -83,10 +83,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   yarn_role_root = "hadoop-yarn-client"
   if command_role in YARN_SERVER_ROLE_DIRECTORY_MAP:
     yarn_role_root = YARN_SERVER_ROLE_DIRECTORY_MAP[command_role]
-
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
 
   hadoop_mapred2_jar_location = format("/usr/hdp/current/{mapred_role_root}")
   mapred_bin = format("/usr/hdp/current/{mapred_role_root}/sbin")

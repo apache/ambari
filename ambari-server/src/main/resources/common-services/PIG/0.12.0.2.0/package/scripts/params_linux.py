@@ -40,15 +40,14 @@ version = default("/commandParams/version", None)
 
 # hadoop default parameters
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 pig_conf_dir = "/etc/pig/conf"
-hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
 pig_bin_dir = ""
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   pig_conf_dir = "/usr/hdp/current/pig-client/conf"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   pig_bin_dir = '/usr/hdp/current/pig-client/bin'
 

@@ -31,9 +31,10 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-hadoop_lib_home = "/usr/lib/hadoop/lib"
-hadoop_bin = "/usr/lib/hadoop/sbin"
+
+hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
+hadoop_lib_home = conf_select.get_hadoop_dir("lib")
+hadoop_bin = conf_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
@@ -42,9 +43,6 @@ default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_lib_home = "/usr/hdp/current/hadoop-client/lib"
-  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   create_lib_snappy_symlinks = False
   

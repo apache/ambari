@@ -61,10 +61,10 @@ version = default("/commandParams/version", None)
 
 spark_conf = '/etc/spark/conf'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_home = "/usr/hdp/current/hadoop-client"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   spark_conf = format("/usr/hdp/current/{component_directory}/conf")
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir

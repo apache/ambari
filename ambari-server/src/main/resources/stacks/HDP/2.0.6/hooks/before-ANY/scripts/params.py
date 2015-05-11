@@ -72,18 +72,17 @@ def is_secure_port(port):
 
 # hadoop default params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
 hadoop_home = "/usr/lib/hadoop"
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
   hadoop_home = "/usr/hdp/current/hadoop-client"
 
   # not supported in HDP 2.2+

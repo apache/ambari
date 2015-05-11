@@ -46,8 +46,7 @@ conf_dir = status_params.conf_dir
 server_conf_dir = status_params.server_conf_dir
 
 # service locations
-hadoop_prefix = "/usr/hdp/current/hadoop-client"
-hadoop_bin_dir = format("{hadoop_prefix}/bin")
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 zookeeper_home = "/usr/hdp/current/zookeeper-client"
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config

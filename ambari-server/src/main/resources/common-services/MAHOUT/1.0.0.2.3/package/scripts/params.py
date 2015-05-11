@@ -45,7 +45,7 @@ mahout_conf_dir = "/usr/hdp/current/mahout-client/conf"
 mahout_user = config['configurations']['mahout-env']['mahout_user']
 
 #hadoop params
-hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 hadoop_home = '/usr/hdp/current/hadoop-client'
 
 # the configuration direction for HDFS/YARN/MapR is the hadoop config

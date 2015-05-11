@@ -71,6 +71,7 @@ webhcat_bin_dir = '/usr/lib/hcatalog/sbin'
 # use the directories from status_params as they are already calculated for
 # the correct version of HDP
 hadoop_conf_dir = status_params.hadoop_conf_dir
+hadoop_bin_dir = status_params.hadoop_bin_dir
 webhcat_conf_dir = status_params.webhcat_conf_dir
 hive_conf_dir = status_params.hive_conf_dir
 hive_config_dir = status_params.hive_config_dir
@@ -87,7 +88,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hive_specific_configs_supported = True
 
   component_directory = status_params.component_directory
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   hive_bin = format('/usr/hdp/current/{component_directory}/bin')
   hive_lib = format('/usr/hdp/current/{component_directory}/lib')

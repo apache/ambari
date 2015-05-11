@@ -48,7 +48,7 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 # hadoop default parameters
-hadoop_bin_dir = "/usr/bin"
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 daemon_script = "/usr/lib/hbase/bin/hbase-daemon.sh"
 region_mover = "/usr/lib/hbase/bin/region_mover.rb"
@@ -57,7 +57,6 @@ hbase_cmd = "/usr/lib/hbase/bin/hbase"
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
-  hadoop_bin_dir = format("/usr/hdp/current/hadoop-client/bin")
   daemon_script = format('/usr/hdp/current/hbase-client/bin/hbase-daemon.sh')
   region_mover = format('/usr/hdp/current/hbase-client/bin/region_mover.rb')
   region_drainer = format('/usr/hdp/current/hbase-client/bin/draining_servers.rb')

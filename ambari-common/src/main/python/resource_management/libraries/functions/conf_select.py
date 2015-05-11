@@ -18,13 +18,21 @@ limitations under the License.
 
 """
 
-__all__ = ["select", "create"]
+__all__ = ["select", "create", "get_hadoop_conf_dir", "get_hadoop_dir"]
 
 import version
 from resource_management.core import shell
+from resource_management.core.exceptions import Fail
 from resource_management.libraries.script.script import Script
 
 TEMPLATE = "conf-select {0} --package {1} --stack-version {2} --conf-version 0"
+HADOOP_DIR_TEMPLATE = "/usr/hdp/{0}/{1}/{2}"
+HADOOP_DIR_DEFAULTS = {
+  "libexec": "/usr/lib/hadoop/libexec",
+  "sbin": "/usr/lib/hadoop/sbin",
+  "bin": "/usr/bin",
+  "lib": "/usr/lib/hadoop/lib"
+}
 
 def _valid(stack_name, package, ver):
   if stack_name != "HDP":
@@ -34,6 +42,17 @@ def _valid(stack_name, package, ver):
     return False
 
   return True
+
+def _is_upgrade():
+  from resource_management.libraries.functions.default import default
+  direction = default("/commandParams/upgrade_direction", None)
+  stack_name = default("/hostLevelParams/stack_name", None)
+  ver = default("/commandParams/version", None)
+
+  if direction and stack_name and ver:
+    return (stack_name, ver)
+
+  return None
 
 def create(stack_name, package, version):
   """
@@ -76,22 +95,40 @@ def get_hadoop_conf_dir():
       the configs are written in the correct place
   """
 
-  config = Script.get_config()
   hadoop_conf_dir = "/etc/hadoop/conf"
 
   if Script.is_hdp_stack_greater_or_equal("2.2"):
-    from resource_management.libraries.functions.default import default
-
     hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
 
-    direction = default("/commandParams/upgrade_direction", None)
-    ver = default("/commandParams/version", None)
-    stack_name = default("/hostLevelParams/stack_name", None)
+    res = _is_upgrade()
 
-    if direction and ver and stack_name and Script.is_hdp_stack_greater_or_equal("2.3"):
-      select(stack_name, "hadoop", ver)
-      hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(ver)
+    if res is not None and Script.is_hdp_stack_greater_or_equal("2.3"):
+      select(res[0], "hadoop", res[1])
+      hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(res[1])
 
   return hadoop_conf_dir
 
+def get_hadoop_dir(target):
+  """
+  Return the hadoop shared directory in the following override order
+  1. Use default for 2.1 and lower
+  2. If 2.2 and higher, use /usr/hdp/current/hadoop-client/{target}
+  3. If 2.2 and higher AND for an upgrade, use /usr/hdp/<version>/hadoop/{target}
+  :target: the target directory
+  """
+
+  if not target in HADOOP_DIR_DEFAULTS:
+    raise Fail("Target {0} not defined".format(target))
+
+  hadoop_dir = HADOOP_DIR_DEFAULTS[target]
+
+  if Script.is_hdp_stack_greater_or_equal("2.2"):
+    hadoop_dir = HADOOP_DIR_TEMPLATE.format("current", "hadoop-client", target)
+
+    res = _is_upgrade()
+
+    if res is not None:
+      hadoop_dir = HADOOP_DIR_TEMPLATE.format(res[1], "hadoop", target)
+
+  return hadoop_dir
     

@@ -1193,6 +1193,81 @@ class TestNamenode(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
+  @patch("resource_management.core.shell.call")
+  def test_pre_rolling_restart_21_and_lower_params(self, call_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_ru_lzo.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    json_content['hostLevelParams']['stack_name'] = 'HDP'
+    json_content['hostLevelParams']['stack_version'] = '2.0'
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+    import sys
+    self.assertEquals("/etc/hadoop/conf", sys.modules["params"].hadoop_conf_dir)
+    self.assertEquals("/usr/lib/hadoop/libexec", sys.modules["params"].hadoop_libexec_dir)
+    self.assertEquals("/usr/bin", sys.modules["params"].hadoop_bin_dir)
+    self.assertEquals("/usr/lib/hadoop/sbin", sys.modules["params"].hadoop_bin)
+
+  @patch("resource_management.core.shell.call")
+  def test_pre_rolling_restart_22_params(self, call_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_ru_lzo.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.2.0.0-1234'
+    del json_content['commandParams']['version']
+    json_content['hostLevelParams']['stack_name'] = 'HDP'
+    json_content['hostLevelParams']['stack_version'] = '2.2'
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+    import sys
+    self.assertEquals("/usr/hdp/current/hadoop-client/conf", sys.modules["params"].hadoop_conf_dir)
+    self.assertEquals("/usr/hdp/current/hadoop-client/libexec", sys.modules["params"].hadoop_libexec_dir)
+    self.assertEquals("/usr/hdp/current/hadoop-client/bin", sys.modules["params"].hadoop_bin_dir)
+    self.assertEquals("/usr/hdp/current/hadoop-client/sbin", sys.modules["params"].hadoop_bin)
+
+  @patch("resource_management.core.shell.call")
+  def test_pre_rolling_restart_23_params(self, call_mock):
+    config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_ru_lzo.json"
+    with open(config_file, "r") as f:
+      json_content = json.load(f)
+    version = '2.3.0.0-1234'
+    json_content['commandParams']['version'] = version
+    json_content['commandParams']['upgrade_direction'] = 'upgrade'
+    json_content['hostLevelParams']['stack_name'] = 'HDP'
+    json_content['hostLevelParams']['stack_version'] = '2.3'
+
+    mocks_dict = {}
+    self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/namenode.py",
+                       classname = "NameNode",
+                       command = "pre_rolling_restart",
+                       config_dict = json_content,
+                       hdp_stack_version = self.STACK_VERSION,
+                       target = RMFTestCase.TARGET_COMMON_SERVICES,
+                       call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
+                       mocks_dict = mocks_dict)
+    import sys
+    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf", sys.modules["params"].hadoop_conf_dir)
+    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/libexec", sys.modules["params"].hadoop_libexec_dir)
+    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/bin", sys.modules["params"].hadoop_bin_dir)
+    self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/sbin", sys.modules["params"].hadoop_bin)
+
+
 
 class Popen_Mock:
   return_value = 1

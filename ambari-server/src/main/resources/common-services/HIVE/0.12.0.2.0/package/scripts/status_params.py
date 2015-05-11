@@ -71,6 +71,7 @@ else:
 
   # default configuration directories
   hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+  hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
   webhcat_conf_dir = '/etc/hive-webhcat/conf'
   hive_etc_dir_prefix = "/etc/hive"
   hive_conf_dir = "/etc/hive/conf"

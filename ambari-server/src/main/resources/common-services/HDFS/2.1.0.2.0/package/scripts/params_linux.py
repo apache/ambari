@@ -62,9 +62,9 @@ secure_dn_ports_are_in_use = False
 
 # hadoop default parameters
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
-hadoop_libexec_dir = "/usr/lib/hadoop/libexec"
-hadoop_bin = "/usr/lib/hadoop/sbin"
-hadoop_bin_dir = "/usr/bin"
+hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
+hadoop_bin = conf_select.get_hadoop_dir("sbin")
+hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 hadoop_home = "/usr/lib/hadoop"
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
@@ -72,9 +72,6 @@ hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   mapreduce_libs_path = "/usr/hdp/current/hadoop-mapreduce-client/*"
-  hadoop_libexec_dir = "/usr/hdp/current/hadoop-client/libexec"
-  hadoop_bin = "/usr/hdp/current/hadoop-client/sbin"
-  hadoop_bin_dir = "/usr/hdp/current/hadoop-client/bin"
   hadoop_home = "/usr/hdp/current/hadoop-client"
 
   if not security_enabled:
