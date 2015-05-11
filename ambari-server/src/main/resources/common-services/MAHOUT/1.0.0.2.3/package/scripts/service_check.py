@@ -20,34 +20,55 @@ Ambari Agent
 """
 
 from resource_management import *
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 
 class MahoutServiceCheck(Script):
   def service_check(self, env):
     import params
     env.set_params(params)
 
+    create_input_dir_cmd = format("fs -mkdir /user/{smokeuser}/mahoutsmokeinput")
+    copy_test_file_to_hdfs_cmd = format("fs -put {tmp_dir}/sample-mahout-test.txt /user/{smokeuser}/mahoutsmokeinput/")
     mahout_command = format("mahout seqdirectory --input /user/{smokeuser}/mahoutsmokeinput/sample-mahout-test.txt "
                             "--output /user/{smokeuser}/mahoutsmokeoutput/ --charset utf-8")
     test_command = format("fs -test -e /user/{smokeuser}/mahoutsmokeoutput/_SUCCESS")
-    
+    remove_output_input_dirs_cmd = format("fs -rm -r -f /user/{smokeuser}/mahoutsmokeoutput "
+                                          "/user/{smokeuser}/mahoutsmokeinput")
+
+    ExecuteHadoop( remove_output_input_dirs_cmd,
+                   tries = 3,
+                   try_sleep = 5,
+                   user = params.smokeuser,
+                   conf_dir = params.hadoop_conf_dir,
+                   # for kinit run
+                   keytab = params.smoke_user_keytab,
+                   principal = params.smokeuser_principal,
+                   security_enabled = params.security_enabled,
+                   kinit_path_local = params.kinit_path_local,
+                   bin_dir = params.hadoop_bin_dir
+                   )
+
+    ExecuteHadoop( create_input_dir_cmd,
+                 tries = 3,
+                 try_sleep = 5,
+                 user = params.smokeuser,
+                 conf_dir = params.hadoop_conf_dir,
+                 bin_dir = params.hadoop_bin_dir
+    )
+
     File( format("{tmp_dir}/sample-mahout-test.txt"),
         content = "Test text which will be converted to sequence file.",
         mode = 0755
     )
-    
-    params.HdfsResource(format("/user/{smokeuser}/mahoutsmokeinput"),
-                        action="create_on_execute",
-                        type="directory",
-                        owner=params.smokeuser,
+
+    ExecuteHadoop( copy_test_file_to_hdfs_cmd,
+                   tries = 3,
+                   try_sleep = 5,
+                   user = params.smokeuser,
+                   conf_dir = params.hadoop_conf_dir,
+                   bin_dir = params.hadoop_bin_dir
     )
-    params.HdfsResource(format("/user/{smokeuser}/mahoutsmokeinput/sample-mahout-test.txt"),
-                        action="create_on_execute",
-                        type="file",
-                        owner=params.smokeuser,
-                        source=format("{tmp_dir}/sample-mahout-test.txt")
-    )
-    params.HdfsResource(None, action="execute")
-    
+
     Execute( mahout_command,
              tries = 3,
              try_sleep = 5,

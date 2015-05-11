@@ -297,7 +297,6 @@ class Script(object):
       return None
 
     stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-
     if stack_version_unformatted is None or stack_version_unformatted == '':
       return None
 
@@ -326,7 +325,6 @@ class Script(object):
     :return: True if the command's stack is less than the specified version
     """
     hdp_stack_version = Script.get_hdp_stack_version()
-
     if hdp_stack_version is None:
       return False
 

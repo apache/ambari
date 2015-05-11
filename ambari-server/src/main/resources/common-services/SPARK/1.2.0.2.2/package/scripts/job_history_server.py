@@ -22,6 +22,7 @@ import sys
 import os
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.check_process_status import check_process_status
 from resource_management.core.resources import Execute
@@ -76,14 +77,7 @@ class JobHistoryServer(Script):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "spark", params.version)
       Execute(format("hdp-select set spark-historyserver {version}"))
-      params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.tez_tar_source,
-                          group=params.user_group,
-                          owner=params.hdfs_user
-      )
-      params.HdfsResource(None, action="execute")
+      copy_tarballs_to_hdfs('tez', 'spark-historyserver', params.spark_user, params.hdfs_user, params.user_group)
 
 if __name__ == "__main__":
   JobHistoryServer().execute()

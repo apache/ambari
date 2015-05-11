@@ -21,7 +21,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 
 
-class TestTezServiceCheck(RMFTestCase):
+class TestFalconServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "TEZ/0.4.0.2.1/package"
   STACK_VERSION = "2.1"
 
@@ -33,56 +33,60 @@ class TestTezServiceCheck(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+    self.assertResourceCalled('ExecuteHadoop', 'fs -rm -r -f /tmp/tezsmokeinput /tmp/tezsmokeoutput',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              try_sleep = 5,
+                              kinit_path_local = '/usr/bin/kinit',
+                              tries = 3,
+                              user = 'ambari-qa',
+                              bin_dir = '/usr/bin',
+                              principal = UnknownConfigurationMock(),
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/tmp',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0777,
+                              owner = 'hdfs',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
+                              )
+    self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /tmp/tezsmokeinput',
+                              try_sleep = 5,
+                              tries = 3,
+                              bin_dir = '/usr/bin',
+                              user = 'ambari-qa',
+                              conf_dir = '/etc/hadoop/conf',
+                              )
     self.assertResourceCalled('File', '/tmp/sample-tez-test',
-        content = 'foo\nbar\nfoo\nbar\nfoo',
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'ambari-qa',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-    )
-    self.assertResourceCalled('HdfsResource', '/tmp/tezsmokeinput/sample-tez-test',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        source = '/tmp/sample-tez-test',
-        user = 'hdfs',
-        owner = 'ambari-qa',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'file',
-        action = ['create_on_execute'],
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-    )
+                              content = 'foo\nbar\nfoo\nbar\nfoo',
+                              mode = 0755,
+                              )
+    self.assertResourceCalled('ExecuteHadoop', 'fs -put /tmp/sample-tez-test /tmp/tezsmokeinput/',
+                              try_sleep = 5,
+                              tries = 3,
+                              bin_dir = '/usr/bin',
+                              user = 'ambari-qa',
+                              conf_dir = '/etc/hadoop/conf',
+                              )
     self.assertResourceCalled('ExecuteHadoop', 'jar /usr/lib/tez/tez-mapreduce-examples*.jar orderedwordcount /tmp/tezsmokeinput/sample-tez-test /tmp/tezsmokeoutput/',
-        try_sleep = 5,
-        tries = 3,
-        bin_dir = '/usr/bin',
-        user = 'ambari-qa',
-        conf_dir = '/etc/hadoop/conf',
-    )
+                              try_sleep = 5,
+                              tries = 3,
+                              bin_dir = '/usr/bin',
+                              user = 'ambari-qa',
+                              conf_dir = '/etc/hadoop/conf',
+                              )
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /tmp/tezsmokeoutput/_SUCCESS',
-        try_sleep = 6,
-        tries = 10,
-        bin_dir = '/usr/bin',
-        user = 'ambari-qa',
-        conf_dir = '/etc/hadoop/conf',
-    )
+                              try_sleep = 6,
+                              tries = 10,
+                              bin_dir = '/usr/bin',
+                              user = 'ambari-qa',
+                              conf_dir = '/etc/hadoop/conf',
+                              )
     self.assertNoMoreResources()
 
 

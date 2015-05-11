@@ -22,6 +22,7 @@ Ambari Agent
 from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -103,18 +104,11 @@ class ResourcemanagerDefault(Resourcemanager):
     self.configure(env) # FOR SECURITY
     if params.is_supported_yarn_ranger:
       setup_ranger_yarn() #Ranger Yarn Plugin related calls 
-    if not Script.is_hdp_stack_greater_or_equal("2.2"):
+    if params.hdp_stack_version != "" and compare_versions(params.hdp_stack_version, '2.1') == 0:
       install_tez_jars()
     else:
       # will work only for stack versions >=2.2
-      params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.tez_tar_source,
-                          group=params.user_group,
-                          owner=params.hdfs_user
-      )
-      params.HdfsResource(None, action="execute")
+      copy_tarballs_to_hdfs('tez', 'hadoop-yarn-resourcemanager', params.tez_user, params.hdfs_user, params.user_group)
     service('resourcemanager', action='start')
 
   def status(self, env):

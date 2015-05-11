@@ -91,36 +91,33 @@ def falcon(type, action = None):
   if type == 'server':
     if action == 'config':
       if params.store_uri[0:4] == "hdfs":
-        params.HdfsResource(params.store_uri,
-                             type="directory",
-                             action="create_on_execute",
+        params.HdfsDirectory(params.store_uri,
+                             action="create_delayed",
                              owner=params.falcon_user,
                              mode=0755
         )
-      elif params.store_uri[0:4] == "file":
+      if params.store_uri[0:4] == "file":
         Directory(params.store_uri[7:],
                   owner=params.falcon_user,
                   recursive=True
         )
-      params.HdfsResource(params.flacon_apps_dir,
-                           type="directory",
-                           action="create_on_execute",
+      params.HdfsDirectory(params.flacon_apps_dir,
+                           action="create_delayed",
                            owner=params.falcon_user,
-                           mode=0777 #TODO change to proper mode
+                           mode=0777#TODO change to proper mode
       )
       if params.falcon_store_uri[0:4] == "hdfs":
-        params.HdfsResource(params.falcon_store_uri,
-                             type="directory",
-                             action="create_on_execute",
+        params.HdfsDirectory(params.falcon_store_uri,
+                             action="create_delayed",
                              owner=params.falcon_user,
                              mode=0755
         )
-      elif params.falcon_store_uri[0:4] == "file":
+      if params.falcon_store_uri[0:4] == "file":
         Directory(params.falcon_store_uri[7:],
                   owner=params.falcon_user,
                   recursive=True
         )
-      params.HdfsResource(None, action="execute")
+      params.HdfsDirectory(None, action="create")
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,
                 recursive=True,

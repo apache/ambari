@@ -17,7 +17,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management import *
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import conf_select
@@ -26,7 +25,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_port_from_url
 from resource_management.libraries.script.script import Script
-
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 
 import status_params
@@ -69,7 +68,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   oozie_shared_lib = format("/usr/hdp/current/{oozie_root}/share")
   oozie_home = format("/usr/hdp/current/{oozie_root}")
   oozie_bin_dir = format("/usr/hdp/current/{oozie_root}/bin")
-  oozie_examples_regex = format("/usr/hdp/current/{oozie_root}/doc")
   falcon_home = '/usr/hdp/current/falcon-client'
 
   conf_dir = format("/usr/hdp/current/{oozie_root}/conf")
@@ -90,7 +88,6 @@ else:
   falcon_home = '/usr/lib/falcon'
   conf_dir = "/etc/oozie/conf"
   hive_conf_dir = "/etc/oozie/conf/action-conf/hive"
-  oozie_examples_regex = "/usr/share/doc/oozie-*"
 
 execute_path = oozie_bin_dir + os.pathsep + hadoop_bin_dir
 
@@ -198,18 +195,17 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create hdfs directory we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
- )
-
+  bin_dir = hadoop_bin_dir
+)
 
 # The logic for LZO also exists in HDFS' params.py
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)

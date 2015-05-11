@@ -141,7 +141,7 @@ else:
       self.context.update(variables)
       
       rendered = self.template.render(self.context)
-      return rendered
+      return rendered + "\n" if not rendered.endswith('\n') else rendered
     
   class InlineTemplate(Template):
     def __init__(self, name, extra_imports=[], **kwargs):
@@ -189,14 +189,9 @@ class DownloadSource(Source):
         opener = urllib2.build_opener()
       
       req = urllib2.Request(self.url)
-      
-      try:
-        web_file = opener.open(req)
-      except urllib2.HTTPError as ex:
-        raise Fail("Failed to download file from {0} due to HTTP error: {1}".format(self.url, str(ex)))
-      
+      web_file = opener.open(req)
       content = web_file.read()
-      
+
       if self.cache:
         with open(filepath, 'w') as fp:
           fp.write(content)

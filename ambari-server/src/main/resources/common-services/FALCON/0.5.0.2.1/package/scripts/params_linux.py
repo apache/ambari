@@ -18,13 +18,12 @@ limitations under the License.
 """
 import status_params
 
-from resource_management import *
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 config = Script.get_config()
 
@@ -101,15 +100,14 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
- )
-
+  bin_dir = hadoop_bin_dir
+)

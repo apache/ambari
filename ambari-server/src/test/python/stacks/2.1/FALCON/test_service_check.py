@@ -21,7 +21,7 @@ limitations under the License.
 from stacks.utils.RMFTestCase import *
 
 
-class TestFalconServiceCheck(RMFTestCase):
+class TestFalconServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "FALCON/0.5.0.2.1/package"
   STACK_VERSION = "2.1"
 

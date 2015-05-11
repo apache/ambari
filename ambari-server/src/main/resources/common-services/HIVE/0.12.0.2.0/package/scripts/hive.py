@@ -22,7 +22,6 @@ from resource_management import *
 from resource_management.libraries import functions
 import sys
 import os
-import glob
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
 from urlparse import urlparse
@@ -82,96 +81,18 @@ def hive(name=None):
 
   if name == 'hiveserver2':
 
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >=0:
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.mapreduce_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-        
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, "2.2.0.0") < 0:
-      params.HdfsResource(params.webhcat_apps_dir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.webhcat_user,
-                           mode=0755
-      )
-  
-    if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
-      params.HdfsResource(params.hcat_hdfs_user_dir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.hcat_user,
-                           mode=params.hcat_hdfs_user_mode
-      )
-    params.HdfsResource(params.webhcat_hdfs_user_dir,
-                         type="directory",
-                         action="create_on_execute",
-                         owner=params.webhcat_user,
-                         mode=params.webhcat_hdfs_user_mode
+    params.HdfsDirectory(params.hive_apps_whs_dir,
+                         action="create_delayed",
+                         owner=params.hive_user,
+                         mode=0777
     )
-  
-    for src_filepath in glob.glob(params.hadoop_streaming_tar_source):
-      src_filename = os.path.basename(src_filepath)
-      params.HdfsResource(InlineTemplate(params.hadoop_streaming_tar_destination_dir).get_content() + '/' + src_filename,
-                          type="file",
-                          action="create_on_execute",
-                          source=src_filepath,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-  
-    if (os.path.isfile(params.pig_tar_source)):
-      params.HdfsResource(InlineTemplate(params.pig_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.pig_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-  
-    params.HdfsResource(InlineTemplate(params.hive_tar_destination).get_content(),
-                        type="file",
-                        action="create_on_execute",
-                        source=params.hive_tar_source,
-                        group=params.user_group,
-                        mode=params.tarballs_mode
+    params.HdfsDirectory(params.hive_hdfs_user_dir,
+                         action="create_delayed",
+                         owner=params.hive_user,
+                         mode=params.hive_hdfs_user_mode
     )
- 
-    for src_filepath in glob.glob(params.sqoop_tar_source):
-      src_filename = os.path.basename(src_filepath)
-      params.HdfsResource(InlineTemplate(params.sqoop_tar_destination_dir).get_content() + '/' + src_filename,
-                          type="file",
-                          action="create_on_execute",
-                          source=src_filepath,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-      
-    params.HdfsResource(params.hive_apps_whs_dir,
-                         type="directory",
-                          action="create_on_execute",
-                          owner=params.hive_user,
-                          mode=0777
-    )
-    params.HdfsResource(params.hive_hdfs_user_dir,
-                         type="directory",
-                          action="create_on_execute",
-                          owner=params.hive_user,
-                          mode=params.hive_hdfs_user_mode
-    )
-    
-    if not is_empty(params.hive_exec_scratchdir) and not urlparse(params.hive_exec_scratchdir).path.startswith("/tmp"):
-      params.HdfsResource(params.hive_exec_scratchdir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.hive_user,
-                           group=params.hdfs_user,
-                           mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
-      
-    params.HdfsResource(None, action="execute")
+    setup_custom_scratchdir()
+    params.HdfsDirectory(None, action="create")
 
   Directory(params.hive_etc_dir_prefix,
             mode=0755
@@ -363,3 +284,20 @@ def jdbc_connector():
   File(params.target,
        mode = 0644,
   )
+
+# In case Hive has a custom path for its HDFS temporary directory,
+# recursive directory creation will be a prerequisite as 'hive' user cannot write on the root of the HDFS
+def setup_custom_scratchdir():
+  import params
+  # If this property is custom and not a variation of the writable temp dir
+  if is_empty(params.hive_exec_scratchdir):
+    return
+  parsed = urlparse(params.hive_exec_scratchdir)
+  if parsed.path.startswith("/tmp"):
+    return
+  params.HdfsDirectory(params.hive_exec_scratchdir,
+                       action="create_delayed",
+                       owner=params.hive_user,
+                       group=params.hdfs_user,
+                       mode=0777) # Hive expects this dir to be writeable by everyone as it is used as a temp dir
+

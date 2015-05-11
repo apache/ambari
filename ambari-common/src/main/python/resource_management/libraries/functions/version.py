@@ -19,13 +19,7 @@ limitations under the License.
 Ambari Agent
 
 """
-import os
 import re
-from resource_management.core import shell
-from resource_management.core.exceptions import Fail
-from resource_management.libraries.script.config_dictionary import UnknownConfiguration
-
-__all__ = ["format_hdp_stack_version", "compare_versions", "get_hdp_build_version"]
 
 def _normalize(v, desired_segments=0):
   """
@@ -77,24 +71,3 @@ def compare_versions(version1, version2):
   """
   max_segments = max(len(version1.split(".")), len(version2.split(".")))
   return cmp(_normalize(version1, desired_segments=max_segments), _normalize(version2, desired_segments=max_segments))
-
-
-def get_hdp_build_version(hdp_stack_version):
-  """
-  Used to check hdp_stack_version for stacks >= 2.2
-  :param hdp_stack_version: version for stacks >= 2.2
-  :return: checked hdp_version (or UnknownConfiguration for stacks < 2.2)
-  """
-  HDP_SELECT = "/usr/bin/hdp-select"
-  if hdp_stack_version != "" and compare_versions(hdp_stack_version, "2.2.0.0") >= 0 and os.path.exists(HDP_SELECT):
-    code, out = shell.call('{0} status'.format(HDP_SELECT))
-
-    matches = re.findall(r"([\d\.]+\-\d+)", out)
-    hdp_version = matches[0] if matches and len(matches) > 0 else None
-
-    if not hdp_version:
-      raise Fail("Could not parse HDP version from output of hdp-select: %s" % str(out))
-
-    return hdp_version
-  else:
-    return UnknownConfiguration('hdp_version')

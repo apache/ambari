@@ -21,7 +21,6 @@ import json
 import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
-from resource_management.libraries.functions import version
 from resource_management.libraries.script.script import Script
 
 origin_exists = os.path.exists
@@ -516,7 +515,6 @@ class TestYarnClient(RMFTestCase):
     self.assertNoMoreResources()
 
 
-  @patch.object(version, "get_hdp_build_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/yarn_client.py",
                    classname = "YarnClient",

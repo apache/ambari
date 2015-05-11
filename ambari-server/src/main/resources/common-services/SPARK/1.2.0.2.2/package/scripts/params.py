@@ -23,7 +23,6 @@ import status_params
 
 from setup_spark import *
 
-from resource_management import *
 import resource_management.libraries.functions
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
@@ -31,7 +30,7 @@ from resource_management.libraries.functions.version import format_hdp_stack_ver
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 # a map of the Ambari role to the component name
 # for use with /usr/hdp/current/<component>
@@ -70,8 +69,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir
   spark_home = format("/usr/hdp/current/{component_directory}")
-  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
-  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
 
 
 java_home = config['hostLevelParams']['java_home']
@@ -158,14 +155,14 @@ if security_enabled:
 
 
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
- )
+  bin_dir = hadoop_bin_dir
+)

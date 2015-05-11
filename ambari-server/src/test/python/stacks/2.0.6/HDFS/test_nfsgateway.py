@@ -221,9 +221,6 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'hdfs',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-    )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/security/limits.d',
@@ -256,9 +253,6 @@ class TestNFSGateway(RMFTestCase):
                               content = Template('slaves.j2'),
                               owner = 'root',
                               )
-    self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
-        content = StaticFile('fast-hdfs-resource.jar'),
-    )
 
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")

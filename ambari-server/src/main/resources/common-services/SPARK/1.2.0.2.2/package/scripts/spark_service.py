@@ -27,14 +27,7 @@ def spark_service(action):
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
 
-      params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.tez_tar_source,
-                          group=params.user_group,
-                          owner=params.hdfs_user
-      )
-      params.HdfsResource(None, action="execute")
+    copy_tarballs_to_hdfs('tez', 'spark-historyserver', params.spark_user, params.hdfs_user, params.user_group)
 
     no_op_test = format(
       'ls {spark_history_server_pid_file} >/dev/null 2>&1 && ps -p `cat {spark_history_server_pid_file}` >/dev/null 2>&1')

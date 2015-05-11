@@ -75,13 +75,13 @@ def accumulo(name=None # 'master' or 'tserver' or 'client'
       owner=params.accumulo_user
     )
 
-  if name == "master":
+  if name in ["master","tserver"]:
     params.HdfsDirectory(format("{params.accumulo_hdfs_root_dir}"),
-                         action="create_on_execute",
+                         action="create_delayed",
                          owner=params.accumulo_user,
     )
     params.HdfsDirectory(format("{params.accumulo_hdfs_stage_dir}"),
-                         action="create_on_execute",
+                         action="create_delayed",
                          owner=params.accumulo_user,
                          mode=0751
     )

@@ -26,6 +26,7 @@ from resource_management.libraries.resources.xml_config import *
 from resource_management.libraries.resources.properties_file import *
 from resource_management.libraries.resources.repository import *
 from resource_management.libraries.resources.monitor_webserver import *
-from resource_management.libraries.resources.hdfs_resource import *
+from resource_management.libraries.resources.hdfs_directory import *
+from resource_management.libraries.resources.copy_from_local import *
 from resource_management.libraries.resources.msi import *
 from resource_management.libraries.resources.modify_properties_file import *

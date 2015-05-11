@@ -160,19 +160,17 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
 
   # other server setup
   if name == 'master':
-    params.HdfsResource(format("/user/{params.accumulo_user}"),
-                         type="directory",
-                         action="create_on_execute",
+    params.HdfsDirectory(format("/user/{params.accumulo_user}"),
+                         action="create_delayed",
                          owner=params.accumulo_user,
                          mode=0700
     )
-    params.HdfsResource(format("{params.parent_dir}"),
-                         type="directory",
-                         action="create_on_execute",
+    params.HdfsDirectory(format("{params.parent_dir}"),
+                         action="create_delayed",
                          owner=params.accumulo_user,
                          mode=0700
     )
-    params.HdfsResource(None, action="execute")
+    params.HdfsDirectory(None, action="create")
     if params.security_enabled and params.has_secure_user_auth:
       Execute( format("{params.kinit_cmd} "
                       "{params.daemon_script} init "
@@ -186,7 +184,6 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                                      "{params.hadoop_conf_dir} fs -stat "
                                      "{params.instance_volumes}"),
                               params.accumulo_user),
-               logoutput=True,
                user=params.accumulo_user)
     else:
       passfile = format("{params.exec_tmp_dir}/pass")
@@ -208,7 +205,6 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
                                        "{params.hadoop_conf_dir} fs -stat "
                                        "{params.instance_volumes}"),
                                 params.accumulo_user),
-                 logoutput=True,
                  user=params.accumulo_user)
       finally:
         os.remove(passfile)

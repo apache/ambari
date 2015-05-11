@@ -24,7 +24,6 @@ from functions import calc_xmn_from_xms
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 
-from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
@@ -32,7 +31,7 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.script.script import Script
-
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 from resource_management.libraries.functions.substitute_vars import substitute_vars
 
 # server configurations
@@ -141,9 +140,7 @@ if security_enabled:
   _hostname_lowercase = config['hostname'].lower()
   master_jaas_princ = config['configurations']['hbase-site']['hbase.master.kerberos.principal'].replace('_HOST',_hostname_lowercase)
   regionserver_jaas_princ = config['configurations']['hbase-site']['hbase.regionserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
-  _queryserver_jaas_princ = config['configurations']['hbase-site']['phoenix.queryserver.kerberos.principal']
-  if not is_empty(_queryserver_jaas_princ):
-    queryserver_jaas_princ =_queryserver_jaas_princ.replace('_HOST',_hostname_lowercase)
+  queryserver_jaas_princ = config['configurations']['hbase-site']['phoenix.queryserver.kerberos.principal'].replace('_HOST',_hostname_lowercase)
 
 master_keytab_path = config['configurations']['hbase-site']['hbase.master.keytab.file']
 regionserver_keytab_path = config['configurations']['hbase-site']['hbase.regionserver.keytab.file']
@@ -172,16 +169,16 @@ hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
+#create partial functions with common arguments for every HdfsDirectory call
+#to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+  bin_dir = hadoop_bin_dir
 )
 
 # ranger host

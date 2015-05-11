@@ -37,13 +37,11 @@ def setup_spark(env, type, action = None):
             recursive=True
   )
   if type == 'server' and action == 'config':
-    params.HdfsResource(params.spark_hdfs_user_dir,
-                       type="directory",
-                       action="create_on_execute",
+    params.HdfsDirectory(params.spark_hdfs_user_dir,
+                       action="create",
                        owner=params.spark_user,
                        mode=0775
     )
-    params.HdfsResource(None, action="execute")
     
   PropertiesFile(format("{spark_conf}/spark-defaults.conf"),
     properties = params.config['configurations']['spark-defaults'],

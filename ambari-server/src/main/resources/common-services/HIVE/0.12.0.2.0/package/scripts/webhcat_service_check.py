@@ -21,7 +21,6 @@ limitations under the License.
 from resource_management import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-import time
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def webhcat_service_check():
@@ -45,33 +44,8 @@ def webhcat_service_check():
   else:
     smokeuser_keytab= "no_keytab"
     smoke_user_principal="no_principal"
-    
-  unique_name = format("{smokeuser}.{timestamp}", timestamp = time.time())
-  templeton_test_script = format("idtest.{unique_name}.pig")
-  templeton_test_input = format("/tmp/idtest.{unique_name}.in")
-  templeton_test_output = format("/tmp/idtest.{unique_name}.out")
 
-  File(format("{tmp_dir}/{templeton_test_script}"),
-       content = Template("templeton_smoke.pig.j2", templeton_test_input=templeton_test_input, templeton_test_output=templeton_test_output),
-  )
-  
-  params.HdfsResource(format("/tmp/{templeton_test_script}"),
-                      action = "create_on_execute",
-                      type = "file",
-                      source = format("{tmp_dir}/{templeton_test_script}"),
-                      owner = params.smokeuser
-  )
-  
-  params.HdfsResource(templeton_test_input,
-                      action = "create_on_execute",
-                      type = "file",
-                      source = "/etc/passwd",
-                      owner = params.smokeuser
-  )
-  
-  params.HdfsResource(None, action = "execute")
-
-  cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {templeton_port} {templeton_test_script} {smokeuser_keytab}"
+  cmd = format("{tmp_dir}/templetonSmoke.sh {webhcat_server_host[0]} {smokeuser} {templeton_port} {smokeuser_keytab}"
                " {security_param} {kinit_path_local} {smoke_user_principal}")
 
   Execute(cmd,

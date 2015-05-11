@@ -207,6 +207,36 @@ class TestHbaseRegionServer(RMFTestCase):
                               owner='hbase',
                               content='log4jproperties\nline2'
     )
+    self.assertResourceCalled('HdfsDirectory', 'hdfs://c6401.ambari.apache.org:8020/apps/hbase/data',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              owner = 'hbase',
+                              bin_dir = '/usr/bin',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0711,
+                              owner = 'hbase',
+                              bin_dir = '/usr/bin',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
+                              )
 
   def assert_configure_secured(self):
     self.assertResourceCalled('Directory', '/etc/hbase',
@@ -298,6 +328,36 @@ class TestHbaseRegionServer(RMFTestCase):
                               owner='hbase',
                               content='log4jproperties\nline2'
     )
+    self.assertResourceCalled('HdfsDirectory', 'hdfs://c6401.ambari.apache.org:8020/apps/hbase/data',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              owner = 'hbase',
+                              bin_dir = '/usr/bin',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0711,
+                              owner = 'hbase',
+                              bin_dir = '/usr/bin',
+                              action = ['create_delayed'],
+                              )
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
+                              )
 
   def test_start_default_22(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hbase_regionserver.py",
@@ -393,6 +453,37 @@ class TestHbaseRegionServer(RMFTestCase):
                               group='hadoop',
                               owner='hbase',
                               content='log4jproperties\nline2')
+
+    self.assertResourceCalled('HdfsDirectory', 'hdfs://nn1/apps/hbase/data',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              owner = 'hbase',
+                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              action = ['create_delayed'])
+
+    self.assertResourceCalled('HdfsDirectory', '/apps/hbase/staging',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              mode = 0711,
+                              owner = 'hbase',
+                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              action = ['create_delayed'])
+
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = "/usr/bin/kinit",
+                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
+                              action = ['create'])
+
     self.assertResourceCalled('Execute', '/usr/hdp/current/hbase-regionserver/bin/hbase-daemon.sh --config /usr/hdp/current/hbase-regionserver/conf start regionserver',
       not_if = 'ls /var/run/hbase/hbase-hbase-regionserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hbase/hbase-hbase-regionserver.pid` >/dev/null 2>&1',
       user = 'hbase')

@@ -50,27 +50,17 @@ class TestOozieServer(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
-    self.assertResourceCalled('HdfsResource', '/user/oozie',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'oozie',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0775,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-    )
+    self.assertResourceCalled('HdfsDirectory', '/user/oozie',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0775,
+                              owner = 'oozie',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
+                              )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
@@ -335,26 +325,16 @@ class TestOozieServer(RMFTestCase):
 
 
   def assert_configure_default(self):
-    self.assertResourceCalled('HdfsResource', '/user/oozie',
-        security_enabled = False,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'oozie',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0775,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
+    self.assertResourceCalled('HdfsDirectory', '/user/oozie',
+                              security_enabled = False,
+                              keytab = UnknownConfigurationMock(),
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0775,
+                              owner = 'oozie',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
     )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
@@ -501,29 +481,17 @@ class TestOozieServer(RMFTestCase):
 
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('HdfsResource', '/user/oozie',
-        security_enabled = True,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'oozie',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0775,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-    )
+    self.assertResourceCalled('HdfsDirectory', '/user/oozie',
+                              security_enabled = True,
+                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir = '/etc/hadoop/conf',
+                              hdfs_user = 'hdfs',
+                              kinit_path_local = '/usr/bin/kinit',
+                              mode = 0775,
+                              owner = 'oozie',
+                              bin_dir = '/usr/bin',
+                              action = ['create'],
+                              )
     self.assertResourceCalled('Directory', '/etc/oozie/conf',
                               owner = 'oozie',
                               group = 'hadoop',
@@ -861,30 +829,9 @@ class TestOozieServer(RMFTestCase):
     self.assertEqual(glob_mock.call_count,1)
     glob_mock.assert_called_with('/usr/hdp/2.2.1.0-2135/hadoop/lib/hadoop-lzo*.jar')
 
-    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.1.0-2135',)
-    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        user = 'hdfs',
-        kinit_path_local = '/usr/bin/kinit',
-        recursive_chmod = True,
-        owner = 'oozie',
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
+    self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.1.0-2135')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chmod -R 755 /user/oozie/share', user='oozie')
     self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
     self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
 
@@ -943,32 +890,9 @@ class TestOozieServer(RMFTestCase):
     glob_mock.assert_called_with('/usr/hdp/2.3.0.0-1234/hadoop/lib/hadoop-lzo*.jar')
 
     self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.3.0.0-1234')
-    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        user = 'hdfs',
-        kinit_path_local = '/usr/bin/kinit',
-        recursive_chmod = True,
-        owner = 'oozie',
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
-    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run',
-        user = 'oozie',
-    )
+    self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chmod -R 755 /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
     self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
 
     self.assertNoMoreResources()
@@ -1019,29 +943,8 @@ class TestOozieServer(RMFTestCase):
     isfile_mock.assert_called_with('/usr/share/HDP-oozie/ext-2.2.zip')
 
     self.assertResourceCalled('Execute', 'hdp-select set oozie-server 2.2.0.0-0000')
-    self.assertResourceCalled('HdfsResource', '/user/oozie/share',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        user = 'hdfs',
-        kinit_path_local = '/usr/bin/kinit',
-        recursive_chmod = True,
-        owner = 'oozie',
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
+    self.assertResourceCalled('Execute', 'hdfs dfs -chown oozie:hadoop /user/oozie/share', user='oozie')
+    self.assertResourceCalled('Execute', 'hdfs dfs -chmod -R 755 /user/oozie/share', user='oozie')
     self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/ooziedb.sh upgrade -run', user='oozie')
     self.assertResourceCalled('Execute', '/usr/hdp/current/oozie-server/bin/oozie-setup.sh sharelib create -fs hdfs://c6401.ambari.apache.org:8020', user='oozie')
 

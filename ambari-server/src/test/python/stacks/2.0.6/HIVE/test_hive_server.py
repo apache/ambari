@@ -22,19 +22,16 @@ import socket
 import subprocess
 
 from mock.mock import MagicMock, patch
-from resource_management.libraries.functions import version
 from resource_management.core import shell
-from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import dynamic_variable_interpretation
 from stacks.utils.RMFTestCase import *
 
-
-@patch.object(version, "get_hdp_build_version", new = MagicMock(return_value="2.0.0.0-1234"))
 @patch("resource_management.libraries.functions.check_thrift_port_sasl", new=MagicMock())
 class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
+
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -47,7 +44,7 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   @patch("socket.socket")
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
+  @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
   def test_start_default(self, socket_mock):
     s = socket_mock.return_value
 
@@ -86,8 +83,9 @@ class TestHiveServer(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_default_no_copy(self):
+
+  @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
+  def test_start_default_no_copy(self, get_tar_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -97,6 +95,7 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    get_tar_mock.return_value = ("a", "b")
     self.assert_configure_default()
 
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -119,9 +118,10 @@ class TestHiveServer(RMFTestCase):
                               timeout = 30,
                               )
     self.assertNoMoreResources()
+    self.assertFalse(get_tar_mock.called)
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_default_alt_tmp(self):
+  @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
+  def test_start_default_alt_tmp(self, get_tar_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -130,6 +130,7 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    get_tar_mock.return_value = ("a", "b")
     self.assert_configure_default(no_tmp=True)
 
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -152,10 +153,11 @@ class TestHiveServer(RMFTestCase):
                               timeout = 30,
                               )
     self.assertNoMoreResources()
+    self.assertFalse(get_tar_mock.called)
 
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
-  def test_start_default_alt_nn_ha_tmp(self):
+  @patch.object(dynamic_variable_interpretation, "_get_tar_source_and_dest_folder")
+  def test_start_default_alt_nn_ha_tmp(self, get_tar_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -164,6 +166,7 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
+    get_tar_mock.return_value = ("a", "b")
     self.assert_configure_default(no_tmp=True)
 
     self.assertResourceCalled('Execute', 'hive --config /etc/hive/conf.server --service metatool -updateLocation hdfs://c6401.ambari.apache.org:8020 OK.',
@@ -186,8 +189,9 @@ class TestHiveServer(RMFTestCase):
                               timeout = 30,
                               )
     self.assertNoMoreResources()
+    self.assertFalse(get_tar_mock.called)
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
+  @patch.object(dynamic_variable_interpretation, "copy_tarballs_to_hdfs", new=MagicMock())
   def test_stop_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -213,7 +217,7 @@ class TestHiveServer(RMFTestCase):
     
     self.assertNoMoreResources()
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
+    
   def test_configure_secured(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -227,7 +231,6 @@ class TestHiveServer(RMFTestCase):
 
   @patch("hive_service.check_fs_root")
   @patch("socket.socket")
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_secured(self, socket_mock, check_fs_root_mock):
     s = socket_mock.return_value
 
@@ -273,7 +276,6 @@ class TestHiveServer(RMFTestCase):
 
 
   @patch("socket.socket")
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_stop_secured(self, socket_mock):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -300,89 +302,51 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self, no_tmp = False):
-    self.assertResourceCalled('HdfsResource', '/apps/webhcat',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hcat',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
+    self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0777,
+                              owner='hive',
+                              bin_dir='/usr/bin',
+                              action=['create_delayed'],
     )
-    self.assertResourceCalled('HdfsResource', '/user/hcat',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hcat',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
+    self.assertResourceCalled('HdfsDirectory', '/user/hive',
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0700,
+                              owner='hive',
+                              bin_dir='/usr/bin',
+                              action=['create_delayed'],
     )
-    self.assertResourceCalled('HdfsResource', '/apps/webhcat/hive.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/share/HDP-webhcat/hive.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'file',
-        mode = 0755,
-    )
-    self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hive',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0777,
-    )
-    self.assertResourceCalled('HdfsResource', '/user/hive',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hive',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0700,
-    )
+
     if not no_tmp:
-      self.assertResourceCalled('HdfsResource', '/custompath/tmp/hive',
-          security_enabled = False,
-          hadoop_conf_dir = '/etc/hadoop/conf',
-          keytab = UnknownConfigurationMock(),
-          kinit_path_local = '/usr/bin/kinit',
-          user = 'hdfs',
-          owner = 'hive',
-          group = 'hdfs',
-          hadoop_bin_dir = '/usr/bin',
-          type = 'directory',
-          action = ['create_on_execute'],
-          mode = 0777,
+      self.assertResourceCalled('HdfsDirectory', '/custompath/tmp/hive',
+                                security_enabled=False,
+                                keytab=UnknownConfigurationMock(),
+                                conf_dir='/etc/hadoop/conf',
+                                hdfs_user='hdfs',
+                                kinit_path_local='/usr/bin/kinit',
+                                mode=0777,
+                                owner='hive',
+                                group='hdfs',
+                                action=['create_delayed'],
+                                bin_dir='/usr/bin',
       )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
+
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled=False,
+                              keytab=UnknownConfigurationMock(),
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              action=['create'],
+                              bin_dir='/usr/bin',
     )
     self.assertResourceCalled('Directory', '/etc/hive',
                               mode=0755,
@@ -489,88 +453,49 @@ class TestHiveServer(RMFTestCase):
 
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('HdfsResource', '/apps/webhcat',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hcat',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
+    self.assertResourceCalled('HdfsDirectory', '/apps/hive/warehouse',
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0777,
+                              owner='hive',
+                              bin_dir='/usr/bin',
+                              action=['create_delayed'],
     )
-    self.assertResourceCalled('HdfsResource', '/user/hcat',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hcat',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0755,
+    self.assertResourceCalled('HdfsDirectory', '/user/hive',
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0700,
+                              owner='hive',
+                              bin_dir='/usr/bin',
+                              action=['create_delayed'],
     )
-    self.assertResourceCalled('HdfsResource', '/apps/webhcat/hive.tar.gz',
-        security_enabled = True,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        source = '/usr/share/HDP-webhcat/hive.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'file',
-        mode = 0755,
+    self.assertResourceCalled('HdfsDirectory', '/custompath/tmp/hive',
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              mode=0777,
+                              owner='hive',
+                              group='hdfs',
+                              action=['create_delayed'],
+                              bin_dir='/usr/bin',
     )
-    self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hive',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0777,
-    )
-    self.assertResourceCalled('HdfsResource', '/user/hive',
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hive',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0700,
-    )
-    self.assertResourceCalled('HdfsResource', '/custompath/tmp/hive',
-        security_enabled = True,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hive',
-        group = 'hdfs',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'directory',
-        action = ['create_on_execute'],
-        mode = 0777,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
+
+    self.assertResourceCalled('HdfsDirectory', None,
+                              security_enabled=True,
+                              keytab='/etc/security/keytabs/hdfs.headless.keytab',
+                              conf_dir='/etc/hadoop/conf',
+                              hdfs_user='hdfs',
+                              kinit_path_local='/usr/bin/kinit',
+                              action=['create'],
+                              bin_dir='/usr/bin',
     )
     self.assertResourceCalled('Directory', '/etc/hive',
                               mode=0755,
@@ -699,7 +624,6 @@ class TestHiveServer(RMFTestCase):
       self.assert_configure_default()
 
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
   @patch("hive_server.HiveServer.pre_rolling_restart")
   @patch("hive_server.HiveServer.start")
   def test_stop_during_upgrade(self, hive_server_start_mock,
@@ -847,7 +771,6 @@ class TestHiveServer(RMFTestCase):
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
   def test_pre_rolling_restart(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -862,32 +785,9 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               'hdp-select set hive-server2 %s' % version,)
-    self.assertResourceCalled('HdfsResource', 'hdfs:///hdp/apps/2.0.0.0-1234/mapreduce//mapreduce.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/hdp/current/hadoop-client/mapreduce.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'file',
-        mode = 0444,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
     self.assertNoMoreResources()
 
   @patch("resource_management.core.shell.call")
-  @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
   def test_pre_rolling_restart_23(self, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
@@ -907,28 +807,6 @@ class TestHiveServer(RMFTestCase):
 
     self.assertResourceCalled('Execute',
                               'hdp-select set hive-server2 %s' % version,)
-    self.assertResourceCalled('HdfsResource', 'hdfs:///hdp/apps/2.0.0.0-1234/mapreduce//mapreduce.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/hdp/current/hadoop-client/mapreduce.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'file',
-        mode = 0444,
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-    )
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

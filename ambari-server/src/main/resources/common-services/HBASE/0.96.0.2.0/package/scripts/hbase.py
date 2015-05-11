@@ -163,19 +163,17 @@ def hbase(name=None):
       group=params.user_group,
       owner=params.hbase_user
     )
-  if name == "master":
-    params.HdfsResource(params.hbase_hdfs_root_dir,
-                         type="directory",
-                         action="create_on_execute",
+  if name in ["master","regionserver"]:
+    params.HdfsDirectory(params.hbase_hdfs_root_dir,
+                         action="create_delayed",
                          owner=params.hbase_user
     )
-    params.HdfsResource(params.hbase_staging_dir,
-                         type="directory",
-                         action="create_on_execute",
+    params.HdfsDirectory(params.hbase_staging_dir,
+                         action="create_delayed",
                          owner=params.hbase_user,
                          mode=0711
     )
-    params.HdfsResource(None, action="execute")
+    params.HdfsDirectory(None, action="create")
 
 def hbase_TemplateConfig(name, tag=None):
   import params

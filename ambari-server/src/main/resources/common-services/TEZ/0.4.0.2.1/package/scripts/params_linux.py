@@ -19,14 +19,13 @@ limitations under the License.
 """
 import os
 
-from resource_management import *
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-
+from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
 
 # server configurations
 config = Script.get_config()
@@ -76,17 +75,15 @@ user_group = config['configurations']['cluster-env']['user_group']
 tez_env_sh_template = config['configurations']['tez-env']['content']
 
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
-  security_enabled = security_enabled,
-  keytab = hdfs_user_keytab,
-  kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+# Create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
+  security_enabled=security_enabled,
+  keytab=hdfs_user_keytab,
+  kinit_path_local=kinit_path_local,
+  bin_dir=hadoop_bin_dir
 )
-
-
 

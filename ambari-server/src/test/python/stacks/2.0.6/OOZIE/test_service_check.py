@@ -21,7 +21,6 @@ from stacks.utils.RMFTestCase import *
 import resource_management.libraries.functions
 from mock.mock import MagicMock, call, patch
 
-@patch("glob.glob", new = MagicMock(return_value="/usr/something/oozie-client/lib"))
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "OOZIE/4.0.0.2.0/package"
@@ -56,50 +55,10 @@ class TestServiceCheck(RMFTestCase):
         content = StaticFile('oozieSmoke2.sh'),
         mode = 0755,
     )
-    self.assertResourceCalled('File', '/tmp/prepareOozieHdfsDirectories.sh',
-        content = StaticFile('prepareOozieHdfsDirectories.sh'),
-        mode = 0755,
-    )
-    self.assertResourceCalled('Execute', '/tmp/prepareOozieHdfsDirectories.sh /etc/oozie/conf / /etc/hadoop/conf ',
+    self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh',
         logoutput = True,
         tries = 3,
-        try_sleep = 5,
-    )
-    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        source = '//examples',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-    )
-    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        source = '//examples/input-data',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'directory',
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-    )
-    self.assertResourceCalled('Execute', '/tmp/oozieSmoke2.sh suse /var/lib/oozie /etc/oozie/conf /usr/bin / /etc/hadoop/conf /usr/bin ambari-qa False',
-        logoutput = True,
+        command = '/tmp/oozieSmoke2.sh suse /var/lib/oozie /etc/oozie/conf /usr/bin /etc/hadoop/conf /usr/bin ambari-qa False',
         path = ['/usr/bin:/usr/bin'],
-        tries = 3,
         try_sleep = 5,
     )
-

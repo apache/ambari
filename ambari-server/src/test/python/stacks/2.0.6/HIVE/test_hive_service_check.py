@@ -24,13 +24,12 @@ import datetime, sys, socket
 import  resource_management.libraries.functions
 @patch.object(resource_management.libraries.functions, "get_unique_id_and_date", new = MagicMock(return_value=''))
 @patch("socket.socket")
-@patch("time.time", new=MagicMock(return_value=1431110511.43))
 class TestServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
 
-
-  def test_service_check_default(self, socket_mock):
+  @patch("sys.exit")
+  def test_service_check_default(self, sys_exit_mock, socket_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HiveServiceCheck",
@@ -83,52 +82,16 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
-        content = Template('templeton_smoke.pig.j2', templeton_test_input='/tmp/idtest.ambari-qa.1431110511.43.in', templeton_test_output='/tmp/idtest.ambari-qa.1431110511.43.out'),
-    )
-    self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.pig',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        source = '/tmp/idtest.ambari-qa.1431110511.43.pig',
-        user = 'hdfs',
-        owner = 'ambari-qa',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'file',
-        action = ['create_on_execute'],
-    )
-    self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.in',
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        source = '/etc/passwd',
-        user = 'hdfs',
-        owner = 'ambari-qa',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'file',
-        action = ['create_on_execute'],
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = False,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = UnknownConfigurationMock(),
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-    )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig no_keytab false /usr/bin/kinit no_principal',
-        logoutput = True,
-        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-        tries = 3,
-        try_sleep = 5,
-    )
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 no_keytab false /usr/bin/kinit no_principal',
+                              logoutput = True,
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 3,
+                              try_sleep = 5,
+                              )
     self.assertNoMoreResources()
 
-
-  def test_service_check_secured(self, socket_mock):
+  @patch("sys.exit")
+  def test_service_check_secured(self, sys_exit_mock, socket_mock):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                         classname="HiveServiceCheck",
@@ -182,47 +145,10 @@ class TestServiceCheck(RMFTestCase):
                               content = StaticFile('templetonSmoke.sh'),
                               mode = 0755,
                               )
-    
-    self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
-        content = Template('templeton_smoke.pig.j2', templeton_test_input='/tmp/idtest.ambari-qa.1431110511.43.in', templeton_test_output='/tmp/idtest.ambari-qa.1431110511.43.out'),
-    )
-    self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.pig',
-        action = ['create_on_execute'],
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        source = '/tmp/idtest.ambari-qa.1431110511.43.pig',
-        user = 'hdfs',
-        owner = 'ambari-qa',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'file',
-    )
-    self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.in',
-        action = ['create_on_execute'],
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        source = '/etc/passwd',
-        user = 'hdfs',
-        owner = 'ambari-qa',
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        type = 'file',
-    )
-    self.assertResourceCalled('HdfsResource', None,
-        security_enabled = True,
-        hadoop_bin_dir = '/usr/bin',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['execute'],
-        hadoop_conf_dir = '/etc/hadoop/conf',
-    )
-    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 idtest.ambari-qa.1431110511.43.pig /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
-        logoutput = True,
-        path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
-        tries = 3,
-        try_sleep = 5,
-    )
+    self.assertResourceCalled('Execute', '/tmp/templetonSmoke.sh c6402.ambari.apache.org ambari-qa 50111 /etc/security/keytabs/smokeuser.headless.keytab true /usr/bin/kinit ambari-qa@EXAMPLE.COM',
+                              logoutput = True,
+                              path = ['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
+                              tries = 3,
+                              try_sleep = 5,
+                              )
     self.assertNoMoreResources()

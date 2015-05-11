@@ -185,17 +185,17 @@ hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_nam
 kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 
 import functools
-#create partial functions with common arguments for every HdfsResource call
-#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
-HdfsResource = functools.partial(
-  HdfsResource,
-  user=hdfs_user,
+# create partial functions with common arguments for every HdfsDirectory call
+# to create hdfs directory we need to call params.HdfsDirectory in code
+HdfsDirectory = functools.partial(
+  HdfsDirectory,
+  conf_dir=hadoop_conf_dir,
+  hdfs_user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
- )
+  bin_dir = hadoop_bin_dir
+)
 
 
 

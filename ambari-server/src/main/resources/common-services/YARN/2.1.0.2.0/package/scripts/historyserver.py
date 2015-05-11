@@ -21,6 +21,7 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions.dynamic_variable_interpretation import copy_tarballs_to_hdfs
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -72,33 +73,13 @@ class HistoryServerDefault(HistoryServer):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
       Execute(format("hdp-select set hadoop-mapreduce-historyserver {version}"))
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.mapreduce_tar_source,
-                          owner=params.hdfs_user,
-                          group=params.user_group,
-                          mode=0444,
-      )
-      params.HdfsResource(None, action="execute")
-
+      copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
 
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    
-    if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.mapreduce_tar_source,
-                          owner=params.hdfs_user,
-                          group=params.user_group,
-                          mode=0444,
-      )
-      params.HdfsResource(None, action="execute")
-
+    copy_tarballs_to_hdfs('mapreduce', 'hadoop-mapreduce-historyserver', params.mapred_user, params.hdfs_user, params.user_group)
     service('historyserver', action='start', serviceName='mapreduce')
 
   def status(self, env):
