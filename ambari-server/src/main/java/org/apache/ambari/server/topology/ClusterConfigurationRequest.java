@@ -84,7 +84,7 @@ public class ClusterConfigurationRequest {
    */
   public void setConfigurationsOnCluster(ClusterTopology clusterTopology, String tag)  {
     //todo: also handle setting of host group scoped configuration which is updated by config processor
-    List<BlueprintServiceConfigRequest> listofConfigRequests = new LinkedList<BlueprintServiceConfigRequest>();
+    List<BlueprintServiceConfigRequest> configurationRequests = new LinkedList<BlueprintServiceConfigRequest>();
 
     Blueprint blueprint = clusterTopology.getBlueprint();
     Configuration clusterConfiguration = clusterTopology.getConfiguration();
@@ -108,7 +108,7 @@ public class ClusterConfigurationRequest {
         }
       }
 
-      listofConfigRequests.add(blueprintConfigRequest);
+      configurationRequests.add(blueprintConfigRequest);
     }
 
     // since the stack returns "cluster-env" with each service's config ensure that only one
@@ -118,9 +118,9 @@ public class ClusterConfigurationRequest {
     Map<String, Map<String, String>> clusterEnvAttributes = clusterConfiguration.getFullAttributes().get("cluster-env");
 
     globalConfigRequest.addConfigElement("cluster-env", clusterEnvProps,clusterEnvAttributes);
-    listofConfigRequests.add(globalConfigRequest);
+    configurationRequests.add(globalConfigRequest);
 
-    setConfigurationsOnCluster(listofConfigRequests, tag);
+    setConfigurationsOnCluster(configurationRequests, tag);
   }
 
   /**
@@ -131,12 +131,12 @@ public class ClusterConfigurationRequest {
    *
    * This method will also send these requests to the management controller.
    *
-   * @param listOfBlueprintConfigRequests a list of requests to send to the AmbariManagementController.
+   * @param configurationRequests a list of requests to send to the AmbariManagementController.
    */
-  private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> listOfBlueprintConfigRequests,
+  private void setConfigurationsOnCluster(List<BlueprintServiceConfigRequest> configurationRequests,
                                           String tag)  {
     // iterate over services to deploy
-    for (BlueprintServiceConfigRequest blueprintConfigRequest : listOfBlueprintConfigRequests) {
+    for (BlueprintServiceConfigRequest blueprintConfigRequest : configurationRequests) {
       ClusterRequest clusterRequest = null;
       // iterate over the config types associated with this service
       List<ConfigurationRequest> requestsPerService = new LinkedList<ConfigurationRequest>();

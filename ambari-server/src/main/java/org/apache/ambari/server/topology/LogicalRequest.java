@@ -158,20 +158,6 @@ public class LogicalRequest extends Request {
     return new ArrayList<HostRequest>(allHostRequests);
   }
 
-  //todo: account for blueprint name?
-  //todo: this should probably be done implicitly at a lower level
-  public boolean areGroupsResolved(Collection<String> hostGroupNames) {
-    synchronized (outstandingHostRequests) {
-      // iterate over outstanding host requests
-      for (HostRequest request : outstandingHostRequests) {
-        if (hostGroupNames.contains(request.getHostgroupName()) && request.getHostName() == null) {
-          return false;
-        }
-      }
-    }
-    return true;
-  }
-
   public Map<String, Collection<String>> getProjectedTopology() {
     Map<String, Collection<String>> hostComponentMap = new HashMap<String, Collection<String>>();
 
