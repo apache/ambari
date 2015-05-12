@@ -18,6 +18,7 @@
 
 package org.apache.ambari.server.upgrade;
 
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -137,15 +138,15 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
 
     // add security_type to clusters
     dbAccessor.addColumn("clusters", new DBColumnInfo(
-        "security_type", String.class, 32, SecurityType.NONE.toString(), false));
+      "security_type", String.class, 32, SecurityType.NONE.toString(), false));
 
     // add security_state to various tables
     dbAccessor.addColumn("hostcomponentdesiredstate", new DBColumnInfo(
-        "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
+      "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
     dbAccessor.addColumn("hostcomponentstate", new DBColumnInfo(
-        "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
+      "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
     dbAccessor.addColumn("servicedesiredstate", new DBColumnInfo(
-        "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
+      "security_state", String.class, 32, SecurityState.UNSECURED.toString(), false));
 
     // Alter column : make viewinstanceproperty.value & viewinstancedata.value
     // nullable
@@ -153,6 +154,26 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         String.class, 2000, null, true));
     dbAccessor.alterColumn("viewinstancedata", new DBColumnInfo("value",
         String.class, 2000, null, true));
+  }
+
+  /**
+   * Add new sequence to ambari_sequences.
+   * @param seqName name of sequence
+   * @param seqDefaultValue initial value for the sequence
+   * @throws SQLException
+   */
+  private void addSequence(String seqName, int seqDefaultValue) throws SQLException{
+    // check if sequence is already in the database
+    ResultSet rs = dbAccessor.executeSelect(String.format("SELECT COUNT(*) from ambari_sequences where sequence_name='%s'", seqName));
+    if (rs != null) {
+      try {
+        if (rs.next() && rs.getInt(1) == 0) {
+          dbAccessor.executeQuery(String.format("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('%s', %d)", seqName, seqDefaultValue), false);
+        }
+      } finally {
+        rs.close();
+      }
+    }
   }
 
   /**
@@ -201,9 +222,16 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("upgrade_package", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("repositories",    char[].class,  null,  null, false));
     dbAccessor.createTable("repo_version", columns, "repo_version_id");
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('repo_version_id_seq', 0)", false);
-    dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name)");
-    dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version)");
+
+    addSequence("repo_version_id_seq", 0);
+
+    List<String> indexes = dbAccessor.getIndexesList("repo_version", true);
+    if (!indexes.contains("uq_repo_version_display_name")) {
+      dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name)");
+    }
+    if (!indexes.contains("uq_repo_version_stack_version")) {
+      dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version)");
+    }
 
     // New columns
     dbAccessor.addColumn("hostcomponentstate", new DBAccessor.DBColumnInfo("upgrade_state",
@@ -216,7 +244,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         Integer.class, 1, 0, false));
 
     dbAccessor.addColumn("stage", new DBAccessor.DBColumnInfo("skippable",
-        Integer.class, 1, 0, false));
+      Integer.class, 1, 0, false));
 
     // New tables
     columns = new ArrayList<DBColumnInfo>();
@@ -243,8 +271,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.addFKConstraint("host_version", "FK_host_version_repovers_id", "repo_version_id", "repo_version", "repo_version_id", false);
 
     // New sequences
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('cluster_version_id_seq', 0)", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('host_version_id_seq', 0)", false);
+    addSequence("cluster_version_id_seq", 0);
+    addSequence("host_version_id_seq", 0);
 
     // upgrade tables
     columns = new ArrayList<DBColumnInfo>();
@@ -257,7 +285,8 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     dbAccessor.createTable("upgrade", columns, "upgrade_id");
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_cluster_id", "cluster_id", "clusters", "cluster_id", false);
     dbAccessor.addFKConstraint("upgrade", "fk_upgrade_request_id", "request_id", "request", "request_id", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_id_seq', 0)", false);
+    addSequence("upgrade_id_seq", 0);
+
 
     columns = new ArrayList<DBColumnInfo>();
     columns.add(new DBAccessor.DBColumnInfo("upgrade_group_id", Long.class, null, null, false));
@@ -266,7 +295,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("group_title", String.class, 1024, "", false));
     dbAccessor.createTable("upgrade_group", columns, "upgrade_group_id");
     dbAccessor.addFKConstraint("upgrade_group", "fk_upgrade_group_upgrade_id", "upgrade_id", "upgrade", "upgrade_id", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_group_id_seq', 0)", false);
+    addSequence("upgrade_group_id_seq", 0);
 
 
     columns = new ArrayList<DBColumnInfo>();
@@ -279,7 +308,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBAccessor.DBColumnInfo("item_text", String.class, 1024, null, true));
     dbAccessor.createTable("upgrade_item", columns, "upgrade_item_id");
     dbAccessor.addFKConstraint("upgrade_item", "fk_upg_item_upgrade_group_id", "upgrade_group_id", "upgrade_group", "upgrade_group_id", false);
-    dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('upgrade_item_id_seq', 0)", false);
+    addSequence("upgrade_item_id_seq", 0);
   }
 
   private void createArtifactTable() throws SQLException {

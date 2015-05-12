@@ -180,7 +180,7 @@ public class DBAccessorImpl implements DBAccessor {
     boolean result = false;
     DatabaseMetaData metaData = getDatabaseMetaData();
 
-    ResultSet res = metaData.getTables(null, null, convertObjectName(tableName), new String[] { "TABLE" });
+    ResultSet res = metaData.getTables(null, null, convertObjectName(tableName), new String[]{"TABLE"});
 
     if (res != null) {
       try {
@@ -335,7 +335,7 @@ public class DBAccessorImpl implements DBAccessor {
                               String referenceColumn, boolean ignoreFailure) throws SQLException {
 
     addFKConstraint(tableName, constraintName, new String[]{keyColumn}, referenceTableName,
-        new String[]{referenceColumn}, false, ignoreFailure);
+      new String[]{referenceColumn}, false, ignoreFailure);
   }
   @Override
   public void addFKConstraint(String tableName, String constraintName,
@@ -625,6 +625,23 @@ public class DBAccessorImpl implements DBAccessor {
 
 
     return new DatabaseSessionImpl(login);
+  }
+
+  @Override
+  public List<String> getIndexesList(String tableName, boolean unique)
+      throws SQLException{
+    ResultSet rs = getDatabaseMetaData().getIndexInfo(null, null, tableName, unique, false);
+    List<String> index_list = new ArrayList<String>();
+    if (rs != null){
+      try{
+        while (rs.next()) {
+          index_list.add(rs.getString("index_name"));
+        }
+      }finally {
+        rs.close();
+      }
+    }
+    return index_list;
   }
 
   public int getColumnType(String tableName, String columnName)

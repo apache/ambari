@@ -352,6 +352,17 @@ public interface DBAccessor {
   public DatabaseSession getNewDatabaseSession();
 
   /**
+   * Gets list of index names from database metadata
+   * @param tableName
+   *            the name of the table (not {@code null}).
+   * @param unique
+   *            list only unique indexes (not {@code null}).
+   * @return the string list of index names
+   * @throws SQLException
+   */
+  public List<String> getIndexesList(String tableName, boolean unique) throws SQLException;
+
+  /**
    * Gets the column's SQL type
    * 
    * @param tableName
