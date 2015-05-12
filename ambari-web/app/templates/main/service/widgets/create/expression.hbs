@@ -40,8 +40,15 @@
         <a href="#" {{action removeElement element target="view"}}><i class="icon-remove"></i></a>
       </div>
     {{/each}}
+    <div class="add-item-input">
+      {{view App.InputCursorTextfieldView parentViewBinding="view"}}
+    </div>
   {{else}}
+    <div class="add-item-input">
+      {{view App.InputCursorTextfieldView parentViewBinding="view"}}
+    </div>
     <div class="placeholder">{{t dashboard.widgets.wizard.step2.addMetrics}}</div>
   {{/if}}
+
 </div>
 

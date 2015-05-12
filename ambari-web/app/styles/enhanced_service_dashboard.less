@@ -377,6 +377,32 @@
       .controls.is-invalid {
         border-color: red;
       }
+      .add-item-input {
+        display: inline-block!important;
+        .ember-text-field{
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          position: relative;
+          font-weight: bold;
+          margin: 8px 0 10px 10px;
+          padding: 5px;
+          border: 1px solid #dddddd;
+          width: 50px;
+          -webkit-box-shadow: none;
+          -moz-box-shadow: none;
+          box-shadow: none;
+          border-radius: 0px;
+          -webkit-border-radius: 0px;
+          -moz-border-radius: 0px;
+          -webkit-transition: none;
+          -moz-transition: none;
+          -o-transition: none;
+          transition: none;
+        }
+        .ember-text-field.is-invalid {
+          border: 1px solid red;
+        }
+      }
     }
     .template {
       margin-bottom: 10px;

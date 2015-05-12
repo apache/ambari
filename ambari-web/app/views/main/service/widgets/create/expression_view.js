@@ -334,3 +334,50 @@ App.AddMetricExpressionView = Em.View.extend({
     return result;
   }.property('controller.filteredMetrics')
 });
+
+App.InputCursorTextfieldView = Ember.TextField.extend({
+  placeholder: "",
+  classNameBindings: ['isInvalid'],
+  isInvalid: false,
+
+  didInsertElement: function () {
+    this.focusCursor();
+  },
+
+  focusCursor: function () {
+    Em.run.next( function() { $('.add-item-input .ember-text-field').focus(); });
+  }.observes('parentView.expression.data.length'),
+
+  validateInput: function () {
+    var value = this.get('value');
+    var parentView = this.get('parentView');
+    this.set('isInvalid', false);
+    if (value && parentView.get('OPERATORS').contains(value)) {
+      // add operator
+      var data = parentView.get('expression.data');
+      var lastId = (data.length > 0) ? Math.max.apply(parentView, data.mapProperty('id')) : 0;
+      data.pushObject(Em.Object.create({
+        id: ++lastId,
+        name: value,
+        isOperator: true
+      }));
+      this.set('value', '');
+    } else if (value && value == 'm') {
+      // open add metric menu
+      $('#add-metric-menu > div > a').click();
+      this.set('value', '');
+    } else if (value) {
+      // invalid operator
+      this.set('isInvalid', true);
+    }
+  }.observes('value'),
+
+  keyDown: function (event) {
+    if ((event.keyCode == 8 || event.which == 8) && !this.get('value')) { // backspace
+      var data = this.get('parentView.expression.data');
+      if (data.length >= 1) {
+        data.removeObject(data[data.length - 1]);
+      }
+    }
+  }
+});
