@@ -18,6 +18,7 @@
 package org.apache.ambari.server.controller.metrics;
 
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Map;
@@ -75,30 +76,55 @@ class MetricsAveragePerSecondDownsampling extends MetricsDownsamplingMethod {
     ArrayList<Accumulo> cache = new ArrayList<Accumulo>();
 
     final Iterator<Map.Entry<Long, Double>> ci = metricData.getMetricValues().entrySet().iterator();
-    if (ci.hasNext()) {
-      Map.Entry<Long, Double> e0 = ci.next();
+
+    // Skip null padding at the beginning of the series.
+    Map.Entry<Long, Double> e0 = null;
+    while (ci.hasNext()) {
+      e0 = ci.next();
+      if (e0.getValue() == null) {
+        cache.add(new Accumulo(e0.getKey() / 1000, null));
+      } else {
+        break;
+      }
+    }
+
+    if (e0 != null) {
       long t0 = e0.getKey() / 1000;
       Double s0 = e0.getValue();
       int nSamples = 1;
+      boolean lastNonNullEntryAdded = false;
 
       while(ci.hasNext()) {
         e0 = ci.next();
+        // Skip null padding at the end of the series.
+        if (e0.getValue() == null) {
+          if (!lastNonNullEntryAdded) {
+            // Add last non null entry
+            cache.add(new Accumulo(t0, dataTransferMethod.getData(s0 / nSamples)));
+            lastNonNullEntryAdded = true;
+          }
+          // We do not pad below an interval of a second.
+          // Add the null entry
+          cache.add(new Accumulo(e0.getKey() / 1000, null));
+          continue;
+        }
         long t = e0.getKey() / 1000;
 
         if (t != t0) {
-          cache.add(new Accumulo(t0, s0 != null ? dataTransferMethod.getData(s0 / nSamples) : null));
+          cache.add(new Accumulo(t0, dataTransferMethod.getData(s0 / nSamples)));
           t0 = t;
           s0 = e0.getValue();
           nSamples = 1;
         } else {
-          // Zero value contributes to nothing for downsampling method
-          s0 += e0.getValue() != null ? e0.getValue() : 0;
+          s0 += e0.getValue();
           nSamples++;
         }
       }
 
       //Add the last entry into the cache
-      cache.add(new Accumulo(t0, s0 != null ? dataTransferMethod.getData(s0 / nSamples) : null));
+      if (!lastNonNullEntryAdded) {
+        cache.add(new Accumulo(t0, dataTransferMethod.getData(s0 / nSamples)));
+      }
     }
 
     Number[][] datapointsArray = new Number[cache.size()][2];
