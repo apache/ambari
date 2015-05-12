@@ -16,25 +16,53 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
 -->
 <view>
   <name>TEZ</name>
-  <label>TEZ View</label>
+  <label>Tez View</label>
   <version>${tez.view.version}</version>
+  <description>Ambari view for Apache Tez</description>
+
   <parameter>
     <name>yarn.timeline-server.url</name>
-    <description>The URL to the YARN Application Timeline Server, used to provide TEZ information. Typically this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
+    <description>The URL to the YARN Application Timeline Server, used to provide Tez information. Typically this is the yarn.timeline-service.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
     <label>YARN Timeline Server URL</label>
-    <placeholder>http://yarn.timeline-service.hostname:8188</placeholder>
-    <required>true</required>
+    <placeholder>yarn.timeline-service.hostname:8188</placeholder>
+    <default-value>localhost:8188</default-value>
+    <cluster-config>yarn-site/yarn.timeline-service.webapp.address</cluster-config>
   </parameter>
   <parameter>
     <name>yarn.resourcemanager.url</name>
     <description>The URL to the YARN ResourceManager, used to provide YARN Application data. Typically this is the yarn.resourcemanager.webapp.address property in the yarn-site.xml configuration. Url must be accessible from Ambari server.</description>
     <label>YARN ResourceManager URL</label>
-    <placeholder>http://yarn.resourcemanager.hostname:8088</placeholder>
-    <required>true</required>
+    <placeholder>yarn.resourcemanager.hostname:8088</placeholder>
+    <default-value>localhost:8088</default-value>
+    <cluster-config>yarn-site/yarn.resourcemanager.webapp.address</cluster-config>
   </parameter>
+
   <!-- The status resource exists to show the subset of properties that any user is allowed to see, not just an admin user. -->
   <resource>
     <name>status</name>
     <service-class>org.apache.ambari.view.tez.rest.ViewStatusResource</service-class>
   </resource>
+  <resource>
+    <name>configurations</name>
+    <service-class>org.apache.ambari.view.tez.ConfigurationService</service-class>
+  </resource>
+  <resource>
+    <name>settings</name>
+    <service-class>org.apache.ambari.view.tez.SettingService</service-class>
+  </resource>
+
+  <auto-instance>
+    <name>TEZ_CLUSTER_INSTANCE</name>
+    <label>Tez View: Cluster Instance</label>
+    <description>This view instance is auto created when the Tez service is added to a cluster.</description>
+    <stack-id>HDP-2.*</stack-id>
+    <services>
+      <service>TEZ</service>
+    </services>
+  </auto-instance>
+  <instance>
+    <name>TEZ_DEPLOYMENT_INSTANCE</name>
+    <label>Tez View: Deployment Instance</label>
+    <description>This view instance is created when the Tez view is deployed. The instance must be associated with a cluster to have valid cluster configuration values.</description>
+  </instance>
 </view>

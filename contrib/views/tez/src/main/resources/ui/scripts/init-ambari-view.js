@@ -194,11 +194,17 @@ function allowFullScreen() {
 
 function loadParams() {
   App.Helpers.ambari.getInstanceParameters().then(function () {
+    var timelineBaseUrl = App.Helpers.ambari.getParam(App.Helpers.ambari.TIMELINE_URL),
+        RMWebUrl = App.Helpers.ambari.getParam(App.Helpers.ambari.RM_URL);
     $.extend(true, App.Configs, {
       envDefaults: {
         isStandalone: false,
-        timelineBaseUrl: App.Helpers.ambari.getParam(App.Helpers.ambari.TIMELINE_URL),
-        RMWebUrl: App.Helpers.ambari.getParam(App.Helpers.ambari.RM_URL)
+        timelineBaseUrl: timelineBaseUrl.match('://') ?
+            timelineBaseUrl :
+            '%@//%@'.fmt(location.protocol, timelineBaseUrl),
+        RMWebUrl: RMWebUrl.match('://') ?
+            RMWebUrl :
+            '%@//%@'.fmt(location.protocol, RMWebUrl)
       }
     });
 
