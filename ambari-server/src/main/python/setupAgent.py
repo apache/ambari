@@ -258,7 +258,7 @@ def isAgentPackageAlreadyInstalled(projectVersion):
     if OSCheck.is_ubuntu_family():
       Command = ["bash", "-c", "dpkg-query -W -f='${Status} ${Version}\n' ambari-agent | grep -v deinstall | grep " + projectVersion]
     elif OSCheck.is_windows_family():
-      Command = ["cmd", "/c", "choco list ambari-agent --local-only | findstr ambari-agent"]
+      Command = ["cmd", "/c", "choco list ambari-agent --local-only | findstr ambari-agent | findstr " + projectVersion]
     else:
       Command = ["bash", "-c", "rpm -qa | grep ambari-agent-"+projectVersion]
     ret = execOsCommand(Command)

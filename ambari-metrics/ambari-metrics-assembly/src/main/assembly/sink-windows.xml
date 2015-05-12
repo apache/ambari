@@ -22,6 +22,7 @@
   <id>hadoop-sink</id>
   <formats>
     <format>dir</format>
+    <format>zip</format>
   </formats>
   <includeBaseDirectory>false</includeBaseDirectory>
   <fileSets>
@@ -59,11 +60,6 @@
     <file>
       <source>${kafka-sink.dir}/target/ambari-metrics-kafka-sink-with-common-${project.version}.jar</source>
       <outputDirectory>hadoop-sink</outputDirectory>
-    </file>
-    <file>
-      <source>${basedir}/src/main/package/msi/sink.wxs</source>
-      <outputDirectory>../../</outputDirectory>
-      <filtered>true</filtered>
     </file>
   </files>
 

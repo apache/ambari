@@ -96,13 +96,13 @@
           <osFamily>winsrv6</osFamily>
           <packages>
             <package>
-              <name>ambari-metrics-collector.msi</name>
+              <name>ambari-metrics-collector</name>
             </package>
             <package>
-              <name>ambari-metrics-monitor.msi</name>
+              <name>ambari-metrics-monitor</name>
             </package>
             <package>
-              <name>ambari-metrics-hadoop-sink.msi</name>
+              <name>ambari-metrics-hadoop-sink</name>
             </package>
           </packages>
         </osSpecific>

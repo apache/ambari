@@ -359,10 +359,12 @@ class Script(object):
         for package in package_list:
           if not package['name'] in exclude_packages:
             name = package['name']
+            # HACK: On Windows, only install ambari-metrics packages using Choco Package Installer
+            # TODO: Update this once choco packages for hadoop are created. This is because, service metainfo.xml support
+            # <osFamily>any<osFamily> which would cause installation failure on Windows.
             if OSCheck.is_windows_family():
-              if name[-4:] == ".msi":
-                #TODO all msis must be located in resource folder of server, change it to repo later
-                Msi(name, http_source=os.path.join(config['hostLevelParams']['jdk_location']))
+              if "ambari-metrics" in name:
+                Package(name)
             else:
               Package(name)
     except KeyError:

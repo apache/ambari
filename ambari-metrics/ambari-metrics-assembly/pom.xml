@@ -887,6 +887,9 @@
         <assemblydescriptor.collector>src/main/assembly/collector-windows.xml</assemblydescriptor.collector>
         <assemblydescriptor.monitor>src/main/assembly/monitor-windows.xml</assemblydescriptor.monitor>
         <assemblydescriptor.sink>src/main/assembly/sink-windows.xml</assemblydescriptor.sink>
+        <assemblydescriptor.collector.choco>src/main/assembly/collector-windows-choco.xml</assemblydescriptor.collector.choco>
+        <assemblydescriptor.monitor.choco>src/main/assembly/monitor-windows-choco.xml</assemblydescriptor.monitor.choco>
+        <assemblydescriptor.sink.choco>src/main/assembly/sink-windows-choco.xml</assemblydescriptor.sink.choco>
         <packagingFormat>jar</packagingFormat>
         <python.build.version>2.7</python.build.version>
       </properties>
@@ -913,7 +916,7 @@
       </properties>
     </profile>
     <profile>
-      <id>msi</id>
+      <id>choco</id>
       <activation>
         <os>
           <family>Windows</family>
@@ -921,202 +924,111 @@
       </activation>
       <build>
         <plugins>
-          <!-- msi creation -->
+          <!-- choco package creation -->
+          <plugin>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <executions>
+              <execution>
+                <id>collector-choco-dir</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <finalName>ambari-metrics-collector-${project.version}-choco</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>${assemblydescriptor.collector.choco}</descriptor>
+                  </descriptors>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                </configuration>
+              </execution>
+              <execution>
+                <id>monitor-choco-dir</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <finalName>ambari-metrics-monitor-${project.version}-choco</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>${assemblydescriptor.monitor.choco}</descriptor>
+                  </descriptors>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                </configuration>
+              </execution>
+              <execution>
+                <id>hadoop-sink-choco-dir</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>single</goal>
+                </goals>
+                <configuration>
+                  <attach>false</attach>
+                  <finalName>ambari-metrics-hadoop-sink-${project.version}-choco</finalName>
+                  <appendAssemblyId>false</appendAssemblyId>
+                  <descriptors>
+                    <descriptor>${assemblydescriptor.sink.choco}</descriptor>
+                  </descriptors>
+                  <tarLongFileMode>gnu</tarLongFileMode>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>exec-maven-plugin</artifactId>
             <version>1.2.1</version>
             <executions>
               <execution>
-                <id>run-heat-collector</id>
+                <id>collector-choco-package</id>
                 <phase>package</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>heat.exe</executable>
+                  <executable>choco.exe</executable>
                   <arguments>
-                    <argument>dir</argument>
-                    <argument>"."</argument>
-                    <argument>-dr</argument>
-                    <argument>"COLLECTOR_INSTALL_DIRECTORY"</argument>
-                    <argument>-platform</argument>
-                    <argument>Win64</argument>
-                    <argument>-cg</argument>
-                    <argument>"AmbariMetricsCollectorGroup"</argument>
-                    <argument>-gg</argument>
-                    <argument>-ke</argument>
-                    <argument>-srd</argument>
-                    <argument>-o</argument>
-                    <argument>".\..\collector-files.wxs"</argument>
+                    <argument>pack</argument>
+                    <argument>--version=${project.version}</argument>
+                    <argument>${basedir}/target/ambari-metrics-collector-${project.version}-choco/ambari-metrics-collector.nuspec</argument>
                   </arguments>
-                  <workingDirectory>${basedir}/target/ambari-metrics-collector-${project.version}</workingDirectory>
+                  <workingDirectory>target/ambari-metrics-collector-${project.version}-choco</workingDirectory>
                 </configuration>
               </execution>
               <execution>
-                <id>run-candle-collector</id>
+                <id>monitor-choco-package</id>
                 <phase>package</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>candle.exe</executable>
+                  <executable>choco.exe</executable>
                   <arguments>
-                    <argument>-arch</argument>
-                    <argument>x64</argument>
-                    <argument>collector.wxs</argument>
-                    <argument>collector-files.wxs</argument>
+                    <argument>pack</argument>
+                    <argument>--version=${project.version}</argument>
+                    <argument>${basedir}/target/ambari-metrics-monitor-${project.version}-choco/ambari-metrics-monitor.nuspec</argument>
                   </arguments>
-                  <workingDirectory>${basedir}/target</workingDirectory>
+                  <workingDirectory>target/ambari-metrics-monitor-${project.version}-choco</workingDirectory>
                 </configuration>
               </execution>
               <execution>
-                <id>run-light-collector</id>
+                <id>hadoop-sink-choco-package</id>
                 <phase>package</phase>
                 <goals>
                   <goal>exec</goal>
                 </goals>
                 <configuration>
-                  <executable>light.exe</executable>
+                  <executable>choco.exe</executable>
                   <arguments>
-                    <argument>-ext</argument>
-                    <argument>WixUIExtension</argument>
-                    <argument>-b</argument>
-                    <argument>${basedir}/target/ambari-metrics-collector-${project.version}</argument>
-                    <argument>-o</argument>
-                    <argument>ambari-metrics-collector-${project.version}.msi</argument>
-                    <argument>collector.wixobj</argument>
-                    <argument>collector-files.wixobj</argument>
+                    <argument>pack</argument>
+                    <argument>--version=${project.version}</argument>
+                    <argument>${basedir}/target/ambari-metrics-hadoop-sink-${project.version}-choco/ambari-metrics-hadoop-sink.nuspec</argument>
                   </arguments>
-                  <workingDirectory>${basedir}/target</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
-                <id>run-heat-monitor</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>heat.exe</executable>
-                  <arguments>
-                    <argument>dir</argument>
-                    <argument>"."</argument>
-                    <argument>-dr</argument>
-                    <argument>"MONITOR_INSTALL_DIRECTORY"</argument>
-                    <argument>-platform</argument>
-                    <argument>Win64</argument>
-                    <argument>-cg</argument>
-                    <argument>"AmbariMetricsMonitorGroup"</argument>
-                    <argument>-gg</argument>
-                    <argument>-ke</argument>
-                    <argument>-srd</argument>
-                    <argument>-o</argument>
-                    <argument>".\..\monitor-files.wxs"</argument>
-                  </arguments>
-                  <workingDirectory>${basedir}/target/ambari-metrics-monitor-${project.version}</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
-                <id>run-candle-monitor</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>candle.exe</executable>
-                  <arguments>
-                    <argument>-arch</argument>
-                    <argument>x64</argument>
-                    <argument>monitor.wxs</argument>
-                    <argument>monitor-files.wxs</argument>
-                  </arguments>
-                  <workingDirectory>${basedir}/target</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
-                <id>run-light-monitor</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>light.exe</executable>
-                  <arguments>
-                    <argument>-ext</argument>
-                    <argument>WixUIExtension</argument>
-                    <argument>-b</argument>
-                    <argument>${basedir}/target/ambari-metrics-monitor-${project.version}</argument>
-                    <argument>-o</argument>
-                    <argument>ambari-metrics-monitor-${project.version}.msi</argument>
-                    <argument>monitor.wixobj</argument>
-                    <argument>monitor-files.wixobj</argument>
-                  </arguments>
-                  <workingDirectory>${basedir}/target</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
-                <id>run-heat-sink</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>heat.exe</executable>
-                  <arguments>
-                    <argument>dir</argument>
-                    <argument>"."</argument>
-                    <argument>-dr</argument>
-                    <argument>"SINK_INSTALL_DIRECTORY"</argument>
-                    <argument>-platform</argument>
-                    <argument>Win64</argument>
-                    <argument>-cg</argument>
-                    <argument>"AmbariMetricsSinkGroup"</argument>
-                    <argument>-gg</argument>
-                    <argument>-ke</argument>
-                    <argument>-srd</argument>
-                    <argument>-o</argument>
-                    <argument>".\..\sink-files.wxs"</argument>
-                  </arguments>
-                  <workingDirectory>${basedir}/target/ambari-metrics-hadoop-sink-${project.version}</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
-                <id>run-candle-sink</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>candle.exe</executable>
-                  <arguments>
-                    <argument>-arch</argument>
-                    <argument>x64</argument>
-                    <argument>sink.wxs</argument>
-                    <argument>sink-files.wxs</argument>
-                  </arguments>
-                  <workingDirectory>${basedir}/target</workingDirectory>
-                </configuration>
-              </execution>
-              <execution>
-                <id>run-light-sink</id>
-                <phase>package</phase>
-                <goals>
-                  <goal>exec</goal>
-                </goals>
-                <configuration>
-                  <executable>light.exe</executable>
-                  <arguments>
-                    <argument>-ext</argument>
-                    <argument>WixUIExtension</argument>
-                    <argument>-b</argument>
-                    <argument>${basedir}/target/ambari-metrics-hadoop-sink-${project.version}</argument>
-                    <argument>-o</argument>
-                    <argument>ambari-metrics-hadoop-sink-${project.version}.msi</argument>
-                    <argument>sink.wixobj</argument>
-                    <argument>sink-files.wixobj</argument>
-                  </arguments>
-                  <workingDirectory>${basedir}/target</workingDirectory>
+                  <workingDirectory>target/ambari-metrics-hadoop-sink-${project.version}-choco</workingDirectory>
                 </configuration>
               </execution>
             </executions>
