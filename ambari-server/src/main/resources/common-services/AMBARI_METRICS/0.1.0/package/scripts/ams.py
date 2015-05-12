@@ -89,6 +89,15 @@ def ams(name=None):
             mode=0644
       )
 
+      XmlConfig("hdfs-site.xml",
+            conf_dir=params.hbase_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            owner=params.ams_user,
+            group=params.user_group,
+            mode=0644
+      )
+
       XmlConfig("core-site.xml",
                 conf_dir=params.ams_collector_conf_dir,
                 configurations=params.config['configurations']['core-site'],
@@ -97,6 +106,16 @@ def ams(name=None):
                 group=params.user_group,
                 mode=0644
       )
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.hbase_conf_dir,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0644
+      )
+
     else:
       ServiceConfig(params.ams_embedded_hbase_win_service_name,
                     action="change_user",
@@ -249,6 +268,15 @@ def ams(name=None):
             mode=0644
       )
 
+      XmlConfig("hdfs-site.xml",
+            conf_dir=params.hbase_conf_dir,
+            configurations=params.config['configurations']['hdfs-site'],
+            configuration_attributes=params.config['configuration_attributes']['hdfs-site'],
+            owner=params.ams_user,
+            group=params.user_group,
+            mode=0644
+      )
+
       XmlConfig("core-site.xml",
                 conf_dir=params.ams_collector_conf_dir,
                 configurations=params.config['configurations']['core-site'],
@@ -257,6 +285,16 @@ def ams(name=None):
                 group=params.user_group,
                 mode=0644
       )
+
+      XmlConfig("core-site.xml",
+                conf_dir=params.hbase_conf_dir,
+                configurations=params.config['configurations']['core-site'],
+                configuration_attributes=params.config['configuration_attributes']['core-site'],
+                owner=params.ams_user,
+                group=params.user_group,
+                mode=0644
+      )
+
     pass
 
   elif name == 'monitor':
