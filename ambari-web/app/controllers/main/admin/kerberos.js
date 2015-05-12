@@ -25,6 +25,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   securityEnabled: false,
   dataIsLoaded: false,
   isRecommendedLoaded: true,
+  kdc_type: 'none',
   getAddSecurityWizardStatus: function () {
     return App.db.getSecurityWizardStatus();
   },
@@ -230,6 +231,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       this.set('dataIsLoaded', true);
     } else {
       //get Security Status From Server
+      this.getSecurityType();
       return this.getSecurityStatus();
     }
   },
@@ -364,6 +366,27 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       callback();
     }
   },
+
+  getSecurityType: function () {
+    if (this.get('securityEnabled')) {
+      App.ajax.send({
+        name: 'admin.security.cluster_configs.kerberos',
+        sender: this,
+        data: {
+          clustName: 'c1'
+        },
+        success: 'getSecurityTypeSuccess'
+      })
+    }
+  },
+
+  getSecurityTypeSuccess: function (data, opt, params) {
+    this.set('kdc_type', data.items && Em.get(data.items[0], 'properties.kdc_type') ? Em.get(data.items[0], 'properties.kdc_type') : 'none' );
+  },
+
+  isManualKerberos: function () {
+    return this.get('kdc_type') === 'none';
+  }.property('kdc_type'),
 
   checkState: function(data, opt, params) {
     var res = Em.get(data, 'Services.attributes.kdc_validation_result');

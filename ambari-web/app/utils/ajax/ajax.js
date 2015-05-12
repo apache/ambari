@@ -1350,6 +1350,15 @@ var urls = {
       };
     }
   },
+  'admin.security.cluster_configs.kerberos': {
+    'real': '/clusters/{clusterName}/configurations?type=kerberos-env&fields=properties/*',
+    'mock': '',
+    'format': function () {
+      return {
+        timeout: 10000
+      };
+    }
+  },
   'admin.get.all_configurations': {
     'real': '/clusters/{clusterName}/configurations?{urlParams}',
     'mock': '',
