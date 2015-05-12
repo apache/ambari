@@ -471,4 +471,107 @@ describe('App.ServiceConfigProperty', function () {
     });
   });
 
+  describe('#_validateOverrides', function () {
+
+    Em.A([
+      {
+        m: 'original config',
+        e: false,
+        c: {
+          value: 'on',
+          isOriginalSCP: true,
+          supportsFinal: false,
+          isFinal: false,
+          parentSCP: null
+        }
+      },
+      {
+        m: 'not original config, value equal to parent',
+        e: true,
+        c: {
+          value: 'on',
+          isOriginalSCP: false,
+          supportsFinal: false,
+          isFinal: false,
+          parentSCP: App.ServiceConfigProperty.create({
+            value: 'on'
+          })
+        }
+      },
+      {
+        m: 'not original config, isFinal equal to parent',
+        e: true,
+        c: {
+          value: 'on',
+          isOriginalSCP: false,
+          supportsFinal: true,
+          isFinal: false,
+          parentSCP: App.ServiceConfigProperty.create({
+            value: 'off',
+            isFinal: false
+          })
+        }
+      },
+      {
+        m: 'not original config, isFinal equal to parent, but final not supported',
+        e: false,
+        c: {
+          value: 'on',
+          isOriginalSCP: false,
+          supportsFinal: false,
+          isFinal: false,
+          parentSCP: App.ServiceConfigProperty.create({
+            value: 'off',
+            isFinal: false
+          })
+        }
+      },
+      {
+        m: 'not original config, parent override has same value',
+        e: true,
+        c: {
+          value: 'on',
+          isOriginalSCP: false,
+          supportsFinal: true,
+          isFinal: false,
+          parentSCP: App.ServiceConfigProperty.create({
+            value: 'off',
+            overrides: [
+              App.ServiceConfigProperty.create({
+                value: 'on',
+                isOriginalSCP: false
+              })
+            ]
+          })
+        }
+      },
+      {
+        m: 'not original config, parent override doesn\'t have same value',
+        e: false,
+        c: {
+          value: 'on',
+          isOriginalSCP: false,
+          supportsFinal: true,
+          isFinal: false,
+          parentSCP: App.ServiceConfigProperty.create({
+            value: 'off',
+            isFinal: true,
+            overrides: [
+              App.ServiceConfigProperty.create({
+                value: 'another',
+                isOriginalSCP: false
+              })
+            ]
+          })
+        }
+      }
+    ]).forEach(function (test) {
+      it(test.m, function () {
+        serviceConfigProperty.reopen(test.c);
+        expect(serviceConfigProperty._validateOverrides()).to.equal(test.e);
+      });
+    });
+
+  });
+
 });

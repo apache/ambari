@@ -342,28 +342,7 @@ App.ServiceConfigProperty = Em.Object.extend({
     }
 
     if (!isError) {
-      // Check if this value is already in any of the overrides
-      var self = this;
-      var isOriginalSCP = this.get('isOriginalSCP');
-      var parentSCP = this.get('parentSCP');
-      if (!isOriginalSCP) {
-        if (!Em.isNone(parentSCP)) {
-          if (value === parentSCP.get('value') && supportsFinal && isFinal === parentSCP.get('isFinal')) {
-            this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
-            isError = true;
-          } else {
-            var overrides = parentSCP.get('overrides');
-            if (overrides) {
-              overrides.forEach(function (override) {
-                if (self != override && value === override.get('value')  && supportsFinal && isFinal === parentSCP.get('isFinal')) {
-                  self.set('errorMessage', Em.I18n.t('config.override.valueEqualToAnotherOverrideConfig'));
-                  isError = true;
-                }
-              });
-            }
-          }
-        }
-      }
+      isError = this._validateOverrides();
     }
 
     if (!isWarn || isError) { // Errors get priority
@@ -379,6 +358,43 @@ App.ServiceConfigProperty = Em.Object.extend({
     } else {
       this.set('error', true);
     }
-  }.observes('value', 'isFinal', 'retypedPassword')
+  }.observes('value', 'isFinal', 'retypedPassword'),
+
+  /**
+   * Check config overrides and parent config overrides (if exist)
+   * @returns {boolean}
+   * @private
+   * @method _validateOverrides
+   */
+  _validateOverrides: function () {
+    var self = this;
+    var isError = false;
+    var value = this.get('value');
+    var isOriginalSCP = this.get('isOriginalSCP');
+    var supportsFinal = this.get('supportsFinal');
+    var isFinal = this.get('isFinal');
+    var parentSCP = this.get('parentSCP');
+    if (!isOriginalSCP) {
+      if (!Em.isNone(parentSCP)) {
+        if (value === parentSCP.get('value') || supportsFinal && isFinal === parentSCP.get('isFinal')) {
+          this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
+          isError = true;
+        }
+        else {
+          var overrides = parentSCP.get('overrides');
+          if (overrides) {
+            overrides.forEach(function (override) {
+              if (self == override) return;
+              if (value === override.get('value') || supportsFinal && isFinal === parentSCP.get('isFinal')) {
+                self.set('errorMessage', Em.I18n.t('config.override.valueEqualToAnotherOverrideConfig'));
+                isError = true;
+              }
+            });
+          }
+        }
+      }
+    }
+    return isError;
+  }
 
 });

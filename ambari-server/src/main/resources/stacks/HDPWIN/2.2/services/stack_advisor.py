@@ -218,7 +218,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # Transactions
-    putHiveEnvProperty("hive_txn_acid", "Off")
+    putHiveEnvProperty("hive_txn_acid", "off")
     if str(configurations["hive-env"]["properties"]["hive_txn_acid"]).lower() == "on":
       putHiveSiteProperty("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager")
       putHiveSiteProperty("hive.support.concurrency", "true")

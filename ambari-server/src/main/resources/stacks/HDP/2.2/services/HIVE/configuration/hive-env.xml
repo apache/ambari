@@ -90,7 +90,7 @@ export METASTORE_PORT={{hive_metastore_port}}
   <property>
     <name>hive_txn_acid</name>
     <display-name>ACID Transactions</display-name>
-    <value>Off</value>
+    <value>off</value>
     <value-attributes>
       <type>value-list</type>
       <entries>

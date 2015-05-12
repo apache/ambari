@@ -248,7 +248,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     putHiveSiteProperty("hive.vectorized.execution.reduce.enabled", "false")
 
     # Transactions
-    putHiveEnvProperty("hive_txn_acid", "Off")
+    putHiveEnvProperty("hive_txn_acid", "off")
     if str(configurations["hive-env"]["properties"]["hive_txn_acid"]).lower() == "on":
       putHiveSiteProperty("hive.txn.manager", "org.apache.hadoop.hive.ql.lockmgr.DbTxnManager")
       putHiveSiteProperty("hive.support.concurrency", "true")
