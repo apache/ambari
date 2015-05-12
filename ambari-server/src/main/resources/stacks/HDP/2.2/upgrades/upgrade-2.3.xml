@@ -50,6 +50,12 @@
         </task>
       </execute-stage>
 
+      <execute-stage service="RANGER" component="RANGER_ADMIN" title="Pre Upgrade Ranger">
+        <task xsi:type="manual">
+          <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database</message>
+        </task>
+      </execute-stage>
+
     </group>
 
     <group name="ZOOKEEPER" title="ZooKeeper">
@@ -306,11 +312,6 @@
 
     <service name="RANGER">
       <component name="RANGER_ADMIN">
-        <pre-upgrade>
-          <task xsi:type="manual">
-            <message>Before continuing, please backup the Ranger Admin database and Ranger Audit database</message>
-          </task>
-        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
