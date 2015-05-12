@@ -371,8 +371,15 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             }
           }, hadoopConfigs);
         } catch (IOException e) {
-          String message = "Slider View requires access to user's home directory in HDFS to proceed. Contact your administrator to create the home directory. ("
+          String message;
+          if (hadoopConfigs.get("security_enabled").toLowerCase().equals("true")
+              && (getViewParameterValue(PARAM_VIEW_PRINCIPAL) == null
+              || getViewParameterValue(PARAM_VIEW_PRINCIPAL_KEYTAB) == null)) {
+            message = "Slider View requires access to user's home directory in HDFS to proceed. Please check the kerberos configs";
+          } else {
+          message = "Slider View requires access to user's home directory in HDFS to proceed. Contact your administrator to create the home directory. ("
               + e.getMessage() + ")";
+          }
           logger.warn(message, e);
           return new Validation(message);
         } catch (InterruptedException e) {
