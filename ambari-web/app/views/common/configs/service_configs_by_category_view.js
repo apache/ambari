@@ -162,9 +162,20 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         header: "Warning: you must also change these Service properties",
         onApply: function () {
           self.get("newAffectedProperties").forEach(function(item) {
-            self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs").find(function(config) {
-              return item.propertyName == config.get('name') && (item.filename == null || item.filename == config.get('filename'));
-            }).set("value", item.newValue);
+            if (item.isNewProperty) {
+              self.createProperty({
+                name: item.propertyName,
+                displayName: item.propertyDisplayName,
+                value: item.newValue,
+                categoryName: item.categoryName,
+                serviceName: item.serviceName,
+                filename: item.filename
+              });
+            } else {
+              self.get("controller.stepConfigs").findProperty("serviceName", item.serviceName).get("configs").find(function(config) {
+                return item.propertyName == config.get('name') && (item.filename == null || item.filename == config.get('filename'));
+              }).set("value", item.newValue);
+            }
           });
           self.get("controller").set("miscModalVisible", false);
           this.hide();
@@ -354,6 +365,34 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
     return 'admin-bulk-add-properties-' + App.router.get('loginName');
   },
 
+  isSecureConfig: function (configName, filename) {
+    var secureConfigs = this.get('controller.secureConfigs').filterProperty('filename', filename);
+    return !!secureConfigs.findProperty('name', configName);
+  },
+
+  createProperty: function (propertyObj) {
+    var selectedConfigGroup = this.get('controller.selectedConfigGroup'),
+      isSecureConfig = this.isSecureConfig(propertyObj.name, propertyObj.filename);
+    this.get('serviceConfigs').pushObject(App.ServiceConfigProperty.create({
+      name: propertyObj.name,
+      displayName: propertyObj.displayName || propertyObj.name,
+      value: propertyObj.value,
+      displayType: stringUtils.isSingleLine(propertyObj.value) ? 'advanced' : 'multiLine',
+      isSecureConfig: isSecureConfig,
+      category: propertyObj.categoryName,
+      id: 'site property',
+      serviceName: propertyObj.serviceName,
+      defaultValue: null,
+      supportsFinal: App.config.shouldSupportFinal(propertyObj.serviceName, propertyObj.filename),
+      filename: propertyObj.filename || '',
+      isUserProperty: true,
+      isNotSaved: true,
+      isRequired: false,
+      group: selectedConfigGroup.get('isDefault') ? null : selectedConfigGroup,
+      isOverridable: selectedConfigGroup.get('isDefault')
+    }));
+  },
+
   /**
    * Show popup for adding new config-properties
    * @method showAddPropertyWindow
@@ -375,42 +414,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         var service = this.get('service');
         var serviceName = service.get('serviceName');
 
-        var secureConfigs = this.get('controller.secureConfigs').filterProperty('filename', siteFileName);
-
-        function isSecureConfig(configName) {
-          return !!secureConfigs.findProperty('name', configName);
-        }
-
         var configsOfFile = service.get('configs').filterProperty('filename', siteFileName);
         var siteFileProperties = App.config.get('configMapping').all().filterProperty('filename', siteFileName);
 
-        var supportsFinal = App.config.shouldSupportFinal(serviceName, siteFileName);
-
         function isDuplicatedConfigKey(name) {
           return siteFileProperties.findProperty('name', name) || configsOfFile.findProperty('name', name);
-        }
-
-        var serviceConfigs = this.get('serviceConfigs');
-
-        function createProperty(propertyName, propertyValue) {
-          serviceConfigs.pushObject(App.ServiceConfigProperty.create({
-            name: propertyName,
-            displayName: propertyName,
-            value: propertyValue,
-            displayType: stringUtils.isSingleLine(propertyValue) ? 'advanced' : 'multiLine',
-            isSecureConfig: isSecureConfig(propertyName),
-            category: category.get('name'),
-            id: 'site property',
-            serviceName: serviceName,
-            defaultValue: null,
-            supportsFinal: supportsFinal,
-            filename: siteFileName || '',
-            isUserProperty: true,
-            isNotSaved: true,
-            isRequired: false,
-            group: selectedConfigGroup.get('isDefault') ? null : selectedConfigGroup,
-            isOverridable: selectedConfigGroup.get('isDefault')
-          }));
         }
 
         var serviceConfigObj = Ember.Object.create({
@@ -501,6 +509,11 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           primary: 'Add',
           secondary: 'Cancel',
           onPrimary: function () {
+            var propertyObj = {
+              filename: siteFileName,
+              serviceName: serviceName,
+              categoryName: category.get('name')
+            };
             if (serviceConfigObj.isBulkMode) {
               var popup = this;
               processConfig(serviceConfigObj.bulkConfigValue, function (error, parsedConfig) {
@@ -510,7 +523,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
                 } else {
                   for (var key in parsedConfig) {
                     if (parsedConfig.hasOwnProperty(key)) {
-                      createProperty(key, parsedConfig[key]);
+                      propertyObj.name = key;
+                      propertyObj.value = parsedConfig[key];
+                      persistController.createProperty(propertyObj);
                     }
                   }
                   popup.hide();
@@ -523,7 +538,9 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
                * For the first entrance use this if (serviceConfigObj.name.trim() != '')
                */
               if (!serviceConfigObj.isKeyError) {
-                createProperty(serviceConfigObj.get('name'), serviceConfigObj.get('value'));
+                propertyObj.name = serviceConfigObj.get('name');
+                propertyObj.value = serviceConfigObj.get('value');
+                persistController.createProperty(propertyObj);
                 this.hide();
               }
             }

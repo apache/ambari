@@ -370,4 +370,155 @@ describe('App.ServiceConfigsByCategoryView', function () {
     });
   });
 
+  describe('#isSecureConfig', function () {
+
+    var cases = [
+      {
+        name: 'n0',
+        filename: 'f0',
+        isSecureConfig: true,
+        title: 'secure config'
+      },
+      {
+        name: 'n1',
+        filename: 'f1',
+        isSecureConfig: false,
+        title: 'secure config with the same name is present in another filename'
+      },
+      {
+        name: 'n2',
+        filename: 'f2',
+        isSecureConfig: false,
+        title: 'no configs of the specified filename are secure'
+      }
+    ];
+
+    before(function () {
+      view.reopen({
+        controller: {
+          secureConfigs: [
+            {
+              name: 'n0',
+              filename: 'f0'
+            },
+            {
+              name: 'n1',
+              filename: 'f0'
+            },
+            {
+              name: 'n2',
+              filename: 'f1'
+            }
+          ]
+        }
+      })
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        expect(view.isSecureConfig(item.name, item.filename)).to.equal(item.isSecureConfig);
+      });
+    });
+
+  });
+
+  describe('#createProperty', function () {
+
+    var cases = [
+      {
+        propertyObj: {
+          name: 'n0',
+          displayName: 'd0',
+          value: 'v0',
+          filename: 'f0',
+          categoryName: 'c0',
+          serviceName: 's0'
+        },
+        isDefaultConfigGroup: true,
+        result: {
+          name: 'n0',
+          displayName: 'd0',
+          value: 'v0',
+          displayType: 'advanced',
+          isSecureConfig: true,
+          category: 'c0',
+          id: 'site property',
+          serviceName: 's0',
+          defaultValue: null,
+          supportsFinal: true,
+          filename: 'f0',
+          isUserProperty: true,
+          isNotSaved: true,
+          isRequired: false,
+          group: null,
+          isOverridable: true
+        },
+        title: 'single line value, secure config, final attribute supported, default config group'
+      },
+      {
+        propertyObj: {
+          name: 'n1',
+          value: 'v\n1',
+          filename: '',
+          categoryName: 'c1',
+          serviceName: 's1'
+        },
+        isDefaultConfigGroup: false,
+        result: {
+          name: 'n1',
+          displayName: 'n1',
+          value: 'v\n1',
+          displayType: 'multiLine',
+          isSecureConfig: false,
+          category: 'c1',
+          id: 'site property',
+          serviceName: 's1',
+          defaultValue: null,
+          supportsFinal: false,
+          filename: '',
+          isUserProperty: true,
+          isNotSaved: true,
+          isRequired: false,
+          group: Em.Object.create({
+            isDefault: false
+          }),
+          isOverridable: false
+        },
+        title: 'multiline value, non-secure config, no display name and filename, final attribute not supported, custom config group'
+      }
+    ];
+
+    before(function () {
+      view.get('serviceConfigs').clear();
+      sinon.stub(view, 'isSecureConfig').withArgs('n0', 'f0').returns(true).withArgs('n1', '').returns(false);
+      sinon.stub(App.config, 'shouldSupportFinal').withArgs('s0', 'f0').returns(true).withArgs('s1', '').returns(false);
+    });
+
+    after(function () {
+      view.get('serviceConfigs').clear();
+      view.isSecureConfig.restore();
+      App.config.shouldSupportFinal.restore();
+    });
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view.reopen({
+          filteredCategoryConfigs: [],
+          controller: {
+            selectedConfigGroup: Em.Object.create({
+              isDefault: item.isDefaultConfigGroup
+            })
+          }
+        });
+        view.createProperty(item.propertyObj);
+        expect(view.get('serviceConfigs').filterProperty('name', item.propertyObj.name)).to.have.length(1);
+        expect(view.get('serviceConfigs').findProperty('name', item.propertyObj.name).getProperties([
+          'name', 'displayName', 'value', 'displayType', 'isSecureConfig', 'category', 'id', 'serviceName', 'defaultValue',
+          'supportsFinal', 'filename', 'isUserProperty', 'isNotSaved', 'isRequired', 'group', 'isOverridable'
+        ])).to.eql(item.result);
+      });
+    });
+
+  });
+
 });

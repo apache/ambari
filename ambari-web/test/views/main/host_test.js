@@ -98,7 +98,7 @@ describe('App.MainHostView', function () {
       view.updatePagination.restore();
     });
 
-    it('should execute and updatePagination', function () {
+    it('should execute updatePagination', function () {
       view.updateHostsPagination();
       expect(view.updatePagination.calledOnce).to.be.true;
     });
