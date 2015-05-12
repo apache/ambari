@@ -120,7 +120,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
           var overridenConfigs = this.getConfigsForGroup(configs, configGroup.get('name'));
 
-          if (Em.isArray(overridenConfigs) && overridenConfigs.length) {
+          if (Em.isArray(overridenConfigs)) {
             this.saveGroup(overridenConfigs, configGroup, this.get('content.serviceName') === serviceName);
           }
         }
