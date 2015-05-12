@@ -361,7 +361,10 @@ class TestBootstrap(TestCase):
     command = str(init_mock.call_args[0][3])
     self.assertEqual(command,
                      "sudo mkdir -p /var/lib/ambari-agent/data/tmp ; "
-                     "sudo chown -R root /var/lib/ambari-agent/data/tmp")
+                     "sudo chown -R root /var/lib/ambari-agent/data/tmp ; "
+                     "sudo chmod 755 /var/lib/ambari-agent ; "
+                     "sudo chmod 755 /var/lib/ambari-agent/data ; "
+                     "sudo chmod 755 /var/lib/ambari-agent/data/tmp")
 
   @patch.object(Bootstrap, "getOsCheckScript")
   @patch.object(Bootstrap, "getOsCheckScriptRemoteLocation")

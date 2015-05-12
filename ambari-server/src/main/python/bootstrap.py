@@ -42,6 +42,8 @@ MAX_PARALLEL_BOOTSTRAPS = 20
 POLL_INTERVAL_SEC = 1
 DEBUG = False
 DEFAULT_AGENT_TEMP_FOLDER = "/var/lib/ambari-agent/data/tmp"
+DEFAULT_AGENT_DATA_FOLDER = "/var/lib/ambari-agent/data"
+DEFAULT_AGENT_LIB_FOLDER = "/var/lib/ambari-agent"
 PYTHON_ENV="env PYTHONPATH=$PYTHONPATH:" + DEFAULT_AGENT_TEMP_FOLDER
 
 
@@ -245,7 +247,8 @@ class Bootstrap(threading.Thread):
     params = self.shared_state
     user = params.user
 
-    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0}".format(self.TEMP_FOLDER,quote_bash_args(params.user))
+    command = "sudo mkdir -p {0} ; sudo chown -R {1} {0} ; sudo chmod 755 {3} ; sudo chmod 755 {2} ; sudo chmod 755 {0}".format(
+      self.TEMP_FOLDER, quote_bash_args(params.user), DEFAULT_AGENT_DATA_FOLDER, DEFAULT_AGENT_LIB_FOLDER)
 
     ssh = SSH(params.user, params.sshkey_file, self.host, command,
               params.bootdir, self.host_log)
