@@ -106,7 +106,8 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       dataLength = -1,
       beforeCompute,
       result = {},
-      isDataCorrupted = false;
+      isDataCorrupted = false,
+      isPointNull = false;
 
     //replace values with metrics data
     expression.match(this.get('VALUE_NAME_REGEX')).forEach(function (match) {
@@ -127,11 +128,13 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
         this.adjustData(dataLinks, dataLength);
       }
       for (var i = 0, timestamp; i < dataLength; i++) {
+        isPointNull = false;
         beforeCompute = expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
           timestamp = dataLinks[match][i][1];
+          isPointNull = (isPointNull) ? true : (Em.isNone(dataLinks[match][i][0]));
           return dataLinks[match][i][0];
         });
-        var dataLinkPointValue = window.isNaN(Number(window.eval(beforeCompute))) ? 0 : Number(window.eval(beforeCompute));
+        var dataLinkPointValue = isPointNull ? null : Number(window.eval(beforeCompute));
         value.push([dataLinkPointValue, timestamp]);
       }
     }
@@ -149,7 +152,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
   adjustData: function(dataLinks, length) {
     //series with full data taken as original
     var original = [];
-    var substituteValue = 0;
+    var substituteValue = null;
 
     for (var i in dataLinks) {
       if (dataLinks[i].length === length) {

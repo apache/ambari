@@ -539,7 +539,7 @@ App.ChartLinearTimeView = Ember.View.extend({
       }
     }
 
-    var _graph = new Rickshaw.Graph({
+    var _graph = new Rickshaw.GraphReopened({
       height: height,
       width: width,
       element: chartElement,
@@ -923,4 +923,71 @@ App.ChartLinearTimeView.CreateRateFormatter = function (unitsPrefix, valueFormat
     value = valueFormatter(value) + suffix;
     return value;
   };
+};
+
+Rickshaw.GraphReopened = function(a){
+  Rickshaw.Graph.call(this, a);
+};
+
+//reopened in order to exclude "null" value from validation
+Rickshaw.GraphReopened.prototype = Object.create(Rickshaw.Graph.prototype, {
+  validateSeries : {
+    value: function(series) {
+
+      if (!(series instanceof Array) && !(series instanceof Rickshaw.Series)) {
+        var seriesSignature = Object.prototype.toString.apply(series);
+        throw "series is not an array: " + seriesSignature;
+      }
+
+      var pointsCount;
+
+      series.forEach( function(s) {
+
+        if (!(s instanceof Object)) {
+          throw "series element is not an object: " + s;
+        }
+        if (!(s.data)) {
+          throw "series has no data: " + JSON.stringify(s);
+        }
+        if (!(s.data instanceof Array)) {
+          throw "series data is not an array: " + JSON.stringify(s.data);
+        }
+
+        pointsCount = pointsCount || s.data.length;
+
+        if (pointsCount && s.data.length != pointsCount) {
+          throw "series cannot have differing numbers of points: " +
+          pointsCount	+ " vs " + s.data.length + "; see Rickshaw.Series.zeroFill()";
+        }
+      })
+    },
+    enumerable: true,
+    configurable: false,
+    writable: false
+  }
+});
+
+//show no line if point is "null"
+Rickshaw.Graph.Renderer.Line.prototype.seriesPathFactory = function() {
+
+  var graph = this.graph;
+
+  return d3.svg.line()
+    .x( function(d) { return graph.x(d.x) } )
+    .y( function(d) { return graph.y(d.y) } )
+    .defined(function(d) { return d.y!=null; })
+    .interpolate(this.graph.interpolation).tension(this.tension);
+};
+
+//show no area if point is null
+Rickshaw.Graph.Renderer.Stack.prototype.seriesPathFactory = function() {
+
+  var graph = this.graph;
+
+  return d3.svg.area()
+    .x( function(d) { return graph.x(d.x) } )
+    .y0( function(d) { return graph.y(d.y0) } )
+    .y1( function(d) { return graph.y(d.y + d.y0) } )
+    .defined(function(d) { return d.y!=null; })
+    .interpolate(this.graph.interpolation).tension(this.tension);
 };

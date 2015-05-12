@@ -55,7 +55,7 @@ describe('App.GraphWidgetView', function () {
         },
         result:  {
           s1: [[1, 0]],
-          s2: [[0, 0]]
+          s2: [[null, 0]]
         }
       },
       {
@@ -69,7 +69,7 @@ describe('App.GraphWidgetView', function () {
         },
         result:  {
           s1: [[1, 0], [2, 1], [3, 2]],
-          s2: [[1, 0], [0, 1], [0, 2]]
+          s2: [[1, 0], [null, 1], [null, 2]]
         }
       },
       {
@@ -83,7 +83,7 @@ describe('App.GraphWidgetView', function () {
         },
         result:  {
           s1: [[1, 0], [2, 1], [3, 2]],
-          s2: [[0, 0], [0, 1], [3, 2]]
+          s2: [[null, 0], [null, 1], [3, 2]]
         }
       },
       {
@@ -97,7 +97,7 @@ describe('App.GraphWidgetView', function () {
         },
         result:  {
           s1: [[1, 0], [2, 1], [3, 2]],
-          s2: [[0, 0], [1, 1], [0, 2]]
+          s2: [[null, 0], [1, 1], [null, 2]]
         }
       },
       {
@@ -112,8 +112,8 @@ describe('App.GraphWidgetView', function () {
         },
         result:  {
           s1: [[1, 0], [2, 1], [3, 2]],
-          s2: [[0, 0], [1, 1], [0, 2]],
-          s3: [[0, 0], [0, 1], [1, 2]]
+          s2: [[null, 0], [1, 1], [null, 2]],
+          s3: [[null, 0], [null, 1], [1, 2]]
         }
       }
     ];
