@@ -239,6 +239,12 @@ App.MainHostDetailsController = Em.Controller.extend({
       deleteNimbusMsg: Em.View.extend({
         template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteNimbus'))
       }),
+      isRangerKMSServer: function () {
+        return componentName == 'RANGER_KMS_SERVER';
+      }.property(),
+      deleteRangerKMSServereMsg: Em.View.extend({
+        template: Em.Handlebars.compile(Em.I18n.t('hosts.host.deleteComponent.popup.deleteRangerKMSServer'))
+      }),
       isChecked: false,
       disablePrimary: function () {
         return !this.get('isChecked');
@@ -338,6 +344,9 @@ App.MainHostDetailsController = Em.Controller.extend({
     } else if(data.componentName == 'NIMBUS') {
       this.set('deleteNimbusHost', true);
       this.loadConfigs('loadStormConfigs');
+    } else if(data.componentName == 'RANGER_KMS_SERVER') {
+      this.set('deleteRangerKMSServer', true);
+      this.loadConfigs('loadRangerConfigs');
     }
   },
 
@@ -456,11 +465,10 @@ App.MainHostDetailsController = Em.Controller.extend({
     var
       returnFunc,
       self = this,
-      hiveHost = event.hiveMetastoreHost ? event.hiveMetastoreHost : "";
       component = event.context,
-      hostName = this.get('content.hostName'),
+      hostName = event.selectedHost || this.get('content.hostName'),
       componentName = component.get('componentName'),
-      missedComponents = !!hiveHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
+      missedComponents = event.selectedHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
         scope: 'host',
         installedComponents: this.get('content.hostComponents').mapProperty('componentName')
       });
@@ -480,7 +488,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         break;
       case 'HIVE_METASTORE':
         returnFunc = App.showConfirmationPopup(function () {
-          self.set('hiveMetastoreHost', hiveHost);
+          self.set('hiveMetastoreHost', hostName);
           self.loadConfigs("loadHiveConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
         break;
@@ -488,6 +496,12 @@ App.MainHostDetailsController = Em.Controller.extend({
         returnFunc = App.showConfirmationPopup(function() {
             self.set('nimbusHost', hostName);
             self.loadConfigs("loadStormConfigs");
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName));
+        break;
+      case 'RANGER_KMS_SERVER':
+        returnFunc = App.showConfirmationPopup(function() {
+          self.set('rangerKMSServerHost', hostName);
+          self.loadConfigs("loadRangerConfigs");
         }, Em.I18n.t('hosts.host.addComponent.' + componentName));
         break;
       default:
@@ -698,58 +712,8 @@ App.MainHostDetailsController = Em.Controller.extend({
                }
            }
        ];
-    this.saveStormConfigsBatch(groups, nimbusHost);
+    this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
    },
-
-     /**
-   * save configs' sites in batch
-   * @param nimbusHost
-   * @param groups
-   */
-  saveStormConfigsBatch: function (groups, nimbusHost) {
-    groups.forEach(function (group) {
-      var desiredConfigs = [],
-        tag = 'version' + (new Date).getTime(),
-        properties = group.properties;
-
-      for (var site in properties) {
-        if (!properties.hasOwnProperty(site) || Em.isNone(properties[site])) continue;
-        desiredConfigs.push({
-          "type": site,
-          "tag": tag,
-          "properties": properties[site],
-          "properties_attributes": group.properties_attributes[site],
-          "service_config_version_note": Em.I18n.t('hosts.host.storm.configs.save.note')
-        });
-      }
-      if (desiredConfigs.length > 0) {
-        App.ajax.send({
-          name: 'common.service.configurations',
-          sender: this,
-          data: {
-            desired_config: desiredConfigs,
-            stormNimbusHost: nimbusHost
-          },
-          success: 'installStormNimbus'
-        });
-      }
-      //clear nimbus host not to send second request to install component
-      nimbusHost = null;
-    }, this);
-  },
-
-  /**
-   * success callback for saveStormConfigsBatch method
-   * @param data
-   * @param opt
-   * @param params
-   */
-  installStormNimbus: function(data, opt, params) {
-    if (params.stormNimbusHost) {
-      componentsUtils.installHostComponent(params.stormNimbusHost, App.StackServiceComponent.find("NIMBUS"));
-    }
-  },
-  /**
 
   /**
    * Success callback for load configs request
@@ -825,15 +789,15 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       }
     ];
-    this.saveConfigsBatch(groups, hiveMetastoreHost);
+    this.saveConfigsBatch(groups, 'HIVE_METASTORE', hiveMetastoreHost);
   },
 
   /**
    * save configs' sites in batch
-   * @param hiveMetastoreHost
+   * @param host
    * @param groups
    */
-  saveConfigsBatch: function (groups, hiveMetastoreHost) {
+  saveConfigsBatch: function (groups, componentName, host) {
     groups.forEach(function (group) {
       var desiredConfigs = [],
         tag = 'version' + (new Date).getTime(),
@@ -846,7 +810,7 @@ App.MainHostDetailsController = Em.Controller.extend({
           "tag": tag,
           "properties": properties[site],
           "properties_attributes": group.properties_attributes[site],
-          "service_config_version_note": Em.I18n.t('hosts.host.hive.configs.save.note')
+          "service_config_version_note": Em.I18n.t('hosts.host.configs.save.note').format(App.format.role(componentName))
         });
       }
       if (desiredConfigs.length > 0) {
@@ -855,13 +819,14 @@ App.MainHostDetailsController = Em.Controller.extend({
           sender: this,
           data: {
             desired_config: desiredConfigs,
-            hiveMetastoreHost: hiveMetastoreHost
+            componentName: componentName,
+            host: host
           },
-          success: 'installHiveMetastore'
+          success: 'installHostComponent'
         });
       }
       //clear hive metastore host not to send second request to install component
-      hiveMetastoreHost = null;
+      host = null;
     }, this);
   },
 
@@ -871,9 +836,9 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @param opt
    * @param params
    */
-  installHiveMetastore: function(data, opt, params) {
-    if (params.hiveMetastoreHost) {
-      componentsUtils.installHostComponent(params.hiveMetastoreHost, App.StackServiceComponent.find("HIVE_METASTORE"));
+  installHostComponent: function(data, opt, params) {
+    if (params.host) {
+      componentsUtils.installHostComponent(params.host, App.StackServiceComponent.find(params.componentName));
     }
   },
   /**
@@ -898,6 +863,77 @@ App.MainHostDetailsController = Em.Controller.extend({
       return hiveHosts.without(this.get('content.hostName'));
     }
     return hiveHosts.sort();
+  },
+
+  /**
+   * Success callback for load configs request
+   * @param {object} data
+   * @method loadHiveConfigs
+   */
+  loadRangerConfigs: function (data) {
+    App.ajax.send({
+      name: 'admin.get.all_configurations',
+      sender: this,
+      data: {
+        urlParams: '(type=core-site&tag=' + data.Clusters.desired_configs['core-site'].tag + ')|(type=hdfs-site&tag=' + data.Clusters.desired_configs['hdfs-site'].tag + ')|(type=kms-env&tag=' + data.Clusters.desired_configs['kms-env'].tag + ')'
+      },
+      success: 'onLoadRangerConfigs'
+    });
+  },
+
+  /**
+   * update and save Hive hive.metastore.uris config to server
+   * @param {object} data
+   * @method onLoadHiveConfigs
+   */
+  onLoadRangerConfigs: function (data) {
+    var hostToInstall = this.get('rangerKMSServerHost');
+    var rkmsHosts = this.getRangerKMSServerHosts();
+    var rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'];
+    var coreSiteConfigs = data.items.findProperty('type', 'core-site');
+    var hdfsSiteConfigs = data.items.findProperty('type', 'core-site');
+    var groups = [
+      {
+        properties: {
+          'core-site': coreSiteConfigs.properties,
+          'hdfs-site': hdfsSiteConfigs.properties
+        },
+        properties_attributes: {
+          'core-site': coreSiteConfigs.properties_attributes,
+          'hdfs-site': hdfsSiteConfigs.properties_attributes
+        }
+      }
+    ];
+
+    for (var i = 0; i < rkmsHosts.length; i++) {
+      rkmsHosts[i] = rkmsHosts[i] + ':' + rkmsPort;
+    }
+    coreSiteConfigs.properties['hadoop.security.key.provider.path'] = 'kms://http@' + rkmsHosts.join(',') + '/kms';
+    hdfsSiteConfigs.properties['dfs.encryption.key.provider.uri'] = 'kms://http@' + rkmsHosts.join(',') + '/kms';
+    this.saveConfigsBatch(groups, 'RANGER_KMS_SERVER', hostToInstall);
+  },
+
+  /**
+   * Delete Hive Metastore is performed
+   * @type {bool}
+   */
+  deleteRangerKMSServer: false,
+
+  getRangerKMSServerHosts: function () {
+    var rkmsHosts = App.HostComponent.find().filterProperty('componentName', 'RANGER_KMS_SERVER').mapProperty('hostName');
+    var rangerKMSServerHost = this.get('rangerKMSServerHost');
+
+    if(!!rangerKMSServerHost){
+      rkmsHosts.push(rangerKMSServerHost);
+      this.set('rangerKMSServerHost', '');
+    }
+
+    if (this.get('fromDeleteHost') || this.get('deleteRangerKMSServer')) {
+      this.set('deleteRangerKMSServer', false);
+      this.set('fromDeleteHost', false);
+      return rkmsHosts.without(this.get('content.hostName'));
+    }
+    return rkmsHosts.sort();
   },
 
   /**
@@ -1099,7 +1135,7 @@ App.MainHostDetailsController = Em.Controller.extend({
         }
       );
     }
-    this.saveConfigsBatch(groups);
+    this.saveConfigsBatch(groups, 'ZOOKEEPER_SERVER');
   },
   /**
    *

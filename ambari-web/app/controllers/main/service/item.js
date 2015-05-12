@@ -683,11 +683,11 @@ App.MainServiceItemController = Em.Controller.extend({
         var selectedHost = this.get('selectedHost');
 
         // Install
-        if(component.get('componentName') == "HIVE_METASTORE" && !!selectedHost){
+        if(['HIVE_METASTORE', 'RANGER_KMS_SERVER'].contains(component.get('componentName')) && !!selectedHost){
           App.router.get('mainHostDetailsController').addComponent(
             {
               context: component,
-              hiveMetastoreHost: selectedHost
+              selectedHost: selectedHost
             }
           );
         } else {

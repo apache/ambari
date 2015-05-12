@@ -16,18 +16,26 @@
 * limitations under the License.
 }}
 
-{{deleteComponentMsg}}<br /><br />
+{{deleteComponentMsg}}<br/><br/>
 {{#if lastComponent}}
-    <div class="alert-error row-fluid">
-        <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
-        <div class='span10'>{{view lastComponentError}}</div>
-    </div>
+  <div class="alert-error row-fluid">
+    <div class='tinyspan tinyoffset'>{{view Ember.Checkbox checkedBinding="isChecked"}}</div>
+    <div class='span10'>{{view lastComponentError}}</div>
+  </div>
 {{/if}}
 {{#if isZkServer}}
-  <br />
+  <br/>
   <div class='alert'>{{view deleteZkServerMsg}}</div>
 {{/if}}
 {{#if isHiveMetastore}}
-  <br />
+  <br/>
   <div class='alert'>{{view deleteHiveMetastoreMsg}}</div>
+{{/if}}
+{{#if isNimbus}}
+  <br/>
+  <div class='alert'>{{view deleteNimbusMsg}}</div>
+{{/if}}
+{{#if isRangerKMSServer}}
+  <br/>
+  <div class='alert'>{{view deleteRangerKMSServereMsg}}</div>
 {{/if}}
