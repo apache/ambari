@@ -119,9 +119,6 @@ var hdp2properties = [
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
-    "stack": {
-      "HDP": "2.3"
-    },
     "index": 1
   },
   {
@@ -144,9 +141,6 @@ var hdp2properties = [
     "category": "NFS_GATEWAY",
     "serviceName": "HDFS",
     "filename": "hdfs-site.xml",
-    "stack": {
-      "HDP": "2.3"
-    },
     "index": 3
   },
   {
@@ -1037,10 +1031,7 @@ var hdp2properties = [
     "displayType": "masterHosts",
     "serviceName": "STORM",
     "filename": "storm-site.xml",
-    "category": "NIMBUS",
-    "stack": {
-      "HDP": "2.3"
-    }
+    "category": "NIMBUS"
   },
   {
     "id": "site property",
@@ -1874,10 +1865,7 @@ var hdp2properties = [
     "displayType": "advanced",
     "serviceName": "KAFKA",
     "filename": "kafka-broker.xml",
-    "category": "KAFKA_BROKER",
-    "stack": {
-      "HDP": "2.3"
-    }
+    "category": "KAFKA_BROKER"
   },
   {
     "id": "site property",
@@ -3323,6 +3311,7 @@ var hdp2properties = [
     "isOverridable": false,
     "isVisible": false,
     "isReconfigurable": false,
+    "isRequiredByAgent": false,
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
     "category": "HIVE_METASTORE",
@@ -3339,6 +3328,7 @@ var hdp2properties = [
     "isOverridable": false,
     "isVisible": false,
     "isReconfigurable": false,
+    "isRequiredByAgent": false,
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
     "category": "HIVE_METASTORE",
@@ -3355,6 +3345,7 @@ var hdp2properties = [
     "isOverridable": false,
     "isVisible": false,
     "isReconfigurable": false,
+    "isRequiredByAgent": false,
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
     "category": "HIVE_METASTORE",
@@ -3372,6 +3363,7 @@ var hdp2properties = [
     "isOverridable": false,
     "isVisible": false,
     "isReconfigurable": false,
+    "isRequiredByAgent": false,
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
     "category": "HIVE_METASTORE",
@@ -3389,6 +3381,7 @@ var hdp2properties = [
     "isVisible": false,
     "isOverridable": false,
     "isReconfigurable": false,
+    "isRequiredByAgent": false,
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
     "category": "HIVE_METASTORE",
@@ -3405,6 +3398,7 @@ var hdp2properties = [
     "displayType": "masterHost",
     "isOverridable": false,
     "isReconfigurable": false,
+    "isRequiredByAgent": false,
     "isVisible": false,
     "serviceName": "HIVE",
     "filename": "hive-env.xml",
@@ -3474,6 +3468,7 @@ var hdp2properties = [
     "defaultValue": "",
     "displayType": "host",
     "isOverridable": false,
+    "isRequiredByAgent": false,
     "isVisible": false,
     "isObserved": true,
     "serviceName": "HIVE",
@@ -3489,6 +3484,7 @@ var hdp2properties = [
     "defaultValue": "",
     "displayType": "host",
     "isOverridable": false,
+    "isRequiredByAgent": false,
     "isVisible": false,
     "isObserved": true,
     "serviceName": "HIVE",
@@ -3504,6 +3500,7 @@ var hdp2properties = [
     "defaultValue": "",
     "displayType": "host",
     "isOverridable": false,
+    "isRequiredByAgent": false,
     "isVisible": false,
     "isObserved": true,
     "serviceName": "HIVE",
@@ -3536,6 +3533,7 @@ var hdp2properties = [
     "defaultValue": "",
     "displayType": "host",
     "isOverridable": false,
+    "isRequiredByAgent": false,
     "isVisible": false,
     "isObserved": true,
     "serviceName": "HIVE",
@@ -3551,6 +3549,7 @@ var hdp2properties = [
     "defaultValue": "",
     "displayType": "host",
     "isOverridable": false,
+    "isRequiredByAgent": false,
     "isVisible": false,
     "isObserved": true,
     "serviceName": "HIVE",
@@ -3722,6 +3721,7 @@ var hdp2properties = [
     "description": "Using an existing Oracle database for Oozie Metastore",
     "displayType": "masterHost",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isObserved": true,
     "isReconfigurable": false,
     "isOverridable": false,
@@ -3741,6 +3741,7 @@ var hdp2properties = [
     "displayType": "masterHost",
     "isOverridable": false,
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isReconfigurable": false,
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",
@@ -3757,6 +3758,7 @@ var hdp2properties = [
     "description": "MySQL will be installed by Ambari",
     "displayType": "masterHost",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isReconfigurable": false,
     "isOverridable": false,
     "serviceName": "OOZIE",
@@ -3791,6 +3793,7 @@ var hdp2properties = [
     "description": "Using an existing MySQL database for Oozie Metastore",
     "displayType": "masterHost",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isReconfigurable": false,
     "isOverridable": false,
     "serviceName": "OOZIE",
@@ -3807,6 +3810,7 @@ var hdp2properties = [
     "description": "Using an existing MSSQL database with SQL authentication for Oozie Metastore",
     "displayType": "masterHost",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isReconfigurable": false,
     "isOverridable": false,
     "serviceName": "OOZIE",
@@ -3823,6 +3827,7 @@ var hdp2properties = [
     "description": "Using an existing MSSQL database with integrated authentication for Oozie Metastore",
     "displayType": "masterHost",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isReconfigurable": false,
     "isOverridable": false,
     "serviceName": "OOZIE",
@@ -3910,6 +3915,7 @@ var hdp2properties = [
     "isOverridable": false,
     "displayType": "host",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isObserved": true,
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",
@@ -3925,6 +3931,7 @@ var hdp2properties = [
     "isOverridable": false,
     "displayType": "host",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isObserved": true,
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",
@@ -3940,6 +3947,7 @@ var hdp2properties = [
     "isOverridable": false,
     "displayType": "host",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isObserved": true,
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",
@@ -3957,6 +3965,7 @@ var hdp2properties = [
     "isOverridable": false,
     "displayType": "masterHost",
     "isVisible": false,
+    "isRequiredByAgent": false,
     "isRequiredByAgent": false,
     "serviceName": "OOZIE",
     "filename": "oozie-env.xml",

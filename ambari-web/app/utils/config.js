@@ -113,27 +113,17 @@ App.config = Em.Object.create({
 
   preDefinedSiteProperties: function () {
     var sitePropertiesForCurrentStack = this.preDefinedConfigFile('site_properties');
-    // default is HDP2
-    var configProperties = require('data/HDP2/site_properties').configProperties;
     if (sitePropertiesForCurrentStack) {
       return sitePropertiesForCurrentStack.configProperties;
     }
-
     if (App.get('isHadoop23Stack')) {
       return require('data/HDP2.3/site_properties').configProperties;
     }
     if (App.get('isHadoop22Stack')) {
-      configProperties = require('data/HDP2.2/site_properties').configProperties;
+      return require('data/HDP2.2/site_properties').configProperties;
     }
-    // filter config properties by stack name and version if defined
-    return configProperties.filter(function(item) {
-      if (item.stack) {
-        var stackVersion = item.stack[App.get('currentStackName')];
-        return stackVersion && stringUtils.compareVersions(App.get('currentStackVersionNumber'), stackVersion) > -1;
-      }
-      return true;
-    });
-  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack', 'App.currentStackName'),
+    return require('data/HDP2/site_properties').configProperties;
+  }.property('App.isHadoop22Stack', 'App.isHadoop23Stack'),
 
   preDefinedConfigFile: function(file) {
     try {
@@ -336,7 +326,6 @@ App.config = Em.Object.create({
           supportsFinal: advancedConfig ? Em.get(advancedConfig, 'supportsFinal') : this.shouldSupportFinal(serviceName, _tag.siteName)
 
         });
-
         if (configsPropertyDef) {
           this.setServiceConfigUiAttributes(serviceConfigObj, configsPropertyDef);
           // check if defined UI config present in config list obtained from server.
@@ -487,7 +476,7 @@ App.config = Em.Object.create({
     return {
       configs: siteStart.concat(siteConfigs.sortProperty('name')),
       mappingConfigs: configSet.mappingConfigs
-    }
+    };
   },
 
   /**
@@ -542,6 +531,14 @@ App.config = Em.Object.create({
         }
         else if (preDefined && !stored) {
           configData = preDefined;
+          // skip property if predefined config doesn't exist or ignored in stack property definition for current stack.
+          // if `isRequiredByAgent` is set to `false` then this property used by UI only to display properties like
+          // host names or some misc properties that won't be persisted.
+          if (Em.get(preDefined, 'isRequiredByAgent') !== false && !isAdvanced &&
+              Em.get(preDefined, 'filename') != 'alert_notification' &&
+              !['hive_hostname', 'oozie_hostname'].contains(Em.get(preDefined, 'name'))) {
+            return;
+          }
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
           if (isAdvanced) {
             var advanced = advancedConfigs.filterProperty('filename', configData.filename).findProperty('name', configData.name);
