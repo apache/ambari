@@ -326,6 +326,7 @@ public class BaseProviderTest {
     Set<String> propertyIds = new HashSet<String>();
     propertyIds.add("metrics/flume/$1.substring(0)/CHANNEL/$2.replaceAll(\"[^-]+\",\"\")EventPutSuccessCount/rate/sum");
     propertyIds.add("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted");
+    propertyIds.add("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsFailed");
 
     TestProvider provider = new TestProvider(propertyIds);
     Entry<String, Pattern> entry = provider.getRegexEntry("metrics/flume/flume");
@@ -346,6 +347,27 @@ public class BaseProviderTest {
         entry.getKey());
     assertEquals(
         "metrics/flume/(\\S*)/CHANNEL/(\\S*)EventPutSuccessCount/rate",
+        entry.getValue().pattern());
+
+    entry = provider.getRegexEntry("metrics/yarn/Queue/root/AppsCompleted");
+    assertEquals("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted",
+        entry.getKey());
+    assertEquals(
+        "metrics/yarn/Queue/(\\S*)/AppsCompleted",
+        entry.getValue().pattern());
+
+    entry = provider.getRegexEntry("metrics/yarn/Queue/root/default/AppsCompleted");
+    assertEquals("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsCompleted",
+        entry.getKey());
+    assertEquals(
+        "metrics/yarn/Queue/(\\S*)/AppsCompleted",
+        entry.getValue().pattern());
+
+    entry = provider.getRegexEntry("metrics/yarn/Queue/root/default/AppsFailed");
+    assertEquals("metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsFailed",
+        entry.getKey());
+    assertEquals(
+        "metrics/yarn/Queue/(\\S*)/AppsFailed",
         entry.getValue().pattern());
   }
 

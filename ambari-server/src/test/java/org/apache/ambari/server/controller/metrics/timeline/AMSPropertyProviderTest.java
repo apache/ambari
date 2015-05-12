@@ -245,7 +245,7 @@ public class AMSPropertyProviderTest {
         new HashMap<String, Map<String, PropertyInfo>>() {{
       put("RESOURCEMANAGER", new HashMap<String, PropertyInfo>() {{
         put("metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableMB",
-            new PropertyInfo("yarn.QueueMetrics.(.+).AvailableMB", true, false));
+            new PropertyInfo("yarn.QueueMetrics.Queue=(.+).AvailableMB", true, false));
       }});
     }};
 
@@ -274,12 +274,12 @@ public class AMSPropertyProviderTest {
     Map<String, Object> properties = PropertyHelper.getProperties(resources.iterator().next());
     Assert.assertNotNull(properties);
     URIBuilder uriBuilder = AMSPropertyProvider.getAMSUriBuilder("localhost", 8188);
-    uriBuilder.addParameter("metricNames", "yarn.QueueMetrics.%.AvailableMB");
+    uriBuilder.addParameter("metricNames", "yarn.QueueMetrics.Queue=root.AvailableMB");
     uriBuilder.addParameter("appId", "RESOURCEMANAGER");
     uriBuilder.addParameter("startTime", "1416528819369");
     uriBuilder.addParameter("endTime", "1416528819569");
     Assert.assertEquals(uriBuilder.toString(), streamProvider.getLastSpec());
-    Number[][] val = (Number[][]) res.getPropertyValue("metrics/yarn/Queue/Queue=root/AvailableMB");
+    Number[][] val = (Number[][]) res.getPropertyValue("metrics/yarn/Queue/root/AvailableMB");
     Assert.assertEquals(238, val.length);
   }
 

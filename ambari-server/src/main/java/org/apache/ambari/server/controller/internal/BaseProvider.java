@@ -79,7 +79,8 @@ public abstract class BaseProvider {
    * <p/>
    * {@code metrics/yarn/Queue/-/AppsCompleted/-/foo/-/bar/-}
    */
-  private static final Pattern METRIC_ARGUMENT_METHOD_REPLACEMENT = Pattern.compile("\\$\\d+(\\.\\w+(\\(\\\\\"\\S+\\\\\"\\)|\\(\\d+\\)))*");
+  private static final Pattern METRIC_ARGUMENT_METHOD_REPLACEMENT =
+      Pattern.compile("\\$\\d+(\\.\\S+\\(\\S+\\))*");
 
   // ----- Constructors ------------------------------------------------------
 
