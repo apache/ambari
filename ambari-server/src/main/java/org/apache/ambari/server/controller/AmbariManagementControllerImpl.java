@@ -2034,11 +2034,14 @@ public class AmbariManagementControllerImpl implements AmbariManagementControlle
 
                   // If the state is transitioning from INIT TO INSTALLED and the cluster has Kerberos
                   // enabled, mark this ServiceComponentHost to see if anything needs to be done to
-                  // make sure it is properly configured.  The Kerberos-related stages needs to be
+                  // make sure it is properly configured.
+                  // If the component is transitioning from an INSTALL_FAILED to an INSTALLED state indicates a failure attempt on install
+                  // followed by a new installation attempt and will also need Kerberos related configuration addressing
+                  // The Kerberos-related stages needs to be
                   // between the INSTALLED and STARTED states because some services need to set up
                   // the host (i,e, create user accounts, etc...) before Kerberos-related tasks an
                   // occur (like distribute keytabs)
-                  if((oldSchState == State.INIT) && kerberosHelper.isClusterKerberosEnabled(cluster)) {
+                  if((oldSchState == State.INIT || oldSchState == State.INSTALL_FAILED) && kerberosHelper.isClusterKerberosEnabled(cluster)) {
                     try {
                       kerberosHelper.configureService(cluster, scHost);
                     } catch (KerberosInvalidConfigurationException e) {
