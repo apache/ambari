@@ -72,13 +72,6 @@ public enum CheckDescription {
         put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: {{fails}}.");
       }}),
 
-  SERVICES_DECOMMISSION(PrereqCheckType.SERVICE,
-      "Services should not have components in decommission state",
-      new HashMap<String, String>() {{
-        put(AbstractCheckDescriptor.DEFAULT,
-          "The following Services must not have components in decommissioned or decommissioning state: {{fails}}.");
-      }}),
-
   SERVICES_MAINTENANCE_MODE(PrereqCheckType.SERVICE,
       "No services can be in Maintenance Mode",
       new HashMap<String, String>() {{
