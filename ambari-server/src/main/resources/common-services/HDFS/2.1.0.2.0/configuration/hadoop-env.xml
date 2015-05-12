@@ -53,6 +53,12 @@
       <unit>MB</unit>
       <increment-step>256</increment-step>
     </value-attributes>
+    <depends-on>
+      <property>
+        <type>hdfs-site</type>
+        <name>dfs.datanode.data.dir</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>namenode_opt_newsize</name>
