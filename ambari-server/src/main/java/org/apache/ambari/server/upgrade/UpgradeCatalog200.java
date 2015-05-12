@@ -489,6 +489,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
         desiredStateDao.remove(serviceDesiredState);
 
         // remove service
+        cluster.getClusterServiceEntities().remove(nagios);
         ClusterServiceEntityPK primaryKey = new ClusterServiceEntityPK();
         primaryKey.setClusterId(nagios.getClusterId());
         primaryKey.setServiceName(nagios.getServiceName());
