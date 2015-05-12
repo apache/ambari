@@ -19,6 +19,7 @@ limitations under the License.
 
 import math
 from math import floor
+from urlparse import urlparse
 
 class HDP22StackAdvisor(HDP21StackAdvisor):
 
@@ -637,6 +638,27 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     VALID_TRANSFER_PROTECTION_VALUES = ['authentication', 'integrity', 'privacy']
 
     validationItems = []
+    address_properties = [
+      # "dfs.datanode.address",
+      # "dfs.datanode.http.address",
+      # "dfs.datanode.https.address",
+      # "dfs.datanode.ipc.address",
+      # "dfs.journalnode.http-address",
+      # "dfs.journalnode.https-address",
+      # "dfs.namenode.rpc-address",
+      # "dfs.namenode.secondary.http-address",
+      "dfs.namenode.http-address",
+      "dfs.namenode.https-address",
+    ]
+    #Validating *address properties for correct values
+
+    for address_property in address_properties:
+      if address_property in hdfs_site:
+        value = hdfs_site[address_property]
+        if not is_valid_host_port_authority(value):
+          validationItems.append({"config-name" : address_property, "item" :
+            self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
+
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
     ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled']
@@ -999,4 +1021,16 @@ def is_number(s):
   except ValueError:
     pass
 
+  return False
+
+def is_valid_host_port_authority(target):
+  has_scheme = "://" in target
+  if not has_scheme:
+    target = "dummyscheme://"+target
+  try:
+    result = urlparse(target)
+    if result.hostname is not None and result.port is not None:
+      return True
+  except ValueError:
+    pass
   return False
