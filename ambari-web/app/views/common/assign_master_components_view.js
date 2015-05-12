@@ -141,6 +141,7 @@ App.SelectHostView = Em.Select.extend(App.SelectHost, {
    * @method change
    */
   change: function () {
+    this._super();
     this.initContent();
   }
 

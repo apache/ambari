@@ -66,11 +66,13 @@ describe('App.SelectHostView', function() {
 
     beforeEach(function() {
       sinon.stub(view, 'initContent', Em.K);
+      sinon.stub(view, 'changeHandler', Em.K);
       models.setupStackServiceComponent();
     });
 
     afterEach(function() {
       view.initContent.restore();
+      view.changeHandler.restore();
       models.cleanStackServiceComponent();
     });
 
