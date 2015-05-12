@@ -24,6 +24,7 @@ import sys
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import get_unique_id_and_date
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -76,7 +77,7 @@ class ZookeeperServerLinux(ZookeeperServer):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "zookeeper", params.version)
-      Execute(format("hdp-select set zookeeper-server {version}"))
+      hdp_select.select("zookeeper-server", params.version)
 
   def post_rolling_restart(self, env):
     Logger.info("Executing Rolling Upgrade post-restart")

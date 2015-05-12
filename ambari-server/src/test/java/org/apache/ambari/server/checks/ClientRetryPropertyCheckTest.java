@@ -155,7 +155,7 @@ public class ClientRetryPropertyCheckTest {
     Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
 
     // pass with right property
-    properties.put("template", "foo bar baz -Doozie.connection.retry.count=5 foobarbaz");
+    properties.put("content", "foo bar baz -Doozie.connection.retry.count=5 foobarbaz");
     check = new PrerequisiteCheck(null, null);
     m_check.perform(check, new PrereqCheckRequest("cluster"));
     Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());

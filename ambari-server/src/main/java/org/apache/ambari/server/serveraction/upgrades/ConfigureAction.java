@@ -21,13 +21,16 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentMap;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.actionmanager.HostRoleStatus;
 import org.apache.ambari.server.agent.CommandReport;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.ConfigurationRequest;
@@ -40,6 +43,7 @@ import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper;
 import org.apache.ambari.server.state.ConfigMergeHelper.ThreeWayValue;
 import org.apache.ambari.server.state.DesiredConfig;
+import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.commons.lang.StringUtils;
@@ -47,6 +51,7 @@ import org.apache.commons.lang.StringUtils;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import com.google.inject.Inject;
+import com.google.inject.Provider;
 
 /**
  * The {@link ConfigureAction} is used to alter a configuration property during
@@ -79,6 +84,13 @@ public class ConfigureAction extends AbstractServerAction {
    */
   @Inject
   private Configuration m_configuration;
+
+  /**
+   * Used to lookup stack properties which are the configuration properties that
+   * are defined on the stack.
+   */
+  @Inject
+  private Provider<AmbariMetaInfo> m_ambariMetaInfo;
 
   @Inject
   private ConfigMergeHelper m_mergeHelper;
@@ -184,6 +196,7 @@ public class ConfigureAction extends AbstractServerAction {
     boolean changedValues = false;
 
     // !!! do transfers first before setting defined values
+    StringBuilder outputBuffer = new StringBuilder(250);
     for (ConfigureTask.Transfer transfer : transfers) {
       switch (transfer.operation) {
         case COPY:
@@ -194,9 +207,16 @@ public class ConfigureAction extends AbstractServerAction {
             if (base.containsKey(transfer.fromKey)) {
               newValues.put(transfer.toKey, base.get(transfer.fromKey));
               changedValues = true;
+
+              // append standard output
+              outputBuffer.append(MessageFormat.format("Copied {0}/{1}\n", configType, key));
             } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
               newValues.put(transfer.toKey, transfer.defaultValue);
               changedValues = true;
+
+              // append standard output
+              outputBuffer.append(MessageFormat.format("Created {0}/{1} with default value {2}\n",
+                  configType, transfer.toKey, transfer.defaultValue));
             }
           } else {
             // !!! copying from another configuration
@@ -208,9 +228,18 @@ public class ConfigureAction extends AbstractServerAction {
               if (otherValues.containsKey(transfer.fromKey)) {
                 newValues.put(transfer.toKey, otherValues.get(transfer.fromKey));
                 changedValues = true;
+
+                // append standard output
+                outputBuffer.append(MessageFormat.format("Copied {0}/{1} to {2}\n",
+                    transfer.fromType, transfer.fromKey, configType));
               } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
                 newValues.put(transfer.toKey, transfer.defaultValue);
                 changedValues = true;
+
+                // append standard output
+                outputBuffer.append(MessageFormat.format(
+                    "Created {0}/{1} with default value {2}\n", configType, transfer.toKey,
+                    transfer.defaultValue));
               }
             }
           }
@@ -222,9 +251,17 @@ public class ConfigureAction extends AbstractServerAction {
           if (newValues.containsKey(transfer.fromKey)) {
             newValues.put(transfer.toKey, newValues.remove(transfer.fromKey));
             changedValues = true;
+
+            // append standard output
+            outputBuffer.append(MessageFormat.format("Renamed {0}/{1} to {2}/{3}\n", configType,
+                transfer.fromKey, configType, transfer.toKey));
           } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
             newValues.put(transfer.toKey, transfer.defaultValue);
             changedValues = true;
+
+            // append standard output
+            outputBuffer.append(MessageFormat.format("Created {0}/{1} with default value {2}\n",
+                configType, transfer.toKey, transfer.defaultValue));
           }
 
           break;
@@ -232,22 +269,39 @@ public class ConfigureAction extends AbstractServerAction {
           if ("*".equals(transfer.deleteKey)) {
             newValues.clear();
 
+            // append standard output
+            outputBuffer.append(MessageFormat.format("Deleted all keys from {0}\n", configType));
+
             for (String keeper : transfer.keepKeys) {
               newValues.put(keeper, base.get(keeper));
+
+              // append standard output
+              outputBuffer.append(MessageFormat.format("Preserved {0}/{1} after delete\n",
+                  configType, keeper));
             }
 
-            // !!! with preserved edits, find the values that are different
-            // from the stack-defined and keep them
+            // !!! with preserved edits, find the values that are different from
+            // the stack-defined and keep them - also keep values that exist in
+            // the config but not on the stack
             if (transfer.preserveEdits) {
-              List<String> edited = findChangedValues(clusterName, config);
+              List<String> edited = findValuesToPreserve(clusterName, config);
               for (String changed : edited) {
                 newValues.put(changed, base.get(changed));
+
+                // append standard output
+                outputBuffer.append(MessageFormat.format("Preserved {0}/{1} after delete\n",
+                    configType, changed));
               }
             }
+
             changedValues = true;
           } else {
             newValues.remove(transfer.deleteKey);
             changedValues = true;
+
+            // append standard output
+            outputBuffer.append(MessageFormat.format("Deleted {0}/{1}\n", configType,
+                transfer.deleteKey));
           }
 
           break;
@@ -274,6 +328,7 @@ public class ConfigureAction extends AbstractServerAction {
       // the configure being able to take a list of transfers without a
       // key/value to set
       newValues.put(key, value);
+      outputBuffer.append(MessageFormat.format("{0}/{1} changed to {2}\n", configType, key, value));
     }
 
     // !!! check to see if we're going to a new stack and double check the
@@ -283,8 +338,7 @@ public class ConfigureAction extends AbstractServerAction {
       config.setProperties(newValues);
       config.persist(false);
 
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-          MessageFormat.format("Updated configuration ''{0}''", configType), "");
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", outputBuffer.toString(), "");
     }
 
     // !!! values are different and within the same stack.  create a new
@@ -308,37 +362,85 @@ public class ConfigureAction extends AbstractServerAction {
 
 
   /**
-   * @param clusterName the cluster name
-   * @param config      the config with the tag to find conflicts
-   * @return            the list of changed property keys
+   * Finds the values that should be preserved during a delete. This includes:
+   * <ul>
+   * <li>Properties that existed on the stack but were changed to a different
+   * value</li>
+   * <li>Properties that do not exist on the stack</li>
+   * </ul>
+   *
+   * @param clusterName
+   *          the cluster name
+   * @param config
+   *          the config with the tag to find conflicts
+   * @return the list of changed property keys
    * @throws AmbariException
    */
-  private List<String> findChangedValues(String clusterName, Config config)
+  private List<String> findValuesToPreserve(String clusterName, Config config)
       throws AmbariException {
+    List<String> result = new ArrayList<String>();
 
     Map<String, Map<String, ThreeWayValue>> conflicts =
         m_mergeHelper.getConflicts(clusterName, config.getStackId());
 
     Map<String, ThreeWayValue> conflictMap = conflicts.get(config.getType());
 
-    if (null == conflictMap || conflictMap.isEmpty()) {
-      return Collections.emptyList();
+    // process the conflicts, if any, and add them to the list
+    if (null != conflictMap && !conflictMap.isEmpty()) {
+      for (Map.Entry<String, ThreeWayValue> entry : conflictMap.entrySet()) {
+        ThreeWayValue twv = entry.getValue();
+        if (null == twv.oldStackValue) {
+          result.add(entry.getKey());
+        } else if (null != twv.savedValue && !twv.oldStackValue.equals(twv.savedValue)) {
+          result.add(entry.getKey());
+        }
+      }
     }
 
-    List<String> result = new ArrayList<String>();
 
-    for (Map.Entry<String, ThreeWayValue> entry : conflictMap.entrySet()) {
-      ThreeWayValue twv = entry.getValue();
-      if (null == twv.oldStackValue) {
-        result.add(entry.getKey());
-      } else if (null != twv.savedValue && !twv.oldStackValue.equals(twv.savedValue)) {
-        result.add(entry.getKey());
+    String configType = config.getType();
+    Cluster cluster = m_clusters.getCluster(clusterName);
+    StackId oldStack = cluster.getCurrentStackVersion();
+
+    // iterate over all properties for every cluster service; if the property
+    // has the correct config type (ie oozie-site or hdfs-site) then add it to
+    // the list of original stack propertiess
+    Set<String> stackPropertiesForType = new HashSet<String>(50);
+    for (String serviceName : cluster.getServices().keySet()) {
+      Set<PropertyInfo> serviceProperties = m_ambariMetaInfo.get().getServiceProperties(
+          oldStack.getStackName(), oldStack.getStackVersion(), serviceName);
+
+      for (PropertyInfo property : serviceProperties) {
+        String type = ConfigHelper.fileNameToConfigType(property.getFilename());
+        if (type.equals(configType)) {
+          stackPropertiesForType.add(property.getName());
+        }
+      }
+    }
+
+    // now iterate over all stack properties, adding them to the list if they
+    // match
+    Set<PropertyInfo> stackProperties = m_ambariMetaInfo.get().getStackProperties(
+        oldStack.getStackName(),
+        oldStack.getStackVersion());
+
+    for (PropertyInfo property : stackProperties) {
+      String type = ConfigHelper.fileNameToConfigType(property.getFilename());
+      if (type.equals(configType)) {
+        stackPropertiesForType.add(property.getName());
+      }
+    }
+
+    // see if any keys exist in the old config but not the the original stack
+    // for this config type; that means they were added and should be preserved
+    Map<String, String> base = config.getProperties();
+    Set<String> baseKeys = base.keySet();
+    for( String baseKey : baseKeys ){
+      if (!stackPropertiesForType.contains(baseKey)) {
+        result.add(baseKey);
       }
     }
 
     return result;
   }
-
-
-
 }

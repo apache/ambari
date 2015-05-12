@@ -191,3 +191,38 @@ class TestUtils(TestCase):
     isfile_mock.return_value = True
 
     self.assertEquals(utils.check_exitcode("/tmp/nofile"), 777)
+
+
+  def test_format_with_reload(self):
+    from resource_management.libraries.functions import format
+    from resource_management.libraries.functions.format import ConfigurationFormatter
+    from resource_management.core.environment import Environment
+
+    env = Environment()
+    env._instances.append(env)
+
+
+    # declare some environment variables
+    env_params = {}
+    env_params["envfoo"] = "env-foo1"
+    env_params["envbar"] = "env-bar1"
+    env.config.params = env_params
+
+    # declare some local variables
+    foo = "foo1"
+    bar = "bar1"
+
+    # make sure local variables and env variables work
+    message = "{foo} {bar} {envfoo} {envbar}"
+    formatted_message = format(message)
+    self.assertEquals("foo1 bar1 env-foo1 env-bar1", formatted_message)
+
+    # try the same thing with an instance; we pass in keyword args to be
+    # combined with the env params
+    formatter = ConfigurationFormatter()
+    formatted_message = formatter.format(message, foo="foo2", bar="bar2")
+    self.assertEquals("foo2 bar2 env-foo1 env-bar1", formatted_message)
+
+    # now supply keyword args to override env params
+    formatted_message = formatter.format(message, envfoo="foobar", envbar="foobarbaz", foo="foo3", bar="bar3")
+    self.assertEquals("foo3 bar3 foobar foobarbaz", formatted_message)

@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
 
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
-import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,9 +49,6 @@ public class ConfigMergeHelper {
 
   @Inject
   private Provider<AmbariMetaInfo> m_ambariMetaInfo;
-
-  @Inject
-  private Provider<RepositoryVersionDAO> repositoryVersionDaoProvider;
 
   @SuppressWarnings("unchecked")
   public Map<String, Map<String, ThreeWayValue>> getConflicts(String clusterName, StackId targetStack) throws AmbariException {
@@ -98,7 +94,7 @@ public class ConfigMergeHelper {
       if (null != config) {
         Set<String> valueKeys = config.getProperties().keySet();
 
-        customValueKeys = (Collection<String>) CollectionUtils.subtract(valueKeys, oldPairs.keySet());
+        customValueKeys = CollectionUtils.subtract(valueKeys, oldPairs.keySet());
       }
 
       if (null != customValueKeys) {

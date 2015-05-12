@@ -41,8 +41,14 @@ class ConfigurationFormatter(Formatter):
     env = Environment.get_instance()
     variables = kwargs
     params = env.config.params
-    all_params = checked_unite(variables, params)
-    
+
+    # don't use checked_unite for this as it would interfere with reload(module)
+    # for things like params and status_params; instead, start out copying
+    # the environment parameters and add in any locally declared variables to
+    # override existing env parameters
+    all_params = params.copy()
+    all_params.update(variables)
+
     self.convert_field = self.convert_field_protected
     result_protected = self.vformat(format_string, args, all_params)
     

@@ -1263,6 +1263,8 @@ class TestNamenode(RMFTestCase):
 
   @patch("resource_management.core.shell.call")
   def test_pre_rolling_restart_23_params(self, call_mock):
+    import itertools
+
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/nn_ru_lzo.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -1279,7 +1281,7 @@ class TestNamenode(RMFTestCase):
                        config_dict = json_content,
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES,
-                       call_mocks = [(0, None), (0, None), (0, None), (0, None), (0, None), (0, None), (0, None)],
+                       call_mocks = itertools.cycle([(0, None)]),
                        mocks_dict = mocks_dict)
     import sys
     self.assertEquals("/usr/hdp/2.3.0.0-1234/hadoop/conf", sys.modules["params"].hadoop_conf_dir)

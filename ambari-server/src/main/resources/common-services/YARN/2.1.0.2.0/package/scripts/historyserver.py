@@ -21,6 +21,7 @@ Ambari Agent
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
@@ -71,7 +72,7 @@ class HistoryServerDefault(HistoryServer):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      Execute(format("hdp-select set hadoop-mapreduce-historyserver {version}"))
+      hdp_select.select("hadoop-mapreduce-historyserver", params.version)
       params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
                           type="file",
                           action="create_on_execute",

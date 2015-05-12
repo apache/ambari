@@ -101,7 +101,7 @@ public class ClientRetryPropertyCheck extends AbstractCheckDescriptor {
     }
 
     if (services.containsKey("OOZIE")) {
-      String oozieClientRetry = getProperty(request, "oozie-env", "template");
+      String oozieClientRetry = getProperty(request, "oozie-env", "content");
       if (null == oozieClientRetry || !oozieClientRetry.contains("-Doozie.connection.retry.count")) {
         errorMessages.add(getFailReason(OOZIE_CLIENT_RETRY_MISSING_KEY, prerequisiteCheck, request));
         prerequisiteCheck.getFailedOn().add("OOZIE");

@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceNotFoundException;
 import org.apache.ambari.server.actionmanager.ExecutionCommandWrapper;
 import org.apache.ambari.server.actionmanager.HostRoleCommand;
 import org.apache.ambari.server.actionmanager.HostRoleCommandFactory;
@@ -47,8 +49,11 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.ConfigFactory;
+import org.apache.ambari.server.state.ConfigHelper;
 import org.apache.ambari.server.state.Host;
 import org.apache.ambari.server.state.RepositoryVersionState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
@@ -85,6 +90,12 @@ public class ConfigureActionTest {
   @Inject
   private HostRoleCommandFactory hostRoleCommandFactory;
 
+  @Inject
+  private ServiceFactory serviceFactory;
+
+  @Inject
+  ConfigHelper m_configHelper;
+
   @Before
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
@@ -95,72 +106,6 @@ public class ConfigureActionTest {
   @After
   public void teardown() throws Exception {
     m_injector.getInstance(PersistService.class).stop();
-  }
-
-  private void makeUpgradeCluster() throws Exception {
-    String clusterName = "c1";
-    String hostName = "h1";
-
-    Clusters clusters = m_injector.getInstance(Clusters.class);
-    clusters.addCluster(clusterName, HDP_21_STACK);
-
-    StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
-    StackEntity stackEntity = stackDAO.find(HDP_21_STACK.getStackName(),
-        HDP_21_STACK.getStackVersion());
-
-    assertNotNull(stackEntity);
-
-    Cluster c = clusters.getCluster(clusterName);
-    c.setDesiredStackVersion(HDP_21_STACK);
-
-    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
-    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {{
-          put("initLimit", "10");
-        }}, new HashMap<String, Map<String,String>>());
-    config.setTag("version1");
-    config.persist();
-
-    c.addConfig(config);
-    c.addDesiredConfig("user", Collections.singleton(config));
-
-    // add a host component
-    clusters.addHost(hostName);
-
-    Host host = clusters.getHost(hostName);
-
-    Map<String, String> hostAttributes = new HashMap<String, String>();
-    hostAttributes.put("os_family", "redhat");
-    hostAttributes.put("os_release_version", "6");
-    host.setHostAttributes(hostAttributes);
-    host.persist();
-
-    String urlInfo = "[{'repositories':["
-        + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.1.1'}"
-        + "], 'OperatingSystems/os_type':'redhat6'}]";
-
-    m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_2_0_0);
-    repoVersionDAO.create(stackEntity, HDP_2_2_1_0, String.valueOf(System.currentTimeMillis()),
-        "pack", urlInfo);
-
-    c.createClusterVersion(HDP_21_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.UPGRADING);
-    c.createClusterVersion(HDP_21_STACK, HDP_2_2_1_0, "admin", RepositoryVersionState.INSTALLING);
-
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_0_0, RepositoryVersionState.CURRENT);
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.INSTALLED);
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.UPGRADING);
-    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.UPGRADED);
-    c.setCurrentStackVersion(HDP_21_STACK);
-
-    c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
-        RepositoryVersionState.CURRENT);
-
-    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
-
-    HostVersionEntity entity = new HostVersionEntity();
-    entity.setHostEntity(hostDAO.findByName(hostName));
-    entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(HDP_21_STACK, HDP_2_2_1_0));
-    entity.setState(RepositoryVersionState.UPGRADED);
-    hostVersionDAO.create(entity);
   }
 
   @Test
@@ -214,6 +159,81 @@ public class ConfigureActionTest {
     assertNotNull(config);
     assertEquals("version2", config.getTag());
     assertEquals("11", config.getProperties().get("initLimit"));
+  }
+
+  /**
+   * Tests that DELETE "*" with edit preserving works correctly.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testDeletePreserveChanges() throws Exception {
+    makeUpgradeCluster();
+
+    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    c.setDesiredStackVersion(HDP_21_STACK);
+
+    // create a config for zoo.cfg with two values; one is a stack value and the
+    // other is custom
+    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+      {
+        put("tickTime", "2000");
+        put("foo", "bar");
+      }
+    }, new HashMap<String, Map<String, String>>());
+    config.setTag("version2");
+    config.persist();
+
+    c.addConfig(config);
+    c.addDesiredConfig("user", Collections.singleton(config));
+    assertEquals(2, c.getConfigsByType("zoo.cfg").size());
+
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put("upgrade_direction", "upgrade");
+    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("clusterName", "c1");
+    commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
+
+    // delete all keys, preserving edits or additions
+    List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
+    ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.DELETE;
+    transfer.deleteKey = "*";
+    transfer.preserveEdits = true;
+    transfers.add(transfer);
+
+    commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, new Gson().toJson(transfers));
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+
+    // make sure there are now 3 versions after the merge
+    assertEquals(3, c.getConfigsByType("zoo.cfg").size());
+    config = c.getDesiredConfigByType("zoo.cfg");
+    assertNotNull(config);
+    assertFalse("version2".equals(config.getTag()));
+
+    // time to check our values; there should only be 1 left since tickTime was
+    // removed
+    Map<String, String> map = config.getProperties();
+    assertEquals("bar", map.get("foo"));
+    assertFalse(map.containsKey("tickTime"));
   }
 
   @Test
@@ -338,9 +358,106 @@ public class ConfigureActionTest {
     assertEquals(4, c.getConfigsByType("zoo.cfg").size());
     config = c.getDesiredConfigByType("zoo.cfg");
     map = config.getProperties();
-    assertEquals(2, map.size());
+    assertEquals(6, map.size());
     assertTrue(map.containsKey("initLimit")); // it just changed to 11 from 10
     assertTrue(map.containsKey("copyKey")); // is new
   }
 
+  private void makeUpgradeCluster() throws Exception {
+    String clusterName = "c1";
+    String hostName = "h1";
+
+    Clusters clusters = m_injector.getInstance(Clusters.class);
+    clusters.addCluster(clusterName, HDP_21_STACK);
+
+    StackDAO stackDAO = m_injector.getInstance(StackDAO.class);
+    StackEntity stackEntity = stackDAO.find(HDP_21_STACK.getStackName(),
+        HDP_21_STACK.getStackVersion());
+
+    assertNotNull(stackEntity);
+
+    Cluster c = clusters.getCluster(clusterName);
+    c.setDesiredStackVersion(HDP_21_STACK);
+
+    // !!! very important, otherwise the loops that walk the list of installed
+    // service properties will not run!
+    installService(c, "ZOOKEEPER");
+
+    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+      {
+        put("initLimit", "10");
+      }
+    }, new HashMap<String, Map<String, String>>());
+    config.setTag("version1");
+    config.persist();
+
+    c.addConfig(config);
+    c.addDesiredConfig("user", Collections.singleton(config));
+
+    // add a host component
+    clusters.addHost(hostName);
+
+    Host host = clusters.getHost(hostName);
+
+    Map<String, String> hostAttributes = new HashMap<String, String>();
+    hostAttributes.put("os_family", "redhat");
+    hostAttributes.put("os_release_version", "6");
+    host.setHostAttributes(hostAttributes);
+    host.persist();
+
+    String urlInfo = "[{'repositories':["
+        + "{'Repositories/base_url':'http://foo1','Repositories/repo_name':'HDP','Repositories/repo_id':'HDP-2.1.1'}"
+        + "], 'OperatingSystems/os_type':'redhat6'}]";
+
+    m_helper.getOrCreateRepositoryVersion(HDP_21_STACK, HDP_2_2_0_0);
+    repoVersionDAO.create(stackEntity, HDP_2_2_1_0, String.valueOf(System.currentTimeMillis()),
+        "pack", urlInfo);
+
+    c.createClusterVersion(HDP_21_STACK, HDP_2_2_0_0, "admin", RepositoryVersionState.UPGRADING);
+    c.createClusterVersion(HDP_21_STACK, HDP_2_2_1_0, "admin", RepositoryVersionState.INSTALLING);
+
+    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_0_0, RepositoryVersionState.CURRENT);
+    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.INSTALLED);
+    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.UPGRADING);
+    c.transitionClusterVersion(HDP_21_STACK, HDP_2_2_1_0, RepositoryVersionState.UPGRADED);
+    c.setCurrentStackVersion(HDP_21_STACK);
+
+    c.mapHostVersions(Collections.singleton(hostName), c.getCurrentClusterVersion(),
+        RepositoryVersionState.CURRENT);
+
+    HostDAO hostDAO = m_injector.getInstance(HostDAO.class);
+
+    HostVersionEntity entity = new HostVersionEntity();
+    entity.setHostEntity(hostDAO.findByName(hostName));
+    entity.setRepositoryVersion(repoVersionDAO.findByStackAndVersion(HDP_21_STACK, HDP_2_2_1_0));
+    entity.setState(RepositoryVersionState.UPGRADED);
+    hostVersionDAO.create(entity);
+
+    // verify that our configs are there
+    String tickTime = m_configHelper.getPropertyValueFromStackDefinitions(c, "zoo.cfg", "tickTime");
+    assertNotNull(tickTime);
+  }
+
+  /**
+   * Installs a service in the cluster.
+   *
+   * @param cluster
+   * @param serviceName
+   * @return
+   * @throws AmbariException
+   */
+  private Service installService(Cluster cluster, String serviceName) throws AmbariException {
+    Service service = null;
+
+    try {
+      service = cluster.getService(serviceName);
+    } catch (ServiceNotFoundException e) {
+      service = serviceFactory.createNew(cluster, serviceName);
+      cluster.addService(service);
+      service.persist();
+    }
+
+    return service;
+  }
 }

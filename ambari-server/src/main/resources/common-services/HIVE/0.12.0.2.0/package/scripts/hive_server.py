@@ -23,6 +23,7 @@ from resource_management import *
 from hive import hive
 from hive_service import hive_service
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
@@ -98,7 +99,7 @@ class HiveServerDefault(HiveServer):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
-      Execute(format("hdp-select set hive-server2 {version}"))
+      hdp_select.select("hive-server2", params.version)
       params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
                           type="file",
                           action="create_on_execute",

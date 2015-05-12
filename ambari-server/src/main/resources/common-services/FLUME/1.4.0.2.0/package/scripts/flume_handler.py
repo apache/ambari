@@ -23,9 +23,10 @@ from flume import flume
 from flume import get_desired_state
 
 from resource_management import *
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.flume_agent_helper import find_expected_agent_names
 from resource_management.libraries.functions.flume_agent_helper import get_flume_status
-from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
+
 import service_mapping
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
@@ -114,11 +115,11 @@ class FlumeHandler(Script):
 
     # this function should not execute if the version can't be determined or
     # is not at least HDP 2.2.0.0
-    if not params.version or compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') < 0:
+    if not params.version or Script.is_hdp_stack_less_than("2.2"):
       return
 
     Logger.info("Executing Flume Rolling Upgrade pre-restart")
-    Execute(format("hdp-select set flume-server {version}"))
+    hdp_select.select("flume-server", params.version)
     flume_upgrade.pre_start_restore()
 
 if __name__ == "__main__":

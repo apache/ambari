@@ -20,6 +20,7 @@ limitations under the License.
 from resource_management import *
 
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, validate_security_config_properties, get_params_from_filesystem, \
   FILE_TYPE_XML
@@ -99,7 +100,7 @@ class KnoxGatewayDefault(KnoxGateway):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       upgrade.backup_data()
       conf_select.select(params.stack_name, "knox", params.version)
-      Execute(format("hdp-select set knox-server {version}"))
+      hdp_select.select("knox-server", params.version)
 
   def start(self, env, rolling_restart=False):
     import params

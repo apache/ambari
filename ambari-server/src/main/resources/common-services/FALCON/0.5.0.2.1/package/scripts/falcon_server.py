@@ -21,6 +21,7 @@ import falcon_server_upgrade
 
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import *
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
@@ -75,7 +76,7 @@ class FalconServerLinux(FalconServer):
 
     Logger.info("Executing Falcon Server Rolling Upgrade pre-restart")
     conf_select.select(params.stack_name, "falcon", params.version)
-    Execute(format("hdp-select set falcon-server {version}"))
+    hdp_select.select("falcon-server", params.version)
     falcon_server_upgrade.pre_start_restore()
 
   def security_status(self, env):

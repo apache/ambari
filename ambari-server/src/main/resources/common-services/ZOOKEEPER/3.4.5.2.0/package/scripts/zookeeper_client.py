@@ -22,6 +22,7 @@ Ambari Agent
 import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from ambari_commons import OSConst
@@ -66,7 +67,7 @@ class ZookeeperClientLinux(ZookeeperClient):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "zookeeper", params.version)
-      Execute(format("hdp-select set zookeeper-client {version}"))
+      hdp_select.select("zookeeper-client", params.version)
 
 @OsFamilyImpl(os_family=OSConst.WINSRV_FAMILY)
 class ZookeeperClientWindows(ZookeeperClient):

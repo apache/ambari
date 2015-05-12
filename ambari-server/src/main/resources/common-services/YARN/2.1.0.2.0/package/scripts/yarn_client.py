@@ -22,6 +22,7 @@ Ambari Agent
 import sys
 from resource_management import *
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from yarn import yarn
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
@@ -57,7 +58,7 @@ class YarnClientDefault(YarnClient):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
-      Execute(format("hdp-select set hadoop-client {version}"))
+      hdp_select.select("hadoop-client", params.version)
 
 
 if __name__ == "__main__":

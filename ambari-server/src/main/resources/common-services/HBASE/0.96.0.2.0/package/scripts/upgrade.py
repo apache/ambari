@@ -22,6 +22,7 @@ from resource_management import *
 from resource_management.core.resources.system import Execute
 from resource_management.core import shell
 from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.decorator import retry
 
@@ -30,7 +31,7 @@ def prestart(env, hdp_component):
 
   if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
     conf_select.select(params.stack_name, "hbase", params.version)
-    Execute("hdp-select set {0} {1}".format(hdp_component, params.version))
+    hdp_select.select(hdp_component, params.version)
 
 def post_regionserver(env):
   import params

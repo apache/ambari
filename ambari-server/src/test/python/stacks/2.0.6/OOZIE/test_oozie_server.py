@@ -995,7 +995,7 @@ class TestOozieServer(RMFTestCase):
       isfile_mock, exists_mock, isdir_mock, tarfile_open_mock):
 
     isdir_mock.return_value = True
-    exists_mock.side_effect = [False,False,True]
+    exists_mock.return_value = False
     isfile_mock.return_value = True
 
     prepare_war_stdout = """INFO: Adding extension: libext/mysql-connector-java.jar
