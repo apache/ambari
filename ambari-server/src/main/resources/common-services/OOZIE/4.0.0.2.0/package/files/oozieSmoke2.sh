@@ -24,13 +24,14 @@ export os_family=$1
 export oozie_lib_dir=$2
 export oozie_conf_dir=$3
 export oozie_bin_dir=$4
-export hadoop_conf_dir=$5
-export hadoop_bin_dir=$6
-export smoke_test_user=$7
-export security_enabled=$8
-export smoke_user_keytab=$9
-export kinit_path_local=${10}
-export smokeuser_principal=${11}
+export oozie_examples_dir=$5
+export hadoop_conf_dir=$6
+export hadoop_bin_dir=$7
+export smoke_test_user=$8
+export security_enabled=$9
+export smoke_user_keytab=$10
+export kinit_path_local=${11}
+export smokeuser_principal=${12}
 
 function getValueFromField {
   xmllint $1 | grep "<name>$2</name>" -C 2 | grep '<value>' | cut -d ">" -f2 | cut -d "<" -f1
@@ -67,37 +68,9 @@ function checkOozieJobStatus {
 }
 
 export OOZIE_EXIT_CODE=0
-export JOBTRACKER=`getValueFromField ${hadoop_conf_dir}/yarn-site.xml yarn.resourcemanager.address`
-export NAMENODE=`getValueFromField ${hadoop_conf_dir}/core-site.xml fs.defaultFS`
 export OOZIE_SERVER=`getValueFromField ${oozie_conf_dir}/oozie-site.xml oozie.base.url | tr '[:upper:]' '[:lower:]'`
 
-# search for the oozie examples JAR and, if found, store the directory name
-export OOZIE_EXAMPLES_DIR=`find "${oozie_lib_dir}/" -name "oozie-examples.tar.gz" | xargs dirname`
-if [[ -z "$OOZIE_EXAMPLES_DIR" ]] ; then
-  if [ "$os_family" == "ubuntu" ] ; then
-    LIST_PACKAGE_FILES_CMD='dpkg-query -L'
-  else
-    LIST_PACKAGE_FILES_CMD='rpm -ql'
-  fi
-  export OOZIE_EXAMPLES_DIR=`$LIST_PACKAGE_FILES_CMD oozie-client | grep 'oozie-examples.tar.gz$' | xargs dirname`
-fi
-if [[ -z "$OOZIE_EXAMPLES_DIR" ]] ; then
-  export OOZIE_EXAMPLES_DIR='/usr/hdp/current/oozie-client/doc/'
-else
-  echo "Located Oozie examples JAR at $OOZIE_EXAMPLES_DIR"
-fi
-
-cd $OOZIE_EXAMPLES_DIR
-
-/var/lib/ambari-agent/ambari-sudo.sh tar -zxf oozie-examples.tar.gz
-/var/lib/ambari-agent/ambari-sudo.sh chmod -R o+rx examples
-
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:8020|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|nameNode=hdfs://localhost:9000|nameNode=$NAMENODE|g"  examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8021|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:9001|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|jobTracker=localhost:8032|jobTracker=$JOBTRACKER|g" examples/apps/map-reduce/job.properties
-/var/lib/ambari-agent/ambari-sudo.sh sed -i "s|oozie.wf.application.path=hdfs://localhost:9000|oozie.wf.application.path=$NAMENODE|g" examples/apps/map-reduce/job.properties
+cd $oozie_examples_dir
 
 if [[ $security_enabled == "True" ]]; then
   kinitcmd="${kinit_path_local} -kt ${smoke_user_keytab} ${smokeuser_principal}; "
@@ -105,12 +78,7 @@ else
   kinitcmd=""
 fi
 
-/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r examples"
-/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -rm -r input-data"
-/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples examples"
-/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "${hadoop_bin_dir}/hdfs --config ${hadoop_conf_dir} dfs -copyFromLocal $OOZIE_EXAMPLES_DIR/examples/input-data input-data"
-
-cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $OOZIE_EXAMPLES_DIR/examples/apps/map-reduce/job.properties  -run"
+cmd="${kinitcmd}source ${oozie_conf_dir}/oozie-env.sh ; ${oozie_bin_dir}/oozie -Doozie.auth.token.cache=false job -oozie $OOZIE_SERVER -config $oozie_examples_dir/examples/apps/map-reduce/job.properties  -run"
 echo $cmd
 job_info=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd" | grep "job:"`
 job_id="`echo $job_info | cut -d':' -f2`"

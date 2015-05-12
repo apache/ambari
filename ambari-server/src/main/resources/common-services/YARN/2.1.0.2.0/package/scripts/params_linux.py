@@ -21,12 +21,13 @@ Ambari Agent
 import os
 
 from resource_management.libraries.functions import conf_select
+from resource_management import *
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+from resource_management.libraries import functions
 
 import status_params
 
@@ -52,7 +53,8 @@ stack_name = default("/hostLevelParams/stack_name", None)
 
 # This is expected to be of the form #.#.#.#
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
-hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
+hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
+hdp_stack_version = functions.get_hdp_version('hadoop-yarn-resourcemanager')
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
 version = default("/commandParams/version", None)
@@ -72,7 +74,6 @@ yarn_container_bin = "/usr/lib/hadoop-yarn/bin"
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
-
   # MapR directory root
   mapred_role_root = "hadoop-mapreduce-client"
   command_role = default("/role", "")
@@ -90,6 +91,15 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_yarn_home = format("/usr/hdp/current/{yarn_role_root}")
   yarn_bin = format("/usr/hdp/current/{yarn_role_root}/sbin")
   yarn_container_bin = format("/usr/hdp/current/{yarn_role_root}/bin")
+  
+  mapreduce_tar_source = config['configurations']['cluster-env']['mapreduce_tar_source']
+  mapreduce_tar_destination = config['configurations']['cluster-env']['mapreduce_tar_destination_folder'] + "/" + os.path.basename(mapreduce_tar_source)
+
+  # the configuration direction for HDFS/YARN/MapR is the hadoop config
+  # directory, which is symlinked by hadoop-client only
+  hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
+  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
+  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
 
 
 limits_conf_dir = "/etc/security/limits.d"
@@ -217,17 +227,17 @@ tez_lib_uris = default("/configurations/tez-site/tez.lib.uris", None)
 hdfs_user_keytab = config['configurations']['hadoop-env']['hdfs_user_keytab']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-HdfsDirectory = functools.partial(
-  HdfsDirectory,
-  conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_user,
+#create partial functions with common arguments for every HdfsResource call
+#to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  bin_dir = hadoop_bin_dir
-)
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir
+ )
 update_exclude_file_only = default("/commandParams/update_exclude_file_only",False)
 
 mapred_tt_group = default("/configurations/mapred-site/mapreduce.tasktracker.group", user_group)

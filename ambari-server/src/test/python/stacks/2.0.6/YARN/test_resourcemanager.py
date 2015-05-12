@@ -21,12 +21,18 @@ import json
 import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.functions import version
+from resource_management.libraries.script.script import Script
+from resource_management.libraries import functions
 
 origin_exists = os.path.exists
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 @patch.object(os.path, "exists", new=MagicMock(
   side_effect=lambda *args: origin_exists(args[0])
   if args[0][-2:] == "j2" else True))
+
+@patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
+@patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.0.0.0-1234"))
 class TestResourceManager(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "YARN/2.1.0.2.0/package"
   STACK_VERSION = "2.0.6"
@@ -53,6 +59,39 @@ class TestResourceManager(RMFTestCase):
 
     self.assert_configure_default()
 
+    self.assertResourceCalled('HdfsResource', '/apps/tez/',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        owner = 'tez',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        action = ['create_on_execute'],
+        mode = 0755,
+    )
+    self.assertResourceCalled('HdfsResource', '/apps/tez/lib/',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        owner = 'tez',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        action = ['create_on_execute'],
+        mode = 0755,
+    )
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+    )
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
                               action = ['delete'],
                               not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid` >/dev/null 2>&1',
@@ -106,7 +145,6 @@ class TestResourceManager(RMFTestCase):
     self.assert_configure_secured()
 
     pid_check_cmd = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid` >/dev/null 2>&1'
-
     self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
                               not_if = pid_check_cmd,
                               action=['delete'])

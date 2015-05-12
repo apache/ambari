@@ -46,7 +46,6 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
     env.set_params(params)
     
     output_file = "/apps/hbase/data/ambarismoketest"
-    test_cmd = format("fs -test -e {output_file}")
     smokeuser_kinit_cmd = format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal};") if params.security_enabled else ""
     hbase_servicecheck_file = format("{exec_tmp_dir}/hbase-smoke.sh")
   

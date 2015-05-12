@@ -20,6 +20,7 @@ limitations under the License.
 
 from resource_management import *
 import os
+import glob
 
 def install_tez_jars():
   import params
@@ -29,25 +30,12 @@ def install_tez_jars():
   # If tez libraries are to be stored in hdfs
   if destination_hdfs_dirs:
     for hdfs_dir in destination_hdfs_dirs:
-      params.HdfsDirectory(hdfs_dir,
-                           action="create_delayed",
+      params.HdfsResource(hdfs_dir,
+                           type="directory",
+                           action="create_on_execute",
                            owner=params.tez_user,
                            mode=0755
       )
-    pass
-    params.HdfsDirectory(None, action="create")
-
-    if params.security_enabled:
-      kinit_if_needed = format("{kinit_path_local} -kt {hdfs_user_keytab} {hdfs_principal_name};")
-    else:
-      kinit_if_needed = ""
-
-    if kinit_if_needed:
-      Execute(kinit_if_needed,
-              user=params.tez_user,
-              path='/bin'
-      )
-    pass
 
     app_dir_path = None
     lib_dir_path = None
@@ -62,30 +50,34 @@ def install_tez_jars():
       pass
     pass
 
+    tez_jars = {}
     if app_dir_path:
-      for scr_file, dest_file in params.app_dir_files.iteritems():
-        CopyFromLocal(scr_file,
-                      mode=0755,
-                      owner=params.tez_user,
-                      dest_dir=app_dir_path,
-                      dest_file=dest_file,
-                      kinnit_if_needed=kinit_if_needed,
-                      hdfs_user=params.hdfs_user,
-                      hadoop_bin_dir=params.hadoop_bin_dir,
-                      hadoop_conf_dir=params.hadoop_conf_dir
-        )
-
+      tez_jars[params.tez_local_api_jars] = app_dir_path
     if lib_dir_path:
-      CopyFromLocal(params.tez_local_lib_jars,
-                    mode=0755,
-                    owner=params.tez_user,
-                    dest_dir=lib_dir_path,
-                    kinnit_if_needed=kinit_if_needed,
-                    hdfs_user=params.hdfs_user,
-                    hadoop_bin_dir=params.hadoop_bin_dir,
-                    hadoop_conf_dir=params.hadoop_conf_dir
-      )
-    pass
+      tez_jars[params.tez_local_lib_jars] = lib_dir_path
+
+    for src_file_regex, dest_dir in tez_jars.iteritems():
+      for src_filepath in glob.glob(src_file_regex):
+        src_filename = os.path.basename(src_filepath)
+        params.HdfsResource(format("{dest_dir}/{src_filename}"),
+                            type="file",
+                            action="create_on_execute",
+                            source=src_filepath,
+                            mode=0755,
+                            owner=params.tez_user
+         )
+        
+    for src_file_regex, dest_dir in tez_jars.iteritems():
+      for src_filepath in glob.glob(src_file_regex):
+        src_filename = os.path.basename(src_filepath)
+        params.HdfsResource(format("{dest_dir}/{src_filename}"),
+                            type="file",
+                            action="create_on_execute",
+                            source=src_filepath,
+                            mode=0755,
+                            owner=params.tez_user
+         )
+    params.HdfsResource(None, action="execute")
 
 
 def get_tez_hdfs_dir_paths(tez_lib_uris = None):

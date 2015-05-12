@@ -21,7 +21,9 @@ import json
 import os
 from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
+from resource_management.libraries.functions import version
 from resource_management.libraries.script.script import Script
+from resource_management.libraries import functions
 
 origin_exists = os.path.exists
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
@@ -515,6 +517,7 @@ class TestYarnClient(RMFTestCase):
     self.assertNoMoreResources()
 
 
+  @patch.object(functions, "get_hdp_version", new=MagicMock(return_value="2.2.0.0-2041"))
   def test_upgrade(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/yarn_client.py",
                    classname = "YarnClient",
@@ -528,6 +531,7 @@ class TestYarnClient(RMFTestCase):
 
     # for now, it's enough that hdp-select is confirmed
 
+  @patch.object(functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_rolling_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:

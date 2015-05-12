@@ -366,6 +366,7 @@ class TestAppTimelineServer(RMFTestCase):
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
+  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_rolling_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:

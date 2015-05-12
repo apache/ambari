@@ -32,7 +32,8 @@ from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_klist_path
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
-from resource_management.libraries.resources.hdfs_directory import HdfsDirectory
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 
@@ -93,7 +94,7 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
       hadoop_secure_dn_user = '""'
 
 
-
+ambari_libs_dir = "/var/lib/ambari-agent/lib"
 limits_conf_dir = "/etc/security/limits.d"
 
 if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.1") and not OSCheck.is_suse_family():
@@ -281,17 +282,18 @@ else:
   jn_kinit_cmd = ""
 
 import functools
-#create partial functions with common arguments for every HdfsDirectory call
-#to create hdfs directory we need to call params.HdfsDirectory in code
-HdfsDirectory = functools.partial(
-  HdfsDirectory,
-  conf_dir=hadoop_conf_dir,
-  hdfs_user=hdfs_user,
+#create partial functions with common arguments for every HdfsResource call
+#to create/delete/copyfromlocal hdfs directories/files we need to call params.HdfsResource in code
+HdfsResource = functools.partial(
+  HdfsResource,
+  user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
-  bin_dir = hadoop_bin_dir
+  hadoop_bin_dir = hadoop_bin_dir,
+  hadoop_conf_dir = hadoop_conf_dir
 )
+
 
 # The logic for LZO also exists in OOZIE's params.py
 io_compression_codecs = default("/configurations/core-site/io.compression.codecs", None)

@@ -23,6 +23,7 @@ from mock.mock import MagicMock, call, patch
 from stacks.utils.RMFTestCase import *
 from resource_management.core.exceptions import Fail
 from resource_management.core import shell
+import resource_management.libraries.functions
 
 origin_exists = os.path.exists
 @patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
@@ -134,72 +135,6 @@ class TestNodeManager(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self):
-    self.assertResourceCalled('HdfsDirectory', '/app-logs',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              recursive_chmod = True,
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
-                              bin_dir = '/usr/bin',
-                              mode = 0777,
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mapred',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              owner = 'mapred',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mapred/system',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              owner = 'hdfs',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              mode = 0777,
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mr-history/done',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              mode = 01777,
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = "/usr/bin/kinit",
-                              bin_dir = '/usr/bin',
-                              action = ['create'],
-                              )
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               owner = 'yarn',
                               group = 'hadoop',
@@ -386,72 +321,6 @@ class TestNodeManager(RMFTestCase):
                               )
 
   def assert_configure_secured(self):
-    self.assertResourceCalled('HdfsDirectory', '/app-logs',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              recursive_chmod = True,
-                              owner = 'yarn',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
-                              bin_dir = '/usr/bin',
-                              mode = 0777,
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mapred',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'mapred',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mapred/system',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              owner = 'hdfs',
-                              bin_dir = '/usr/bin',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mr-history/tmp',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 0777,
-                              bin_dir = '/usr/bin',
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', '/mr-history/done',
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              mode = 01777,
-                              bin_dir = '/usr/bin',
-                              owner = 'mapred',
-                              group = 'hadoop',
-                              action = ['create_delayed'],
-                              )
-    self.assertResourceCalled('HdfsDirectory', None,
-                              security_enabled = True,
-                              keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-                              conf_dir = '/etc/hadoop/conf',
-                              bin_dir = '/usr/bin',
-                              hdfs_user = 'hdfs',
-                              kinit_path_local = '/usr/bin/kinit',
-                              action = ['create'],
-                              )
     self.assertResourceCalled('Directory', '/hadoop/yarn/local',
                               owner = 'yarn',
                               group = 'hadoop',
@@ -633,6 +502,7 @@ class TestNodeManager(RMFTestCase):
                               )
 
   @patch('time.sleep')
+  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_post_rolling_restart(self, time_mock):
     process_output = """
       c6401.ambari.apache.org:45454  RUNNING  c6401.ambari.apache.org:8042  0
@@ -696,7 +566,7 @@ class TestNodeManager(RMFTestCase):
       self.fail('Invalid return code should cause a failure')
     except Fail,fail:
       self.assertTrue(mocks_dict['call'].called)
-      self.assertEqual(mocks_dict['call'].call_count,12)
+      self.assertEqual(mocks_dict['call'].call_count,1)
 
   @patch("resource_management.libraries.functions.security_commons.build_expectations")
   @patch("resource_management.libraries.functions.security_commons.get_params_from_filesystem")
@@ -806,6 +676,8 @@ class TestNodeManager(RMFTestCase):
     )
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
+  
+  @patch.object(resource_management.libraries.functions, "get_hdp_version", new = MagicMock(return_value='2.3.0.0-1234'))
   def test_pre_rolling_restart_23(self):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:

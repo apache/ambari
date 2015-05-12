@@ -32,6 +32,11 @@ def get_hdp_version(package_name):
   """
   @param package_name, name of the package, from which, function will try to get hdp version
   """
+  
+  if not os.path.exists("/usr/bin/hdp-select"):
+    Logger.info('Skipping get_hdp_version since hdp-select is not yet available')
+    return None # lazy fail
+  
   try:
     command = 'hdp-select status ' + package_name
     return_code, hdp_output = shell.call(command, timeout=20)
@@ -48,6 +53,7 @@ def get_hdp_version(package_name):
   match = re.match('[0-9]+.[0-9]+.[0-9]+.[0-9]+-[0-9]+', hdp_version)
 
   if match is None:
-    raise Fail('Failed to get extracted version')
+    Logger.info('Failed to get extracted version with hdp-select')
+    return None # lazy fail
 
   return hdp_version

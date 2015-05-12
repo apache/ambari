@@ -185,12 +185,16 @@ def upgrade_oozie():
     command = format("{kinit_path_local} -kt {oozie_keytab} {oozie_principal_with_host}")
     Execute(command, user=params.oozie_user)
 
-  # ensure that HDFS is prepared to receive the new sharelib
-  command = format("hdfs dfs -chown oozie:hadoop {oozie_hdfs_user_dir}/share")
-  Execute(command, user=params.oozie_user)
-
-  command = format("hdfs dfs -chmod -R 755 {oozie_hdfs_user_dir}/share")
-  Execute(command, user=params.oozie_user)
+  
+  params.HdfsResource(format("{oozie_hdfs_user_dir}/share"),
+                      action = "create_on_execute",
+                      type = "directory",
+                      owner = "oozie",
+                      group = "hadoop",
+                      mode = 0755,
+                      recursive_chmod = True
+  )
+  params.HdfsResource(None, action = "execute")
 
   # upgrade oozie DB
   command = format("{oozie_home}/bin/ooziedb.sh upgrade -run")

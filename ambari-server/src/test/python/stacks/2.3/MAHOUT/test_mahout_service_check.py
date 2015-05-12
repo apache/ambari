@@ -33,35 +33,42 @@ class TestMahoutClient(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('ExecuteHadoop', 'fs -rm -r -f /user/ambari-qa/mahoutsmokeoutput /user/ambari-qa/mahoutsmokeinput',
-                              security_enabled = False,
-                              keytab = UnknownConfigurationMock(),
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              try_sleep = 5,
-                              kinit_path_local = '/usr/bin/kinit',
-                              tries = 3,
-                              user = 'ambari-qa',
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              principal = UnknownConfigurationMock(),
-                              )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -mkdir /user/ambari-qa/mahoutsmokeinput',
-                              try_sleep = 5,
-                              tries = 3,
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              user = 'ambari-qa',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              )
     self.assertResourceCalled('File', '/tmp/sample-mahout-test.txt',
-                              content = 'Test text which will be converted to sequence file.',
-                              mode = 0755,
-                              )
-    self.assertResourceCalled('ExecuteHadoop', 'fs -put /tmp/sample-mahout-test.txt /user/ambari-qa/mahoutsmokeinput/',
-                              try_sleep = 5,
-                              tries = 3,
-                              bin_dir = '/usr/hdp/current/hadoop-client/bin',
-                              user = 'ambari-qa',
-                              conf_dir = '/usr/hdp/current/hadoop-client/conf',
-                              )
+        content = 'Test text which will be converted to sequence file.',
+        mode = 0755,
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeinput',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        owner = 'ambari-qa',
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        type = 'directory',
+        action = ['create_on_execute'],
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeinput/sample-mahout-test.txt',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        source = '/tmp/sample-mahout-test.txt',
+        user = 'hdfs',
+        owner = 'ambari-qa',
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        type = 'file',
+        action = ['create_on_execute'],
+    )
+    self.assertResourceCalled('HdfsResource', None,
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['execute'],
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+    )
     self.assertResourceCalled('Execute', 'mahout seqdirectory --input /user/ambari-qa/mahoutsmokeinput/'
                                          'sample-mahout-test.txt --output /user/ambari-qa/mahoutsmokeoutput/ '
                                          '--charset utf-8',
