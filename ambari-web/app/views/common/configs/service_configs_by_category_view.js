@@ -44,9 +44,13 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * @type {Array}
    */
   categoryConfigs: function () {
-    var categoryConfigs = this.get('categoryConfigsAll');
+    // sort content type configs, sort the rest of configs based on index and then add content array at the end (as intended)
+    var categoryConfigs = this.get('categoryConfigsAll'),
+      contentOrderedArray = this.orderContentAtLast(categoryConfigs.filterProperty('displayType','content')),
+      contentFreeConfigs = categoryConfigs.filter(function(config) {return config.get('displayType')!=='content';}),
+      indexOrdered = this.sortByIndex(contentFreeConfigs);
 
-    return this.orderContentAtLast(this.sortByIndex(categoryConfigs)).filterProperty('isVisible', true);
+    return indexOrdered.concat(contentOrderedArray).filterProperty('isVisible', true);
   }.property('categoryConfigsAll.@each.isVisible').cacheable(),
 
   /**

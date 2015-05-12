@@ -521,4 +521,66 @@ describe('App.ServiceConfigsByCategoryView', function () {
 
   });
 
+  describe('#categoryConfigs', function () {
+    var view,
+      result = [1,2,3,4,5],
+      cases = [
+        {
+          categoryNname: 'TestCategory',
+          serviceConfigs: [
+            Em.Object.create({category: "TestCategory", index: 1, name: "a", isVisible: true, resultId: 1}),
+            Em.Object.create({category: "TestCategory", index: 2, name: "b", isVisible: true, resultId: 2}),
+            Em.Object.create({category: "TestCategory", index: 5, name: "c", isVisible: true, resultId: 5}),
+            Em.Object.create({category: "TestCategory", index: 4, name: "d", isVisible: true, resultId: 4}),
+            Em.Object.create({category: "TestCategory", index: 3, name: "e", isVisible: true, resultId: 3})
+          ],
+          title: 'Order by index with no content type'
+        },
+        {
+          categoryNname: 'TestCategory',
+          serviceConfigs: [
+            Em.Object.create({category: "TestCategory", index: 1, name: "a", isVisible: true, resultId: 1, displayType: 'int'}),
+            Em.Object.create({category: "TestCategory", index: 2, name: "b", isVisible: true, resultId: 4, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", index: 3, name: "c", isVisible: true, resultId: 2}),
+            Em.Object.create({category: "TestCategory", index: 4, name: "d", isVisible: true, resultId: 5, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", index: 5, name: "e", isVisible: true, resultId: 3})
+          ],
+          title: 'Order configs by index and display type equal to content'
+        },
+        {
+          categoryNname: 'TestCategory',
+          serviceConfigs: [
+            Em.Object.create({category: "TestCategory", name: "a", isVisible: true, resultId: 1, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", name: "b", isVisible: true, resultId: 2, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", name: "c", isVisible: true, resultId: 3, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", name: "d", isVisible: true, resultId: 4, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", name: "e", isVisible: true, resultId: 5, displayType: 'content'})
+          ],
+          title: 'Order configs by display type equal to content - so they will be sorted alphabetically'
+        },
+        {
+          categoryNname: 'TestCategory',
+          serviceConfigs: [
+            Em.Object.create({category: "TestCategory", index: 5, name: "a", isVisible: true, resultId: 1, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", index: 4, name: "b", isVisible: true, resultId: 2, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", index: 3, name: "c", isVisible: true, resultId: 3, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", index: 2, name: "d", isVisible: true, resultId: 4, displayType: 'content'}),
+            Em.Object.create({category: "TestCategory", index: 1, name: "e", isVisible: true, resultId: 5, displayType: 'content'})
+          ],
+          title: 'Order configs by display type equal to content - so they will be sorted alphabetically not by index'
+        }
+      ];
+
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        view = App.ServiceConfigsByCategoryView.create({
+          category: {
+            name: item.categoryNname
+          },
+          serviceConfigs: item.serviceConfigs
+        });
+        expect(view.get('categoryConfigs').mapProperty('resultId')).to.deep.equal(result);
+      });
+    });
+  });
 });
