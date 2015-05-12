@@ -39,7 +39,7 @@ class AccumuloServiceCheck(Script):
                                   'scan\n'
                                   'flush -w\n'
                                   'scan\n'
-                                  'deletetable -f testtable\n')
+                                  'deletetable -f testtable\n\n')
       )
       if params.security_enabled and params.has_secure_user_auth:
         Execute( format("{smokeuser_kinit_cmd} "

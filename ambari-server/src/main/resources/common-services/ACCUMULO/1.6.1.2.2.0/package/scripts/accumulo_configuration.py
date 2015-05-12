@@ -196,7 +196,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
              group=params.user_group,
              owner=params.accumulo_user,
              content=InlineTemplate('{{root_password}}\n'
-                                    '{{root_password}}\n')
+                                    '{{root_password}}\n\n')
         )
         Execute( format("cat {passfile} | {params.daemon_script} init "
                         "--instance-name {params.instance_name} "
@@ -252,7 +252,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
            owner=params.accumulo_user,
            content=InlineTemplate('grant -t trace -u {{trace_user}} Table.ALTER_TABLE\n'
                                   'grant -t trace -u {{trace_user}} Table.READ\n'
-                                  'grant -t trace -u {{trace_user}} Table.WRITE\n')
+                                  'grant -t trace -u {{trace_user}} Table.WRITE\n\n')
       )
       if params.security_enabled and params.has_secure_user_auth:
         Execute( format("{params.kinit_cmd} {params.daemon_script} shell -f "
@@ -273,7 +273,7 @@ def setup_conf_dir(name=None): # 'master' or 'tserver' or 'monitor' or 'gc' or '
              mode=0600,
              group=params.user_group,
              owner=params.accumulo_user,
-             content=InlineTemplate('{{root_password}}\n')
+             content=InlineTemplate('{{root_password}}\n\n')
         )
         Execute( format("cat {rpassfile} | {params.daemon_script} shell -f "
                         "{cmdfile} -u root"),
@@ -308,7 +308,7 @@ def create_user(user, password):
          group=params.user_group,
          owner=params.accumulo_user,
          content=InlineTemplate(format("createuser {user}\n"
-                                       "grant -s System.CREATE_TABLE -u {user}\n"))
+                                       "grant -s System.CREATE_TABLE -u {user}\n\n"))
     )
     if params.security_enabled and params.has_secure_user_auth:
       Execute( format("{params.kinit_cmd} {params.daemon_script} shell -f "
@@ -323,7 +323,7 @@ def create_user(user, password):
            mode=0600,
            group=params.user_group,
            owner=params.accumulo_user,
-           content=InlineTemplate('{{root_password}}\n')
+           content=InlineTemplate('{{root_password}}\n\n')
       )
       File(passfile,
            mode=0600,
@@ -331,7 +331,7 @@ def create_user(user, password):
            owner=params.accumulo_user,
            content=InlineTemplate(format("{params.root_password}\n"
                                          "{password}\n"
-                                         "{password}\n"))
+                                         "{password}\n\n"))
       )
       Execute( format("cat {passfile} | {params.daemon_script} shell -u root "
                       "-f {cmdfile}"),
