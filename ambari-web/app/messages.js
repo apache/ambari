@@ -987,6 +987,7 @@ Em.I18n.translations = {
   'admin.kerberos.wizard.step1.header': 'Get Started',
   'admin.kerberos.wizard.step2.header': 'Configure Kerberos',
   'admin.kerberos.wizard.step3.header': 'Install and Test Kerberos Client',
+  'admin.kerberos.wizard.step3.checkbox.ignoreAndProceed.label': 'Ignore errors and continue to next step',
   'admin.kerberos.wizard.step4.header': 'Configure Identities',
   'admin.kerberos.wizard.step5.header': 'Confirm Configuration',
   'admin.kerberos.wizard.step6.header': 'Stop Services',

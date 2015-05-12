@@ -21,6 +21,7 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
   clusterDeployState: 'KERBEROS_DEPLOY',
   serviceName: 'KERBEROS',
   componentName: 'KERBEROS_CLIENT',
+  ignore: undefined,
 
   commands: ['installKerberos', 'testKerberos'],
 
@@ -102,6 +103,22 @@ App.KerberosWizardStep3Controller = App.KerberosProgressPageController.extend({
     } else {
       wizardController.setLowerStepsDisable(3);
     }
-  }.observes('tasks.@each.status')
+  }.observes('tasks.@each.status'),
+
+  /**
+   * Show or hide warning to ignore errors and continue with the install
+   */
+  showIgnore: function() {
+    return this.get('tasks').someProperty('showRetry', true);
+  }.property('tasks.@each.showRetry'),
+
+  /**
+   * Enable or disable next button if ignore checkbox ticked
+   */
+  ignoreAndProceed: function() {
+    if (this.get('showIgnore')) {
+      this.set('isSubmitDisabled', !this.get('ignore'));
+    }
+  }.observes('ignore','showIgnore')
 });
 

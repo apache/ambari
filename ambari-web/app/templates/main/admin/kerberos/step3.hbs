@@ -16,5 +16,74 @@
 * limitations under the License.
 }}
 <div id="kerberos-wizard-step3">
-  {{template "templates/common/progress"}}
+    <div id="common-progress-page">
+        <h2>{{view.headerTitle}}</h2>
+
+        <div {{bindAttr class="view.noticeClass"}}>{{{view.notice}}}
+          {{#if controller.showRetry}}
+              <a href="#" {{action retry target="controller"}}>
+                {{t common.retry}}
+              </a>
+          {{/if}}
+        </div>
+      {{#if controller.isLoaded}}
+          <div class="clearfix">
+            {{#each task in controller.tasks}}
+              {{#view view.taskView contentBinding="task"}}
+                  <div class="item">
+                      <div {{bindAttr class=":pull-left view.linkClass view.parentView.labelWidth"}}>
+                          <i {{bindAttr class="view.icon view.iconColor"}}></i>
+                          <a {{action "showHostProgressPopup" task target="controller"}} >{{task.title}}</a>
+                      </div>
+                      <div {{bindAttr class="view.showProgressBar::hide :row :span5 :pull-left" }}>
+                          <div {{bindAttr class=":progress-bar controller.isRollback::span8 controller.isRollback:span3"}}>
+                              <div class="progress-striped active progress-info progress">
+                                  <div class="bar" {{bindAttr style="view.barWidth"}}></div>
+                              </div>
+                          </div>
+                          <div {{bindAttr class=":span1 view.hidePercent:noDisplay"}}>{{task.progress}}&#37;</div>
+                      </div>
+                      <div>
+                        {{#if task.showRetry}}
+                            <a {{action retryTask target="controller"}} class="btn btn-primary retry"
+                                                                        rel="tooltip"
+                                                                        data-trigger="click" {{bindAttr title="view.showDBTooltip:testDBRetryTooltip"}}>
+                                <i class="icon-repeat icon-white"></i>
+                              {{t common.retry}}
+                            </a>
+
+                        {{/if}}
+                        {{#if task.showRollback}}
+                            <a {{action rollback target="controller"}} class="btn btn-primary retry">
+                                <i class="icon-repeat icon-white"></i>
+                              {{t common.rollBack}}
+                            </a>
+                        {{/if}}
+                        {{#if task.showSkip}}
+                            <a {{action skipTask target="controller"}} class="btn btn-primary retry">
+                                <i class="icon-step-forward icon-white"></i>
+                              {{t common.skip}}
+                            </a>
+                        {{/if}}
+                      </div>
+                  </div>
+              {{/view}}
+
+            {{/each}}
+          </div>
+        {{#if showIgnore}}
+            <div class="alert alert-warning">
+                <label>{{view Em.Checkbox classNames="checkbox" checkedBinding="ignore"}} {{t admin.kerberos.wizard.step3.checkbox.ignoreAndProceed.label}}</label>
+            </div>
+        {{/if}}
+      {{else}}
+          <div class="spinner"></div>
+      {{/if}}
+        <div class="btn-area">
+          {{#if view.showBackButton}}
+              <button class="btn pull-left" {{bindAttr disabled="controller.isBackButtonDisabled"}} {{action back target="controller"}}>&larr; {{t common.back}}</button>
+          {{/if}}
+            <button class="btn btn-success pull-right" {{bindAttr disabled="controller.isSubmitDisabled"}} {{action done target="controller"}}>{{{view.submitButtonText}}}</button>
+        </div>
+    </div>
 </div>
