@@ -18,7 +18,7 @@
 
 {{#if view.canEdit}}
   {{#if view.supportSwitchToCheckBox}}
-    <div {{bindAttr class="view.showAsTextBox::hide :left :widget-config-raw"}}>
+    <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
       {{view App.PlainConfigTextField serviceConfigBinding="view.config"}}
     </div>
   {{/if}}
@@ -37,7 +37,7 @@
         {{#if view.isWidgetViewAllowed}}
           <a href="#"
             data-toggle="tooltip" {{translateAttr data-original-title="common.edit"}}
-            {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.showAsTextBox::active"}}
+            {{bindAttr class=":icon-pencil :widget-action :widget-action-switch-view view.isHover::hide view.config.showAsTextBox::active"}}
             {{action "toggleWidgetView" target="view"}}>
           </a>
         {{else}}
@@ -103,7 +103,7 @@
     {{#if controller.selectedConfigGroup.isDefault}}
       <span class="label label-info">{{t dashboard.configHistory.table.version.prefix}}{{controller.selectedVersion}}</span>
       {{#if controller.isCurrentSelected}}
-        <span class="label label-success icon-ok label-current" data-toggle="tooltip" title="Current"></span>
+        <span class="label label-success icon-ok label-current" data-toggle="tooltip" {{translateAttr title="common.current"}}></span>
       {{/if}}
     {{else}}
       <span class="label label-info">{{t common.default}}

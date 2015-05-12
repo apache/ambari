@@ -73,6 +73,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   hasInitialValue: false, //if true then property value is defined and saved to server
   isHiddenByFilter: false, //if true then hide this property (filtered out)
   rowStyleClass: null, // CSS-Class to be applied on the row showing this config
+  showAsTextBox: false,
 
   /**
    * value that is returned from server as recommended

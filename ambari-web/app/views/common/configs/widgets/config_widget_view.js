@@ -78,12 +78,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   subSection: null,
 
   /**
-   * true if text filed is shown
-   * @type {boolean}
-   */
-  showAsTextBox: false,
-
-  /**
    * Determines if user can switch custom widget-view to the input-field
    * @type {boolean}
    */
@@ -330,7 +324,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
     if (!this.get('isWidgetViewAllowed')) {
       return false;
     }
-    if (this.get('showAsTextBox')) {
+    if (this.get('config.showAsTextBox')) {
       this.textBoxToWidget();
     } else {
       this.widgetToTextBox();
@@ -342,7 +336,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @method widgetToTextBox
    */
   widgetToTextBox: function() {
-    this.set("showAsTextBox", true);
+    this.set("config.showAsTextBox", true);
   },
 
   /**
@@ -352,7 +346,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   textBoxToWidget: function() {
     if (this.isValueCompatibleWithWidget()) {
       this.setValue(this.get('config.value'));
-      this.set("showAsTextBox", false);
+      this.set("config.showAsTextBox", false);
     }
   },
 
@@ -369,11 +363,11 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @returns {Boolean}
    */
   isWidgetViewAllowed: function() {
-    if (!this.get('showAsTextBox')) {
+    if (!this.get('config.showAsTextBox')) {
       return true;
     }
     return this.isValueCompatibleWithWidget();
-  }.property('config.value', 'showAsTextBox'),
+  }.property('config.value', 'config.showAsTextBox'),
 
   /**
    * @method setRecommendedValue
