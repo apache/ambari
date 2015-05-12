@@ -28,10 +28,7 @@ class TestMetadataServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "ATLAS/0.1.0.2.3/package"
   STACK_VERSION = "2.3"
 
-  @patch("shutil.copy2", new = MagicMock())
-  @patch("os.path.isfile")
-  def test_configure_default(self, isfile_mock):
-    isfile_mock.return_value = True
+  def test_configure_default(self):
 
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
                        classname = "MetadataServer",
@@ -96,7 +93,11 @@ class TestMetadataServer(RMFTestCase):
                               )
     self.assertNoMoreResources()
 
-  def test_start_default(self):
+  @patch("shutil.copy2", new = MagicMock())
+  @patch("os.path.isfile")
+  def test_start_default(self, isfile_mock):
+    isfile_mock.return_value = True
+
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/metadata_server.py",
                        classname = "MetadataServer",
                        command = "start",

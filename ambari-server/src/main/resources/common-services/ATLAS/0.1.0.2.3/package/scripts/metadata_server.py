@@ -16,9 +16,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+import shutil
 
 from metadata import metadata
-from resource_management import Execute, check_process_status, Script
+from resource_management import Execute, check_process_status, Script, Fail, \
+  Logger
 from resource_management.libraries.functions import format
 
 class MetadataServer(Script):
@@ -43,6 +46,14 @@ class MetadataServer(Script):
   def start(self, env, rolling_restart=False):
     import params
     env.set_params(params)
+
+    metadata_war_file = format('{params.metadata_home}/server/webapp/metadata.war')
+    if not os.path.isfile(metadata_war_file):
+      raise Fail("Unable to copy {0} because it does not exist".format(metadata_war_file))
+
+    Logger.info("Copying {0} to {1}".format(metadata_war_file, params.expanded_war_dir))
+    shutil.copy2(metadata_war_file, params.expanded_war_dir)
+
     daemon_cmd = format('source {params.conf_dir}/metadata-env.sh ; {params.metadata_start_script} --port {params.metadata_port}')
     no_op_test = format('ls {params.pid_file} >/dev/null 2>&1 && ps -p `cat {params.pid_file}` >/dev/null 2>&1')
     Execute(daemon_cmd,
