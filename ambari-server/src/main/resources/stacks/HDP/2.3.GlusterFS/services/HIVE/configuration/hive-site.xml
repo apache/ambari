@@ -70,6 +70,13 @@ limitations under the License.
   </property>
 
   <property>
+    <name>hive.warehouse.subdir.inherit.perms</name>
+    <value>true</value>
+    <description>If true, subdirectories inherit the same permissions</description>
+  </property>
+
+
+  <property>
     <name>hive.metastore.cache.pinobjtypes</name>
     <value>Table,Database,Type,FieldSchema,Order</value>
     <description>List of comma separated metastore object types that should be pinned in the cache</description>
