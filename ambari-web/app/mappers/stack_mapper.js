@@ -85,8 +85,8 @@ App.stackMapper = App.QuickDataMapper.create({
 
         var repositoriesArray = [];
         ops.repositories.forEach(function(repo) {
-          repo.Repositories.id = repo.Repositories.os_type + "-" + repo.Repositories.repo_id;
-          repo.Repositories.os_id = repo.Repositories.stack_name + "-" + repo.Repositories.stack_version + "-" + repo.Repositories.os_type;
+          repo.Repositories.id = [repo.Repositories.stack_name, repo.Repositories.stack_version, repo.Repositories.os_type, repo.Repositories.repo_id].join('-');
+          repo.Repositories.os_id = [repo.Repositories.stack_name, repo.Repositories.stack_version, repo.Repositories.os_type].join('-');
           resultRepo.push(this.parseIt(repo.Repositories, this.get('configRepository')));
           repositoriesArray.pushObject(repo.Repositories);
         }, this);

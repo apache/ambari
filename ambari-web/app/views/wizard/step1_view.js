@@ -49,10 +49,7 @@ App.WizardStep1View = Em.View.extend({
 
   operatingSystems: function () {
     var selectedStack = this.get('controller.selectedStack');
-    var result = [];
-    if (!!selectedStack)
-      result = selectedStack.get('operatingSystems');
-    return result;
+    return Em.isNone(selectedStack) ? [] : selectedStack.get('operatingSystems');
   }.property('controller.selectedStack'),
 
   /**
@@ -65,10 +62,7 @@ App.WizardStep1View = Em.View.extend({
    */
   allRepositories: function () {
     var selectedStack = this.get('controller.selectedStack');
-    var result = [];
-    if (!!selectedStack)
-      result = selectedStack.get('repositories');
-    return result;
+    return Em.isNone(selectedStack) ? [] : selectedStack.get('repositories');
   }.property('controller.selectedStack'),
 
   /**
@@ -186,8 +180,10 @@ App.WizardStep1View = Em.View.extend({
       operatingSystems.forEach(function (os) {
         if (!os.get('isSelected')) {
           os.get('repositories').forEach(function (repository) {
-            repository.set('baseUrl', repository.get('latestBaseUrl'));
-            repository.set('validation', App.Repository.validation['PENDING']);
+            repository.setProperties({
+              baseUrl: repository.get('latestBaseUrl'),
+              validation: App.Repository.validation['PENDING']
+            });
           });
         } else {
           os.get('repositories').forEach(function (repository) {
@@ -206,8 +202,10 @@ App.WizardStep1View = Em.View.extend({
    * @param {object} event
    */
   undoGroupLocalRepository: function (event) {
-    event.context.set('baseUrl', event.context.get('latestBaseUrl'));
-    event.context.set('validation', App.Repository.validation['PENDING']);
+    event.context.setProperties({
+      baseUrl: event.context.get('latestBaseUrl'),
+      validation: App.Repository.validation['PENDING']
+    });
   },
 
   /**
@@ -219,8 +217,10 @@ App.WizardStep1View = Em.View.extend({
     if (!event.context.get('isSelected')) {
       return;
     }
-    event.context.set('baseUrl', '');
-    event.context.set('validation', App.Repository.validation['PENDING']);
+    event.context.setProperties({
+      baseUrl: '',
+      validation: App.Repository.validation['PENDING']
+    });
   },
 
   /**
@@ -232,8 +232,10 @@ App.WizardStep1View = Em.View.extend({
     var repositories = this.get('allRepositories');
     repositories.forEach(function (repository) {
       if (repository.get('lastBaseUrl') != repository.get('baseUrl')) {
-        repository.set('lastBaseUrl', repository.get('baseUrl'));
-        repository.set('validation', App.Repository.validation['PENDING']);
+        repository.setProperties({
+          lastBaseUrl: repository.get('baseUrl'),
+          validation: App.Repository.validation['PENDING']
+        });
       }
     }, this);
   }.observes('allRepositories.@each.baseUrl')
