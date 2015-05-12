@@ -21,7 +21,6 @@ package org.apache.ambari.view.filebrowser;
 import javax.xml.bind.annotation.XmlRootElement;
 
 import org.apache.ambari.view.ViewContext;
-import org.apache.ambari.view.filebrowser.utils.MisconfigurationFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.slf4j.Logger;
@@ -70,8 +69,9 @@ public abstract class HdfsService {
     if (_api == null) {
 //      Thread.currentThread().setContextClassLoader(null);
       String defaultFs = context.getProperties().get("webhdfs.url");
-      if (defaultFs == null)
-        throw new MisconfigurationFormattedException("webhdfs.url");
+
+      defaultFs = normalizeFsUrl(defaultFs);
+
       try {
         _api = new HdfsApi(defaultFs, getDoAsUsername(context), getHdfsAuthParams(context));
       } catch (Exception ex) {
@@ -79,6 +79,17 @@ public abstract class HdfsService {
       }
     }
     return _api;
+  }
+
+  protected static String normalizeFsUrl(String defaultFs) {
+    //TODO: Don't add port if HA is enabled
+    if (!defaultFs.matches("^[^:]+://.*$"))
+      defaultFs = "webhdfs://" + defaultFs;
+
+    if (!defaultFs.matches("^.*:\\d+$"))
+      defaultFs = defaultFs + ":50070";
+
+    return defaultFs;
   }
 
   private static Map<String, String> getHdfsAuthParams(ViewContext context) {

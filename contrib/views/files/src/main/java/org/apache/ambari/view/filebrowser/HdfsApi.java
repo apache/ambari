@@ -33,6 +33,8 @@ import java.util.Map;
 
 import org.apache.hadoop.security.UserGroupInformation;
 import org.json.simple.JSONArray;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.LinkedHashMap;
 
@@ -40,6 +42,8 @@ import java.util.LinkedHashMap;
  * Hdfs Business Delegate
  */
 public class HdfsApi {
+  protected static final Logger logger = LoggerFactory.getLogger(HdfsApi.class);
+
   private final Configuration conf = new Configuration();
   private final Map<String, String> params;
 
@@ -55,6 +59,7 @@ public class HdfsApi {
    */
   public HdfsApi(final String defaultFs, String username, Map<String, String> params) throws IOException,
       InterruptedException {
+    logger.info("Files View HdfsApi is connecting to '%s'", defaultFs);
     this.params = params;
     conf.set("fs.hdfs.impl", "org.apache.hadoop.hdfs.DistributedFileSystem");
     conf.set("fs.webhdfs.impl", "org.apache.hadoop.hdfs.web.WebHdfsFileSystem");

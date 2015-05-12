@@ -53,7 +53,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.ambari.view.ViewContext;
 import org.apache.hadoop.security.AccessControlException;
 import org.json.simple.JSONObject;
-//import org.glassfish.jersey.server.ChunkedOutput;
 
 /**
  * Service for download and aggregate files

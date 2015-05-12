@@ -33,6 +33,7 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.apache.ambari.view.ViewContext;
 import org.apache.ambari.view.filebrowser.utils.NotFoundFormattedException;
 import org.apache.ambari.view.filebrowser.utils.ServiceFormattedException;
+import org.json.simple.JSONObject;
 
 /**
  * File operations service
@@ -57,8 +58,10 @@ public class FileOperationService extends HdfsService {
   @Produces(MediaType.APPLICATION_JSON)
   public Response listdir(@QueryParam("path") String path) {
     try {
-      return Response.ok(
-          getApi(context).fileStatusToJSON(getApi(context).listdir(path))).build();
+      JSONObject response = new JSONObject();
+      response.put("files", getApi(context).fileStatusToJSON(getApi(context).listdir(path)));
+      response.put("meta", getApi(context).fileStatusToJSON(getApi(context).getFileStatus(path)));
+      return Response.ok(response).build();
     } catch (WebApplicationException ex) {
       throw ex;
     } catch (FileNotFoundException ex) {

@@ -21,17 +21,22 @@
 
     <min-ambari-version>1.7.*</min-ambari-version>
 
+    <validator-class>org.apache.ambari.view.filebrowser.PropertyValidator</validator-class>
+
     <parameter>
         <name>webhdfs.url</name>
         <description>Enter the WebHDFS FileSystem URI. Typically this is the dfs.namenode.http-address property in the hdfs-site.xml configuration. URL must be accessible from Ambari Server.</description>
         <label>WebHDFS FileSystem URI</label>
         <placeholder>webhdfs://namenode:50070</placeholder>
+        <default-value>webhdfs://localhost:50070</default-value>
         <required>true</required>
+        <cluster-config>hdfs-site/dfs.namenode.http-address</cluster-config>
     </parameter>
     <parameter>
         <name>webhdfs.username</name>
         <description>doAs for proxy user for HDFS. By default, uses the currently logged-in Ambari user.</description>
         <label>WebHDFS Username</label>
+        <default-value>${username}</default-value>
         <required>false</required>
     </parameter>
     <parameter>
@@ -39,6 +44,7 @@
         <description>Semicolon-separated authentication configs.</description>
         <placeholder>auth=SIMPLE</placeholder>
         <default-value>auth=SIMPLE</default-value>
+        <label>WebHDFS Authorization</label>
         <required>false</required>
     </parameter>
 
@@ -46,5 +52,14 @@
         <name>files</name>
         <service-class>org.apache.ambari.view.filebrowser.FileBrowserService</service-class>
     </resource>
-  
+
+    <auto-instance>
+        <name>AUTO_INSTANCE</name>
+        <label>Auto Create instance for the Files view</label>
+        <description>This view instance is auto created when the HDFS service is added to a cluster.</description>
+        <stack-id>HDP-2.*</stack-id>
+        <services>
+            <service>HDFS</service>
+        </services>
+    </auto-instance>
 </view>

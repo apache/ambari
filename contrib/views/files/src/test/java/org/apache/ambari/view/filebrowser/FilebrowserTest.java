@@ -41,6 +41,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.hdfs.MiniDFSCluster;
 import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
@@ -108,7 +109,8 @@ public class FilebrowserTest{
     request.path = "/tmp1";
     fileBrowserService.fileOps().mkdir(request);
     Response response = fileBrowserService.fileOps().listdir("/");
-    JSONArray statuses = (JSONArray) response.getEntity();
+    JSONObject responseObject = (JSONObject) response.getEntity();
+    JSONArray statuses = (JSONArray) responseObject.get("files");
     System.out.println(response.getEntity());
     Assert.assertEquals(200, response.getStatus());
     Assert.assertTrue(statuses.size() > 0);
@@ -137,7 +139,8 @@ public class FilebrowserTest{
     Response response = uploadFile("/tmp/", "testUpload", ".tmp", "Hello world");
     Assert.assertEquals(200, response.getStatus());
     Response listdir = fileBrowserService.fileOps().listdir("/tmp");
-    JSONArray statuses = (JSONArray) listdir.getEntity();
+    JSONObject responseObject = (JSONObject) listdir.getEntity();
+    JSONArray statuses = (JSONArray) responseObject.get("files");
     System.out.println(statuses.size());
     Response response2 = fileBrowserService.download().browse("/tmp/testUpload.tmp", false, httpHeaders, uriInfo);
     Assert.assertEquals(200, response2.getStatus());
