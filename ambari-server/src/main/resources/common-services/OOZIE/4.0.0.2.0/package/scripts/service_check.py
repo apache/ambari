@@ -27,9 +27,6 @@ from ambari_commons.os_family_impl import OsFamilyImpl
 from ambari_commons import OSConst
 import os
 import glob
-import sys
-sys.exit(0)
-
 
 class OozieServiceCheck(Script):
   pass
