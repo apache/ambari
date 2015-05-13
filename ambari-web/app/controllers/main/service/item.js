@@ -54,7 +54,7 @@ App.MainServiceItemController = Em.Controller.extend({
       var hostNames = App.Host.find().mapProperty('hostName');
       this.set('allHosts', hostNames);
 
-      ['HBASE_MASTER', 'HIVE_METASTORE', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER', 'HIVE_SERVER', 'RANGER_KMS_SERVER'].forEach(function(componentName) {
+      ['HBASE_MASTER', 'HIVE_METASTORE', 'ZOOKEEPER_SERVER', 'FLUME_HANDLER', 'HIVE_SERVER', 'RANGER_KMS_SERVER', 'NIMBUS'].forEach(function(componentName) {
         self.loadHostsWithoutComponent(componentName);
       });
     }
@@ -683,7 +683,7 @@ App.MainServiceItemController = Em.Controller.extend({
         var selectedHost = this.get('selectedHost');
 
         // Install
-        if(['HIVE_METASTORE', 'RANGER_KMS_SERVER'].contains(component.get('componentName')) && !!selectedHost){
+        if(['HIVE_METASTORE', 'RANGER_KMS_SERVER', 'NIMBUS'].contains(component.get('componentName')) && !!selectedHost){
           App.router.get('mainHostDetailsController').addComponent(
             {
               context: component,

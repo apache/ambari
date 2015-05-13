@@ -680,38 +680,48 @@ App.MainHostDetailsController = Em.Controller.extend({
    * @method onLoadStormConfigs
    */
    onLoadStormConfigs: function (data) {
-    var
-      nimbusHost = this.get('nimbusHost'),
-      stormNimbusHosts = this.getStormNimbusHosts(),
-      configs = {},
-      attributes = {};
+    var nimbusHost = this.get('nimbusHost'),
+        stormNimbusHosts = this.getStormNimbusHosts(),
+        configs = {},
+        attributes = {};
 
-       data.items.forEach(function (item) {
-           configs[item.type] = item.properties;
-           attributes[item.type] = item.properties_attributes || {};
-       }, this);
+    data.items.forEach(function (item) {
+      configs[item.type] = item.properties;
+      attributes[item.type] = item.properties_attributes || {};
+    }, this);
 
-       configs['storm-site']['nimbus.seeds'] = stormNimbusHosts.join(',');
-       var groups = [
-           {
-               properties: {
-                   'storm-site': configs['storm-site'],
-                   'storm-env': configs['storm-env']
-               },
-               properties_attributes: {
-                   'storm-site': attributes['storm-site'],
-                   'storm-env': attributes['storm-env']
-               }
-           },
-           {
-               properties: {
-                   'core-site': configs['core-site']
-               },
-               properties_attributes: {
-                   'core-site': attributes['core-site']
-               }
-           }
-       ];
+    configs['storm-site']['nimbus.seeds'] = stormNimbusHosts.join(',');
+
+    if (stormNimbusHosts.length > 1) {
+      // for HA Nimbus
+      configs['storm-site']['topology.max.replication.wait.time.sec'] = '-1';
+      configs['storm-site']['topology.min.replication.count'] = '2';
+    } else {
+      // for non-HA Nimbus
+      configs['storm-site']['topology.max.replication.wait.time.sec'] = App.StackConfigProperty.find().findProperty('name', 'topology.max.replication.wait.time.sec').get('value');
+      configs['storm-site']['topology.min.replication.count'] = App.StackConfigProperty.find().findProperty('name', 'topology.min.replication.count').get('value');
+    }
+
+    var groups = [
+      {
+        properties: {
+          'storm-site': configs['storm-site'],
+          'storm-env': configs['storm-env']
+        },
+        properties_attributes: {
+          'storm-site': attributes['storm-site'],
+          'storm-env': attributes['storm-env']
+        }
+      },
+      {
+        properties: {
+          'core-site': configs['core-site']
+        },
+        properties_attributes: {
+          'core-site': attributes['core-site']
+        }
+      }
+    ];
     this.saveConfigsBatch(groups, 'NIMBUS', nimbusHost);
    },
 
