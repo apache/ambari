@@ -27,7 +27,7 @@
   </property>
   <property>
     <name>hbase.master.info.port</name>
-    <value>60010</value>
+    <value>16010</value>
     <description>The port for the HBase Master web UI.</description>
   </property>
   <property>
