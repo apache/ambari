@@ -217,31 +217,26 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       caption: 'common.combobox.dropdown.final'
     },
     {
-      attributeName: 'isValid',
-      attributeValue: false,
-      caption: 'common.combobox.dropdown.issues'
-    },
-    {
-      attributeName: 'warn',
+      attributeName: 'hasIssues',
       attributeValue: true,
-      caption: 'common.combobox.dropdown.warnings'
+      caption: 'common.combobox.dropdown.issues'
     }
   ],
 
   issuesFilterText: function () {
     return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked') &&
-      this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected')) ?
+      this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected')) ?
         Em.I18n.t('installer.step7.showingPropertiesWithIssues') : '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
 
   issuesFilterLinkText: function () {
-    if (this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected')) {
+    if (this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected')) {
       return Em.I18n.t('installer.step7.showAllProperties');
     }
 
     return (this.get('isSubmitDisabled') && !this.get('submitButtonClicked')) ?
       (
-        this.get('filterColumns').findProperty('attributeName', 'isValid').get('selected') ?
+        this.get('filterColumns').findProperty('attributeName', 'hasIssues').get('selected') ?
           Em.I18n.t('installer.step7.showAllProperties') : Em.I18n.t('installer.step7.showPropertiesWithIssues')
       ) : '';
   }.property('isSubmitDisabled', 'submitButtonClicked', 'filterColumns.@each.selected'),
@@ -1315,6 +1310,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   },
 
   toggleIssuesFilter: function () {
-    this.get('filterColumns').findProperty('attributeName', 'isValid').toggleProperty('selected');
+    this.get('filterColumns').findProperty('attributeName', 'hasIssues').toggleProperty('selected');
   }
 });

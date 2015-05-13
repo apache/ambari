@@ -56,6 +56,23 @@ App.FilterComboCleanableView = Ember.View.extend({
   }.property('filter'),
 
   /**
+   * true if any of filter columns is selected
+   * in this case clear filter row should be shown
+   * @type {boolean}
+   */
+  showClearFilter: function() {
+    return this.get('columns').someProperty('selected');
+  }.property('columns.@each.selected'),
+
+  /**
+   * clears all filter columns.
+   * @method clearFilterColumn
+   */
+  clearFilterColumn: function() {
+    this.get('columns').setEach('selected', false);
+  },
+
+  /**
    * clear Filter textfield
    */
   clearFilter: function() {

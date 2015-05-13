@@ -94,7 +94,7 @@ var installerStep7Controller,
     controller.reopen({
       isSubmitDisabled: testCase.isSubmitDisabled
     });
-    controller.get('filterColumns').findProperty('attributeName', 'isValid').set('selected', testCase.isIssuesFilterActive);
+    controller.get('filterColumns').findProperty('attributeName', 'hasIssues').set('selected', testCase.isIssuesFilterActive);
   };
 
 describe('App.InstallerStep7Controller', function () {
@@ -1926,7 +1926,7 @@ describe('App.InstallerStep7Controller', function () {
 
   describe('#toggleIssuesFilter', function () {
     it('should toggle issues filter', function () {
-      var issuesFilter = installerStep7Controller.get('filterColumns').findProperty('attributeName', 'isValid');
+      var issuesFilter = installerStep7Controller.get('filterColumns').findProperty('attributeName', 'hasIssues');
       issuesFilter.set('selected', false);
       installerStep7Controller.toggleIssuesFilter();
       expect(issuesFilter.get('selected')).to.be.true;

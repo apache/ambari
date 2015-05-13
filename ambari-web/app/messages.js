@@ -357,7 +357,10 @@ Em.I18n.translations = {
   'popup.dependent.configs.select.config.group.header': 'Select Config Group',
   'popup.dependent.configs.select.config.group': 'Please select to which config group would you like to save dependent properties',
 
-  'popup.dependent.configs.dependencies.info': 'There are {0} configs was changed in {1} services.',
+  'popup.dependent.configs.dependencies.config.singular': 'There is {0} configuration change ',
+  'popup.dependent.configs.dependencies.config.plural': 'There are {0} configuration changes ',
+  'popup.dependent.configs.dependencies.service.singular': 'in {0} service',
+  'popup.dependent.configs.dependencies.service.plural': 'in {0} services',
 
   'login.header':'Sign in',
   'login.username':'Username',
@@ -1706,6 +1709,7 @@ Em.I18n.translations = {
   'services.service.info.summary.hostsRunningMonitor':'{0}/{1}',
   'services.service.info.summary.serversHostCount':'{0} more',
 
+  'services.service.config.nothing.to.display': 'No properties to display.',
   'services.service.config.final':'Final',
   'services.service.config.saved':'Save Configuration Changes',
   'services.service.config.notSaved':'Unable to Save Configuration Changes',

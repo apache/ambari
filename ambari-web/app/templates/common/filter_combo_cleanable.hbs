@@ -34,5 +34,13 @@
                 </a>
             </li>
         {{/each}}
+        {{#if view.showClearFilter}}
+          <li class="divider"></li>
+          <li>
+            <a href="#" {{action clearFilterColumn target="view"}}>
+            {{t tableView.filters.clearFilters}}
+            </a>
+          </li>
+        {{/if}}
       </ul>
   </div>

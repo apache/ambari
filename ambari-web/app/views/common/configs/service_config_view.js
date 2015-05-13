@@ -44,6 +44,42 @@ App.ServiceConfigView = Em.View.extend({
   classNameBindings: ['isOnTheServicePage:serviceConfigs'],
 
   /**
+   * flag defines if any config match filter
+   * true if all configs should be hidden
+   * @type {boolean}
+   */
+  isAllConfigsHidden: false,
+
+  /**
+   * method that runs <code>updateFilterCounters<code> to
+   * update filter counters for advanced tab
+   * @method showHideAdvancedByFilter
+   */
+  showHideAdvancedByFilter: function () {
+    Em.run.once(this, 'updateFilterCounters');
+  }.observes('controller.selectedService.configs.@each.isHiddenByFilter'),
+
+  /**
+   * updates filter counters for advanced tab
+   * @method updateFilterCounters
+   */
+  updateFilterCounters: function() {
+    if (this.get('controller.selectedService.configs')) {
+      var categories = this.get('controller.selectedService.configCategories').mapProperty('name');
+      var configsToShow = this.get('controller.selectedService.configs').filter(function(config) {
+        return config.get('isHiddenByFilter') == false && categories.contains(config.get('category')) && config.get('isVisible');
+      });
+      var isAllConfigsHidden = configsToShow.get('length') == 0;
+      var isAdvancedHidden = isAllConfigsHidden || configsToShow.filter(function (config) {
+        return Em.isNone(config.get('widget'));
+      }).get('length') == 0;
+      this.set('isAllConfigsHidden', isAllConfigsHidden);
+      var advancedTab = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName')).findProperty('isAdvanced');
+      advancedTab && advancedTab.set('isAdvancedHidden', isAdvancedHidden);
+    }
+  },
+
+  /**
    * Check for layout config supports.
    * @returns {Boolean}
    */
@@ -74,6 +110,7 @@ App.ServiceConfigView = Em.View.extend({
     }
     App.tooltip($(".restart-required-property"), {html: true});
     App.tooltip($(".icon-lock"), {placement: 'right'});
+    App.tooltip($("[rel=tooltip]"));
     this.checkCanEdit();
   },
 

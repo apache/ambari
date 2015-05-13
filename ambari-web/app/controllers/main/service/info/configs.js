@@ -229,14 +229,9 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       dependentOn: 'isCompareMode'
     },
     {
-      attributeName: 'isValid',
-      attributeValue: false,
-      caption: 'common.combobox.dropdown.issues'
-    },
-    {
-      attributeName: 'warn',
+      attributeName: 'hasIssues',
       attributeValue: true,
-      caption: 'common.combobox.dropdown.warnings'
+      caption: 'common.combobox.dropdown.issues'
     }
   ],
 

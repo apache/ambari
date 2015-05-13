@@ -291,8 +291,8 @@ describe('App.ServiceConfigsByCategoryView', function () {
         {
           categoryConfigs: Em.A([]),
           category: Em.Object.create({ customCanAddProperty: true}),
-          m: 'Category with custom properties. Panel should be shown',
-          e: true
+          m: 'Category with custom properties. Panel shouldn\'t be shown',
+          e: false
         },
         {
           categoryConfigs: Em.A([

@@ -133,7 +133,7 @@ describe('App.themeMapper', function () {
                                             }
                                             ]
                               }
-                },
+                }
               }
             }
           }
@@ -160,7 +160,8 @@ describe('App.themeMapper', function () {
         columns: "2",
         rows: "1",
         is_advanced: false,
-        service_name: 'HDFS'
+        service_name: 'HDFS',
+        "is_advanced_hidden": false
       });
 
       //checking section
@@ -208,7 +209,7 @@ describe('App.themeMapper', function () {
     });
   });
 
-  describe('generateAdvancedTabs', function () {
+  describe('#generateAdvancedTabs', function () {
     it('generates advanced tabs', function () {
       App.themesMapper.generateAdvancedTabs(['HDFS']);
       expect(App.Tab.find('HDFS_advanced').toJSON()).to.eql({
@@ -218,12 +219,13 @@ describe('App.themeMapper', function () {
         "columns": 1,
         "rows": 1,
         "is_advanced": true,
-        "service_name": "HDFS"
+        "service_name": "HDFS",
+        "is_advanced_hidden": false
       });
     });
   });
 
-  describe('getConfigId', function () {
+  describe('#getConfigId', function () {
     it('gets configs id from json', function () {
       expect(App.themesMapper.getConfigId({config: "c1/p1"})).to.equal("p1_c1");
     });

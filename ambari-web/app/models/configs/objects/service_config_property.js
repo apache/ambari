@@ -64,6 +64,15 @@ App.ServiceConfigProperty = Em.Object.extend({
   showLabel: true,
   error: false,
   warn: false,
+
+  /**
+   * true if property has warning or error
+   * @type {boolean}
+   */
+  hasIssues: function () {
+    return (this.get('errorMessage') + this.get('warnMessage')) !== "";
+  }.property('errorMessage', 'warnMessage'),
+
   overrideErrorTrigger: 0, //Trigger for overridable property error
   isRestartRequired: false,
   restartRequiredMessage: 'Restart required',

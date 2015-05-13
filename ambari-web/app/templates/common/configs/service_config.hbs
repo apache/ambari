@@ -96,7 +96,7 @@
   {{#if view.supportsConfigLayout}}
     <ul class="nav nav-tabs mbm config-tabs">
       {{#each tab in view.tabs}}
-        <li {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" }}>
+        <li rel='tooltip' {{bindAttr class="tab.isActive:active tab.isHiddenByFilter:disabled" data-original-title="tab.tooltipMsg"}}>
           <a href="#" {{action "setActiveTab" tab target="view"}} {{bindAttr data-target="tab.headingClass"}} data-toggle="tab">
             {{tab.displayName}}
               {{#if tab.isAdvanced}}
@@ -142,6 +142,11 @@
         {{/if}}
       </div>
     {{/each}}
+  {{/if}}
+  {{#if view.isAllConfigsHidden}}
+    <div class="alert alert-info col-sm-12">
+      {{t services.service.config.nothing.to.display}}
+    </div>
   {{/if}}
 {{else}}
   <div class="spinner"></div>
