@@ -75,22 +75,15 @@ class HbaseServiceCheckDefault(HbaseServiceCheck):
       )
 
     servicecheckcmd = format("{smokeuser_kinit_cmd} {hbase_cmd} --config {hbase_conf_dir} shell {hbase_servicecheck_file}")
-    smokeverifycmd = format("{smokeuser_kinit_cmd} {exec_tmp_dir}/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data} {hbase_cmd}")
+    smokeverifycmd = format("{exec_tmp_dir}/hbaseSmokeVerify.sh {hbase_conf_dir} {service_check_data} {hbase_cmd}")
   
-    Execute( servicecheckcmd,
-      tries     = 3,
+    Execute(format("{servicecheckcmd} && {smokeverifycmd}"),
+      tries     = 6,
       try_sleep = 5,
       user = params.smoke_test_user,
       logoutput = True
     )
-  
-    Execute ( smokeverifycmd,
-      tries     = 3,
-      try_sleep = 5,
-      user = params.smoke_test_user,
-      logoutput = True
-    )
-    
+
 if __name__ == "__main__":
   HbaseServiceCheck().execute()
   
