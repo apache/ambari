@@ -84,6 +84,7 @@ App.ServiceConfigProperty = Em.Object.extend({
   rowStyleClass: null, // CSS-Class to be applied on the row showing this config
   showAsTextBox: false,
 
+  forceUpdate: false,
   /**
    * value that is returned from server as recommended
    * @type {String}

@@ -570,7 +570,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             serviceName: stepConfigs.get('serviceName'),
             filename: App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')),
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
-            isRequired: true
+            isRequired: true,
+            forceUpdate: true
           });
           stepConfigs.get('configs').pushObject(addedProperty);
           addedProperty.validate();
@@ -649,9 +650,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           var valueToSave = propertyToUpdate.saveRecommended ? propertyToUpdate.recommendedValue : propertyToUpdate.value;
           if (!selectedGroup || selectedGroup.get('isDefault')) {
             cp.set('value', valueToSave);
+            cp.set('forceUpdate', true);
           } else {
             if (stepConfigs.get('serviceName') !== this.get('content.serviceName')) {
               cp.set('value', cp.get('defaultValue'));
+              cp.set('forceUpdate', true);
             }
             var overriddenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
             if (overriddenConfig) {

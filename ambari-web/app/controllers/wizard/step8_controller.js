@@ -860,7 +860,8 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var configs = this.get('configs').slice(0);
     var configsMap = [];
     fileNamesToUpdate.forEach(function (fileName) {
-      if (!fileName || /^(core)/.test(fileName)) return;
+      // TODO - Temporarily commented out before refactoring should clean it more properly
+      // if (!fileName || /^(core)/.test(fileName)) return;
       var tagName = 'version' + (new Date).getTime();
       var configsToSave = configs.filterProperty('filename', fileName);
       configsToSave.forEach(function (item) {

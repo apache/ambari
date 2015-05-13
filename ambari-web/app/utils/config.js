@@ -735,6 +735,7 @@ App.config = Em.Object.create({
             config.set('value', defaults[name]);
             config.set('defaultValue', defaults[name]);
             config.set('recommendedValue', defaults[name]);
+            config.set('forceUpdate', true);
           }
         });
       }
