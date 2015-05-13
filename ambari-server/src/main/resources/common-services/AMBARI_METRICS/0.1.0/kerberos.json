@@ -80,13 +80,13 @@
             {
               "name": "ams_zookeeper",
               "principal": {
-                "value": "zookeeper/_HOST@${realm}",
+                "value": "amszk/_HOST@${realm}",
                 "type": "service",
                 "configuration": "ams-hbase-security-site/ams.zookeeper.principal",
                 "local_username": "${ams-env/ambari_metrics_user}"
               },
               "keytab": {
-                "file": "${keytab_dir}/zk.service.ams.keytab",
+                "file": "${keytab_dir}/ams-zk.service.keytab",
                 "owner": {
                   "name": "${ams-env/ambari_metrics_user}",
                   "access": "r"

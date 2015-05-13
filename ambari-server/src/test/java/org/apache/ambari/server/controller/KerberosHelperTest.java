@@ -462,7 +462,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
       put("identity1", new HashMap<String, Object>() {
         {
-          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_name", "service1/host1@EXAMPLE.COM");
           put("principal_type", KerberosPrincipalType.SERVICE);
           put("principal_configuration", "service1-site/component1.kerberos.principal");
           put("principal_local_username", "service1");
@@ -526,7 +526,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
       put("identity1", new HashMap<String, Object>() {
         {
-          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_name", "service1/host1@EXAMPLE.COM");
           put("principal_type", KerberosPrincipalType.SERVICE);
           put("principal_configuration", "service1-site/component1.kerberos.principal");
           put("principal_local_username", "service1");
@@ -564,7 +564,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
       put("identity1", new HashMap<String, Object>() {
         {
-          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_name", "service1/host2@EXAMPLE.COM");
           put("principal_type", KerberosPrincipalType.SERVICE);
           put("principal_configuration", "service1-site/component1.kerberos.principal");
           put("principal_local_username", "service1");
@@ -611,7 +611,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
       put("identity1", new HashMap<String, Object>() {
         {
-          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_name", "service1/host2@EXAMPLE.COM");
           put("principal_type", KerberosPrincipalType.SERVICE);
           put("principal_configuration", "service1-site/component1.kerberos.principal");
           put("principal_local_username", "service1");
@@ -712,7 +712,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
       put("identity1", new HashMap<String, Object>() {
         {
-          put("principal_name", "component1/host1@EXAMPLE.COM");
+          put("principal_name", "service1/host1@EXAMPLE.COM");
           put("principal_type", KerberosPrincipalType.SERVICE);
           put("principal_configuration", "service1-site/component1.kerberos.principal");
           put("principal_local_username", "service1");
@@ -766,7 +766,7 @@ public class KerberosHelperTest extends EasyMockSupport {
     validateIdentities(hostIdentities, new HashMap<String, Map<String, Object>>() {{
       put("identity1", new HashMap<String, Object>() {
         {
-          put("principal_name", "component1/host2@EXAMPLE.COM");
+          put("principal_name", "service1/host2@EXAMPLE.COM");
           put("principal_type", KerberosPrincipalType.SERVICE);
           put("principal_configuration", "service1-site/component1.kerberos.principal");
           put("principal_local_username", "service1");
@@ -3049,7 +3049,7 @@ public class KerberosHelperTest extends EasyMockSupport {
         .anyTimes();
 
     final KerberosPrincipalDescriptor principalDescriptor1 = createMock(KerberosPrincipalDescriptor.class);
-    expect(principalDescriptor1.getValue()).andReturn("component1/_HOST@${realm}").anyTimes();
+    expect(principalDescriptor1.getValue()).andReturn("service1/_HOST@${realm}").anyTimes();
     expect(principalDescriptor1.getType()).andReturn(KerberosPrincipalType.SERVICE).anyTimes();
     expect(principalDescriptor1.getConfiguration()).andReturn("service1-site/component1.kerberos.principal").anyTimes();
     expect(principalDescriptor1.getLocalUsername()).andReturn("service1").anyTimes();

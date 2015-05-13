@@ -2077,11 +2077,20 @@ public class KerberosHelper {
               }
 
               if (principal != null) {
+                KerberosKeytabDescriptor keytabDescriptor = identity.getKeytabDescriptor();
+                String keytabFile = null;
+
+                if (keytabDescriptor != null) {
+                  keytabFile = KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations);
+                }
+
                 if (replaceHostNames) {
                   principal = principal.replace("_HOST", hostname);
                 }
 
-                if (!hostActiveIdentities.containsKey(principal)) {
+                String uniqueKey = String.format("%s|%s", principal, (keytabFile == null) ? "" : keytabFile);
+
+                if (!hostActiveIdentities.containsKey(uniqueKey)) {
                   KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
                       new KerberosPrincipalDescriptor(principal,
                           principalDescriptor.getType(),
@@ -2090,13 +2099,12 @@ public class KerberosHelper {
 
                   KerberosKeytabDescriptor resolvedKeytabDescriptor;
 
-                  KerberosKeytabDescriptor keytabDescriptor = identity.getKeytabDescriptor();
-                  if (keytabDescriptor == null) {
+                  if (keytabFile == null) {
                     resolvedKeytabDescriptor = null;
                   } else {
                     resolvedKeytabDescriptor =
                         new KerberosKeytabDescriptor(
-                            KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations),
+                            keytabFile,
                             KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
                             KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
                             KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations),
@@ -2105,7 +2113,7 @@ public class KerberosHelper {
                             keytabDescriptor.isCachable());
                   }
 
-                  hostActiveIdentities.put(principal, new KerberosIdentityDescriptor(
+                  hostActiveIdentities.put(uniqueKey, new KerberosIdentityDescriptor(
                       identity.getName(),
                       resolvedPrincipalDescriptor,
                       resolvedKeytabDescriptor));
