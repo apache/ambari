@@ -201,6 +201,7 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("upgrade_package", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("repositories",    char[].class,  null,  null, false));
     dbAccessor.createTable("repo_version", columns, "repo_version_id");
+
     dbAccessor.executeQuery("INSERT INTO ambari_sequences(sequence_name, sequence_value) VALUES('repo_version_id_seq', 0)", false);
     dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name)");
     dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version)");

@@ -160,8 +160,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("action", String.class, 255, null, false));
     columns.add(new DBColumnInfo("cluster_name", String.class, 100, null, false));
     columns.add(new DBColumnInfo("bp_name", String.class, 100, null, false));
-    columns.add(new DBColumnInfo("cluster_properties", byte[].class, null, null, false));
-    columns.add(new DBColumnInfo("cluster_attributes", byte[].class, null, null, false));
+    columns.add(new DBColumnInfo("cluster_properties", char[].class, null, null, false));
+    columns.add(new DBColumnInfo("cluster_attributes", char[].class, null, null, false));
     columns.add(new DBColumnInfo("description", String.class, 1024, null, false));
 
     dbAccessor.createTable(TOPOLOGY_REQUEST_TABLE, columns, "id");
@@ -169,8 +169,8 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.clear();
     columns.add(new DBColumnInfo("id", Long.class, null, null, false));
     columns.add(new DBColumnInfo("name", String.class, 255, null, false));
-    columns.add(new DBColumnInfo("group_properties", byte[].class, null, null, false));
-    columns.add(new DBColumnInfo("group_attributes", byte[].class, null, null, false));
+    columns.add(new DBColumnInfo("group_properties", char[].class, null, null, false));
+    columns.add(new DBColumnInfo("group_attributes", char[].class, null, null, false));
     columns.add(new DBColumnInfo("request_id", Long.class, null, null, false));
 
     dbAccessor.createTable(TOPOLOGY_HOST_GROUP_TABLE, columns, "id");
@@ -497,14 +497,14 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("id", Long.class,    null,  null, false));
     columns.add(new DBColumnInfo("widget_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("widget_type", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("metrics", byte[].class,  null,   null, true));
+    columns.add(new DBColumnInfo("metrics", char[].class, null, null, true));
     columns.add(new DBColumnInfo("time_created", Long.class,  null,   null, false));
     columns.add(new DBColumnInfo("author", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("description", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("default_section_name", String.class,  255,   null, true));
     columns.add(new DBColumnInfo("scope", String.class,  255,   null, true));
-    columns.add(new DBColumnInfo("widget_values", byte[].class,  null,   null, true));
-    columns.add(new DBColumnInfo("properties", byte[].class, null, null, true));
+    columns.add(new DBColumnInfo("widget_values", char[].class, null, null, true));
+    columns.add(new DBColumnInfo("properties", char[].class, null, null, true));
     columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
     dbAccessor.createTable(WIDGET_TABLE, columns, "id");
 
