@@ -21,12 +21,6 @@ require('utils/configs/modification_handlers/modification_handler');
 module.exports = App.ServiceConfigModificationHandler.create({
   serviceId : 'HBASE',
 
-  getConfig : function(allConfigs, configName, configFilename, configServiceName) {
-    return allConfigs.findProperty("serviceName", configServiceName).get("configs").find(function(config) {
-      return configName == config.get('name') && (configFilename == null || configFilename == config.get('filename'));
-    });
-  },
-
   updateConfigClasses : function(configClasses, authEnabled, affectedProperties, addOldValue) {
     if (configClasses != null) {
       var xaAuthCoProcessorClass = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor";
@@ -91,7 +85,7 @@ module.exports = App.ServiceConfigModificationHandler.create({
       var newAuthEnabledValue = authEnabled ? "true" : "false";
       var newRpcProtectionValue = authEnabled ? "privacy" : "authentication";
 
-      // Add Hive-Ranger configs
+      // Add HBase-Ranger configs
       this.updateConfigClasses(configMasterClasses, authEnabled, affectedProperties, configAuthEnabled.get('value') == 'true');
       this.updateConfigClasses(configRegionClasses, authEnabled, affectedProperties, configAuthEnabled.get('value') == 'true');
       if (newRpcProtectionValue !== configRpcProtection.get('value')) {

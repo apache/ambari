@@ -21,12 +21,6 @@ require('utils/configs/modification_handlers/modification_handler');
 module.exports = App.ServiceConfigModificationHandler.create({
   serviceId : 'STORM',
 
-  getConfig : function(allConfigs, configName, configFilename, configServiceName) {
-    return allConfigs.findProperty("serviceName", configServiceName).get("configs").find(function(config) {
-      return configName == config.get('name') && (configFilename == null || configFilename == config.get('filename'));
-    });
-  },
-
   getDependentConfigChanges : function(changedConfig, selectedServices, allConfigs, securityEnabled) {
     var affectedProperties = [];
     var newValue = changedConfig.get("value");
@@ -42,7 +36,7 @@ module.exports = App.ServiceConfigModificationHandler.create({
         var newNimbusAuthorizer = authEnabled ? "com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer"
             : "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer";
 
-        // Add Hive-Ranger configs
+        // Add Storm-Ranger configs
         if (newNimbusAuthorizer !== configNimbusAuthorizer.get('value')) {
           affectedProperties.push({
             serviceName : "STORM",

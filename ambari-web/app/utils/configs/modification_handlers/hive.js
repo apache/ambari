@@ -21,12 +21,6 @@ require('utils/configs/modification_handlers/modification_handler');
 module.exports = App.ServiceConfigModificationHandler.create({
   serviceId : 'HIVE',
 
-  getConfig : function(allConfigs, configName, configFilename, configServiceName) {
-    return allConfigs.findProperty("serviceName", configServiceName).get("configs").find(function(config) {
-      return configName == config.get('name') && (configFilename == null || configFilename == config.get('filename'));
-    });
-  },
-
   getDependentConfigChanges : function(changedConfig, selectedServices, allConfigs, securityEnabled) {
     var affectedProperties = [];
     var newValue = changedConfig.get("value");

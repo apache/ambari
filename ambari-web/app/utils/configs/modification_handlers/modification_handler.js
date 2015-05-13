@@ -58,6 +58,12 @@ App.ServiceConfigModificationHandler = Em.Object.extend({
    */
   getDependentConfigChanges : function(changedConfig, selectedServices, allConfigs, securityEnabled) {
     return [];
+  },
+
+  getConfig: function(allConfigs, configName, configFilename, configServiceName) {
+    return allConfigs.findProperty('serviceName', configServiceName).get('configs').find(function(config) {
+      return configName == config.get('name') && (configFilename == null || configFilename == config.get('filename'));
+    });
   }
 
 });

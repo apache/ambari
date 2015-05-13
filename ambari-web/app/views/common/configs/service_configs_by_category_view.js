@@ -189,9 +189,10 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           this.hide();
         },
         onUndo: function () {
-          var affected = self.get("newAffectedProperties").objectAt(0);
-          self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName).get("configs")
-          .findProperty("name", affected.changedPropertyName).set("value", $.trim(affected.curValue));
+          var affected = self.get("newAffectedProperties").objectAt(0),
+            changedProperty = self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName)
+              .get("configs").findProperty("name", affected.changedPropertyName);
+          changedProperty.set('value', changedProperty.get('defaultValue'));
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
