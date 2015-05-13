@@ -1312,6 +1312,11 @@ public class BlueprintConfigurationProcessor {
                                          Map<String, Map<String, String>> properties,
                                          ClusterTopology topology) {
 
+      // return customer-supplied properties without updating them
+      if (isFQDNValue(origValue)) {
+        return origValue;
+      }
+
       return doFormat(propertyUpdater.updateForClusterCreate(propertyName, origValue, properties, topology));
     }
 
@@ -1330,6 +1335,19 @@ public class BlueprintConfigurationProcessor {
 
       return propertyUpdater.getRequiredHostGroups(origValue, properties, topology);
     }
+
+    /**
+     * Convenience method to determine if a property value is a
+     * customer-specified FQDN.
+     *
+     * @param value property value to examine
+     * @return true if the property represents an FQDN value
+     *         false if the property does not represent an FQDN value
+     */
+    public boolean isFQDNValue(String value) {
+      return !value.contains("%HOSTGROUP") &&
+            !value.contains("localhost");
+    }
   }
 
   /**
@@ -1337,8 +1355,22 @@ public class BlueprintConfigurationProcessor {
    */
   private static class YamlMultiValuePropertyDecorator extends AbstractPropertyValueDecorator {
 
+    // currently, only plain and single-quoted Yaml flows are supported by this updater
+    enum FlowStyle {
+      SINGLE_QUOTED,
+      PLAIN
+    }
+
+    private final FlowStyle flowStyle;
+
     public YamlMultiValuePropertyDecorator(PropertyUpdater propertyUpdater) {
+      // single-quote style is considered default by this updater
+      this(propertyUpdater, FlowStyle.SINGLE_QUOTED);
+    }
+
+    protected YamlMultiValuePropertyDecorator(PropertyUpdater propertyUpdater, FlowStyle flowStyle) {
       super(propertyUpdater);
+      this.flowStyle = flowStyle;
     }
 
     /**
@@ -1360,9 +1392,17 @@ public class BlueprintConfigurationProcessor {
           } else {
             isFirst = false;
           }
-          sb.append("'");
+
+          if (flowStyle == FlowStyle.SINGLE_QUOTED) {
+            sb.append("'");
+          }
+
           sb.append(value);
-          sb.append("'");
+
+          if (flowStyle == FlowStyle.SINGLE_QUOTED) {
+            sb.append("'");
+          }
+
         }
         sb.append("]");
       }
@@ -1649,6 +1689,9 @@ public class BlueprintConfigurationProcessor {
     stormSiteMap.put("nimbus.childopts", new OptionalSingleHostTopologyUpdater("GANGLIA_SERVER"));
     multiStormSiteMap.put("storm.zookeeper.servers",
         new YamlMultiValuePropertyDecorator(new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER")));
+    multiStormSiteMap.put("nimbus.seeds",
+        new YamlMultiValuePropertyDecorator(new MultipleHostTopologyUpdater("NIMBUS"), YamlMultiValuePropertyDecorator.FlowStyle.PLAIN));
+
 
     // FALCON
     falconStartupPropertiesMap.put("*.broker.url", new SingleHostTopologyUpdater("FALCON_SERVER"));
