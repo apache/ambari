@@ -19,7 +19,7 @@
     <label>Files</label>
     <version>0.1.0</version>
 
-    <min-ambari-version>1.7.*</min-ambari-version>
+    <min-ambari-version>2.0.*</min-ambari-version>
 
     <validator-class>org.apache.ambari.view.filebrowser.PropertyValidator</validator-class>
 
