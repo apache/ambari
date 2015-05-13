@@ -313,6 +313,53 @@ App.WidgetWizardController = App.WizardController.extend({
     this.saveTasksRequestIds(undefined);
   },
 
+  cancel: function () {
+    var self = this;
+    var step3Controller = App.router.get('widgetWizardStep3Controller');
+    return App.ModalPopup.show({
+      header: Em.I18n.t('common.warning'),
+      bodyClass: Em.View.extend({
+        template: Ember.Handlebars.compile('{{t alerts.saveChanges}}')
+      }),
+      primary: Em.I18n.t('common.save'),
+      secondary: Em.I18n.t('common.discard'),
+      third: Em.I18n.t('common.cancel'),
+      disablePrimary: function () {
+        return !(parseInt(self.get('currentStep')) === self.get('totalSteps') && !step3Controller.get('isSubmitDisabled'));
+      }.property(''),
+      onPrimary: function () {
+        App.router.send('complete', step3Controller.collectWidgetData());
+        this.onSecondary();
+      },
+      onSecondary: function () {
+        this.hide();
+        self.finishWizard();
+      },
+      onThird: function () {
+        this.hide();
+      }
+    });
+  },
+
+  /**
+   * finish wizard
+   */
+  finishWizard: function () {
+    this.finish();
+    this.get('popup').hide();
+    var serviceName = this.get('content.widgetService');
+    var service = App.Service.find().findProperty('serviceName', serviceName);
+    App.router.transitionTo('main.services.service', service);
+    if (!App.get('testMode')) {
+      App.clusterStatus.setClusterStatus({
+        clusterName: App.router.getClusterName(),
+        clusterState: 'DEFAULT',
+        localdb: App.db.data
+      });
+    }
+  },
+
+
   /**
    * Clear all temporary data
    */

@@ -353,7 +353,7 @@ App.WidgetMixin = Ember.Mixin.create({
    */
   onMetricsLoaded: function () {
     var self = this;
-    this.set('isLoaded', true);
+    if (!this.get('isLoaded')) this.set('isLoaded', true);
     this.drawWidget();
     clearTimeout(this.get('timeoutId'));
     this.set('timeoutId', setTimeout(function () {
@@ -371,6 +371,20 @@ App.WidgetMixin = Ember.Mixin.create({
       this.set('value', (this.get('content.values')[0]) ? this.get('content.values')[0].computedValue : '');
     }
   },
+
+  /**
+   * initialize tooltips
+   */
+  initTooltip: function () {
+    var self = this;
+
+    if (this.get('isLoaded')) {
+      Em.run.next(function(){
+        App.tooltip(self.$(".corner-icon > .icon-copy"), {title: Em.I18n.t('common.clone')});
+        App.tooltip(self.$(".corner-icon > .icon-edit"), {title: Em.I18n.t('common.edit')});
+      });
+    }
+  }.observes('isLoaded'),
 
   /**
    * calculate series datasets for graph widgets

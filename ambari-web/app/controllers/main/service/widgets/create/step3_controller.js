@@ -141,19 +141,12 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   },
 
   cancel: function () {
-    var controller = App.router.get('widgetEditController');
+    var controller = App.router.get(this.get('content.controllerName'));
     controller.cancel();
   },
 
   complete: function () {
     App.router.send('complete', this.collectWidgetData());
-    var editController = App.router.get('widgetEditController');
-    editController.finish();
-    if (editController.get('popup')) {
-      editController.get('popup').hide();
-    }
-    var serviceName = editController.get('content.widgetService');
-    var service = App.Service.find().findProperty('serviceName', serviceName);
-    App.router.transitionTo('main.services.service', service);
+    App.router.get(this.get('content.controllerName')).finishWizard();
   }
 });

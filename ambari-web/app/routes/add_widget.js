@@ -34,27 +34,7 @@ module.exports = App.WizardRoute.extend({
         secondary: null,
 
         onClose: function () {
-          var self = this;
-          widgetWizardController.finish();
-          if (App.testMode) {
-            self.hide();
-            var serviceName = widgetWizardController.get('content.widgetService');
-            var service = App.Service.find().findProperty('serviceName', serviceName);
-            router.transitionTo('main.services.service', service);
-          }   else {
-            App.clusterStatus.setClusterStatus({
-              clusterName: App.router.getClusterName(),
-              clusterState: 'DEFAULT',
-              localdb: App.db.data
-            }, {
-              alwaysCallback: function () {
-                self.hide();
-                var serviceName = widgetWizardController.get('content.widgetService');
-                var service = App.Service.find().findProperty('serviceName', serviceName);
-                router.transitionTo('main.services.service', service);
-              }
-            });
-          }
+          widgetWizardController.cancel();
         },
 
         didInsertElement: function () {
@@ -158,7 +138,6 @@ module.exports = App.WizardRoute.extend({
     back: Em.Router.transitionTo('step2'),
     complete: function (router, context) {
       router.get('widgetWizardController').postWidgetDefinition(context);
-      router.get('widgetWizardController.popup').onClose();
     }
   })
 });
