@@ -121,7 +121,7 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
                               action = ['delete'],
-                              not_if = 'ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)',
+                              not_if = u'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie//var/tmp/oozie',
                               owner = 'oozie',
@@ -402,7 +402,7 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
                               action=["delete"],
-                              not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
+                              not_if="ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1"
                               )
     self.assertResourceCalled('Directory', '/usr/lib/oozie//var/tmp/oozie',
         owner = 'oozie',
@@ -570,7 +570,7 @@ class TestOozieServer(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/run/oozie/oozie.pid',
                               action=["delete"],
-                              not_if="ls {pid_file} >/dev/null 2>&1 && !(ps `cat {pid_file}` >/dev/null 2>&1)"
+                              not_if="ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1"
     )
     self.assertResourceCalled('Directory', '/usr/lib/oozie//var/tmp/oozie',
         owner = 'oozie',
