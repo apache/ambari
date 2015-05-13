@@ -1008,6 +1008,10 @@ public class SliderAppsViewControllerImpl implements SliderAppsViewController {
             JsonElement componentJson = resourcesObj.get(component.getName());
             if (componentJson != null && componentJson.isJsonObject()) {
               JsonObject componentObj = componentJson.getAsJsonObject();
+              if (componentObj.has("yarn.component.instances")) {
+                component.setInstanceCount(Integer.parseInt(componentObj.get(
+                    "yarn.component.instances").getAsString()));
+              }
               if (componentObj.has("yarn.role.priority")) {
                 component.setPriority(Integer.parseInt(componentObj.get("yarn.role.priority").getAsString()));
               }
