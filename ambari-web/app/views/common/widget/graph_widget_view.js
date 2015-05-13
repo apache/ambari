@@ -135,6 +135,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
           return dataLinks[match][i][0];
         });
         var dataLinkPointValue = isPointNull ? null : Number(window.eval(beforeCompute));
+        // expression resulting into `0/0` will produce NaN Object which is not a valid series data value for RickShaw graphs
+        if (isNaN(dataLinkPointValue)) {
+          dataLinkPointValue = 0;
+        }
         value.push([dataLinkPointValue, timestamp]);
       }
     }

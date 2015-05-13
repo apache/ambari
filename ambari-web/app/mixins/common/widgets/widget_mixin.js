@@ -259,18 +259,28 @@ App.WidgetMixin = Ember.Mixin.create({
     var metrics = [];
     if (this.get('content.metrics')) {
       this.get('content.metrics').forEach(function (_metric) {
-        var metric_path;
-        this.aggregatorFunc.forEach(function (_func) {
-          if (_metric.metric_path.endsWith(_func)) {
-            // truncate aggregator function suffixed at the end of the metric
-            metric_path = _metric.metric_path.substring(0, _metric.metric_path.indexOf(_func));
-          }
-        }, this);
-        if (!metric_path) {
-          metric_path = _metric.metric_path;
+        var metric_path = _metric.metric_path;
+        var isAggregatorFunc = false;
+        var metric_data = Em.get(data, metric_path.replace(/\//g, '.'));
+        if (Em.isNone(metric_data)) {
+          this.aggregatorFunc.forEach(function (_item) {
+            if (metric_path.endsWith(_item) && !isAggregatorFunc) {
+              isAggregatorFunc = true;
+              var metricBeanProperty = metric_path.split("/").pop();
+              var metricBean;
+              metric_path = metric_path.substring(0, metric_path.indexOf(metricBeanProperty));
+              if (metric_path.endsWith("/")) {
+                metric_path = metric_path.slice(0, -1);
+              }
+              metricBean = Em.get(data, metric_path.replace(/\//g, '.'));
+              if (!Em.isNone(metricBean)) {
+                metric_data = metricBean[metricBeanProperty];
+              }
+            }
+          }, this);
         }
-        if (!Em.isNone(Em.get(data, metric_path.replace(/\//g, '.')))) {
-          _metric.data = Em.get(data, metric_path.replace(/\//g, '.'));
+        if (!Em.isNone(metric_data)) {
+          _metric.data = metric_data;
           this.get('metrics').pushObject(_metric);
         }
       }, this);
