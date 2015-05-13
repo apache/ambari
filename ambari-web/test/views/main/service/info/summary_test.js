@@ -29,7 +29,8 @@ describe('App.MainServiceInfoSummaryView', function() {
         id: 'HDFS',
         serviceName: 'HDFS',
         hostComponents: []
-      })
+      }),
+      getActiveWidgetLayout: Em.K
     }),
     alertsController: Em.Object.create(),
     service: Em.Object.create()
@@ -163,17 +164,18 @@ describe('App.MainServiceInfoSummaryView', function() {
 
     beforeEach(function () {
       sinon.stub(view, 'constructGraphObjects', Em.K);
+      this.mock = sinon.stub(App, 'get');
     });
 
     afterEach(function () {
       view.constructGraphObjects.restore();
-      App.get.restore();
+      this.mock.restore();
     });
 
     cases.forEach(function (item) {
       it(item.title, function () {
         view.set('service.serviceName', item.serviceName);
-        sinon.stub(App, 'get').withArgs('isStormMetricsSupported').returns(item.isStormMetricsSupported);
+        this.mock.withArgs('isStormMetricsSupported').returns(item.isStormMetricsSupported);
         view.didInsertElement();
         expect(view.constructGraphObjects.calledOnce).to.equal(item.isConstructGraphObjectsCalled);
       });

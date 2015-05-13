@@ -78,7 +78,7 @@ App.WidgetSectionMixin = Ember.Mixin.create({
     } else if (this.get('sectionName') === 'SYSTEM_HEATMAPS') {
       isServiceWithWidgetdescriptor = true;
     }
-    return isServiceWithWidgetdescriptor && (App.supports.customizedWidgets || this.sectionNameSuffix === "_HEATMAPS");
+    return isServiceWithWidgetdescriptor;
   }.property('content.serviceName'),
 
   /**
@@ -90,13 +90,11 @@ App.WidgetSectionMixin = Ember.Mixin.create({
    * @type {Em.A}
    */
   widgets: function () {
-    if (this.get('isWidgetsLoaded')) {
-      if (this.get('activeWidgetLayout.widgets')) {
-        return this.get('activeWidgetLayout.widgets').toArray();
-      }
+    if (this.get('isWidgetsLoaded') && this.get('activeWidgetLayout.widgets')) {
+      return this.get('activeWidgetLayout.widgets').toArray();
     }
     return [];
-  }.property('isWidgetsLoaded'),
+  }.property('isWidgetsLoaded', 'activeWidgetLayout.widgets'),
 
 
   /**

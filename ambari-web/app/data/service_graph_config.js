@@ -98,16 +98,12 @@ module.exports = {
   },
 
   getServiceGraphConfig: function () {
-    if (App.get('supports.customizedWidgets')) {
-      var servicesWithEnhancedDashboard = ['hdfs', 'yarn', 'hbase'];
-      var newServiceObject = jQuery.extend(true, {}, this.allServices);
-      servicesWithEnhancedDashboard.forEach(function (_serviceName) {
-        newServiceObject[_serviceName] = [];
-      });
-      return newServiceObject;
-    } else {
-      return this.allServices;
-    }
+    var servicesWithEnhancedDashboard = ['hdfs', 'yarn', 'hbase'];
+    var newServiceObject = jQuery.extend(true, {}, this.allServices);
+    servicesWithEnhancedDashboard.forEach(function (_serviceName) {
+      newServiceObject[_serviceName] = [];
+    });
+    return newServiceObject;
   }
 
 };

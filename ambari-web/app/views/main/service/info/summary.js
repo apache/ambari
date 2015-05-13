@@ -308,20 +308,15 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
   constructGraphObjects: function(graphNames) {
     var result = [], graphObjects = [], chunkSize = this.get('chunkSize');
     var self = this;
+    var serviceName = this.get('controller.content.serviceName');
+    var stackService = App.StackService.find().findProperty('serviceName', serviceName);
 
-    if (App.get('supports.customizedWidgets')) {
-      var serviceName = this.get('controller.content.serviceName');
-      var stackService = App.StackService.find().findProperty('serviceName', serviceName);
-      if (!graphNames && !stackService.get('isServiceWithWidgets')) {
-        self.set('serviceMetricGraphs', []);
-        self.set('isServiceMetricLoaded', false);
-        return;
-      }
-    } else if (!graphNames) {
+    if (!graphNames && !stackService.get('isServiceWithWidgets')) {
       self.set('serviceMetricGraphs', []);
       self.set('isServiceMetricLoaded', false);
       return;
     }
+
     // load time range for current service from server
     self.getUserPref(self.get('persistKey')).complete(function () {
       var index = self.get('currentTimeRangeIndex');
@@ -530,11 +525,9 @@ App.MainServiceInfoSummaryView = Em.View.extend(App.UserPref, {
     var svcName = this.get('service.serviceName');
     var isMetricsSupported = svcName != 'STORM' || App.get('isStormMetricsSupported');
 
-    if (App.get('supports.customizedWidgets')) {
-        this.get('controller').getActiveWidgetLayout();
-      if (App.get('supports.customizedWidgetLayout')) {
-        this.get('controller').loadWidgetLayouts();
-      }
+    this.get('controller').getActiveWidgetLayout();
+    if (App.get('supports.customizedWidgetLayout')) {
+      this.get('controller').loadWidgetLayouts();
     }
 
     if (svcName && isMetricsSupported) {
