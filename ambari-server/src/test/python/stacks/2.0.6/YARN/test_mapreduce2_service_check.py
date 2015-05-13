@@ -39,6 +39,16 @@ class TestServiceCheck(RMFTestCase):
                       hdp_stack_version = self.STACK_VERSION,
                       target = RMFTestCase.TARGET_COMMON_SERVICES
     )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['delete_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+    )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeinput',
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
@@ -82,6 +92,16 @@ class TestServiceCheck(RMFTestCase):
                       config_file="secured.json",
                       hdp_stack_version = self.STACK_VERSION,
                       target = RMFTestCase.TARGET_COMMON_SERVICES
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeoutput',
+        security_enabled = True,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['delete_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
     )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mapredsmokeinput',
         security_enabled = True,

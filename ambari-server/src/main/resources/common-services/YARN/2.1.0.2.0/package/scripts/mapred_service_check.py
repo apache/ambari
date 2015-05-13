@@ -120,6 +120,10 @@ class MapReduce2ServiceCheckDefault(MapReduce2ServiceCheck):
     test_cmd = format("fs -test -e {output_file}")
     run_wordcount_job = format("jar {jar_path} wordcount {input_file} {output_file}")
 
+    params.HdfsResource(output_file,
+                        action = "delete_on_execute",
+                        type = "directory",
+    )
     params.HdfsResource(input_file,
                         action = "create_on_execute",
                         type = "file",
