@@ -20,73 +20,47 @@
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
-import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.stack.NoSuchStackException;
 import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
-import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.topology.TopologyValidator;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A request for a scaling an existing cluster.
  */
-public class ScaleClusterRequest implements TopologyRequest {
+public class ScaleClusterRequest extends BaseClusterRequest {
 
-  private static BlueprintFactory blueprintFactory;
-
-  private String clusterName;
-
-  private Blueprint blueprint;
-
-  private Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
-
-  public static void init(BlueprintFactory factory) {
-    blueprintFactory = factory;
-  }
-
-  public ScaleClusterRequest(Request request) throws InvalidTopologyTemplateException {
-    for (Map<String, Object> properties : request.getProperties()) {
+  /**
+   * Constructor.
+   *
+   * @param propertySet  set of request properties
+   *
+   * @throws InvalidTopologyTemplateException if any validation of properties fails
+   */
+  public ScaleClusterRequest(Set<Map<String, Object>> propertySet) throws InvalidTopologyTemplateException {
+    for (Map<String, Object> properties : propertySet) {
       // can only operate on a single cluster per logical request
-      if (clusterName == null) {
-        clusterName = String.valueOf(properties.get(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID));
+      if (getClusterName() == null) {
+        setClusterName(String.valueOf(properties.get(HostResourceProvider.HOST_CLUSTER_NAME_PROPERTY_ID)));
       }
-      parseHostGroup(properties);
-    }
-  }
+      // currently don't allow cluster scoped configuration in scaling operation
+      setConfiguration(new Configuration(Collections.<String, Map<String, String>>emptyMap(),
+          Collections.<String, Map<String, Map<String, String>>>emptyMap()));
 
-  @Override
-  public String getClusterName() {
-    return clusterName;
+      parseHostGroups(properties);
+    }
   }
 
   @Override
   public Type getType() {
     return Type.SCALE;
-  }
-
-  @Override
-  public Blueprint getBlueprint() {
-    return blueprint;
-  }
-
-  @Override
-  public Configuration getConfiguration() {
-    // currently don't allow cluster scoped configuration in scaling operation
-    return new Configuration(Collections.<String, Map<String, String>>emptyMap(),
-        Collections.<String, Map<String, Map<String, String>>>emptyMap());
-  }
-
-  @Override
-  public Map<String, HostGroupInfo> getHostGroupInfo() {
-    return hostGroupInfoMap;
   }
 
   @Override
@@ -99,25 +73,54 @@ public class ScaleClusterRequest implements TopologyRequest {
     return String.format("Scale Cluster '%s' (+%s hosts)", clusterName, getTotalRequestedHostCount());
   }
 
-  private void parseHostGroup(Map<String, Object> properties) throws InvalidTopologyTemplateException {
+  /**
+   * Parse and set host group information.
+   *
+   * @param properties  request properties
+   * @throws InvalidTopologyTemplateException if any property validation fails
+   */
+  //todo: need to use fully qualified host group name.  For now, disregard name collisions across BP's
+  private void parseHostGroups(Map<String, Object> properties) throws InvalidTopologyTemplateException {
     String blueprintName = String.valueOf(properties.get(HostResourceProvider.BLUEPRINT_PROPERTY_ID));
-    if (blueprint == null) {
+    if (blueprintName == null || blueprintName.equals("null")) {
+      throw new InvalidTopologyTemplateException("Blueprint name must be specified for all host groups");
+    }
+
+    String hgName = String.valueOf(properties.get(HostResourceProvider.HOSTGROUP_PROPERTY_ID));
+    if (hgName == null || hgName.equals("null")) {
+      throw new InvalidTopologyTemplateException("A name must be specified for all host groups");
+    }
+
+    Blueprint blueprint = getBlueprint();
+    if (getBlueprint() == null) {
       blueprint = parseBlueprint(blueprintName);
+      setBlueprint(blueprint);
     } else if (! blueprintName.equals(blueprint.getName())) {
       throw new InvalidTopologyTemplateException(
           "Currently, a scaling request may only refer to a single blueprint");
     }
 
-    String hgName = String.valueOf(properties.get(HostResourceProvider.HOSTGROUP_PROPERTY_ID));
-    //todo: need to use fully qualified host group name.  For now, disregard name collisions across BP's
-    HostGroupInfo hostGroupInfo = hostGroupInfoMap.get(hgName);
+    String hostName = getHostNameFromProperties(properties);
+    boolean containsHostCount = properties.containsKey(HostResourceProvider.HOST_COUNT_PROPERTY_ID);
+    boolean containsHostPredicate = properties.containsKey(HostResourceProvider.HOST_PREDICATE_PROPERTY_ID);
 
+    if (hostName != null && (containsHostCount || containsHostPredicate)) {
+      throw new InvalidTopologyTemplateException(
+          "Can't specify host_count or host_predicate if host_name is specified in hostgroup: " + hgName);
+    }
+
+    if (hostName == null && ! containsHostCount) {
+      throw new InvalidTopologyTemplateException(
+          "Must specify either host_name or host_count for hostgroup: " + hgName);
+    }
+
+    HostGroupInfo hostGroupInfo = getHostGroupInfo().get(hgName);
     if (hostGroupInfo == null) {
       if (blueprint.getHostGroup(hgName) == null) {
         throw new InvalidTopologyTemplateException("Invalid host group specified in request: " + hgName);
       }
       hostGroupInfo = new HostGroupInfo(hgName);
-      hostGroupInfoMap.put(hgName, hostGroupInfo);
+      getHostGroupInfo().put(hgName, hostGroupInfo);
     }
 
     // specifying configuration is scaling request isn't permitted
@@ -125,11 +128,11 @@ public class ScaleClusterRequest implements TopologyRequest {
         Collections.<String, Map<String, Map<String, String>>>emptyMap()));
 
     // process host_name and host_count
-    if (properties.containsKey("host_count")) {
-      //todo: validate the host_name and host_predicate are not both specified for same group
-      //todo: validate that when predicate is specified that only a single host group entry is specified
-      String predicate = String.valueOf(properties.get("host_predicate"));
-      if (predicate != null && ! predicate.isEmpty()) {
+    if (containsHostCount) {
+      //todo: host_count and host_predicate up one level
+      if (containsHostPredicate) {
+        String predicate = String.valueOf(properties.get(HostResourceProvider.HOST_PREDICATE_PROPERTY_ID));
+        validateHostPredicateProperties(predicate);
         try {
           hostGroupInfo.setPredicate(predicate);
         } catch (InvalidQueryException e) {
@@ -139,21 +142,32 @@ public class ScaleClusterRequest implements TopologyRequest {
       }
 
       if (! hostGroupInfo.getHostNames().isEmpty()) {
-        throw new InvalidTopologyTemplateException("Can't specify both host_name and host_count for the same hostgroup: " + hgName);
+        throw new InvalidTopologyTemplateException(
+            "Can't specify both host_name and host_count for the same hostgroup: " + hgName);
       }
-      hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(properties.get("host_count"))));
+      hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
+          properties.get(HostResourceProvider.HOST_COUNT_PROPERTY_ID))));
     } else {
       if (hostGroupInfo.getRequestedHostCount() != hostGroupInfo.getHostNames().size()) {
-        throw new InvalidTopologyTemplateException("Can't specify both host_name and host_count for the same hostgroup: " + hgName);
+        // host_name specified in one host block and host_count in another for the same group
+        throw new InvalidTopologyTemplateException("Invalid host group specified in request: " + hgName);
       }
-      hostGroupInfo.addHost(getHostNameFromProperties(properties));
+      hostGroupInfo.addHost(hostName);
     }
   }
 
+  /**
+   * Parse blueprint.
+   *
+   * @param blueprintName  blueprint name
+   * @return blueprint instance
+   *
+   * @throws InvalidTopologyTemplateException if specified blueprint or stack doesn't exist
+   */
   private Blueprint parseBlueprint(String blueprintName) throws InvalidTopologyTemplateException  {
     Blueprint blueprint;
     try {
-      blueprint = blueprintFactory.getBlueprint(blueprintName);
+      blueprint = getBlueprintFactory().getBlueprint(blueprintName);
     } catch (NoSuchStackException e) {
       throw new InvalidTopologyTemplateException("Invalid stack specified in the blueprint: " + blueprintName);
     }
@@ -164,14 +178,25 @@ public class ScaleClusterRequest implements TopologyRequest {
     return blueprint;
   }
 
+  /**
+   * Get the host name from the request properties.
+   *
+   * @param properties  request properties
+   * @return host name
+   */
   //todo: this was copied exactly from HostResourceProvider
   private String getHostNameFromProperties(Map<String, Object> properties) {
-    String hostname = String.valueOf(properties.get(HostResourceProvider.HOST_NAME_PROPERTY_ID));
-
-    return hostname != null ? hostname :
-        String.valueOf(properties.get(HostResourceProvider.HOST_NAME_NO_CATEGORY_PROPERTY_ID));
+    String hostName = (String) properties.get(HostResourceProvider.HOST_NAME_PROPERTY_ID);
+    if (hostName == null) {
+      hostName = (String) properties.get(HostResourceProvider.HOST_NAME_NO_CATEGORY_PROPERTY_ID);
+    }
+    return hostName;
   }
 
+  /**
+   * Get the total number of requested hosts for the request.
+   * @return  total requested host count
+   */
   private int getTotalRequestedHostCount() {
     int count = 0;
     for (HostGroupInfo groupInfo : getHostGroupInfo().values()) {

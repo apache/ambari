@@ -132,6 +132,10 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
       PropertyHelper.getPropertyId(null, "host_group");
   public static final String HOST_NAME_NO_CATEGORY_PROPERTY_ID =
       PropertyHelper.getPropertyId(null, "host_name");
+  public static final String HOST_COUNT_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_count");
+  public static final String HOST_PREDICATE_PROPERTY_ID =
+      PropertyHelper.getPropertyId(null, "host_predicate");
 
   private static Set<String> pkPropertyIds =
       new HashSet<String>(Arrays.asList(new String[]{
@@ -173,7 +177,6 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
 
     RequestStatusResponse createResponse = null;
     if (isHostGroupRequest(request)) {
-//      createResponse = addHostsUsingHostgroup(request);
       createResponse = submitHostRequests(request);
     } else {
       createResources(new Command<Void>() {
@@ -334,8 +337,8 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
     baseUnsupported.remove(HOSTGROUP_PROPERTY_ID);
     baseUnsupported.remove(HOST_NAME_NO_CATEGORY_PROPERTY_ID);
     //todo: constants
-    baseUnsupported.remove("host_count");
-    baseUnsupported.remove("host_predicate");
+    baseUnsupported.remove(HOST_COUNT_PROPERTY_ID);
+    baseUnsupported.remove(HOST_PREDICATE_PROPERTY_ID);
 
     return checkConfigPropertyIds(baseUnsupported, "Hosts");
   }
@@ -830,7 +833,7 @@ public class HostResourceProvider extends AbstractControllerResourceProvider {
   private RequestStatusResponse submitHostRequests(Request request) throws SystemException {
     TopologyRequest requestRequest;
     try {
-      requestRequest = new ScaleClusterRequest(request);
+      requestRequest = new ScaleClusterRequest(request.getProperties());
     } catch (InvalidTopologyTemplateException e) {
       throw new IllegalArgumentException("Invalid Add Hosts Template: " + e, e);
     }

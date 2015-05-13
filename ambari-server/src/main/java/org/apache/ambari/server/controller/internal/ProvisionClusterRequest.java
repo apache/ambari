@@ -22,41 +22,43 @@ package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
 import org.apache.ambari.server.stack.NoSuchStackException;
-import org.apache.ambari.server.topology.Blueprint;
-import org.apache.ambari.server.topology.BlueprintFactory;
 import org.apache.ambari.server.topology.Configuration;
 import org.apache.ambari.server.topology.ConfigurationFactory;
 import org.apache.ambari.server.topology.HostGroupInfo;
 import org.apache.ambari.server.topology.InvalidTopologyTemplateException;
 import org.apache.ambari.server.topology.NoSuchBlueprintException;
 import org.apache.ambari.server.topology.RequiredPasswordValidator;
-import org.apache.ambari.server.topology.TopologyRequest;
 import org.apache.ambari.server.topology.TopologyValidator;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Request for provisioning a cluster.
  */
-public class ProvisionClusterRequest implements TopologyRequest {
+public class ProvisionClusterRequest extends BaseClusterRequest {
 
-  private static BlueprintFactory blueprintFactory;
+  /**
+   * configuration factory
+   */
   private static ConfigurationFactory configurationFactory = new ConfigurationFactory();
 
-  private String clusterName;
+  /**
+   * default password
+   */
   private String defaultPassword;
-  private Blueprint blueprint;
-  private Configuration configuration;
-  private Map<String, HostGroupInfo> hostGroupInfoMap = new HashMap<String, HostGroupInfo>();
 
   @SuppressWarnings("unchecked")
+  /**
+   * Constructor.
+   *
+   * @param properties  request properties
+   */
   public ProvisionClusterRequest(Map<String, Object> properties) throws InvalidTopologyTemplateException {
-    this.clusterName = String.valueOf(properties.get(
-        ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID));
+    setClusterName(String.valueOf(properties.get(
+        ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
 
     //todo: constant
     if (properties.containsKey("default_password")) {
@@ -70,42 +72,18 @@ public class ProvisionClusterRequest implements TopologyRequest {
     } catch (NoSuchBlueprintException e) {
       throw new InvalidTopologyTemplateException("The specified blueprint doesn't exist: " + e, e);
     }
-    this.configuration = configurationFactory.getConfiguration(
+
+    Configuration configuration = configurationFactory.getConfiguration(
         (Collection<Map<String, String>>) properties.get("configurations"));
-    this.configuration.setParentConfiguration(blueprint.getConfiguration());
-    //parseConfiguration(properties);
+    configuration.setParentConfiguration(blueprint.getConfiguration());
+    setConfiguration(configuration);
+
     parseHostGroupInfo(properties);
-  }
-
-  //todo:
-  public static void init(BlueprintFactory factory) {
-    blueprintFactory = factory;
-  }
-
-  @Override
-  public String getClusterName() {
-    return clusterName;
   }
 
   @Override
   public Type getType() {
     return Type.PROVISION;
-  }
-
-  @Override
-  public Blueprint getBlueprint() {
-    return blueprint;
-  }
-
-  @Override
-  public Configuration getConfiguration() {
-    return configuration;
-  }
-
-  @Override
-  //todo: return copy?
-  public Map<String, HostGroupInfo> getHostGroupInfo() {
-    return hostGroupInfoMap;
   }
 
   @Override
@@ -118,15 +96,30 @@ public class ProvisionClusterRequest implements TopologyRequest {
     return String.format("Provision Cluster '%s'", clusterName);
   }
 
+  /**
+   * Parse blueprint.
+   *
+   * @param properties  request properties
+   *
+   * @throws NoSuchStackException     if specified stack doesn't exist
+   * @throws NoSuchBlueprintException if specified blueprint doesn't exist
+   */
   private void parseBlueprint(Map<String, Object> properties) throws NoSuchStackException, NoSuchBlueprintException {
     String blueprintName = String.valueOf(properties.get(ClusterResourceProvider.BLUEPRINT_PROPERTY_ID));
-    blueprint = blueprintFactory.getBlueprint(blueprintName);
+    // set blueprint field
+    setBlueprint(getBlueprintFactory().getBlueprint(blueprintName));
 
     if (blueprint == null) {
       throw new NoSuchBlueprintException(blueprintName);
     }
   }
 
+  /**
+   * Parse host group information.
+   *
+   * @param properties  request properties
+   * @throws InvalidTopologyTemplateException  if any validation checks on properties fail
+   */
   @SuppressWarnings("unchecked")
   private void parseHostGroupInfo(Map<String, Object> properties) throws InvalidTopologyTemplateException {
     Collection<Map<String, Object>> hostGroups =
@@ -149,18 +142,27 @@ public class ProvisionClusterRequest implements TopologyRequest {
         throw new InvalidTopologyTemplateException("Host group '" + name + "' must contain a 'hosts' element");
       }
 
-      // blueprint was parsed already
       HostGroupInfo hostGroupInfo = new HostGroupInfo(name);
-      hostGroupInfoMap.put(name, hostGroupInfo);
+      getHostGroupInfo().put(name, hostGroupInfo);
 
       for (Object oHost : hosts) {
         Map<String, String> hostProperties = (Map<String, String>) oHost;
+
+        String hostName = hostProperties.get("fqdn");
+        boolean containsHostCount = hostProperties.containsKey("host_count");
+        boolean containsHostPredicate = hostProperties.containsKey("host_predicate");
+
+        if (hostName != null && (containsHostCount || containsHostPredicate)) {
+          throw new InvalidTopologyTemplateException(
+              "Can't specify host_count or host_predicate if host_name is specified in hostgroup: " + name);
+        }
+
         //add host information to host group
-        String fqdn = hostProperties.get("fqdn");
-        if (fqdn == null || fqdn.isEmpty()) {
+        if (hostName == null || hostName.isEmpty()) {
           //todo: validate the host_name and host_predicate are not both specified for same group
           String predicate = hostProperties.get("host_predicate");
           if (predicate != null && ! predicate.isEmpty()) {
+            validateHostPredicateProperties(predicate);
             try {
               hostGroupInfo.setPredicate(predicate);
             } catch (InvalidQueryException e) {
@@ -169,7 +171,7 @@ public class ProvisionClusterRequest implements TopologyRequest {
             }
           }
 
-          if (hostProperties.containsKey("host_count")) {
+          if (containsHostCount) {
             hostGroupInfo.setRequestedCount(Integer.valueOf(hostProperties.get("host_count")));
           } else {
             throw new InvalidTopologyTemplateException(
@@ -177,7 +179,7 @@ public class ProvisionClusterRequest implements TopologyRequest {
                 " or a host_count must be specified");
           }
         } else {
-          hostGroupInfo.addHost(fqdn);
+          hostGroupInfo.addHost(hostName);
         }
       }
       // don't set the parent configuration

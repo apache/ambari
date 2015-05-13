@@ -48,14 +48,13 @@ import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.AbstractControllerResourceProvider;
 import org.apache.ambari.server.controller.internal.AmbariPrivilegeResourceProvider;
+import org.apache.ambari.server.controller.internal.BaseClusterRequest;
 import org.apache.ambari.server.controller.internal.BlueprintResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterPrivilegeResourceProvider;
 import org.apache.ambari.server.controller.internal.ClusterResourceProvider;
 import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.PermissionResourceProvider;
 import org.apache.ambari.server.controller.internal.PrivilegeResourceProvider;
-import org.apache.ambari.server.controller.internal.ProvisionClusterRequest;
-import org.apache.ambari.server.controller.internal.ScaleClusterRequest;
 import org.apache.ambari.server.controller.internal.StackAdvisorResourceProvider;
 import org.apache.ambari.server.controller.internal.StackDefinedPropertyProvider;
 import org.apache.ambari.server.controller.internal.StackDependencyResourceProvider;
@@ -616,8 +615,7 @@ public class AmbariServer {
         injector.getInstance(TopologyRequestFactoryImpl.class));
     HostResourceProvider.setTopologyManager(injector.getInstance(TopologyManager.class));
     BlueprintFactory.init(injector.getInstance(BlueprintDAO.class));
-    ProvisionClusterRequest.init(injector.getInstance(BlueprintFactory.class));
-    ScaleClusterRequest.init(injector.getInstance(BlueprintFactory.class));
+    BaseClusterRequest.init(injector.getInstance(BlueprintFactory.class));
     AmbariContext.init(injector.getInstance(HostRoleCommandFactory.class));
 
     PermissionResourceProvider.init(injector.getInstance(PermissionDAO.class));
