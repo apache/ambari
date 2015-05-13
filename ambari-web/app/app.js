@@ -320,7 +320,7 @@ module.exports = Em.Application.create({
     }.property('App.router.clusterController.isLoaded'),
 
     addableMasterInstallerWizard: function () {
-      return App.StackServiceComponent.find().filterProperty('isMasterAddableInstallerWizard').filterProperty('showAddBtnInInstall').mapProperty('componentName')
+      return App.StackServiceComponent.find().filterProperty('isMasterAddableInstallerWizard').mapProperty('componentName')
     }.property('App.router.clusterController.isLoaded'),
 
     multipleMasters: function () {

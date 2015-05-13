@@ -208,11 +208,11 @@ var componentPropertiesValidationTests = [
       isMaster: true,
       isRestartable: true,
       isReassignable: true,
-      isDeletable: false,
+      isDeletable: true,
       isRollinRestartAllowed: false,
       isDecommissionAllowed: false,
       isRefreshConfigsAllowed: false,
-      isAddableToHost: false,
+      isAddableToHost: true,
       isShownOnInstallerAssignMasterPage: true,
       isShownOnInstallerSlaveClientPage: false,
       isShownOnAddServiceAssignMasterPage: true,
@@ -237,11 +237,11 @@ var componentPropertiesValidationTests = [
       isMaster: true,
       isRestartable: true,
       isReassignable: true,
-      isDeletable: false,
+      isDeletable: true,
       isRollinRestartAllowed: false,
       isDecommissionAllowed: false,
       isRefreshConfigsAllowed: false,
-      isAddableToHost: false,
+      isAddableToHost: true,
       isShownOnInstallerAssignMasterPage: true,
       isShownOnInstallerSlaveClientPage: false,
       isShownOnAddServiceAssignMasterPage: true,
@@ -286,13 +286,13 @@ var componentPropertiesValidationTests = [
   {
     componentName: 'POSTGRESQL_SERVER',
     expected: {
-      isShownOnInstallerAssignMasterPage: false,
+      isShownOnInstallerAssignMasterPage: false
     }
   },
   {
     componentName: 'MYSQL_SERVER',
     expected: {
-      isShownOnInstallerAssignMasterPage: false,
+      isShownOnInstallerAssignMasterPage: false
     }
   },
 ];
