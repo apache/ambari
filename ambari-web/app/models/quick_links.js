@@ -155,9 +155,9 @@ App.QuickLinks.FIXTURES = [
   {
     id:19,
     label:'Oozie Web UI',
-    url:'%@://%@:%@/oozie',
+    url:'%@://%@:%@/oozie?user.name=%@',
     service_id: 'OOZIE',
-    template:'%@://%@:%@/oozie',
+    template:'%@://%@:%@/oozie?user.name=%@',
     http_config: 'oozie.base.url',
     site: 'oozie-site',
     regex: portRegex,
