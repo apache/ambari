@@ -1184,6 +1184,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       }
       if (configs['yarn-site']) {
         configs['yarn-site']['hadoop.registry.zk.quorum'] = zksWithPort;
+        configs['yarn-site']['yarn.resourcemanager.zk-address'] = zksWithPort;
       }
     }
     return true;

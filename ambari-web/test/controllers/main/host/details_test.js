@@ -891,7 +891,8 @@ describe('App.MainHostDetailsController', function () {
       App.set('currentStackVersion', 'HDP-2.2.0');
       expect(controller.setZKConfigs(configs, 'host1:2181', [])).to.be.true;
       expect(configs).to.eql({"yarn-site": {
-        'hadoop.registry.zk.quorum': "host1:2181"
+        'hadoop.registry.zk.quorum': "host1:2181",
+        'yarn.resourcemanager.zk-address': "host1:2181"
       }});
       App.set('currentStackVersion', version);
     });
