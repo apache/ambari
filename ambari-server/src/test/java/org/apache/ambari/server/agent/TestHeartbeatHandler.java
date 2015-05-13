@@ -2556,10 +2556,7 @@ public class TestHeartbeatHandler {
     RepositoryVersionEntity entity = dao.findByStackAndVersion(stackId, "0.1");
     Assert.assertNotNull(entity);
 
-    UnitOfWork unitOfWork = injector.getInstance(UnitOfWork.class);
-    unitOfWork.end();
     handler.handleHeartBeat(hb);
-    unitOfWork.begin();
 
     entity = dao.findByStackAndVersion(stackId, "0.1");
     Assert.assertNull(entity);
