@@ -119,17 +119,15 @@ App.WizardStep6HostView = Em.View.extend({
    */
   didInsertElement: function () {
     var components = this.get('controller').getMasterComponentsForHost(this.get('host.hostName'));
-    if (components && components.length > 0) {
-      components = components.map(function (_component) {
-        return App.format.role(_component);
-      });
-      components = components.join(" /\n");
-      App.popover(this.$(), {
-        title: Em.I18n.t('installer.step6.wizardStep6Host.title').format(this.get('host.hostName')),
-        content: components,
-        placement: 'right',
-        trigger: 'hover'
-      });
-    }
+    components = components.map(function (_component) {
+      return App.format.role(_component);
+    });
+    components = components.join(" /\n");
+    App.popover(this.$(), {
+      title: Em.I18n.t('installer.step6.wizardStep6Host.title').format(this.get('host.hostName')),
+      content: components,
+      placement: 'right',
+      trigger: 'hover'
+    });
   }
 });
