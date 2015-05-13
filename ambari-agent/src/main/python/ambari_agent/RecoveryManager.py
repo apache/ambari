@@ -88,12 +88,26 @@ class RecoveryManager:
     self.statuses = {}
     self.__status_lock = threading.RLock()
     self.__command_lock = threading.RLock()
+    self.__active_command_lock = threading.RLock()
+    self.active_command_count = 0
     self.paused = False
 
     self.update_config(6, 60, 5, 12, recovery_enabled, auto_start_only)
 
     pass
 
+  def start_execution_command(self):
+    with self.__active_command_lock:
+      self.active_command_count += 1
+    pass
+
+  def stop_execution_command(self):
+    with self.__active_command_lock:
+      self.active_command_count -= 1
+    pass
+
+  def has_active_command(self):
+    return self.active_command_count > 0
 
   def set_paused(self, paused):
     if self.paused != paused:

@@ -508,3 +508,15 @@ class TestRecoveryManager(TestCase):
     self.assertEqual(1, len(commands))
     self.assertEqual("START", commands[0]["roleCommand"])
     pass
+
+  def test_command_count(self):
+    rm = RecoveryManager(True)
+    self.assertFalse(rm.has_active_command())
+    rm.start_execution_command()
+    self.assertTrue(rm.has_active_command())
+    rm.start_execution_command()
+    self.assertTrue(rm.has_active_command())
+    rm.stop_execution_command()
+    self.assertTrue(rm.has_active_command())
+    rm.stop_execution_command()
+    self.assertFalse(rm.has_active_command())

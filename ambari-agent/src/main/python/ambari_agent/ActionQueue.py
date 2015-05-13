@@ -193,7 +193,13 @@ class ActionQueue(threading.Thread):
     logger.debug("Took an element of Queue (command type = %s)." % commandType)
     try:
       if commandType in [self.EXECUTION_COMMAND, self.BACKGROUND_EXECUTION_COMMAND, self.AUTO_EXECUTION_COMMAND]:
-        self.execute_command(command)
+        try:
+          if self.controller.recovery_manager.enabled():
+            self.controller.recovery_manager.start_execution_command()
+          self.execute_command(command)
+        finally:
+          if self.controller.recovery_manager.enabled():
+            self.controller.recovery_manager.stop_execution_command()
       elif commandType == self.STATUS_COMMAND:
         self.execute_status_command(command)
       else:
@@ -202,6 +208,15 @@ class ActionQueue(threading.Thread):
       # Should not happen
       traceback.print_exc()
       logger.warn(err)
+
+  def tasks_in_progress_or_pending(self):
+    return_val = False
+    if not self.commandQueue.empty():
+      return_val = True
+    if self.controller.recovery_manager.has_active_command():
+      return_val = True
+    return return_val
+    pass
 
   def execute_command(self, command):
     '''
@@ -248,6 +263,8 @@ class ActionQueue(threading.Thread):
         maxAttempts = int(command['commandParams']['command_retry_max_attempt_count'])
       if 'command_retry_enabled' in command['commandParams']:
         retryAble = command['commandParams']['command_retry_enabled'] == "true"
+    if isAutoExecuteCommand:
+      retryAble = False
 
     logger.debug("Command execution metadata - retry enabled = {retryAble}, max attempt count = {maxAttemptCount}".
                  format(retryAble = retryAble, maxAttemptCount = maxAttempts))
@@ -296,6 +313,17 @@ class ActionQueue(threading.Thread):
 
     # let ambari know that configuration tags were applied
     if status == self.COMPLETED_STATUS:
+      if self.controller.recovery_manager.enabled() and command.has_key('roleCommand'):
+        if command['roleCommand'] == self.ROLE_COMMAND_START:
+          self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
+        elif command['roleCommand'] == self.ROLE_COMMAND_STOP or command['roleCommand'] == self.ROLE_COMMAND_INSTALL:
+          self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.DEAD_STATUS)
+        elif command['roleCommand'] == self.ROLE_COMMAND_CUSTOM_COMMAND:
+          if command['hostLevelParams'].has_key('custom_command') and \
+                  command['hostLevelParams']['custom_command'] == self.CUSTOM_COMMAND_RESTART:
+            self.controller.recovery_manager.update_current_status(command['role'], LiveStatus.LIVE_STATUS)
+      pass
+
       configHandler = ActualConfigHandler(self.config, self.configTags)
       #update
       if command.has_key('forceRefreshConfigTags') and len(command['forceRefreshConfigTags']) > 0  :

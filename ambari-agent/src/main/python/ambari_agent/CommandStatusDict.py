@@ -78,6 +78,7 @@ class CommandStatusDict():
     with self.lock:
       c = copy.copy(self.current_state[taskId][1])
     return c
+
   def generate_report(self):
     """
     Generates status reports about commands that are IN_PROGRESS, COMPLETE or
@@ -103,6 +104,10 @@ class CommandStatusDict():
           resultComponentStatus.append(report)
           # Component status is useful once, removing it
           del self.current_state[key]
+        elif command ['commandType'] in [ActionQueue.AUTO_EXECUTION_COMMAND]:
+          logger.debug("AUTO_EXECUTION_COMMAND task deleted " + str(command['commandId']))
+          del self.current_state[key]
+          pass
       result = {
         'reports': resultReports,
         'componentStatus': resultComponentStatus

@@ -283,7 +283,7 @@ class Controller(threading.Thread):
           self.recovery_manager.process_status_commands(response['statusCommands'])
           self.addToStatusQueue(response['statusCommands'])
 
-        if self.actionQueue.commandQueue.empty():
+        if not self.actionQueue.tasks_in_progress_or_pending():
           recovery_commands = self.recovery_manager.get_recovery_commands()
           for recovery_command in recovery_commands:
             logger.info("Adding recovery command %s for component %s",
