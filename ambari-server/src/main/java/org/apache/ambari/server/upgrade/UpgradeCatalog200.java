@@ -177,6 +177,21 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
   }
 
   /**
+   * Analog for List<String>.contains
+   * @param s string element to be searched
+   * @param l collection of strings
+   * @return result of contains operation
+   */
+  public boolean containsCaseInsensitive(String s, List<String> l){
+    for (String listItem : l){
+      if (listItem.equalsIgnoreCase(s)){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
    * Execute all of the alert DDL updates.
    *
    * @throws AmbariException
@@ -220,16 +235,16 @@ public class UpgradeCatalog200 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("version",         String.class,  255,   null, false));
     columns.add(new DBColumnInfo("display_name",    String.class,  128,   null, false));
     columns.add(new DBColumnInfo("upgrade_package", String.class,  255,   null, false));
-    columns.add(new DBColumnInfo("repositories",    char[].class,  null,  null, false));
+    columns.add(new DBColumnInfo("repositories", char[].class, null, null, false));
     dbAccessor.createTable("repo_version", columns, "repo_version_id");
 
     addSequence("repo_version_id_seq", 0);
 
     List<String> indexes = dbAccessor.getIndexesList("repo_version", true);
-    if (!indexes.contains("uq_repo_version_display_name")) {
+    if (!containsCaseInsensitive("uq_repo_version_display_name", indexes)) {
       dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_display_name UNIQUE (display_name)");
     }
-    if (!indexes.contains("uq_repo_version_stack_version")) {
+    if (!containsCaseInsensitive("uq_repo_version_stack_version", indexes)) {
       dbAccessor.executeQuery("ALTER TABLE repo_version ADD CONSTRAINT UQ_repo_version_stack_version UNIQUE (stack, version)");
     }
 
