@@ -1156,7 +1156,7 @@
               "temporal": false
             },
             "metrics/rpc/NumOpenConnections": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.NumOpenConnections",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.NumOpenConnections",
               "pointInTime": true,
               "temporal": false
             },
@@ -1353,31 +1353,6 @@
             },
             "metrics/dfs/FSNamesystem/CapacityNonDFSUsed": {
               "metric": "Hadoop:service=NameNode,name=FSNamesystem.CapacityNonDFSUsed",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/jvm/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcTimeMillisConcurrentMarkSweep",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/jvm/GcCountConcurrentMarkSweep": {
-              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcCountConcurrentMarkSweep",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/rpc/RpcQueueTimeAvgTime": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcQueueTimeAvgTime",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/rpc/RpcProcessingTimeAvgTime": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcProcessingTimeAvgTime",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/dfs/namenode/CorruptFiles": {
-              "metric": "Hadoop:service=NameNode,name=NameNodeInfo.CorruptFiles",
               "pointInTime": true,
               "temporal": false
             }
@@ -2455,7 +2430,7 @@
               "temporal": false
             },
             "metrics/rpc/RpcProcessingTime_avg_time": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcProcessingTimeAvgTime",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.RpcProcessingTimeAvgTime",
               "pointInTime": true,
               "temporal": false
             },
@@ -2540,7 +2515,7 @@
               "temporal": false
             },
             "metrics/rpc/RpcQueueTime_avg_time": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.RpcQueueTimeAvgTime",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.RpcQueueTimeAvgTime",
               "pointInTime": true,
               "temporal": false
             },
@@ -2610,7 +2585,7 @@
               "temporal": false
             },
             "metrics/rpc/NumOpenConnections": {
-              "metric": "Hadoop:service=NameNode,name=RpcActivityForPort8020.NumOpenConnections",
+              "metric": "Hadoop:service=NameNode,name=RpcActivity.NumOpenConnections",
               "pointInTime": true,
               "temporal": false
             },
@@ -2792,21 +2767,6 @@
             },
             "metrics/dfs/namenode/TotalBlocks": {
               "metric": "Hadoop:service=NameNode,name=NameNodeInfo.TotalBlocks",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/jvm/GcTimeMillisConcurrentMarkSweep": {
-              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcTimeMillisConcurrentMarkSweep",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/jvm/GcCountConcurrentMarkSweep": {
-              "metric": "Hadoop:service=NameNode,name=JvmMetrics.GcCountConcurrentMarkSweep",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/dfs/namenode/CorruptFiles": {
-              "metric": "Hadoop:service=NameNode,name=NameNodeInfo.CorruptFiles",
               "pointInTime": true,
               "temporal": false
             }
@@ -6147,6 +6107,11 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/TotalLoad": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.TotalLoad",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/jvm/memHeapCommittedM": {
               "metric": "Hadoop:service=DataNode,name=JvmMetrics.MemHeapCommittedM",
               "pointInTime": true,
@@ -6154,6 +6119,11 @@
             },
             "metrics/jvm/NonHeapMemoryUsed": {
               "metric": "java.lang:type=Memory.NonHeapMemoryUsage[used]",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/BlockCapacity": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.BlockCapacity",
               "pointInTime": true,
               "temporal": false
             },
@@ -6232,6 +6202,11 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/FilesTotal": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.FilesTotal",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/jvm/memNonHeapUsedM": {
               "metric": "Hadoop:service=DataNode,name=JvmMetrics.MemNonHeapUsedM",
               "unit": "MB",
@@ -6253,6 +6228,16 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/CapacityTotalGB": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.CapacityTotalGB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/ExcessBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.ExcessBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/rpcdetailed/getBlockLocations_num_ops": {
               "metric": "Hadoop:service=DataNode,name=RpcDetailedActivity.getBlockLocations_num_ops",
               "pointInTime": true,
@@ -6270,6 +6255,11 @@
             },
             "metrics/jvm/gcCount": {
               "metric": "Hadoop:service=DataNode,name=JvmMetrics.GcCount",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/CapacityUsedGB": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.CapacityUsedGB",
               "pointInTime": true,
               "temporal": false
             },
@@ -6324,8 +6314,18 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/ScheduledReplicationBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.ScheduledReplicationBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/jvm/threadsWaiting": {
               "metric": "Hadoop:service=DataNode,name=JvmMetrics.ThreadsWaiting",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/BlocksTotal": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.BlocksTotal",
               "pointInTime": true,
               "temporal": false
             },
@@ -6369,6 +6369,16 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/CapacityRemainingGB": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.CapacityRemainingGB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/MissingBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.MissingBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/jvm/memNonHeapCommittedM": {
               "metric": "Hadoop:service=DataNode,name=JvmMetrics.MemNonHeapCommittedM",
               "pointInTime": true,
@@ -6376,6 +6386,11 @@
             },
             "metrics/rpc/callQueueLen": {
               "metric": "Hadoop:service=DataNode,name=RpcActivity.CallQueueLength",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/CorruptBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.CorruptBlocks",
               "pointInTime": true,
               "temporal": false
             },
@@ -6429,8 +6444,18 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/dfs/FSNamesystem/UnderReplicatedBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.UnderReplicatedBlocks",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/jvm/NonHeapMemoryMax": {
               "metric": "java.lang:type=Memory.NonHeapMemoryUsage[max]",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/dfs/FSNamesystem/PendingReplicationBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.PendingReplicationBlocks",
               "pointInTime": true,
               "temporal": false
             },
@@ -6504,18 +6529,8 @@
               "pointInTime": true,
               "temporal": false
             },
-            "metrics/dfs/FSDatasetState/DfsUsed": {
-              "metric": "Hadoop:service=DataNode,name=FSDatasetState.DfsUsed",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/dfs/FSDatasetState/Capacity": {
-              "metric": "Hadoop:service=DataNode,name=FSDatasetState.Capacity",
-              "pointInTime": true,
-              "temporal": false
-            },
-            "metrics/dfs/FSDatasetState/NumFailedVolumes": {
-              "metric": "Hadoop:service=DataNode,name=FSDatasetState.NumFailedVolumes",
+            "metrics/dfs/FSNamesystem/PendingDeletionBlocks": {
+              "metric": "Hadoop:service=DataNode,name=DataNode.PendingDeletionBlocks",
               "pointInTime": true,
               "temporal": false
             }
