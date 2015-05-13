@@ -901,7 +901,7 @@ App.MainHostDetailsController = Em.Controller.extend({
     var rkmsHosts = this.getRangerKMSServerHosts();
     var rkmsPort = data.items.findProperty('type', 'kms-env').properties['kms_port'];
     var coreSiteConfigs = data.items.findProperty('type', 'core-site');
-    var hdfsSiteConfigs = data.items.findProperty('type', 'core-site');
+    var hdfsSiteConfigs = data.items.findProperty('type', 'hdfs-site');
     var groups = [
       {
         properties: {
