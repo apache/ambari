@@ -62,7 +62,6 @@ public class TopologyManager {
   private final Collection<LogicalRequest> outstandingRequests = new ArrayList<LogicalRequest>();
   //todo: currently only support a single cluster
   private Map<String, ClusterTopology> clusterTopologyMap = new HashMap<String, ClusterTopology>();
-  //private final Map<TopologyTask.Type, Set<TopologyTask>> pendingTasks = new HashMap<TopologyTask.Type, Set<TopologyTask>>();
 
   //todo: inject
   private static LogicalRequestFactory logicalRequestFactory = new LogicalRequestFactory();
@@ -93,13 +92,16 @@ public class TopologyManager {
     ClusterTopology topology = new ClusterTopologyImpl(ambariContext, request);
     // persist request after it has successfully validated
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
+
+    // get the id prior to creating ambari resources which increments the counter
+    Long provisionId = ambariContext.getNextRequestId();
     ambariContext.createAmbariResources(topology);
 
     String clusterName = topology.getClusterName();
     clusterTopologyMap.put(clusterName, topology);
 
     addClusterConfigRequest(topology, new ClusterConfigurationRequest(ambariContext, topology, true));
-    LogicalRequest logicalRequest = processRequest(persistedRequest, topology);
+    LogicalRequest logicalRequest = processRequest(persistedRequest, topology, provisionId);
 
     //todo: this should be invoked as part of a generic lifecycle event which could possibly
     //todo: be tied to cluster state
@@ -121,7 +123,8 @@ public class TopologyManager {
     PersistedTopologyRequest persistedRequest = persistedState.persistTopologyRequest(request);
     // this registers/updates all request host groups
     topology.update(request);
-    return getRequestStatus(processRequest(persistedRequest, topology).getRequestId());
+    return getRequestStatus(processRequest(persistedRequest, topology,
+        ambariContext.getNextRequestId()).getRequestId());
   }
 
   public void onHostRegistered(HostImpl host, boolean associatedWithCluster) {
@@ -272,11 +275,11 @@ public class TopologyManager {
     return hostComponentMap;
   }
 
-  private LogicalRequest processRequest(PersistedTopologyRequest persistedRequest, ClusterTopology topology)
+  private LogicalRequest processRequest(PersistedTopologyRequest request, ClusterTopology topology, Long requestId)
       throws AmbariException {
 
-    finalizeTopology(persistedRequest.getRequest(), topology);
-    LogicalRequest logicalRequest = createLogicalRequest(persistedRequest, topology);
+    finalizeTopology(request.getRequest(), topology);
+    LogicalRequest logicalRequest = createLogicalRequest(request, topology, requestId);
 
     boolean requestHostComplete = false;
     //todo: overall synchronization. Currently we have nested synchronization here
@@ -323,13 +326,13 @@ public class TopologyManager {
     return logicalRequest;
   }
 
-  private LogicalRequest createLogicalRequest(PersistedTopologyRequest persistedRequest, ClusterTopology topology)
+  private LogicalRequest createLogicalRequest(PersistedTopologyRequest request, ClusterTopology topology, Long requestId)
       throws AmbariException {
 
     LogicalRequest logicalRequest = logicalRequestFactory.createRequest(
-        ambariContext.getNextRequestId(), persistedRequest.getRequest(), topology);
+        requestId, request.getRequest(), topology);
 
-    persistedState.persistLogicalRequest(logicalRequest, persistedRequest.getId());
+    persistedState.persistLogicalRequest(logicalRequest, request.getId());
 
     allRequests.put(logicalRequest.getRequestId(), logicalRequest);
     synchronized (reservedHosts) {

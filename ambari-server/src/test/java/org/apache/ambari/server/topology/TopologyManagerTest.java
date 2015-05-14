@@ -234,12 +234,7 @@ public class TopologyManagerTest {
     ambariContext.createAmbariResources(isA(ClusterTopology.class));
     expectLastCall().once();
     expect(ambariContext.getNextRequestId()).andReturn(1L).once();
-    //todo: these are from cluster topology context
     expect(ambariContext.isClusterKerberosEnabled(CLUSTER_NAME)).andReturn(false).anyTimes();
-    //ambariContext.createAmbariHostResources(CLUSTER_NAME, "host1", group1ServiceComponents);
-    //expectLastCall().once();
-    //ambariContext.registerHostWithConfigGroup(eq("host1"), isA(ClusterTopologyImpl.class), eq("group1"));
-    //expectLastCall().once();
 
     // cluster configuration task run() isn't executed by mock executor
     // so only INITIAL config

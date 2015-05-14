@@ -51,6 +51,8 @@ import org.apache.ambari.server.controller.internal.HostResourceProvider;
 import org.apache.ambari.server.controller.internal.RequestImpl;
 import org.apache.ambari.server.controller.internal.ServiceResourceProvider;
 import org.apache.ambari.server.controller.internal.Stack;
+import org.apache.ambari.server.controller.predicate.EqualsPredicate;
+import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.utilities.ClusterControllerHelper;
 import org.apache.ambari.server.state.Cluster;
@@ -81,7 +83,7 @@ public class AmbariContext {
   private static HostResourceProvider hostResourceProvider;
   private static ServiceResourceProvider serviceResourceProvider;
   private static ComponentResourceProvider componentResourceProvider;
-  private HostComponentResourceProvider hostComponentResourceProvider;
+  private static HostComponentResourceProvider hostComponentResourceProvider;
 
   private final static Logger LOG = LoggerFactory.getLogger(TopologyManager.class);
 
@@ -158,7 +160,6 @@ public class AmbariContext {
       Cluster cluster = getController().getClusters().getCluster(clusterName);
       services.removeAll(cluster.getServices().keySet());
     } catch (AmbariException e) {
-      e.printStackTrace();
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
     }
     Set<ServiceRequest> serviceRequests = new HashSet<ServiceRequest>();
@@ -173,8 +174,27 @@ public class AmbariContext {
       getServiceResourceProvider().createServices(serviceRequests);
       getComponentResourceProvider().createComponents(componentRequests);
     } catch (AmbariException e) {
-      e.printStackTrace();
       throw new RuntimeException("Failed to persist service and component resources: " + e, e);
+    }
+    // set all services state to INSTALLED->STARTED
+    // this is required so the user can start failed services at the service level
+    Map<String, Object> installProps = new HashMap<String, Object>();
+    installProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "INSTALLED");
+    installProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+    Map<String, Object> startProps = new HashMap<String, Object>();
+    startProps.put(ServiceResourceProvider.SERVICE_SERVICE_STATE_PROPERTY_ID, "STARTED");
+    startProps.put(ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+    Predicate predicate = new EqualsPredicate<String>(
+        ServiceResourceProvider.SERVICE_CLUSTER_NAME_PROPERTY_ID, clusterName);
+    try {
+      getServiceResourceProvider().updateResources(
+          new RequestImpl(null, Collections.singleton(installProps), null, null), predicate);
+
+      getServiceResourceProvider().updateResources(
+          new RequestImpl(null, Collections.singleton(startProps), null, null), predicate);
+    } catch (Exception e) {
+      // just log as this won't prevent cluster from being provisioned correctly
+      LOG.error("Unable to update state of services during cluster provision: " + e, e);
     }
   }
 
