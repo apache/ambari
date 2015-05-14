@@ -1208,6 +1208,101 @@
               "pointInTime": false,
               "temporal": true
             },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ActiveApplications": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ActiveApplications",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AMResourceLimitMB": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AMResourceLimitMB",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AMResourceLimitVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AMResourceLimitVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ActiveUsers": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ActiveUsers",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AggregateContainersAllocated": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AggregateContainersAllocated",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AggregateContainersReleased": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AggregateContainersReleased",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AllocatedVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppAttemptFirstContainerAllocationDelayAvgTime": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AppAttemptFirstContainerAllocationDelayAvgTime",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppAttemptFirstContainerAllocationDelayNumOps": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AppAttemptFirstContainerAllocationDelayNumOps",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AvailableVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).PendingVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedMB": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ReservedMB",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ReservedVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/UsedAMResourceMB": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).UsedAMResourceMB",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/UsedAMResourceVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).UsedAMResourceVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_0": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_0",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_1440": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_1440",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_300": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_300",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_60": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_60",
+              "pointInTime": false,
+              "temporal": true
+            },
             "metrics/yarn/ClusterMetrics/NumDecommissionedNMs": {
               "metric": "yarn.ClusterMetrics.NumDecommissionedNMs",
               "pointInTime": false,
@@ -1755,6 +1850,41 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AMResourceLimitMB": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AMResourceLimitMB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AMResourceLimitVCores": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AMResourceLimitVCores",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppAttemptFirstContainerAllocationDelayAvgTime": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppAttemptFirstContainerAllocationDelayAvgTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppAttemptFirstContainerAllocationDelayNumOps": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppAttemptFirstContainerAllocationDelayNumOps",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/UsedAMResourceMB": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).UsedAMResourceMB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/UsedAMResourceVCores": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).UsedAMResourceVCores",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_0": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_0",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_1440": {
               "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_1440",
               "pointInTime": true,
@@ -1986,6 +2116,101 @@
             },
             "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppsRunning": {
               "metric": "yarn.QueueMetrics.Queue=(.+).AppsRunning",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ActiveApplications": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ActiveApplications",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AMResourceLimitMB": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AMResourceLimitMB",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AMResourceLimitVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AMResourceLimitVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ActiveUsers": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ActiveUsers",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AggregateContainersAllocated": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AggregateContainersAllocated",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AggregateContainersReleased": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AggregateContainersReleased",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AllocatedVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AllocatedVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppAttemptFirstContainerAllocationDelayAvgTime": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AppAttemptFirstContainerAllocationDelayAvgTime",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AppAttemptFirstContainerAllocationDelayNumOps": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AppAttemptFirstContainerAllocationDelayNumOps",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/AvailableVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).AvailableVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/PendingVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).PendingVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedMB": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ReservedMB",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/ReservedVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).ReservedVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/UsedAMResourceMB": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).UsedAMResourceMB",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/UsedAMResourceVCores": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).UsedAMResourceVCores",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_0": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_0",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_1440": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_1440",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_300": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_300",
+              "pointInTime": false,
+              "temporal": true
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\"([.])\",\"/\")/running_60": {
+              "metric": "yarn.QueueMetrics.Queue=(.+).running_60",
               "pointInTime": false,
               "temporal": true
             },
@@ -2498,6 +2723,41 @@
             },
             "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppsRunning": {
               "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppsRunning",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AMResourceLimitMB": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AMResourceLimitMB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AMResourceLimitVCores": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AMResourceLimitVCores",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppAttemptFirstContainerAllocationDelayAvgTime": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppAttemptFirstContainerAllocationDelayAvgTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/AppAttemptFirstContainerAllocationDelayNumOps": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).AppAttemptFirstContainerAllocationDelayNumOps",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/UsedAMResourceMB": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).UsedAMResourceMB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/UsedAMResourceVCores": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).UsedAMResourceVCores",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/yarn/Queue/$1.replaceAll(\",q(\\d+)=\",\"/\").substring(1)/running_0": {
+              "metric": "Hadoop:service=ResourceManager,name=QueueMetrics(.+).running_0",
               "pointInTime": true,
               "temporal": false
             },
