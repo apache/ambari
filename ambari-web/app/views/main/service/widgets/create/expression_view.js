@@ -187,8 +187,7 @@ App.AddMetricExpressionView = Em.View.extend({
       }).change(function (event, obj) {
           self.set('currentSelectedComponent.selectedAggregation', obj.selected);
       });
-    }, 1000);
-
+    }, 1600);
   },
 
   /**
