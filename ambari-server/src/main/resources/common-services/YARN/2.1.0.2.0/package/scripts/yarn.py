@@ -179,6 +179,7 @@ def yarn(name = None):
       params.HdfsResource(params.node_labels_dir,
                            type="directory",
                            action="create_on_execute",
+                           change_permissions_for_parents=True,
                            owner=params.yarn_user,
                            group=params.user_group,
                            mode=0700
