@@ -144,6 +144,7 @@
   <property>
     <name>SSL_KEYSTORE_PASSWORD</name>
     <value>myKeyFilePassword</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
 
@@ -156,6 +157,7 @@
   <property>
     <name>SSL_TRUSTSTORE_PASSWORD</name>
     <value>changeit</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
   
@@ -192,13 +194,14 @@
   <property>
     <name>XAAUDIT.DB.PASSWORD</name>
     <value>{{xa_audit_db_password}}</value>
+    <property-type>PASSWORD</property-type>
     <description>Audit database password</description>    
   </property>
   
   <property>
     <name>XAAUDIT.DB.HOSTNAME</name>
     <value>{{xa_db_host}}</value>
-    <description>Audit database password</description>    
+    <description>Audit database hostname</description>
   </property>
   
   <property>

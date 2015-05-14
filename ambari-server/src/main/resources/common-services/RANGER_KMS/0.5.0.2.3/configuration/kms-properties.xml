@@ -92,6 +92,7 @@
   <property>
     <name>KMS_MASTER_KEY_PASSWD</name>
     <value>Str0ngPassw0rd</value>
+    <property-type>PASSWORD</property-type>
     <description></description>
   </property>
 
@@ -266,4 +267,4 @@
     <description></description>
   </property>             
 
-</configuration>  
+</configuration>
