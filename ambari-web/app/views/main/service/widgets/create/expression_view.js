@@ -171,8 +171,8 @@ App.AddMetricExpressionView = Em.View.extend({
           var filteredMetric = filteredComponentMetrics.findProperty('name', obj.selected);
           var selectedMetric =  Em.Object.create({
             name: obj.selected,
-            componentName: self.get('selectedComponent.componentName'),
-            serviceName: self.get('selectedComponent.serviceName'),
+            componentName: self.get('currentSelectedComponent.componentName'),
+            serviceName: self.get('currentSelectedComponent.serviceName'),
             metricPath: filteredMetric.widget_id,
             isMetric: true
           });

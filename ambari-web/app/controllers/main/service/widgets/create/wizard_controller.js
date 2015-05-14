@@ -229,23 +229,29 @@ App.WidgetWizardController = App.WizardController.extend({
         var data = service.artifacts[0].artifact_data[service.StackServices.service_name];
         for (var componentName in data) {
           for (var level in data[componentName]) {
-            metrics = data[componentName][level][0]['metrics']['default'];
-            for (var widgetId in metrics) {
-              var metricObj = {
-                widget_id: widgetId,
-                point_in_time: metrics[widgetId].pointInTime,
-                temporal: metrics[widgetId].temporal,
-                name: metrics[widgetId].name,
-                level: level.toUpperCase(),
-                type: data[componentName][level][0]["type"].toUpperCase(),
-                component_name: componentName,
-                service_name: service.StackServices.service_name
-              };
-              result.push(metricObj);
-              if (metricObj.level === 'HOSTCOMPONENT') {
-                self.insertHostComponentCriteria(metricObj);
+            var metricTypes = data[componentName][level]; //Ganglia or JMX
+            metricTypes.forEach(function (_metricType) {
+              metrics = _metricType['metrics']['default'];
+              var type = _metricType["type"].toUpperCase();
+              if (!(type === 'JMX' && level.toUpperCase() === 'COMPONENT')) {
+                for (var widgetId in metrics) {
+                  var metricObj = {
+                    widget_id: widgetId,
+                    point_in_time: metrics[widgetId].pointInTime,
+                    temporal: metrics[widgetId].temporal,
+                    name: metrics[widgetId].name,
+                    level: level.toUpperCase(),
+                    type: type,
+                    component_name: componentName,
+                    service_name: service.StackServices.service_name
+                  };
+                  result.push(metricObj);
+                  if (metricObj.level === 'HOSTCOMPONENT') {
+                    self.insertHostComponentCriteria(metricObj);
+                  }
+                }
               }
-            }
+            }, this);
           }
         }
       }, this);
