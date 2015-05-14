@@ -37,10 +37,13 @@
         "source": {
           "type": "WEB",
           "uri": {
-            "http": "{{metadata-env/metadata_port}}",
+            "http": "{{hostname}}:{{metadata-env/metadata_port}}",
+            "https": "{{hostname}}:21443",
+            "https_property": "{{application-properties/enableTLS}}",
+            "https_property_value": "true",
             "default_port": 21000,
-            "kerberos_keytab": "{{metadata-runtime.properties/*.metadata.http.authentication.keytab}}",
-            "kerberos_principal": "{{metadata-runtime.properties/*.metadata.http.authentication.principal}}"
+            "kerberos_keytab": "{{application-properties/http_authentication_kerberos_keytab}}",
+            "kerberos_principal": "{{application-properties/http_authentication_kerberos_principal}}"
           },
           "reporting": {
             "ok": {

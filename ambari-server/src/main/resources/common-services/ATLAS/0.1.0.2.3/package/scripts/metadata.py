@@ -17,6 +17,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
+import shutil
 from resource_management import Directory, Fail, Logger, File, \
     InlineTemplate, StaticFile
 from resource_management.libraries.functions import format
@@ -64,6 +66,13 @@ def metadata():
               group=params.user_group,
               recursive=True
     )
+
+    metadata_war_file = format('{params.metadata_home}/server/webapp/metadata.war')
+    if not os.path.isfile(metadata_war_file):
+        raise Fail("Unable to copy {0} because it does not exist".format(metadata_war_file))
+
+    Logger.info("Copying {0} to {1}".format(metadata_war_file, params.expanded_war_dir))
+    shutil.copy2(metadata_war_file, params.expanded_war_dir)
 
     File(format('{conf_dir}/application.properties'),
          content=InlineTemplate(params.application_properties_content),

@@ -69,6 +69,9 @@ metadata_host = config['hostname']
 application_properties = config['configurations']['application-properties']
 
 for key, value in application_properties.iteritems():
+    #  fix the multi-line property
+    if (key == 'http_authentication_kerberos_name_rules'):
+        value = ' \\ \n'.join(value.splitlines())
     globals()[key] = value
 
 metadata_env_content = config['configurations']['metadata-env']['content']
@@ -78,3 +81,17 @@ metadata_opts = config['configurations']['metadata-env']['metadata_opts']
 metadata_classpath = config['configurations']['metadata-env']['metadata_classpath']
 data_dir = config['configurations']['metadata-env']['metadata_data_dir']
 expanded_war_dir = os.environ['METADATA_EXPANDED_WEBAPP_DIR'] if 'METADATA_EXPANDED_WEBAPP_DIR' in os.environ else '/var/lib/atlas/server/webapp'
+
+# smoke test
+smoke_test_user = config['configurations']['cluster-env']['smokeuser']
+smoke_test_password = 'smoke'
+smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
+smokeuser_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
+
+kinit_path_local = status_params.kinit_path_local
+
+security_check_status_file = format('{log_dir}/security_check.status')
+if security_enabled:
+    smoke_cmd = format('curl --negotiate -u : -b ~/cookiejar.txt -c ~/cookiejar.txt -s -o /dev/null -w "%{{http_code}}" http://{metadata_host}:{metadata_port}/')
+else:
+    smoke_cmd = format('curl -s -o /dev/null -w "%{{http_code}}" http://{metadata_host}:{metadata_port}/')
