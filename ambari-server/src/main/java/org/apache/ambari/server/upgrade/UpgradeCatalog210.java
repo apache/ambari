@@ -41,6 +41,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang.StringUtils;
+import org.eclipse.persistence.internal.databaseaccess.FieldTypeDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -147,6 +148,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
    */
   @Override
   protected void executeDDLUpdates() throws AmbariException, SQLException {
+    executeDDLFixes();
     executeHostsDDLUpdates();
     executeWidgetDDLUpdates();
     executeStackDDLUpdates();
@@ -237,6 +239,17 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
   @Override
   public void onPostUpgrade() throws AmbariException, SQLException {
     cleanupStackUpdates();
+  }
+
+  private void executeDDLFixes() throws AmbariException, SQLException {
+    //Fix latest_text column type to match for all DBMS
+    Configuration.DatabaseType databaseType = configuration.getDatabaseType();
+    if (Configuration.DatabaseType.MYSQL == databaseType) {
+      dbAccessor.alterColumn("alert_current", new DBColumnInfo("latest_text", new FieldTypeDefinition("TEXT"), null));
+    } else {
+      dbAccessor.alterColumn("alert_current", new DBColumnInfo("latest_text", Character[].class, null));
+    }
+
   }
 
   /**
@@ -513,7 +526,7 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
     columns.add(new DBColumnInfo("layout_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("section_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("cluster_id", Long.class,  null,   null, false));
-    columns.add(new DBColumnInfo("scope", String.class,  255,   null, false));
+    columns.add(new DBColumnInfo("scope", String.class, 255, null, false));
     columns.add(new DBColumnInfo("user_name", String.class,  255,   null, false));
     columns.add(new DBColumnInfo("display_name", String.class,  255,   null, true));
 

@@ -781,7 +781,7 @@ CREATE TABLE alert_current (
   maintenance_state VARCHAR2(255) NOT NULL,
   original_timestamp NUMBER(19) NOT NULL,
   latest_timestamp NUMBER(19) NOT NULL,
-  latest_text VARCHAR2(4000),
+  latest_text CLOB,
   PRIMARY KEY (alert_id),
   FOREIGN KEY (definition_id) REFERENCES alert_definition(definition_id),
   FOREIGN KEY (history_id) REFERENCES alert_history(alert_id)
