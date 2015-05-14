@@ -29,6 +29,7 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.events.AlertEvent;
 import org.apache.ambari.server.events.AlertReceivedEvent;
 import org.apache.ambari.server.events.AlertStateChangeEvent;
@@ -105,6 +106,9 @@ public class AlertDataManagerTest {
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
+    //TODO unit tests rely on single session for all operations - probably should be fixed - testAlertNotices()
+    m_injector.getInstance(UnitOfWork.class).begin();
+
     m_helper = m_injector.getInstance(OrmTestHelper.class);
     m_dao = m_injector.getInstance(AlertsDAO.class);
     m_dispatchDao = m_injector.getInstance(AlertDispatchDAO.class);
@@ -140,6 +144,7 @@ public class AlertDataManagerTest {
 
   @After
   public void teardown() {
+    m_injector.getInstance(UnitOfWork.class).end();
     m_injector.getInstance(PersistService.class).stop();
     m_injector = null;
   }

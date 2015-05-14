@@ -39,6 +39,7 @@ import javax.persistence.RollbackException;
 import com.google.inject.AbstractModule;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
 
 import org.apache.ambari.server.AmbariException;
@@ -87,6 +88,8 @@ public class HostVersionOutOfSyncListenerTest {
   public void setup() throws Exception {
     injector = Guice.createInjector(new InMemoryDefaultTestModule());
     injector.getInstance(GuiceJpaInitializer.class);
+    //TODO unit tests rely on single session for all operations - probably should be fixed - testOnServiceEvent()
+    injector.getInstance(UnitOfWork.class).begin();
     clusters = injector.getInstance(Clusters.class);
     metaInfo = injector.getInstance(AmbariMetaInfo.class);
     helper = injector.getInstance(OrmTestHelper.class);
@@ -107,6 +110,7 @@ public class HostVersionOutOfSyncListenerTest {
 
   @After
   public void teardown() {
+    injector.getInstance(UnitOfWork.class).end();
     injector.getInstance(PersistService.class).stop();
   }
 

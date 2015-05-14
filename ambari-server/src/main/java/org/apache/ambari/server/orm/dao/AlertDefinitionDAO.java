@@ -31,6 +31,7 @@ import org.apache.ambari.server.events.AlertDefinitionChangedEvent;
 import org.apache.ambari.server.events.AlertDefinitionDeleteEvent;
 import org.apache.ambari.server.events.AlertDefinitionRegistrationEvent;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.state.alert.AlertDefinition;
@@ -105,9 +106,10 @@ public class AlertDefinitionDAO {
    *          the ID of the definition to retrieve.
    * @return the alert definition or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertDefinitionEntity findById(long definitionId) {
     return entityManagerProvider.get().find(AlertDefinitionEntity.class,
-        definitionId);
+      definitionId);
   }
 
   /**
@@ -120,6 +122,7 @@ public class AlertDefinitionDAO {
    *          the name of the definition (not {@code null}).
    * @return the alert definition or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertDefinitionEntity findByName(long clusterId, String definitionName) {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findByName", AlertDefinitionEntity.class);
@@ -136,6 +139,7 @@ public class AlertDefinitionDAO {
    * @return all alert definitions or an empty list if none exist (never
    *         {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findAll() {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findAll", AlertDefinitionEntity.class);
@@ -149,6 +153,7 @@ public class AlertDefinitionDAO {
    * @return all alert definitions or empty list if none exist (never
    *         {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findAll(long clusterId) {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findAllInCluster", AlertDefinitionEntity.class);
@@ -165,6 +170,7 @@ public class AlertDefinitionDAO {
    *          the IDs of the definitions to retrieve.
    * @return the definition or an empty list (never {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findByIds(List<Long> definitionIds) {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findByIds", AlertDefinitionEntity.class);
@@ -185,6 +191,7 @@ public class AlertDefinitionDAO {
    * @return all alert definitions for the service or empty list if none exist
    *         (never {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findByService(long clusterId,
       String serviceName) {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
@@ -208,6 +215,7 @@ public class AlertDefinitionDAO {
    * @return all alert definitions for the services or empty list if none exist
    *         (never {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findByServiceMaster(long clusterId,
       Set<String> services) {
     if (null == services || services.size() == 0) {
@@ -238,6 +246,7 @@ public class AlertDefinitionDAO {
    * @return all alert definitions that are not bound to a service or an empty
    *         list (never {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findByServiceComponent(long clusterId,
       String serviceName, String componentName) {
     if (null == serviceName || null == componentName) {
@@ -264,6 +273,7 @@ public class AlertDefinitionDAO {
    * @return all alert definitions that are not bound to a service or an empty
    *         list (never {@code null}).
    */
+  @RequiresSession
   public List<AlertDefinitionEntity> findAgentScoped(long clusterId) {
     TypedQuery<AlertDefinitionEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertDefinitionEntity.findByServiceAndComponent",

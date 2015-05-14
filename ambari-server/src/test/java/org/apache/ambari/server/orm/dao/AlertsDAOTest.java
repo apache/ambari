@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.TimeZone;
 import java.util.UUID;
 
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.controller.AlertCurrentRequest;
 import org.apache.ambari.server.controller.AlertHistoryRequest;
 import org.apache.ambari.server.controller.internal.AlertHistoryResourceProvider;
@@ -100,6 +101,10 @@ public class AlertsDAOTest {
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
+
+    //TODO unit tests rely on single session for all operations - probably should be fixed - setup() method
+    m_injector.getInstance(UnitOfWork.class).begin();
+
     m_helper = m_injector.getInstance(OrmTestHelper.class);
     m_dao = m_injector.getInstance(AlertsDAO.class);
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
@@ -194,6 +199,7 @@ public class AlertsDAOTest {
    */
   @After
   public void teardown() {
+    m_injector.getInstance(UnitOfWork.class).end();
     m_injector.getInstance(PersistService.class).stop();
     m_injector = null;
   }

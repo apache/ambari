@@ -162,6 +162,7 @@ public class DistributeRepositoriesActionListener {
       // If we know exact host stack version, there will be single execution of a code below
       if (hostVersion.getState() == RepositoryVersionState.INSTALLING) {
         hostVersion.setState(newHostState);
+        hostVersionDAO.get().merge(hostVersion);
 
         // Update state of a cluster stack version
         try {

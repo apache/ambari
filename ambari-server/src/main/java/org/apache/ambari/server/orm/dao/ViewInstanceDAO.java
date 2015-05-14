@@ -37,6 +37,7 @@ import com.google.inject.persist.Transactional;
  * View Instance Data Access Object.
  */
 @Singleton
+@RequiresSession
 public class ViewInstanceDAO {
   /**
    * JPA entity manager

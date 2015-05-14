@@ -219,6 +219,7 @@ public class KerberosPrincipalHostDAO {
    *
    * @param entities a collection of KerberosPrincipalHostEntity items to remove
    */
+  @Transactional
   private void remove(List<KerberosPrincipalHostEntity> entities) {
     if (entities != null) {
       for (KerberosPrincipalHostEntity entity : entities) {

@@ -23,6 +23,7 @@ import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
 import com.google.inject.Module;
+import com.google.inject.persist.UnitOfWork;
 import com.google.inject.util.Modules;
 import junit.framework.Assert;
 import org.apache.ambari.server.AmbariException;
@@ -39,7 +40,10 @@ import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.internal.RequestStageContainer;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
+import org.apache.ambari.server.orm.dao.ClusterVersionDAO;
+import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.LdapSyncSpecEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
 import org.apache.ambari.server.security.authorization.Users;
 import org.apache.ambari.server.security.ldap.AmbariLdapDataPopulator;
 import org.apache.ambari.server.security.ldap.LdapBatchDto;
@@ -1678,15 +1682,20 @@ public class AmbariManagementControllerImplTest {
     String JCE_NAME = "jceName";
     String OJDBC_JAR_NAME = "OjdbcJarName";
     String SERVER_DB_NAME = "ServerDBName";
+    String clusterName = "test_cluster";
 
     ActionManager manager = createNiceMock(ActionManager.class);
     StackId stackId = createNiceMock(StackId.class);
     Cluster cluster = createNiceMock(Cluster.class);
     Injector injector = createNiceMock(Injector.class);
     Configuration configuration = createNiceMock(Configuration.class);
+    ClusterVersionDAO clusterVersionDAO = createNiceMock(ClusterVersionDAO.class);
+    ClusterVersionEntity clusterVersionEntity = createNiceMock(ClusterVersionEntity.class);
+    RepositoryVersionEntity repositoryVersionEntity = createNiceMock(RepositoryVersionEntity.class);
 
 
     expect(cluster.getDesiredStackVersion()).andReturn(stackId);
+    expect(cluster.getClusterName()).andReturn(clusterName);
     expect(stackId.getStackName()).andReturn(SOME_STACK_NAME).anyTimes();
     expect(stackId.getStackVersion()).andReturn(SOME_STACK_VERSION).anyTimes();
     expect(configuration.getMySQLJarName()).andReturn(MYSQL_JAR);
@@ -1695,8 +1704,11 @@ public class AmbariManagementControllerImplTest {
     expect(configuration.getJCEName()).andReturn(JCE_NAME);
     expect(configuration.getOjdbcJarName()).andReturn(OJDBC_JAR_NAME);
     expect(configuration.getServerDBName()).andReturn(SERVER_DB_NAME);
+    expect(clusterVersionDAO.findByClusterAndStateCurrent(eq(clusterName))).andReturn(clusterVersionEntity);
+    expect(clusterVersionEntity.getRepositoryVersion()).andReturn(repositoryVersionEntity);
+    expect(repositoryVersionEntity.getVersion()).andReturn("stub");
 
-    replay(manager, clusters, cluster, injector, stackId, configuration);
+    replay(manager, clusters, cluster, injector, stackId, configuration, clusterVersionDAO, clusterVersionEntity, repositoryVersionEntity);
 
     AmbariManagementControllerImpl ambariManagementControllerImpl =
             createMockBuilder(AmbariManagementControllerImpl.class)
@@ -1723,9 +1735,13 @@ public class AmbariManagementControllerImplTest {
     f.setAccessible(true);
     f.set(helper, configuration);
 
+    f = helperClass.getDeclaredField("clusterVersionDAO");
+    f.setAccessible(true);
+    f.set(helper, clusterVersionDAO);
+
     Map<String, String> defaultHostParams = helper.createDefaultHostParams(cluster);
 
-    assertEquals(defaultHostParams.size(), 10);
+    assertEquals(defaultHostParams.size(), 11);
     assertEquals(defaultHostParams.get(DB_DRIVER_FILENAME), MYSQL_JAR);
     assertEquals(defaultHostParams.get(STACK_NAME), SOME_STACK_NAME);
     assertEquals(defaultHostParams.get(STACK_VERSION), SOME_STACK_VERSION);

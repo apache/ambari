@@ -95,6 +95,7 @@ public class UserDAO {
    *
    * @return the matching list of user entities
    */
+  @RequiresSession
   public List<UserEntity> findUsersByPrincipal(List<PrincipalEntity> principalList) {
     if (principalList == null || principalList.isEmpty()) {
       return Collections.emptyList();
@@ -111,6 +112,7 @@ public class UserDAO {
    *
    * @return the matching user entity
    */
+  @RequiresSession
   public UserEntity findUserByPrincipal(PrincipalEntity principal) {
     if (principal == null) {
       return null;

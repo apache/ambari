@@ -42,6 +42,7 @@ import java.util.Set;
 import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
+import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -1432,6 +1433,9 @@ public class ClusterTest {
    */
   @Test
   public void testTransitionHostVersionAdvanced() throws Exception {
+    //TODO unit tests rely on single session for all operations - probably should be fixed - this test only
+    injector.getInstance(UnitOfWork.class).begin();
+
     String clusterName = "c1";
     String v1 = "2.2.0-123";
     StackId stackId = new StackId("HDP-2.2.0");
@@ -1605,6 +1609,8 @@ public class ClusterTest {
         Assert.assertEquals(hve.getState(), RepositoryVersionState.UPGRADED);
       }
     }
+
+    injector.getInstance(UnitOfWork.class).end();
   }
 
   @Test
