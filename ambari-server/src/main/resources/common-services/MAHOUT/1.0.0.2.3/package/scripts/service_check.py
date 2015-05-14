@@ -35,6 +35,10 @@ class MahoutServiceCheck(Script):
         mode = 0755
     )
     
+    params.HdfsResource(format("/user/{smokeuser}/mahoutsmokeoutput"),
+                       action="delete_on_execute",
+                       type="directory",
+    )
     params.HdfsResource(format("/user/{smokeuser}/mahoutsmokeinput"),
                         action="create_on_execute",
                         type="directory",

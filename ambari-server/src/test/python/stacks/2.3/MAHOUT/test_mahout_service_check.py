@@ -37,6 +37,16 @@ class TestMahoutClient(RMFTestCase):
         content = 'Test text which will be converted to sequence file.',
         mode = 0755,
     )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeoutput',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['delete_on_execute'],
+        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
+        type = 'directory',
+    )
     self.assertResourceCalled('HdfsResource', '/user/ambari-qa/mahoutsmokeinput',
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
