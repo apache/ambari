@@ -66,8 +66,6 @@ class AmbariAgentService(AmbariService):
   AmbariService._svc_display_name_ = "Ambari Agent"
   AmbariService._svc_description_ = "Ambari Agent"
 
-  AmbariService._AdjustServiceVersion()
-
   heartbeat_stop_handler = None
 
   # Adds the necessary script dir to the Python's modules path

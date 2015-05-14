@@ -35,8 +35,6 @@ class AmbariServerService(AmbariService):
   AmbariService._svc_display_name_ = "Ambari Server"
   AmbariService._svc_description_ = "Ambari Server"
 
-  AmbariService._AdjustServiceVersion()
-
   # Adds the necessary script dir to the Python's modules path
   def _adjustPythonPath(self, current_dir):
     python_path = os.path.join(current_dir, "sbin")

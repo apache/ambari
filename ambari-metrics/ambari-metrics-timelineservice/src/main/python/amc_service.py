@@ -38,8 +38,6 @@ class AMCollectorService(AmbariService):
   AmbariService._svc_display_name_ = "Ambari Metrics Collector"
   AmbariService._svc_description_ = "Ambari Metrics Collector Service"
 
-  AmbariService._AdjustServiceVersion()
-
   # Adds the necessary script dir(s) to the Python's modules path.
   # Modify this as the deployed product's dir structure changes.
   def _adjustPythonPath(self, current_dir):

@@ -40,8 +40,6 @@ class AMHostMonitoringService(AmbariService):
   AmbariService._svc_display_name_ = "Ambari Metrics Host Monitoring"
   AmbariService._svc_description_ = "Ambari Metrics Host Monitoring Service"
 
-  AmbariService._AdjustServiceVersion()
-
   # Adds the necessary script dir to the Python's modules path.
   # Modify this as the deployed product's dir structure changes.
   def _adjustPythonPath(self, current_dir):

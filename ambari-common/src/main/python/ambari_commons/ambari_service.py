@@ -64,16 +64,6 @@ class AmbariService(WinService):
     self.SvcDoRun()
     pass
 
-  # Call during initialization to implement standard service versioning
-  @classmethod
-  def _AdjustServiceVersion(cls):
-    if os.environ.has_key(AMBARI_VERSION_VAR):
-      ambariVer = os.environ[AMBARI_VERSION_VAR]
-    else:
-      ambariVer = "1.3.0-SNAPSHOT"
-    AmbariService._svc_display_name_ += "-" + ambariVer
-    AmbariService._svc_description_ += " v" + ambariVer
-
   # Override to customize the command-line arguments
   def _InitOptionsParser(self):
     pass
