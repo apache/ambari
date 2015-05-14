@@ -75,6 +75,10 @@
         <timeout>300</timeout>        
       </commandScript>
 
+      <requiredServices>
+        <service>RANGER</service>
+      </requiredServices>
+      
     </service>
   </services>
 </metainfo>
