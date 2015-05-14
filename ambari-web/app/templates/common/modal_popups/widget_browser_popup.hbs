@@ -21,7 +21,7 @@
     <div class="widget-browser-content">
       <!--Create new widget button-->
       {{#isAccessible ADMIN}}
-        <div class="btn-group pull-right">
+        <div class="btn-group pull-right" id="create-widget-button">
           <button type="button" class="btn btn-primary" {{action "createWidget" target="view"}} >
             <i class="icon-plus"></i> &nbsp; {{t dashboard.widgets.create}}
           </button>

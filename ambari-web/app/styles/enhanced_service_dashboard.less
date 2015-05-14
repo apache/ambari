@@ -543,9 +543,12 @@
 
 .sixty-percent-width-modal.widgets-browser-popup {
   .modal {
-    max-height: 703px;
+    max-height: 600px;
+    position: fixed;
     .modal-body {
-      min-height: 541px;
+      padding-top: 0px;
+      min-height: 290px;
+      max-height: 460px;
     }
   }
   
@@ -553,10 +556,14 @@
     min-width: 750px;
     max-width: 900px;
     #services-filter-bar {
-      padding: 0px 10px 0px 10px;
-      margin-bottom: 10px;
+      position: fixed;
+      padding: 10px 10px 5px 10px;
+      margin-bottom: 5px;
       border-bottom: transparent;
-      width: 80%;
+      background-color: white;
+      width: 56%;
+      z-index: 10;
+
       li > a {
         font-size: 14px;
         padding: 5px 5px;
@@ -566,7 +573,14 @@
         border-bottom: transparent;
       }
     }
+    #create-widget-button {
+      position: fixed;
+      padding-top: 10px;
+      right: 23%;
+      z-index: 11;
+    }
     #widgets-info {
+       padding-top: 40px;
       .widgets-info-container {
         .span6.widget-info-section {
           width: 44%;
