@@ -148,15 +148,6 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "REPOSITORY_CONFIG_PASSWORD",
-    "displayName": "Ranger repository config password",
-    "displayType": "password",
-    "filename": "ranger-hdfs-plugin-properties.xml",
-    "category": "Advanced ranger-hdfs-plugin-properties",
-    "serviceName": "HDFS"
-  },
-  {
-    "id": "site property",
     "name": "REPOSITORY_CONFIG_USERNAME",
     "displayName": "Ranger repository config user",
     "filename": "ranger-hdfs-plugin-properties.xml",
@@ -200,15 +191,6 @@ hdp22properties.push(
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for HIVE",
-    "filename": "ranger-hive-plugin-properties.xml",
-    "category": "Advanced ranger-hive-plugin-properties",
-    "serviceName": "HIVE"
-  },
-  {
-    "id": "site property",
-    "name": "REPOSITORY_CONFIG_PASSWORD",
-    "displayName": "Ranger repository config password",
-    "displayType": "password",
     "filename": "ranger-hive-plugin-properties.xml",
     "category": "Advanced ranger-hive-plugin-properties",
     "serviceName": "HIVE"
@@ -274,15 +256,6 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "REPOSITORY_CONFIG_PASSWORD",
-    "displayName": "Ranger repository config password",
-    "displayType": "password",
-    "filename": "ranger-hbase-plugin-properties.xml",
-    "category": "Advanced ranger-hbase-plugin-properties",
-    "serviceName": "HBASE"
-  },
-  {
-    "id": "site property",
     "name": "REPOSITORY_CONFIG_USERNAME",
     "displayName": "Ranger repository config user",
     "filename": "ranger-hbase-plugin-properties.xml",
@@ -342,15 +315,6 @@ hdp22properties.push(
   },
   {
     "id": "site property",
-    "name": "REPOSITORY_CONFIG_PASSWORD",
-    "displayName": "Ranger repository config password",
-    "displayType": "password",
-    "filename": "ranger-storm-plugin-properties.xml",
-    "category": "Advanced ranger-storm-plugin-properties",
-    "serviceName": "STORM"
-  },
-  {
-    "id": "site property",
     "name": "REPOSITORY_CONFIG_USERNAME",
     "displayName": "Ranger repository config user",
     "filename": "ranger-storm-plugin-properties.xml",
@@ -394,15 +358,6 @@ hdp22properties.push(
     "value": "ambari-qa",
     "defaultValue": "ambari-qa",
     "displayName": "policy User for KNOX",
-    "filename": "ranger-knox-plugin-properties.xml",
-    "category": "Advanced ranger-knox-plugin-properties",
-    "serviceName": "KNOX"
-  },
-  {
-    "id": "site property",
-    "name": "REPOSITORY_CONFIG_PASSWORD",
-    "displayName": "Ranger repository config password",
-    "displayType": "password",
     "filename": "ranger-knox-plugin-properties.xml",
     "category": "Advanced ranger-knox-plugin-properties",
     "serviceName": "KNOX"
