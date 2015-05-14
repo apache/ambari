@@ -80,7 +80,7 @@ import functools
 #to create hdfs directory we need to call params.HdfsResource in code
 HdfsResource = functools.partial(
   HdfsResource,
-  user=hdfs_principal_name if security_enabled else hdfs_user,
+  user=hdfs_user,
   security_enabled = security_enabled,
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,

@@ -61,7 +61,7 @@ class TestPigServiceCheck(RMFTestCase):
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs@EXAMPLE.COM',
+        user = 'hdfs',
         action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
@@ -111,7 +111,7 @@ class TestPigServiceCheck(RMFTestCase):
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         source = '/usr/hdp/current/tez-client/lib/tez.tar.gz',
         kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs@EXAMPLE.COM',
+        user = 'hdfs',
         owner = 'hdfs',
         group = 'hadoop',
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
@@ -123,7 +123,7 @@ class TestPigServiceCheck(RMFTestCase):
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
         keytab = '/etc/security/keytabs/hdfs.headless.keytab',
         kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs@EXAMPLE.COM',
+        user = 'hdfs',
         action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
