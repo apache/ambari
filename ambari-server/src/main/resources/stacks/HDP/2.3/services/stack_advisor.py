@@ -23,6 +23,7 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
     parentRecommendConfDict = super(HDP23StackAdvisor, self).getServiceConfigurationRecommenderDict()
     childRecommendConfDict = {
       "TEZ": self.recommendTezConfigurations,
+      "HDFS": self.recommendHDFSConfigurations,
     }
     parentRecommendConfDict.update(childRecommendConfDict)
     return parentRecommendConfDict
@@ -41,6 +42,43 @@ class HDP23StackAdvisor(HDP22StackAdvisor):
       if services["configurations"]["tez-site"]["properties"]["tez.runtime.sorter.class"] == "LEGACY":
         putTezAttribute = self.putPropertyAttribute(configurations, "tez-site")
         putTezAttribute("tez.runtime.io.sort.mb", "maximum", 2047)
+
+  def recommendHDFSConfigurations(self, configurations, clusterData, services, hosts):
+    super(HDP23StackAdvisor, self).recommendHDFSConfigurations(configurations, clusterData, services, hosts)
+
+    putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
+      rangerPluginEnabled = services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
+      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
+        putHdfsSiteProperty("dfs.namenode.inode.attributes.provider.class",'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer')
+
+  def getServiceConfigurationValidators(self):
+      parentValidators = super(HDP23StackAdvisor, self).getServiceConfigurationValidators()
+      childValidators = {
+        "HDFS": {"hdfs-site": self.validateHDFSConfigurations}
+      }
+      parentValidators.update(childValidators)
+      return parentValidators
+
+  def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    super(HDP23StackAdvisor, self).validateHDFSConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+
+    # We can not access property hadoop.security.authentication from the
+    # other config (core-site). That's why we are using another heuristics here
+    hdfs_site = properties
+    validationItems = [] 
+    #Adding Ranger Plugin logic here 
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled']
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if hdfs_site['dfs.namenode.inode.attributes.provider.class'].lower() != 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer'.lower():
+        validationItems.append({"config-name": 'dfs.namenode.inode.attributes.provider.class',
+                                    "item": self.getWarnItem(
+                                      "dfs.namenode.inode.attributes.provider.class needs to be set to 'org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer' if Ranger HDFS Plugin is enabled.")})  
+    return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
+
 
   def isComponentUsingCardinalityForLayout(self, componentName):
     return componentName == 'NFS_GATEWAY'
