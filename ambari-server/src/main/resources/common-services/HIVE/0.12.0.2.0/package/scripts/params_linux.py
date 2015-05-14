@@ -385,14 +385,13 @@ ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
 if Script.is_hdp_stack_greater_or_equal("2.2"):
   enable_ranger_hive = (config['configurations']['ranger-hive-plugin-properties']['ranger-hive-plugin-enabled'].lower() == 'yes')
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']  
 
 #ranger hive properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_hive'
 
@@ -400,7 +399,6 @@ jdbc_driver_class_name = config['configurations']['ranger-hive-plugin-properties
 common_name_for_certificate = config['configurations']['ranger-hive-plugin-properties']['common.name.for.certificate']
 
 repo_config_username = config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
-repo_config_password = config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-hive-plugin-properties']
@@ -408,19 +406,22 @@ policy_user = config['configurations']['ranger-hive-plugin-properties']['policy_
 
 if security_enabled:
   hive_principal = hive_server_principal.replace('_HOST',hostname.lower())
-  
+
 #For curl command in ranger plugin to get db connector
 if has_ranger_admin:
-  if xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'mysql':
+  repo_config_password = unicode(config['configurations']['ranger-hive-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
+  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+
+  if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
     ranger_jdbc_symlink_name = "mysql-jdbc-driver.jar"
     ranger_jdbc_jar_name = "mysql-connector-java.jar"
-  elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'oracle':
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
     ranger_jdbc_jar_name = "ojdbc6.jar"
     ranger_jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
     ranger_jdbc_jar_name = "postgresql.jar"
     ranger_jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  elif xa_audit_db_flavor and xa_audit_db_flavor.lower() == 'sqlserver':
+  elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqlserver':
     ranger_jdbc_jar_name = "sqljdbc4.jar"
     ranger_jdbc_symlink_name = "mssql-jdbc-driver.jar"
   
@@ -428,7 +429,7 @@ if has_ranger_admin:
   
   ranger_driver_curl_source = format("{jdk_location}/{ranger_jdbc_symlink_name}")
   ranger_driver_curl_target = format("{java_share_dir}/{ranger_jdbc_jar_name}")
-  
+
   hive_ranger_plugin_config = {
     'username': repo_config_username,
     'password': repo_config_password,
@@ -445,3 +446,13 @@ if has_ranger_admin:
     'repositoryType': 'hive',
     'assetType': '3'
   }
+
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+
+  if xml_configurations_supported:
+    xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.db.is.enabled']
+    ssl_keystore_file_path = config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore']
+    ssl_truststore_file_path = config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore']
+    ssl_keystore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
+    ssl_truststore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+    credential_file = format('/etc/ranger/{repo_name}/cred.jceks')

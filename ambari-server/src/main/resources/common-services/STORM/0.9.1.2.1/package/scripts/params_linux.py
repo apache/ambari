@@ -140,16 +140,14 @@ metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 #ranger storm properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_storm'
 
@@ -158,8 +156,6 @@ common_name_for_certificate = config['configurations']['ranger-storm-plugin-prop
 storm_ui_port = config['configurations']['storm-site']['ui.port']
 
 repo_config_username = config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
-repo_config_password = config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
-
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-storm-plugin-properties']
 policy_user = config['configurations']['ranger-storm-plugin-properties']['policy_user']
@@ -167,19 +163,23 @@ policy_user = config['configurations']['ranger-storm-plugin-properties']['policy
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
+
 if has_ranger_admin:
   enable_ranger_storm = (config['configurations']['ranger-storm-plugin-properties']['ranger-storm-plugin-enabled'].lower() == 'yes')
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  repo_config_password = unicode(config['configurations']['ranger-storm-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
+  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
   
-  if xa_audit_db_flavor.lower() == 'mysql':
+  if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
-  elif xa_audit_db_flavor.lower() == 'oracle':
+  elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'sqlserver':
+  elif xa_audit_db_flavor == 'sqlserver':
     jdbc_jar_name = "sqljdbc4.jar"
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
@@ -203,3 +203,11 @@ if has_ranger_admin:
     'repositoryType': 'storm',
     'assetType': '6'
   }
+  
+  if xml_configurations_supported:
+    xa_audit_db_is_enabled = config['configurations']['ranger-storm-audit']['xasecure.audit.db.is.enabled']
+    ssl_keystore_file_path = config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.keystore']
+    ssl_truststore_file_path = config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.truststore']
+    ssl_keystore_password = unicode(config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
+    ssl_truststore_password = unicode(config['configurations']['ranger-storm-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+    credential_file = format('/etc/ranger/{repo_name}/cred.jceks')

@@ -27,7 +27,23 @@ var excludedConfigs = [
   'db_name',
   'db_root_user',
   'db_root_password',
-  'nimbus.host'
+  'nimbus.host',
+  'XAAUDIT.DB.IS_ENABLED',
+  'XAAUDIT.HDFS.IS_ENABLED',
+  'UPDATE_XAPOLICIES_ON_GRANT_REVOKE',
+  'authServiceHostName',
+  'authServicePort',
+  'authentication_method',
+  'remoteLoginEnabled',
+  'xa_ldap_url',
+  'xa_ldap_userDNpattern',
+  'xa_ldap_groupSearchBase',
+  'xa_ldap_groupSearchFilter',
+  'xa_ldap_groupRoleAttribute',
+  'xa_ldap_ad_domain',
+  'xa_ldap_ad_url',
+  'policymgr_http_enabled',
+  'policymgr_external_url'
 ];
 
 var hdp23properties = hdp22properties.filter(function (item) {
@@ -162,6 +178,229 @@ hdp23properties.push({
     "serviceName": "RANGER",
     "filename": "admin-properties.xml",
     "category": "DBSettings"
+  },
+  /**************************************** RANGER - HDFS Plugin ***************************************/
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-hdfs-audit.xml",
+    "category": "Advanced ranger-hdfs-audit",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.db.is.enabled",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hdfs-audit.xml",
+    "category": "Advanced ranger-hdfs-audit",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.is.enabled",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hdfs-audit.xml",
+    "category": "Advanced ranger-hdfs-audit",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.solr.is.enabled",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-hdfs-audit.xml",
+    "category": "Advanced ranger-hdfs-audit",
+    "serviceName": "HDFS"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.db.is.enabled",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-audit.xml",
+    "category": "Advanced ranger-hbase-audit",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.is.enabled",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-audit.xml",
+    "category": "Advanced ranger-hbase-audit",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.solr.is.enabled",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-audit.xml",
+    "category": "Advanced ranger-hbase-audit",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-hbase-audit.xml",
+    "category": "Advanced ranger-hbase-audit",
+    "serviceName": "HBASE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.db.is.enabled",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.is.enabled",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.solr.is.enabled",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-audit.xml",
+    "category": "Advanced ranger-hive-audit",
+    "serviceName": "HIVE"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.db.is.enabled",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.is.enabled",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.solr.is.enabled",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-knox-audit.xml",
+    "category": "Advanced ranger-knox-audit",
+    "serviceName": "KNOX"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.db.is.enabled",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.is.enabled",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.solr.is.enabled",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-storm-audit.xml",
+    "category": "Advanced ranger-storm-audit",
+    "serviceName": "STORM"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.db.is.enabled",
+    "displayName": "Audit to DB",
+    "displayType": "checkbox",
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.hdfs.is.enabled",
+    "displayName": "Audit to HDFS",
+    "displayType": "checkbox",
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
+  },
+  {
+    "id": "site property",
+    "name": "xasecure.audit.solr.is.enabled",
+    "displayName": "Audit to SOLR",
+    "displayType": "checkbox",
+    "filename": "ranger-yarn-audit.xml",
+    "category": "Advanced ranger-yarn-audit",
+    "serviceName": "YARN"
   },
   {
     "name": "ranger_mysql_host",
@@ -325,6 +564,179 @@ hdp23properties.push({
     "serviceName": "TEZ",
     "filename": "tez-site.xml",
     "category": "Advanced tez-site"
+  },
+  {
+    "id": "puppet var",
+    "name": "ranger.external.url",
+    "displayName": "External URL",
+    "defaultValue": "http://localhost:6080",
+    "isReconfigurable": true,
+    "displayType": "",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "RangerSettings"
+  },
+  {
+    "id": "puppet var",
+    "name": "ranger.service.http.enabled",
+    "displayName": "HTTP enabled",
+    "defaultValue": true,
+    "isReconfigurable": true,
+    "displayType": "checkbox",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "RangerSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.authentication.method",
+    "displayName": "Authentication method",
+    "defaultValue": "NONE",
+    "options": [
+      {
+        displayName: 'LDAP',
+        foreignKeys: ['xa_ldap_userDNpattern', 'xa_ldap_groupRoleAttribute', 'xa_ldap_url', 'xa_ldap_groupSearchBase', 'xa_ldap_groupSearchFilter']
+      },
+      {
+        displayName: 'ACTIVE_DIRECTORY',
+        foreignKeys: ['xa_ldap_ad_domain', 'xa_ldap_ad_url']
+      },
+      {
+        displayName: 'UNIX',
+        foreignKeys: ['remoteLoginEnabled', 'authServiceHostName', 'authServicePort']
+      },
+      {
+        displayName: 'NONE'
+      }
+    ],
+    "displayType": "radio button",
+    "radioName": "authentication-method",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "RangerSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.unixauth.remote.login.enabled",
+    "displayName": "Allow remote Login",
+    "defaultValue": true,
+    "isReconfigurable": true,
+    "displayType": "checkbox",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "UnixAuthenticationSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.unixauth.service.hostname",
+    "displayName": "ranger.unixauth.service.hostname",
+    "defaultValue": 'localhost',
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "UnixAuthenticationSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.unixauth.service.port",
+    "displayName": "ranger.unixauth.service.port",
+    "defaultValue": '5151',
+    "isReconfigurable": true,
+    "displayType": "int",
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "UnixAuthenticationSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.url",
+    "displayName": "ranger.ldap.url",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.user.dnpattern",
+    "displayName": "ranger.ldap.user.dnpattern",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.group.roleattribute",
+    "displayName": "ranger.ldap.group.roleattribute",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "LDAPSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.ad.domain",
+    "displayName": "ranger.ldap.ad.domain",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },
+  {
+    "id": "site property",
+    "name": "ranger.ldap.ad.url",
+    "displayName": "ranger.ldap.ad.url",
+    "isReconfigurable": true,
+    "isOverridable": false,
+    "isVisible": true,
+    "serviceName": "RANGER",
+    "filename": "ranger-admin-site.xml",
+    "category": "ADSettings"
+  },
+
+  /*********RANGER FOR HBASE************/
+  {
+    "id": "site property",
+    "name": "xasecure.hbase.update.xapolicies.on.grant.revoke",
+    "defaultValue": true,
+    "displayName": "Should HBase GRANT/REVOKE update XA policies?",
+    "displayType": "checkbox",
+    "filename": "ranger-hbase-security.xml",
+    "category": "Advanced ranger-hbase-security",
+    "serviceName": "HBASE"
+  },
+  /*********RANGER FOR HIVE************/
+  {
+    "id": "site property",
+    "name": "xasecure.hive.update.xapolicies.on.grant.revoke",
+    "defaultValue": true,
+    "displayName": "Should Hive GRANT/REVOKE update XA policies?",
+    "displayType": "checkbox",
+    "filename": "ranger-hive-security.xml",
+    "category": "Advanced ranger-hive-security",
+    "serviceName": "HIVE"
   }
 );
 

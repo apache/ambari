@@ -20,9 +20,9 @@ limitations under the License.
 __all__ = ["setup_ranger_plugin"]
 
 import os
+from datetime import datetime
 from resource_management.libraries.functions.ranger_functions import Rangeradmin
-from resource_management.core.resources import File
-from resource_management.core.resources import Execute
+from resource_management.core.resources import File, Execute
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.get_hdp_version import get_hdp_version
 from resource_management.core.logger import Logger
@@ -37,7 +37,7 @@ def setup_ranger_plugin(component_select_name, service_name,
                         repo_name, plugin_repo_dict, 
                         ranger_env_properties, plugin_properties,
                         policy_user, policymgr_mgr_url,
-                        plugin_enabled,api_version=None):
+                        plugin_enabled,api_version=None, **kwargs):
   File(downloaded_custom_connector,
        content = DownloadSource(driver_curl_source)
   )
@@ -77,4 +77,4 @@ def setup_ranger_plugin(component_select_name, service_name,
         environment=cmd_env, 
         logoutput=True,
         sudo=True,
-  )                    
+  )

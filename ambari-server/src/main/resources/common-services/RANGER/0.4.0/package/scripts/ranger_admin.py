@@ -23,7 +23,6 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from setup_ranger import setup_ranger_admin
 from ranger_service import ranger_service
 import upgrade
 
@@ -34,7 +33,17 @@ class RangerAdmin(Script):
 
   def install(self, env):
     self.install_packages(env)
+    import params
+    env.set_params(params)
+    if params.xml_configurations_supported:
+      from setup_ranger_xml import setup_ranger_db
+      setup_ranger_db()
+
     self.configure(env)
+
+    if params.xml_configurations_supported:
+      from setup_ranger_xml import setup_java_patch
+      setup_java_patch()
 
   def stop(self, env, rolling_restart=False):
     import params
@@ -66,8 +75,12 @@ class RangerAdmin(Script):
   def configure(self, env):
     import params
     env.set_params(params)
-    
-    setup_ranger_admin()
+    if params.xml_configurations_supported:
+      from setup_ranger_xml import ranger
+    else:
+      from setup_ranger import ranger
+
+    ranger('ranger_admin')
 
 
 if __name__ == "__main__":

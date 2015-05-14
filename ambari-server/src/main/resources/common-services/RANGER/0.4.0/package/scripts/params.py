@@ -17,7 +17,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-from resource_management.libraries.functions import format
+import os
 from resource_management.libraries.script import Script
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.format import format
@@ -42,6 +42,8 @@ host_sys_prepped = default("/hostLevelParams/host_sys_prepped", False)
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
+
 stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
 stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
@@ -53,23 +55,32 @@ if stack_is_hdp22_or_further:
   usersync_home  = '/usr/hdp/current/ranger-usersync'
   usersync_start = '/usr/bin/ranger-usersync-start'
   usersync_stop  = '/usr/bin/ranger-usersync-stop'
+  ranger_ugsync_conf = '/etc/ranger/usersync/conf'
   
 usersync_services_file = "/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh"
 
 java_home = config['hostLevelParams']['java_home']
 unix_user  = config['configurations']['ranger-env']['ranger_user']
 unix_group = config['configurations']['ranger-env']['ranger_group']
+ranger_pid_dir = config['configurations']['ranger-env']['ranger_pid_dir']
+usersync_log_dir = config['configurations']['ranger-env']['ranger_usersync_log_dir']
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
-db_flavor =  config['configurations']['admin-properties']['DB_FLAVOR']
-
+db_flavor =  (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 usersync_exturl =  config['configurations']['admin-properties']['policymgr_external_url']
+ranger_host = config['clusterHostInfo']['ranger_admin_hosts'][0]
+ranger_external_url = config['configurations']['admin-properties']['policymgr_external_url']
+ranger_db_name = config['configurations']['admin-properties']['db_name']
+ranger_auditdb_name = config['configurations']['admin-properties']['audit_db_name']
 
 sql_command_invoker = config['configurations']['admin-properties']['SQL_COMMAND_INVOKER']
 db_root_user = config['configurations']['admin-properties']['db_root_user']
 db_root_password = unicode(config['configurations']['admin-properties']['db_root_password'])
 db_host =  config['configurations']['admin-properties']['db_host']
+ranger_db_user = config['configurations']['admin-properties']['db_user']
+ranger_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+ranger_db_password = unicode(config['configurations']['admin-properties']['db_password'])
 
 #ranger-env properties
 oracle_home = default("/configurations/ranger-env/oracle_home", "-")
@@ -94,3 +105,26 @@ downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
 driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
+
+#for db connection
+check_db_connection_jar_name = "DBConnectionVerification.jar"
+check_db_connection_jar = format("/usr/lib/ambari-agent/{check_db_connection_jar_name}")
+ranger_jdbc_connection_url = config["configurations"]["ranger-env"]["ranger_jdbc_connection_url"]
+ranger_jdbc_driver = config["configurations"]["ranger-env"]["ranger_jdbc_driver"]
+
+ranger_credential_provider_path = config["configurations"]["ranger-admin-site"]["ranger.credential.provider.path"]
+ranger_jpa_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.jdbc.credential.alias"]
+ranger_ambari_db_password = unicode(config["configurations"]["admin-properties"]["db_password"])
+
+ranger_jpa_audit_jdbc_credential_alias = config["configurations"]["ranger-admin-site"]["ranger.jpa.audit.jdbc.credential.alias"]
+ranger_ambari_audit_db_password = unicode(config["configurations"]["admin-properties"]["audit_db_password"])
+
+ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.usersync.credstore.filename"]
+cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
+cred_setup_prefix = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
+ranger_audit_source_type = config["configurations"]["ranger-admin-site"]["ranger.audit.source.type"]
+if xml_configurations_supported:
+  ranger_usersync_keystore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"])
+  ranger_usersync_ldap_ldapbindpassword = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.ldapbindpassword"])
+  ranger_usersync_truststore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.truststore.password"])
+

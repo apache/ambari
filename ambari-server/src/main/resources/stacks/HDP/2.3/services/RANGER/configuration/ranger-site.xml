@@ -19,66 +19,48 @@
  * limitations under the License.
  */
 -->
-<configuration supports_final="false">
+<configuration supports_final="false" supports_do_not_extend="true">
 
   <property>
-    <name>policymgr_http_enabled</name>
-    <deleted>true</deleted>
+    <name>http.service.port</name>
+    <value>6080</value>
+    <description>The http port to be used</description>
   </property>
 
   <property>
-    <name>authentication_method</name>
-    <deleted>true</deleted>
+    <name>https.service.port</name>
+    <value>6182</value>
+    <description>The secured https port to be used</description>
   </property>
 
   <property>
-    <name>remoteLoginEnabled</name>
-    <deleted>true</deleted>
+    <name>https.attrib.keystoreFile</name>
+    <value>/etc/ranger/admin/keys/server.jks</value>
+    <description>The keystore file location</description>
   </property>
 
   <property>
-    <name>authServiceHostName</name>
-    <deleted>true</deleted>
+    <name>https.attrib.keystorePass</name>
+    <value>ranger</value>
+    <description>The keystore pass to be used </description>
   </property>
 
   <property>
-    <name>authServicePort</name>
-    <deleted>true</deleted>
+    <name>https.attrib.keyAlias</name>
+    <value>myKey</value>
+    <description>The key alias to be used </description>
   </property>
 
   <property>
-    <name>xa_ldap_url</name>
-    <deleted>true</deleted>
+    <name>https.attrib.clientAuth</name>
+    <value>want</value>
+    <description>The client auth to be used </description>
   </property>
 
   <property>
-    <name>xa_ldap_userDNpattern</name>
-    <deleted>true</deleted>
-  </property>
-
-  <property>
-    <name>xa_ldap_groupSearchBase</name>
-    <deleted>true</deleted>
-  </property>
-
-  <property>
-    <name>xa_ldap_groupSearchFilter</name>
-    <deleted>true</deleted>
-  </property>
-
-  <property>
-    <name>xa_ldap_groupRoleAttribute</name>
-    <deleted>true</deleted>
-  </property>
-
-  <property>
-    <name>xa_ldap_ad_domain</name>
-    <deleted>true</deleted>
-  </property>
-
-  <property>
-    <name>xa_ldap_ad_url</name>
-    <deleted>true</deleted>
+    <name>http.enabled</name>
+    <value>true</value>
+    <description>http enabled or https enabled </description>
   </property>
 
 </configuration>

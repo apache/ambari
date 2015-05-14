@@ -171,7 +171,9 @@
             "ranger_admin_username": "amb_ranger_admin", 
             "admin_password": "admin", 
             "ranger_admin_log_dir": "/var/log/ranger/admin", 
-            "ranger_usersync_log_dir": "/var/log/ranger/usersync"
+            "ranger_usersync_log_dir": "/var/log/ranger/usersync",
+            "xml_configurations_supported" : false
+
         }, 
         "spark-javaopts-properties": {
             "content": " "

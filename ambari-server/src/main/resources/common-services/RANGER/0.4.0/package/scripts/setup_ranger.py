@@ -23,6 +23,13 @@ import os
 from resource_management import *
 from resource_management.core.logger import Logger
 
+def ranger(name=None):
+  if name == 'ranger_admin':
+    setup_ranger_admin()
+
+  if name == 'ranger_usersync':
+    setup_usersync()
+
 def setup_ranger_admin():
   import params
 

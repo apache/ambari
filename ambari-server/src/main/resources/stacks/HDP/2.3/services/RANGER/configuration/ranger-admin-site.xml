@@ -1,0 +1,227 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one or more
+  contributor license agreements.  See the NOTICE file distributed with
+  this work for additional information regarding copyright ownership.
+  The ASF licenses this file to You under the Apache License, Version 2.0
+  (the "License"); you may not use this file except in compliance with
+  the License.  You may obtain a copy of the License at
+
+      http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<configuration supports_final="true">
+
+  <property>
+    <name>ranger.service.host</name>
+    <value>{{ranger_host}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.service.http.enabled</name>
+    <value>true</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.service.http.port</name>
+    <value>6080</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.service.https.port</name>
+    <value>6182</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.service.https.attrib.ssl.enabled</name>
+    <value>false</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.service.https.attrib.clientAuth</name>
+    <value>false</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.service.https.attrib.keystore.keyalias</name>
+    <value>mkey</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.service.https.attrib.keystore.pass</name>
+    <value>ranger</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.https.attrib.keystore.file</name>
+    <value>/etc/ranger/admin/keys/server.jks</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.externalurl</name>
+    <value>{{ranger_external_url}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.jdbc.driver</name>
+    <value>net.sf.log4jdbc.DriverSpy</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.jdbc.url</name>
+    <value>jdbc:log4jdbc:{{db_flavor}}://{{db_host}}/{{ranger_db_name}}</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.jpa.jdbc.user</name>
+    <value>{{ranger_db_user}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.jdbc.password</name>
+    <value>_</value>
+    <property-type>PASSWORD</property-type>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.jdbc.credential.alias</name>
+    <value>rangeradmin</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.credential.provider.path</name>
+    <value>/etc/ranger/admin/rangeradmin.jceks</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.audit.source.type</name>
+    <value>db</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.solr.url</name>
+    <value>http://solr_host:6083/solr/ranger_audits</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.authentication.method</name>
+    <value>UNIX</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.url</name>
+    <value>ldap://71.127.43.33:389</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.ldap.user.dnpattern</name>
+    <value>uid={0},ou=users,dc=xasecure,dc=net</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.group.searchbase</name>
+    <value>ou=groups,dc=xasecure,dc=net</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.group.searchfilter</name>
+    <value>(member=uid={0},ou=users,dc=xasecure,dc=net)</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.group.roleattribute</name>
+    <value>cn</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.domain</name>
+    <value>localhost</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.ldap.ad.url</name>
+    <value>ldap://ad.xasecure.net:389</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.audit.jdbc.driver</name>
+    <value>net.sf.log4jdbc.DriverSpy</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.audit.jdbc.url</name>
+    <value>jdbc:log4jdbc:{{db_flavor}}://{{db_host}}/{{ranger_auditdb_name}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.audit.jdbc.user</name>
+    <value>{{ranger_audit_db_user}}</value>
+    <description></description>
+  </property> 
+
+  <property>
+    <name>ranger.jpa.audit.jdbc.password</name>
+    <value>_</value>
+    <property-type>PASSWORD</property-type>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.audit.jdbc.credential.alias</name>
+    <value>rangeraudit</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.unixauth.remote.login.enabled</name>
+    <value>true</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.unixauth.service.hostname</name>
+    <value>localhost</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.unixauth.service.port</name>
+    <value>5151</value>
+    <description></description>
+  </property>    
+
+</configuration>

@@ -198,7 +198,10 @@
       },
       "ranger-hive-plugin-properties": {
             "ranger-hive-plugin-enabled":"yes"
-       }
+       },
+      "ranger-env": {
+            "xml_configurations_supported" : "true"
+      }
     },
     "configuration_attributes": {
         "yarn-site": {

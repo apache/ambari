@@ -155,16 +155,15 @@ if security_enabled:
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 # ranger knox properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_knox'
 
@@ -172,7 +171,6 @@ knox_home = config['configurations']['ranger-knox-plugin-properties']['KNOX_HOME
 common_name_for_certificate = config['configurations']['ranger-knox-plugin-properties']['common.name.for.certificate']
 
 repo_config_username = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
-repo_config_password = config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
 ranger_env = config['configurations']['ranger-env']
 ranger_plugin_properties = config['configurations']['ranger-knox-plugin-properties']
@@ -183,17 +181,20 @@ jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
 if has_ranger_admin:
   enable_ranger_knox = (config['configurations']['ranger-knox-plugin-properties']['ranger-knox-plugin-enabled'].lower() == 'yes')
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  repo_config_password = unicode(config['configurations']['ranger-knox-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
+  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
 
-  if xa_audit_db_flavor.lower() == 'mysql':
+  if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
-  elif xa_audit_db_flavor.lower() == 'oracle':
+  elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'sqlserver':
+  elif xa_audit_db_flavor == 'sqlserver':
     jdbc_jar_name = "sqljdbc4.jar"
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
@@ -217,3 +218,11 @@ if has_ranger_admin:
     'repositoryType': 'knox',
     'assetType': '5',
     }
+
+  if xml_configurations_supported:
+    xa_audit_db_is_enabled = config['configurations']['ranger-knox-audit']['xasecure.audit.db.is.enabled']
+    ssl_keystore_file_path = config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.keystore']
+    ssl_truststore_file_path = config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.truststore']
+    ssl_keystore_password = unicode(config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
+    ssl_truststore_password = unicode(config['configurations']['ranger-knox-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+    credential_file = format('/etc/ranger/{repo_name}/cred.jceks') 

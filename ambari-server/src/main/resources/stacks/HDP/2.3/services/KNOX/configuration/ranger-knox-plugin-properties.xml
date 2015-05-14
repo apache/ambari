@@ -21,27 +21,128 @@
 <configuration supports_final="true">
 
   <property>
-    <name>XAAUDIT.SOLR.IS_ENABLED</name>
-    <value>false</value>
-    <description></description>
+    <name>XAAUDIT.DB.IS_ENABLED</name>
+    <deleted>true</deleted>
   </property>
 
   <property>
-    <name>XAAUDIT.SOLR.MAX_QUEUE_SIZE</name>
-    <value>1</value>
-    <description></description>
+    <name>XAAUDIT.HDFS.IS_ENABLED</name>
+    <deleted>true</deleted>
   </property>
 
   <property>
-    <name>XAAUDIT.SOLR.MAX_FLUSH_INTERVAL_MS</name>
-    <value>1000</value>
-    <description></description>
+    <name>XAAUDIT.HDFS.DESTINATION_DIRECTORY</name>
+    <deleted>true</deleted>
   </property>
 
   <property>
-    <name>XAAUDIT.SOLR.SOLR_URL</name>
-    <value>http://localhost:6083/solr/ranger_audits</value>
-    <description></description>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_FILE</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_FILE</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>SSL_KEYSTORE_FILE_PATH</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>SSL_KEYSTORE_PASSWORD</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>SSL_TRUSTSTORE_FILE_PATH</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>SSL_TRUSTSTORE_PASSWORD</name>
+    <deleted>true</deleted>
+  </property>
+  
+  <property>
+    <name>POLICY_MGR_URL</name>
+    <deleted>true</deleted>    
+  </property> 
+  
+  <property>
+    <name>SQL_CONNECTOR_JAR</name>
+    <deleted>true</deleted>  
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.FLAVOUR</name>
+    <deleted>true</deleted>    
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.DATABASE_NAME</name>
+    <deleted>true</deleted>   
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.USER_NAME</name>
+    <deleted>true</deleted>   
+  </property> 
+  
+  <property>
+    <name>XAAUDIT.DB.PASSWORD</name>
+    <deleted>true</deleted>    
+  </property>
+  
+  <property>
+    <name>XAAUDIT.DB.HOSTNAME</name>
+    <deleted>true</deleted>   
+  </property>
+  
+  <property>
+    <name>REPOSITORY_NAME</name>
+    <deleted>true</deleted>    
   </property>
 
 </configuration>

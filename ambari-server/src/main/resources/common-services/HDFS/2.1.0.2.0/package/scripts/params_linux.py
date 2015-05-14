@@ -332,16 +332,14 @@ mapred_log_dir_prefix = default("/configurations/mapred-env/mapred_log_dir_prefi
 # ranger host
 ranger_admin_hosts = default("/clusterHostInfo/ranger_admin_hosts", [])
 has_ranger_admin = not len(ranger_admin_hosts) == 0
-
+xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 ambari_server_hostname = config['clusterHostInfo']['ambari_server_host'][0]
 
 #ranger hdfs properties
 policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
 sql_connector_jar = config['configurations']['admin-properties']['SQL_CONNECTOR_JAR']
-xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
 xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
 xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
 xa_db_host = config['configurations']['admin-properties']['db_host']
 repo_name = str(config['clusterName']) + '_hadoop'
 
@@ -353,7 +351,6 @@ hadoop_rpc_protection = config['configurations']['ranger-hdfs-plugin-properties'
 common_name_for_certificate = config['configurations']['ranger-hdfs-plugin-properties']['common.name.for.certificate']
 
 repo_config_username = config['configurations']['ranger-hdfs-plugin-properties']['REPOSITORY_CONFIG_USERNAME']
-repo_config_password = config['configurations']['ranger-hdfs-plugin-properties']['REPOSITORY_CONFIG_PASSWORD']
 
 if security_enabled:
   sn_principal_name = default("/configurations/hdfs-site/dfs.secondary.namenode.kerberos.principal", "nn/_HOST@EXAMPLE.COM")
@@ -366,24 +363,27 @@ policy_user = config['configurations']['ranger-hdfs-plugin-properties']['policy_
 #For curl command in ranger plugin to get db connector
 jdk_location = config['hostLevelParams']['jdk_location']
 java_share_dir = '/usr/share/java'
+
 if has_ranger_admin:
   enable_ranger_hdfs = (config['configurations']['ranger-hdfs-plugin-properties']['ranger-hdfs-plugin-enabled'].lower() == 'yes')
-  
-  if xa_audit_db_flavor.lower() == 'mysql':
+  xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  repo_config_password = unicode(config['configurations']['ranger-hdfs-plugin-properties']['REPOSITORY_CONFIG_PASSWORD'])
+  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+
+  if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
-  elif xa_audit_db_flavor.lower() == 'oracle':
+  elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'postgres':
+  elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'sqlserver':
+  elif xa_audit_db_flavor == 'sqlserver':
     jdbc_jar_name = "sqljdbc4.jar"
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
 
   downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
-  
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
   driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
@@ -400,7 +400,7 @@ if has_ranger_admin:
     'dfs.namenode.kerberos.principal': nn_principal_name if security_enabled else '',
     'dfs.secondary.namenode.kerberos.principal': sn_principal_name if security_enabled else ''
   }
-  
+
   hdfs_ranger_plugin_repo = {
     'isActive': 'true',
     'config': json.dumps(hdfs_ranger_plugin_config),
@@ -409,3 +409,11 @@ if has_ranger_admin:
     'repositoryType': 'hdfs',
     'assetType': '1'
   }
+  
+  if xml_configurations_supported:
+    xa_audit_db_is_enabled = config['configurations']['ranger-hdfs-audit']['xasecure.audit.db.is.enabled']
+    ssl_keystore_file_path = config['configurations']['ranger-hdfs-policymgr-ssl']['xasecure.policymgr.clientssl.keystore']
+    ssl_truststore_file_path = config['configurations']['ranger-hdfs-policymgr-ssl']['xasecure.policymgr.clientssl.truststore']
+    ssl_keystore_password = unicode(config['configurations']['ranger-hdfs-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
+    ssl_truststore_password = unicode(config['configurations']['ranger-hdfs-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
+    credential_file = format('/etc/ranger/{repo_name}/cred.jceks')

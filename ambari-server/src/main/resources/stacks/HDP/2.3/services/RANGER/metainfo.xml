@@ -23,7 +23,10 @@
   <services>
     <service>
       <name>RANGER</name>
+      <displayName>Ranger</displayName>
+      <comment>Comprehensive security for Hadoop</comment>
       <version>0.5.0.2.3</version>
+
       <osSpecifics>
         <osSpecific>
           <osFamily>redhat7,redhat6,suse11</osFamily>
@@ -48,6 +51,11 @@
           </packages>
         </osSpecific>
       </osSpecifics>
+
+      <configuration-dependencies>
+        <config-type>ranger-admin-site</config-type>
+        <config-type>ranger-ugsync-site</config-type>
+      </configuration-dependencies>
 
     </service>
   </services>

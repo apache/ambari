@@ -24,7 +24,6 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from ranger_service import ranger_service
-from setup_ranger import setup_usersync
 import upgrade
 
 class RangerUsersync(Script):
@@ -36,8 +35,13 @@ class RangerUsersync(Script):
   def configure(self, env):
     import params
     env.set_params(params)
+
+    if params.xml_configurations_supported:
+      from setup_ranger_xml import ranger
+    else:
+      from setup_ranger import ranger    
     
-    setup_usersync()
+    ranger('ranger_usersync')
     
   def start(self, env, rolling_restart=False):
     import params
