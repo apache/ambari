@@ -22,7 +22,6 @@ var hdp22properties = require('data/HDP2.2/site_properties').configProperties;
 
 var excludedConfigs = [
   'DB_FLAVOR',
-  'db_host',
   'SQL_COMMAND_INVOKER',
   'db_name',
   'db_root_user',
@@ -164,20 +163,6 @@ hdp23properties.push({
     "filename": "admin-properties.xml",
     "category": "DBSettings",
     "index": 0
-  },
-  {
-    "name": "db_host",
-    "id": "site property",
-    "displayName": "Ranger DB host",
-    "defaultValue": "",
-    "isObserved": true,
-    "isReconfigurable": true,
-    "displayType": "masterHost",
-    "isOverridable": false,
-    "isVisible": false,
-    "serviceName": "RANGER",
-    "filename": "admin-properties.xml",
-    "category": "DBSettings"
   },
   /**************************************** RANGER - HDFS Plugin ***************************************/
   {
