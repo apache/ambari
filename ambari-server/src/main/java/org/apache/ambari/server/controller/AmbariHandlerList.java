@@ -236,6 +236,7 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.setSessionHandler(new SharedSessionHandler(sessionManager));
     webAppContext.addFilter(new FilterHolder(persistFilter), "/*", 1);
     webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
+    webAppContext.setAllowNullPathInfo(true);
 
     return webAppContext;
   }

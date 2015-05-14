@@ -71,6 +71,7 @@ public class AmbariHandlerListTest {
 
     handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(1));
     handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(1));
+    handler.setAllowNullPathInfo(true);
 
     replay(handler, server);
 
