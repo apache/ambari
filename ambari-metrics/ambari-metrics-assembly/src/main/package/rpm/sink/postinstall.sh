@@ -32,9 +32,5 @@ LINKS=(${HADOOP_LINK_NAME} ${FLUME_LINK_NAME} ${KAFKA_LINK_NAME})
 
 for index in ${!LINKS[*]}
 do
-  if [ -e "${LINKS[$index]}" ]; then
-    rm -f ${LINKS[$index]}
-  fi
-
-  ln -s ${JARS[$index]} ${LINKS[$index]}
+  rm -f ${LINKS[$index]} ; ln -s ${JARS[$index]} ${LINKS[$index]}
 done
