@@ -59,22 +59,37 @@ class OozieServiceCheckDefault(OozieServiceCheck):
 
     os_family = System.get_instance().os_family
     oozie_examples_dir = glob.glob(params.oozie_examples_regex)[0]
-    
+
     Execute(format("{tmp_dir}/{prepare_hdfs_file_name} {conf_dir} {oozie_examples_dir} {hadoop_conf_dir} "),
             tries=3,
             try_sleep=5,
             logoutput=True
     )
-    
-    params.HdfsResource(format('/user/{smokeuser}/examples'),
+
+    examples_dir = format('/user/{smokeuser}/examples')
+    params.HdfsResource(examples_dir,
+                        action = "delete_on_execute",
+                        type = "directory"
+    )
+    params.HdfsResource(examples_dir,
       action = "create_on_execute",
       type = "directory",
       source = format("{oozie_examples_dir}/examples"),
+      owner = params.smokeuser,
+      group = params.user_group
     )
-    params.HdfsResource(format('/user/{smokeuser}/input-data'),
+
+    input_data_dir = format('/user/{smokeuser}/input-data')
+    params.HdfsResource(input_data_dir,
+                        action = "delete_on_execute",
+                        type = "directory"
+    )
+    params.HdfsResource(input_data_dir,
       action = "create_on_execute",
       type = "directory",
       source = format("{oozie_examples_dir}/examples/input-data"),
+      owner = params.smokeuser,
+      group = params.user_group
     )
     params.HdfsResource(None, action="execute")
 
@@ -84,7 +99,7 @@ class OozieServiceCheckDefault(OozieServiceCheck):
     else:
       sh_cmd = format(
         "{tmp_dir}/{file_name} {os_family} {oozie_lib_dir} {conf_dir} {oozie_bin_dir} {oozie_examples_dir} {hadoop_conf_dir} {hadoop_bin_dir} {smokeuser} {security_enabled}")
-    
+
     Execute(sh_cmd,
             path=params.execute_path,
             tries=3,

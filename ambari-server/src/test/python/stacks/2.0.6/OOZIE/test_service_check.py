@@ -70,9 +70,31 @@ class TestServiceCheck(RMFTestCase):
         hadoop_bin_dir = '/usr/bin',
         keytab = UnknownConfigurationMock(),
         kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['delete_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/examples',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
         source = '//examples',
         user = 'hdfs',
         action = ['create_on_execute'],
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        owner = 'ambari-qa',
+        group = 'hadoop'
+    )
+    self.assertResourceCalled('HdfsResource', '/user/ambari-qa/input-data',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        action = ['delete_on_execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
     )
@@ -86,6 +108,8 @@ class TestServiceCheck(RMFTestCase):
         action = ['create_on_execute'],
         hadoop_conf_dir = '/etc/hadoop/conf',
         type = 'directory',
+        owner = 'ambari-qa',
+        group = 'hadoop'
     )
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
