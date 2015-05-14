@@ -4634,7 +4634,7 @@ ul.inline li {
   }
   // when the scree is narrow, the popup modal width is adjustable
   .full-width-modal {
-    .modal{
+    .modal {
       width: 90%;
       margin: 350px 0 0 -45%;
     }
@@ -4763,6 +4763,36 @@ i.icon-asterisks {
   white-space: nowrap;
 }
 
+@installer-container-width: 1236px;
+@installer-container-margin: 20px;
+#main {
+  &.install-wizard-content {
+    .main-container {
+      min-width: @installer-container-width + 2*@installer-container-margin;
+    }
+    .wizard {
+      .container {
+        width: @installer-container-width;
+      }
+    }
+  }
+}
+
+#wrapper {
+  .full-width-modal {
+    &.add-service-wizard-modal {
+      .modal {
+        width: @installer-container-width + 2*@installer-container-margin;
+        margin: -350px 0 0 -(@installer-container-width + @installer-container-margin)/2;
+      }
+      .wizard {
+        .container {
+          width: @installer-container-width;
+        }
+      }
+    }
+  }
+}
 //styles for screen width more than 1200px
 @media (min-width: 1200px) {
 

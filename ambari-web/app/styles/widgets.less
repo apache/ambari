@@ -18,7 +18,7 @@
 @import 'common.less';
 
 @undo-btn-margin: 10px;
-@controls-min-width: 39px;
+@controls-min-width: 55px;
 @combo-widget-width: 100px;
 @green: #6ebd45;
 @slider-light-grey: #e6e6e6;
@@ -245,6 +245,8 @@
   .ui-slider-wrapper {
     .ui-slider-wrapper-inner {
       width: 68%;
+      width: calc(~"100% - 30px -"@controls-min-width);
+      max-width: 68%;
       padding-left: 10px;
       .slider.slider-horizontal {
         width: 100%;

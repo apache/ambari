@@ -29,7 +29,7 @@ module.exports = App.WizardRoute.extend({
         var addServiceController = router.get('addServiceController');
         App.router.get('updateController').set('isWorking', false);
         var popup = App.ModalPopup.show({
-          classNames: ['full-width-modal'],
+          classNames: ['full-width-modal', 'add-service-wizard-modal'],
           header:Em.I18n.t('services.add.header'),
           bodyClass:  App.AddServiceView.extend({
             controllerBinding: 'App.router.addServiceController'

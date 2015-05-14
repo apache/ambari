@@ -23,16 +23,15 @@
     </div>
   {{/if}}
   <div class="widget-config-controls">
+    <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::not-show"}}>
+      <a href="#"
+        {{bindAttr class=":widget-action :widget-action-undo view.undoAllowed::not-show"}}
+        data-toggle="tooltip" {{translateAttr data-original-title="common.undo"}}
+        {{action "restoreValue" target="view"}}>
+         <i class="icon-undo"></i>
+      </a>
+    </div>
     <div class="widget-col left">
-      {{#if view.config.isNotDefaultValue}}
-        {{#if view.undoAllowed}}
-            <a class="widget-action widget-action-undo" href="#"
-               data-toggle="tooltip" {{translateAttr data-original-title="common.undo"}}
-               {{action "restoreValue" target="view"}}>
-            <i class="icon-undo"></i>
-          </a>
-        {{/if}}
-      {{/if}}
       {{#if view.showPencil}}
         {{#if view.isWidgetViewAllowed}}
           <a href="#"
