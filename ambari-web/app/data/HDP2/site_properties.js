@@ -1932,17 +1932,6 @@ var hdp2properties = [
   },
   {
     "id": "site property",
-    "name": "accumulo_user",
-    "displayName": "Accumulo process user",
-    "displayType": "user",
-    "isOverridable": false,
-    "isReconfigurable": false,
-    "serviceName": "ACCUMULO",
-    "filename": "accumulo-env.xml",
-    "category": "General"
-  },
-  {
-    "id": "site property",
     "name": "accumulo_root_password",
     "displayName": "Accumulo root password",
     "displayType": "password",
