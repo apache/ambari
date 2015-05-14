@@ -205,6 +205,8 @@ App.ServiceConfigView = Em.View.extend({
           var subsectionRow = subsectionRows[subsection.get('rowIndex')];
           if (!subsectionRow) { subsectionRow = subsectionRows[subsection.get('rowIndex')] = []; }
           subsectionRow.push(subsection);
+          // leave a title gap if one of the subsection on the same row within the same section has title
+          if (subsection.get('displayName')) {subsectionRow.hasTitleGap = true;}
         }
         section.set('subsectionRows', subsectionRows);
       }

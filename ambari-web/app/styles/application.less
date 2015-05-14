@@ -5662,7 +5662,7 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
           overflow: visible;
           height: 100%;
           padding: 18px;
-          border: 1px solid #aaa;
+          border: 1px solid #e4e4e4;
           vertical-align: top;
           h4 {
             margin: 0px;
@@ -5672,18 +5672,6 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
           h5 {
             font-size: 18px;
             font-weight: 400;
-          }
-          .vertical-splitter-r {
-            border-right: 2px solid #ccc; // vertical splitter
-            padding-right: 20px;
-            padding-left: 0px;
-          }
-
-          .vertical-splitter-l {
-            border-left: 2px solid #ccc; // vertical splitter
-            margin-left: -2px;
-            padding-left: 20px;
-            padding-right: 0px;
           }
           div.with-border {
             border: 1px solid #aaa;
@@ -5696,19 +5684,35 @@ input[type="radio"].align-checkbox, input[type="checkbox"].align-checkbox {
             height: ~"calc(100% - 30px)";
             border-collapse: separate;
             table-layout: fixed;
+            @-moz-document url-prefix() { // for firefox only AMBARI-10985
+              .config-subsection {
+                height: 100% !important;
+              }
+            }
             .config-subsection {
               padding: 0px;
               vertical-align: top;
+              height: 0px; // td with height set allows inner div to have % height AMBARI-10985
+              .vertical-splitter-l {
+                border-left: 1px solid #e4e4e4; // vertical splitter
+                margin-left: -2px;
+                padding-left: 20px;
+                padding-right: 0px;
+                height: 88%;
+              }
               &.no-horizontal-splitter {
                 border-bottom: none; // no horizontal splitter for subsection on the last row
               }
               &.top-horizontal-splitter {
-                border-top: 2px solid #ccc; // horizontal splitter
+                border-top: 1px solid #e4e4e4; // horizontal splitter
                 padding-top: 15px;
                 padding-bottom: 15px;
               }
               .directories {
                 min-width: 0px !important;
+              }
+              .subsection-display-name {
+                padding-top: 5px;
               }
             }
           }

@@ -224,6 +224,8 @@
   }
   .slider-tick-label-container {
     margin-top: 0;
+    position: relative;
+    z-index: -1; // prevent it from covering up other widgets
   }
   .slider-tick-label {
     color: @slider-widget-tick-label-color;

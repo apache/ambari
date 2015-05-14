@@ -30,9 +30,14 @@
                   <tr>
                     {{#each subsection in subRow}}
                       <td {{bindAttr class="subsection.isHiddenByFilter:invisible subsection.showTopSplitter:top-horizontal-splitter:no-horizontal-splitter :config-subsection" colspan="subsection.columnSpan" rowspan="subsection.rowSpan"}}>
-                        <div {{bindAttr class="subsection.addLeftVerticalSplitter:vertical-splitter-l subsection.addRightVerticalSplitter:vertical-splitter-r"}}>
+                        <div {{bindAttr class="subsection.addLeftVerticalSplitter:vertical-splitter-l"}}>
                           <div {{bindAttr class="subsection.border:with-border"}}>
-                            <h5>{{subsection.displayName}}&nbsp;</h5>
+                            <h5 class="subsection-display-name">
+                              {{subsection.displayName}}
+                              {{#if subRow.hasTitleGap}}
+                                &nbsp;
+                              {{/if}}
+                            </h5>
                             {{#each config in subsection.configs}}
                               {{#if config.widget}}
                                 {{#unless config.isHiddenByFilter}}
