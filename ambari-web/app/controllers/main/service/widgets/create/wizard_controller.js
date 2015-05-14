@@ -354,8 +354,8 @@ App.WidgetWizardController = App.WizardController.extend({
     this.finish();
     this.get('popup').hide();
     var serviceName = this.get('content.widgetService');
-    var service = App.Service.find().findProperty('serviceName', serviceName);
-    App.router.transitionTo('main.services.service', service);
+    var service = App.Service.find(serviceName);
+    App.router.transitionTo('main.services.service.summary', service);
     if (!App.get('testMode')) {
       App.clusterStatus.setClusterStatus({
         clusterName: App.router.getClusterName(),

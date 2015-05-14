@@ -580,7 +580,10 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * create widget
    */
   createWidget: function () {
-    App.router.send('addServiceWidget', this.get('activeWidgetLayout.widgets').objectAt(0));
+    App.router.send('addServiceWidget', Em.Object.create({
+      layout: this.get('activeWidgetLayout'),
+      serviceName: this.get('content.serviceName')
+    }));
   },
 
   /**
@@ -588,6 +591,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * @param {App.Widget} content
    */
   editWidget: function (content) {
+    content.set('serviceName', this.get('content.serviceName'));
     App.router.send('editServiceWidget', content);
   },
 
