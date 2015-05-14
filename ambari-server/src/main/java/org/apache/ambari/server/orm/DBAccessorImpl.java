@@ -630,12 +630,19 @@ public class DBAccessorImpl implements DBAccessor {
   @Override
   public List<String> getIndexesList(String tableName, boolean unique)
       throws SQLException{
+    // Convert table names to uppercase, as Oracle is case sensitive.
+    if (getDbType() == DbType.ORACLE) {
+     tableName = tableName.toUpperCase();
+    }
     ResultSet rs = getDatabaseMetaData().getIndexInfo(null, null, tableName, unique, false);
     List<String> index_list = new ArrayList<String>();
     if (rs != null){
       try{
         while (rs.next()) {
-          index_list.add(rs.getString("index_name"));
+          String indexName = rs.getString("INDEX_NAME");
+          if (indexName != null) {  // hack for Oracle database, as she could return null values
+            index_list.add(indexName);
+          }
         }
       }finally {
         rs.close();
