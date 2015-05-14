@@ -21,7 +21,6 @@
   <target>2.3.*.*</target>
   <target-stack>HDP-2.3</target-stack>
   <order>
-
     <group xsi:type="cluster" name="PRE_CLUSTER" title="Prepare Backups">
       <direction>UPGRADE</direction>
       <execute-stage service="HDFS" component="NAMENODE" title="Pre Upgrade HDFS">
@@ -63,7 +62,7 @@
         <component>ZOOKEEPER_SERVER</component>
       </service>
     </group>
-    
+
     <group name="RANGER" title="Ranger">
       <skippable>true</skippable>
       <service name="RANGER">
@@ -91,9 +90,9 @@
       <service name="HBASE">
         <component>HBASE_MASTER</component>
       </service>
-      
+
     </group>
-    
+
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
@@ -107,13 +106,13 @@
         <service>AMBARI_METRICS</service>
       </exclude>
     </group>
-    
+
     <group name="CORE_SLAVES" title="Core Slaves" xsi:type="colocated">
       <service-check>false</service-check>
       <service name="HDFS">
         <component>DATANODE</component>
       </service>
-      
+
       <service name="HBASE">
         <component>HBASE_REGIONSERVER</component>
       </service>
@@ -128,7 +127,7 @@
         <message>The initial batch of {{components}} hosts have been {{direction.past}}. You are advised to check the hosts and perform cluster/workload-specific tests against your cluster to ensure proper operation before proceeding with {{direction.text}} of the remaining services.</message>
       </batch>
     </group>
-    
+
     <group name="SERVICE_CHECK" title="All Service Checks" xsi:type="service-check">
       <skippable>true</skippable>
       <direction>UPGRADE</direction>
@@ -266,7 +265,6 @@
       </service>
     </group>
 
-
     <group xsi:type="cluster" name="POST_CLUSTER" title="Finalize {{direction.text.proper}}">
       <skippable>true</skippable>
       <execute-stage title="Check Unhealthy Hosts" id="unhealthy-hosts">
@@ -274,7 +272,7 @@
           <message>The following hosts were unhealthy and should be resolved before finalizing can be completed: {{hosts.unhealthy}}</message>
         </task>
       </execute-stage>
-      
+
       <execute-stage title="Confirm Finalize">
         <direction>UPGRADE</direction>
         <task xsi:type="manual">
@@ -577,6 +575,30 @@
 
     <service name="OOZIE">
       <component name="OOZIE_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <summary>Updating oozie-site to remove redundant configurations</summary>
+            <type>oozie-site</type>
+            <transfer operation="DELETE" delete-key="*" preserve-edits="true">
+              <keep-key>oozie.base.url</keep-key>
+              <keep-key>oozie.services.ext</keep-key>
+              <keep-key>oozie.db.schema.name</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.username</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.password</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.driver</keep-key>
+              <keep-key>oozie.service.JPAService.jdbc.url</keep-key>
+              <keep-key>oozie.service.AuthorizationService.security.enabled</keep-key>
+              <keep-key>oozie.authentication.type</keep-key>
+              <keep-key>oozie.authentication.simple.anonymous.allowed</keep-key>
+              <keep-key>oozie.authentication.kerberos.name.rules</keep-key>
+              <keep-key>oozie.credentials.credentialclasses</keep-key>
+              <keep-key>oozie.service.AuthorizationService.authorization.enabled</keep-key>
+              <keep-key>oozie.service.HadoopAccessorService.hadoop.configurations</keep-key>
+              <keep-key>oozie.service.HadoopAccessorService.kerberos.enabled</keep-key>
+              <keep-key>oozie.service.URIHandlerService.uri.handlers</keep-key>
+            </transfer>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -590,6 +612,18 @@
 
     <service name="FALCON">
       <component name="FALCON_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>oozie-site</type>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-job-submit-instances" to-key="oozie.service.ELService.ext.functions.coord-job-submit-instances"/>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-action-create-inst" to-key="oozie.service.ELService.ext.functions.coord-action-create-inst"/>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-action-create" to-key="oozie.service.ELService.ext.functions.coord-action-create"/>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-job-submit-data" to-key="oozie.service.ELService.ext.functions.coord-job-submit-data"/>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-action-start" to-key="oozie.service.ELService.ext.functions.coord-action-start"/>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-sla-submit" to-key="oozie.service.ELService.ext.functions.coord-sla-submit"/>
+            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-sla-create" to-key="oozie.service.ELService.ext.functions.coord-sla-create"/>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

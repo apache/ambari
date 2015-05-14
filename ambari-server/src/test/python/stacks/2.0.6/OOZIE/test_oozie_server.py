@@ -255,6 +255,7 @@ class TestOozieServer(RMFTestCase):
         path = ['/usr/bin:/usr/bin'],
         )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-start.sh',
+        environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
         not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
         )
@@ -270,6 +271,7 @@ class TestOozieServer(RMFTestCase):
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
+        environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
         only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
     )
@@ -312,6 +314,7 @@ class TestOozieServer(RMFTestCase):
                               path = ['/usr/bin:/usr/bin'],
                               )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-start.sh',
+                              environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
                               not_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
                               user = 'oozie',
                               )
@@ -326,6 +329,7 @@ class TestOozieServer(RMFTestCase):
                          target = RMFTestCase.TARGET_COMMON_SERVICES
     )
     self.assertResourceCalled('Execute', 'cd /var/tmp/oozie && /usr/lib/oozie/bin/oozie-stop.sh',
+        environment = {'OOZIE_CONFIG': '/etc/oozie/conf'},
         only_if = 'ls /var/run/oozie/oozie.pid >/dev/null 2>&1 && ps -p `cat /var/run/oozie/oozie.pid` >/dev/null 2>&1',
         user = 'oozie',
     )

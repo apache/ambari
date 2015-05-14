@@ -1041,10 +1041,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
             detail.append(String.format("/%s to %s", key, value));
           }
 
-          if (!transfers.isEmpty()) {
-            detail.append(String.format("; transferring %d properties", transfers.size()));
-          }
-
           itemDetail = detail.toString();
 
           if (null != ct.summary) {

@@ -21,7 +21,9 @@ import json
 from resource_management import *
 from stacks.utils.RMFTestCase import *
 from mock.mock import patch
+from mock.mock import MagicMock
 
+@patch("platform.linux_distribution", new = MagicMock(return_value="Linux"))
 class TestKnoxGateway(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "KNOX/0.5.0.2.2/package"
   STACK_VERSION = "2.2"

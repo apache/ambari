@@ -209,7 +209,9 @@ public class ConfigureAction extends AbstractServerAction {
               changedValues = true;
 
               // append standard output
-              outputBuffer.append(MessageFormat.format("Copied {0}/{1}\n", configType, key));
+              outputBuffer.append(MessageFormat.format("Copied {0}/{1}\n", configType,
+                  transfer.toKey));
+
             } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
               newValues.put(transfer.toKey, transfer.defaultValue);
               changedValues = true;

@@ -39,6 +39,8 @@ OOZIE_URL_KEY = '{{oozie-site/oozie.base.url}}'
 SECURITY_ENABLED = '{{cluster-env/security_enabled}}'
 OOZIE_PRINCIPAL = '{{oozie-site/oozie.authentication.kerberos.principal}}'
 OOZIE_KEYTAB = '{{oozie-site/oozie.authentication.kerberos.keytab}}'
+OOZIE_CONF_DIR = '/usr/hdp/current/oozie-server/conf'
+OOZIE_CONF_DIR_LEGACY = '/etc/oozie/conf'
 
 class KerberosPropertiesNotFound(Exception): pass
 
@@ -107,7 +109,15 @@ def get_check_command(oozie_url, host_name, configurations):
 
       # kinit
       Execute(kinit_command, environment=kerberos_env)
-  command = format("source /etc/oozie/conf/oozie-env.sh ; oozie admin -oozie {oozie_url} -status")
+
+  # oozie configuration directory uses a symlink when > HDP 2.2
+  oozie_config_directory = OOZIE_CONF_DIR_LEGACY
+  if os.path.exists(OOZIE_CONF_DIR):
+    oozie_config_directory = OOZIE_CONF_DIR
+
+  command = "source {0}/oozie-env.sh ; oozie admin -oozie {1} -status".format(
+    oozie_config_directory, oozie_url)
+
   return (command, kerberos_env)
 
 def execute(configurations={}, parameters={}, host_name=None):
