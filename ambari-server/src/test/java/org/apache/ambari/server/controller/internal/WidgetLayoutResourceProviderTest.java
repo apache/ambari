@@ -221,7 +221,15 @@ public class WidgetLayoutResourceProviderTest {
     dao.create(capture(entityCapture));
     expectLastCall();
 
-    replay(amc, clusters, cluster, dao);
+    WidgetEntity widgetEntity = new WidgetEntity();
+    widgetEntity.setId(1L);
+    widgetEntity.setListWidgetLayoutUserWidgetEntity(new ArrayList<WidgetLayoutUserWidgetEntity>());
+    WidgetEntity widgetEntity2 = new WidgetEntity();
+    widgetEntity2.setId(2L);
+    widgetEntity2.setListWidgetLayoutUserWidgetEntity(new ArrayList<WidgetLayoutUserWidgetEntity>());
+    expect(widgetDAO.findById(1L)).andReturn(widgetEntity).atLeastOnce();
+
+    replay(amc, clusters, cluster, dao, widgetDAO);
 
     Map<String, Object> requestProps = new HashMap<String, Object>();
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_CLUSTER_NAME_PROPERTY_ID, "c1");
@@ -231,6 +239,9 @@ public class WidgetLayoutResourceProviderTest {
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_USERNAME_PROPERTY_ID, "admin");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "CLUSTER");
     Set widgetsInfo = new LinkedHashSet();
+    Map<String, String> widget = new HashMap<String, String>();
+    widget.put("id","1");
+    widgetsInfo.add(widget);
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     Request request = PropertyHelper.getCreateRequest(
@@ -255,15 +266,19 @@ public class WidgetLayoutResourceProviderTest {
     String oldLayoutName = entity.getLayoutName();
     String oldScope = entity.getScope();
 
-    resetToStrict(dao);
+    resetToStrict(dao, widgetDAO);
     expect(dao.findById(1L)).andReturn(entity).anyTimes();
     expect(dao.merge((WidgetLayoutEntity) anyObject())).andReturn(entity).anyTimes();
-    replay(dao);
+    expect(widgetDAO.merge(widgetEntity)).andReturn(widgetEntity).anyTimes();
+    expect(widgetDAO.findById(2L)).andReturn(widgetEntity2).anyTimes();
+    replay(dao, widgetDAO);
 
     requestProps = new HashMap<String, Object>();
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_LAYOUT_NAME_PROPERTY_ID, "layout_name_new");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_SCOPE_PROPERTY_ID, "USER");
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_ID_PROPERTY_ID, "1");
+    widget.put("id","2");
+    widgetsInfo.add(widget);
     requestProps.put(WidgetLayoutResourceProvider.WIDGETLAYOUT_WIDGETS_PROPERTY_ID, widgetsInfo);
 
     request = PropertyHelper.getUpdateRequest(requestProps, null);
@@ -273,7 +288,7 @@ public class WidgetLayoutResourceProviderTest {
     Assert.assertFalse(oldLayoutName.equals(entity.getLayoutName()));
     Assert.assertFalse(oldScope.equals(entity.getScope()));
 
-    verify(amc, clusters, cluster, dao);
+    verify(amc, clusters, cluster, dao, widgetDAO);
   }
 
   /**
