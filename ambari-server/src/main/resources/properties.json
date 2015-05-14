@@ -193,7 +193,6 @@
         "Versions/stack-errors",
         "Versions/parent_stack_version",
         "Versions/config_types",
-        "Versions/kerberos_descriptor",
         "Versions/upgrade_packs",
         "_"
     ],
@@ -209,7 +208,6 @@
         "StackServices/service_check_supported",
         "StackServices/custom_commands",
         "StackServices/required_services",
-        "StackServices/kerberos_descriptor",
         "_"
     ],
     "StackConfiguration":[

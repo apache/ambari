@@ -59,7 +59,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
   public static final String STACK_ERROR_SET      = PropertyHelper.getPropertyId("Versions", "stack-errors");
   public static final String STACK_CONFIG_TYPES            = PropertyHelper.getPropertyId("Versions", "config_types");
   public static final String STACK_PARENT_PROPERTY_ID      = PropertyHelper.getPropertyId("Versions", "parent_stack_version");
-  public static final String KERBEROS_DESCRIPTOR_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "kerberos_descriptor");
   public static final String UPGRADE_PACKS_PROPERTY_ID = PropertyHelper.getPropertyId("Versions", "upgrade_packs");
 
   private static Set<String> pkPropertyIds = new HashSet<String>(
@@ -138,18 +137,6 @@ public class StackVersionResourceProvider extends ReadOnlyResourceProvider {
       
       setResourceProperty(resource, UPGRADE_PACKS_PROPERTY_ID,
           response.getUpgradePacks(), requestedIds);
-
-      // TODO (rlevas): Convert this to an official resource
-      KerberosDescriptor kerberosDescriptor;
-      try {
-        kerberosDescriptor = buildKerberosDescriptor(response);
-      } catch (IOException e) {
-        throw new SystemException("Failed to build composite Kerberos descriptor data", e);
-      }
-      if (kerberosDescriptor != null) {
-        setResourceProperty(resource, KERBEROS_DESCRIPTOR_PROPERTY_ID,
-            kerberosDescriptor.toMap(), requestedIds);
-      }
 
       resources.add(resource);
     }

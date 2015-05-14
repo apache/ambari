@@ -71,9 +71,6 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
   private static final String CUSTOM_COMMANDS_PROPERTY_ID = PropertyHelper.getPropertyId(
       "StackServices", "custom_commands");
 
-  private static final String KERBEROS_DESCRIPTOR_PROPERTY_ID = PropertyHelper.getPropertyId(
-      "StackServices", "kerberos_descriptor");
-
   private static Set<String> pkPropertyIds = new HashSet<String>(
       Arrays.asList(new String[] { STACK_NAME_PROPERTY_ID,
           STACK_VERSION_PROPERTY_ID, SERVICE_NAME_PROPERTY_ID }));
@@ -151,21 +148,6 @@ public class StackServiceResourceProvider extends ReadOnlyResourceProvider {
 
       setResourceProperty(resource, CUSTOM_COMMANDS_PROPERTY_ID,
           response.getCustomCommands(), requestedIds);
-
-      // TODO (rlevas): Convert this to an official resource
-      File kerberosDescriptorFile = response.getKerberosDescriptorFile();
-      if (kerberosDescriptorFile != null) {
-        KerberosServiceDescriptor descriptor;
-        try {
-          descriptor = kerberosServiceDescriptorFactory.createInstance(kerberosDescriptorFile, response.getServiceName());
-        } catch (IOException e) {
-          throw new SystemException("Failed to parse the service's Kerberos descriptor", e);
-        }
-
-        if (descriptor != null) {
-          setResourceProperty(resource, KERBEROS_DESCRIPTOR_PROPERTY_ID, descriptor.toMap(), requestedIds);
-        }
-      }
 
       resources.add(resource);
     }
