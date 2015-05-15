@@ -101,6 +101,14 @@
   </property>
 
   <property>
+    <name>spark.yarn.services</name>
+    <value>org.apache.spark.deploy.yarn.history.YarnHistoryService</value>
+    <description>
+      Service required for publishing events to the YARN Application Timeline Service.
+    </description>
+  </property>
+
+  <property>
     <name>spark.history.provider</name>
     <value>org.apache.spark.deploy.yarn.history.YarnHistoryProvider</value>
     <description>
