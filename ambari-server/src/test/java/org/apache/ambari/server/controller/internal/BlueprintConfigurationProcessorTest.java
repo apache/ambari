@@ -456,6 +456,88 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testDoUpdateForBlueprintExport_PasswordFilterApplied() throws Exception {
+    Map<String, Map<String, String>> properties = new HashMap<String, Map<String, String>>();
+    Map<String, String> typeProps = new HashMap<String, String>();
+    typeProps.put("REPOSITORY_CONFIG_PASSWORD", "test-password-one");
+    typeProps.put("SSL_KEYSTORE_PASSWORD", "test-password-two");
+    typeProps.put("SSL_TRUSTSTORE_PASSWORD", "test-password-three");
+    typeProps.put("XAAUDIT.DB.PASSWORD", "test-password-four");
+    typeProps.put("test.ssl.password", "test-password-five");
+    typeProps.put("test.password.should.be.included", "test-another-pwd");
+
+    // create a custom config type, to verify that the filters can
+    // be applied across all config types
+    Map<String, String> customProps = new HashMap<String, String>();
+    customProps.put("my_test_PASSWORD", "should be excluded");
+    customProps.put("PASSWORD_mytest", "should be included");
+
+    properties.put("ranger-yarn-plugin-properties", typeProps);
+    properties.put("custom-test-properties", customProps);
+
+    Configuration clusterConfig = new Configuration(properties,
+      Collections.<String, Map<String, Map<String, String>>>emptyMap());
+
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("NAMENODE");
+    hgComponents.add("SECONDARY_NAMENODE");
+    hgComponents.add("RESOURCEMANAGER");
+    TestHostGroup group1 = new TestHostGroup("group1", hgComponents, Collections.singleton("testhost"));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("DATANODE");
+    hgComponents2.add("HDFS_CLIENT");
+    TestHostGroup group2 = new TestHostGroup("group2", hgComponents2, Collections.singleton("testhost2"));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor configProcessor = new BlueprintConfigurationProcessor(topology);
+    configProcessor.doUpdateForBlueprintExport();
+
+
+    assertEquals("Exported properties map was not of the expected size",
+                 1,typeProps.size());
+    assertEquals("ranger-yarn-plugin-properties config type was not properly exported",
+                 1, properties.get("ranger-yarn-plugin-properties").size());
+
+    // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
+    assertFalse("Password property should have been excluded",
+                properties.get("ranger-yarn-plugin-properties").containsKey("REPOSITORY_CONFIG_PASSWORD"));
+    assertFalse("Password property should have been excluded",
+                properties.get("ranger-yarn-plugin-properties").containsKey("SSL_KEYSTORE_PASSWORD"));
+    assertFalse("Password property should have been excluded",
+                properties.get("ranger-yarn-plugin-properties").containsKey("SSL_TRUSTSTORE_PASSWORD"));
+    assertFalse("Password property should have been excluded",
+                properties.get("ranger-yarn-plugin-properties").containsKey("XAAUDIT.DB.PASSWORD"));
+    assertFalse("Password property should have been excluded",
+      properties.get("ranger-yarn-plugin-properties").containsKey("test.ssl.password"));
+
+
+    // verify that the property that does not match the "*_PASSWORD" rule is still included
+    assertTrue("Expected password property not found",
+      properties.get("ranger-yarn-plugin-properties").containsKey("test.password.should.be.included"));
+
+    // verify the custom properties map has been modified by the filters
+    assertEquals("custom-test-properties type was not properly exported",
+      1, properties.get("custom-test-properties").size());
+
+    // verify that the following password properties matching the "*_PASSWORD" rule have been excluded
+    assertFalse("Password property should have been excluded",
+      properties.get("custom-test-properties").containsKey("my_test_PASSWORD"));
+
+    // verify that the property that does not match the "*_PASSWORD" rule is still included
+    assertTrue("Expected password property not found",
+      properties.get("custom-test-properties").containsKey("PASSWORD_mytest"));
+    assertEquals("Expected password property should not have been modified",
+      "should be included", properties.get("custom-test-properties").get("PASSWORD_mytest"));
+
+  }
+
+
+  @Test
   public void testFalconConfigExport() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedPortNum = "808080";

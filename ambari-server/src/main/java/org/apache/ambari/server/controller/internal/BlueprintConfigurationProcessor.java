@@ -106,6 +106,13 @@ public class BlueprintConfigurationProcessor {
     new HashSet<String>(Arrays.asList("fs.defaultFS", "hbase.rootdir", "instance.volumes"));
 
   /**
+   * Statically-defined list of filters to apply on property exports.
+   * This will initially be used to filter out the Ranger Passwords, but
+   * could be extended in the future for more generic purposes.
+   */
+  private static final PropertyFilter[] propertyFilters = { new PasswordPropertyFilter() };
+
+  /**
    * Configuration properties to be updated
    */
   //private Map<String, Map<String, String>> properties;
@@ -233,6 +240,39 @@ public class BlueprintConfigurationProcessor {
       doMultiHostExportUpdate(multiHostTopologyUpdaters, properties);
 
       doRemovePropertyExport(removePropertyUpdaters, properties);
+
+      doFilterPriorToExport(properties);
+    }
+  }
+
+  /**
+   * This method iterates over the properties passed in, and applies a
+   * list of filters to the properties.
+   *
+   * If any filter implementations indicate that the property should
+   * not be included in a collection (a Blueprint export in this case),
+   * then the property is removed prior to the export.
+   *
+   *
+   * @param properties config properties to process for filtering
+   */
+  private static void doFilterPriorToExport(Map<String, Map<String, String>> properties) {
+    for (String configType : properties.keySet()) {
+      Map<String, String> configPropertiesPerType =
+        properties.get(configType);
+
+      Set<String> propertiesToExclude = new HashSet<String>();
+      for (String propertyName : configPropertiesPerType.keySet()) {
+        if (shouldPropertyBeExcluded(propertyName, configPropertiesPerType.get(propertyName))) {
+          propertiesToExclude.add(propertyName);
+        }
+      }
+
+      if (!propertiesToExclude.isEmpty()) {
+        for (String propertyName : propertiesToExclude) {
+          configPropertiesPerType.remove(propertyName);
+        }
+      }
     }
   }
 
@@ -432,6 +472,29 @@ public class BlueprintConfigurationProcessor {
   static String[] parseNameNodes(String nameService, Map<String, String> properties) {
     final String nameNodes = properties.get("dfs.ha.namenodes." + nameService);
     return splitAndTrimStrings(nameNodes);
+  }
+
+  /**
+   * Iterates over the list of registered filters for this config processor, and
+   * queries each filter to determine if a given property should be included
+   * in a property collection.  If any filters return false for the isPropertyIncluded()
+   * query, then the property should be excluded.
+   *
+   * @param propertyName config property name
+   * @param propertyValue config property value
+   * @return true if the property should be excluded
+   *         false if the property should not be excluded
+   */
+  private static boolean shouldPropertyBeExcluded(String propertyName, String propertyValue) {
+    for(PropertyFilter filter : propertyFilters) {
+      if (!filter.isPropertyIncluded(propertyName, propertyValue)) {
+        return true;
+      }
+    }
+
+    // if no filters require that the property be excluded,
+    // then allow it to be included in the property collection
+    return false;
   }
 
   /**
@@ -1790,4 +1853,59 @@ public class BlueprintConfigurationProcessor {
       properties.put(property, defaultValue);
     }
   }
+
+
+  /**
+   * Defines an interface for querying a filter to determine
+   * if a given property should be included in an external
+   * collection of properties.
+   */
+  private static interface PropertyFilter {
+
+    /**
+     * Query to determine if a given property should be included in a collection of
+     * properties.
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    boolean isPropertyIncluded(String propertyName, String propertyValue);
+  }
+
+  /**
+   * A Filter that excludes properties if the property name matches
+   * a pattern of "*PASSWORD" (case-insensitive).
+   *
+   */
+  private static class PasswordPropertyFilter implements PropertyFilter {
+
+    private static final Pattern PASSWORD_NAME_REGEX = Pattern.compile("\\S+PASSWORD", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * Query to determine if a given property should be included in a collection of
+     * properties.
+     *
+     * This implementation uses a regular expression to determine if
+     * a given property name ends with "PASSWORD", using a case-insensitive match.
+     * This will be used to filter out Ranger passwords that are not considered "required"
+     * passwords by the stack metadata. This could potentially also
+     * be useful in filtering out properties that are added to
+     * stacks, but not directly marked as the PASSWORD type, even if they
+     * are indeed passwords.
+     *
+     *
+     * @param propertyName property name
+     * @param propertyValue property value
+     *
+     * @return true if the property should be included
+     *         false if the property should not be included
+     */
+    @Override
+    public boolean isPropertyIncluded(String propertyName, String propertyValue) {
+      return !PASSWORD_NAME_REGEX.matcher(propertyName).matches();
+    }
+  }
+
 }
