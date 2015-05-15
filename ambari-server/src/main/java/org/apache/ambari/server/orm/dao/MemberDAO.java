@@ -65,6 +65,7 @@ public class MemberDAO {
     return daoUtils.selectList(query);
   }
 
+  @RequiresSession
   public List<MemberEntity> findAllMembersByUser(UserEntity userEntity) {
     TypedQuery<MemberEntity> query = entityManagerProvider.get().createQuery("SELECT m FROM MemberEntity m WHERE m.user = :userEntity", MemberEntity.class);
     query.setParameter("userEntity", userEntity);

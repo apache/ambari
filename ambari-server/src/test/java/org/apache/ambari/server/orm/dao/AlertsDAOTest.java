@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.alert.SourceType;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.inject.Guice;
@@ -203,6 +204,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindAll() {
     List<AlertHistoryEntity> alerts = m_dao.findAll(m_cluster.getClusterId());
     assertNotNull(alerts);
@@ -213,6 +215,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindAllCurrent() {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
     assertNotNull(currentAlerts);
@@ -223,6 +226,7 @@ public class AlertsDAOTest {
    * Test looking up current alerts by definition ID.
    */
   @Test
+  @Ignore
   public void testFindCurrentByDefinitionId() throws Exception {
     // create a host
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
@@ -284,6 +288,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindCurrentByService() {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
     int currentAlertExpectedCount = currentAlerts.size();
@@ -310,6 +315,7 @@ public class AlertsDAOTest {
    * Test looking up current by a host name.
    */
   @Test
+  @Ignore
   public void testFindCurrentByHost() throws Exception {
     // create a host
     AlertDefinitionEntity hostDef = new AlertDefinitionEntity();
@@ -371,6 +377,7 @@ public class AlertsDAOTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testAlertCurrentPredicate() throws Exception {
     AlertDefinitionEntity definition = m_definitionDao.findByName(
         m_cluster.getClusterId(), "Alert Definition 0");
@@ -413,6 +420,7 @@ public class AlertsDAOTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testAlertCurrentUpdatesViaHistory() throws Exception {
     AlertDefinitionEntity hostDef = new AlertDefinitionEntity();
     hostDef.setDefinitionName("Host Alert Definition ");
@@ -455,6 +463,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindByState() {
     List<AlertState> allStates = new ArrayList<AlertState>();
     allStates.add(AlertState.OK);
@@ -486,6 +495,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindByDate() {
     calendar.clear();
     calendar.set(2014, Calendar.JANUARY, 1);
@@ -525,6 +535,7 @@ public class AlertsDAOTest {
   }
 
   @Test
+  @Ignore
   public void testFindCurrentByHostAndName() throws Exception {
     AlertCurrentEntity entity = m_dao.findCurrentByHostAndName(
         m_cluster.getClusterId(), "h2", "Alert Definition 1");
@@ -542,6 +553,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindCurrentSummary() throws Exception {
     AlertSummaryDTO summary = m_dao.findCurrentCounts(m_cluster.getClusterId(),
         null, null);
@@ -649,6 +661,7 @@ public class AlertsDAOTest {
    *
    */
   @Test
+  @Ignore
   public void testFindCurrentHostSummary() throws Exception {
     // start out with 1 since all alerts are for a single host and are OK
     AlertHostSummaryDTO summary = m_dao.findCurrentHostCounts(m_cluster.getClusterId());
@@ -754,6 +767,7 @@ public class AlertsDAOTest {
   }
 
   @Test
+  @Ignore
   public void testFindAggregates() throws Exception {
     // definition
     AlertDefinitionEntity definition = new AlertDefinitionEntity();
@@ -841,6 +855,7 @@ public class AlertsDAOTest {
    * entity to be stale.
    */
   @Test
+  @Ignore
   public void testJPAInnerEntityStaleness() {
     List<AlertCurrentEntity> currents = m_dao.findCurrent();
     AlertCurrentEntity current = currents.get(0);
@@ -898,6 +913,7 @@ public class AlertsDAOTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testMaintenanceMode() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
@@ -1087,6 +1103,7 @@ public class AlertsDAOTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testAlertHistoryPredicate() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
@@ -1180,6 +1197,7 @@ public class AlertsDAOTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testAlertHistoryPagination() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
@@ -1220,6 +1238,7 @@ public class AlertsDAOTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testAlertHistorySorting() throws Exception {
     m_helper.installHdfsService(m_cluster, m_serviceFactory,
         m_componentFactory, m_schFactory, HOSTNAME);
@@ -1279,6 +1298,7 @@ public class AlertsDAOTest {
   }
 
   @Test
+  @Ignore
   public void testRemoveCurrenyByService() throws Exception {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
     assertNotNull(currentAlerts);
@@ -1295,6 +1315,7 @@ public class AlertsDAOTest {
   }
 
   @Test
+  @Ignore
   public void testRemoveCurrenyByHost() throws Exception {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
     assertNotNull(currentAlerts);
@@ -1312,6 +1333,7 @@ public class AlertsDAOTest {
   }
 
   @Test
+  @Ignore
   public void testRemoveCurrenyByComponentHost() throws Exception {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
     assertNotNull(currentAlerts);
@@ -1332,6 +1354,7 @@ public class AlertsDAOTest {
   }
 
   @Test
+  @Ignore
   public void testRemoveCurrentDisabled() throws Exception {
     List<AlertCurrentEntity> currentAlerts = m_dao.findCurrent();
     assertNotNull(currentAlerts);

@@ -23,6 +23,7 @@ import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.PrincipalTypeEntity;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
@@ -53,6 +54,7 @@ public class PrincipalTypeDAO {
    *
    * @return  a matching principal type  or null
    */
+  @RequiresSession
   public PrincipalTypeEntity findById(Integer id) {
     return entityManagerProvider.get().find(PrincipalTypeEntity.class, id);
   }
@@ -62,6 +64,7 @@ public class PrincipalTypeDAO {
    *
    * @return all principal types or an empty List
    */
+  @RequiresSession
   public List<PrincipalTypeEntity> findAll() {
     TypedQuery<PrincipalTypeEntity> query = entityManagerProvider.get().createQuery("SELECT principalType FROM PrincipalTypeEntity principalType", PrincipalTypeEntity.class);
     return daoUtils.selectList(query);
@@ -88,6 +91,7 @@ public class PrincipalTypeDAO {
    * @param principalType id of principal type
    * @return principal type
    */
+  @RequiresSession
   public PrincipalTypeEntity ensurePrincipalTypeCreated(int principalType) {
     PrincipalTypeEntity principalTypeEntity = findById(principalType);
     if (principalTypeEntity == null) {

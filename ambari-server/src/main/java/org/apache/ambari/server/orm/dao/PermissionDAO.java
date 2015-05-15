@@ -23,6 +23,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
 
@@ -63,6 +64,7 @@ public class PermissionDAO {
    *
    * @return  a matching permission entity or null
    */
+  @RequiresSession
   public PermissionEntity findById(Integer id) {
     return entityManagerProvider.get().find(PermissionEntity.class, id);
   }
@@ -72,6 +74,7 @@ public class PermissionDAO {
    *
    * @return all entities or an empty List
    */
+  @RequiresSession
   public List<PermissionEntity> findAll() {
     TypedQuery<PermissionEntity> query = entityManagerProvider.get().createQuery("SELECT p FROM PermissionEntity p", PermissionEntity.class);
     return daoUtils.selectList(query);
@@ -85,6 +88,7 @@ public class PermissionDAO {
    *
    * @return a matching permission entity or null
    */
+  @RequiresSession
   public PermissionEntity findPermissionByNameAndType(String name, ResourceTypeEntity resourceType) {
     if (name.equals(PermissionEntity.VIEW_USE_PERMISSION_NAME)) {
       // VIEW.USE permission should be available for any type of views
@@ -101,6 +105,7 @@ public class PermissionDAO {
    *
    * @return a matching permission entity or null
    */
+  @RequiresSession
   public PermissionEntity findAmbariAdminPermission() {
     return findById(PermissionEntity.AMBARI_ADMIN_PERMISSION);
   }
@@ -110,6 +115,7 @@ public class PermissionDAO {
    *
    * @return a matching permission entity or null
    */
+  @RequiresSession
   public PermissionEntity findViewUsePermission() {
     return findById(PermissionEntity.VIEW_USE_PERMISSION);
   }
@@ -119,6 +125,7 @@ public class PermissionDAO {
    *
    * @return a matching permission entity or null
    */
+  @RequiresSession
   public PermissionEntity findClusterOperatePermission() {
     return findById(PermissionEntity.CLUSTER_OPERATE_PERMISSION);
   }
@@ -128,6 +135,7 @@ public class PermissionDAO {
    *
    * @return a matching permission entity or null
    */
+  @RequiresSession
   public PermissionEntity findClusterReadPermission() {
     return findById(PermissionEntity.CLUSTER_READ_PERMISSION);
   }

@@ -185,6 +185,7 @@ public class HostRoleCommandDAO {
     return daoUtils.selectList(query, hostname, role, status);
   }
 
+  @RequiresSession
   public List<Long> findTaskIdsByRoleAndStatus(String role, HostRoleStatus status) {
     TypedQuery<Long> query = entityManagerProvider.get().createQuery(
         "SELECT DISTINCT task.taskId FROM HostRoleCommandEntity task " +
@@ -343,10 +344,10 @@ public class HostRoleCommandDAO {
     return daoUtils.selectList(query);
   }
 
-  @Transactional
   /**
    * NB: You cannot rely on return value if batch write is enabled
    */
+  @Transactional
   public int updateStatusByRequestId(long requestId, HostRoleStatus target, Collection<HostRoleStatus> sources) {
     TypedQuery<HostRoleCommandEntity> selectQuery = entityManagerProvider.get().createQuery("SELECT command " +
         "FROM HostRoleCommandEntity command " +

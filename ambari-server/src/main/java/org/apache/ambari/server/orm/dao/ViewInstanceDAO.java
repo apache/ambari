@@ -54,6 +54,7 @@ public class ViewInstanceDAO {
    *
    * @return  a matching view instance or null
    */
+  @RequiresSession
   public ViewInstanceEntity findByName(String viewName, String instanceName) {
     TypedQuery<ViewInstanceEntity> query = entityManagerProvider.get().createQuery(
       "SELECT instance FROM ViewInstanceEntity instance WHERE instance.viewName = ?1 AND instance.name = ?2",
@@ -83,6 +84,7 @@ public class ViewInstanceDAO {
    *
    * @return all views or an empty List
    */
+  @RequiresSession
   public List<ViewInstanceEntity> findAll() {
     TypedQuery<ViewInstanceEntity> query = entityManagerProvider.get().
         createNamedQuery("allViewInstances", ViewInstanceEntity.class);

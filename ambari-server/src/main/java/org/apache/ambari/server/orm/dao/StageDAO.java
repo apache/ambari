@@ -105,6 +105,7 @@ public class StageDAO {
    *
    * @return the set of entities for the given ids
    */
+  @RequiresSession
   public List<StageEntity> findByStageIds(Long requestId, Set<Long> stageIds) {
     List<StageEntity> stageEntities = new LinkedList<StageEntity>();
 

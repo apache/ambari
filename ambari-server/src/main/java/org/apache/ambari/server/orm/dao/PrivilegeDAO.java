@@ -23,6 +23,7 @@ import java.util.List;
 import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.PermissionEntity;
 import org.apache.ambari.server.orm.entities.PrincipalEntity;
 import org.apache.ambari.server.orm.entities.PrivilegeEntity;
@@ -54,6 +55,7 @@ public class PrivilegeDAO {
    *
    * @return a matching privilege or null
    */
+  @RequiresSession
   public PrivilegeEntity findById(Integer id) {
     return entityManagerProvider.get().find(PrivilegeEntity.class, id);
   }
@@ -63,6 +65,7 @@ public class PrivilegeDAO {
    *
    * @return all privileges or an empty List
    */
+  @RequiresSession
   public List<PrivilegeEntity> findAll() {
     TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery("SELECT privilege FROM PrivilegeEntity privilege", PrivilegeEntity.class);
     return daoUtils.selectList(query);
@@ -74,6 +77,7 @@ public class PrivilegeDAO {
    * @param id ID of the resource
    * @return all resource privileges or an empty list
    */
+  @RequiresSession
   public List<PrivilegeEntity> findByResourceId(Long id) {
     TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery("SELECT privilege FROM PrivilegeEntity privilege WHERE privilege.resource.id = :resource_id", PrivilegeEntity.class);
     query.setParameter("resource_id", id);
@@ -101,6 +105,7 @@ public class PrivilegeDAO {
    *
    * @return true if the privilege entity already exists
    */
+  @RequiresSession
   public boolean exists(PrincipalEntity principalEntity, ResourceEntity resourceEntity, PermissionEntity permissionEntity) {
     TypedQuery<PrivilegeEntity> query = entityManagerProvider.get().createQuery(
         "SELECT privilege FROM PrivilegeEntity privilege WHERE privilege.principal = :principal AND privilege.resource = :resource AND privilege.permission = :permission", PrivilegeEntity.class);
@@ -120,6 +125,7 @@ public class PrivilegeDAO {
    *
    * @return the list of privileges matching the query
    */
+  @RequiresSession
   public List<PrivilegeEntity> findAllByPrincipal(List<PrincipalEntity> principalList) {
     if (principalList == null || principalList.isEmpty()) {
       return Collections.emptyList();

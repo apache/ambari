@@ -126,6 +126,7 @@ public class UpgradeDAO {
    * @param itemId the item id
    * @return the upgrade item entity, or {@code null} if not found
    */
+  @RequiresSession
   public UpgradeItemEntity findUpgradeItem(long itemId) {
     TypedQuery<UpgradeItemEntity> query = entityManagerProvider.get().createQuery(
         "SELECT p FROM UpgradeItemEntity p WHERE p.upgradeItemId = :itemId", UpgradeItemEntity.class);
@@ -141,6 +142,7 @@ public class UpgradeDAO {
    * @param stageId the stage id
    * @return the upgrade entity, or {@code null} if not found
    */
+  @RequiresSession
   public UpgradeItemEntity findUpgradeItemByRequestAndStage(Long requestId, Long stageId) {
     TypedQuery<UpgradeItemEntity> query = entityManagerProvider.get().createQuery(
         "SELECT p FROM UpgradeItemEntity p WHERE p.stageId = :stageId AND p.upgradeGroupEntity.upgradeEntity.requestId = :requestId",

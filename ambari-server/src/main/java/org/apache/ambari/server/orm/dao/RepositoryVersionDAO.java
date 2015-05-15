@@ -67,6 +67,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    *          version
    * @return null if there is no suitable repository version
    */
+  @RequiresSession
   public RepositoryVersionEntity findByStackAndVersion(StackId stackId,
       String version) {
     return findByStackAndVersion(stackId.getStackName(),
@@ -80,6 +81,7 @@ public class RepositoryVersionDAO extends CrudDAO<RepositoryVersionEntity, Long>
    * @param version version
    * @return null if there is no suitable repository version
    */
+  @RequiresSession
   public RepositoryVersionEntity findByStackAndVersion(StackEntity stackEntity,
       String version) {
     return findByStackAndVersion(stackEntity.getStackName(),

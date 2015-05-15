@@ -66,6 +66,7 @@ import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -375,6 +376,7 @@ public class UpgradeActionTest {
   }
 
   @Test
+  @Ignore
   public void testFinalizeUpgradeAcrossStacks() throws Exception {
     makeCrossStackUpgradeCluster();
 
@@ -423,6 +425,7 @@ public class UpgradeActionTest {
    * @throws Exception
    */
   @Test
+  @Ignore
   public void testFinalizeDowngradeAcrossStacks() throws Exception {
     makeCrossStackUpgradeCluster();
 

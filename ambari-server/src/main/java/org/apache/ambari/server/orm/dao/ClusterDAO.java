@@ -139,6 +139,7 @@ public class ClusterDAO {
    *          the name of the configuration type (not {@code null}).
    * @return the highest existing value of the version column + 1
    */
+  @RequiresSession
   public Long findNextConfigVersion(long clusterId, String configType) {
     TypedQuery<Number> query = entityManagerProvider.get().createNamedQuery(
         "ClusterConfigEntity.findNextConfigVersion", Number.class);
@@ -186,6 +187,7 @@ public class ClusterDAO {
    *          the stack to get the latest configurations for (not {@code null}).
    * @return the latest configurations for the specified cluster and stack.
    */
+  @RequiresSession
   public List<ClusterConfigEntity> getLatestConfigurations(long clusterId,
       StackId stackId) {
     StackEntity stackEntity = stackDAO.find(stackId.getStackName(),

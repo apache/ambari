@@ -36,6 +36,7 @@ import org.apache.ambari.server.controller.AlertNoticeRequest;
 import org.apache.ambari.server.controller.RootServiceResponseFactory.Services;
 import org.apache.ambari.server.controller.spi.Predicate;
 import org.apache.ambari.server.controller.utilities.PredicateHelper;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.AlertDefinitionEntity;
 import org.apache.ambari.server.orm.entities.AlertGroupEntity;
 import org.apache.ambari.server.orm.entities.AlertNoticeEntity;
@@ -91,6 +92,7 @@ public class AlertDispatchDAO {
    *          the ID of the group to retrieve.
    * @return the group or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertGroupEntity findGroupById(long groupId) {
     return entityManagerProvider.get().find(AlertGroupEntity.class, groupId);
   }
@@ -102,6 +104,7 @@ public class AlertDispatchDAO {
    *          the IDs of the groups to retrieve.
    * @return the groups or an empty list (never {@code null}).
    */
+  @RequiresSession
   public List<AlertGroupEntity> findGroupsById(List<Long> groupIds) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findByIds", AlertGroupEntity.class);
@@ -118,6 +121,7 @@ public class AlertDispatchDAO {
    *          the ID of the target to retrieve.
    * @return the target or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertTargetEntity findTargetById(long targetId) {
     return entityManagerProvider.get().find(AlertTargetEntity.class, targetId);
   }
@@ -129,6 +133,7 @@ public class AlertDispatchDAO {
    *          the IDs of the targets to retrieve.
    * @return the targets or an empty list (never {@code null}).
    */
+  @RequiresSession
   public List<AlertTargetEntity> findTargetsById(List<Long> targetIds) {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findByIds", AlertTargetEntity.class);
@@ -145,6 +150,7 @@ public class AlertDispatchDAO {
    *          the ID of the notification to retrieve.
    * @return the notification or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertNoticeEntity findNoticeById(long noticeId) {
     return entityManagerProvider.get().find(AlertNoticeEntity.class, noticeId);
   }
@@ -156,6 +162,7 @@ public class AlertDispatchDAO {
    *          the UUID of the notification to retrieve.
    * @return the notification or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertNoticeEntity findNoticeByUuid(String uuid) {
     TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertNoticeEntity.findByUuid", AlertNoticeEntity.class);
@@ -172,6 +179,7 @@ public class AlertDispatchDAO {
    * @return the notices that are waiting to be dispatched, or an empty list
    *         (never {@code null}).
    */
+  @RequiresSession
   public List<AlertNoticeEntity> findPendingNotices() {
     TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertNoticeEntity.findByState", AlertNoticeEntity.class);
@@ -188,6 +196,7 @@ public class AlertDispatchDAO {
    *          the name of the group (not {@code null}).
    * @return the alert group or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertGroupEntity findGroupByName(String groupName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findByName", AlertGroupEntity.class);
@@ -207,6 +216,7 @@ public class AlertDispatchDAO {
    *          the name of the group (not {@code null}).
    * @return the alert group or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertGroupEntity findGroupByName(long clusterId, String groupName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findByNameInCluster", AlertGroupEntity.class);
@@ -225,6 +235,7 @@ public class AlertDispatchDAO {
    *          the name of the target (not {@code null}).
    * @return the alert target or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertTargetEntity findTargetByName(String targetName) {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findByName", AlertTargetEntity.class);
@@ -239,6 +250,7 @@ public class AlertDispatchDAO {
    *
    * @return all alert groups or empty list if none exist (never {@code null}).
    */
+  @RequiresSession
   public List<AlertGroupEntity> findAllGroups() {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findAll", AlertGroupEntity.class);
@@ -252,6 +264,7 @@ public class AlertDispatchDAO {
    * @return all alert groups in the specified cluster or empty list if none
    *         exist (never {@code null}).
    */
+  @RequiresSession
   public List<AlertGroupEntity> findAllGroups(long clusterId) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertGroupEntity.findAllInCluster", AlertGroupEntity.class);
@@ -266,6 +279,7 @@ public class AlertDispatchDAO {
    *
    * @return all alert targets or empty list if none exist (never {@code null}).
    */
+  @RequiresSession
   public List<AlertTargetEntity> findAllTargets() {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findAll", AlertTargetEntity.class);
@@ -279,6 +293,7 @@ public class AlertDispatchDAO {
    * @return all global alert targets or empty list if none exist (never
    *         {@code null}).
    */
+  @RequiresSession
   public List<AlertTargetEntity> findAllGlobalTargets() {
     TypedQuery<AlertTargetEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertTargetEntity.findAllGlobal", AlertTargetEntity.class);
@@ -296,6 +311,7 @@ public class AlertDispatchDAO {
    *         definition and the definition's service default group or empty list
    *         if none exist (never {@code null}).
    */
+  @RequiresSession
   public List<AlertGroupEntity> findGroupsByDefinition(
       AlertDefinitionEntity definitionEntity) {
 
@@ -319,6 +335,7 @@ public class AlertDispatchDAO {
    *         for an installed service; otherwise {@code null} should not be
    *         possible.
    */
+  @RequiresSession
   public AlertGroupEntity findDefaultServiceGroup(long clusterId,
       String serviceName) {
     TypedQuery<AlertGroupEntity> query = entityManagerProvider.get().createNamedQuery(
@@ -335,6 +352,7 @@ public class AlertDispatchDAO {
    * @return all alert notifications or empty list if none exist (never
    *         {@code null}).
    */
+  @RequiresSession
   public List<AlertNoticeEntity> findAllNotices() {
     TypedQuery<AlertNoticeEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertNoticeEntity.findAll", AlertNoticeEntity.class);
@@ -350,6 +368,7 @@ public class AlertDispatchDAO {
    * @return all alert notifications or empty list if none exist (never
    *         {@code null}).
    */
+  @RequiresSession
   public List<AlertNoticeEntity> findAllNotices(AlertNoticeRequest request) {
     EntityManager entityManager = entityManagerProvider.get();
 

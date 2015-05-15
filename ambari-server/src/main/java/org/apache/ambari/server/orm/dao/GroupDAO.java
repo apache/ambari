@@ -72,6 +72,7 @@ public class GroupDAO {
    *
    * @return the list of groups matching the query
    */
+  @RequiresSession
   public List<GroupEntity> findGroupsByPrincipal(List<PrincipalEntity> principalList) {
     if (principalList == null || principalList.isEmpty()) {
       return Collections.emptyList();
@@ -88,6 +89,7 @@ public class GroupDAO {
    *
    * @return the matching gropu entity
    */
+  @RequiresSession
   public GroupEntity findGroupByPrincipal(PrincipalEntity principal) {
     if (principal == null) {
       return null;

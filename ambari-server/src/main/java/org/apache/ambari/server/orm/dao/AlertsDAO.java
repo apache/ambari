@@ -95,6 +95,7 @@ public class AlertsDAO {
    *          the ID of the alert to retrieve.
    * @return the alert or {@code null} if none exists.
    */
+  @RequiresSession
   public AlertHistoryEntity findById(long alertId) {
     return entityManagerProvider.get().find(AlertHistoryEntity.class, alertId);
   }
@@ -104,6 +105,7 @@ public class AlertsDAO {
    *
    * @return all alerts or an empty list if none exist (never {@code null}).
    */
+  @RequiresSession
   public List<AlertHistoryEntity> findAll() {
     TypedQuery<AlertHistoryEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertHistoryEntity.findAll", AlertHistoryEntity.class);
@@ -119,6 +121,7 @@ public class AlertsDAO {
    * @return all alerts in the specified cluster or an empty list if none exist
    *         (never {@code null}).
    */
+  @RequiresSession
   public List<AlertHistoryEntity> findAll(long clusterId) {
     TypedQuery<AlertHistoryEntity> query = entityManagerProvider.get().createNamedQuery(
         "AlertHistoryEntity.findAllInCluster", AlertHistoryEntity.class);
@@ -139,6 +142,7 @@ public class AlertsDAO {
    * @return the alerts matching the specified states and cluster, or an empty
    *         list if none.
    */
+  @RequiresSession
   public List<AlertHistoryEntity> findAll(long clusterId,
       List<AlertState> alertStates) {
     if (null == alertStates || alertStates.size() == 0) {
@@ -172,6 +176,7 @@ public class AlertsDAO {
    *          start date.
    * @return the alerts matching the specified date range.
    */
+  @RequiresSession
   public List<AlertHistoryEntity> findAll(long clusterId, Date startDate,
       Date endDate) {
     if (null == startDate && null == endDate) {
@@ -223,6 +228,7 @@ public class AlertsDAO {
    * @param request
    * @return
    */
+  @RequiresSession
   public List<AlertHistoryEntity> findAll(AlertHistoryRequest request) {
     EntityManager entityManager = entityManagerProvider.get();
 

@@ -42,6 +42,7 @@ public class TopologyHostTaskDAO {
     return entityManagerProvider.get().find(TopologyHostTaskEntity.class, id);
   }
 
+  @RequiresSession
   public Collection<TopologyHostTaskEntity> findByHostRequest(Long id) {
     TypedQuery<TopologyHostTaskEntity> query = entityManagerProvider.get()
         .createNamedQuery("TopologyHostTaskEntity.findByHostRequest", TopologyHostTaskEntity.class);

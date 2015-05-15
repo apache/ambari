@@ -22,6 +22,7 @@ import com.google.inject.Inject;
 import com.google.inject.Provider;
 import com.google.inject.Singleton;
 import com.google.inject.persist.Transactional;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.ViewEntity;
 
 import javax.persistence.EntityManager;
@@ -46,6 +47,7 @@ public class ViewDAO {
    *
    * @return  a matching view or null
    */
+  @RequiresSession
   public ViewEntity findByName(String viewName) {
     return entityManagerProvider.get().find(ViewEntity.class, viewName);
   }
@@ -57,6 +59,7 @@ public class ViewDAO {
    *
    * @return  a matching view or null
    */
+  @RequiresSession
   public ViewEntity findByCommonName(String viewCommonName) {
     if (viewCommonName != null) {
       for (ViewEntity viewEntity : findAll()) {
@@ -73,6 +76,7 @@ public class ViewDAO {
    *
    * @return all views or an empty List
    */
+  @RequiresSession
   public List<ViewEntity> findAll() {
     TypedQuery<ViewEntity> query = entityManagerProvider.get().
         createNamedQuery("allViews", ViewEntity.class);

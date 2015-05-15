@@ -23,6 +23,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.TypedQuery;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.orm.RequiresSession;
 import org.apache.ambari.server.orm.entities.StackEntity;
 
 import com.google.inject.Inject;
@@ -56,6 +57,7 @@ public class StackDAO {
    *          the ID of the stack to retrieve.
    * @return the stack or {@code null} if none exists.
    */
+  @RequiresSession
   public StackEntity findById(long stackId) {
     return entityManagerProvider.get().find(StackEntity.class, stackId);
   }
@@ -66,6 +68,7 @@ public class StackDAO {
    * @return all of the stacks loaded from resources or an empty list (never
    *         {@code null}).
    */
+  @RequiresSession
   public List<StackEntity> findAll() {
     TypedQuery<StackEntity> query = entityManagerProvider.get().createNamedQuery(
         "StackEntity.findAll", StackEntity.class);
@@ -79,6 +82,7 @@ public class StackDAO {
    * @return the stack matching the specified name and version or {@code null}
    *         if none.
    */
+  @RequiresSession
   public StackEntity find(String stackName, String stackVersion) {
     TypedQuery<StackEntity> query = entityManagerProvider.get().createNamedQuery(
         "StackEntity.findByNameAndVersion", StackEntity.class);

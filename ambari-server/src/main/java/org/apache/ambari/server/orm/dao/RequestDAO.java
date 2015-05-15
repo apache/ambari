@@ -56,6 +56,7 @@ public class RequestDAO {
     return entityManagerProvider.get().find(RequestEntity.class, requestId);
   }
 
+  @RequiresSession
   public List<RequestEntity> findByPks(Collection<Long> requestIds) {
     return findByPks(requestIds, false);
   }
