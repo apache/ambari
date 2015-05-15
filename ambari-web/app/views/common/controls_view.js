@@ -87,6 +87,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
    * @returns {$.Deferred}
    */
   sendRequestRorDependentConfigs: function(config) {
+    if (!config.get('isValid')) return $.Deferred().resolve().promise();
     if (App.get('isClusterSupportsEnhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
       var controller = this.get('controller');
