@@ -90,8 +90,6 @@ public class WidgetLayoutDAOTest {
       widgetEntity.setWidgetType("GAUGE");
       widgetEntity.setWidgetValues("${`jvmMemoryHeapUsed + jvmMemoryHeapMax`}");
 
-      widgetDAO.create(widgetEntity);
-
       WidgetLayoutUserWidgetEntity widgetLayoutUserWidget = new WidgetLayoutUserWidgetEntity();
       widgetLayoutUserWidget.setWidget(widgetEntity);
       widgetLayoutUserWidget.setWidgetLayout(widgetLayoutEntity);

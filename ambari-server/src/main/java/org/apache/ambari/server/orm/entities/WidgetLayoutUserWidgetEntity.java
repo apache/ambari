@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.orm.entities;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -43,7 +44,7 @@ public class WidgetLayoutUserWidgetEntity {
   @JoinColumn(name = "widget_layout_id", referencedColumnName = "id")
   private WidgetLayoutEntity widgetLayout;
 
-  @ManyToOne
+  @ManyToOne(cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
   @JoinColumn(name = "widget_id", referencedColumnName = "id")
   private WidgetEntity widget;
 
@@ -97,10 +98,7 @@ public class WidgetLayoutUserWidgetEntity {
 
     WidgetLayoutUserWidgetEntity that = (WidgetLayoutUserWidgetEntity) o;
 
-    if (widgetLayout.getId() != that.widgetLayout.getId()) return false;
-    if (widget.getId() != that.widget.getId()) return false;
-
-    return true;
+    return (widgetLayout.equals(that.widgetLayout) && widget.equals(that.widget));
   }
 
   @Override

@@ -71,6 +71,7 @@ public class WidgetDAOTest {
       widgetEntity.setWidgetName("widget" + i);
       widgetEntity.setWidgetType("GAUGE");
       widgetEntity.setWidgetValues("${`jvmMemoryHeapUsed + jvmMemoryHeapMax`}");
+      widgetEntity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
       final WidgetLayoutEntity widgetLayoutEntity = new WidgetLayoutEntity();
       widgetLayoutEntity.setClusterId(clusterId);
       widgetLayoutEntity.setLayoutName("layout name" + i);
@@ -83,7 +84,7 @@ public class WidgetDAOTest {
       widgetLayoutUserWidget.setWidgetLayout(widgetLayoutEntity);
       widgetLayoutUserWidget.setWidgetOrder(0);
 
-      widgetDAO.create(widgetEntity);
+      widgetEntity.getListWidgetLayoutUserWidgetEntity().add(widgetLayoutUserWidget);
       List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
       widgetLayoutUserWidgetEntityList.add(widgetLayoutUserWidget);
 
