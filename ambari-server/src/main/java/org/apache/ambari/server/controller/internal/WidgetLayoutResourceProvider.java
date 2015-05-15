@@ -286,15 +286,6 @@ public class WidgetLayoutResourceProvider extends AbstractControllerResourceProv
 
           Set widgetsSet = (LinkedHashSet) propertyMap.get(WIDGETLAYOUT_WIDGETS_PROPERTY_ID);
 
-          //Remove old relations from widget entities
-          for (WidgetLayoutUserWidgetEntity widgetLayoutUserWidgetEntity : entity.getListWidgetLayoutUserWidgetEntity()) {
-            widgetLayoutUserWidgetEntity.getWidget().getListWidgetLayoutUserWidgetEntity()
-                    .remove(widgetLayoutUserWidgetEntity);
-            widgetDAO.merge(widgetLayoutUserWidgetEntity.getWidget());
-          }
-          entity.setListWidgetLayoutUserWidgetEntity(new LinkedList<WidgetLayoutUserWidgetEntity>());
-          widgetLayoutDAO.merge(entity);
-
           List<WidgetLayoutUserWidgetEntity> widgetLayoutUserWidgetEntityList = new LinkedList<WidgetLayoutUserWidgetEntity>();
           int order=0;
           for (Object widgetObject : widgetsSet) {
