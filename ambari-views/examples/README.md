@@ -23,12 +23,14 @@ See the documentation pages for the view examples.
 
 * [Hello World View](helloworld-view/docs/index.md) : Demonstrates the very basics of how to write and deploy a view in Ambari.
 * [Hello Servlet View](hello-servlet-view/docs/index.md) : Includes instance parameters and a servlet for a dynamic UI. 
+* [Hello Spring View](hello-spring-view/docs/index.md) : A very simple view example that uses Spring MVC.
 * [Favorite view](favorite-view/docs/index.md) : Exposes a simple resource to work with instance parameters and data.
 * [Calculator View](calculator-view/docs/index.md) : Includes a simple resource.
 * [Phone List View](phone-list-view/docs/index.md) : Demonstrates simple view persistence.
 * [Property View](property-view/docs/index.md) : Demonstrates view configuration property options.
 * [Property Validator View](property-validator-view/docs/index.md) : Demonstrates configuration property validator.
-* [Weather view](weather-view/docs/index.md)
+* [Weather view](weather-view/docs/index.md) : Demonstrates the the use of instance parameters, a servlet for a dynamic UI and a managed resource.
+* [Auto Cluster view](auto-cluster-view/docs/index.md) : Example view that can be auto-created and configured to leverage the Ambari REST APIs to access a cluster being managed by Ambari.
 
 Please also visit the [Apache Ambari Project](http://ambari.apache.org/) page for more information.
 
