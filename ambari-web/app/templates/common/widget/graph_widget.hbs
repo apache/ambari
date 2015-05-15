@@ -31,11 +31,7 @@
       </a>
     {{/isAccessible}}
     <div class="content"> {{view view.graphView}}</div>
-    {{#if view.content.description}}
-      <div class="hidden-description">
-        {{view.content.description}}
-      </div>
-    {{/if}}
+
   {{else}}
     <div class="spinner"></div>
   {{/if}}

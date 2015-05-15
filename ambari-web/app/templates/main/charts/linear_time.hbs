@@ -28,6 +28,11 @@
   {{#unless view.noTitleUnderGraph}}
     <div id="{{unbound view.id}}-title" class="chart-title">{{view.title}}</div>
   {{/unless}}
-
 </div>
+
+{{#if view.description}}
+  <div class="hidden-description" {{action showGraphInPopup target="view"}}>
+    {{view.description}}
+  </div>
+{{/if}}
 
