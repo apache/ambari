@@ -73,6 +73,11 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
       serviceName: 'STORM',
       type: 'ranger-storm-plugin-properties',
       propertyName: 'ranger-storm-plugin-enabled'
+    },
+    {
+      serviceName: 'YARN',
+      type: 'ranger-yarn-plugin-properties',
+      propertyName: 'ranger-yarn-plugin-enabled'
     }
   ],
 
@@ -95,7 +100,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
           var displayName = (stackService) ? stackService.get('displayName') : item.serviceName;
           return $.extend(item, {
             pluginTitle: Em.I18n.t('services.service.summary.ranger.plugin.title').format(displayName),
-            isDisplayed: App.Service.find().someProperty('serviceName', item.serviceName),
+            isDisplayed: App.Service.find().someProperty('serviceName', item.serviceName) &&
+              stackService.get('configTypes').hasOwnProperty(item.type),
             status: Em.I18n.t('services.service.summary.ranger.plugin.loadingStatus')
           });
         }),

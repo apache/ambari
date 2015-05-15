@@ -62,29 +62,49 @@ describe('App.MainServiceInfoSummaryController', function () {
           serviceName: 'HDFS'
         }),
         Em.Object.create({
-          serviceName: 'HIVE'
+          serviceName: 'YARN'
         })
       ]);
       sinon.stub(App.StackService, 'find').returns([
         Em.Object.create({
           serviceName: 'HDFS',
-          displayNName: 'HDFS'
+          displayName: 'HDFS',
+          configTypes: {
+            'ranger-hdfs-plugin-properties': {}
+          }
         }),
         Em.Object.create({
           serviceName: 'HIVE',
-          displayNName: 'Hive'
+          displayName: 'Hive',
+          configTypes: {
+            'ranger-hive-plugin-properties': {}
+          }
         }),
         Em.Object.create({
           serviceName: 'HBASE',
-          displayNName: 'HBase'
+          displayName: 'HBase',
+          configTypes: {
+            'ranger-hbase-plugin-properties': {}
+          }
         }),
         Em.Object.create({
           serviceName: 'KNOX',
-          displayNName: 'Knox'
+          displayName: 'Knox',
+          configTypes: {
+            'ranger-knox-plugin-properties': {}
+          }
         }),
         Em.Object.create({
           serviceName: 'STORM',
-          displayNName: 'Storm'
+          displayName: 'Storm',
+          configTypes: {
+            'ranger-storm-plugin-properties': {}
+          }
+        }),
+        Em.Object.create({
+          serviceName: 'YARN',
+          displayName: 'YARN',
+          configTypes: {}
         })
       ]);
     });
@@ -99,7 +119,7 @@ describe('App.MainServiceInfoSummaryController', function () {
         controller.set('isRangerPluginsArraySet', item.isRangerPluginsArraySet);
         App.set('router.clusterController.isLoaded', item.isLoaded);
         expect(controller.get('isRangerPluginsArraySet')).to.equal(item.expectedIsRangerPluginsArraySet);
-        expect(controller.get('rangerPlugins').filterProperty('isDisplayed').mapProperty('serviceName').sort()).to.eql(['HDFS', 'HIVE']);
+        expect(controller.get('rangerPlugins').filterProperty('isDisplayed').mapProperty('serviceName').sort()).to.eql(['HDFS']);
       });
     });
 
