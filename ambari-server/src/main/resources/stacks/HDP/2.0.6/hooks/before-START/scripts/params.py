@@ -17,11 +17,10 @@ limitations under the License.
 
 """
 
-from resource_management.libraries.functions import conf_select
+from resource_management.libraries.functions import conf_select, default, format_jvm_option, format
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from ambari_commons.os_check import OSCheck
-from resource_management import *
-from resource_management.core.system import System
+from resource_management.libraries.script.script import Script
 import os
 
 config = Script.get_config()

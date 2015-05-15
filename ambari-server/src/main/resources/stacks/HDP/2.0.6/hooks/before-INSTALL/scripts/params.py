@@ -19,8 +19,10 @@ limitations under the License.
 
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
-from resource_management import *
 from resource_management.core.system import System
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.functions import default, format
+
 import json
 import collections
 
