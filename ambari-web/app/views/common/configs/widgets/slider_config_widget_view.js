@@ -239,6 +239,10 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
           slider.setValue(parsed);
         }
       }
+      // avoid precision during restore value
+      if (parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.defaultValue')))) {
+        this.set('config.value', this.get('config.defaultValue'));
+      }
     } else {
       this.set('isMirrorValueValid', false);
       this.set('config.errorMessage', 'Invalid value');
