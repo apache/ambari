@@ -451,44 +451,44 @@ App.ChartLinearTimeView = Ember.View.extend({
     var palette = new Rickshaw.Color.Palette({ scheme: 'munin'});
     // Format series for display
     var series_min_length = 100000000;
-    data.forEach(function (series, index) {
+    data.forEach(function (series) {
       var seriesColor = self.colorForSeries(series);
-      if (seriesColor == null) {
+      if (Em.isNone(seriesColor)) {
         seriesColor = palette.color();
       }
       series.color = seriesColor;
       series.stroke = 'rgba(0,0,0,0.3)';
-      if (this.get('isPopup')) {
+      if (self.get('isPopup')) {
         // calculate statistic data for popup legend
         var avg = 0;
         var min = Number.MAX_VALUE;
         var max = Number.MIN_VALUE;
         for (var i = 0; i < series.data.length; i++) {
           avg += series.data[i]['y'];
-          if (series.data[i]['y'] < min) {
-            min = series.data[i]['y'];
-          }
-          else {
-            if (series.data[i]['y'] > max) {
-              max = series.data[i]['y'];
+          if (!Em.isNone(series.data[i]['y'])) {
+            if (series.data[i]['y'] < min) {
+              min = series.data[i]['y'];
             }
           }
+          if (series.data[i]['y'] > max) {
+            max = series.data[i]['y'];
+          }
         }
-        series.name = string_utils.pad(series.name, 30, '&nbsp;', 2) +
+        series.name = string_utils.pad(series.name.length > 36 ? series.name.substr(0, 36) + '...' : series.name, 40, '&nbsp;', 2) + '|&nbsp;' +
                       string_utils.pad('min', 5, '&nbsp;', 3) +
-                      string_utils.pad(this.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
+                      string_utils.pad(self.get('yAxisFormatter')(min), 12, '&nbsp;', 3) +
                       string_utils.pad('avg', 5, '&nbsp;', 3) +
-                      string_utils.pad(this.get('yAxisFormatter')(avg/series.data.length), 12, '&nbsp;', 3) +
+                      string_utils.pad(self.get('yAxisFormatter')(avg/series.data.compact().length), 12, '&nbsp;', 3) +
                       string_utils.pad('max', 12, '&nbsp;', 3) +
-                      string_utils.pad(this.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
+                      string_utils.pad(self.get('yAxisFormatter')(max), 5, '&nbsp;', 3);
       }
       if (series.data.length < series_min_length) {
         series_min_length = series.data.length;
       }
-    }.bind(this));
+    });
 
     // All series should have equal length
-    data.forEach(function(series, index) {
+    data.forEach(function(series) {
       if (series.data.length > series_min_length) {
         series.data.length = series_min_length;
       }
