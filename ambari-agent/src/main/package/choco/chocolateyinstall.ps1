@@ -28,6 +28,8 @@ $packageParameters = $env:chocolateyPackageParameters
 $arguments = @{}
 $ambariRoot = "C:\ambari"
 $retries = 5
+$lockTimeout = 60000
+
 # Parse the packageParameters
 #   /AmbariRoot:C:\ambari /Retries:5
 if ($packageParameters) {
@@ -53,6 +55,10 @@ if ($packageParameters) {
     Write-Debug "Retries Argument Found"
     $retries = $arguments["Retries"]
   }
+  if ($arguments.ContainsKey("LockTimeout")) {
+    Write-Debug "LockTimeout Argument Found"
+    $lockTimeout = $arguments["LockTimeout"]
+  }
 } else {
   Write-Debug "No Package Parameters Passed in"
 }
@@ -67,6 +73,16 @@ $target = "$ambariRoot\$packageName-$packageVersion"
 Import-Module "$modulesFolder\link.psm1"
 Import-Module "$modulesFolder\retry.psm1"
 
-Retry-Command -Command "Get-ChocolateyUnzip" -Arguments @{ FileFullPath = $zipFile; Destination = $target; SpecificFolder = $specificFolder; PackageName = $packageName} -Retries $retries
-Retry-Command -Command "Remove-Symlink-IfExists" -Arguments @{Link = $link} -Retries $retries
-Retry-Command -Command "New-Symlink" -Arguments @{ Link = $link; Target = $target } -Retries $retries
+$agentMutex = New-Object System.Threading.Mutex $false, "Global\$packageName"
+if($agentMutex.WaitOne($lockTimeout)) {
+  try {
+    Retry-Command -Command "Get-ChocolateyUnzip" -Arguments @{ FileFullPath = $zipFile; Destination = $target; SpecificFolder = $specificFolder; PackageName = $packageName} -Retries $retries
+    Retry-Command -Command "Remove-Symlink-IfExists" -Arguments @{Link = $link} -Retries $retries
+    Retry-Command -Command "New-Symlink" -Arguments @{ Link = $link; Target = $target } -Retries $retries
+  } finally {
+    $agentMutex.ReleaseMutex()
+  }
+} else {
+  Write-Host ("Failed to acquire lock [$packageName] within [$lockTimeout] ms. Installation failed!")
+  throw
+}
