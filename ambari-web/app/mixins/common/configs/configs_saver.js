@@ -292,7 +292,7 @@ App.ConfigsSaverMixin = Em.Mixin.create({
 
     var fileNamesToSave = modifiedConfigs.mapProperty('filename').concat(this.get('modifiedFileNames')).uniq();
 
-    var configsToSave = this.generateDesiredConfigsJSON(modifiedConfigs, fileNamesToSave, this.get('serviceConfigNote'));
+    var configsToSave = this.generateDesiredConfigsJSON(modifiedConfigs, fileNamesToSave, this.get('serviceConfigVersionNote'));
 
     if (configsToSave.length > 0) {
       return JSON.stringify({

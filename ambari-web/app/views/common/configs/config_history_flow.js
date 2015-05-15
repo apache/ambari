@@ -443,7 +443,6 @@ App.ConfigHistoryFlowView = Em.View.extend({
         self.get('controller').setProperties({
           saveConfigsFlag: true,
           serviceConfigVersionNote: this.get('serviceConfigNote'),
-          serviceConfigNote: this.get('serviceConfigNote'),
           preSelectedConfigVersion: Em.Object.create({
             version: newVersionToBeCreated,
             serviceName: self.get('displayedServiceVersion.serviceName'),
