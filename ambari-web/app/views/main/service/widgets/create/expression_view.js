@@ -17,6 +17,7 @@
  */
 
 var misc = require('utils/misc');
+var number_utils = require("utils/number_utils");
 
 App.WidgetWizardExpressionView = Em.View.extend({
   templateName: require('templates/main/service/widgets/create/expression'),
@@ -39,6 +40,18 @@ App.WidgetWizardExpressionView = Em.View.extend({
   OPERATORS: ["+", "-", "*", "/", "(", ")"],
 
   /**
+   * @type {Array}
+   * @const
+   */
+  AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max'],
+
+  /**
+   * @type {RegExp}
+   * @const
+   */
+  VALID_EXPRESSION_REGEX: /^((\(\s)*[\d]+)[\(\)\+\-\*\/\.\d\s]*[\d\)]*$/,
+
+  /**
    * contains expression data before editing in order to restore previous state
    */
   dataBefore: [],
@@ -54,6 +67,19 @@ App.WidgetWizardExpressionView = Em.View.extend({
   isInvalid: false,
 
   /**
+   * contains value of number added to expression
+   * @type {string}
+   */
+  numberValue: "",
+
+  /**
+   * @type {boolean}
+   */
+  isNumberValueInvalid: function () {
+    return this.get('numberValue').trim() === "" || !number_utils.isPositiveNumber(this.get('numberValue').trim());
+  }.property('numberValue'),
+
+  /**
    * add operator to expression data
    * @param event
    */
@@ -66,6 +92,22 @@ App.WidgetWizardExpressionView = Em.View.extend({
       name: event.context,
       isOperator: true
     }));
+  },
+
+  /**
+   * add operator to expression data
+   * @param event
+   */
+  addNumber: function (event) {
+    var data = this.get('expression.data');
+    var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
+
+    data.pushObject(Em.Object.create({
+      id: ++lastId,
+      name: this.get('numberValue'),
+      isNumber: true
+    }));
+    this.set('numberValue', "");
   },
 
   /**
@@ -117,7 +159,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
     }, this).join(" ");
 
     if (expression.length > 0) {
-      if (/^((\(\s)*[\d]+)[\(\)\+\-\*\/\d\s]*[\d\)]*$/.test(expression)) {
+      if (this.get('VALID_EXPRESSION_REGEX').test(expression)) {
         try {
           isInvalid = !isFinite(window.eval(expression));
         } catch (e) {
@@ -134,13 +176,23 @@ App.WidgetWizardExpressionView = Em.View.extend({
     if (!isInvalid) {
       this.get('controller').updateExpressions();
     }
-  }.observes('expression.data.length'),
+  }.observes('expression.data.length')
+});
+
+/**
+ * input used to add number to expression
+ * @type {Em.TextField}
+ * @class
+ */
+App.AddNumberExpressionView = Em.TextField.extend({
+  classNameBindings: ['isInvalid'],
 
   /**
-   * @type {Array}
-   * @const
+   * @type {boolean}
    */
-  AGGREGATE_FUNCTIONS: ['avg', 'sum', 'min', 'max']
+  isInvalid: function () {
+    return this.get('value').trim().length > 0 && !number_utils.isPositiveNumber(this.get('value').trim());
+  }.property('value')
 });
 
 
@@ -212,10 +264,10 @@ App.AddMetricExpressionView = Em.View.extend({
    */
   addMetric: function (event) {
     var selectedMetric = event.context.get('selectedMetric'),
-      aggregateFunction = event.context.get('selectedAggregation');
-    var isAddEnabled = event.context.get('isAddEnabled');
-    var result =  jQuery.extend(true, {}, selectedMetric);
-    if (isAddEnabled) {
+        aggregateFunction = event.context.get('selectedAggregation'),
+        result = Em.Object.create(selectedMetric);
+
+    if (event.context.get('isAddEnabled')) {
       var data = this.get('parentView').get('expression.data'),
         id = (data.length > 0) ? Math.max.apply(this.get('parentView'), data.mapProperty('id')) + 1 : 1;
       result.set('id', id);
@@ -347,28 +399,36 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
     Em.run.next( function() { $('.add-item-input .ember-text-field').focus(); });
   }.observes('parentView.expression.data.length'),
 
+  focusOut: function(evt) {
+    this.saveNumber();
+  },
+
   validateInput: function () {
     var value = this.get('value');
     var parentView = this.get('parentView');
-    this.set('isInvalid', false);
-    if (value && parentView.get('OPERATORS').contains(value)) {
-      // add operator
-      var data = parentView.get('expression.data');
-      var lastId = (data.length > 0) ? Math.max.apply(parentView, data.mapProperty('id')) : 0;
-      data.pushObject(Em.Object.create({
-        id: ++lastId,
-        name: value,
-        isOperator: true
-      }));
-      this.set('value', '');
-    } else if (value && value == 'm') {
-      // open add metric menu
-      $('#add-metric-menu > div > a').click();
-      this.set('value', '');
-    } else if (value) {
-      // invalid operator
-      this.set('isInvalid', true);
+    var isInvalid = false;
+
+    if (!number_utils.isPositiveNumber(value))  {
+      if (value && parentView.get('OPERATORS').contains(value)) {
+        // add operator
+        var data = parentView.get('expression.data');
+        var lastId = (data.length > 0) ? Math.max.apply(parentView, data.mapProperty('id')) : 0;
+        data.pushObject(Em.Object.create({
+          id: ++lastId,
+          name: value,
+          isOperator: true
+        }));
+        this.set('value', '');
+      } else if (value && value == 'm') {
+        // open add metric menu
+        $('#add-metric-menu > div > a').click();
+        this.set('value', '');
+      } else if (value) {
+        // invalid operator
+        isInvalid = true;
+      }
     }
+    this.set('isInvalid', isInvalid);
   }.observes('value'),
 
   keyDown: function (event) {
@@ -377,6 +437,26 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
       if (data.length >= 1) {
         data.removeObject(data[data.length - 1]);
       }
+    } else if (event.keyCode == 13) { //Enter
+      this.saveNumber();
+    }
+  },
+
+  saveNumber: function() {
+    var number_utils = require("utils/number_utils");
+    var value = this.get('value');
+    if (number_utils.isPositiveNumber(value))  {
+      var parentView = this.get('parentView');
+      var data = parentView.get('expression.data');
+      var lastId = (data.length > 0) ? Math.max.apply(this, data.mapProperty('id')) : 0;
+      data.pushObject(Em.Object.create({
+        id: ++lastId,
+        name: this.get('value'),
+        isNumber: true
+      }));
+      this.set('numberValue', "");
+      this.set('isInvalid', false);
+      this.set('value', '');
     }
   }
 });

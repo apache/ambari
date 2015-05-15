@@ -111,8 +111,6 @@ module.exports = App.WizardRoute.extend({
       widgetWizardController.save('widgetProperties', widgetStep2controller.get('widgetProperties'));
       widgetWizardController.save('widgetMetrics', widgetStep2controller.get('widgetMetrics'));
       widgetWizardController.save('widgetValues', widgetStep2controller.get('widgetValues'));
-      widgetWizardController.save('expressions', widgetStep2controller.get('expressions'));
-      widgetWizardController.save('dataSets', widgetStep2controller.get('dataSets'));
       widgetWizardController.save('templateValue', widgetStep2controller.get('templateValue'));
       widgetWizardController.save('widgetName', "");
       widgetWizardController.save('widgetDescription', "");

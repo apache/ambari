@@ -111,15 +111,17 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
 
     //replace values with metrics data
     expression.match(this.get('VALUE_NAME_REGEX')).forEach(function (match) {
-      if (metrics.someProperty('name', match)) {
-        dataLinks[match] = metrics.findProperty('name', match).data;
-        if (!isDataCorrupted) {
-          isDataCorrupted = (dataLength !== -1 && dataLength !== dataLinks[match].length);
+      if (isNaN(match)) {
+        if (metrics.someProperty('name', match)) {
+          dataLinks[match] = metrics.findProperty('name', match).data;
+          if (!isDataCorrupted) {
+            isDataCorrupted = (dataLength !== -1 && dataLength !== dataLinks[match].length);
+          }
+          dataLength = (dataLinks[match].length > dataLength) ? dataLinks[match].length : dataLength;
+        } else {
+          validExpression = false;
+          console.error('Metrics with name "' + match + '" not found to compute expression');
         }
-        dataLength = (dataLinks[match].length > dataLength) ? dataLinks[match].length : dataLength;
-      } else {
-        validExpression = false;
-        console.error('Metrics with name "' + match + '" not found to compute expression');
       }
     });
 
@@ -130,9 +132,13 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       for (var i = 0, timestamp; i < dataLength; i++) {
         isPointNull = false;
         beforeCompute = expression.replace(this.get('VALUE_NAME_REGEX'), function (match) {
-          timestamp = dataLinks[match][i][1];
-          isPointNull = (isPointNull) ? true : (Em.isNone(dataLinks[match][i][0]));
-          return dataLinks[match][i][0];
+          if (isNaN(match)) {
+            timestamp = dataLinks[match][i][1];
+            isPointNull = (isPointNull) ? true : (Em.isNone(dataLinks[match][i][0]));
+            return dataLinks[match][i][0];
+          } else {
+            return match;
+          }
         });
         var dataLinkPointValue = isPointNull ? null : Number(window.eval(beforeCompute));
         // expression resulting into `0/0` will produce NaN Object which is not a valid series data value for RickShaw graphs

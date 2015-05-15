@@ -114,5 +114,14 @@ module.exports = {
     decimals = decimals[1] ? decimals[1].length : 0;
 
     return decimals;
+  },
+
+  /**
+   * @param n
+   * @return {boolean}
+   */
+  isPositiveNumber: function(n) {
+    var number = Number(n);
+    return !isNaN(number) && isFinite(number) && (number > 0);
   }
 };

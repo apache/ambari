@@ -19,6 +19,7 @@
 @import 'common.less';
 
 @border-color: #ddd;
+@invalid-color: red;
 
 .service-metrics-block {
 
@@ -319,7 +320,7 @@
     .is-invalid.controls,
     .metric-container.is-invalid {
       .metric-field {
-        border-color: red;
+        border-color: @invalid-color;
       }
     }
     .metric-container {
@@ -336,6 +337,15 @@
         height: 14%;
         .add-operator {
           margin-left: 25px;
+        }
+        .add-number {
+          margin-left: 40px;
+          .add-on {
+            height: inherit;
+          }
+        }
+        .is-invalid {
+          border-color: @invalid-color
         }
       }
       .metric-field {
@@ -375,7 +385,7 @@
         border-top: none;
       }
       .controls.is-invalid {
-        border-color: red;
+        border-color: @invalid-color;
       }
       .add-item-input {
         display: inline-block!important;
@@ -400,7 +410,7 @@
           transition: none;
         }
         .ember-text-field.is-invalid {
-          border: 1px solid red;
+          border: 1px solid @invalid-color;
         }
       }
     }

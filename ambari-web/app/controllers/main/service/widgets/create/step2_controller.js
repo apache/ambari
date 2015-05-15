@@ -343,7 +343,14 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       value = '${';
       expression.data.forEach(function (element) {
         if (element.isMetric) {
-          metrics.push(element);
+          metrics.push({
+            "name": element.name,
+            "service_name": element.serviceName,
+            "component_name": element.componentName,
+            "metric_path": element.metricPath,
+            "host_component_criteria": element.hostComponentCriteria,
+            "category": element.category
+          });
         }
         value += element.name;
       }, this);
@@ -463,21 +470,11 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     var str = '';
     var data = [];
     var id = 0;
-    var metric;
 
     for (var i = 0, l = expression.length; i < l; i++) {
       if (this.get('OPERATORS').contains(expression[i])) {
         if (str.trim().length > 0) {
-          metric = metrics.findProperty('name', str.trim());
-          data.pushObject(Em.Object.create({
-            id: ++id,
-            name: str.trim(),
-            isMetric: true,
-            componentName: metric.component_name,
-            serviceName: metric.service_name,
-            metricPath: metric.metric_path,
-            hostComponentCriteria: metric.host_component_criteria
-          }));
+          data.pushObject(this.getExpressionVariable(str.trim(), id, metrics));
           str = '';
         }
         data.pushObject(Em.Object.create({
@@ -490,18 +487,40 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       }
     }
     if (str.trim().length > 0) {
-      metric = metrics.findProperty('name', str.trim());
-      data.pushObject(Em.Object.create({
+      data.pushObject(this.getExpressionVariable(str.trim(), id, metrics));
+    }
+    return data;
+  },
+
+  /**
+   * get variable of expression
+   * could be name of metric "m1" or constant number "1"
+   * @param {string} name
+   * @param {Array} metrics
+   * @param {number} id
+   * @returns {Em.Object}
+   */
+  getExpressionVariable: function (name, id, metrics) {
+    var metric;
+
+    if (isNaN(Number(name))) {
+      metric = metrics.findProperty('name', name);
+      return Em.Object.create({
         id: ++id,
-        name: str.trim(),
+        name: metric.name,
         isMetric: true,
         componentName: metric.component_name,
         serviceName: metric.service_name,
         metricPath: metric.metric_path,
         hostComponentCriteria: metric.host_component_criteria
-      }));
+      });
+    } else {
+      return Em.Object.create({
+        id: ++id,
+        name: name,
+        isNumber: true
+      });
     }
-    return data;
   },
 
   next: function () {

@@ -29,6 +29,11 @@
       {{/each}}
     </ul>
   </div>
+  <div class="input-append span2 add-number">
+    {{view App.AddNumberExpressionView valueBinding="view.numberValue" class="input-small"}}
+    <button class="btn add-on" {{action addNumber target="view"}} {{bindAttr disabled="view.isNumberValueInvalid"}}>{{t dashboard.widgets.wizard.step2.newNumber}}</button>
+  </div>
+
 </div>
 <div class="metric-field">
   {{#if view.expression.isRemovable}}

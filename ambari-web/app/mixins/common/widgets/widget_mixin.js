@@ -617,16 +617,7 @@ App.WidgetPreviewMixin = Ember.Mixin.create({
       'values': this.get('controller.widgetValues'),
       'properties': this.get('controller.widgetProperties'),
       'widgetName': this.get('controller.widgetName'),
-      'metrics': this.get('controller.widgetMetrics').map(function (metric) {
-        return {
-          "name": metric.name,
-          "service_name": metric.serviceName,
-          "component_name": metric.componentName,
-          "metric_path": metric.metricPath,
-          "host_component_criteria": metric.hostComponentCriteria,
-          "category": metric.category
-        }
-      })
+      'metrics': this.get('controller.widgetMetrics')
     });
     this._super();
   }.observes('controller.widgetProperties', 'controller.widgetValues', 'controller.widgetMetrics', 'controller.widgetName'),
