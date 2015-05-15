@@ -139,5 +139,34 @@ App.KerberosWizardStep5Controller = App.KerberosProgressPageController.extend({
 
   isSubmitDisabled: function () {
     return !["COMPLETED", "FAILED"].contains(this.get('status'));
-  }.property('status')
+  }.property('status'),
+
+  confirmProperties: function () {
+    var kdc_type = App.router.kerberosWizardController.content.serviceConfigProperties.findProperty('name','kdc_type').value,
+      filterObject = [
+        {
+          key: Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
+          properties: ['kdc_type','kdc_host','realm','executable_search_paths']
+        },
+        {
+          key: Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
+          properties: ['kdc_type','kdc_host','realm','ldap_url','container_dn','executable_search_paths']
+        },
+        {
+          key: Em.I18n.t('admin.kerberos.wizard.step1.option.manual'),
+          properties: ['kdc_type','realm','executable_search_paths']
+        }
+      ],
+      kdcTypeProperties = filterObject.filter(function(item) {
+        return item.key === kdc_type;
+      }),
+      filterBy = kdcTypeProperties.length ? kdcTypeProperties[0].properties : [],
+      returnArray = App.router.kerberosWizardController.content.serviceConfigProperties.filter(function(item) {
+        return filterBy.contains(item.name);
+      }).map(function(item) {
+        item['label'] = Em.I18n.t('admin.kerberos.wizard.step5.'+item['name']+'.label');
+        return item;
+      });
+    return returnArray;
+  }.property('App.router.kerberosWizardController.content.@each.serviceConfigProperties')
 });

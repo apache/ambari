@@ -36,11 +36,9 @@
     </div>
 
     <div class="well pre-scrollable">
-      <p><strong>{{t installer.step0.clusterName.tooltip.title}}</strong>: {{App.router.clusterController.clusterName}}</p>
-      <p><strong>{{t admin.kerberos.wizard.step1.option.manual}}</strong>: {{App.router.kerberosWizardController.skipClientInstall}}</p>
-      {{#each App.router.kerberosWizardController.content.serviceConfigProperties}}
+      {{#each confirmProperties}}
         {{#if value}}
-          <p><strong>{{name}}</strong>: {{value}}</p>
+          <p><strong>{{label}}</strong>: {{value}}</p>
         {{/if}}
       {{/each}}
     </div>
