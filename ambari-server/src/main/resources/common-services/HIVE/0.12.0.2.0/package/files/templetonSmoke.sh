@@ -37,9 +37,16 @@ else
 fi
 
 export no_proxy=$ttonhost
-cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>'    $ttonurl/status 2>&1"
+cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>'  $ttonurl/status 2>&1"
 retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
 httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
+
+# try again for 2.3 username requirement
+if [[ "$httpExitCode" == "500" ]] ; then
+  cmd="${kinitcmd}curl --negotiate -u : -s -w 'http_code <%{http_code}>'  $ttonurl/status?user.name=$smoke_test_user 2>&1"
+  retVal=`/var/lib/ambari-agent/ambari-sudo.sh su ${smoke_test_user} -s /bin/bash - -c "$cmd"`
+  httpExitCode=`echo $retVal |sed 's/.*http_code <\([0-9]*\)>.*/\1/'`
+fi
 
 if [[ "$httpExitCode" -ne "200" ]] ; then
   echo "Templeton Smoke Test (status cmd): Failed. : $retVal"

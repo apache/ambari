@@ -40,7 +40,7 @@ class HiveMetastore(Script):
     import params
     env.set_params(params)
     self.configure(env)  # FOR SECURITY
-    hive_service('metastore', action='start')
+    hive_service('metastore', action='start', rolling_restart=rolling_restart)
 
   def stop(self, env, rolling_restart=False):
     import params
@@ -76,6 +76,9 @@ class HiveMetastoreDefault(HiveMetastore):
     Logger.info("Executing Metastore Rolling Upgrade pre-restart")
     import params
     env.set_params(params)
+
+    if Script.is_hdp_stack_greater_or_equal("2.3"):
+      self.upgrade_schema(env)
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
@@ -130,6 +133,29 @@ class HiveMetastoreDefault(HiveMetastore):
         self.put_structured_out({"securityState": "UNSECURED"})
     else:
       self.put_structured_out({"securityState": "UNSECURED"})
+
+  def upgrade_schema(self, env):
+    """
+    Executes the schema upgrade binary.  This is its own function because it could
+    be called as a standalone task from the upgrade pack, but is safe to run it for each
+    metastore instance.
+    """
+    Logger.info("Upgrading Hive Metastore")
+    import params
+    env.set_params(params)
+
+    if params.security_enabled:
+      kinit_command=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
+      Execute(kinit_command,user=params.smokeuser)
+
+    binary = format("/usr/hdp/{version}/hive/bin/schematool")
+
+    env_dict = {
+      'HIVE_CONF_DIR': params.hive_server_conf_dir
+    }
+
+    command = format("{binary} -dbType {hive_metastore_db_type} -upgradeSchema")
+    Execute(command, user=params.hive_user, tries=1, environment=env_dict, logoutput=True)
 
 if __name__ == "__main__":
   HiveMetastore().execute()

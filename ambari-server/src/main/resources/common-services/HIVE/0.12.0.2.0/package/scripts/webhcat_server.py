@@ -39,7 +39,7 @@ class WebHCatServer(Script):
     import params
     env.set_params(params)
     self.configure(env) # FOR SECURITY
-    webhcat_service(action='start')
+    webhcat_service(action='start', rolling_restart=rolling_restart)
 
   def stop(self, env, rolling_restart=False):
     import params

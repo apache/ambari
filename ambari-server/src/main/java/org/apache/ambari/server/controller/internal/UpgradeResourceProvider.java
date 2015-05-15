@@ -1019,15 +1019,17 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
         ConfigureTask ct = (ConfigureTask) task;
         Map<String, String> configProperties = ct.getConfigurationProperties(cluster);
         List<ConfigureTask.Transfer> transfers = ct.getTransfers();
+        List<ConfigureTask.Replace> replacements = ct.getReplacements();
 
         // if the properties are empty it means that the conditions in the
         // task did not pass;
-        if (configProperties.isEmpty() && transfers.isEmpty()) {
+        if (configProperties.isEmpty() && transfers.isEmpty() && replacements.isEmpty()) {
           stageText = "No conditions were met for this configuration task.";
           itemDetail = stageText;
         } else {
           commandParams.putAll(configProperties);
           commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, s_gson.toJson(transfers));
+          commandParams.put(ConfigureTask.PARAMETER_REPLACEMENTS, s_gson.toJson(replacements));
 
           // extract the config type, key and value to use to build the
           // summary and detail

@@ -524,6 +524,12 @@
       </component>
 
       <component name="WEBHCAT_SERVER">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>webhcat-env</type>
+            <replace key="content" find="export HADOOP_HOME={{hadoop_home}}" replace-with="export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}" />
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

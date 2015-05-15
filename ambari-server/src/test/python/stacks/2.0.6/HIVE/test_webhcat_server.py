@@ -48,9 +48,10 @@ class TestWebHCatServer(RMFTestCase):
     )
 
     self.assert_configure_default()
-    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
+    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/lib/hcatalog/sbin/webhcat_server.sh start',
                               not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
-                              user = 'hcat'
+                              user = 'hcat',
+                              environment = {'HADOOP_HOME': '/usr' }
     )
     self.assertNoMoreResources()
 
@@ -63,8 +64,9 @@ class TestWebHCatServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
+    self.assertResourceCalled('Execute', '/usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
+                              environment = {'HADOOP_HOME': '/usr' }
                               )
     self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
         action = ['delete'],
@@ -93,9 +95,10 @@ class TestWebHCatServer(RMFTestCase):
     )
 
     self.assert_configure_secured()
-    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh start',
+    self.assertResourceCalled('Execute', 'cd /var/run/webhcat ; /usr/lib/hcatalog/sbin/webhcat_server.sh start',
                               not_if = 'ls /var/run/webhcat/webhcat.pid >/dev/null 2>&1 && ps -p `cat /var/run/webhcat/webhcat.pid` >/dev/null 2>&1',
-                              user = 'hcat'
+                              user = 'hcat',
+                              environment = {'HADOOP_HOME': '/usr' }
     )
     self.assertNoMoreResources()
 
@@ -108,8 +111,9 @@ class TestWebHCatServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES
     )
 
-    self.assertResourceCalled('Execute', 'env HADOOP_HOME=/usr /usr/lib/hcatalog/sbin/webhcat_server.sh stop',
+    self.assertResourceCalled('Execute', '/usr/lib/hcatalog/sbin/webhcat_server.sh stop',
                               user = 'hcat',
+                              environment = {'HADOOP_HOME': '/usr' }
                               )
     self.assertResourceCalled('File', '/var/run/webhcat/webhcat.pid',
         action = ['delete'],

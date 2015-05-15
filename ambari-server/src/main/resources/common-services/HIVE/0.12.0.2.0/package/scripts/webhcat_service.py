@@ -30,23 +30,30 @@ def webhcat_service(action='start'):
 
 
 @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
-def webhcat_service(action='start'):
+def webhcat_service(action='start', rolling_restart=False):
   import params
 
-  cmd = format('env HADOOP_HOME={hadoop_home} {webhcat_bin_dir}/webhcat_server.sh')
+  environ = {
+    'HADOOP_HOME': params.hadoop_home
+  }
+
+  cmd = format('{webhcat_bin_dir}/webhcat_server.sh')
 
   if action == 'start':
-    demon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
+    if rolling_restart and params.version:
+      environ['HADOOP_HOME'] = format("/usr/hdp/{version}/hadoop")
+
+    daemon_cmd = format('cd {hcat_pid_dir} ; {cmd} start')
     no_op_test = format('ls {webhcat_pid_file} >/dev/null 2>&1 && ps -p `cat {webhcat_pid_file}` >/dev/null 2>&1')
-    Execute(demon_cmd,
+    Execute(daemon_cmd,
             user=params.webhcat_user,
-            not_if=no_op_test
-    )
+            not_if=no_op_test,
+            environment = environ)
   elif action == 'stop':
-    demon_cmd = format('{cmd} stop')
-    Execute(demon_cmd,
-            user=params.webhcat_user
-    )
+    daemon_cmd = format('{cmd} stop')
+    Execute(daemon_cmd,
+            user = params.webhcat_user,
+            environment = environ)
     File(params.webhcat_pid_file,
          action="delete",
     )

@@ -69,8 +69,8 @@ class RMFTestCase(TestCase):
                     os_env={'PATH':'/bin'},
                     target=TARGET_STACKS,
                     mocks_dict={},
-                    try_install=False
-                    ):
+                    try_install=False,
+                    command_args=[]):
     norm_path = os.path.normpath(path)
     src_dir = RMFTestCase.get_src_folder()
     if target == self.TARGET_STACKS:
@@ -143,9 +143,9 @@ class RMFTestCase(TestCase):
                   with patch.object(os, "environ", new=os_env) as mocks_dict['environ']:
                     if not try_install:
                       with patch.object(Script, 'install_packages') as install_mock_value:
-                        method(RMFTestCase.env)
+                        method(RMFTestCase.env, *command_args)
                     else:
-                      method(RMFTestCase.env)
+                      method(RMFTestCase.env, *command_args)
 
     sys.path.remove(scriptsdir)
   

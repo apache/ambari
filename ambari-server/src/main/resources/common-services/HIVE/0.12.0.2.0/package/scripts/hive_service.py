@@ -57,7 +57,9 @@ def hive_service(name, action='start', rolling_restart=False):
     if name == 'hiveserver2':
       check_fs_root()
 
-    demon_cmd = cmd
+    daemon_cmd = cmd
+    hadoop_home = params.hadoop_home
+    hive_bin = "hive"
 
     # upgrading hiveserver2 (rolling_restart) means that there is an existing,
     # de-registering hiveserver2; the pid will still exist, but the new
@@ -65,16 +67,20 @@ def hive_service(name, action='start', rolling_restart=False):
     if rolling_restart:
       process_id_exists_command = None
 
+      if (params.version):
+        import os
+        hadoop_home = format("/usr/hdp/{version}/hadoop")
+        hive_bin = os.path.join(params.hive_bin, hive_bin)
+
     if params.security_enabled:
       hive_kinit_cmd = format("{kinit_path_local} -kt {hive_server2_keytab} {hive_principal}; ")
       Execute(hive_kinit_cmd, user=params.hive_user)
       
-    Execute(demon_cmd, 
-      user=params.hive_user,
-      environment={'HADOOP_HOME': params.hadoop_home, 'JAVA_HOME': params.java64_home},
-      path=params.execute_path,
-      not_if=process_id_exists_command
-    )
+    Execute(daemon_cmd, 
+      user = params.hive_user,
+      environment = { 'HADOOP_HOME': hadoop_home, 'JAVA_HOME': params.java64_home, 'HIVE_BIN': hive_bin },
+      path = params.execute_path,
+      not_if = process_id_exists_command)
 
     if params.hive_jdbc_driver == "com.mysql.jdbc.Driver" or \
        params.hive_jdbc_driver == "org.postgresql.Driver" or \

@@ -47,7 +47,7 @@ CONSOLE_LOG={{templeton_log_dir}}/webhcat-console.log
 #HCAT_PREFIX=hive_prefix
 
 # Set HADOOP_HOME to point to a specific hadoop install directory
-export HADOOP_HOME={{hadoop_home}}
+export HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}
     </value>
   </property>
   

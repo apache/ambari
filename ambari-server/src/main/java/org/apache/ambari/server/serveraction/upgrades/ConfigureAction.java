@@ -164,18 +164,26 @@ public class ConfigureAction extends AbstractServerAction {
         transferJson, new TypeToken<List<ConfigureTask.Transfer>>(){}.getType());
     }
 
+    List<ConfigureTask.Replace> replacements = Collections.emptyList();
+    String replaceJson = commandParameters.get(ConfigureTask.PARAMETER_REPLACEMENTS);
+    if (null != replaceJson) {
+      replacements = m_gson.fromJson(
+          replaceJson, new TypeToken<List<ConfigureTask.Replace>>(){}.getType());
+    }
+
     // if the two required properties are null and no transfer properties, then
     // assume that no conditions were met and let the action complete
-    if (null == configType && null == key && transfers.isEmpty()) {
+    if (null == configType && null == key && transfers.isEmpty() && replacements.isEmpty()) {
       return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "",
           "Skipping configuration task");
     }
 
     // if only 1 of the required properties was null and no transfer properties,
     // then something went wrong
-    if (null == clusterName || null == configType || (null == key && transfers.isEmpty())) {
-      String message = "cluster={0}, type={1}, key={2}, transfers={3}";
-      message = MessageFormat.format(message, clusterName, configType, key, transfers);
+    if (null == clusterName || null == configType ||
+        (null == key && transfers.isEmpty() && replacements.isEmpty())) {
+      String message = "cluster={0}, type={1}, key={2}, transfers={3}, replacements={4}";
+      message = MessageFormat.format(message, clusterName, configType, key, transfers, replacements);
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "", message);
     }
 
@@ -336,6 +344,27 @@ public class ConfigureAction extends AbstractServerAction {
       newValues.put(key, value);
       outputBuffer.append(MessageFormat.format("{0}/{1} changed to {2}\n", configType, key, value));
     }
+
+
+    // !!! string replacements happen only on the new values.
+    for (ConfigureTask.Replace replacement : replacements) {
+      if (newValues.containsKey(replacement.key)) {
+        String toReplace = newValues.get(replacement.key);
+
+        if (!toReplace.contains(replacement.find)) {
+          outputBuffer.append(MessageFormat.format("String {0} was not found in {1}/{2}\n",
+              replacement.find, configType, replacement.key));
+        } else {
+          String replaced = StringUtils.replace(toReplace, replacement.find, replacement.replaceWith);
+
+          newValues.put(replacement.key, replaced);
+
+          outputBuffer.append(MessageFormat.format("Replaced {0}/{1} containing \"{2}\" with \"{3}\"\n",
+            configType, replacement.key, replacement.find, replacement.replaceWith));
+        }
+      }
+    }
+
 
     // !!! check to see if we're going to a new stack and double check the
     // configs are for the target.  Then simply update the new properties instead

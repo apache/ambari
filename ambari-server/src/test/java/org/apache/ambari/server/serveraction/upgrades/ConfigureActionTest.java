@@ -431,6 +431,82 @@ public class ConfigureActionTest {
     assertEquals("['c6401','c6402','c6403']", map.get("zoo.server.array"));
   }
 
+
+
+  @Test
+  public void testValueReplacement() throws Exception {
+    makeUpgradeCluster();
+
+    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    c.setDesiredStackVersion(HDP_21_STACK);
+    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+      {
+        put("key_to_replace", "My New Cat");
+        put("key_with_no_match", "WxyAndZ");
+      }
+    }, new HashMap<String, Map<String, String>>());
+    config.setTag("version2");
+    config.persist();
+
+    c.addConfig(config);
+    c.addDesiredConfig("user", Collections.singleton(config));
+    assertEquals(2, c.getConfigsByType("zoo.cfg").size());
+
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put("upgrade_direction", "upgrade");
+    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("clusterName", "c1");
+    commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
+
+    // Replacement task
+    List<ConfigureTask.Replace> replacements = new ArrayList<ConfigureTask.Replace>();
+    ConfigureTask.Replace replace = new ConfigureTask.Replace();
+    replace.key = "key_to_replace";
+    replace.find = "New Cat";
+    replace.replaceWith = "Wet Dog";
+    replacements.add(replace);
+
+    replace = new ConfigureTask.Replace();
+    replace.key = "key_with_no_match";
+    replace.find = "abc";
+    replace.replaceWith = "def";
+    replacements.add(replace);
+
+    commandParams.put(ConfigureTask.PARAMETER_REPLACEMENTS, new Gson().toJson(replacements));
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+
+    assertEquals(3, c.getConfigsByType("zoo.cfg").size());
+
+    config = c.getDesiredConfigByType("zoo.cfg");
+    assertNotNull(config);
+    assertFalse("version2".equals(config.getTag()));
+
+    assertEquals("My Wet Dog", config.getProperties().get("key_to_replace"));
+    assertEquals("WxyAndZ", config.getProperties().get("key_with_no_match"));
+
+  }
+
+
+
   private void makeUpgradeCluster() throws Exception {
     String clusterName = "c1";
     String hostName = "h1";

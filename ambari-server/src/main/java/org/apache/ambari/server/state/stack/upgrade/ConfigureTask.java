@@ -102,6 +102,12 @@ public class ConfigureTask extends ServerSideActionTask {
   public static final String PARAMETER_TRANSFERS = "configure-task-transfers";
 
   /**
+   * Replacements can be several per task, so they're passed in as a json-ified list of
+   * objects.
+   */
+  public static final String PARAMETER_REPLACEMENTS = "configure-task-replacements";
+
+  /**
    * Constructor.
    *
    */
@@ -129,6 +135,9 @@ public class ConfigureTask extends ServerSideActionTask {
 
   @XmlElement(name = "transfer")
   private List<Transfer> transfers;
+
+  @XmlElement(name="replace")
+  private List<Replace> replacements;
 
   @Override
   public Type getType() {
@@ -263,6 +272,51 @@ public class ConfigureTask extends ServerSideActionTask {
   }
 
   /**
+   * Used to replace strings in a key with other strings.  More complex
+   * scenarios will be possible with regex (when needed)
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "replace")
+  public static class Replace {
+    /**
+     * The key name
+     */
+    @XmlAttribute(name="key")
+    public String key;
+
+    /**
+     * The string to find
+     */
+    @XmlAttribute(name="find")
+    public String find;
+
+    /**
+     * The string to replace
+     */
+    @XmlAttribute(name="replace-with")
+    public String replaceWith;
+  }
+
+  /**
+   * @return the replacement tokens, never {@code null}
+   */
+  public List<Replace> getReplacements() {
+    if (null == replacements) {
+      return Collections.emptyList();
+    }
+
+    List<Replace> list = new ArrayList<Replace>();
+    for (Replace r : replacements) {
+      if (null == r.key || null == r.find || null == r.replaceWith) {
+        continue;
+      }
+      list.add(r);
+    }
+
+    return list;
+  }
+
+  /**
    * Gets a map containing the following properties pertaining to the
    * configuration value to change:
    * <ul>
@@ -341,4 +395,5 @@ public class ConfigureTask extends ServerSideActionTask {
 
     return config.getProperties().get(propertyKey);
   }
+
 }
