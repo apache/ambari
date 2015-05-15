@@ -26,4 +26,9 @@
     <deleted>true</deleted>
   </property>
 
+  <property>
+    <name>yarn.timeline-service.recovery.enabled</name>
+    <value>true</value>
+  </property>
+
 </configuration>

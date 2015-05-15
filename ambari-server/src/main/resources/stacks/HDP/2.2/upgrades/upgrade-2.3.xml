@@ -393,17 +393,6 @@
             <key>yarn.timeline-service.recovery.enabled</key>
             <value>true</value>
           </task>
-
-          <task xsi:type="configure">
-            <type>yarn-site</type>
-            <transfer operation="copy" from-key="yarn.timeline-service.leveldb-timeline-store.path" to-key="yarn.timeline-service.leveldb-state-store.path"/>
-          </task>
-
-          <task xsi:type="configure">
-            <type>yarn-site</type>
-            <key>yarn.timeline-service.state-store-class</key>
-            <value>org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore</value>
-          </task>
         </pre-upgrade>
 
         <upgrade>
@@ -436,6 +425,7 @@
         </upgrade>
       </component>
     </service>
+
     <service name="HBASE">
       <component name="HBASE_MASTER">
         <upgrade>
