@@ -21,8 +21,8 @@
     <div id="summary-restart-bar">
       <div class="alert alert-warning clearfix">
         <i class="icon-refresh"></i> {{{view.needToRestartMessage}}} {{t services.service.config.restartService.needToRestart}}
-        <a href="#" {{action showComponentsShouldBeRestarted controller.content.restartRequiredHostsAndComponents target="App.router.mainServiceInfoConfigsController"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
-        <a href="#" {{action showHostsShouldBeRestarted controller.content.restartRequiredHostsAndComponents target="App.router.mainServiceInfoConfigsController"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
+        <a href="#" {{action showComponentsShouldBeRestarted controller.content target="App.router.mainServiceInfoConfigsController"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
+        <a href="#" {{action showHostsShouldBeRestarted controller.content target="App.router.mainServiceInfoConfigsController"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
         <span class="restart-components pull-right">&nbsp</span>
 
         <div class="btn-group pull-right">

@@ -199,8 +199,10 @@ describe("App.MainServiceInfoConfigsController", function () {
       {
         input: {
           context: {
-            'publicHostName1': ['TaskTracker'],
-            'publicHostName2': ['JobTracker', 'TaskTracker']
+            restartRequiredHostsAndComponents: {
+              'publicHostName1': ['TaskTracker'],
+              'publicHostName2': ['JobTracker', 'TaskTracker']
+            }
           }
         },
         components: "2 TaskTrackers, 1 JobTracker",
@@ -209,7 +211,9 @@ describe("App.MainServiceInfoConfigsController", function () {
       {
         input: {
           context: {
-            'publicHostName1': ['TaskTracker']
+            restartRequiredHostsAndComponents: {
+              'publicHostName1': ['TaskTracker']
+            }
           }
         },
         components: "1 TaskTracker",
@@ -238,8 +242,10 @@ describe("App.MainServiceInfoConfigsController", function () {
       {
         input: {
           context: {
-            'publicHostName1': ['TaskTracker'],
-            'publicHostName2': ['JobTracker', 'TaskTracker']
+            restartRequiredHostsAndComponents: {
+              'publicHostName1': ['TaskTracker'],
+              'publicHostName2': ['JobTracker', 'TaskTracker']
+            }
           }
         },
         hosts: "publicHostName1, publicHostName2",
@@ -248,7 +254,9 @@ describe("App.MainServiceInfoConfigsController", function () {
       {
         input: {
           context: {
-            'publicHostName1': ['TaskTracker']
+            restartRequiredHostsAndComponents: {
+              'publicHostName1': ['TaskTracker']
+            }
           }
         },
         hosts: "publicHostName1",

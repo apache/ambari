@@ -1274,7 +1274,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method showHostsShouldBeRestarted
    */
   showHostsShouldBeRestarted: function (event) {
-    var restartRequiredHostsAndComponents = event.context;
+    var restartRequiredHostsAndComponents = event.context.restartRequiredHostsAndComponents;
     var hosts = [];
     for (var hostName in restartRequiredHostsAndComponents) {
       hosts.push(hostName);
@@ -1290,7 +1290,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method showComponentsShouldBeRestarted
    */
   showComponentsShouldBeRestarted: function (event) {
-    var restartRequiredHostsAndComponents = event.context;
+    var restartRequiredHostsAndComponents = event.context.restartRequiredHostsAndComponents;
     var hostsComponets = [];
     var componentsObject = {};
     for (var hostName in restartRequiredHostsAndComponents) {

@@ -23,8 +23,8 @@
         <div>
           <div class="alert alert-warning clearfix">
             <i class="icon-refresh"></i> {{t services.service.config.restartService.needToRestart}}  <a
-                  href="#" {{action "showComponentsShouldBeRestarted" controller.content.restartRequiredHostsAndComponents target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
-            <a href="#" {{action "showHostsShouldBeRestarted" controller.content.restartRequiredHostsAndComponents target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
+                  href="#" {{action "showComponentsShouldBeRestarted" controller.content target="controller"}}>{{view.componentsCount}} {{pluralize view.componentsCount singular="t:common.component" plural="t:common.components"}}</a> {{t on}}
+            <a href="#" {{action "showHostsShouldBeRestarted" controller.content target="controller"}}>{{view.hostsCount}} {{pluralize view.hostsCount singular="t:common.host" plural="t:common.hosts"}}</a>
             <span class="restart-components pull-right">&nbsp</span>
 
             <div class="btn-group pull-right">
