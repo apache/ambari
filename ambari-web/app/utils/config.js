@@ -517,6 +517,8 @@ App.config = Em.Object.create({
           configData.value = stored.value;
           configData.defaultValue = stored.defaultValue;
           configData.overrides = stored.overrides;
+          configData.displayName = stored.displayName;
+          configData.name = stored.name;
           configData.filename = stored.filename;
           configData.description = stored.description;
           configData.isVisible = stored.isVisible;
@@ -561,6 +563,7 @@ App.config = Em.Object.create({
             configData.isFinal = storedCfg.isFinal;
             configData.supportsFinal = storedCfg.supportsFinal;
             configData.showLabel = !!storedCfg.showLabel;
+            configData.displayName = storedCfg.displayName;
           } else if (isAdvanced) {
             advanced = advancedConfigs.filterProperty('filename', configData.filename).findProperty('name', configData.name);
             this.setPropertyFromStack(configData, advanced);
@@ -574,7 +577,7 @@ App.config = Em.Object.create({
 
   /**
    *
-   * @param configData {Object} Configs that will be binded to the view on step-7 of installer wizard
+   * @param configData {Object} Configs that will be bound to the view on step-7 of installer wizard
    * @param advanced {Object} Config property loaded from Server side stack definition
    */
   setPropertyFromStack: function (configData, advanced) {
@@ -589,6 +592,8 @@ App.config = Em.Object.create({
     }
     configData.defaultValue = configData.value;
     configData.filename = advanced ? advanced.filename : configData.filename;
+    configData.displayName = advanced && advanced.displayName ? advanced.displayName : configData.displayName;
+    configData.name = advanced && advanced.name ? advanced.name : configData.name;
     configData.description = advanced ? advanced.description : configData.description;
     configData.isFinal = !!(advanced && (advanced.isFinal === "true"));
     configData.supportsFinal = !!(advanced && advanced.supportsFinal);

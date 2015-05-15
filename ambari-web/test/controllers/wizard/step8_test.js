@@ -1713,7 +1713,13 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#applyInstalledServicesConfigurationGroup', function() {
     beforeEach(function() {
-      sinon.stub($, 'ajax', Em.K);
+      sinon.stub($, 'ajax', function () {
+        return {
+          retry: function () {
+            return {then: Em.K}
+          }
+        }
+      });
       sinon.stub(App.router, 'get', function() {
         return configurationController;
       });

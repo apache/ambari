@@ -114,9 +114,6 @@ App.ServerValidatorMixin = Em.Mixin.create({
    * @returns {*}
    */
   loadServerSideConfigsRecommendations: function() {
-    if (this.get('recommendationsConfigs')) {
-      return $.Deferred().resolve();
-    }
     return App.ajax.send({
       'name': 'config.recommendations',
       'sender': this,

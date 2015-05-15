@@ -2003,4 +2003,47 @@ describe('App.InstallerStep7Controller', function () {
 
   });
 
+  describe('#restoreRecommendedConfigs', function () {
+
+    var recommendationsConfigs = {
+      site: {
+        properties: {
+          a: 'recommendedA',
+          b: 'recommendedB'
+        }
+      }
+    };
+    var stepConfigs = [
+      Em.Object.create({
+        serviceName: 'srv',
+        configs: [
+          {name: 'a', value: '--', filename: 'site'},
+          {name: 'b', value: '--', filename: 'Custom site'}
+        ]
+      })
+    ];
+    var serviceConfigProperties = [
+      {name: 'a', value: 'valueA', filename: 'site'},
+      {name: 'b', value: 'valueB', filename: 'Custom site'}
+    ];
+
+    beforeEach(function() {
+      installerStep7Controller.reopen({
+        content: {
+          serviceConfigProperties: serviceConfigProperties
+        },
+        recommendationsConfigs: recommendationsConfigs,
+        stepConfigs: stepConfigs
+      });
+    });
+
+    it('should restore provided by user values', function () {
+      installerStep7Controller.restoreRecommendedConfigs();
+      var configs = installerStep7Controller.get('stepConfigs')[0].configs;
+      expect(Em.get(configs.findProperty('name', 'a'), 'value')).to.equal('valueA');
+      expect(Em.get(configs.findProperty('name', 'b'), 'value')).to.equal('valueB');
+    });
+
+  });
+
 });

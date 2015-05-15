@@ -265,10 +265,12 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    * @method clearStep
    */
   clearStep: function () {
-    this.set('configValidationGlobalMessage', []);
-    this.set('submitButtonClicked', false);
-    this.set('isSubmitDisabled', true);
-    this.set('isRecommendedLoaded', false);
+    this.setProperties({
+      configValidationGlobalMessage: [],
+      submitButtonClicked: false,
+      isSubmitDisabled: true,
+      isRecommendedLoaded: false
+    });
     this.get('stepConfigs').clear();
     this.set('filter', '');
     this.get('filterColumns').setEach('selected', false);
@@ -582,6 +584,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       }
     }
   },
+
   /**
    * On load function
    * @method loadStep
@@ -624,8 +627,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (this.get('allSelectedServiceNames').contains('YARN')) {
       configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
     }
-    var dependendServices = ["STORM", "YARN"];
-    dependendServices.forEach(function (serviceName) {
+    var dependedServices = ["STORM", "YARN"];
+    dependedServices.forEach(function (serviceName) {
       if (this.get('allSelectedServiceNames').contains(serviceName)) {
         this.resolveServiceDependencyConfigs(serviceName, configs);
       }
@@ -639,14 +642,51 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         self.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
       }
       self.setStepConfigs(configs, storedConfigs);
+
+      var serviceConfigProperties = (self.get('content.serviceConfigProperties') || []).mapProperty('name');
+      var recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
+      recommendedToDelete.forEach(function (c) {
+        var name = Em.get(c, 'propertyName');
+        if (serviceConfigProperties.contains(name)) {
+          Em.set(self.get('_dependentConfigValues').findProperty('propertyName', name), 'toDelete', false);
+        }
+      });
+
       self.updateDependentConfigs();
       self.clearDependentConfigs();
       self.checkHostOverrideInstaller();
       self.activateSpecialConfigs();
       self.selectProperService();
+      self.restoreRecommendedConfigs();
       if (self.get('content.skipConfigStep')) {
         App.router.send('next');
       }
+    });
+  },
+
+  /**
+   * After user navigates back to step7, values for depended configs should be set to values set by user and not to default values
+   * @method restoreRecommendedConfigs
+   */
+  restoreRecommendedConfigs: function () {
+    var recommendationsConfigs = this.get('recommendationsConfigs') || {};
+    var serviceConfigProperties = this.get('content.serviceConfigProperties') || [];
+    var stepConfigs = this.get('stepConfigs');
+    Em.keys(recommendationsConfigs).forEach(function (file) {
+      (Em.keys(recommendationsConfigs[file].properties).concat(Em.keys(recommendationsConfigs[file].property_attributes || {}))).forEach(function (configName) {
+        stepConfigs.forEach(function (stepConfig) {
+          stepConfig.get('configs').filterProperty('name', configName).forEach(function (configProperty) {
+            if (Em.get(configProperty, 'filename').contains(file)) {
+              var scps = serviceConfigProperties.filterProperty('name', configName).filter(function (cp) {
+                return Em.get(cp, 'filename').contains(file);
+              });
+              if (scps.length) {
+                Em.set(configProperty, 'value', Em.get(scps[0], 'value'));
+              }
+            }
+          });
+        });
+      });
     });
   },
 
@@ -1179,18 +1219,14 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           // error popup before you can proceed
           return App.ModalPopup.show({
             header: Em.I18n.t('installer.step7.popup.mySQLWarning.header'),
-            bodyClass: Ember.View.extend({
-              template: Ember.Handlebars.compile(Em.I18n.t('installer.step7.popup.mySQLWarning.body'))
-            }),
+            body:Em.I18n.t('installer.step7.popup.mySQLWarning.body'),
             secondary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.gotostep5'),
             primary: Em.I18n.t('installer.step7.popup.mySQLWarning.button.dismiss'),
             onSecondary: function () {
               var parent = this;
               return App.ModalPopup.show({
                 header: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.header'),
-                bodyClass: Ember.View.extend({
-                  template: Ember.Handlebars.compile(Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'))
-                }),
+                body: Em.I18n.t('installer.step7.popup.mySQLWarning.confirmation.body'),
                 onPrimary: function () {
                   this.hide();
                   parent.hide();

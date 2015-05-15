@@ -1,7 +1,7 @@
 {
   "name": "Ambari",
   "description": "Front-end package for the Apache Ambari Project",
-  "version": "1.7.0",
+  "version": "2.1.0",
   "homepage": "http://ambari.apache.org/",
   "repository": {
     "type": "git",

@@ -890,6 +890,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         var configProperty = {
           id: _configProperties.get('id'),
           name: _configProperties.get('name'),
+          displayName: _configProperties.get('displayName'),
           value: _configProperties.get('value'),
           defaultValue: _configProperties.get('defaultValue'),
           description: _configProperties.get('description'),

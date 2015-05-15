@@ -114,8 +114,10 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @private
    */
   clearDependentConfigs: function() {
-    this.set('groupsToSave', {});
-    this.set('_dependentConfigValues', []);
+    this.setProperties({
+      groupsToSave: {},
+      _dependentConfigValues: []
+    });
   },
 
   onConfigGroupChangeForEnhanced: function() {
@@ -198,7 +200,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
   /**
    * sends request to get values for dependent configs
-   * @param {Object[]} changedConfigs - list of changed configs to track recommendations
+   * @param {{type: string, name: string}[]} changedConfigs - list of changed configs to track recommendations
    * @param {Boolean} initial
    * @param {Function} onComplete
    * @returns {$.ajax|null}
@@ -283,6 +285,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    */
   dependenciesSuccess: function (data, opt, params) {
     this._saveRecommendedValues(data, params.initial, params.dataToSend.changed_configurations);
+    this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
     if (!params.initial) {
       this.updateDependentConfigs();
     }
