@@ -90,7 +90,8 @@
           "type": "METRIC",
           "uri": {
             "http": "{{ams-hbase-site/hbase.master.info.port}}",
-            "default_port": 61310
+            "default_port": 61310,
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {

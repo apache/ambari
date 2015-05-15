@@ -31,13 +31,16 @@ from resource_management.libraries.functions.get_port_from_url import get_port_f
 
 logger = logging.getLogger()
 
-CONNECTION_TIMEOUT = 5.0
+# default timeout
+DEFAULT_CONNECTION_TIMEOUT = 5.0
 
 class MetricAlert(BaseAlert):
   
   def __init__(self, alert_meta, alert_source_meta):
     super(MetricAlert, self).__init__(alert_meta, alert_source_meta)
- 
+
+    connection_timeout = DEFAULT_CONNECTION_TIMEOUT
+
     self.metric_info = None    
     if 'jmx' in alert_source_meta:
       self.metric_info = JmxMetric(alert_source_meta['jmx'])
@@ -47,6 +50,12 @@ class MetricAlert(BaseAlert):
     if 'uri' in alert_source_meta:
       uri = alert_source_meta['uri']
       self.uri_property_keys = self._lookup_uri_property_keys(uri)
+
+      if 'connection_timeout' in uri:
+        connection_timeout = uri['connection_timeout']
+
+    # python uses 5.0, not 5
+    self.connection_timeout = float(connection_timeout)
 
 
   def _collect(self):
@@ -159,7 +168,7 @@ class MetricAlert(BaseAlert):
       response = None
       try:
         url_opener = urllib2.build_opener(RefreshHeaderProcessor())
-        response = url_opener.open(url, timeout=CONNECTION_TIMEOUT)
+        response = url_opener.open(url, timeout=self.connection_timeout)
         content = response.read()
       finally:
         # explicitely close the connection as we've seen python hold onto these

@@ -64,7 +64,8 @@
           "type": "METRIC",
           "uri": {
             "http": "{{hbase-site/hbase.master.info.port}}",
-            "default_port": 60010
+            "default_port": 60010,
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {

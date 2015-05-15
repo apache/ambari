@@ -43,7 +43,8 @@
             "https_property_value": "true",
             "default_port": 21000,
             "kerberos_keytab": "{{application-properties/http_authentication_kerberos_keytab}}",
-            "kerberos_principal": "{{application-properties/http_authentication_kerberos_principal}}"
+            "kerberos_principal": "{{application-properties/http_authentication_kerberos_principal}}",
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {

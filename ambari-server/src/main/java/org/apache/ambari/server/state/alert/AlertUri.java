@@ -75,6 +75,12 @@ public class AlertUri {
   private int m_port = 0;
 
   /**
+   * An optional timeout value for connections.
+   */
+  @SerializedName("connection_timeout")
+  private float m_connectionTimeout = 5.0f;
+
+  /**
    * If present, then the component supports HA mode and the properties
    * contained within need to be checked to see if an HA URI is required to be
    * constructed instead of using {@link #m_httpProperty} and

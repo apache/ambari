@@ -48,8 +48,8 @@ except ImportError:
 
 logger = logging.getLogger()
 
-CONNECTION_TIMEOUT = 10.0
-CURL_CONNECTION_TIMEOUT = "10"
+# default timeout
+DEFAULT_CONNECTION_TIMEOUT = 5
 
 WebResponse = namedtuple('WebResponse', 'status_code time_millis error_msg')
 
@@ -57,12 +57,21 @@ class WebAlert(BaseAlert):
 
   def __init__(self, alert_meta, alert_source_meta, config):
     super(WebAlert, self).__init__(alert_meta, alert_source_meta)
-    
+
+    connection_timeout = DEFAULT_CONNECTION_TIMEOUT
+
     # extract any lookup keys from the URI structure
     self.uri_property_keys = None
     if 'uri' in alert_source_meta:
       uri = alert_source_meta['uri']
       self.uri_property_keys = self._lookup_uri_property_keys(uri)
+
+      if 'connection_timeout' in uri:
+        connection_timeout = uri['connection_timeout']
+
+    # python uses 5.0, CURL uses "5"
+    self.connection_timeout = float(connection_timeout)
+    self.curl_connection_timeout = str(int(connection_timeout))
 
     self.config = config
 
@@ -203,7 +212,7 @@ class WebAlert(BaseAlert):
 
         try:
           curl = subprocess.Popen(['curl', '--negotiate', '-u', ':', '-b', cookie_file, '-c', cookie_file, '-sL', '-w',
-            '%{http_code}', url, '--connect-timeout', CURL_CONNECTION_TIMEOUT,
+            '%{http_code}', url, '--connect-timeout', self.curl_connection_timeout,
             '-o', '/dev/null'], stdout=subprocess.PIPE, stderr=subprocess.PIPE, env=kerberos_env)
 
           curl_stdout, curl_stderr = curl.communicate()
@@ -246,7 +255,7 @@ class WebAlert(BaseAlert):
     start_time = time.time()
 
     try:
-      response = urllib2.urlopen(url, timeout=CONNECTION_TIMEOUT)
+      response = urllib2.urlopen(url, timeout=self.connection_timeout)
       response_code = response.getcode()
       time_millis = time.time() - start_time
 

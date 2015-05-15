@@ -62,8 +62,9 @@
           "type": "WEB",
           "uri": {
             "http": "{{storm-site/ui.port}}",
-           "kerberos_keytab": "{{storm-env/storm_ui_keytab}}",
-            "kerberos_principal": "{{storm-env/storm_ui_principal_name}}"
+            "kerberos_keytab": "{{storm-env/storm_ui_keytab}}",
+            "kerberos_principal": "{{storm-env/storm_ui_principal_name}}",
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {

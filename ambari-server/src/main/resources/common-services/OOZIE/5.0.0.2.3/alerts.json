@@ -13,7 +13,8 @@
           "uri": {
             "http": "{{oozie-site/oozie.base.url}}/oozie/?user.name=oozie",
             "kerberos_keytab": "{{oozie-site/oozie.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{oozie-site/oozie.authentication.kerberos.principal}}"
+            "kerberos_principal": "{{oozie-site/oozie.authentication.kerberos.principal}}",
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {

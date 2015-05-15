@@ -40,7 +40,8 @@
             "http": "{{falcon-env/falcon_port}}",
             "default_port": 15000,
             "kerberos_keytab": "{{falcon-startup.properties/*.falcon.http.authentication.kerberos.keytab}}",
-            "kerberos_principal": "{{falcon-startup.properties/*.falcon.http.authentication.kerberos.principal}}"
+            "kerberos_principal": "{{falcon-startup.properties/*.falcon.http.authentication.kerberos.principal}}",
+            "connection_timeout": 5.0
           },
           "reporting": {
             "ok": {

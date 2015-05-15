@@ -956,6 +956,19 @@ class TestAlerts(TestCase):
     self.assertFalse(parent_mock.open.called)
 
 
+  def test_uri_timeout(self):
+    # the web alert will have a timeout value
+    definition_json = self._get_web_alert_definition()
+    alert = WebAlert(definition_json, definition_json['source'], None)
+    self.assertEquals(5.678, alert.connection_timeout)
+    self.assertEquals("5", alert.curl_connection_timeout)
+
+    # the metric definition will not and should default to 5.0
+    definition_json = self._get_metric_alert_definition()
+    alert = MetricAlert(definition_json, definition_json['source'])
+    self.assertEquals(5.0, alert.connection_timeout)
+
+
   def __get_cluster_configuration(self):
     """
     Gets an instance of the cluster cache where the file read and write
@@ -1113,7 +1126,8 @@ class TestAlerts(TestCase):
           "http": "{{hdfs-site/dfs.datanode.http.address}}",
           "https": "{{hdfs-site/dfs.datanode.https.address}}",
           "https_property": "{{hdfs-site/dfs.http.policy}}",
-          "https_property_value": "HTTPS_ONLY"
+          "https_property_value": "HTTPS_ONLY",
+          "connection_timeout": 5.678
         },
         "reporting": {
           "ok": {
