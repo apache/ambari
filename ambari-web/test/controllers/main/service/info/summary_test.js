@@ -185,6 +185,9 @@ describe('App.MainServiceInfoSummaryController', function () {
         }),
         Em.Object.create({
           serviceName: 'HBASE'
+        }),
+        Em.Object.create({
+          serviceName: 'YARN'
         })
       ]);
     });
@@ -202,6 +205,9 @@ describe('App.MainServiceInfoSummaryController', function () {
         controller.get('rangerPlugins').findProperty('serviceName', 'HBASE').tag = item.hbaseTag;
         controller.getRangerPluginsStatus(data);
         expect(App.ajax.send.calledOnce).to.equal(item.ajaxRequestSent);
+        if (item.ajaxRequestSent) {
+          expect(App.ajax.send.getCall(0).args[0].data.urlParams.contains('ranger-yarn-plugin-properties')).to.be.false;
+        }
       });
     });
 

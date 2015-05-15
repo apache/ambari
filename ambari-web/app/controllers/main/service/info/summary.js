@@ -132,7 +132,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   getRangerPluginsStatus: function (data) {
     var urlParams = [];
     this.get('rangerPlugins').forEach(function (item) {
-      if (App.Service.find().someProperty('serviceName', item.serviceName)) {
+      if (App.Service.find().someProperty('serviceName', item.serviceName) && data.Clusters.desired_configs.hasOwnProperty(item.type)) {
         var currentTag = data.Clusters.desired_configs[item.type].tag;
         var isTagChanged = item.tag != currentTag;
         Em.set(item, 'isDisplayed', true);
