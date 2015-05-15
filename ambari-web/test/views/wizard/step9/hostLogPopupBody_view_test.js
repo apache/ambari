@@ -152,7 +152,8 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
         stderr: 'stderr',
         stdout: 'stdout',
         host_name: 'host1',
-        command: 'Cmd'
+        command: 'Cmd',
+        command_detail: 'TEST SERVICE/COMPONENT_DESCRIPTION'
       }
     };
 
@@ -164,6 +165,7 @@ describe('App.WizardStep9HostLogPopupBodyView', function() {
       expect(first.get('id')).to.equal(1);
       expect(first.get('requestId')).to.equal(2);
       expect(first.get('command')).to.equal('cmd');
+      expect(first.get('commandDetail')).to.equal(' Test Component Description');
       expect(first.get('role')).to.equal('Pig');
       expect(first.get('stderr')).to.equal('stderr');
       expect(first.get('stdout')).to.equal('stdout');

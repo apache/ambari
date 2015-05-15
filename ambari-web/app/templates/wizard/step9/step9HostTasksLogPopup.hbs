@@ -44,7 +44,7 @@
               <div class="operation-name-icon-wrap">
                 <i {{bindAttr class="taskInfo.status taskInfo.icon"}}></i>
                 <a href="#">
-                  {{taskInfo.role}} {{taskInfo.command}}
+                  {{taskInfo.commandDetail}}
                 </a>
               </div>
               <div class="show-details"><i class="icon-caret-right"></i></div>
@@ -68,7 +68,9 @@
             <a title="Click to Copy" {{action "textTrigger" taskInfo target="view"}} class="task-detail-copy"><i class="icon-copy"></i> {{t common.copy}}</a>
             <a title="Open in New Window" {{action openTaskLogInDialog}} class="task-detail-open-dialog"><i class="icon-external-link"></i> {{t common.open}}</a>
           </div>
-          <span class="task-detail-log-rolename">{{view.openedTask.role}} {{view.openedTask.command}}</span>
+          <span class="task-detail-log-rolename">
+            {{view.openedTask.commandDetail}}
+          </span>
         </div>
 
       </div>
