@@ -69,8 +69,8 @@ public class AmbariHandlerListTest {
     Capture<FilterHolder> persistFilterCapture = new Capture<FilterHolder>();
     Capture<FilterHolder> securityFilterCapture = new Capture<FilterHolder>();
 
-    handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(1));
-    handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(1));
+    handler.addFilter(capture(persistFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
+    handler.addFilter(capture(securityFilterCapture), eq("/*"), eq(AmbariServer.DISPATCHER_TYPES));
     handler.setAllowNullPathInfo(true);
 
     replay(handler, server);

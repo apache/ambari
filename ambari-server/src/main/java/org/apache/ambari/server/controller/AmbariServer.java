@@ -23,9 +23,11 @@ import java.io.File;
 import java.net.Authenticator;
 import java.net.BindException;
 import java.net.PasswordAuthentication;
+import java.util.EnumSet;
 import java.util.Map;
 
 import javax.crypto.BadPaddingException;
+import javax.servlet.DispatcherType;
 
 import org.apache.ambari.eventdb.webservice.WorkflowJsonService;
 import org.apache.ambari.server.AmbariException;
@@ -136,6 +138,11 @@ public class AmbariServer {
 
   // Set velocity logger
   protected static final String VELOCITY_LOG_CATEGORY = "VelocityLogger";
+
+  /**
+   * Dispatcher types for webAppContext.addFilter.
+   */
+  public static final EnumSet<DispatcherType> DISPATCHER_TYPES = EnumSet.of(DispatcherType.REQUEST);
 
   static {
     Velocity.setProperty("runtime.log.logsystem.log4j.logger", VELOCITY_LOG_CATEGORY);
@@ -277,20 +284,20 @@ public class AmbariServer {
       rootServlet.setInitOrder(1);
 
       //session-per-request strategy for api and agents
-      root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", 1);
-      root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", 1);
-      root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", 1);
-      root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", 1);
+      root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/api/*", DISPATCHER_TYPES);
+      root.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/proxy/*", DISPATCHER_TYPES);
+      root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/api/*", DISPATCHER_TYPES);
+      root.addFilter(new FilterHolder(new MethodOverrideFilter()), "/proxy/*", DISPATCHER_TYPES);
 
       // register listener to capture request context
       root.addEventListener(new RequestContextListener());
 
-      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", 1);
-      agentroot.addFilter(SecurityFilter.class, "/*", 1);
+      agentroot.addFilter(new FilterHolder(injector.getInstance(AmbariPersistFilter.class)), "/agent/*", DISPATCHER_TYPES);
+      agentroot.addFilter(SecurityFilter.class, "/*", DISPATCHER_TYPES);
 
       if (configs.getApiAuthentication()) {
-        root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", 1);
-        root.addFilter(new FilterHolder(springSecurityFilter), "/proxy/*", 1);
+        root.addFilter(new FilterHolder(springSecurityFilter), "/api/*", DISPATCHER_TYPES);
+        root.addFilter(new FilterHolder(springSecurityFilter), "/proxy/*", DISPATCHER_TYPES);
       }
 
 
@@ -546,7 +553,12 @@ public class AmbariServer {
     // use AMBARISESSIONID instead of JSESSIONID to avoid conflicts with
     // other services (like HDFS) that run on the same context but a different
     // port
-    sessionManager.setSessionCookie("AMBARISESSIONID");
+    sessionManager.getSessionCookieConfig().setName("AMBARISESSIONID");
+
+    sessionManager.getSessionCookieConfig().setHttpOnly(true);
+    if (configs.getApiSSLAuthentication()) {
+      sessionManager.getSessionCookieConfig().setSecure(true);
+    }
 
     // each request that does not use AMBARISESSIONID will create a new
     // HashedSession in Jetty; these MUST be reaped after inactivity in order

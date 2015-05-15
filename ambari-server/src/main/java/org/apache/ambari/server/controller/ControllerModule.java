@@ -276,7 +276,7 @@ public class ControllerModule extends AbstractModule {
 
     final SessionIdManager sessionIdManager = new HashSessionIdManager();
     final SessionManager sessionManager = new HashSessionManager();
-    sessionManager.setSessionPath("/");
+    sessionManager.getSessionCookieConfig().setPath("/");
     sessionManager.setSessionIdManager(sessionIdManager);
     bind(SessionManager.class).toInstance(sessionManager);
     bind(SessionIdManager.class).toInstance(sessionIdManager);

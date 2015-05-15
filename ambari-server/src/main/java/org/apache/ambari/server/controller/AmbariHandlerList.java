@@ -234,8 +234,8 @@ public class AmbariHandlerList extends HandlerCollection implements ViewInstance
     webAppContext.setClassLoader(viewInstanceDefinition.getViewEntity().getClassLoader());
     webAppContext.setAttribute(ViewContext.CONTEXT_ATTRIBUTE, new ViewContextImpl(viewInstanceDefinition, viewRegistry));
     webAppContext.setSessionHandler(new SharedSessionHandler(sessionManager));
-    webAppContext.addFilter(new FilterHolder(persistFilter), "/*", 1);
-    webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", 1);
+    webAppContext.addFilter(new FilterHolder(persistFilter), "/*", AmbariServer.DISPATCHER_TYPES);
+    webAppContext.addFilter(new FilterHolder(springSecurityFilter), "/*", AmbariServer.DISPATCHER_TYPES);
     webAppContext.setAllowNullPathInfo(true);
 
     return webAppContext;

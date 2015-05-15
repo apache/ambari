@@ -59,7 +59,7 @@ public class AmbariSessionManager {
    * @return the session cookie
    */
   public String getSessionCookie() {
-    return sessionManager.getSessionCookie();
+    return sessionManager.getSessionCookieConfig().getName();
   }
 
   /**

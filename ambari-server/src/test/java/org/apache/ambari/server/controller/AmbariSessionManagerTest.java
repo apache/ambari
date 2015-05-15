@@ -21,6 +21,7 @@ package org.apache.ambari.server.controller;
 import org.eclipse.jetty.server.SessionManager;
 import org.junit.Test;
 
+import javax.servlet.SessionCookieConfig;
 import javax.servlet.http.HttpSession;
 
 import static org.easymock.EasyMock.createMockBuilder;
@@ -55,17 +56,20 @@ public class AmbariSessionManagerTest {
   @Test
   public void testGetSessionCookie() throws Exception {
     SessionManager sessionManager = createNiceMock(SessionManager.class);
+    SessionCookieConfig sessionCookieConfig = createNiceMock(SessionCookieConfig.class);
+
     AmbariSessionManager ambariSessionManager = new AmbariSessionManager();
 
     ambariSessionManager.sessionManager = sessionManager;
 
-    expect(sessionManager.getSessionCookie()).andReturn("SESSION_COOKIE").anyTimes();
+    expect(sessionCookieConfig.getName()).andReturn("SESSION_COOKIE").anyTimes();
+    expect(sessionManager.getSessionCookieConfig()).andReturn(sessionCookieConfig).anyTimes();
 
-    replay(sessionManager);
+    replay(sessionManager, sessionCookieConfig);
 
     assertEquals("SESSION_COOKIE", ambariSessionManager.getSessionCookie());
 
-    verify(sessionManager);
+    verify(sessionManager, sessionCookieConfig);
   }
 
   @Test
