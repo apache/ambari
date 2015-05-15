@@ -209,7 +209,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     skipNonFilterProperties = skipNonFilterProperties || false;
     var queryParams = [],
       savedFilterConditions = App.db.getFilterConditions(this.get('name')) || [],
-      savedSortConditions = App.db.getSortingStatuses(this.get('name')) || [],
       colPropAssoc = this.get('colPropAssoc'),
       filterProperties = this.get('filterProperties'),
       sortProperties = this.get('sortProps'),
@@ -597,8 +596,6 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
     var query = [];
     var hostNames = [];
     var hostsMap = {};
-    var context = this,
-        shouldRun = false;
 
     data.items.forEach(function (host) {
       host.host_components.forEach(function (hostComponent) {
@@ -610,28 +607,20 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
           }
         }
       });
-      hostsMap[host.Hosts.host_name].healthStatus = context.dataSource.filterProperty('hostName', host.Hosts.host_name)[0].get('healthStatus');
     });
 
     for (var hostName in hostsMap) {
       var subQuery = '(HostRoles/component_name.in(%@)&HostRoles/host_name=' + hostName + ')';
       var components = hostsMap[hostName];
-      var action = operationData.get('action'),
-          healthStatus = hostsMap[hostName].healthStatus;
 
       if (components.length) {
         query.push(subQuery.fmt(components.join(',')));
       }
       hostNames.push(hostName);
-
-      if ((action === App.HostComponentStatus.started && healthStatus !== 'HEALTHY') || // start all and already started
-          (action === App.HostComponentStatus.stopped && healthStatus !== 'UNHEALTHY')) { // stop all and already stopped
-        shouldRun = true;
-      }
     }
     hostNames = hostNames.join(",");
 
-    if (query.length && shouldRun) {
+    if (query.length) {
       query = query.join('|');
       App.ajax.send({
         name: 'common.host_components.update',
@@ -642,7 +631,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
             state: operationData.action
           },
           context: operationData.message,
-          hostName: hostNames
+          hostName: hostNames,
+          noOpsMessage: Em.I18n.t('hosts.host.maintainance.allComponents.context')
         },
         success: 'bulkOperationForHostComponentsSuccessCallback'
       });
@@ -751,7 +741,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
             },
             query: 'HostRoles/component_name=' + operationData.componentName + '&HostRoles/host_name.in(' + hostsWithComponentInProperState.join(',') + ')&HostRoles/maintenance_state=OFF',
             context: operationData.message + ' ' + operationData.componentNameFormatted,
-            level: 'SERVICE'
+            level: 'SERVICE',
+            noOpsMessage: operationData.componentNameFormatted
           },
           success: 'bulkOperationForHostComponentsSuccessCallback'
         });
@@ -841,7 +832,8 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
               context: Em.I18n.t(contextString),
               serviceName: service.get('serviceName'),
               componentName: operationData.componentName,
-              parameters: parameters
+              parameters: parameters,
+              noOpsMessage: operationData.componentNameFormatted
             },
             success: 'bulkOperationForHostComponentsSuccessCallback'
           });
@@ -937,12 +929,20 @@ App.MainHostController = Em.ArrayController.extend(App.TableServerMixin, {
   /**
    * Show BO popup after bulk request
    */
-  bulkOperationForHostComponentsSuccessCallback: function () {
-    App.router.get('applicationController').dataLoading().done(function (initValue) {
-      if (initValue) {
-        App.router.get('backgroundOperationsController').showPopup();
-      }
-    });
+  bulkOperationForHostComponentsSuccessCallback: function (data, opt, params, req) {
+    if (!data && req.status == 200) {
+      App.ModalPopup.show({
+        header: Em.I18n.t('rolling.nothingToDo.header'),
+        body: Em.I18n.t('rolling.nothingToDo.body').format(params.noOpsMessage || Em.I18n.t('hosts.host.maintainance.allComponents.context')),
+        secondary: false
+      });
+    } else {
+      App.router.get('applicationController').dataLoading().done(function (initValue) {
+        if (initValue) {
+          App.router.get('backgroundOperationsController').showPopup();
+        }
+      });
+    }
   },
 
   /**
