@@ -60,9 +60,4 @@ limitations under the License. Kerberos, LDAP, Custom. Binary/Htt
       <service>TEZ</service>
     </services>
   </auto-instance>
-  <instance>
-    <name>TEZ_DEPLOYMENT_INSTANCE</name>
-    <label>Tez View: Deployment Instance</label>
-    <description>This view instance is created when the Tez view is deployed. The instance must be associated with a cluster to have valid cluster configuration values.</description>
-  </instance>
 </view>
