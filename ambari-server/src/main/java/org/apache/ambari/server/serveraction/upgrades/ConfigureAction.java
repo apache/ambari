@@ -200,50 +200,54 @@ public class ConfigureAction extends AbstractServerAction {
     for (ConfigureTask.Transfer transfer : transfers) {
       switch (transfer.operation) {
         case COPY:
-          // if copying from the current configuration type, then first
-          // determine if the key already exists; if it does not, then set a
-          // default if a default exists
-          if (null == transfer.fromType) {
-            if (base.containsKey(transfer.fromKey)) {
-              newValues.put(transfer.toKey, base.get(transfer.fromKey));
-              changedValues = true;
-
-              // append standard output
-              outputBuffer.append(MessageFormat.format("Copied {0}/{1}\n", configType,
-                  transfer.toKey));
-
-            } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
-              newValues.put(transfer.toKey, transfer.defaultValue);
-              changedValues = true;
-
-              // append standard output
-              outputBuffer.append(MessageFormat.format("Created {0}/{1} with default value {2}\n",
-                  configType, transfer.toKey, transfer.defaultValue));
-            }
+          String valueToCopy = null;
+          if( null == transfer.fromType ) {
+            // copying from current configuration
+            valueToCopy = base.get(transfer.fromKey);
           } else {
-            // !!! copying from another configuration
+            // copying from another configuration
             Config other = cluster.getDesiredConfigByType(transfer.fromType);
-
-            if (null != other) {
+            if (null != other){
               Map<String, String> otherValues = other.getProperties();
-
-              if (otherValues.containsKey(transfer.fromKey)) {
-                newValues.put(transfer.toKey, otherValues.get(transfer.fromKey));
-                changedValues = true;
-
-                // append standard output
-                outputBuffer.append(MessageFormat.format("Copied {0}/{1} to {2}\n",
-                    transfer.fromType, transfer.fromKey, configType));
-              } else if (StringUtils.isNotBlank(transfer.defaultValue)) {
-                newValues.put(transfer.toKey, transfer.defaultValue);
-                changedValues = true;
-
-                // append standard output
-                outputBuffer.append(MessageFormat.format(
-                    "Created {0}/{1} with default value {2}\n", configType, transfer.toKey,
-                    transfer.defaultValue));
+              if (otherValues.containsKey(transfer.fromKey)){
+                valueToCopy = otherValues.get(transfer.fromKey);
               }
             }
+          }
+
+          // if the value is null use the default if it exists
+          if (StringUtils.isBlank(valueToCopy) && !StringUtils.isBlank(transfer.defaultValue)) {
+            valueToCopy = transfer.defaultValue;
+          }
+
+          if (StringUtils.isNotBlank(valueToCopy)) {
+            // possibly coerce the value on copy
+            if (transfer.coerceTo != null) {
+              switch (transfer.coerceTo) {
+                case YAML_ARRAY: {
+                  // turn c6401,c6402 into ['c6401',c6402']
+                  String[] splitValues = StringUtils.split(valueToCopy, ',');
+                  List<String> quotedValues = new ArrayList<String>(splitValues.length);
+                  for (String splitValue : splitValues) {
+                    quotedValues.add("'" + StringUtils.trim(splitValue) + "'");
+                  }
+
+                  valueToCopy = "[" + StringUtils.join(quotedValues, ',') + "]";
+
+                  break;
+                }
+                default:
+                  break;
+              }
+            }
+
+            // at this point we know that we have a changed value
+            changedValues = true;
+            newValues.put(transfer.toKey, valueToCopy);
+
+            // append standard output
+            outputBuffer.append(MessageFormat.format("Created {0}/{1} = {2}\n", configType,
+                transfer.toKey, valueToCopy));
           }
           break;
         case MOVE:

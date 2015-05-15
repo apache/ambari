@@ -21,27 +21,14 @@ import javax.xml.bind.annotation.XmlEnum;
 import javax.xml.bind.annotation.XmlEnumValue;
 
 /**
- * Operations valid for a property transfer.
+ * The {@link TransferCoercionType} enum is used to represent the data types
+ * that a property transfer can be coerced to.
  */
 @XmlEnum
-public enum TransferOperation {
+public enum TransferCoercionType {
   /**
-   * The property should be removed.  Special case "*" to delete all
-   * properties that have NOT been overridden by a user.
+   * Convert to a YAML array.
    */
-  @XmlEnumValue("delete")
-  DELETE,
-  /**
-   * The property value is moved.  A property may only be moved within the
-   * same config type.  To move across types, perform a {@link #COPY} to the target then
-   * a {@link #DELETE} from the source config.
-   */
-  @XmlEnumValue("move")
-  MOVE,
-  /**
-   * The property value is copied from another property.  A property may be copied from
-   * another config type.
-   */
-  @XmlEnumValue("copy")
-  COPY
+  @XmlEnumValue("yaml-array")
+  YAML_ARRAY
 }

@@ -175,30 +175,62 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "transfer")
   public static class Transfer {
+    /**
+     * The type of operation, such as COPY or DELETE.
+     */
     @XmlAttribute(name = "operation")
     public TransferOperation operation;
 
+    /**
+     * The configuration type to copy or move from.
+     */
     @XmlAttribute(name = "from-type")
     public String fromType;
 
+    /**
+     * The key to copy or move the configuration from.
+     */
     @XmlAttribute(name = "from-key")
     public String fromKey;
 
+    /**
+     * The key to copy the configuration value to.
+     */
     @XmlAttribute(name = "to-key")
     public String toKey;
 
+    /**
+     * The configuration key to delete, or "*" for all.
+     */
     @XmlAttribute(name = "delete-key")
     public String deleteKey;
 
+    /**
+     * If {@code true}, this will ensure that any changed properties are not
+     * removed during a {@link TransferOperation#DELETE}.
+     */
     @XmlAttribute(name = "preserve-edits")
     public boolean preserveEdits = false;
 
+    /**
+     * A default value to use when the configurations don't contain the
+     * {@link #fromKey}.
+     */
     @XmlAttribute(name = "default-value")
     public String defaultValue;
 
+    /**
+     * A data type to convert the configuration value to when the action is
+     * {@link TransferOperation#COPY}.
+     */
+    @XmlAttribute(name = "coerce-to")
+    public TransferCoercionType coerceTo;
+
+    /**
+     * The keys to keep when the action is {@link TransferOperation#DELETE}.
+     */
     @XmlElement(name = "keep-key")
     public List<String> keepKeys = new ArrayList<String>();
-
   }
 
   /**

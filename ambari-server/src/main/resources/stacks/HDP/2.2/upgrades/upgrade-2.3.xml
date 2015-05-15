@@ -362,8 +362,8 @@
         <pre-upgrade>
           <task xsi:type="configure">
             <type>mapred-site</type>
-            <transfer operation="MOVE" from-key="mapreduce.job.speculative.speculativecap" to-key="mapreduce.job.speculative.speculative-cap-running-tasks" default-value="0.1" />
-            <transfer operation="DELETE" delete-key="mapreduce.task.tmp.dir" />
+            <transfer operation="move" from-key="mapreduce.job.speculative.speculativecap" to-key="mapreduce.job.speculative.speculative-cap-running-tasks" default-value="0.1" />
+            <transfer operation="delete" delete-key="mapreduce.task.tmp.dir" />
           </task>
 
           <task xsi:type="configure">
@@ -396,7 +396,7 @@
 
           <task xsi:type="configure">
             <type>yarn-site</type>
-            <transfer operation="COPY" from-key="yarn.timeline-service.leveldb-timeline-store.path" to-key="yarn.timeline-service.leveldb-state-store.path"/>
+            <transfer operation="copy" from-key="yarn.timeline-service.leveldb-timeline-store.path" to-key="yarn.timeline-service.leveldb-state-store.path"/>
           </task>
 
           <task xsi:type="configure">
@@ -579,7 +579,7 @@
           <task xsi:type="configure">
             <summary>Updating oozie-site to remove redundant configurations</summary>
             <type>oozie-site</type>
-            <transfer operation="DELETE" delete-key="*" preserve-edits="true">
+            <transfer operation="delete" delete-key="*" preserve-edits="true">
               <keep-key>oozie.base.url</keep-key>
               <keep-key>oozie.services.ext</keep-key>
               <keep-key>oozie.db.schema.name</keep-key>
@@ -615,13 +615,13 @@
         <pre-upgrade>
           <task xsi:type="configure">
             <type>oozie-site</type>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-job-submit-instances" to-key="oozie.service.ELService.ext.functions.coord-job-submit-instances"/>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-action-create-inst" to-key="oozie.service.ELService.ext.functions.coord-action-create-inst"/>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-action-create" to-key="oozie.service.ELService.ext.functions.coord-action-create"/>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-job-submit-data" to-key="oozie.service.ELService.ext.functions.coord-job-submit-data"/>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-action-start" to-key="oozie.service.ELService.ext.functions.coord-action-start"/>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-sla-submit" to-key="oozie.service.ELService.ext.functions.coord-sla-submit"/>
-            <transfer operation="COPY" from-key="oozie.service.ELService.ext.functions.coord-sla-create" to-key="oozie.service.ELService.ext.functions.coord-sla-create"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-job-submit-instances" to-key="oozie.service.ELService.ext.functions.coord-job-submit-instances"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-action-create-inst" to-key="oozie.service.ELService.ext.functions.coord-action-create-inst"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-action-create" to-key="oozie.service.ELService.ext.functions.coord-action-create"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-job-submit-data" to-key="oozie.service.ELService.ext.functions.coord-job-submit-data"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-action-start" to-key="oozie.service.ELService.ext.functions.coord-action-start"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-sla-submit" to-key="oozie.service.ELService.ext.functions.coord-sla-submit"/>
+            <transfer operation="copy" from-key="oozie.service.ELService.ext.functions.coord-sla-create" to-key="oozie.service.ELService.ext.functions.coord-sla-create"/>
           </task>
         </pre-upgrade>
         <upgrade>
@@ -657,9 +657,10 @@
           <task xsi:type="manual">
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
-          <task xsi:type="configure" summary="Setting nimbus.seeds from nimbus.host">
+          <task xsi:type="configure" summary="Converting nimbus.host into nimbus.seeds">
             <type>storm-site</type>
-            <transfer operation="COPY" from-key="nimbus.host" to-key="nimbus.seeds" />
+            <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array" />
+            <transfer operation="delete" delete-key="nimbus.host" />
           </task>
         </pre-upgrade>
         <upgrade>

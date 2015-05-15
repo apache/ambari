@@ -56,6 +56,7 @@ import org.apache.ambari.server.state.Service;
 import org.apache.ambari.server.state.ServiceFactory;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.TransferCoercionType;
 import org.apache.ambari.server.state.stack.upgrade.TransferOperation;
 import org.junit.After;
 import org.junit.Before;
@@ -361,6 +362,73 @@ public class ConfigureActionTest {
     assertEquals(6, map.size());
     assertTrue(map.containsKey("initLimit")); // it just changed to 11 from 10
     assertTrue(map.containsKey("copyKey")); // is new
+  }
+
+  @Test
+  public void testCoerceValueOnCopy() throws Exception {
+    makeUpgradeCluster();
+
+    Cluster c = m_injector.getInstance(Clusters.class).getCluster("c1");
+    assertEquals(1, c.getConfigsByType("zoo.cfg").size());
+
+    c.setDesiredStackVersion(HDP_21_STACK);
+    ConfigFactory cf = m_injector.getInstance(ConfigFactory.class);
+    Config config = cf.createNew(c, "zoo.cfg", new HashMap<String, String>() {
+      {
+        put("zoo.server.csv", "c6401,c6402,  c6403");
+      }
+    }, new HashMap<String, Map<String, String>>());
+    config.setTag("version2");
+    config.persist();
+
+    c.addConfig(config);
+    c.addDesiredConfig("user", Collections.singleton(config));
+    assertEquals(2, c.getConfigsByType("zoo.cfg").size());
+
+    Map<String, String> commandParams = new HashMap<String, String>();
+    commandParams.put("upgrade_direction", "upgrade");
+    commandParams.put("version", HDP_2_2_1_0);
+    commandParams.put("clusterName", "c1");
+    commandParams.put(ConfigureTask.PARAMETER_CONFIG_TYPE, "zoo.cfg");
+
+    // copy with coerce
+    List<ConfigureTask.Transfer> transfers = new ArrayList<ConfigureTask.Transfer>();
+    ConfigureTask.Transfer transfer = new ConfigureTask.Transfer();
+    transfer.operation = TransferOperation.COPY;
+    transfer.coerceTo = TransferCoercionType.YAML_ARRAY;
+    transfer.fromKey = "zoo.server.csv";
+    transfer.toKey = "zoo.server.array";
+    transfer.defaultValue = "['foo','bar']";
+    transfers.add(transfer);
+
+    commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, new Gson().toJson(transfers));
+
+    ExecutionCommand executionCommand = new ExecutionCommand();
+    executionCommand.setCommandParams(commandParams);
+    executionCommand.setClusterName("c1");
+    executionCommand.setRoleParams(new HashMap<String, String>());
+    executionCommand.getRoleParams().put(ServerAction.ACTION_USER_NAME, "username");
+
+    HostRoleCommand hostRoleCommand = hostRoleCommandFactory.create(null, null, null, null);
+
+    hostRoleCommand.setExecutionCommandWrapper(new ExecutionCommandWrapper(executionCommand));
+
+    ConfigureAction action = m_injector.getInstance(ConfigureAction.class);
+    action.setExecutionCommand(executionCommand);
+    action.setHostRoleCommand(hostRoleCommand);
+
+    CommandReport report = action.execute(null);
+    assertNotNull(report);
+
+    assertEquals(3, c.getConfigsByType("zoo.cfg").size());
+
+    config = c.getDesiredConfigByType("zoo.cfg");
+    assertNotNull(config);
+    assertFalse("version2".equals(config.getTag()));
+
+    Map<String, String> map = config.getProperties();
+    assertEquals("c6401,c6402,  c6403", map.get("zoo.server.csv"));
+    assertEquals("['c6401','c6402','c6403']", map.get("zoo.server.array"));
   }
 
   private void makeUpgradeCluster() throws Exception {
