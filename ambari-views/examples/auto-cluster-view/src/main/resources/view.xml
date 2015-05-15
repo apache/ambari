@@ -25,24 +25,24 @@
     <name>ambari.server.url</name>
     <description>Enter Ambari Server Cluster URL</description>
     <placeholder>http://ambari.server:8080/api/v1/clusters/c1</placeholder>
-    <cluster-config>fake</cluster-config>
     <default-value>test</default-value>
+    <cluster-config>fake</cluster-config>
     <required>true</required>
   </parameter>
   <parameter>
     <name>ambari.server.username</name>
     <description>Enter Ambari Server username</description>
-    <cluster-config>fake</cluster-config>
     <default-value>test</default-value>
+    <cluster-config>fake</cluster-config>
     <required>true</required>
   </parameter>
   <parameter>
     <name>ambari.server.password</name>
     <description>Enter Ambari Server password</description>
-    <cluster-config>fake</cluster-config>
     <default-value>test</default-value>
-    <masked>true</masked>
+    <cluster-config>fake</cluster-config>
     <required>true</required>
+    <masked>true</masked>
   </parameter>
   
   <resource>
