@@ -217,6 +217,20 @@ IF OBJECT_ID('widget_layout', 'U') IS NOT NULL DROP TABLE widget_layout
 GO
 IF OBJECT_ID('widget', 'U') IS NOT NULL DROP TABLE widget
 GO
+IF OBJECT_ID('topology_logical_task', 'U') IS NOT NULL DROP TABLE topology_logical_task
+GO
+IF OBJECT_ID('topology_host_task', 'U') IS NOT NULL DROP TABLE topology_host_task
+GO
+IF OBJECT_ID('topology_host_request', 'U') IS NOT NULL DROP TABLE topology_host_request
+GO
+IF OBJECT_ID('topology_logical_request', 'U') IS NOT NULL DROP TABLE topology_logical_request
+GO
+IF OBJECT_ID('topology_host_info', 'U') IS NOT NULL DROP TABLE topology_host_info
+GO
+IF OBJECT_ID('topology_hostgroup', 'U') IS NOT NULL DROP TABLE topology_hostgroup
+GO
+IF OBJECT_ID('topology_request', 'U') IS NOT NULL DROP TABLE topology_request
+GO
 IF OBJECT_ID('artifact', 'U') IS NOT NULL DROP TABLE artifact
 GO
 IF OBJECT_ID('stack', 'U') IS NOT NULL DROP TABLE stack

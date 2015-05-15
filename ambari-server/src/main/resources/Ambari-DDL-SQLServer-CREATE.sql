@@ -693,6 +693,66 @@ CREATE TABLE widget_layout_user_widget (
   PRIMARY KEY CLUSTERED (widget_layout_id, widget_id)
 );
 
+CREATE TABLE topology_request (
+  id BIGINT NOT NULL,
+  action VARCHAR(255) NOT NULL,
+  cluster_name VARCHAR(100) NOT NULL,
+  bp_name VARCHAR(100) NOT NULL,
+  cluster_properties TEXT,
+  cluster_attributes TEXT,
+  description VARCHAR(1024),
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE topology_hostgroup (
+  id BIGINT NOT NULL,
+  name VARCHAR(255) NOT NULL,
+  group_properties TEXT,
+  group_attributes TEXT,
+  request_id BIGINT NOT NULL,
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE topology_host_info (
+  id BIGINT NOT NULL,
+  group_id BIGINT NOT NULL,
+  fqdn VARCHAR(255),
+  host_count INTEGER,
+  predicate VARCHAR(2048),
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE topology_logical_request (
+  id BIGINT NOT NULL,
+  request_id BIGINT NOT NULL,
+  description VARCHAR(1024),
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE topology_host_request (
+  id BIGINT NOT NULL,
+  logical_request_id BIGINT NOT NULL,
+  group_id BIGINT NOT NULL,
+  stage_id BIGINT NOT NULL,
+  host_name VARCHAR(255),
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE topology_host_task (
+  id BIGINT NOT NULL,
+  host_request_id BIGINT NOT NULL,
+  type VARCHAR(255) NOT NULL,
+  PRIMARY KEY CLUSTERED (id)
+);
+
+CREATE TABLE topology_logical_task (
+  id BIGINT NOT NULL,
+  host_task_id BIGINT NOT NULL,
+  physical_task_id BIGINT,
+  component VARCHAR(255) NOT NULL,
+  PRIMARY KEY CLUSTERED (id)
+);
+
 
 -- altering tables by creating unique constraints----------
 --------altering tables to add constraints----------
@@ -773,6 +833,14 @@ ALTER TABLE serviceconfighosts ADD CONSTRAINT FK_scvhosts_host_id FOREIGN KEY (h
 ALTER TABLE clusters ADD CONSTRAINT FK_clusters_resource_id FOREIGN KEY (resource_id) REFERENCES adminresource(resource_id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_layout_id FOREIGN KEY (widget_layout_id) REFERENCES widget_layout(id);
 ALTER TABLE widget_layout_user_widget ADD CONSTRAINT FK_widget_id FOREIGN KEY (widget_id) REFERENCES widget(id);
+ALTER TABLE topology_hostgroup ADD CONSTRAINT FK_hostgroup_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
+ALTER TABLE topology_host_info ADD CONSTRAINT FK_hostinfo_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id);
+ALTER TABLE topology_logical_request ADD CONSTRAINT FK_logicalreq_req_id FOREIGN KEY (request_id) REFERENCES topology_request(id);
+ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_logicalreq_id FOREIGN KEY (logical_request_id) REFERENCES topology_logical_request(id);
+ALTER TABLE topology_host_request ADD CONSTRAINT FK_hostreq_group_id FOREIGN KEY (group_id) REFERENCES topology_hostgroup(id);
+ALTER TABLE topology_host_task ADD CONSTRAINT FK_hosttask_req_id FOREIGN KEY (host_request_id) REFERENCES topology_host_request (id);
+ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hosttask_id FOREIGN KEY (host_task_id) REFERENCES topology_host_task (id);
+ALTER TABLE topology_logical_task ADD CONSTRAINT FK_ltask_hrc_id FOREIGN KEY (physical_task_id) REFERENCES host_role_command (task_id);
 
 -- Kerberos
 CREATE TABLE kerberos_principal (
@@ -941,90 +1009,63 @@ CREATE TABLE upgrade_item (
 ---------inserting some data-----------
 BEGIN TRANSACTION
   INSERT INTO ambari_sequences (sequence_name, [sequence_value])
-  SELECT 'cluster_id_seq', 1
-  UNION ALL
-  SELECT 'host_id_seq', 0
-  UNION ALL
-  SELECT 'user_id_seq', 2
-  UNION ALL
-  SELECT 'group_id_seq', 1
-  UNION ALL
-  SELECT 'member_id_seq', 1
-  UNION ALL
-  SELECT 'host_role_command_id_seq', 1
-  UNION ALL
-  SELECT 'configgroup_id_seq', 1
-  UNION ALL
-  SELECT 'requestschedule_id_seq', 1
-  UNION ALL
-  SELECT 'resourcefilter_id_seq', 1
-  UNION ALL
-  SELECT 'viewentity_id_seq', 0
-  UNION ALL
-  SELECT 'operation_level_id_seq', 1
-  UNION ALL
-  SELECT 'view_instance_id_seq', 1
-  UNION ALL
-  SELECT 'resource_type_id_seq', 4
-  UNION ALL
-  SELECT 'resource_id_seq', 2
-  UNION ALL
-  SELECT 'principal_type_id_seq', 3
-  UNION ALL
-  SELECT 'principal_id_seq', 2
-  UNION ALL
-  SELECT 'permission_id_seq', 5
-  UNION ALL
-  SELECT 'privilege_id_seq', 1
-  UNION ALL
-  SELECT 'alert_definition_id_seq', 0
-  UNION ALL
-  SELECT 'alert_group_id_seq', 0
-  UNION ALL
-  SELECT 'alert_target_id_seq', 0
-  UNION ALL
-  SELECT 'alert_history_id_seq', 0
-  UNION ALL
-  SELECT 'alert_notice_id_seq', 0
-  UNION ALL
-  SELECT 'alert_current_id_seq', 0
-  UNION ALL
-  SELECT 'config_id_seq', 1
-  UNION ALL
-  SELECT 'repo_version_id_seq', 0
-  UNION ALL
-  SELECT 'cluster_version_id_seq', 0
-  UNION ALL
-  SELECT 'host_version_id_seq', 0
-  UNION ALL
-  SELECT 'service_config_id_seq', 1
-  UNION ALL
-  SELECT 'upgrade_id_seq', 0
-  UNION ALL
-  SELECT 'upgrade_group_id_seq', 0
-  UNION ALL
-  SELECT 'widget_id_seq', 0
-  UNION ALL
-  SELECT 'widget_layout_id_seq', 0
-  UNION ALL
-  SELECT 'upgrade_item_id_seq', 0
-  UNION ALL
-  SELECT 'stack_id_seq', 0;
+  VALUES
+    ('cluster_id_seq', 1),
+    ('host_id_seq', 0),
+    ('user_id_seq', 2),
+    ('group_id_seq', 1),
+    ('member_id_seq', 1),
+    ('host_role_command_id_seq', 1),
+    ('configgroup_id_seq', 1),
+    ('requestschedule_id_seq', 1),
+    ('resourcefilter_id_seq', 1),
+    ('viewentity_id_seq', 0),
+    ('operation_level_id_seq', 1),
+    ('view_instance_id_seq', 1),
+    ('resource_type_id_seq', 4),
+    ('resource_id_seq', 2),
+    ('principal_type_id_seq', 3),
+    ('principal_id_seq', 2),
+    ('permission_id_seq', 5),
+    ('privilege_id_seq', 1),
+    ('alert_definition_id_seq', 0),
+    ('alert_group_id_seq', 0),
+    ('alert_target_id_seq', 0),
+    ('alert_history_id_seq', 0),
+    ('alert_notice_id_seq', 0),
+    ('alert_current_id_seq', 0),
+    ('config_id_seq', 11),
+    ('repo_version_id_seq', 0),
+    ('cluster_version_id_seq', 0),
+    ('host_version_id_seq', 0),
+    ('service_config_id_seq', 1),
+    ('upgrade_id_seq', 0),
+    ('upgrade_group_id_seq', 0),
+    ('widget_id_seq', 0),
+    ('widget_layout_id_seq', 0),
+    ('upgrade_item_id_seq', 0),
+    ('stack_id_seq', 0),
+    ('topology_host_info_id_seq', 0),
+    ('topology_host_request_id_seq', 0),
+    ('topology_host_task_id_seq', 0),
+    ('topology_logical_request_id_seq', 0),
+    ('topology_logical_task_id_seq', 0),
+    ('topology_request_id_seq', 0),
+    ('topology_host_group_id_seq', 0);
 
   insert into adminresourcetype (resource_type_id, resource_type_name)
-    select 1, 'AMBARI'
-    union all
-    select 2, 'CLUSTER'
-    union all
-    select 3, 'VIEW';
+  values
+    (1, 'AMBARI'),
+    (2, 'CLUSTER'),
+    (3, 'VIEW');
 
   insert into adminresource (resource_id, resource_type_id)
     select 1, 1;
 
   insert into adminprincipaltype (principal_type_id, principal_type_name)
-    select 1, 'USER'
-    union all
-    select 2, 'GROUP';
+  values
+    (1, 'USER'),
+    (2, 'GROUP');
 
   insert into adminprincipal (principal_id, principal_type_id)
     select 1, 1;
@@ -1033,13 +1074,11 @@ BEGIN TRANSACTION
     select 1, 1, 'admin','538916f8943ec225d97a9a86a2c6ec0818c1cd400e09e03b660fdaaec4af29ddbb6f2b1033b81b00';
 
   insert into adminpermission(permission_id, permission_name, resource_type_id)
-    select 1, 'AMBARI.ADMIN', 1
-    union all
-    select 2, 'CLUSTER.READ', 2
-    union all
-    select 3, 'CLUSTER.OPERATE', 2
-    union all
-    select 4, 'VIEW.USE', 3;
+  values
+    (1, 'AMBARI.ADMIN', 1),
+    (2, 'CLUSTER.READ', 2),
+    (3, 'CLUSTER.OPERATE', 2),
+    (4, 'VIEW.USE', 3);
 
   insert into adminprivilege (privilege_id, permission_id, resource_id, principal_id)
     select 1, 1, 1, 1;
