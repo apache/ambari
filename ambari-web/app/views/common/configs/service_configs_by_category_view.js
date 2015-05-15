@@ -62,10 +62,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
    categoryConfigsAll: function () {
      var configs = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
-
-     if (this.get('service.serviceName') === 'KERBEROS' && App.router.get('kerberosWizardController.skipClientInstall')) {
-       App.router.get('kerberosWizardController').overrideVisibility(configs, false);
-     }
      return configs;
    }.property('serviceConfigs.@each').cacheable(),
 

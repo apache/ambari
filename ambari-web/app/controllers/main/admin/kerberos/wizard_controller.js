@@ -179,14 +179,15 @@ App.KerberosWizardController = App.WizardController.extend({
    * @param {Array} itemsArray
    * @param newValue
    */
-  overrideVisibility: function (itemsArray, newValue) {
-    var self = this;
-    newValue = newValue || false;
+  overrideVisibility: function (itemsArray, newValue, exceptions) {
+    newValue = newValue || false
 
-    for (var i=0; i < itemsArray.length; i += 1) {
-      var isException = self.get('exceptionsOnSkipClient').filterProperty(itemsArray[i].get('category'), itemsArray[i].get('name'));
-      if (!isException.length) {
-        itemsArray[i].set('isVisible', newValue);
+    for (var i = 0, len = itemsArray.length; i < len; i += 1) {
+      if (!Ember.$.isEmptyObject(itemsArray[i])) {
+        var isException = exceptions.filterProperty(itemsArray[i].category, itemsArray[i].name);
+        if (!isException.length) {
+          itemsArray[i].isVisible = newValue;
+        }
       }
     }
   },

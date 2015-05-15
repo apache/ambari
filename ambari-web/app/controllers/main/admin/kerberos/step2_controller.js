@@ -91,15 +91,15 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
     //STEP 2: Load on-site configs by service from local DB
     var storedConfigs = this.get('content.serviceConfigProperties');
     //STEP 3: Merge pre-defined configs with loaded on-site configs
-    var configs = App.config.mergePreDefinedWithStored(
+    this.set('configs', App.config.mergePreDefinedWithStored(
       storedConfigs,
       advancedConfigs,
-      this.get('selectedServiceNames'));
+      this.get('selectedServiceNames')));
     App.config.setPreDefinedServiceConfigs(this.get('addMiscTabToPage'));
     //STEP 4: Add advanced configs
-    App.config.addAdvancedConfigs(configs, advancedConfigs);
-    this.filterConfigs(configs);
-    this.applyServicesConfigs(configs, storedConfigs);
+    App.config.addAdvancedConfigs(this.get('configs'), advancedConfigs);
+    this.filterConfigs(this.get('configs'));
+    this.applyServicesConfigs(this.get('configs'), storedConfigs);
   },
 
   /**
@@ -109,15 +109,21 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   filterConfigs: function (configs) {
     var kdcType = this.get('content.kerberosOption');
     var configNames = ['ldap_url', 'container_dn', 'create_attributes_template'];
+    var kerberosWizardController = this.controllers.get('kerberosWizardController');
+
+    if (kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
+      if (kerberosWizardController.get('skipClientInstall')) {
+        kerberosWizardController.overrideVisibility(configs, false, kerberosWizardController.get('exceptionsOnSkipClient'));
+      }
+      return;
+    }
+
     configNames.forEach(function (_configName) {
       var config = configs.findProperty('name', _configName);
-      config.isVisible = kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.ad');
+      if (config) {
+        config.isVisible = kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.ad');
+      }
     }, this);
-    if (kdcType === Em.I18n.t('admin.kerberos.wizard.step1.option.manual')) {
-      var host = configs.findProperty('name', 'kdc_host');
-      host.isRequiredByAgent = false;
-      host.isVisible = false;
-    }
   },
 
   submit: function () {

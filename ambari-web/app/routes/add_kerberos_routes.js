@@ -164,7 +164,9 @@ module.exports = App.WizardRoute.extend({
     },
     back: function(router) {
       var controller = router.get('kerberosWizardStep2Controller');
+      var kerberosWizardController = router.get('kerberosWizardController');
       if (!controller.get('isBackBtnDisabled')) {
+        kerberosWizardController.overrideVisibility(controller.get('configs'), true, []);
         router.transitionTo('step1')
       }
     },
