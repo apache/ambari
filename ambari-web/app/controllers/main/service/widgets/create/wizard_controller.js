@@ -322,17 +322,16 @@ App.WidgetWizardController = App.WizardController.extend({
   cancel: function () {
     var self = this;
     var step3Controller = App.router.get('widgetWizardStep3Controller');
+    var isLastStep = parseInt(self.get('currentStep')) === self.get('totalSteps');
     return App.ModalPopup.show({
       header: Em.I18n.t('common.warning'),
-      bodyClass: Em.View.extend({
-        template: Ember.Handlebars.compile('{{t alerts.saveChanges}}')
-      }),
-      primary: Em.I18n.t('common.save'),
-      secondary: Em.I18n.t('common.discard'),
+      body: Em.I18n.t('dashboard.widgets.wizard.onClose.popup.body'),
+      primary: isLastStep ? Em.I18n.t('common.save') : null,
+      secondary: Em.I18n.t('dashboard.widgets.wizard.onClose.popup.discardAndExit'),
       third: Em.I18n.t('common.cancel'),
       disablePrimary: function () {
-        return !(parseInt(self.get('currentStep')) === self.get('totalSteps') && !step3Controller.get('isSubmitDisabled'));
-      }.property(''),
+        return !(isLastStep && !step3Controller.get('isSubmitDisabled'));
+      }.property(),
       onPrimary: function () {
         App.router.send('complete', step3Controller.collectWidgetData());
         this.onSecondary();

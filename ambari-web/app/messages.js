@@ -2590,6 +2590,8 @@ Em.I18n.translations = {
   'dashboard.widgets.wizard.step2.aggregateTooltip': 'This mathematical function will be applied to compute single value for selected metric across all host components',
   'dashboard.widgets.wizard.step2.threshold.ok.tooltip': 'This is the threshold value at which the widget color changes from green (OK) to orange (Warning)',
   'dashboard.widgets.wizard.step2.threshold.warning.tooltip': 'This is the threshold value at which the widget color changes from orange (Warning) to red (Critical)',
+  'dashboard.widgets.wizard.onClose.popup.body': 'You have unsaved changes. Your changes will not be saved if you exit the wizard at this step.',
+  'dashboard.widgets.wizard.onClose.popup.discardAndExit': 'Discard and Exit',
 
   'restart.service.all': 'Restart All',
   'restart.service.all.affected': 'Restart All Affected',
