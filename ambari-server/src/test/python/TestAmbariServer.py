@@ -2068,6 +2068,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     pass
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
+  @patch("ambari_server.serverSetup.read_ambari_user")
   @patch("os.stat")
   @patch("os.path.isfile")
   @patch("os.path.exists")
@@ -2087,7 +2088,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
   def test_download_jdk(self, exit_mock, copyfile_mock, get_ambari_properties_mock, get_JAVA_HOME_mock, \
                         validate_jdk_mock, print_info_msg_mock, get_validated_string_input_mock, update_properties_mock, \
                         run_os_command_mock, get_YN_input_mock, force_download_file_mock, expand_jce_zip_file_mock,
-                        os_chdir_mock, path_existsMock, path_isfileMock, statMock):
+                        os_chdir_mock, path_existsMock, path_isfileMock, statMock, read_ambari_user_mock):
     args = MagicMock()
     args.java_home = "somewhere"
     args.silent = False
@@ -2105,6 +2106,7 @@ MIIFHjCCAwYCCQDpHKOBI+Lt0zANBgkqhkiG9w0BAQUFADBRMQswCQYDVQQGEwJV
     validate_jdk_mock.return_value = False
     path_existsMock.return_value = False
     get_JAVA_HOME_mock.return_value = False
+    read_ambari_user_mock.return_value = "ambari"
     get_ambari_properties_mock.return_value = p
     # Test case: ambari.properties not found
     try:
