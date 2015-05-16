@@ -182,7 +182,7 @@
   <div class="panel-body property-form" popover="{{clusterConfigurableErrorMsg}}" popover-trigger="mouseenter">
     <div class="checkbox">
       <label>
-        <input type="radio" ng-model="$parent.isLocalCluster" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noClusterAvailible" ng-value="true" class="visibilityCheckbox"> Local Ambari Managed Cluster
+        <input type="radio" ng-model="$parent.isLocalCluster" ng-change="enableLocalCluster()" ng-disabled="!clusterConfigurable || editConfigurationDisabled || noClusterAvailible" ng-value="true" class="visibilityCheckbox"> Local Ambari Managed Cluster
       </label>
     </div>
     <div class="form-horizontal property-form">
@@ -198,7 +198,13 @@
     <p>&nbsp</p>
     <div class="checkbox">
       <label>
-        <input type="radio" ng-model="$parent.isLocalCluster" ng-disabled="editConfigurationDisabled" ng-value="false" class="visibilityCheckbox"> Custom
+        <input type="radio" 
+         ng-model="$parent.isLocalCluster"
+         ng-disabled="editConfigurationDisabled"
+         ng-value="false"
+         ng-change="disableLocalCluster()"
+         class="visibilityCheckbox">
+        Custom
       </label>
     </div>
   </div>

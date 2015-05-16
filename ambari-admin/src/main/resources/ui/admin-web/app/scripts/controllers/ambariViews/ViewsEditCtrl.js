@@ -88,6 +88,17 @@ angular.module('ambariAdminConsole')
     }
   }
 
+  function filterClusterConfigs() {
+    $scope.configurationMeta.forEach(function (element) {
+      if (element.masked && !$scope.editConfigurationDisabled && element.clusterConfig && !$scope.isLocalCluster) {
+        $scope.configuration[element.name] = '';
+      }
+      if(!element.clusterConfig) {
+        delete $scope.configurationBeforeEdit[element.name];
+      }
+    });
+  }
+
   // Get META for properties
   View.getMeta($routeParams.viewId, $routeParams.version).then(function(data) {
     $scope.configurationMeta = data.data.ViewVersionInfo.parameters;
@@ -136,6 +147,15 @@ angular.module('ambariAdminConsole')
   $scope.editDetailsSettingsDisabled = true;
   $scope.numberOfClusterConfigs = 0;
   $scope.numberOfSettingsConfigs = 0;
+
+  $scope.enableLocalCluster = function() {
+    angular.extend($scope.configuration, $scope.configurationBeforeEdit);
+    $scope.propertiesForm.$setPristine();
+  };
+
+  $scope.disableLocalCluster = function() {
+    filterClusterConfigs();
+  };
 
   $scope.toggleSettingsEdit = function() {
     $scope.editSettingsDisabled = !$scope.editSettingsDisabled;
@@ -247,14 +267,7 @@ angular.module('ambariAdminConsole')
   $scope.togglePropertiesEditing = function () {
     $scope.editConfigurationDisabled = !$scope.editConfigurationDisabled;
     $scope.configurationBeforeEdit = angular.copy($scope.configuration);
-    $scope.configurationMeta.forEach(function (element) {
-      if (element.masked && !$scope.editConfigurationDisabled && element.clusterConfig) {
-        $scope.configuration[element.name] = '';
-      }
-      if(!element.clusterConfig) {
-        delete $scope.configurationBeforeEdit[element.name];
-      }
-    });
+    filterClusterConfigs();
   };
   $scope.saveConfiguration = function() {
     if( $scope.propertiesForm.$valid ){
