@@ -19,6 +19,8 @@
 package org.apache.ambari.server.orm.entities;
 
 import javax.persistence.*;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * Represents a resource.
@@ -50,6 +52,12 @@ public class ResourceEntity {
       @JoinColumn(name = "resource_type_id", referencedColumnName = "resource_type_id", nullable = false)
   })
   private ResourceTypeEntity resourceType;
+
+  /**
+   * The list of privileges.
+   */
+  @OneToMany(cascade = CascadeType.ALL, mappedBy = "resource")
+  private Collection<PrivilegeEntity> privileges = new HashSet<PrivilegeEntity>();
 
 
   // ----- ResourceEntity ---------------------------------------------------
@@ -88,6 +96,24 @@ public class ResourceEntity {
    */
   public void setResourceType(ResourceTypeEntity resourceType) {
     this.resourceType = resourceType;
+  }
+
+  /**
+   * Get the associated privileges.
+   *
+   * @return the privileges
+   */
+  public Collection<PrivilegeEntity> getPrivileges() {
+    return privileges;
+  }
+
+  /**
+   * Set the associated privileges.
+   *
+   * @param privileges the privileges
+   */
+  public void setPrivileges(Collection<PrivilegeEntity> privileges) {
+    this.privileges = privileges;
   }
 
 

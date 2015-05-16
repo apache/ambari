@@ -21,6 +21,9 @@ package org.apache.ambari.server.orm.entities;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.Collections;
+
 /**
  * ResourceEntity tests.
  */
@@ -43,5 +46,17 @@ public class ResourceEntityTest {
 
     entity.setResourceType(typeEntity);
     Assert.assertEquals(typeEntity, entity.getResourceType());
+  }
+
+  @Test
+  public void testSetGetPrivileges() throws Exception {
+    ResourceEntity entity = new ResourceEntity();
+    PrivilegeEntity privilegeEntity = new PrivilegeEntity();
+    Collection<PrivilegeEntity> privileges = Collections.singleton(privilegeEntity);
+
+    Assert.assertNull(entity.getResourceType());
+
+    entity.setPrivileges(privileges);
+    Assert.assertEquals(privileges, entity.getPrivileges());
   }
 }
