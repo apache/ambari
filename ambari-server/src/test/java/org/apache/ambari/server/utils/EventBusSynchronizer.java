@@ -26,6 +26,7 @@ import org.apache.ambari.server.events.listeners.alerts.AlertReceivedListener;
 import org.apache.ambari.server.events.listeners.alerts.AlertServiceStateListener;
 import org.apache.ambari.server.events.listeners.alerts.AlertStateChangedListener;
 import org.apache.ambari.server.events.listeners.upgrade.DistributeRepositoriesActionListener;
+import org.apache.ambari.server.events.listeners.upgrade.HostVersionOutOfSyncListener;
 import org.apache.ambari.server.events.publishers.AlertEventPublisher;
 import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 
@@ -108,6 +109,7 @@ public class EventBusSynchronizer {
     synchronizedBus.register(injector.getInstance(AlertLifecycleListener.class));
     synchronizedBus.register(injector.getInstance(AlertServiceStateListener.class));
     synchronizedBus.register(injector.getInstance(DistributeRepositoriesActionListener.class));
+    synchronizedBus.register(injector.getInstance(HostVersionOutOfSyncListener.class));
   }
 
   /**

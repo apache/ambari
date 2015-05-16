@@ -34,6 +34,7 @@ import org.apache.ambari.server.orm.dao.HostVersionDAO;
 import org.apache.ambari.server.orm.entities.ClusterVersionEntity;
 import org.apache.ambari.server.orm.entities.HostEntity;
 import org.apache.ambari.server.orm.entities.HostVersionEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Clusters;
 import org.apache.ambari.server.state.RepositoryVersionState;
@@ -54,7 +55,7 @@ import com.google.inject.persist.Transactional;
  * {@link org.apache.ambari.server.events.ServiceComponentInstalledEvent}
  * to update {@link org.apache.ambari.server.state.RepositoryVersionState}
  *
- * @see org.apache.ambari.server.state.Cluster#recalculateClusterVersionState(String)
+ * @see org.apache.ambari.server.state.Cluster#recalculateClusterVersionState(StackId, String)
  */
 @Singleton
 @EagerSingleton
@@ -92,7 +93,10 @@ public class HostVersionOutOfSyncListener {
 
       StackId currentStackId = cluster.getCurrentStackVersion();
       for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
-        if (hostVersionEntity.getRepositoryVersion().getStack().equals(currentStackId.getStackId())
+        StackEntity hostStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
+        StackId hostStackId = new StackId(hostStackEntity.getStackName(), hostStackEntity.getStackVersion());
+
+        if (currentStackId.equals(hostStackId)
             && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
           hostVersionEntity.setState(RepositoryVersionState.OUT_OF_SYNC);
           hostVersionDAO.get().merge(hostVersionEntity);
@@ -128,7 +132,10 @@ public class HostVersionOutOfSyncListener {
         List<HostVersionEntity> hostVersionEntities =
             hostVersionDAO.get().findByClusterAndHost(cluster.getClusterName(), hostName);
         for (HostVersionEntity hostVersionEntity : hostVersionEntities) {
-          if (hostVersionEntity.getRepositoryVersion().getStack().equals(currentStackId.getStackId())
+          StackEntity hostStackEntity = hostVersionEntity.getRepositoryVersion().getStack();
+          StackId hostStackId = new StackId(hostStackEntity.getStackName(), hostStackEntity.getStackVersion());
+          
+          if (currentStackId.equals(hostStackId)
               && hostVersionEntity.getState().equals(RepositoryVersionState.INSTALLED)) {
             hostVersionEntity.setState(RepositoryVersionState.OUT_OF_SYNC);
             hostVersionDAO.get().merge(hostVersionEntity);
