@@ -36,6 +36,12 @@
             "yarn.resourcemanager.proxy-user-privileges.enabled": "true",
             "yarn.nodemanager.linux-container-executor.cgroups.mount-path": ""
           }
+        },
+        {
+          "core-site": {
+            "hadoop.proxyuser.yarn.groups": "*",
+            "hadoop.proxyuser.yarn.hosts": "${yarn-site/yarn.resourcemanager.hostname}"
+          }
         }
       ],
       "components": [
