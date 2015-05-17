@@ -159,6 +159,11 @@ var urls = {
     }
   },
 
+  'common.hosts.all': {
+    'real': '/clusters/{clusterName}/host_components?{urlParams}&minimal_response=true',
+    'mock': ''
+  },
+
   'common.service.configurations': {
     'real':'/clusters/{clusterName}',
     'mock':'',

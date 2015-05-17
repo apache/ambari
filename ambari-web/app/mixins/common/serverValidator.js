@@ -141,14 +141,51 @@ App.ServerValidatorMixin = Em.Mixin.create({
 
   serverSideValidation: function () {
     var deferred = $.Deferred();
+    var self = this;
     this.set('configValidationFailed', false);
     this.set('configValidationGlobalMessage', []);
     if (this.get('configValidationFailed')) {
       this.warnUser(deferred);
     } else {
-      this.runServerSideValidation(deferred);
+      if (this.get('isInstaller')) {
+        this.runServerSideValidation(deferred);
+      } else {
+        // on Service Configs page we need to load all hosts with componnets
+        this.getAllHostsWithComponents().then(function(data) {
+          self.set('content.recommendationsHostGroups', blueprintUtils.generateHostGroups(App.get('allHostNames'), self.mapHostsToComponents(data.items)));
+          self.runServerSideValidation(deferred);
+        });
+      }
     }
     return deferred;
+  },
+
+  getAllHostsWithComponents: function() {
+    return App.ajax.send({
+      sender: this,
+      name: 'common.hosts.all',
+      data: {
+        urlParams: 'fields=HostRoles/component_name,HostRoles/host_name'
+      }
+    });
+  },
+
+  /**
+   * Generate array similar to App.HostComponent which will be used to
+   * create blueprint hostGroups object as well.
+   *
+   * @param {Object[]} jsonData
+   * @returns {Em.Object[]}
+   */
+  mapHostsToComponents: function(jsonData) {
+    var result = [];
+    jsonData.forEach(function(item) {
+      result.push(Em.Object.create({
+        componentName: Em.get(item, 'HostRoles.component_name'),
+        hostName: Em.get(item, 'HostRoles.host_name')
+      }));
+    });
+    return result;
   },
 
   /**
