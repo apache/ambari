@@ -29,7 +29,7 @@ export hadoop_conf_dir=$6
 export hadoop_bin_dir=$7
 export smoke_test_user=$8
 export security_enabled=$9
-export smoke_user_keytab=$10
+export smoke_user_keytab=${10}
 export kinit_path_local=${11}
 export smokeuser_principal=${12}
 
