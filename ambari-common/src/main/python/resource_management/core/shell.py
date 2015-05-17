@@ -162,7 +162,7 @@ def _call(command, logoutput=None, throw_on_failure=True,
   # in case logoutput==False, never log.    
   logoutput = logoutput==True and Logger.logger.isEnabledFor(logging.INFO) or logoutput==None and Logger.logger.isEnabledFor(logging.DEBUG)
   out = ""
-  read_timeout = .04 # seconds
+  read_timeout = .001 # seconds
 
   try:
     while True:

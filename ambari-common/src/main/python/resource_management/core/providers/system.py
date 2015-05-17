@@ -23,9 +23,7 @@ Ambari Agent
 from __future__ import with_statement
 
 import re
-import grp
 import os
-import pwd
 import time
 from resource_management.core import shell
 from resource_management.core import sudo
@@ -33,29 +31,8 @@ from resource_management.core.base import Fail
 from resource_management.core import ExecuteTimeoutException
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
-
-
-def _coerce_uid(user):
-  try:
-    uid = int(user)
-  except ValueError:
-    try:
-      uid = pwd.getpwnam(user).pw_uid
-    except KeyError:
-      raise Fail("User %s doesn't exist." % user)
-  return uid
-
-
-def _coerce_gid(group):
-  try:
-    gid = int(group)
-  except ValueError:
-    try:
-      gid = grp.getgrnam(group).gr_gid
-    except KeyError:
-      raise Fail("Group %s doesn't exist." % group)
-  return gid
-
+from resource_management.core.utils import _coerce_uid
+from resource_management.core.utils import _coerce_gid
 
 def _ensure_metadata(path, user, group, mode=None, cd_access=None):
   stat = sudo.stat(path)

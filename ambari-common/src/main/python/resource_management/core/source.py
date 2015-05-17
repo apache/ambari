@@ -25,7 +25,6 @@ from resource_management.core.environment import Environment
 from resource_management.core.logger import Logger
 from resource_management.core.exceptions import Fail
 from resource_management.core.utils import checked_unite
-from resource_management.core import sudo
 
 __all__ = ["Source", "Template", "InlineTemplate", "StaticFile", "DownloadSource"]
 
@@ -33,8 +32,6 @@ import os
 import time
 import urllib2
 import urlparse
-from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from ambari_commons import OSConst
 
 
 class Source(object):
@@ -77,15 +74,9 @@ class StaticFile(Source):
 
     return self.read_file(path)
 
-  @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)
   def read_file(self, path):
     from resource_management.core import sudo
     return sudo.read_file(path)
-
-  @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
-  def read_file(self, path):
-    with open(path, "rb") as fp:
-      return fp.read()
 
 
 try:

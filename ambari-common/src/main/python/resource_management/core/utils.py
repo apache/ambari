@@ -20,6 +20,8 @@ Ambari Agent
 
 """
 
+import grp
+import pwd
 from resource_management.core.exceptions import Fail
 
 class AttributeDictionary(object):
@@ -106,3 +108,24 @@ def checked_unite(dict1, dict2):
   result.update(dict2)
   
   return result
+
+def _coerce_uid(user):
+  try:
+    uid = int(user)
+  except ValueError:
+    try:
+      uid = pwd.getpwnam(user).pw_uid
+    except KeyError:
+      raise Fail("User %s doesn't exist." % user)
+  return uid
+
+
+def _coerce_gid(group):
+  try:
+    gid = int(group)
+  except ValueError:
+    try:
+      gid = grp.getgrnam(group).gr_gid
+    except KeyError:
+      raise Fail("Group %s doesn't exist." % group)
+  return gid
