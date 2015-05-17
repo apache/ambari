@@ -23,7 +23,7 @@
     <services>
         <service>
           <name>SPARK</name>
-          <version>1.2.1.2.3</version>
+          <version>1.3.1.2.3</version>
           <osSpecifics>
             <osSpecific>
               <osFamily>redhat7,redhat6,suse11</osFamily>
