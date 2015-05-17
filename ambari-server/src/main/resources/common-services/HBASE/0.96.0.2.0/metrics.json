@@ -1379,6 +1379,56 @@
               "pointInTime": true,
               "temporal": false
             },
+            "metrics/hbase/regionserver/ScanNext_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Increment_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Increment_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Append_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Append_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/ScanNext_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_95th_percentile",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Append_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Append_95th_percentile",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Increment_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Increment_95th_percentile",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/updatesBlockedTime": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.updatesBlockedTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/IPC/numActiveHandler": {
+              "metric": "Hadoop:service=HBase,name=IPC,sub=IPC.numActiveHandler",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/IPC/numCallsInGeneralQueue": {
+              "metric": "Hadoop:service=HBase,name=IPC,sub=IPC.numCallsInGeneralQueue",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/IPC/numOpenConnections": {
+              "metric": "Hadoop:service=HBase,name=IPC,sub=IPC.numOpenConnections",
+              "pointInTime": true,
+              "temporal": false
+            },
             "metrics/hbase/regionserver/slowAppendCount": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.slowAppendCount",
               "pointInTime": true,
@@ -3020,6 +3070,56 @@
             },
             "metrics/hbase/regionserver/getRequestLatency_num_ops": {
               "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Get_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/ScanNext_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Increment_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Increment_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Append_num_ops": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Append_num_ops",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/ScanNext_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.ScanNext_95th_percentile",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Append_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Append_95th_percentile",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/Increment_95th_percentile": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.Increment_95th_percentile",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/regionserver/updatesBlockedTime": {
+              "metric": "Hadoop:service=HBase,name=RegionServer,sub=Server.updatesBlockedTime",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/IPC/numActiveHandler": {
+              "metric": "Hadoop:service=HBase,name=IPC,sub=IPC.numActiveHandler",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/IPC/numCallsInGeneralQueue": {
+              "metric": "Hadoop:service=HBase,name=IPC,sub=IPC.numCallsInGeneralQueue",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/hbase/IPC/numOpenConnections": {
+              "metric": "Hadoop:service=HBase,name=IPC,sub=IPC.numOpenConnections",
               "pointInTime": true,
               "temporal": false
             },

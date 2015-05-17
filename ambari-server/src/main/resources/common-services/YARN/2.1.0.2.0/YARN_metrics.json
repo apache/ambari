@@ -1061,6 +1061,46 @@
               "metric": "Hadoop:service=NodeManager,name=JvmMetrics.ThreadsTerminated",
               "pointInTime": true,
               "temporal": false
+            },
+            "metrics/nodemanager/GoodLocalDirsDiskUtilizationPerc": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.GoodLocalDirsDiskUtilizationPerc",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/GoodLogDirsDiskUtilizationPerc": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.GoodLogDirsDiskUtilizationPerc",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/AllocatedGB": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.AllocatedGB",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/AllocatedVCores": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.AllocatedVCores",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/BadLocalDirs": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.BadLocalDirs",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/BadLogDirs": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.BadLogDirs",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/ContainersFailed": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.ContainersFailed",
+              "pointInTime": true,
+              "temporal": false
+            },
+            "metrics/nodemanager/AllocatedContainers": {
+              "metric": "Hadoop:service=NodeManager,name=NodeManagerMetrics.AllocatedContainers",
+              "pointInTime": true,
+              "temporal": false
             }
           }
         }

@@ -29,6 +29,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileReader;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -36,6 +38,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.metadata.ActionMetadata;
 import org.apache.ambari.server.orm.dao.MetainfoDAO;
@@ -47,6 +52,7 @@ import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.ServiceInfo;
 import org.apache.ambari.server.state.ServiceOsSpecific;
 import org.apache.ambari.server.state.StackInfo;
+import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.commons.lang.StringUtils;
 import org.junit.BeforeClass;
@@ -608,6 +614,46 @@ public class StackManagerTest {
     String stacksFolder = ClassLoader.getSystemClassLoader().getResource("stacks").getPath();
     assertEquals(new File(stacksFolder, "HDP/2.0.8/kerberos.json").getAbsolutePath(),
         stack.getKerberosDescriptorFileLocation());
+  }
+
+  @Test
+  public void testMetricsLoaded() throws Exception {
+
+    String stackRoot = ClassLoader.getSystemClassLoader().getResource("stacks").getPath().replace("test-classes","classes");
+    String commonServices = ClassLoader.getSystemClassLoader().getResource("common-services").getPath().replace("test-classes","classes");
+
+    MetainfoDAO metaInfoDao = createNiceMock(MetainfoDAO.class);
+    StackDAO stackDao = createNiceMock(StackDAO.class);
+    ActionMetadata actionMetadata = createNiceMock(ActionMetadata.class);
+    Configuration config = createNiceMock(Configuration.class);
+
+    expect(config.getSharedResourcesDirPath()).andReturn(
+            ClassLoader.getSystemClassLoader().getResource("").getPath()).anyTimes();
+
+    replay(config, metaInfoDao, stackDao, actionMetadata);
+
+    OsFamily osFamily = new OsFamily(config);
+
+    StackManager stackManager = new StackManager(new File(stackRoot), new File(commonServices),
+            osFamily, metaInfoDao, actionMetadata, stackDao);
+
+    for (StackInfo stackInfo : stackManager.getStacks()) {
+      for (ServiceInfo serviceInfo : stackInfo.getServices()) {
+        Type type = new TypeToken<Map<String, Map<String, List<MetricDefinition>>>>() {
+        }.getType();
+
+        Gson gson = new Gson();
+        Map<String, Map<String, List<MetricDefinition>>> map = null;
+        if (serviceInfo.getMetricsFile() != null) {
+          try {
+            map = gson.fromJson(new FileReader(serviceInfo.getMetricsFile()), type);
+          } catch (Exception e) {
+            e.printStackTrace();
+            throw new AmbariException("Failed to load metrics from file " + serviceInfo.getMetricsFile().getAbsolutePath());
+          }
+        }
+      }
+    }
   }
 
   //todo: component override assertions
