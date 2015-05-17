@@ -759,6 +759,11 @@ describe('configPropertyHelper', function () {
           value: '/media/disk0/default'
         },
         {
+          name: 'yarn.timeline-service.leveldb-state-store.path',
+          isOnlyFirstOneNeeded: true,
+          value: '/media/disk0/default'
+        },
+        {
           name: 'dataDir',
           isOnlyFirstOneNeeded: true,
           value: '/media/disk0/default'

@@ -296,6 +296,7 @@ module.exports = {
       case 'fs.checkpoint.dir':
       case 'dfs.namenode.checkpoint.dir':
       case 'yarn.timeline-service.leveldb-timeline-store.path':
+      case 'yarn.timeline-service.leveldb-state-store.path':
       case 'dataDir':
       case 'oozie_data_dir':
       case 'storm.local.dir':
@@ -429,6 +430,7 @@ module.exports = {
         }, this);
         break;
       case 'yarn.timeline-service.leveldb-timeline-store.path':
+      case 'yarn.timeline-service.leveldb-state-store.path':
         components = masterComponentHostsInDB.filterProperty('component', 'APP_TIMELINE_SERVER');
         components.forEach(function (component) {
           setOfHostNames.push(component.hostName);

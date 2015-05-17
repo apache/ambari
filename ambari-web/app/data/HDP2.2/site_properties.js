@@ -80,6 +80,24 @@ hdp22properties.push(
   },
   {
     "id": "site property",
+    "name": "yarn.timeline-service.leveldb-state-store.path",
+    "displayName": "yarn.timeline-service.leveldb-state-store.path",
+    "defaultDirectory": "/hadoop/yarn/timeline",
+    "category": "APP_TIMELINE_SERVER",
+    "displayType": "directory",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
+    "name": "yarn.timeline-service.state-store-class",
+    "displayName": "yarn.timeline-service.state-store-class",
+    "category": "APP_TIMELINE_SERVER",
+    "serviceName": "YARN",
+    "filename": "yarn-site.xml"
+  },
+  {
+    "id": "site property",
     "name": "dfs.datanode.data.dir",
     "displayName": "DataNode directories",
     "defaultDirectory": "/hadoop/hdfs/data",
