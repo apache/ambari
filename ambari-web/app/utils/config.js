@@ -538,7 +538,16 @@ App.config = Em.Object.create({
           // host names or some misc properties that won't be persisted.
           if (Em.get(preDefined, 'isRequiredByAgent') !== false && !isAdvanced &&
               Em.get(preDefined, 'filename') != 'alert_notification' &&
-              !['hive_hostname', 'oozie_hostname'].contains(Em.get(preDefined, 'name'))) {
+              ![
+                'hive_hostname',
+                'oozie_hostname',
+                'hive_existing_oracle_host',
+                'hive_existing_postgresql_host',
+                'hive_existing_mysql_host',
+                'oozie_existing_oracle_host',
+                'oozie_existing_postgresql_host',
+                'oozie_existing_mysql_host'
+              ].contains(Em.get(preDefined, 'name'))) {
             return;
           }
           configData.isRequiredByAgent = (configData.isRequiredByAgent !== undefined) ? configData.isRequiredByAgent : true;
