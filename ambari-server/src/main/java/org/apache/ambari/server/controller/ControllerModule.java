@@ -606,7 +606,7 @@ public class ControllerModule extends AbstractModule {
     // log the order of the pre-upgrade checks
     List<AbstractCheckDescriptor> upgradeChecks = registry.getUpgradeChecks();
     for (AbstractCheckDescriptor upgradeCheck : upgradeChecks) {
-      LOG.error("Registered pre-upgrade check {}", upgradeCheck.getClass());
+      LOG.debug("Registered pre-upgrade check {}", upgradeCheck.getClass());
     }
   }
 }
