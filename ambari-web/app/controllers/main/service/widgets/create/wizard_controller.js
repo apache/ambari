@@ -180,17 +180,17 @@ App.WidgetWizardController = App.WizardController.extend({
    * @returns {$.Deferred}
    */
   loadAllMetrics: function () {
-    var widgetMetrics = this.getDBProperty('allMetrics');
+    var allMetrics = this.getDBProperty('allMetrics');
     var self = this;
     var dfd = $.Deferred();
 
-    if (widgetMetrics.length === 0) {
+    if (allMetrics.length === 0) {
       this.loadAllMetricsFromServer(function () {
         dfd.resolve(self.get('content.allMetrics'));
       });
     } else {
-      this.set('content.allMetrics', widgetMetrics);
-      dfd.resolve(widgetMetrics);
+      this.set('content.allMetrics', allMetrics);
+      dfd.resolve(allMetrics);
     }
     return dfd.promise();
   },
@@ -223,23 +223,25 @@ App.WidgetWizardController = App.WizardController.extend({
     var self = this;
     var result = [];
     var metrics = {};
-
+    var slaveComponents = App.StackServiceComponent.find().filterProperty('isSlave').mapProperty('componentName');
     if (json) {
       json.items.forEach(function (service) {
         var data = service.artifacts[0].artifact_data[service.StackServices.service_name];
         for (var componentName in data) {
+          var isSlave = slaveComponents.contains(componentName);
           for (var level in data[componentName]) {
             var metricTypes = data[componentName][level]; //Ganglia or JMX
             metricTypes.forEach(function (_metricType) {
               metrics = _metricType['metrics']['default'];
               var type = _metricType["type"].toUpperCase();
-              if (!(type === 'JMX' && level.toUpperCase() === 'COMPONENT')) {
+              if (!((type === 'JMX' && level.toUpperCase() === 'COMPONENT') || (isSlave && level.toUpperCase() === 'HOSTCOMPONENT'))) {
                 for (var widgetId in metrics) {
+                  var _metrics = metrics[widgetId];
                   var metricObj = {
                     widget_id: widgetId,
-                    point_in_time: metrics[widgetId].pointInTime,
-                    temporal: metrics[widgetId].temporal,
-                    name: metrics[widgetId].name,
+                    point_in_time: _metrics.pointInTime,
+                    temporal: _metrics.temporal,
+                    name: _metrics.name,
                     level: level.toUpperCase(),
                     type: type,
                     component_name: componentName,
@@ -256,7 +258,54 @@ App.WidgetWizardController = App.WizardController.extend({
         }
       }, this);
     }
+    if (!!App.YARNService.find("YARN")) {
+      result = this.substitueQueueMetrics(result);
+    }
     this.save('allMetrics', result);
+  },
+
+
+  /**
+   * @name substitueQueueMetrics
+   * @param metrics
+   * @return {Array} array of metric objects with regex substituted with actual metrics names
+   */
+  substitueQueueMetrics: function (metrics) {
+    var result = [];
+    var queuePaths = App.YARNService.find("YARN").get("allQueueNames");
+    var queueNames = [];
+    var queueMetricName;
+    queuePaths.forEach(function (_queuePath) {
+      var queueName = _queuePath.replace(/\//g, ".");
+      queueNames.push(queueName);
+    }, this);
+    var regexpForAMS = new RegExp("^yarn.QueueMetrics.Queue=\\(\\.\\+\\).*$");
+    var regexpForJMX = new RegExp("\\(\\.\\+\\)", "g");
+    var replaceRegexForMetricName = regexpForJMX;
+    var replaceRegexForMetricPath = new RegExp("\\$\\d\\..*\\)(?=\\/)", "g");
+    metrics.forEach(function (_metric) {
+      var isAMSQueueMetric = regexpForAMS.test(_metric.name);
+      var isJMXQueueMetrics = regexpForJMX.test(_metric.name);
+      if ((_metric.type === 'GANGLIA' && isAMSQueueMetric) || (_metric.type === 'JMX' && isJMXQueueMetrics)) {
+        queuePaths.forEach(function (_queuePath) {
+          queueMetricName = '';
+          if (_metric.type === 'GANGLIA') {
+            queueMetricName = _queuePath.replace(/\//g, ".");
+          } else if (_metric.type === 'JMX') {
+            _queuePath.split("/").forEach(function(_metricName, index){
+              queueMetricName = queueMetricName + ',q' + index + '=' + _metricName;
+            }, this);
+          }
+          var metricName = _metric.name.replace(replaceRegexForMetricName, queueMetricName);
+          var newMetricPath = _metric.widget_id.replace(replaceRegexForMetricPath, _queuePath);
+          var newQueueMetric = $.extend(true, {}, _metric, {name: metricName, widget_id: newMetricPath});
+          result.pushObject(newQueueMetric);
+        }, this);
+      } else {
+        result.pushObject(_metric);
+      }
+    }, this);
+    return result;
   },
 
   /**

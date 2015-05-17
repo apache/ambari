@@ -122,15 +122,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
         description: this.get('widgetDescription') || "",
         scope: this.get('widgetScope').toUpperCase(),
         author: this.get('widgetAuthor'),
-        "metrics": this.get('widgetMetrics').map(function (metric) {
-          return {
-            "name": metric.name,
-            "service_name": metric.serviceName,
-            "component_name": metric.componentName,
-            "metric_path": metric.metricPath,
-            "host_component_criteria": metric.hostComponentCriteria
-          }
-        }),
+        metrics: this.get('widgetMetrics'),
         values: this.get('widgetValues').map(function (value) {
           delete value.computedValue;
           return value;

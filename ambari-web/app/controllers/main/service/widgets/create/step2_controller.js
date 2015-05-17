@@ -343,14 +343,17 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       value = '${';
       expression.data.forEach(function (element) {
         if (element.isMetric) {
-          metrics.push({
+          var metricObj = {
             "name": element.name,
             "service_name": element.serviceName,
             "component_name": element.componentName,
-            "metric_path": element.metricPath,
-            "host_component_criteria": element.hostComponentCriteria,
-            "category": element.category
-          });
+            "metric_path": element.metricPath
+          };
+          if (element.hostComponentCriteria) {
+            metricObj.host_component_criteria = element.hostComponentCriteria;
+          }
+          metrics.push(metricObj);
+
         }
         value += element.name;
       }, this);
