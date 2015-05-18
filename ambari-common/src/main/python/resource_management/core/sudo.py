@@ -29,7 +29,7 @@ from resource_management.core.utils import _coerce_uid
 from resource_management.core.utils import _coerce_gid
 from ambari_commons.os_check import OSCheck
 
-if os.geteuid() == 0 or OSCheck.is_windows_family():
+if os.geteuid() == 0:
   def chown(path, owner, group):
     return os.chown(path, _coerce_uid(owner) if owner else -1, _coerce_gid(group) if group else -1)
   
