@@ -171,7 +171,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Failed to create new principal - no password specified");
     } else {
       // Create the kdamin query:  add_principal <-randkey|-pw <password>> <principal>
-      ShellCommandUtil.Result result = invokeKAdmin(String.format("add_principal -pw %s %s", password, principal));
+      ShellCommandUtil.Result result = invokeKAdmin(String.format("add_principal -pw \"%s\" %s", password, principal));
 
       // If there is data from STDOUT, see if the following string exists:
       //    Principal "<principal>" created
@@ -211,7 +211,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
       throw new KerberosOperationException("Failed to set password - no password specified");
     } else {
       // Create the kdamin query:  change_password <-randkey|-pw <password>> <principal>
-      invokeKAdmin(String.format("change_password -pw %s %s", password, principal));
+      invokeKAdmin(String.format("change_password -pw \"%s\" %s", password, principal));
 
       return getKeyNumber(principal);
     }
@@ -379,7 +379,7 @@ public class MITKerberosOperationHandler extends KerberosOperationHandler {
 
       // Add kadmin query
       command.add("-q");
-      command.add(query.replace("\"", "\\\""));
+      command.add(query);
 
       result = executeCommand(command.toArray(new String[command.size()]));
 
