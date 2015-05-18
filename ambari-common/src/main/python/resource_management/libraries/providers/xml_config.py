@@ -41,7 +41,7 @@ class XmlConfigProvider(Provider):
     {% for key, value in configurations_dict|dictsort %}
     <property>
       <name>{{ key|e }}</name>
-      <value>{{ resource_management.core.source.InlineTemplate(str(value)).get_content().strip() |e }}</value>
+      <value>{{ resource_management.core.source.InlineTemplate(str(value)).get_content() |e }}</value>
       {%- if not configuration_attrs is none -%}
       {%- for attrib_name, attrib_occurances in  configuration_attrs.items() -%}
       {%- for property_name, attrib_value in  attrib_occurances.items() -%}
