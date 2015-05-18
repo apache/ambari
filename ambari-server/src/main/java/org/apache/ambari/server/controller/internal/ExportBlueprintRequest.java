@@ -122,16 +122,10 @@ public class ExportBlueprintRequest implements TopologyRequest {
     String bpName = "exported-blueprint";
 
     Collection<HostGroup> hostGroups = new ArrayList<HostGroup>();
-    int count = 1;
     for (ExportedHostGroup exportedHostGroup : exportedHostGroups) {
-
-      //todo: for now can just get from ExportedHostGroup
-      //String cardinality = String.valueOf(hostGroupInfo.get(exportedHostGroup.getName()).getHostNames().size());
-      hostGroups.add(new HostGroupImpl("host_group_" + count++, bpName, stack, exportedHostGroup.getComponents(),
+      hostGroups.add(new HostGroupImpl(exportedHostGroup.getName(), bpName, stack, exportedHostGroup.getComponents(),
           exportedHostGroup.getConfiguration(), String.valueOf(exportedHostGroup.getCardinality())));
     }
-
-
     blueprint = new BlueprintImpl(bpName, hostGroups, stack, configuration);
   }
 
