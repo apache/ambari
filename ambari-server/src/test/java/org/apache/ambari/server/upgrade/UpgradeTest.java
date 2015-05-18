@@ -74,6 +74,8 @@ import com.google.inject.Key;
 import com.google.inject.TypeLiteral;
 import com.google.inject.persist.PersistService;
 
+import static org.junit.Assert.assertTrue;
+
 @RunWith(Parameterized.class)
 public class UpgradeTest {
   private static final Logger LOG = LoggerFactory.getLogger(UpgradeTest.class);
@@ -198,6 +200,9 @@ public class UpgradeTest {
 
     List<UpgradeCatalog> upgradeCatalogs =
         schemaUpgradeHelper.getUpgradePath(sourceVersion, targetVersion);
+
+    assertTrue("Final Upgrade Catalog should be run last",
+      !upgradeCatalogs.isEmpty() && upgradeCatalogs.get(upgradeCatalogs.size() - 1).isFinal());
 
     try {
       schemaUpgradeHelper.executeUpgrade(upgradeCatalogs);

@@ -108,13 +108,7 @@ public class SchemaUpgradeHelper {
    * @return
    */
   protected String getAmbariServerVersion() {
-    String versionFilePath = configuration.getServerVersionFilePath();
-    try {
-      return FileUtils.readFileToString(new File(versionFilePath)).trim();
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return null;
+    return configuration.getServerVersion();
   }
 
   /**
@@ -175,6 +169,7 @@ public class SchemaUpgradeHelper {
       catalogBinder.addBinding().to(UpgradeCatalog170.class);
       catalogBinder.addBinding().to(UpgradeCatalog200.class);
       catalogBinder.addBinding().to(UpgradeCatalog210.class);
+      catalogBinder.addBinding().to(FinalUpgradeCatalog.class);
     }
   }
 

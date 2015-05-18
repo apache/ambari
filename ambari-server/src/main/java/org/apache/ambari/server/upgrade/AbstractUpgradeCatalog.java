@@ -76,6 +76,7 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   @Inject
   public AbstractUpgradeCatalog(Injector injector) {
     this.injector = injector;
+    injector.injectMembers(this);
     registerCatalog(this);
   }
 
@@ -100,6 +101,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
     @Override
     public int compare(UpgradeCatalog upgradeCatalog1,
                        UpgradeCatalog upgradeCatalog2) {
+      //make sure FinalUpgradeCatalog runs last
+      if (upgradeCatalog1.isFinal() ^ upgradeCatalog2.isFinal()) {
+        return Boolean.compare(upgradeCatalog1.isFinal(), upgradeCatalog2.isFinal());
+      }
+
       return VersionUtils.compareVersions(upgradeCatalog1.getTargetVersion(),
         upgradeCatalog2.getTargetVersion(), 3);
     }
@@ -380,6 +386,11 @@ public abstract class AbstractUpgradeCatalog implements UpgradeCatalog {
   public void upgradeData() throws AmbariException, SQLException {
     executeDMLUpdates();
     updateMetaInfoVersion(getTargetVersion());
+  }
+
+  @Override
+  public boolean isFinal() {
+    return false;
   }
 
   protected abstract void executeDDLUpdates() throws AmbariException, SQLException;

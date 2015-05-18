@@ -843,6 +843,19 @@ public class Configuration {
   }
 
   /**
+   * Gets ambari server version
+   * @return version String
+   */
+  public String getServerVersion() {
+    try {
+      return FileUtils.readFileToString(new File(getServerVersionFilePath())).trim();
+    } catch (IOException e) {
+      LOG.error("Unable to read server version file", e);
+    }
+    return null;
+  }
+
+  /**
    * Check to see if the API should be authenticated or not
    * @return false if not, true if the authentication is enabled.
    */
