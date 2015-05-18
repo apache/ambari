@@ -33,7 +33,7 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 # default hadoop params
 mapreduce_libs_path = "/usr/lib/hadoop-mapreduce/*"
 hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 
 # HDP 2.2+ params

@@ -36,7 +36,7 @@ hadoop_lib_home = conf_select.get_hadoop_dir("lib")
 hadoop_bin = conf_select.get_hadoop_dir("sbin")
 hadoop_home = '/usr'
 create_lib_snappy_symlinks = True
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 default_topology_script_file_path = "/etc/hadoop/conf/topology_script.py"
 
 # HDP 2.2+ params

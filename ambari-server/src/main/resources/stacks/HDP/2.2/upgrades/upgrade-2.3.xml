@@ -448,6 +448,18 @@
 
     <service name="TEZ">
       <component name="TEZ_CLIENT">
+        <pre-upgrade>
+          <task xsi:type="configure">
+            <type>tez-site</type>
+            <key>tez.am.view-acls</key>
+            <value>*</value>
+          </task>
+          <task xsi:type="configure">
+            <type>tez-site</type>
+            <key>tez.task.generate.counters.per.io</key>
+            <value>true</value>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>

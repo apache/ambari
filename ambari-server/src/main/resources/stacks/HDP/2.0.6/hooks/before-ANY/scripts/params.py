@@ -76,7 +76,7 @@ hadoop_home = "/usr/lib/hadoop"
 hadoop_secure_dn_user = hdfs_user
 hadoop_dir = "/etc/hadoop"
 versioned_hdp_root = '/usr/hdp/current'
-hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_conf_dir = conf_select.get_hadoop_conf_dir(force_latest_on_upgrade=True)
 hadoop_libexec_dir = conf_select.get_hadoop_dir("libexec")
 hadoop_conf_empty_dir = "/etc/hadoop/conf.empty"
 

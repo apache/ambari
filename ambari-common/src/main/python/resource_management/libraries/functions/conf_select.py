@@ -64,6 +64,13 @@ SERVER_ROLE_DIRECTORY_MAP = {
   'ZOOKEEPER_SERVER' : 'zookeeper-server'
 }
 
+# mapping of service check to hdp-select component
+SERVICE_CHECK_DIRECTORY_MAP = {
+  "HDFS_SERVICE_CHECK" : "hadoop-client",
+  "TEZ_SERVICE_CHECK" : "hadoop-client",
+  "PIG_SERVICE_CHECK" : "hadoop-client"
+}
+
 TEMPLATE = "conf-select {0} --package {1} --stack-version {2} --conf-version 0"
 HADOOP_DIR_TEMPLATE = "/usr/hdp/{0}/{1}/{2}"
 HADOOP_DIR_DEFAULTS = {
@@ -129,14 +136,21 @@ def select(stack_name, package, version, try_create=True):
 
   shell.call(TEMPLATE.format("set-conf-dir", package, version), logoutput=False, quiet=False)
 
-def get_hadoop_conf_dir():
+def get_hadoop_conf_dir(force_latest_on_upgrade=False):
   """
   Gets the shared hadoop conf directory using:
   1.  Start with /etc/hadoop/conf
   2.  When the stack is greater than HDP-2.2, use /usr/hdp/current/hadoop-client/conf
   3.  Only when doing a RU and HDP-2.3 or higher, use the value as computed
       by conf-select.  This is in the form /usr/hdp/VERSION/hadoop/conf to make sure
-      the configs are written in the correct place
+      the configs are written in the correct place. However, if the component itself has
+      not yet been upgraded, it should use the hadoop configs from the prior version.
+      This will perform an hdp-select status to determine which version to use.
+  :param force_latest_on_upgrade:  if True, then force the returned path to always
+  be that of the upgrade target version, even if hdp-select has not been called. This
+  is primarily used by hooks like before-ANY to ensure that hadoop environment
+  configurations are written to the correct location since they are written out
+  before the hdp-select/conf-select would have been called.
   """
   hadoop_conf_dir = "/etc/hadoop/conf"
 
@@ -145,11 +159,22 @@ def get_hadoop_conf_dir():
 
     stack_info = _get_upgrade_stack()
 
+    # if upgrading to >= HDP 2.3
     if stack_info is not None and Script.is_hdp_stack_greater_or_equal("2.3"):
       stack_name = stack_info[0]
       stack_version = stack_info[1]
 
+      # ensure the new HDP stack is conf-selected
       select(stack_name, "hadoop", stack_version)
+
+      # determine if hdp-select has been run and if not, then use the current
+      # hdp version until this component is upgraded
+      if not force_latest_on_upgrade:
+        current_hdp_version = get_role_component_current_hdp_version()
+        if current_hdp_version is not None and stack_version != current_hdp_version:
+          stack_version = current_hdp_version
+
+      # only change the hadoop_conf_dir path, don't conf-select this older version
       hadoop_conf_dir = "/usr/hdp/{0}/hadoop/conf".format(stack_version)
 
   return hadoop_conf_dir
@@ -194,14 +219,25 @@ def get_role_component_current_hdp_version():
   Gets the current HDP version of the component that this role command is for.
   :return:  the current HDP version of the specified component or None
   """
-  command_role = default("/role", "")
-  if command_role in SERVER_ROLE_DIRECTORY_MAP:
-    hdp_select_component = SERVER_ROLE_DIRECTORY_MAP[command_role]
-    current_hdp_version = get_hdp_version(hdp_select_component)
+  hdp_select_component = None
+  role = default("/role", "")
+  role_command =  default("/roleCommand", "")
 
+  if role in SERVER_ROLE_DIRECTORY_MAP:
+    hdp_select_component = SERVER_ROLE_DIRECTORY_MAP[role]
+  elif role_command == "SERVICE_CHECK" and role in SERVICE_CHECK_DIRECTORY_MAP:
+    hdp_select_component = SERVICE_CHECK_DIRECTORY_MAP[role]
+
+  if hdp_select_component is None:
+    return None
+
+  current_hdp_version = get_hdp_version(hdp_select_component)
+
+  if current_hdp_version is None:
+    Logger.warning("Unable to determine hdp-select version for {0}".format(
+      hdp_select_component))
+  else:
     Logger.info("{0} is currently at version {1}".format(
       hdp_select_component, current_hdp_version))
-    
-    return current_hdp_version
 
-  return None
+  return current_hdp_version
