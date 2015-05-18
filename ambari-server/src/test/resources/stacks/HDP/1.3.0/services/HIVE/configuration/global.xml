@@ -87,11 +87,6 @@
     <description>Hive Library.</description>
   </property>    
   <property>
-    <name>hive_dbroot</name>
-    <value>/usr/lib/hive/lib/</value>
-    <description>Hive DB Directory.</description>
-  </property>      
-  <property>
     <name>hive_conf_dir</name>
     <value>/etc/hive/conf</value>
     <description>Hive Conf Dir.</description>

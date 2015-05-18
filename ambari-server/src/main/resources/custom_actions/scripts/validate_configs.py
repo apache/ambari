@@ -120,13 +120,13 @@ PROPERTIES_TO_CHECK = {
   },
   #HIVE
   "HIVE_METASTORE": {
-    "hive-env": ["hive_dbroot", "hive_log_dir", "hive_pid_dir"]
+    "hive-env": ["hive_log_dir", "hive_pid_dir"]
   },
   "HIVE_SERVER": {
-    "hive-env": ["hive_dbroot", "hive_log_dir", "hive_pid_dir"]
+    "hive-env": ["hive_log_dir", "hive_pid_dir"]
   },
   "MYSQL_SERVER": {
-    "hive-env": ["hive_dbroot", "hive_log_dir", "hive_pid_dir"]
+    "hive-env": ["hive_log_dir", "hive_pid_dir"]
   },
   "HIVE_CLIENT": {
     "hive-env": ["hive_log_dir", "hive_pid_dir"]

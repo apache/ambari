@@ -211,7 +211,6 @@ hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metast
 hive_server2_keytab = config['configurations']['hive-site']['hive.server2.authentication.kerberos.keytab']
 
 #hive_env
-hive_dbroot = config['configurations']['hive-env']['hive_dbroot']
 hive_log_dir = config['configurations']['hive-env']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid

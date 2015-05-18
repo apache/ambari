@@ -62,7 +62,6 @@ hive_metastore_keytab_path =  config['configurations']['hive-site']['hive.metast
 
 #hive_env
 hive_conf_dir = "/etc/hive/conf"
-hive_dbroot = config['configurations']['global']['hive_dbroot']
 hive_log_dir = config['configurations']['global']['hive_log_dir']
 hive_pid_dir = status_params.hive_pid_dir
 hive_pid = status_params.hive_pid

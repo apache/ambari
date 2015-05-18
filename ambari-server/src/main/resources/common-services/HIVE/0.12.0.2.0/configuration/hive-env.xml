@@ -50,11 +50,6 @@
     <description>Database name.</description>
   </property>
   <property>
-    <name>hive_dbroot</name>
-    <value>/usr/lib/hive/lib/</value>
-    <description>Hive DB Directory.</description>
-  </property>
-  <property>
     <name>hive_log_dir</name>
     <value>/var/log/hive</value>
     <description>Directory for Hive Log files.</description>
