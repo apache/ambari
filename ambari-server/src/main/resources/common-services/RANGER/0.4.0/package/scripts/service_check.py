@@ -18,9 +18,13 @@ limitations under the License.
 """
 
 from resource_management import *
+import os
 
 
 class RangerServiceCheck(Script):
+
+  upgrade_marker_file = '/tmp/rangeradmin_ru.inprogress'
+
   def service_check(self, env):
     import params
 
@@ -34,9 +38,11 @@ class RangerServiceCheck(Script):
     if code == 0:
       Logger.info('Ranger admin process up and running')
     else:
-      Logger.debug('Ranger admin process not running')
-      raise ComponentIsNotRunning()
-
+      if (self.is_ru_rangeradmin_in_progress()):
+         Logger.info('Ranger admin process not running - skipping as rolling upgrade is in progress')
+      else
+         Logger.debug('Ranger admin process not running')
+         raise ComponentIsNotRunning()
   pass
 
 
@@ -48,9 +54,10 @@ class RangerServiceCheck(Script):
     else:
       Logger.debug('Ranger usersync process not running')
       raise ComponentIsNotRunning()
-
   pass
 
+  def is_ru_rangeradmin_in_progress(self):
+    return os.path.isfile(RangerServiceCheck.upgrade_marker_file)
 
 if __name__ == "__main__":
   RangerServiceCheck().execute()

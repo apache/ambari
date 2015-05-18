@@ -54,5 +54,10 @@ class KmsServer(Script):
     env.set_params(params)
     kms()
 
+  def pre_rolling_restart(self, env):
+    import params
+    env.set_params(params)
+    upgrade.prestart(env, "ranger-kms-server")
+
 if __name__ == "__main__":
   KmsServer().execute()
