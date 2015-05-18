@@ -18,6 +18,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import os
 import socket
 import time
 
@@ -48,6 +49,13 @@ SMOKEUSER_PRINCIPAL_DEFAULT = 'ambari-qa@EXAMPLE.COM'
 # default smoke user
 SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
 SMOKEUSER_DEFAULT = 'ambari-qa'
+
+HIVE_CONF_DIR = '/usr/hdp/current/hive-metastore/conf/conf.server'
+HIVE_CONF_DIR_LEGACY = '/etc/hive/conf.server'
+
+HIVE_BIN_DIR = '/usr/hdp/current/hive-metastore/bin'
+HIVE_BIN_DIR_LEGACY = '/usr/lib/hive/bin'
+
 
 def get_tokens():
   """
@@ -130,7 +138,14 @@ def execute(configurations={}, parameters={}, host_name=None):
       if host_name in uri:
         metastore_uri = uri
 
-    cmd = format("export HIVE_CONF_DIR='/etc/hive/conf.server/' ; "
+    conf_dir = HIVE_CONF_DIR_LEGACY
+    bin_dir = HIVE_BIN_DIR_LEGACY
+
+    if os.path.exists(HIVE_CONF_DIR):
+      conf_dir = HIVE_CONF_DIR
+      bin_dir = HIVE_BIN_DIR
+
+    cmd = format("export HIVE_CONF_DIR='{conf_dir}' ; "
                  "hive --hiveconf hive.metastore.uris={metastore_uri}\
                  --hiveconf hive.metastore.client.connect.retry.delay=1s\
                  --hiveconf hive.metastore.failure.retries=1\
@@ -142,7 +157,7 @@ def execute(configurations={}, parameters={}, host_name=None):
 
     try:
       Execute(cmd, user=smokeuser,
-        path=["/bin/", "/usr/bin/", "/usr/lib/hive/bin/", "/usr/sbin/"],
+        path=["/bin/", "/usr/bin/", "/usr/sbin/", bin_dir],
         timeout=30 )
 
       total_time = time.time() - start_time

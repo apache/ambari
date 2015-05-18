@@ -57,13 +57,18 @@ CONNECTION_TIMEOUT_KEY = 'connection.timeout'
 CONNECTION_TIMEOUT_DEFAULT = 5.0
 CURL_CONNECTION_TIMEOUT_DEFAULT = str(int(CONNECTION_TIMEOUT_DEFAULT))
 
+# default smoke user
+SMOKEUSER_KEY = "{{cluster-env/smokeuser}}"
+SMOKEUSER_SCRIPT_PARAM_KEY = 'default.smoke.user'
+SMOKEUSER_DEFAULT = 'ambari-qa'
 
 def get_tokens():
   """
   Returns a tuple of tokens in the format {{site/property}} that will be used
   to build the dictionary passed into execute
   """
-  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY, WEBHCAT_PRINCIPAL_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY)
+  return (TEMPLETON_PORT_KEY, SECURITY_ENABLED_KEY, WEBHCAT_KEYTAB_KEY,
+    WEBHCAT_PRINCIPAL_KEY, KERBEROS_EXECUTABLE_SEARCH_PATHS_KEY, SMOKEUSER_KEY)
   
 
 def execute(configurations={}, parameters={}, host_name=None):
@@ -101,8 +106,16 @@ def execute(configurations={}, parameters={}, host_name=None):
   if host_name is None:
     host_name = socket.getfqdn()
 
+  smokeuser = SMOKEUSER_DEFAULT
+
+  if SMOKEUSER_KEY in configurations:
+    smokeuser = configurations[SMOKEUSER_KEY]
+
+  if SMOKEUSER_SCRIPT_PARAM_KEY in parameters:
+    smokeuser = parameters[SMOKEUSER_SCRIPT_PARAM_KEY]
+
   # webhcat always uses http, never SSL
-  query_url = "http://{0}:{1}/templeton/v1/status".format(host_name, webhcat_port)
+  query_url = "http://{0}:{1}/templeton/v1/status?user.name={2}".format(host_name, webhcat_port, smokeuser)
 
   # initialize
   total_time = 0

@@ -88,6 +88,13 @@
           "path": "HIVE/0.12.0.2.0/package/alerts/alert_webhcat_server.py",
           "parameters": [
             {
+              "name": "default.smoke.user",
+              "display_name": "Default Smoke User",
+              "value": "ambari-qa",
+              "type": "STRING",
+              "description": "The user that will run the Hive commands if not specified in cluster-env/smokeuser"
+            },
+            {
               "name": "connection.timeout",
               "display_name": "Connection Timeout",
               "value": 5.0,
