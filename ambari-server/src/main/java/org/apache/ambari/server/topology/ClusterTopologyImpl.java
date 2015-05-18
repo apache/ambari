@@ -171,6 +171,22 @@ public class ClusterTopologyImpl implements ClusterTopology {
         configurationProperties.get("hdfs-site").containsKey("dfs.nameservices");
   }
 
+  @Override
+  public boolean isYarnResourceManagerHAEnabled() {
+    return isYarnResourceManagerHAEnabled(configuration.getFullProperties());
+  }
+
+  /**
+   * Static convenience function to determine if Yarn ResourceManager HA is enabled
+   * @param configProperties configuration properties for this cluster
+   * @return true if Yarn ResourceManager HA is enabled
+   *         false if Yarn ResourceManager HA is not enabled
+   */
+  static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
+    return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
+      && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
+  }
+
   private void validateTopology(List<TopologyValidator> validators)
       throws InvalidTopologyException {
 

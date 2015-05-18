@@ -226,6 +226,11 @@ public class BlueprintConfigurationProcessor {
     if (clusterTopology.isNameNodeHAEnabled()) {
       doNameNodeHAUpdate();
     }
+
+    if (clusterTopology.isYarnResourceManagerHAEnabled()) {
+      doYarnResourceManagerHAUpdate();
+    }
+
     Collection<Map<String, Map<String, String>>> allConfigs = new ArrayList<Map<String, Map<String, String>>>();
     allConfigs.add(clusterTopology.getConfiguration().getFullProperties());
     for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
@@ -278,14 +283,28 @@ public class BlueprintConfigurationProcessor {
 
   /**
    * Creates a Collection of PropertyUpdater maps that will handle the configuration
-   *   update for this cluster.  If NameNode HA is enabled, then updater
-   *   instances will be added to the collection, in addition to the default list
-   *   of Updaters that are statically defined.
+   *   update for this cluster.
+   *
+   *   If NameNode HA is enabled, then updater instances will be added to the
+   *   collection, in addition to the default list of Updaters that are statically defined.
+   *
+   *   Similarly, if Yarn ResourceManager HA is enabled, then updater instances specific
+   *   to Yarn HA will be added to the default list of Updaters that are statically defined.
    *
    * @return Collection of PropertyUpdater maps used to handle cluster config update
    */
   private Collection<Map<String, Map<String, PropertyUpdater>>> createCollectionOfUpdaters() {
-    return (clusterTopology.isNameNodeHAEnabled()) ? addHAUpdaters(allUpdaters) : allUpdaters;
+    Collection<Map<String, Map<String, PropertyUpdater>>> updaters = allUpdaters;
+
+    if (clusterTopology.isNameNodeHAEnabled()) {
+      updaters = addNameNodeHAUpdaters(updaters);
+    }
+
+    if (clusterTopology.isYarnResourceManagerHAEnabled()) {
+      updaters = addYarnResourceManagerHAUpdaters(updaters);
+    }
+
+    return updaters;
   }
 
   /**
@@ -299,7 +318,7 @@ public class BlueprintConfigurationProcessor {
    *                   this cluster config update
    * @return A Collection of PropertyUpdater maps to handle the cluster config update
    */
-  private Collection<Map<String, Map<String, PropertyUpdater>>> addHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
+  private Collection<Map<String, Map<String, PropertyUpdater>>> addNameNodeHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
     Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
       new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
 
@@ -308,7 +327,34 @@ public class BlueprintConfigurationProcessor {
     highAvailabilityUpdaters.addAll(updaters);
 
     // add the updaters for the dynamic HA properties, based on the HA config in hdfs-site
-    highAvailabilityUpdaters.add(createMapOfHAUpdaters());
+    highAvailabilityUpdaters.add(createMapOfNameNodeHAUpdaters());
+
+    return highAvailabilityUpdaters;
+  }
+
+  /**
+   * Creates a Collection of PropertyUpdater maps that include the Yarn ResourceManager HA properties, and
+   *   adds these to the list of updaters used to process the cluster configuration.  The HA
+   *   properties are based on the names of the Resource Manager instances defined in
+   *   yarn-site, and so must be registered at runtime, rather than in the static list.
+   *
+   *   This new Collection includes the statically-defined updaters,
+   *   in addition to the HA-related updaters.
+   *
+   * @param updaters a Collection of updater maps to be included in the list of updaters for
+   *                   this cluster config update
+   * @return A Collection of PropertyUpdater maps to handle the cluster config update
+   */
+  private Collection<Map<String, Map<String, PropertyUpdater>>> addYarnResourceManagerHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
+    Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
+      new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
+
+    // always add the statically-defined list of updaters to the list to use
+    // in processing cluster configuration
+    highAvailabilityUpdaters.addAll(updaters);
+
+    // add the updaters for the dynamic HA properties, based on the HA config in hdfs-site
+    highAvailabilityUpdaters.add(createMapOfYarnResourceManagerHAUpdaters());
 
     return highAvailabilityUpdaters;
   }
@@ -348,13 +394,30 @@ public class BlueprintConfigurationProcessor {
    *
    */
   public void doNameNodeHAUpdate() {
-    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = createMapOfHAUpdaters();
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = createMapOfNameNodeHAUpdaters();
 
     // perform a single host update on these dynamically generated property names
     if (highAvailabilityUpdaters.get("hdfs-site").size() > 0) {
       doSingleHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration().getFullProperties());
     }
   }
+
+  /**
+   * Perform export update processing for HA configuration for Yarn ResourceManagers.  The HA ResourceManager
+   * property names are based on the ResourceManager names defined when HA is enabled via the Ambari UI, so this method
+   * dynamically determines the property names, and registers PropertyUpdaters to handle the masking of
+   * host names in these configuration items.
+   *
+   */
+  public void doYarnResourceManagerHAUpdate() {
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = createMapOfYarnResourceManagerHAUpdaters();
+
+    // perform a single host update on these dynamically generated property names
+    if (highAvailabilityUpdaters.get("yarn-site").size() > 0) {
+      doSingleHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration().getFullProperties());
+    }
+  }
+
 
   /**
    * Creates map of PropertyUpdater instances that are associated with
@@ -365,7 +428,7 @@ public class BlueprintConfigurationProcessor {
    *
    * @return a Map of registered PropertyUpdaters for handling HA properties in hdfs-site
    */
-  private Map<String, Map<String, PropertyUpdater>> createMapOfHAUpdaters() {
+  private Map<String, Map<String, PropertyUpdater>> createMapOfNameNodeHAUpdaters() {
     Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
     Map<String, PropertyUpdater> hdfsSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
     highAvailabilityUpdaters.put("hdfs-site", hdfsSiteUpdatersForAvailability);
@@ -386,15 +449,35 @@ public class BlueprintConfigurationProcessor {
     return highAvailabilityUpdaters;
   }
 
+
   /**
-   * Static convenience function to determine if Yarn ResourceManager HA is enabled
-   * @param configProperties configuration properties for this cluster
-   * @return true if Yarn ResourceManager HA is enabled
-   *         false if Yarn ResourceManager HA is not enabled
+   * Creates map of PropertyUpdater instances that are associated with
+   *   Yarn ResourceManager High Availability (HA).  The HA configuration property
+   *   names are dynamic, and based on other HA config elements in
+   *   yarn-site.  This method registers updaters for the required
+   *   properties associated with each ResourceManager.
+   *
+   * @return a Map of registered PropertyUpdaters for handling HA properties in yarn-site
    */
-  static boolean isYarnResourceManagerHAEnabled(Map<String, Map<String, String>> configProperties) {
-    return configProperties.containsKey("yarn-site") && configProperties.get("yarn-site").containsKey("yarn.resourcemanager.ha.enabled")
-      && configProperties.get("yarn-site").get("yarn.resourcemanager.ha.enabled").equals("true");
+  private Map<String, Map<String, PropertyUpdater>> createMapOfYarnResourceManagerHAUpdaters() {
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
+    Map<String, PropertyUpdater> yarnSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
+    highAvailabilityUpdaters.put("yarn-site", yarnSiteUpdatersForAvailability);
+
+    Map<String, String> yarnSiteConfig = clusterTopology.getConfiguration().getFullProperties().get("yarn-site");
+    // generate the property names based on the current HA config for the ResourceManager deployments
+    for (String resourceManager : parseResourceManagers(yarnSiteConfig)) {
+      final String rmHostPropertyName = "yarn.resourcemanager.hostname." + resourceManager;
+      yarnSiteUpdatersForAvailability.put(rmHostPropertyName, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+
+      final String rmHTTPAddress = "yarn.resourcemanager.webapp.address." + resourceManager;
+      yarnSiteUpdatersForAvailability.put(rmHTTPAddress, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+
+      final String rmHTTPSAddress = "yarn.resourcemanager.webapp.https.address." + resourceManager;
+      yarnSiteUpdatersForAvailability.put(rmHTTPSAddress, new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+    }
+
+    return highAvailabilityUpdaters;
   }
 
   /**
@@ -457,6 +540,18 @@ public class BlueprintConfigurationProcessor {
   static String[] parseNameServices(Map<String, String> properties) {
     final String nameServices = properties.get("dfs.nameservices");
     return splitAndTrimStrings(nameServices);
+  }
+
+  /**
+   * Parses out the list of resource managers associated with this yarn-site configuration.
+   *
+   * @param properties config properties for this cluster
+   *
+   * @return array of Strings that indicate the ResourceManager names for this HA cluster
+   */
+  static String[] parseResourceManagers(Map<String, String> properties) {
+    final String resourceManagerNames = properties.get("yarn.resourcemanager.ha.rm-ids");
+    return splitAndTrimStrings(resourceManagerNames);
   }
 
   /**
@@ -808,7 +903,7 @@ public class BlueprintConfigurationProcessor {
               return origValue;
             }
 
-            if (isYarnResourceManagerHAEnabled(properties) && isComponentResourceManager() && (matchingGroupCount == 2)) {
+            if (topology.isYarnResourceManagerHAEnabled() && isComponentResourceManager() && (matchingGroupCount == 2)) {
               if (!origValue.contains("localhost")) {
                 // if this Yarn property is a FQDN, then simply return it
                 return origValue;
@@ -897,7 +992,7 @@ public class BlueprintConfigurationProcessor {
               return Collections.emptySet();
             }
 
-            if (isYarnResourceManagerHAEnabled(properties) && isComponentResourceManager() && (matchingGroupCount == 2)) {
+            if (topology.isYarnResourceManagerHAEnabled() && isComponentResourceManager() && (matchingGroupCount == 2)) {
               if (!origValue.contains("localhost")) {
                 // if this Yarn property is a FQDN, then simply return it
                 return Collections.emptySet();
@@ -1705,6 +1800,7 @@ public class BlueprintConfigurationProcessor {
     yarnSiteMap.put("yarn.resourcemanager.scheduler.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
     yarnSiteMap.put("yarn.resourcemanager.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
     yarnSiteMap.put("yarn.resourcemanager.admin.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
+    yarnSiteMap.put("yarn.resourcemanager.webapp.https.address", new SingleHostTopologyUpdater("RESOURCEMANAGER"));
 
     // APP_TIMELINE_SERVER
     yarnSiteMap.put("yarn.timeline-service.address", new SingleHostTopologyUpdater("APP_TIMELINE_SERVER"));
@@ -1741,6 +1837,7 @@ public class BlueprintConfigurationProcessor {
     multiWebhcatSiteMap.put("templeton.zookeeper.hosts", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiCoreSiteMap.put("ha.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiYarnSiteMap.put("hadoop.registry.zk.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+    multiYarnSiteMap.put("yarn.resourcemanager.zk-address", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiSliderClientMap.put("slider.zookeeper.quorum", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiKafkaBrokerMap.put("zookeeper.connect", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
     multiAccumuloSiteMap.put("instance.zookeeper.host", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));

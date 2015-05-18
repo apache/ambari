@@ -118,6 +118,13 @@ public interface ClusterTopology {
   public boolean isNameNodeHAEnabled();
 
   /**
+   * Determine if Yarn ResourceManager HA is enabled.
+   *
+   * @return true if Yarn ResourceManager HA is enabled; false otherwise
+   */
+  public boolean isYarnResourceManagerHAEnabled();
+
+  /**
    * Determine if the cluster is kerberos enabled.
    *
    * @return true if the cluster is kerberos enabled; false otherwise
