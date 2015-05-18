@@ -46,6 +46,7 @@ App.HDFSService = App.Service.extend({
   capacityUsed: DS.attr('number'),
   capacityTotal: DS.attr('number'),
   capacityRemaining: DS.attr('number'),
+  capacityNonDfsUsed: DS.attr('number'),
   dfsTotalBlocks: DS.attr('number'),
   dfsCorruptBlocks: DS.attr('number'),
   dfsMissingBlocks: DS.attr('number'),

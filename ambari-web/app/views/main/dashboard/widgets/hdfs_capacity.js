@@ -42,7 +42,7 @@ App.NameNodeCapacityPieChartView = App.PieChartDashboardWidgetView.extend({
     var total = this.get('model').get(this.get('modelFieldMax')) + 0;
     var remaining = this.get('model.capacityRemaining');
     var dfsUsed = this.get('model.capacityUsed');
-    var nonDfsUsed = total !== null && remaining !== null && dfsUsed !== null ? total - remaining - dfsUsed : null;
+    var nonDfsUsed = this.get('model.capacityNonDfsUsed');
     var dfsPercent = total > 0 ? ((dfsUsed * 100) / total).toFixed(2) : 0;
     var nonDfsPercent = total > 0 ? ((nonDfsUsed * 100) / total).toFixed(2) : 0;
     var remainingPercent = total > 0 ? ((remaining * 100) / total).toFixed(2) : 0;
