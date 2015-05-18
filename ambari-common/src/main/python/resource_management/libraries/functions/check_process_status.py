@@ -23,7 +23,6 @@ Ambari Agent
 from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from resource_management.core import sudo
 __all__ = ["check_process_status"]
 
 import os
@@ -37,6 +36,8 @@ def check_process_status(pid_file):
 
   @param pid_file: path to service pid file
   """
+  from resource_management.core import sudo
+
   if not pid_file or not os.path.isfile(pid_file):
     raise ComponentIsNotRunning()
   

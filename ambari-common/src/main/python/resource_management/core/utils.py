@@ -20,8 +20,6 @@ Ambari Agent
 
 """
 
-import grp
-import pwd
 from resource_management.core.exceptions import Fail
 
 class AttributeDictionary(object):
@@ -110,6 +108,8 @@ def checked_unite(dict1, dict2):
   return result
 
 def _coerce_uid(user):
+  import pwd
+
   try:
     uid = int(user)
   except ValueError:
@@ -121,6 +121,8 @@ def _coerce_uid(user):
 
 
 def _coerce_gid(group):
+  import grp
+
   try:
     gid = int(group)
   except ValueError:

@@ -26,7 +26,7 @@ from resource_management.libraries.functions.format import format
 from resource_management.core.environment import Environment
 from resource_management.core.source import InlineTemplate
 from resource_management.core.logger import Logger
-from resource_management import sudo
+from resource_management.core import sudo
 
 
 class ModifyPropertiesFileProvider(Provider):
