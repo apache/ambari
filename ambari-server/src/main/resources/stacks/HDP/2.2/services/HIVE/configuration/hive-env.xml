@@ -26,6 +26,11 @@
     <deleted>true</deleted>
   </property>
 
+  <property>
+    <name>hive.metastore.heapsize</name>
+    <deleted>true</deleted>
+  </property>
+
   <!-- hive-env.sh -->
   <property>
     <name>content</name>

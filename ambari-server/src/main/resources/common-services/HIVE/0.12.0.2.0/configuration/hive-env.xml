@@ -28,6 +28,12 @@
   </property>
 
   <property>
+    <name>hive.metastore.heapsize</name>
+    <value>1024</value>
+    <description>Hive Metastore Java heap size</description>
+  </property>
+
+  <property>
     <name>hive_database_type</name>
     <value>mysql</value>
     <description>Default HIVE DB type.</description>
@@ -106,7 +112,12 @@
 
 # The heap size of the jvm stared by hive shell script can be controlled via:
 
-export HADOOP_HEAPSIZE="{{hive_heapsize}}"
+if [ "$SERVICE" = "metastore" ]; then
+  export HADOOP_HEAPSIZE="{{hive_metastore_heapsize}}"
+else
+  export HADOOP_HEAPSIZE="{{hive_heapsize}}"
+fi
+
 export HADOOP_CLIENT_OPTS="-Xmx${HADOOP_HEAPSIZE}m $HADOOP_CLIENT_OPTS"
 
 # Larger heap size may be required when running queries over large number of files or partitions.

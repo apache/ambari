@@ -873,6 +873,39 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
     // Initialize all default widgets and widget layouts
     initializeClusterAndServiceWidgets();
+
+    addMissingConfigs();
+  }
+
+  protected void addMissingConfigs() throws AmbariException {
+    updateHiveConfigs();
+  }
+
+  protected void updateHiveConfigs() throws AmbariException {
+    AmbariManagementController ambariManagementController = injector.getInstance(
+            AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      Map<String, String> prop = new HashMap<String, String>();
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          //hive metastore and client_heapsize are added for HDP2, we should check if it exists and not add it for HDP1
+          if(cluster.getDesiredConfigByType("hive-env") != null) {
+            Map<String, String> hiveProps = new HashMap<String, String>();
+            if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.client.heapsize")) {
+              hiveProps.put("hive.client.heapsize", "512m");
+            }
+            if (!cluster.getDesiredConfigByType("hive-env").getProperties().containsKey("hive.metastore.heapsize")) {
+              hiveProps.put("hive.metastore.heapsize", "1024m");
+            }
+            updateConfigurationPropertiesForCluster(cluster, "hive-env", hiveProps, false, true);
+          }
+        }
+      }
+    }
   }
 
   /**

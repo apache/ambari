@@ -151,14 +151,21 @@ public class UpgradeCatalog210Test {
     Method initializeClusterAndServiceWidgets =
       UpgradeCatalog210.class.getDeclaredMethod("initializeClusterAndServiceWidgets");
 
+    Method addMissingConfigs =
+            UpgradeCatalog210.class.getDeclaredMethod("addMissingConfigs");
+
     UpgradeCatalog210 upgradeCatalog210 = createMockBuilder(UpgradeCatalog210.class)
       .addMockedMethod(addNewConfigurationsFromXml)
-      .addMockedMethod(initializeClusterAndServiceWidgets).createMock();
+      .addMockedMethod(initializeClusterAndServiceWidgets)
+      .addMockedMethod(addMissingConfigs).createMock();
 
     upgradeCatalog210.addNewConfigurationsFromXml();
     expectLastCall().once();
 
     upgradeCatalog210.initializeClusterAndServiceWidgets();
+    expectLastCall().once();
+
+    upgradeCatalog210.addMissingConfigs();
     expectLastCall().once();
 
     replay(upgradeCatalog210);

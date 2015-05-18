@@ -253,6 +253,8 @@ if 'role' in config and config['role'] in ["HIVE_SERVER", "HIVE_METASTORE"]:
 else:
   hive_heapsize = config['configurations']['hive-env']['hive.client.heapsize']
 
+hive_metastore_heapsize = config['configurations']['hive-env']['hive.metastore.heapsize']
+
 java64_home = config['hostLevelParams']['java_home']
 
 ##### MYSQL
