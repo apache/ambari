@@ -135,7 +135,9 @@
 
   <property>
     <name>hadoop.security.auth_to_local</name>
-    <value>DEFAULT</value>
+    <value>
+        DEFAULT
+    </value>
 <description>The mapping from kerberos principal names to local OS mapreduce.job.user.names.
   So the default rule is just "DEFAULT" which takes all principals in your default domain to their first component.
   "omalley@APACHE.ORG" and "omalley/admin@APACHE.ORG" to "omalley", if your default domain is APACHE.ORG.
