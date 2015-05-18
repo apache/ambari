@@ -82,8 +82,6 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop timelineserver',
                               user='yarn')
 
-    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid',
-                              action=['delete'])
     self.assertNoMoreResources()
 
   def assert_configure_default(self):

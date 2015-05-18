@@ -118,8 +118,6 @@ class TestResourceManager(RMFTestCase):
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop resourcemanager',
                               user='yarn')
-    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
-                              action=['delete'])
     self.assertNoMoreResources()
 
   def test_configure_secured(self):
@@ -168,8 +166,6 @@ class TestResourceManager(RMFTestCase):
 
     self.assertResourceCalled('Execute', 'export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf stop resourcemanager',
                               user='yarn')
-    self.assertResourceCalled('File', '/var/run/hadoop-yarn/yarn/yarn-yarn-resourcemanager.pid',
-                              action=['delete'])
     self.assertNoMoreResources()
 
 
