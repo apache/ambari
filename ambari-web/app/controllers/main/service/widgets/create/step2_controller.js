@@ -268,10 +268,10 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
           ];
           break;
         case 'TEMPLATE':
-          expressionData = this.parseTemplateExpression(this);
+          expressionData = this.parseTemplateExpression(this.get('templateValue'), this.get('expressions'));
           break;
         case 'GRAPH':
-          expressionData = this.parseGraphDataset(this);
+          expressionData = this.parseGraphDataset(this.get('dataSets'));
           break;
       }
     }
@@ -281,14 +281,14 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
 
   /**
    * parse Graph data set
-   * @param {Ember.View} view
+   * @param {Array} dataSets
    * @returns {{metrics: Array, values: Array}}
    */
-  parseGraphDataset: function (view) {
+  parseGraphDataset: function (dataSets) {
     var metrics = [];
     var values = [];
 
-    view.get('dataSets').forEach(function (dataSet) {
+    dataSets.forEach(function (dataSet) {
       var result = this.parseExpression(dataSet.get('expression'));
       metrics.pushObjects(result.metrics);
       values.push({
@@ -305,16 +305,17 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
 
   /**
    * parse expression from template
-   * @param {Ember.View} view
+   * @param {string} templateValue
+   * @param {Array} expressions
    * @returns {{metrics: Array, values: {value: *}[]}}
    */
-  parseTemplateExpression: function (view) {
+  parseTemplateExpression: function (templateValue, expressions) {
     var metrics = [];
     var self = this;
-    var expression = view.get('templateValue').replace(/\{\{Expression[\d]\}\}/g, function (exp) {
+    var expression = templateValue.replace(/\{\{Expression[\d]\}\}/g, function (exp) {
       var result;
-      if (view.get('expressions').someProperty('alias', exp)) {
-        result = self.parseExpression(view.get('expressions').findProperty('alias', exp));
+      if (expressions.someProperty('alias', exp)) {
+        result = self.parseExpression(expressions.findProperty('alias', exp));
         metrics.pushObjects(result.metrics);
         return result.value;
       }
@@ -372,7 +373,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   updateProperties: function () {
     var result = {};
 
-    this.get('widgetPropertiesViews').forEach(function(property){
+    this.get('widgetPropertiesViews').forEach(function (property) {
       for (var key in property.valueMap) {
         result[property.valueMap[key]] = property.get(key);
       }
@@ -477,7 +478,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     for (var i = 0, l = expression.length; i < l; i++) {
       if (this.get('OPERATORS').contains(expression[i])) {
         if (str.trim().length > 0) {
-          data.pushObject(this.getExpressionVariable(str.trim(), id, metrics));
+          data.pushObject(this.getExpressionVariable(str.trim(), ++id, metrics));
           str = '';
         }
         data.pushObject(Em.Object.create({
@@ -490,7 +491,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       }
     }
     if (str.trim().length > 0) {
-      data.pushObject(this.getExpressionVariable(str.trim(), id, metrics));
+      data.pushObject(this.getExpressionVariable(str.trim(), ++id, metrics));
     }
     return data;
   },
@@ -509,7 +510,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
     if (isNaN(Number(name))) {
       metric = metrics.findProperty('name', name);
       return Em.Object.create({
-        id: ++id,
+        id: id,
         name: metric.name,
         isMetric: true,
         componentName: metric.component_name,
@@ -519,7 +520,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
       });
     } else {
       return Em.Object.create({
-        id: ++id,
+        id: id,
         name: name,
         isNumber: true
       });
@@ -527,9 +528,7 @@ App.WidgetWizardStep2Controller = Em.Controller.extend({
   },
 
   next: function () {
-    if (!this.get('isSubmitDisabled')) {
-      App.router.send('next');
-    }
+    App.router.send('next');
   }
 });
 
