@@ -366,7 +366,7 @@ App.ChartLinearTimeView = Ember.View.extend({
         this.draw(seriesData);
         this.set('hasData', true);
           //move yAxis value lower to make them fully visible
-        $("#" + this.id + "-container").find('.y_axis text').attr('y',8);
+        $("#" + this.get('id') + "-container").find('.y_axis text').attr('y',8);
       }
     }
     else {
@@ -561,6 +561,7 @@ App.ChartLinearTimeView = Ember.View.extend({
 
     new Rickshaw.Graph.Axis.Y({
       tickFormat: this.yAxisFormatter,
+      pixelsPerTick: (isPopup ? 75 : 40),
       element: yaxisElement,
       orientation: (isPopup ? 'left' : 'right'),
       graph: _graph
