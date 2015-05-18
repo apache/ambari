@@ -224,16 +224,11 @@ App.ServerValidatorMixin = Em.Mixin.create({
             var message = {
               propertyName: item['config-name'],
               filename: item['config-type'],
-              warnMessage: item.message
-            };
-            if (item['config-type'] === "" && item['config-name'] === "") {
-              //service-independent validation
-              message.isGeneral = true;
-            } else {
-              message.serviceName = App.StackService.find().filter(function(service) {
+              warnMessage: item.message,
+              serviceName: App.StackService.find().filter(function(service) {
                 return !!service.get('configTypes')[item['config-type']];
               })[0].get('displayName')
-            }
+            };
             self.set(item.level == 'WARN' ? 'configValidationWarning' : 'configValidationError', true);
             globalWarning.push(message);
           }

@@ -55,7 +55,6 @@ Em.I18n.translations = {
   'ok':'OK',
   'as':'as',
   'on':'on',
-  'in':'in',
   'any': 'Any',
   'more':'more',
   'yes':'Yes',

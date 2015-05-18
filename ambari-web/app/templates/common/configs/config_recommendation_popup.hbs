@@ -57,17 +57,11 @@
         {{/each}}
       {{/each}}
       {{#each message in configValidationGlobalMessage}}
-        {{#if message.isGeneral}}
-          <tr>
-            <td colspan="4">{{message.warnMessage}}</td>
-          </tr>
-        {{else}}
-          <tr>
-            <td>{{message.serviceName}}</td>
-            <td>{{message.propertyName}}</td>
-            <td colspan="2">{{message.warnMessage}} {{t in}} {{message.filename}}</td>
-          </tr>
-        {{/if}}
+        <tr>
+          <td>{{message.serviceName}}</td>
+          <td>{{message.propertyName}}</td>
+          <td colspan="2">{{message.warnMessage}} in {{message.filename}}</td>
+        </tr>
       {{/each}}
     </tbody>
   </table>
