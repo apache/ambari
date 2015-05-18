@@ -778,7 +778,11 @@ public class ViewInstanceEntity implements ViewInstanceDefinition {
       Set<String> requiredParameterNames = new HashSet<String>();
       for (ViewParameterEntity parameter : viewEntity.getParameters()) {
         if (parameter.isRequired()) {
-          requiredParameterNames.add(parameter.getName());
+          // Don't enforce 'required' validation for cluster config parameters since
+          // the value will be obtained through cluster association, not user input
+          if (parameter.getClusterConfig()== null) {
+            requiredParameterNames.add(parameter.getName());
+          }
         }
       }
       Map<String, String> propertyMap = getPropertyMap();

@@ -129,6 +129,21 @@ public class ViewInstanceEntityTest {
       "    </instance>\n" +
       "</view>";
 
+  private static String XML_CONFIG_INSTANCE = "<view>\n" +
+      "    <name>MY_VIEW</name>\n" +
+      "    <label>My View!</label>\n" +
+      "    <version>1.0.0</version>\n" +
+      "    <parameter>\n" +
+      "        <name>p1</name>\n" +
+      "        <cluster-config>hadoop-env/hdfs_user</cluster-config>\n" +
+      "        <required>true</required>\n" +
+      "    </parameter>\n" +
+      "    <instance>\n" +
+      "        <name>INSTANCE1</name>\n" +
+      "        <label>My Instance 1!</label>\n" +
+      "    </instance>\n" +
+      "</view>";
+
   @Test
   public void testGetViewEntity() throws Exception {
     InstanceConfig instanceConfig = InstanceConfigTest.getInstanceConfigs().get(0);
@@ -407,6 +422,21 @@ public class ViewInstanceEntityTest {
     Configuration ambariConfig = new Configuration(properties);
 
     ViewConfig config = ViewConfigTest.getConfig(xml_valid_instance);
+    ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
+    ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
+
+    viewInstanceEntity.validate(viewEntity, Validator.ValidationContext.PRE_CREATE);
+  }
+
+  @Test
+  public void testValidateWithClusterConfig() throws Exception {
+
+    Properties properties = new Properties();
+    properties.put("p1", "v1");
+
+    Configuration ambariConfig = new Configuration(properties);
+
+    ViewConfig config = ViewConfigTest.getConfig(XML_CONFIG_INSTANCE);
     ViewEntity viewEntity = ViewRegistryTest.getViewEntity(config, ambariConfig, getClass().getClassLoader(), "");
     ViewInstanceEntity viewInstanceEntity = ViewRegistryTest.getViewInstanceEntity(viewEntity, config.getInstances().get(0));
 
