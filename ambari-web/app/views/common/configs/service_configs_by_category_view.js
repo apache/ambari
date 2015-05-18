@@ -61,8 +61,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    * they were not visible initially.
    */
    categoryConfigsAll: function () {
-     var configs = this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
-     return configs;
+     return this.get('serviceConfigs').filterProperty('category', this.get('category.name'));
    }.property('serviceConfigs.@each').cacheable(),
 
   /**
@@ -73,12 +72,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   isCategoryBodyVisible: function () {
     return this.get('category.isCollapsed') ? "display: none;" : "display: block;"
   }.property('serviceConfigs.length'),
-
-  childView: App.ServiceConfigsOverridesView,
-
-  changeFlag: Ember.Object.create({
-    val: 1
-  }),
 
   /**
    * Should we show config group or not
@@ -97,12 +90,10 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   orderContentAtLast: function (categoryConfigs) {
     var contentProperties = categoryConfigs.filterProperty('displayType', 'content');
-    var self = this;
     if (!contentProperties.length) {
       return categoryConfigs
     }
     else {
-      var comparator;
       return categoryConfigs.sort(function (a, b) {
         var aContent = contentProperties.someProperty('name', a.get('name'));
         var bContent = contentProperties.someProperty('name', b.get('name'));
@@ -192,12 +183,12 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
-        footerClass: Ember.View.extend({
+        footerClass: Em.View.extend({
           classNames: ['modal-footer'],
           templateName: require('templates/common/configs/propertyDependence_footer'),
           canIgnore: serviceId == 'MISC'
         }),
-        bodyClass: Ember.View.extend({
+        bodyClass: Em.View.extend({
           templateName: require('templates/common/configs/propertyDependence'),
           controller: this,
           propertyChange: self.get("newAffectedProperties"),

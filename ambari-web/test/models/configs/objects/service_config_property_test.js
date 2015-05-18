@@ -500,7 +500,7 @@ describe('App.ServiceConfigProperty', function () {
       },
       {
         m: 'not original config, isFinal equal to parent',
-        e: true,
+        e: false,
         c: {
           value: 'on',
           isOriginalSCP: false,

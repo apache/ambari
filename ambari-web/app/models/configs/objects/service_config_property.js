@@ -432,18 +432,34 @@ App.ServiceConfigProperty = Em.Object.extend({
     var parentSCP = this.get('parentSCP');
     if (!isOriginalSCP) {
       if (!Em.isNone(parentSCP)) {
-        if (value === parentSCP.get('value') || supportsFinal && isFinal === parentSCP.get('isFinal')) {
-          this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
-          isError = true;
+        if (value === parentSCP.get('value')) {
+          if (supportsFinal) {
+            if (isFinal === parentSCP.get('isFinal')) {
+              this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
+              isError = true;
+            }
+          }
+          else {
+            this.set('errorMessage', Em.I18n.t('config.override.valueEqualToParentConfig'));
+            isError = true;
+          }
         }
         else {
           var overrides = parentSCP.get('overrides');
           if (overrides) {
             overrides.forEach(function (override) {
               if (self == override) return;
-              if (value === override.get('value') || supportsFinal && isFinal === parentSCP.get('isFinal')) {
-                self.set('errorMessage', Em.I18n.t('config.override.valueEqualToAnotherOverrideConfig'));
-                isError = true;
+              if (value === override.get('value')) {
+                if (supportsFinal) {
+                  if (isFinal === parentSCP.get('isFinal')) {
+                    self.set('errorMessage', Em.I18n.t('config.override.valueEqualToAnotherOverrideConfig'));
+                    isError = true;
+                  }
+                }
+                else {
+                  self.set('errorMessage', Em.I18n.t('config.override.valueEqualToAnotherOverrideConfig'));
+                  isError = true;
+                }
               }
             });
           }
