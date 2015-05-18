@@ -54,7 +54,9 @@ public class TimelineMetricReadHelper {
     TimelineMetric metric = new TimelineMetric();
     metric.setMetricName(rs.getString("METRIC_NAME"));
     metric.setAppId(rs.getString("APP_ID"));
-    if (!ignoreInstance) metric.setInstanceId(rs.getString("INSTANCE_ID"));
+    if (!ignoreInstance) {
+      metric.setInstanceId(rs.getString("INSTANCE_ID"));
+    }
     metric.setHostName(rs.getString("HOSTNAME"));
     metric.setTimestamp(rs.getLong("SERVER_TIME"));
     metric.setStartTime(rs.getLong("START_TIME"));

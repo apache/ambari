@@ -157,6 +157,9 @@ public class TimelineMetricConfiguration {
   public static final String CLUSTER_AGGREGATOR_APP_IDS =
     "timeline.metrics.service.cluster.aggregator.appIds";
 
+  public static final String SERVER_SIDE_TIMESIFT_ADJUSTMENT =
+    "timeline.metrics.service.cluster.aggregator.timeshift.adjustment";
+
   public static final String HOST_APP_ID = "HOST";
 
   private Configuration hbaseConf;

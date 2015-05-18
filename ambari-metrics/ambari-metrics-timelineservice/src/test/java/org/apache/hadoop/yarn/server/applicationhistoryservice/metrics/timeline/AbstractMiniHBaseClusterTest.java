@@ -20,7 +20,11 @@ package org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HConstants;
 import org.apache.hadoop.hbase.IntegrationTestingUtility;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
+import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
+import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.aggregators.AggregatorUtils;
 import org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.ConnectionProvider;
+import org.apache.hadoop.yarn.util.timeline.TimelineUtils;
 import org.apache.phoenix.hbase.index.write.IndexWriterUtils;
 import org.apache.phoenix.query.BaseTest;
 import org.apache.phoenix.query.QueryServices;
@@ -30,16 +34,22 @@ import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
+
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.LOG;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.METRICS_RECORD_TABLE_NAME;
+import static org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.query.PhoenixTransactSQL.UPSERT_METRICS_SQL;
 import static org.apache.phoenix.util.TestUtil.TEST_PROPERTIES;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -116,8 +126,7 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
 
   protected PhoenixHBaseAccessor createTestableHBaseAccessor() {
     Configuration metricsConf = new Configuration();
-    metricsConf.set(
-        TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
+    metricsConf.set(TimelineMetricConfiguration.HBASE_COMPRESSION_SCHEME, "NONE");
 
     return
         new PhoenixHBaseAccessor(
@@ -135,5 +144,72 @@ public abstract class AbstractMiniHBaseClusterTest extends BaseTest {
                 return connection;
               }
             });
+  }
+
+  protected void insertMetricRecords(Connection conn, TimelineMetrics metrics, long currentTime)
+                                    throws SQLException, IOException {
+
+    List<TimelineMetric> timelineMetrics = metrics.getMetrics();
+    if (timelineMetrics == null || timelineMetrics.isEmpty()) {
+      LOG.debug("Empty metrics insert request.");
+      return;
+    }
+
+    PreparedStatement metricRecordStmt = null;
+
+    try {
+      metricRecordStmt = conn.prepareStatement(String.format(
+        UPSERT_METRICS_SQL, METRICS_RECORD_TABLE_NAME));
+
+      for (TimelineMetric metric : timelineMetrics) {
+        metricRecordStmt.clearParameters();
+
+        if (LOG.isTraceEnabled()) {
+          LOG.trace("host: " + metric.getHostName() + ", " +
+            "metricName = " + metric.getMetricName() + ", " +
+            "values: " + metric.getMetricValues());
+        }
+        double[] aggregates =  AggregatorUtils.calculateAggregates(
+          metric.getMetricValues());
+
+        metricRecordStmt.setString(1, metric.getMetricName());
+        metricRecordStmt.setString(2, metric.getHostName());
+        metricRecordStmt.setString(3, metric.getAppId());
+        metricRecordStmt.setString(4, metric.getInstanceId());
+        metricRecordStmt.setLong(5, currentTime);
+        metricRecordStmt.setLong(6, metric.getStartTime());
+        metricRecordStmt.setString(7, metric.getType());
+        metricRecordStmt.setDouble(8, aggregates[0]);
+        metricRecordStmt.setDouble(9, aggregates[1]);
+        metricRecordStmt.setDouble(10, aggregates[2]);
+        metricRecordStmt.setLong(11, (long) aggregates[3]);
+        String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
+        metricRecordStmt.setString(12, json);
+
+        try {
+          metricRecordStmt.executeUpdate();
+        } catch (SQLException sql) {
+          LOG.error(sql);
+        }
+      }
+
+      conn.commit();
+
+    } finally {
+      if (metricRecordStmt != null) {
+        try {
+          metricRecordStmt.close();
+        } catch (SQLException e) {
+          // Ignore
+        }
+      }
+      if (conn != null) {
+        try {
+          conn.close();
+        } catch (SQLException sql) {
+          // Ignore
+        }
+      }
+    }
   }
 }

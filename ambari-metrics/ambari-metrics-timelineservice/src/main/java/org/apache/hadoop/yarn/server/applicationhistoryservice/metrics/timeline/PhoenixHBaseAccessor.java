@@ -313,8 +313,7 @@ public class PhoenixHBaseAccessor {
     }
   }
 
-  public void insertMetricRecords(TimelineMetrics metrics)
-    throws SQLException, IOException {
+  public void insertMetricRecords(TimelineMetrics metrics) throws SQLException, IOException {
 
     List<TimelineMetric> timelineMetrics = metrics.getMetrics();
     if (timelineMetrics == null || timelineMetrics.isEmpty()) {
@@ -351,9 +350,8 @@ public class PhoenixHBaseAccessor {
         metricRecordStmt.setDouble(8, aggregates[0]);
         metricRecordStmt.setDouble(9, aggregates[1]);
         metricRecordStmt.setDouble(10, aggregates[2]);
-        metricRecordStmt.setLong(11, (long)aggregates[3]);
-        String json =
-          TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
+        metricRecordStmt.setLong(11, (long) aggregates[3]);
+        String json = TimelineUtils.dumpTimelineRecordtoJSON(metric.getMetricValues());
         metricRecordStmt.setString(12, json);
 
         try {

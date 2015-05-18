@@ -198,7 +198,7 @@
   </property>
   <property>
     <name>timeline.metrics.cluster.aggregator.minute.timeslice.interval</name>
-    <value>15</value>
+    <value>30</value>
     <description>
       Lowest resolution of desired data for cluster level minute aggregates.
     </description>

@@ -165,15 +165,15 @@ public abstract class AbstractTimelineAggregator implements TimelineMetricAggreg
       lastCheckPointTime = readCheckPoint();
       if (isLastCheckPointTooOld(lastCheckPointTime)) {
         LOG.warn("Last Checkpoint is too old, discarding last checkpoint. " +
-          "lastCheckPointTime = " + lastCheckPointTime);
+          "lastCheckPointTime = " + new Date(lastCheckPointTime));
         lastCheckPointTime = -1;
       }
       if (lastCheckPointTime == -1) {
         // Assuming first run, save checkpoint and sleep.
         // Set checkpoint to 2 minutes in the past to allow the
         // agents/collectors to catch up
-        LOG.info("Saving checkpoint time on first run." +
-          (currentTime - checkpointDelayMillis));
+        LOG.info("Saving checkpoint time on first run. " +
+          new Date((currentTime - checkpointDelayMillis)));
         saveCheckPoint(currentTime - checkpointDelayMillis);
       }
     } catch (IOException io) {
