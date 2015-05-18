@@ -186,7 +186,7 @@ describe('App.WizardController', function () {
             id: 'id',
             name: 'name',
             value: 'value',
-            defaultValue: 'defaultValue',
+            recommendedValue: 'recommendedValue',
             description: 'description',
             serviceName: 'serviceName',
             domain: 'domain',

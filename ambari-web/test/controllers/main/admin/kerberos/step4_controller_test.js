@@ -180,8 +180,8 @@ describe('App.KerberosWizardStep4Controller', function() {
             getDBProperty: function() {
               return Em.A([
                 Em.Object.create({ name: 'realm', value: 'realm_value' }),
-                Em.Object.create({ name: 'admin_principal', value: 'some_val1', defaultValue: 'some_val1', filename: 'krb5-conf.xml' }),
-                Em.Object.create({ name: 'admin_password', value: 'some_password', defaultValue: 'some_password', filename: 'krb5-conf.xml' })
+                Em.Object.create({ name: 'admin_principal', value: 'some_val1', recommendedValue: 'some_val1', filename: 'krb5-conf.xml' }),
+                Em.Object.create({ name: 'admin_password', value: 'some_password', recommendedValue: 'some_password', filename: 'krb5-conf.xml' })
               ]);
             }
           })

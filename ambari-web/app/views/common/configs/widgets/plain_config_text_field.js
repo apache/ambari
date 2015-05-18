@@ -28,7 +28,7 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, {
   templateName: require('templates/common/configs/widgets/plain_config_text_field'),
   valueBinding: 'serviceConfig.value',
   classNames: ['widget-config-plain-text-field'],
-  placeholderBinding: 'serviceConfig.defaultValue',
+  placeholderBinding: 'serviceConfig.savedValue',
   unit: function() {
     return Em.getWithDefault(this, 'serviceConfig.stackConfigProperty.valueAttributes.unit', false);
   }.property('serviceConfig.stackConfigProperty.valueAttributes.unit'),

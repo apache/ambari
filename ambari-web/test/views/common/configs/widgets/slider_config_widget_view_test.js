@@ -35,7 +35,7 @@ describe('App.SliderConfigWidgetView', function () {
         name: 'a.b.c',
         description: 'A B C',
         value: '486',
-        defaultValue: '486',
+        savedValue: '486',
         stackConfigProperty: Em.Object.create({
           valueAttributes: Em.Object.create({
             type: 'int',
@@ -65,7 +65,7 @@ describe('App.SliderConfigWidgetView', function () {
         name: 'a.b.c2',
         description: 'A B C 2',
         value: '72.2',
-        defaultValue: '72.2',
+        savedValue: '72.2',
         stackConfigProperty: Em.Object.create({
           valueAttributes: Em.Object.create({
             type: 'float',
@@ -94,7 +94,7 @@ describe('App.SliderConfigWidgetView', function () {
         name: 'a.b.c3',
         description: 'A B C 3',
         value: '0.22',
-        defaultValue: '0.22',
+        savedValue: '0.22',
         stackConfigProperty: Em.Object.create({
           valueAttributes: Em.Object.create({
             type: 'float',

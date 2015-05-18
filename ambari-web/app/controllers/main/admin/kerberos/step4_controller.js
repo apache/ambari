@@ -143,7 +143,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       this.get('adminPropertyNames').forEach(function(item) {
         var property = storedServiceConfigs.filterProperty('filename', 'krb5-conf.xml').findProperty('name', item.name);
         if (!!property) {
-          var _prop = App.ServiceConfigProperty.create($.extend({}, property, { name: item.name, value: '', defaultValue: '', serviceName: 'Cluster', displayName: item.displayName}));
+          var _prop = App.ServiceConfigProperty.create($.extend({}, property, { name: item.name, value: '', recommendedValue: '', serviceName: 'Cluster', displayName: item.displayName}));
           _prop.validate();
           adminProps.push(_prop);
         }
@@ -156,7 +156,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
     if (this.get('wizardController.name') != 'addServiceController') {
       var realmValue = storedServiceConfigs.findProperty('name', 'realm').value;
       configProperties.findProperty('name', 'realm').set('value', realmValue);
-      configProperties.findProperty('name', 'realm').set('defaultValue', realmValue);
+      configProperties.findProperty('name', 'realm').set('recommendedValue', realmValue);
     }
 
     configProperties.setEach('isSecureConfig', false);
@@ -167,7 +167,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       if (property.get('observesValueFrom')) {
         var observedValue = allConfigs.findProperty('name', property.get('observesValueFrom')).get('value');
         property.set('value', observedValue);
-        property.set('defaultValue', observedValue);
+        property.set('recommendedValue', observedValue);
       }
       if (property.get('serviceName') == 'Cluster') {
         property.set('category', 'Global');
@@ -211,7 +211,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
         }
         var configValue =  config.value.replace(/thrift.+[0-9]{2,},/i, hiveMSHostNames.join('\\,') + ",");
         config.set('value', configValue);
-        config.set('defaultValue', configValue);
+        config.set('recommendedValue', configValue);
       }
     }
   },
@@ -228,7 +228,7 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
       if (config.get('observesValueFrom') == configProperty.get('name')) {
         Em.run.once(self, function() {
           config.set('value', configProperty.get('value'));
-          config.set('defaultValue', configProperty.get('value'));
+          config.set('recommendedValue', configProperty.get('value'));
         });
       }
     });

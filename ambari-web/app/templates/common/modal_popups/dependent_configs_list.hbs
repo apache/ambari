@@ -46,7 +46,13 @@
         </td>
         <td>{{config.fileName}}</td>
         <td>{{config.value}}</td>
-        <td>{{config.recommendedValue}}</td>
+        <td>
+          {{#if config.isDeleted}}
+            {{t common.removed}}
+          {{else}}
+            {{config.recommendedValue}}
+          {{/if}}
+        </td>
       </tr>
     {{/each}}
     </tbody>

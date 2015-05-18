@@ -24,9 +24,61 @@ App.ServiceConfigProperty = Em.Object.extend({
   id: '', //either 'puppet var' or 'site property'
   name: '',
   displayName: '',
+
+  /**
+   * value that is shown on IU
+   * and is changing by user
+   * @type {String|null}
+   */
   value: '',
+
+  /**
+   * value that is saved on cluster configs
+   * and stored in /api/v1/clusters/{name}/configurations
+   * @type {String|null}
+   */
+  savedValue: null,
+
+  /**
+   * value that is returned from server as recommended
+   * or stored on stack
+   * @type {String|null}
+   */
+  recommendedValue: null,
+
+  /**
+   * initial value of config. if value is saved it will be initial
+   * otherwise first recommendedValue will be initial
+   * @type {String|null}
+   */
+  initialValue: null,
+
+  /**
+   * value that is shown on IU
+   * and is changing by user
+   * @type {boolean}
+   */
+  isFinal: false,
+
+  /**
+   * value that is saved on cluster configs api
+   * @type {boolean}
+   */
+  savedIsFinal: null,
+
+  /**
+   * value that is returned from server as recommended
+   * or stored on stack
+   * @type {boolean}
+   */
+  recommendedIsFinal: null,
+
+  /**
+   * @type {boolean}
+   */
+  supportsFinal: false,
+
   retypedPassword: '',
-  defaultValue: '',
   defaultDirectory: '',
   description: '',
   displayType: 'string', // string, digits, number, directories, custom
@@ -36,12 +88,9 @@ App.ServiceConfigProperty = Em.Object.extend({
   isReconfigurable: true, // by default a config property is reconfigurable
   isEditable: true, // by default a config property is editable
   isNotEditable: Ember.computed.not('isEditable'),
-  isFinal: false,
   hideFinalIcon: function () {
     return (!this.get('isFinal'))&& this.get('isNotEditable');
   }.property('isFinal', 'isNotEditable'),
-  defaultIsFinal: false,
-  supportsFinal: false,
   isVisible: true,
   isMock: false, // mock config created created only to displaying
   isRequiredByAgent: true, // Setting it to true implies property will be stored in configuration
@@ -84,18 +133,11 @@ App.ServiceConfigProperty = Em.Object.extend({
   rowStyleClass: null, // CSS-Class to be applied on the row showing this config
   showAsTextBox: false,
 
-  forceUpdate: false,
-  /**
-   * value that is returned from server as recommended
-   * @type {String}
-   */
-  recommendedValue: null,
-
   /**
    * @type {boolean}
    */
   recommendedValueExists: function () {
-    return !Em.isNone(this.get('recommendedValue'));
+    return !Em.isNone(this.get('recommendedValue')) && this.get('isRequiredByAgent') && !this.get('cantBeUndone');
   }.property('recommendedValue'),
 
   /**
@@ -148,9 +190,13 @@ App.ServiceConfigProperty = Em.Object.extend({
       this.set('retypedPassword', this.get('value'));
     }
     if ((this.get('id') === 'puppet var') && this.get('value') == '') {
-      this.set('value', this.get('defaultValue'));
+      if (this.get('savedValue')) {
+        this.set('value', this.get('savedValue'));
+      } else if (this.get('recommendedValue')) {
+        this.set('value', this.get('recommendedValue'));
+      }
     }
-    // TODO: remove mock data
+    this.set('initialValue', this.get('value'));
   },
 
   /**
@@ -159,18 +205,18 @@ App.ServiceConfigProperty = Em.Object.extend({
    */
   isNotDefaultValue: function () {
     var value = this.get('value');
-    var defaultValue = this.get('defaultValue');
+    var savedValue = this.get('savedValue');
     var supportsFinal = this.get('supportsFinal');
     var isFinal = this.get('isFinal');
-    var defaultIsFinal = this.get('defaultIsFinal');
+    var savedIsFinal = this.get('savedIsFinal');
     // ignore precision difference for configs with type of `float` which value may ends with 0
     // e.g. between 0.4 and 0.40
     if (this.get('stackConfigProperty') && this.get('stackConfigProperty.valueAttributes.type') == 'float') {
-      defaultValue = '' + parseFloat(defaultValue);
+      savedValue = !Em.isNone(savedValue) ? '' + parseFloat(savedValue) : null;
       value = '' + parseFloat(value);
     }
-    return (defaultValue != null && value !== defaultValue) || (supportsFinal && isFinal !== defaultIsFinal);
-  }.property('value', 'defaultValue', 'isEditable', 'isFinal', 'defaultIsFinal'),
+    return (savedValue != null && value !== savedValue) || (supportsFinal && !Em.isNone(savedIsFinal) && isFinal !== savedIsFinal);
+  }.property('value', 'savedValue', 'isEditable', 'isFinal', 'savedIsFinal'),
 
   /**
    * Don't show "Undo" for hosts on Installer Step7

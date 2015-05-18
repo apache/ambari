@@ -174,8 +174,8 @@ describe('App.stackConfigPropertiesMapper', function () {
       expect(App.StackConfigProperty.find('p1_site1').get('name')).to.eql('p1');
       expect(App.StackConfigProperty.find('p1_site1').get('displayName')).to.eql('P1');
       expect(App.StackConfigProperty.find('p1_site1').get('description')).to.eql('desc1');
-      expect(App.StackConfigProperty.find('p1_site1').get('defaultValue')).to.eql('v1');
-      expect(App.StackConfigProperty.find('p1_site1').get('defaultIsFinal')).to.be.false;
+      expect(App.StackConfigProperty.find('p1_site1').get('recommendedValue')).to.eql('v1');
+      expect(App.StackConfigProperty.find('p1_site1').get('recommendedIsFinal')).to.be.false;
       expect(App.StackConfigProperty.find('p1_site1').get('serviceName')).to.eql('s1');
       expect(App.StackConfigProperty.find('p1_site1').get('stackName')).to.eql('HDP');
       expect(App.StackConfigProperty.find('p1_site1').get('stackVersion')).to.eql('2.2');

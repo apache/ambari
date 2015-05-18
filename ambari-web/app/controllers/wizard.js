@@ -892,13 +892,14 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
           name: _configProperties.get('name'),
           displayName: _configProperties.get('displayName'),
           value: _configProperties.get('value'),
-          defaultValue: _configProperties.get('defaultValue'),
+          savedValue: _configProperties.get('savedValue'),
+          recommendedValue: _configProperties.get('recommendedValue'),
           description: _configProperties.get('description'),
           serviceName: _configProperties.get('serviceName'),
           domain: _configProperties.get('domain'),
           isVisible: _configProperties.get('isVisible'),
           isFinal: _configProperties.get('isFinal'),
-          defaultIsFinal: _configProperties.get('isFinal'),
+          recommendedIsFinal: _configProperties.get('isFinal'),
           supportsFinal: _configProperties.get('supportsFinal'),
           filename: _configProperties.get('filename'),
           displayType: _configProperties.get('displayType'),
@@ -915,7 +916,7 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
       if (stepController.get('installedServiceNames') && stepController.get('installedServiceNames').contains(_content.get('serviceName'))) {
         // get only modified configs
         var configs = _content.get('configs').filter(function (config) {
-          if (config.get('isNotDefaultValue') || (config.get('defaultValue') === null)) {
+          if (config.get('isNotDefaultValue') || (config.get('savedValue') === null)) {
             var notAllowed = ['masterHost', 'masterHosts', 'slaveHosts', 'slaveHost'];
             return !notAllowed.contains(config.get('displayType')) && !!config.filename;
           }
@@ -924,12 +925,6 @@ App.WizardController = Em.Controller.extend(App.LocalStorage, App.ThemesMappingM
         // if modified configs detected push all service's configs for update
         if (configs.length) {
           fileNamesToUpdate = fileNamesToUpdate.concat(configs.mapProperty('filename').uniq());
-        }
-        // watch for properties that are not modified but have to be updated
-        if (_content.get('configs').someProperty('forceUpdate')) {
-          // check for already added modified properties
-          var forceUpdatedFileNames = _content.get('configs').filterProperty('forceUpdate', true).mapProperty('filename').uniq();
-          fileNamesToUpdate = fileNamesToUpdate.concat(forceUpdatedFileNames).uniq();
         }
       }
     }, this);

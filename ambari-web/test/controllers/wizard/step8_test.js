@@ -413,42 +413,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#getGlobConfigValueWithOverrides', function () {
-    it('should retun empty objects', function () {
-      expect(installerStep8Controller.getGlobConfigValueWithOverrides('','','')).to.eql({
-        "value": "",
-        "overrides": []
-      });
-    });
-    it('should retun overrides', function () {
-      var expression = '<cod index=[1]></cod index=[2]>';
-      installerStep8Controller.set('configs', Em.A([
-        Em.Object.create({
-          name:'name', overrides: Em.A([
-            Em.Object.create({
-              value: '4',
-              hosts: Em.A(['h1','h2'])
-            })
-          ])
-        })
-      ]));
-      var names = Em.A(['name0', 'name', 'name', 'ad']);
-      var result = {
-        "value": "undefinedundefined",
-        "overrides": [
-          {
-            "value": "44",
-            "hosts": [
-              "h1",
-              "h2"
-            ]
-          }
-        ]
-      };
-      expect(installerStep8Controller.getGlobConfigValueWithOverrides(names,expression,'')).to.eql(result);
-    });
-  });
-
   describe('#isConfigsChanged', function () {
     it('should return true if config changed', function () {
       var properties = Em.Object.create({
@@ -1692,25 +1656,6 @@ describe('App.WizardStep8Controller', function () {
     });
   });
 
-  describe('#addDynamicProperties', function() {
-    it('shouldn\'t add property', function() {
-      var serviceConfigProperties = [
-          {name: 'templeton.hive.properties'}
-        ],
-        configs = [];
-      installerStep8Controller.reopen({content: {serviceConfigProperties: serviceConfigProperties}});
-      installerStep8Controller.addDynamicProperties(configs);
-      expect(configs.length).to.equal(0);
-    });
-    it('should add property', function() {
-      var serviceConfigProperties = [],
-        configs = [];
-      installerStep8Controller.reopen({content: {serviceConfigProperties: serviceConfigProperties}});
-      installerStep8Controller.addDynamicProperties(configs);
-      expect(configs.length).to.equal(1);
-    });
-  });
-
   describe('#applyInstalledServicesConfigurationGroup', function() {
     beforeEach(function() {
       sinon.stub($, 'ajax', function () {
@@ -1750,45 +1695,14 @@ describe('App.WizardStep8Controller', function () {
 
   describe('#loadUiSideConfigs', function() {
     beforeEach(function() {
-      sinon.stub(installerStep8Controller, 'addDynamicProperties', Em.K);
-      sinon.stub(installerStep8Controller, 'getGlobConfigValueWithOverrides', function(t, v, n) {
-        return {
-          value: v,
-          overrides: []
-        }
-      });
       sinon.stub(App.config, 'setConfigValue', Em.K);
     });
     afterEach(function() {
-      installerStep8Controller.addDynamicProperties.restore();
-      installerStep8Controller.getGlobConfigValueWithOverrides.restore();
       App.config.setConfigValue.restore();
     });
 
-    it('all configs witohut foreignKey', function() {
+    it('configs with foreignKey', function() {
       var configMapping = [
-        {foreignKey: null, templateName: 't1', value: 'v1', name: 'c1', filename: 'f1'},
-        {foreignKey: null, templateName: 't2', value: 'v2', name: 'c2', filename: 'f2'},
-        {foreignKey: null, templateName: 't3', value: 'v3', name: 'c3', filename: 'f2'},
-        {foreignKey: null, templateName: 't4', value: 'v4', name: 'c4', filename: 'f1'}
-      ];
-      var uiConfigs = installerStep8Controller.loadUiSideConfigs(configMapping);
-      expect(uiConfigs.length).to.equal(configMapping.length);
-      expect(uiConfigs.everyProperty('id', 'site property')).to.be.true;
-      uiConfigs.forEach(function(c, index) {
-        expect(c.overrides).to.be.an.array;
-        expect(c.value).to.equal(configMapping[index].value);
-        expect(c.name).to.equal(configMapping[index].name);
-        expect(c.filename).to.equal(configMapping[index].filename);
-      });
-    });
-
-    it('some configs witohut foreignKey', function() {
-      var configMapping = [
-        {foreignKey: null, templateName: 't1', value: 'v1', name: 'c1', filename: 'f1'},
-        {foreignKey: null, templateName: 't2', value: 'v2', name: 'c2', filename: 'f2'},
-        {foreignKey: null, templateName: 't3', value: 'v3', name: 'c3', filename: 'f2'},
-        {foreignKey: null, templateName: 't4', value: 'v4', name: 'c4', filename: 'f1'},
         {foreignKey: 'fk1', templateName: 't5', value: 'v5', name: 'c5', filename: 'f1'},
         {foreignKey: 'fk2', templateName: 't6', value: 'v6', name: 'c6', filename: 'f1'},
         {foreignKey: 'fk3', templateName: 't7', value: 'v7', name: 'c7', filename: 'f2'},
@@ -2184,52 +2098,6 @@ describe('App.WizardStep8Controller', function () {
         }
       ]);
       expect(installerStep8Controller.resolveProxyuserDependecies(configs, [])).to.be.empty;
-    });
-  });
-
-  describe("#addDynamicProperties", function() {
-
-    var tests = [
-        {
-          content: Em.Object.create({
-            serviceConfigProperties: [
-              Em.Object.create({
-                configs: []
-              })
-            ]
-          }),
-          m: 'add dynamic property',
-          addDynamic: true
-        },
-        {
-          content: Em.Object.create({
-            serviceConfigProperties: [
-              Em.Object.create({
-                name: 'templeton.hive.properties'
-              })
-            ]
-          }),
-          m: 'don\'t add dynamic property (already included)',
-          addDynamic: false
-        }
-      ],
-      dynamicProperty = {
-        name: 'templeton.hive.properties',
-        templateName: ['hive.metastore.uris'],
-        foreignKey: null,
-        value: 'hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse',
-        filename: 'webhcat-site.xml'
-      };
-
-    tests.forEach(function(t) {
-      it(t.m, function() {
-        installerStep8Controller.set('content', t.content);
-        var configs = [];
-        installerStep8Controller.addDynamicProperties(configs);
-        if (t.addDynamic){
-          expect(configs.findProperty('name', 'templeton.hive.properties')).to.deep.eql(dynamicProperty);
-        }
-      });
     });
   });
 

@@ -164,7 +164,7 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
 
   setConfigInitialValue: function(config,value) {
     config.value = value;
-    config.defaultValue = value;
+    config.recommendedValue = value;
   },
 
   renderServiceConfigs: function (_serviceConfig) {

@@ -207,8 +207,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @type {boolean}
    */
   valueIsChanged: function () {
-    return this.get('config.value') != this.get('config.defaultValue');
-  }.property('config.value'),
+    return !Em.isNone(this.get('config.savedValue')) && this.get('config.value') != this.get('config.savedValue');
+  }.property('config.value', 'config.savedValue'),
 
   /**
    * Enable/disable widget state
@@ -224,13 +224,31 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   restoreValue: function () {
     var self = this;
-    this.set('config.value', this.get('config.defaultValue'));
+    this.set('config.value', this.get('config.savedValue'));
     this.sendRequestRorDependentConfigs(this.get('config')).done(function() {
       self.restoreDependentConfigs(self.get('config'));
     });
 
     if (this.get('config.supportsFinal')) {
-      this.get('config').set('isFinal', this.get('config.defaultIsFinal'));
+      this.get('config').set('isFinal', this.get('config.savedIsFinal'));
+    }
+    Em.$('body > .tooltip').remove();
+  },
+
+  /**
+   * set <code>recommendedValue<code> to config
+   * and send request to change dependent configs
+   * @method setRecommendedValue
+   */
+  setRecommendedValue: function() {
+    var self = this;
+    this.set('config.value', this.get('config.recommendedValue'));
+    this.sendRequestRorDependentConfigs(this.get('config')).done(function() {
+      self.restoreDependentConfigs(self.get('config'));
+    });
+
+    if (this.get('config.supportsFinal')) {
+      this.get('config').set('isFinal', this.get('config.recommendedIsFinal'));
     }
     Em.$('body > .tooltip').remove();
   },
@@ -367,11 +385,6 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
       return true;
     }
     return this.isValueCompatibleWithWidget();
-  }.property('config.value', 'config.showAsTextBox'),
-
-  /**
-   * @method setRecommendedValue
-   */
-  setRecommendedValue: Em.required(Function)
+  }.property('config.value', 'config.showAsTextBox')
 
 });

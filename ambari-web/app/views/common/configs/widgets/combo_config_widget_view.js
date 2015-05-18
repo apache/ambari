@@ -115,8 +115,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * @method restoreValue
    */
   restoreValue: function() {
-    this._super();
-    this.setConfigValue({ context: this.get('config.defaultValue') });
+    this.setConfigValue({ context: this.get('config.savedValue') });
   },
 
   /**

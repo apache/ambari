@@ -36,18 +36,19 @@ App.ConfigProperty = DS.Model.extend({
    * @property {string}
    */
   fileName: DS.attr('string'),
+
   /**
    * value of property
-   * by default is same as <code>defaultValue<code>
+   * by default is same as <code>savedValue<code>
    * @property {string}
    */
   value: DS.attr('string'),
 
   /**
-   * default value of property
+   * saved value of property
    * @property {string}
    */
-  defaultValue: DS.attr('string'),
+  savedValue: DS.attr('string'),
 
   /**
    * recommended value of property
@@ -62,11 +63,17 @@ App.ConfigProperty = DS.Model.extend({
    */
   isFinal: DS.attr('boolean', {defaultValue: false}),
 
+
   /**
-   * defines if property is final by default
+   * value saved on cluster
+   */
+  savedIsFinal: DS.attr('boolean', {defaultValue: false}),
+
+  /**
+   * value recommendedFrom Server
    * @property {boolean}
    */
-  defaultIsFinal: DS.attr('boolean', {defaultValue: false}),
+  recommendedIsFinal: DS.attr('boolean', {defaultValue: false}),
 
   /**
    * link to config version
@@ -224,9 +231,9 @@ App.ConfigProperty = DS.Model.extend({
    */
   isNotDefaultValue: function () {
     return this.get('isEditable')
-      && ((this.get('defaultValue') != null && this.get('value') !== this.get('defaultValue'))
-      || (this.get('supportsFinal') && this.get('isFinal') !== this.get('defaultIsFinal')));
-  }.property('value', 'defaultValue', 'isEditable', 'isFinal', 'defaultIsFinal'),
+      && (!Em.isNone(this.get('savedValue') && this.get('value') !== this.get('savedValue'))
+      || (this.get('supportsFinal') && !Em.isNone(this.get('savedIsFinal')) && this.get('isFinal') !== this.get('savedIsFinal')));
+  }.property('value', 'savedValue', 'isEditable', 'isFinal', 'savedIsFinal'),
 
   /**
    * opposite to <code>hasErrors<code>

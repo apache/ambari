@@ -43,7 +43,7 @@ describe('App.ConfigProperty', function () {
     });
   });
 
-  describe('#isNotDefaultValue', function () {
+  describe.skip('#isNotDefaultValue', function () {
     var tests = [
       { isEditable: false, value: 1, defaultValue: 2, supportsFinal: true, isFinal: true, defaultIsFinal: false, isNotDefaultValue: false },
       { isEditable: true, value: 1, defaultValue: 1, supportsFinal: false, isFinal: true, defaultIsFinal: true, isNotDefaultValue: false },

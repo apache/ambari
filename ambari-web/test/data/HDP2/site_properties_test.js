@@ -29,13 +29,13 @@ describe('hdp2SiteProperties', function () {
     });
   });
 
-  // No site properties should have value and defaultValue defined on client side.
+  // No site properties should have value and recommendedValue defined on client side.
   // These should be always retrieved from server.
 
     siteProperties.forEach(function(siteProperty){
-      it('Check value and defaultValue attribute of "' + siteProperty.name + '"' + '. It should not be defined ', function () {
+      it('Check value and recommendedValue attribute of "' + siteProperty.name + '"' + '. It should not be defined ', function () {
         expect(siteProperty.value).to.equal(undefined);
-        expect(siteProperty.defaultValue).to.equal(undefined);
+        expect(siteProperty.recommendedValue).to.equal(undefined);
     });
   });
 

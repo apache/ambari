@@ -45,10 +45,10 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   /**
    * Default property value in widget format.
    *
-   * @property defaultValue
+   * @property savedValue
    * @type {Object[]}
    */
-  defaultValue: null,
+  savedValue: null,
 
   /**
    * Maximum property value in widget format.
@@ -92,7 +92,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * Content setter.
    * Affects to view attributes:
    *  @see propertyUnit
-   *  @see defaultValue
+   *  @see savedValue
    *  @see minValue
    *  @see maxValue
    *       content
@@ -167,7 +167,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * @method checkModified
    */
   checkModified: function() {
-    this.set('valueIsChanged', this.configValueByWidget(this.get('content')) != parseInt(this.get('config.defaultValue')));
+    this.set('valueIsChanged', this.configValueByWidget(this.get('content')) != parseInt(this.get('config.savedValue')));
   },
 
   /**
@@ -228,7 +228,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    */
   restoreValue: function() {
     this._super();
-    this.set('content', this.generateWidgetValue(this.get('config.defaultValue')));
+    this.set('content', this.generateWidgetValue(this.get('config.savedValue')));
     this.parseIncrement();
   },
 

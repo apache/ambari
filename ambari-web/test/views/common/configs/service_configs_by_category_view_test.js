@@ -191,7 +191,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
           filter: 'd',
           serviceConfigs: [
             Em.Object.create({
-              defaultValue: 'dv',
+              savedValue: 'dv',
               category: 'c',
               isVisible: true
             })
@@ -444,7 +444,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
           category: 'c0',
           id: 'site property',
           serviceName: 's0',
-          defaultValue: null,
+          savedValue: null,
           supportsFinal: true,
           filename: 'f0',
           isUserProperty: true,
@@ -473,7 +473,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
           category: 'c1',
           id: 'site property',
           serviceName: 's1',
-          defaultValue: null,
+          savedValue: null,
           supportsFinal: false,
           filename: '',
           isUserProperty: true,
@@ -513,7 +513,7 @@ describe('App.ServiceConfigsByCategoryView', function () {
         view.createProperty(item.propertyObj);
         expect(view.get('serviceConfigs').filterProperty('name', item.propertyObj.name)).to.have.length(1);
         expect(view.get('serviceConfigs').findProperty('name', item.propertyObj.name).getProperties([
-          'name', 'displayName', 'value', 'displayType', 'isSecureConfig', 'category', 'id', 'serviceName', 'defaultValue',
+          'name', 'displayName', 'value', 'displayType', 'isSecureConfig', 'category', 'id', 'serviceName', 'savedValue',
           'supportsFinal', 'filename', 'isUserProperty', 'isNotSaved', 'isRequired', 'group', 'isOverridable'
         ])).to.eql(item.result);
       });

@@ -442,13 +442,13 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
           name: advanced.get('name'),
           displayName: advanced.get('displayName'),
           value: advanced.get('value'),
-          defaultValue: advanced.get('defaultValue'),
+          savedValue: null,
           filename: advanced.get('fileName'),
           isUserProperty: false,
           isNotSaved: true,
           recommendedValue: advanced.get('value'),
           isFinal: advanced.get('isFinal'),
-          defaultIsFinal: advanced.get('defaultIsFinal'),
+          recommendedIsFinal: advanced.get('recommendedIsFinal'),
           serviceName: advanced.get('serviceName'),
           supportsFinal: advanced.get('supportsFinal'),
           category: 'Advanced ' + App.config.getConfigTagFromFileName(advanced.get('fileName')),
@@ -1029,8 +1029,11 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   createNewSCP: function (override, _serviceConfigProperty, serviceConfigProperty, defaultGroupSelected) {
     var newSCP = App.ServiceConfigProperty.create(_serviceConfigProperty, {
       value: Em.get(override, 'value'),
-      defaultValue: Em.get(override, 'value'),
+      savedValue: Em.get(override, 'value'),
+      recommendedValue: serviceConfigProperty.get('recommendedValue'),
       isFinal: Em.get(override, 'isFinal'),
+      savedIsFinal: Em.get(override, 'isFinal'),
+      recommendedIsFinal: serviceConfigProperty.get('recommendedIsFinal'),
       group: Em.get(override, 'group'),
       supportsFinal: serviceConfigProperty.get('supportsFinal'),
       isOriginalSCP: false,
@@ -1210,7 +1213,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     var serviceConfigs = this.get('serviceConfigs').findProperty('serviceName', serviceName).get('configs');
     var hostConfig = serviceConfigs.findProperty('name', hostProperty);
     if (hostConfig) {
-      hostConfig.defaultValue = this.getMasterComponentHostValue(componentName, multiple);
+      hostConfig.recommendedValue = this.getMasterComponentHostValue(componentName, multiple);
       configs.push(hostConfig);
     }
   },
@@ -1347,7 +1350,8 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       // create new override with new value
       var newSCP = App.ServiceConfigProperty.create(serviceConfigProperty, {
         value: value || '',
-        defaultValue: serviceConfigProperty.get('defaultValue'),
+        recommendedValue: serviceConfigProperty.get('recommendedValue'),
+        recommendedIsFinal: serviceConfigProperty.get('recommendedIsFinal'),
         isOriginalSCP: false,
         parentSCP: serviceConfigProperty,
         isEditable: true,

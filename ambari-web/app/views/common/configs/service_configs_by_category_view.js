@@ -188,7 +188,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           var affected = self.get("newAffectedProperties").objectAt(0),
             changedProperty = self.get("controller.stepConfigs").findProperty("serviceName", affected.sourceServiceName)
               .get("configs").findProperty("name", affected.changedPropertyName);
-          changedProperty.set('value', changedProperty.get('defaultValue'));
+          changedProperty.set('value', changedProperty.get('savedValue'));
           self.get("controller").set("miscModalVisible", false);
           this.hide();
         },
@@ -252,7 +252,7 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
           return false;
         }
 
-        var searchString = config.get('defaultValue') + config.get('description') +
+        var searchString = config.get('savedValue') + config.get('description') +
           config.get('displayName') + config.get('name') + config.get('value') + config.getWithDefault('stackConfigProperty.displayName', '');
 
         if (config.get('overrides')) {
@@ -383,7 +383,8 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
       category: propertyObj.categoryName,
       id: 'site property',
       serviceName: propertyObj.serviceName,
-      defaultValue: null,
+      savedValue: null,
+      recommendedValue: null,
       supportsFinal: App.config.shouldSupportFinal(propertyObj.serviceName, propertyObj.filename),
       filename: propertyObj.filename || '',
       isUserProperty: true,
@@ -633,18 +634,18 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
   doRestoreDefaultValue: function (event) {
     var serviceConfigProperty = event.contexts[0];
     var value = serviceConfigProperty.get('value');
-    var dValue = serviceConfigProperty.get('defaultValue');
+    var savedValue = serviceConfigProperty.get('savedValue');
     var supportsFinal = serviceConfigProperty.get('supportsFinal');
-    var defaultIsFinal = serviceConfigProperty.get('defaultIsFinal');
+    var savedIsFinal = serviceConfigProperty.get('savedIsFinal');
 
-    if (dValue != null) {
+    if (savedValue != null) {
       if (serviceConfigProperty.get('displayType') === 'password') {
-        serviceConfigProperty.set('retypedPassword', dValue);
+        serviceConfigProperty.set('retypedPassword', savedValue);
       }
-      serviceConfigProperty.set('value', dValue);
+      serviceConfigProperty.set('value', savedValue);
     }
     if (supportsFinal) {
-      serviceConfigProperty.set('isFinal', defaultIsFinal);
+      serviceConfigProperty.set('isFinal', savedIsFinal);
     }
     this.configChangeObserver(serviceConfigProperty);
     Em.$('body>.tooltip').remove(); //some tooltips get frozen when their owner's DOM element is removed

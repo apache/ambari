@@ -66,11 +66,11 @@ describe('App.config', function () {
       config = {
         displayType: 'int',
         value: '1024m',
-        defaultValue: '1024m'
+        savedValue: '1024m'
       };
       App.config.handleSpecialProperties(config);
       expect(config.value).to.equal('1024');
-      expect(config.defaultValue).to.equal('1024');
+      expect(config.savedValue).to.equal('1024');
     });
   });
 
@@ -80,13 +80,13 @@ describe('App.config', function () {
       {
         name: 'config1',
         value: 'value1',
-        defaultValue: 'value1',
+        recommendedValue: 'value1',
         filename: 'capacity-scheduler.xml'
       },
       {
         name: 'config2',
         value: 'value2',
-        defaultValue: 'value2',
+        recommendedValue: 'value2',
         filename: 'capacity-scheduler.xml'
       }
     ];
@@ -94,19 +94,19 @@ describe('App.config', function () {
       var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
       expect(result.length).to.equal(1);
       expect(result[0].value).to.equal('config1=value1\nconfig2=value2\n');
-      expect(result[0].defaultValue).to.equal('config1=value1\nconfig2=value2\n');
+      expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
     });
     it('three config into textarea', function () {
       configs.push({
         name: 'config3',
         value: 'value3',
-        defaultValue: 'value3',
+        recommendedValue: 'value3',
         filename: 'capacity-scheduler.xml'
       });
       var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
       expect(result.length).to.equal(1);
       expect(result[0].value).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
-      expect(result[0].defaultValue).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
+      expect(result[0].recommendedValue).to.equal('config1=value1\nconfig2=value2\nconfig3=value3\n');
     });
     it('one of three configs has different filename', function () {
       configs[1].filename = 'another filename';
@@ -114,7 +114,7 @@ describe('App.config', function () {
       //result contains two configs: one with different filename and one textarea config
       expect(result.length).to.equal(2);
       expect(result[1].value).to.equal('config1=value1\nconfig3=value3\n');
-      expect(result[1].defaultValue).to.equal('config1=value1\nconfig3=value3\n');
+      expect(result[1].recommendedValue).to.equal('config1=value1\nconfig3=value3\n');
     });
     it('none configs into empty textarea', function () {
       filename = 'capacity-scheduler.xml';
@@ -122,34 +122,34 @@ describe('App.config', function () {
       var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename);
       expect(result.length).to.equal(1);
       expect(result[0].value).to.equal('');
-      expect(result[0].defaultValue).to.equal('');
+      expect(result[0].recommendedValue).to.equal('');
     });
     it("filename has configs that shouldn't be included in textarea", function () {
       var configs = [
         {
           name: 'config1',
           value: 'value1',
-          defaultValue: 'value1',
+          recommendedValue: 'value1',
           filename: filename
         },
         {
           name: 'config2',
           value: 'value2',
-          defaultValue: 'value2',
+          recommendedValue: 'value2',
           filename: filename
         }
       ];
       var cfg = {
         name: 'config3',
         value: 'value3',
-        defaultValue: 'value3',
+        recommendedValue: 'value3',
         filename: filename
       };
       configs.push(cfg);
       var result = App.config.fileConfigsIntoTextarea.call(App.config, configs, filename, [cfg]);
       expect(result.length).to.equal(2);
       expect(result[1].value).to.equal('config1=value1\nconfig2=value2\n');
-      expect(result[1].defaultValue).to.equal('config1=value1\nconfig2=value2\n');
+      expect(result[1].recommendedValue).to.equal('config1=value1\nconfig2=value2\n');
       expect(configs.findProperty('name', 'config3')).to.eql(cfg);
     });
   });
@@ -409,7 +409,7 @@ describe('App.config', function () {
     });
 
     it('bigtop should use New PostgreSQL Database as its default hive metastore database', function () {
-      expect(App.config.get('preDefinedSiteProperties').findProperty('defaultValue', 'New PostgreSQL Database')).to.be.ok;
+      expect(App.config.get('preDefinedSiteProperties').findProperty('recommendedValue', 'New PostgreSQL Database')).to.be.ok;
     });
 
     after(function() {
@@ -423,7 +423,7 @@ describe('App.config', function () {
     });
 
     it('HDP2 should use New MySQL Database as its default hive metastore database', function () {
-      expect(App.config.get('preDefinedSiteProperties').findProperty('defaultValue', 'New MySQL Database')).to.be.ok;
+      expect(App.config.get('preDefinedSiteProperties').findProperty('recommendedValue', 'New MySQL Database')).to.be.ok;
     });
 
     after(function() {
@@ -901,12 +901,12 @@ describe('App.config', function () {
             name: 'prop_name0',
             serviceName: 's0',
             value: 'v0',
-            defaultValue: 'dv0',
+            savedValue: 'dv0',
             filename: 'fn0.xml',
             overrides: null,
             isVisible: false,
             isFinal: true,
-            defaultIsFinal: false,
+            savedIsFinal: false,
             supportsFinal: true,
             category: 'c0'
           },
@@ -916,7 +916,7 @@ describe('App.config', function () {
             displayName: 'Prop Name0',
             serviceName: 's0',
             value: 'v0',
-            defaultValue: 'dv0',
+            savedValue: 'dv0',
             displayType: 'advanced',
             filename: 'fn0.xml',
             isUserProperty: false,
@@ -926,7 +926,7 @@ describe('App.config', function () {
             isRequired: false,
             isVisible: false,
             isFinal: true,
-            defaultIsFinal: false,
+            savedIsFinal: false,
             supportsFinal: true,
             showLabel: true,
             category: 'c0'
@@ -1129,7 +1129,7 @@ describe('App.config', function () {
             {
               name: 'falcon_user',
               value: '',
-              defaultValue: 'fu'
+              recommendedValue: 'fu'
             }
           ],
           m: 'in all, default value used',

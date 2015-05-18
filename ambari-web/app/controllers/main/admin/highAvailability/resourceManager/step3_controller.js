@@ -123,25 +123,25 @@ App.RMHighAvailabilityWizardStep3Controller = Em.Controller.extend({
         return item.get('hostName') + ':' + zkPort;
       }).join(',');
 
-    configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm1').set('value', currentRMHost).set('defaultValue', currentRMHost);
-    configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm2').set('value', additionalRMHost).set('defaultValue', additionalRMHost);
-    configProperties.findProperty('name', 'yarn.resourcemanager.zk-address').set('value', zooKeeperHostsWithPort).set('defaultValue', zooKeeperHostsWithPort);
+    configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm1').set('value', currentRMHost).set('recommendedValue', currentRMHost);
+    configProperties.findProperty('name', 'yarn.resourcemanager.hostname.rm2').set('value', additionalRMHost).set('recommendedValue', additionalRMHost);
+    configProperties.findProperty('name', 'yarn.resourcemanager.zk-address').set('value', zooKeeperHostsWithPort).set('recommendedValue', zooKeeperHostsWithPort);
 
     configProperties.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1')
       .set('value', currentRMHost + webAddressPort)
-      .set('defaultValue', currentRMHost + webAddressPort);
+      .set('recommendedValue', currentRMHost + webAddressPort);
 
     configProperties.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2')
       .set('value', additionalRMHost + webAddressPort)
-      .set('defaultValue', additionalRMHost + webAddressPort);
+      .set('recommendedValue', additionalRMHost + webAddressPort);
 
     configProperties.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1')
       .set('value', currentRMHost + httpsWebAddressPort)
-      .set('defaultValue', currentRMHost + httpsWebAddressPort);
+      .set('recommendedValue', currentRMHost + httpsWebAddressPort);
 
     configProperties.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2')
       .set('value', additionalRMHost + httpsWebAddressPort)
-      .set('defaultValue', additionalRMHost + httpsWebAddressPort);
+      .set('recommendedValue', additionalRMHost + httpsWebAddressPort);
   },
 
   /**

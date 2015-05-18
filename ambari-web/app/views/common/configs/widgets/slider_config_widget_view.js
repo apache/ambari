@@ -99,8 +99,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    */
   widgetDefaultValue: function () {
     var parseFunction = this.get('mirrorValueParseFunction');
-    return parseFunction(this.widgetValueByConfigAttributes(this.get('config.defaultValue')));
-  }.property('config.defaultValue'),
+    return parseFunction(this.widgetValueByConfigAttributes(this.get('config.savedValue')));
+  }.property('config.savedValue'),
 
   /**
    * Default value of config property transformed according widget format
@@ -240,8 +240,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         }
       }
       // avoid precision during restore value
-      if (parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.defaultValue')))) {
-        this.set('config.value', this.get('config.defaultValue'));
+      if (parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.savedValue')))) {
+        this.set('config.value', this.get('config.savedValue'));
       }
     } else {
       this.set('isMirrorValueValid', false);
@@ -304,7 +304,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
       ticksLabels.push((items.length < 5 || index % 2 === 0 || items.length - 1 == index) ? tick + ' ' + self.get('unitLabel') : '');
     });
 
-    // default-value marker should be added only if defaultValue is in range [min, max]
+    // default marker should be added only if recommendedValue is in range [min, max]
     if (recommendedValue <= this.get('maxMirrorValue') && recommendedValue >= this.get('minMirrorValue') && recommendedValue != '') {
       // process additional tick for default value if it not defined in previous computation
       if (!ticks.contains(recommendedValue)) {
@@ -410,7 +410,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
-   * Restore <code>defaultValue</code> for config
+   * Restore <code>savedValue</code> for config
    * Restore <code>mirrorValue</code> too
    * @method restoreValue
    */
@@ -423,9 +423,17 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
    * @method setRecommendedValue
    */
   setRecommendedValue: function () {
-    this.setValue(this.get('config.recommendedValue'));
-    this.get('slider').setValue(this.get('mirrorValue'));
+    this._super();
+    this.get('slider').setValue(this.get('widgetRecommendedValue'));
   },
+
+  /**
+   * Determines if config-value was changed
+   * @type {boolean}
+   */
+  valueIsChanged: function () {
+    return !Em.isNone(this.get('config.savedValue')) && this.get('parseFunction')(this.get('config.value')) != this.get('parseFunction')(this.get('config.savedValue'));
+  }.property('config.value', 'config.savedValue'),
 
   /**
    * Run changeBoundariesOnce only once

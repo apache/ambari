@@ -159,7 +159,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 
   valueBinding: 'serviceConfig.value',
   classNameBindings: 'textFieldClassName',
-  placeholderBinding: 'serviceConfig.defaultValue',
+  placeholderBinding: 'serviceConfig.savedValue',
 
   keyPress: function (event) {
     if (event.keyCode == 13) {
@@ -203,7 +203,7 @@ App.ServiceConfigTextField = Ember.TextField.extend(App.ServiceConfigPopoverSupp
 App.ServiceConfigTextFieldWithUnit = Ember.View.extend(App.ServiceConfigPopoverSupport, App.SupportsDependentConfigs, {
   valueBinding: 'serviceConfig.value',
   classNames: ['input-append', 'with-unit'],
-  placeholderBinding: 'serviceConfig.defaultValue',
+  placeholderBinding: 'serviceConfig.savedValue',
 
   //Set editDone true for last edited config text field parameter
   focusOut: function () {
@@ -467,7 +467,7 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         var hostNameDefault;
         var databaseNameDefault;
         var connectionUrlValue = connectionUrl.get('value');
-        var connectionUrlDefaultValue = connectionUrl.get('defaultValue');
+        var connectionUrlDefaultValue = connectionUrl.get('recommendedValue');
         var dbClassValue = dbClass.get('value');
         var serviceName = this.get('serviceConfig.serviceName');
         var isServiceInstalled = App.Service.find().someProperty('serviceName', serviceName);
@@ -478,8 +478,8 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
         var isNotExistingMySQLServer = this.get('serviceConfig.value') !== 'Existing MSSQL Server database with integrated authentication';
         var categoryConfigsAll = this.get('categoryConfigsAll');
         if (isServiceInstalled) {
-          hostNameDefault = this.get('hostNameProperty.defaultValue');
-          databaseNameDefault = this.get('databaseNameProperty.defaultValue');
+          hostNameDefault = this.get('hostNameProperty.recommendedValue');
+          databaseNameDefault = this.get('databaseNameProperty.recommendedValue');
         } else {
           hostNameDefault = hostName;
           databaseNameDefault = databaseName;
@@ -615,12 +615,12 @@ App.ServiceConfigRadioButtons = Ember.View.extend(App.ServiceConfigCalculateId, 
             }
             this.get('categoryConfigsAll').findProperty('name', 'db_host').set('value', this.get('hostNameProperty.value'));
             sqlConnectorJAR.set('value',sqlConnectorJARValue);
-            sqlConnectorJAR.set('defaultValue',sqlConnectorJARValue);
+            sqlConnectorJAR.set('recommendedValue',sqlConnectorJARValue);
             sqlCommandInvoker.set('value', sqlCommand);
             break;
         }
         connectionUrl.set('value', connectionUrlValue);
-        connectionUrl.set('defaultValue', connectionUrlDefaultValue);
+        connectionUrl.set('recommendedValue', connectionUrlDefaultValue);
         dbClass.set('value', dbClassValue);
       }
     }
@@ -863,7 +863,7 @@ App.ServiceConfigRadioButton = Ember.Checkbox.extend({
 App.ServiceConfigComboBox = Ember.Select.extend(App.ServiceConfigPopoverSupport, App.ServiceConfigCalculateId, App.SupportsDependentConfigs, {
   contentBinding: 'serviceConfig.options',
   selectionBinding: 'serviceConfig.value',
-  placeholderBinding: 'serviceConfig.defaultValue',
+  placeholderBinding: 'serviceConfig.savedValue',
   classNames: [ 'span3' ]
 });
 

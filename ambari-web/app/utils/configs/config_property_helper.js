@@ -36,14 +36,14 @@ module.exports = {
       case 'dfs.https.address':
       case 'dfs.namenode.https-address':
         var nnHost =  masterComponentHostsInDB.findProperty('component', 'NAMENODE').hostName;
-        this.setDefaultValue(configProperty, hostWithPort,nnHost);
+        this.setRecommendedValue(configProperty, hostWithPort,nnHost);
         break;
       case 'fs.default.name':
       case 'fs.defaultFS':
       case 'hbase.rootdir':
       case 'instance.volumes':
         var nnHost = masterComponentHostsInDB.filterProperty('component', 'NAMENODE').mapProperty('hostName');
-        this.setDefaultValue(configProperty, hostWithPrefix,'://' + nnHost);
+        this.setRecommendedValue(configProperty, hostWithPrefix,'://' + nnHost);
         break;
       case 'snamenode_host':
         // Secondary NameNode does not exist when NameNode HA is enabled
@@ -56,7 +56,7 @@ module.exports = {
       case 'dfs.namenode.secondary.http-address':
         var snnHost = masterComponentHostsInDB.findProperty('component', 'SECONDARY_NAMENODE');
         if (snnHost) {
-          this.setDefaultValue(configProperty, hostWithPort,snnHost.hostName);
+          this.setRecommendedValue(configProperty, hostWithPort,snnHost.hostName);
         }
         break;
       case 'datanode_hosts':
@@ -73,12 +73,12 @@ module.exports = {
         break;
       case 'yarn.log.server.url':
         var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
-        this.setDefaultValue(configProperty, hostWithPrefix,'://' + hsHost);
+        this.setRecommendedValue(configProperty, hostWithPrefix,'://' + hsHost);
         break;
       case 'mapreduce.jobhistory.webapp.address':
       case 'mapreduce.jobhistory.address':
         var hsHost = masterComponentHostsInDB.filterProperty('component', 'HISTORYSERVER').mapProperty('hostName');
-        this.setDefaultValue(configProperty, hostWithPort,hsHost);
+        this.setRecommendedValue(configProperty, hostWithPort,hsHost);
         break;
       case 'rm_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName);
@@ -92,8 +92,8 @@ module.exports = {
         break;
       case 'yarn.resourcemanager.hostname':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
-        configProperty.set('defaultValue',rmHost);
-        configProperty.set('value',configProperty.get('defaultValue'));
+        configProperty.set('recommendedValue',rmHost);
+        configProperty.set('value',configProperty.get('recommendedValue'));
         break;
       case 'yarn.resourcemanager.resource-tracker.address':
       case 'yarn.resourcemanager.webapp.https.address':
@@ -102,14 +102,14 @@ module.exports = {
       case 'yarn.resourcemanager.address':
       case 'yarn.resourcemanager.admin.address':
         var rmHost = masterComponentHostsInDB.findProperty('component', 'RESOURCEMANAGER').hostName;
-        this.setDefaultValue(configProperty, hostWithPort,rmHost);
+        this.setRecommendedValue(configProperty, hostWithPort,rmHost);
         break;
       case 'yarn.timeline-service.webapp.address':
       case 'yarn.timeline-service.webapp.https.address':
       case 'yarn.timeline-service.address':
         var atsHost =  masterComponentHostsInDB.findProperty('component', 'APP_TIMELINE_SERVER');
         if (atsHost && atsHost.hostName) {
-          this.setDefaultValue(configProperty, hostWithPort,atsHost.hostName);
+          this.setRecommendedValue(configProperty, hostWithPort,atsHost.hostName);
         }
         break;
       case 'nm_hosts':
@@ -121,11 +121,11 @@ module.exports = {
       case 'mapred.job.tracker':
       case 'mapred.job.tracker.http.address':
         var jtHost = masterComponentHostsInDB.findProperty('component', 'JOBTRACKER').hostName;
-        this.setDefaultValue(configProperty, hostWithPort,jtHost);
+        this.setRecommendedValue(configProperty, hostWithPort,jtHost);
         break;
       case 'mapreduce.history.server.http.address':
         var jtHost = masterComponentHostsInDB.findProperty('component', 'HISTORYSERVER').hostName;
-        this.setDefaultValue(configProperty, hostWithPort,jtHost);
+        this.setRecommendedValue(configProperty, hostWithPort,jtHost);
         break;
       case 'tasktracker_hosts':
         configProperty.set('value', slaveComponentHostsInDB.findProperty('componentName', 'TASKTRACKER').hosts.mapProperty('hostName'));
@@ -164,7 +164,7 @@ module.exports = {
         break;
       case 'oozie.base.url':
         var oozieHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
-        this.setDefaultValue(configProperty, hostWithPrefix,'://' + oozieHost);
+        this.setRecommendedValue(configProperty, hostWithPrefix,'://' + oozieHost);
         break;
       case 'webhcatserver_host':
         configProperty.set('value', masterComponentHostsInDB.findProperty('component', 'WEBHCAT_SERVER').hostName);
@@ -181,12 +181,12 @@ module.exports = {
       case 'hive_existing_mssql_server_host':
       case 'hive_existing_mssql_server_2_host':
         var hiveServerHost = masterComponentHostsInDB.findProperty('component', 'HIVE_SERVER').hostName;
-        configProperty.set('value', hiveServerHost).set('defaultValue', hiveServerHost);
+        configProperty.set('value', hiveServerHost).set('recommendedValue', hiveServerHost);
         break;
       case 'hive.metastore.uris':
         var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, dependencies['hive.metastore.uris']);
         if (hiveMSUris) {
-          this.setDefaultValue(configProperty, "(.*)", hiveMSUris);
+          this.setRecommendedValue(configProperty, "(.*)", hiveMSUris);
         }
         break;
       case 'oozie_existing_mysql_host':
@@ -195,7 +195,7 @@ module.exports = {
       case 'oozie_existing_mssql_server_host':
       case 'oozie_existing_mssql_server_2_host':
         var oozieServerHost = masterComponentHostsInDB.findProperty('component', 'OOZIE_SERVER').hostName;
-        configProperty.set('value', oozieServerHost).set('defaultValue', oozieServerHost);
+        configProperty.set('value', oozieServerHost).set('recommendedValue', oozieServerHost);
         break;
       case 'storm.zookeeper.servers':
       case 'zookeeperserver_hosts':
@@ -243,14 +243,14 @@ module.exports = {
       case 'hbase.zookeeper.quorum':
         if (configProperty.get('filename') == 'hbase-site.xml') {
           var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
-          this.setDefaultValue(configProperty, "(\\w*)", zkHosts);
+          this.setRecommendedValue(configProperty, "(\\w*)", zkHosts);
         }
         break;
       case 'yarn.resourcemanager.zk-address':
         var value = masterComponentHostsInDB.findProperty('component', 'ZOOKEEPER_SERVER').hostName + ':' + dependencies.clientPort;
         configProperty.setProperties({
           value: value,
-          defaultValue: value
+          recommendedValue: value
         });
         break;
       case 'zookeeper.connect':
@@ -262,21 +262,21 @@ module.exports = {
         var zkHosts = masterComponentHostsInDB.filterProperty('component', 'ZOOKEEPER_SERVER').mapProperty('hostName');
         var zkHostPort = zkHosts;
         var regex = "\\w*:(\\d+)";   //regex to fetch the port
-        var portValue = configProperty.get('defaultValue').match(new RegExp(regex));
+        var portValue = configProperty.get('recommendedValue').match(new RegExp(regex));
         if (!portValue) return;
         if (portValue[1]) {
           for ( var i = 0; i < zkHosts.length; i++ ) {
             zkHostPort[i] = zkHosts[i] + ":" + portValue[1];
           }
         }
-        this.setDefaultValue(configProperty, "(.*)", zkHostPort);
+        this.setRecommendedValue(configProperty, "(.*)", zkHostPort);
         break;
       case 'templeton.hive.properties':
         var hiveMSUris = this.getHiveMetastoreUris(masterComponentHostsInDB, dependencies['hive.metastore.uris']).replace(',', '\\,');
         if (/\/\/localhost:/g.test(configProperty.get('value'))) {
-          configProperty.set('defaultValue', configProperty.get('value') + ',hive.metastore.execute.setugi=true');
+          configProperty.set('recommendedValue', configProperty.get('value') + ',hive.metastore.execute.setugi=true');
         }
-        this.setDefaultValue(configProperty, "(hive\\.metastore\\.uris=)([^\\,]+)", "$1" + hiveMSUris);
+        this.setRecommendedValue(configProperty, "(hive\\.metastore\\.uris=)([^\\,]+)", "$1" + hiveMSUris);
         break;
       case 'dfs.name.dir':
       case 'dfs.namenode.name.dir':
@@ -306,7 +306,7 @@ module.exports = {
         break;
       case '*.broker.url':
         var falconServerHost = masterComponentHostsInDB.findProperty('component', 'FALCON_SERVER').hostName;
-        this.setDefaultValue(configProperty, 'localhost', falconServerHost);
+        this.setRecommendedValue(configProperty, 'localhost', falconServerHost);
         break;
       case 'RANGER_HOST':
         var rangerAdminHost = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN');
@@ -331,7 +331,7 @@ module.exports = {
         var masterComponent = masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN'),
           rangerServerHost = masterComponent ? masterComponentHostsInDB.findProperty('component', 'RANGER_ADMIN').hostName : '';
         if (rangerServerHost) {
-          configProperty.set('value', rangerServerHost).set('defaultValue', rangerServerHost);
+          configProperty.set('value', rangerServerHost).set('recommendedValue', rangerServerHost);
         }
         break;
     }
@@ -340,14 +340,14 @@ module.exports = {
   /**
    * Get hive.metastore.uris initial value
    * @param hosts
-   * @param defaultValue
+   * @param recommendedValue
    * @returns {string}
    */
-  getHiveMetastoreUris: function (hosts, defaultValue) {
+  getHiveMetastoreUris: function (hosts, recommendedValue) {
     var hiveMSHosts = hosts.filterProperty('component', 'HIVE_METASTORE').mapProperty('hostName'),
       hiveMSUris = hiveMSHosts,
       regex = "\\w*:(\\d+)",
-      portValue = defaultValue && defaultValue.match(new RegExp(regex));
+      portValue = recommendedValue && recommendedValue.match(new RegExp(regex));
 
     if (!portValue) return '';
     if (portValue[1]) {
@@ -363,12 +363,12 @@ module.exports = {
    * @param replaceWith : String
    * @param configProperty
    */
-  setDefaultValue: function(configProperty, regex, replaceWith) {
-    var defaultValue = configProperty.get('defaultValue');
+  setRecommendedValue: function(configProperty, regex, replaceWith) {
+    var recommendedValue = !Em.isNone(configProperty.get('recommendedValue')) ? configProperty.get('recommendedValue') : '';
     var re = new RegExp(regex);
-    defaultValue = defaultValue.replace(re,replaceWith);
-    configProperty.set('defaultValue',defaultValue);
-    configProperty.set('value',configProperty.get('defaultValue'));
+    recommendedValue = recommendedValue.replace(re,replaceWith);
+    configProperty.set('recommendedValue', recommendedValue);
+    configProperty.set('value', !Em.isNone(configProperty.get('recommendedValue')) ? configProperty.get('recommendedValue') : '');
   },
 
   unionAllMountPoints: function (configProperty, isOnlyFirstOneNeeded, localDB) {
@@ -543,7 +543,7 @@ module.exports = {
           mPoint += eachDrive.mountpoint + configProperty.get('defaultDirectory') + "\n";
         }
         configProperty.set('value', mPoint);
-        configProperty.set('defaultValue', mPoint);
+        configProperty.set('recommendedValue', mPoint);
       }, this);
     } else {
       var mPoint = allMountPoints[0].mountpoint;
@@ -570,7 +570,7 @@ module.exports = {
         mPoint = mPoint + configProperty.get('defaultDirectory');
       }
       configProperty.set('value', mPoint);
-      configProperty.set('defaultValue', mPoint);
+      configProperty.set('recommendedValue', mPoint);
     }
   }
 };

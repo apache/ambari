@@ -151,7 +151,6 @@ App.config = Em.Object.create({
                 "name": "content",
                 "displayName": type.endsWith('-env') ? type + ' template' : "content",
                 "value": "",
-                "defaultValue": "",
                 "description": type + " properties",
                 "displayType": "content",
                 "isOverridable": true,
@@ -231,7 +230,7 @@ App.config = Em.Object.create({
   handleSpecialProperties: function (config) {
     if (Em.get(config, 'displayType') === 'int' && /\d+m$/.test(Em.get(config, 'value') )) {
       Em.set(config, 'value', Em.get(config, 'value').slice(0, Em.get(config, 'value.length') - 1));
-      Em.set(config, 'defaultValue', Em.get(config, 'value'));
+      Em.set(config, 'savedValue', Em.get(config, 'value'));
     }
   },
 
@@ -311,7 +310,8 @@ App.config = Em.Object.create({
         var serviceConfigObj = App.ServiceConfig.create({
           name: index,
           value: value,
-          defaultValue: value,
+          savedValue: value,
+          recommendedValue: advancedConfig ? Em.get(advancedConfig, 'recommencedValue') : null,
           filename: filename,
           isUserProperty: !advancedConfig,
           isVisible: !!service,
@@ -319,7 +319,8 @@ App.config = Em.Object.create({
           isReconfigurable: true,
           isRequired: isAdvanced,
           isFinal: finalAttributes[index] === "true",
-          defaultIsFinal: finalAttributes[index] === "true",
+          savedIsFinal: finalAttributes[index] === "true",
+          recommendedIsFinal: advancedConfig ? Em.get(advancedConfig, 'recommendedIsFinal') : null,
           showLabel: true,
           serviceName: serviceName,
           belongsToService: [],
@@ -405,13 +406,13 @@ App.config = Em.Object.create({
     if (serviceConfigObj.get('displayType') == 'directories' && (serviceConfigObj.get('category') == 'DataNode' || serviceConfigObj.get('category') == 'NameNode')) {
       var dirs = serviceConfigObj.get('value').split(',').sort();
       serviceConfigObj.set('value', dirs.join(','));
-      serviceConfigObj.set('defaultValue', dirs.join(','));
+      serviceConfigObj.set('savedValue', dirs.join(','));
     }
 
     if (serviceConfigObj.get('displayType') == 'directory' && serviceConfigObj.get('category') == 'SNameNode') {
       var dirs = serviceConfigObj.get('value').split(',').sort();
       serviceConfigObj.set('value', dirs[0]);
-      serviceConfigObj.set('defaultValue', dirs[0]);
+      serviceConfigObj.set('savedValue', dirs[0]);
     }
 
     if (serviceConfigObj.get('displayType') == 'masterHosts') {
@@ -515,7 +516,8 @@ App.config = Em.Object.create({
         if (preDefined && stored) {
           configData = preDefined;
           configData.value = stored.value;
-          configData.defaultValue = stored.defaultValue;
+          configData.savedValue = stored.savedValue;
+          configData.recommendedValue = stored.recommendedValue;
           configData.overrides = stored.overrides;
           configData.displayName = stored.displayName;
           configData.name = stored.name;
@@ -565,7 +567,8 @@ App.config = Em.Object.create({
           var storedCfg = storedCfgs.findProperty('filename', cfg.filename);
           if (storedCfg) {
             configData.value = storedCfg.value;
-            configData.defaultValue = storedCfg.defaultValue;
+            configData.recommendedValue = storedCfg.recommendedValue;
+            configData.savedValue = storedCfg.savedValue;
             configData.overrides = storedCfg.overrides;
             configData.filename = storedCfg.filename;
             configData.description = storedCfg.description;
@@ -599,7 +602,7 @@ App.config = Em.Object.create({
     } else {
       configData.value = advanced ? advanced.value : configData.value;
     }
-    configData.defaultValue = configData.value;
+    configData.recommendedValue = configData.value;
     configData.filename = advanced ? advanced.filename : configData.filename;
     configData.displayName = advanced && advanced.displayName ? advanced.displayName : configData.displayName;
     configData.name = advanced && advanced.name ? advanced.name : configData.name;
@@ -645,7 +648,7 @@ App.config = Em.Object.create({
             _config.id = "site property";
             _config.category = configCategory;
             _config.displayName = _config.displayName || _config.name;
-            _config.defaultValue = _config.value;
+            _config.recommendedValue = _config.value;
             // make all advanced configs optional and populated by default
             /*
              * if (/\${.*}/.test(_config.value) || (service.serviceName !==
@@ -685,10 +688,9 @@ App.config = Em.Object.create({
    * @param allSelectedServiceNames
    * @param installedServiceNames
    * @param localDB
-   * @param recommended
    * @return {Array}
    */
-  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB, recommended) {
+  renderConfigs: function (configs, storedConfigs, allSelectedServiceNames, installedServiceNames, localDB) {
     var renderedServiceConfigs = [];
     var services = [];
 
@@ -713,15 +715,15 @@ App.config = Em.Object.create({
           var hiveMetastoreUrisConfig = configs.filterProperty('filename', 'hive-site.xml').findProperty('name', 'hive.metastore.uris');
           var clientPortConfig = configs.filterProperty('filename', 'zoo.cfg.xml').findProperty('name', 'clientPort');
           var dependencies = {
-            'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.defaultValue,
-            'clientPort': clientPortConfig && clientPortConfig.defaultValue
+            'hive.metastore.uris': hiveMetastoreUrisConfig && hiveMetastoreUrisConfig.recommendedValue,
+            'clientPort': clientPortConfig && clientPortConfig.recommendedValue
           };
           configPropertyHelper.initialValue(serviceConfigProperty, localDB, dependencies);
         }
         if (storedConfigs && storedConfigs.filterProperty('name', _config.name).length && !!_config.filename) {
           var storedConfig = storedConfigs.filterProperty('name', _config.name).findProperty('filename', _config.filename);
           if (storedConfig) {
-            serviceConfigProperty.set('defaultValue', storedConfig.defaultValue);
+            serviceConfigProperty.set('recommendedValue', storedConfig.recommendedValue);
             serviceConfigProperty.set('value', storedConfig.value);
           }
         }
@@ -731,28 +733,6 @@ App.config = Em.Object.create({
       }, this);
       var serviceConfig = this.createServiceConfig(service.get('serviceName'));
       serviceConfig.set('showConfig', service.get('showConfig'));
-
-      // Use calculated default values for some configs
-      var recommendedDefaults = {};
-      if (!storedConfigs && service.get('configTypes')) {
-        Object.keys(service.get('configTypes')).forEach(function (type) {
-          if (!recommended || !recommended[type]) {
-            return;
-          }
-          var defaults = recommended[type].properties;
-          for (var name in defaults) {
-            var config = configsByService.findProperty('name', name);
-            if (!config) {
-              continue;
-            }
-            recommendedDefaults[name] = defaults[name];
-            config.set('value', defaults[name]);
-            config.set('defaultValue', defaults[name]);
-            config.set('recommendedValue', defaults[name]);
-            config.set('forceUpdate', true);
-          }
-        });
-      }
       serviceConfig.set('configs', configsByService);
       renderedServiceConfigs.push(serviceConfig);
     }, this);
@@ -770,9 +750,9 @@ App.config = Em.Object.create({
       break;
     }
     try {
-      if (typeof(config.defaultValue) == "string" && config.defaultValue.indexOf("{firstHost}") >= 0) {
+      if (typeof(config.recommendedValue) == "string" && config.recommendedValue.indexOf("{firstHost}") >= 0) {
         serviceConfigProperty.set('value', serviceConfigProperty.value.replace(new RegExp("{firstHost}"), firstHost));
-        serviceConfigProperty.set('defaultValue', serviceConfigProperty.defaultValue.replace(new RegExp("{firstHost}"), firstHost));
+        serviceConfigProperty.set('recommendedValue', serviceConfigProperty.recommendedValue.replace(new RegExp("{firstHost}"), firstHost));
       }
     } catch (err) {
       // Nothing to worry about here, most likely trying indexOf on a non-string
@@ -989,7 +969,7 @@ App.config = Em.Object.create({
       description: item.property_description,
       isVisible: item.isVisible,
       isFinal: item.final === "true",
-      defaultIsFinal: item.final === "true",
+      recommendedIsFinal: item.final === "true",
       filename: item.filename || fileName
     };
 
@@ -1145,7 +1125,7 @@ App.config = Em.Object.create({
     var propertyObject = {
       name: propertyName,
       displayName: propertyName,
-      defaultValue: propertyValue,
+      savedValue: propertyValue,
       value: propertyValue,
       displayType: stringUtils.isSingleLine(propertyValue) ? 'advanced' : 'multiLine',
       isSecureConfig: false,
@@ -1219,7 +1199,7 @@ App.config = Em.Object.create({
         if (Em.isNone(cFromMapped)) {
           var cFromAll = allConfigs.findProperty('name', cfk);
           if (!Em.isNone(cFromAll)) {
-            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'defaultValue') : Em.get(cFromAll, 'value');
+            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'recommendedValue') : Em.get(cFromAll, 'value');
             config.value = config.value.replace(_fkValue, globalValue);
           }
         }
@@ -1244,7 +1224,7 @@ App.config = Em.Object.create({
             config.noMatchSoSkipThisConfig = true;
           }
           else {
-            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'defaultValue') : Em.get(cFromAll, 'value');
+            globalValue = Em.get(cFromAll, 'value') === '' ? Em.get(cFromAll, 'recommendedValue') : Em.get(cFromAll, 'value');
             config._name = config.name.replace(_fkName, globalValue);
           }
         }
@@ -1305,7 +1285,8 @@ App.config = Em.Object.create({
           this.getOriginalConfigAttribute(stored, 'displayName', advancedConfigs) : App.format.normalizeName(stored.name),
         serviceName: stored.serviceName,
         value: stored.value,
-        defaultValue: stored.defaultValue,
+        savedValue: stored.savedValue,
+        recommendedValue: stored.recommendedValue,
         displayType: skipAttributeChanges.displayType.contains(stored.name) ?
           this.getOriginalConfigAttribute(stored, 'displayType', advancedConfigs) :
           (stringUtils.isSingleLine(stored.value) ? 'advanced' : 'multiLine'),
@@ -1317,7 +1298,7 @@ App.config = Em.Object.create({
         isRequired: false,
         isVisible: stored.isVisible,
         isFinal: stored.isFinal,
-        defaultIsFinal: stored.defaultIsFinal,
+        savedIsFinal: stored.savedIsFinal,
         supportsFinal: stored.supportsFinal,
         showLabel: stored.showLabel !== false,
         category: stored.category
@@ -1341,7 +1322,6 @@ App.config = Em.Object.create({
       "name": "capacity-scheduler",
       "displayName": "Capacity Scheduler",
       "value": "",
-      "defaultValue": "",
       "description": "Capacity Scheduler properties",
       "displayType": "custom",
       "isOverridable": true,
@@ -1366,22 +1346,30 @@ App.config = Em.Object.create({
    */
   fileConfigsIntoTextarea: function (configs, filename, configsToSkip) {
     var fileConfigs = configs.filterProperty('filename', filename);
-    var value = '';
-    var defaultValue = '';
+    var value = '', savedValue = '', recommendedValue = '';
     var template = this.get('complexConfigsTemplate').findProperty('filename', filename);
     var complexConfig = $.extend({}, template);
     if (complexConfig) {
       fileConfigs.forEach(function (_config) {
         if (!(configsToSkip && configsToSkip.someProperty('name', _config.name))) {
           value += _config.name + '=' + _config.value + '\n';
-          defaultValue += _config.name + '=' + _config.defaultValue + '\n';
+          if (!Em.isNone(_config.savedValue)) {
+            savedValue += _config.name + '=' + _config.savedValue + '\n';
+          }
+          if (!Em.isNone(_config.recommendedValue)) {
+            recommendedValue += _config.name + '=' + _config.recommendedValue + '\n';
+          }
         }
       }, this);
       var isFinal = fileConfigs.someProperty('isFinal', true);
+      var savedIsFinal = fileConfigs.someProperty('savedIsFinal', true);
+      var recommendedIsFinal = fileConfigs.someProperty('recommendedIsFinal', true);
       complexConfig.value = value;
-      complexConfig.defaultValue = defaultValue;
+      complexConfig.savedValue = savedValue;
+      complexConfig.recommendedValue = recommendedValue;
       complexConfig.isFinal = isFinal;
-      complexConfig.defaultIsFinal = isFinal;
+      complexConfig.savedIsFinal = savedIsFinal;
+      complexConfig.recommendedIsFinal = recommendedIsFinal;
       configs = configs.filter(function (_config) {
         return _config.filename !== filename || (configsToSkip && configsToSkip.someProperty('name', _config.name));
       });
@@ -1413,7 +1401,7 @@ App.config = Em.Object.create({
             id: configsTextarea.get('id'),
             name: name,
             value: value,
-            defaultValue: value,
+            savedValue: value,
             serviceName: configsTextarea.get('serviceName'),
             filename: filename,
             isFinal: configsTextarea.get('isFinal'),

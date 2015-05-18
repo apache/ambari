@@ -66,8 +66,7 @@ App.ServiceConfig = Ember.Object.extend({
     return requiredByAgent.someProperty('isNotSaved') ||
            requiredByAgent.someProperty('isNotDefaultValue') ||
            requiredByAgent.someProperty('isOverrideChanged') ||
-           this.get('configs.length') !== this.get('initConfigsLength') ||
-           (this.get('configs.length') === this.get('initConfigsLength') && this.get('configs').someProperty('defaultValue', null));
+           this.get('configs.length') !== this.get('initConfigsLength');
   }.property('configs.@each.isNotDefaultValue', 'configs.@each.isOverrideChanged', 'configs.length', 'configs.@each.isNotSaved')
 });
 

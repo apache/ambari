@@ -226,7 +226,7 @@ module.exports = {
           "c6401.ambari.apache.org",
           "c6402.ambari.apache.org"
         ],
-        "defaultValue":"['c6401.ambari.apache.org','c6402.ambari.apache.org']",
+        "recommendedValue":"['c6401.ambari.apache.org','c6402.ambari.apache.org']",
         "filename":"storm-site.xml",
         "isUserProperty":false,
         "isOverridable":false,
@@ -243,7 +243,7 @@ module.exports = {
       {
         "name":"single_line_property",
         "value":"value",
-        "defaultValue":"value",
+        "recommendedValue":"value",
         "filename":"storm-site.xml",
         "isUserProperty":true,
         "isOverridable":true,
@@ -257,7 +257,7 @@ module.exports = {
       {
         "name":"multi_line_property",
         "value":"value \n value",
-        "defaultValue":"value \n value",
+        "recommendedValue":"value \n value",
         "filename":"storm-site.xml",
         "isUserProperty":true,
         "isOverridable":true,
@@ -271,7 +271,7 @@ module.exports = {
       {
         "name":"nonexistent_property",
         "value":"some value",
-        "defaultValue":"some value",
+        "recommendedValue":"some value",
         "filename":"storm-env.xml",
         "isUserProperty":false,
         "isOverridable":true,
@@ -285,7 +285,7 @@ module.exports = {
       {
         "name":"dfs.datanode.data.dir",
         "value":"/a,/b",
-        "defaultValue":"/a,/b",
+        "recommendedValue":"/a,/b",
         "filename":"hdfs-site.xml",
         "isUserProperty":false,
         "isOverridable":true,
@@ -305,7 +305,7 @@ module.exports = {
       {
         "name":"content",
         "value":"custom mock property",
-        "defaultValue":"custom mock property",
+        "recommendedValue":"custom mock property",
         "filename":"hdfs-site.xml",
         "isUserProperty":false,
         "isOverridable":true,
@@ -325,7 +325,7 @@ module.exports = {
       {
         "name":"content",
         "value":"hdfs log4j content",
-        "defaultValue":"hdfs log4j content",
+        "recommendedValue":"hdfs log4j content",
         "filename":"hdfs-log4j.xml",
         "isUserProperty":false,
         "isOverridable":true,
@@ -345,7 +345,7 @@ module.exports = {
       {
         "name":"storm_log_dir",
         "value":"/var/log/storm",
-        "defaultValue":"/var/log/storm",
+        "recommendedValue":"/var/log/storm",
         "filename":"storm-env.xml",
         "isUserProperty":false,
         "isOverridable":true,

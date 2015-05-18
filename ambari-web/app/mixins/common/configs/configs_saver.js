@@ -312,13 +312,10 @@ App.ConfigsSaverMixin = Em.Mixin.create({
    * @method saveSiteConfigs
    */
   saveSiteConfigs: function (configs) {
-    //storedConfigs contains custom configs as well
     configs = this.setHiveHostName(configs);
     configs = this.setOozieHostName(configs);
     this.formatConfigValues(configs);
-    var mappedConfigs = App.config.excludeUnsupportedConfigs(this.get('configMapping').all(), App.Service.find().mapProperty('serviceName'));
-    var allUiConfigs = this.loadUiSideConfigs(mappedConfigs);
-    return configs.concat(allUiConfigs);
+    return configs;
   },
 
   /**
@@ -435,119 +432,6 @@ App.ConfigsSaverMixin = Em.Mixin.create({
       configs.pushObject(oozieHostNameProperty);
     }
     return configs;
-  },
-
-  /*********************************** 2.2 ADD DYNAMIC CONFIGS ********************************/
-  /**
-   * return configs from the UI side
-   * @param configMapping array with configs
-   * @return {Array}
-   * @private
-   * @method loadUiSideConfigs
-   */
-  loadUiSideConfigs: function (configMapping) {
-    var uiConfig = [];
-    var configs = configMapping.filterProperty('foreignKey', null);
-    this.addDynamicProperties(configs);
-    configs.forEach(function (_config) {
-      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
-      if (valueWithOverrides !== null) {
-        uiConfig.pushObject({
-          "id": "site property",
-          "name": _config.name,
-          "value": valueWithOverrides.value,
-          "filename": _config.filename,
-          "overrides": valueWithOverrides.overrides
-        });
-      }
-    }, this);
-    return uiConfig;
-  },
-
-  /**
-   * @param configs
-   * @private
-   * @method addDynamicProperties
-   */
-  addDynamicProperties: function (configs) {
-    var allConfigs = this.get('stepConfigs').findProperty('serviceName', this.get('content.serviceName')).get('configs');
-    var templetonHiveProperty = allConfigs.someProperty('name', 'templeton.hive.properties');
-    if (!templetonHiveProperty && this.get('content.serviceName') === 'HIVE') {
-      configs.pushObject({
-        "name": "templeton.hive.properties",
-        "templateName": ["hive.metastore.uris"],
-        "foreignKey": null,
-        "value": "hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
-        "filename": "webhcat-site.xml"
-      });
-    }
-  },
-
-  /**
-   * return config value
-   * @param templateName
-   * @param expression
-   * @param name
-   * @return {Object}
-   * example: <code>{
-   *   value: '...',
-   *   overrides: {
-   *    'value1': [h1, h2],
-   *    'value2': [h3]
-   *   }
-   * }</code>
-   * @private
-   * @method getGlobConfigValueWithOverrides
-   */
-  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
-    var express = expression.match(/<(.*?)>/g);
-    var value = expression;
-    var overrideHostToValue = {};
-    if (express != null) {
-      express.forEach(function (_express) {
-        var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-        var globalObj = this.get('allConfigs').findProperty('name', templateName[index]);
-        if (globalObj) {
-          var globOverride = globalObj.overrides;
-          if (globOverride != null) {
-            for (var ov in globOverride) {
-              globOverride[ov].forEach(function (host) {
-                var replacedVal = (host in overrideHostToValue) ? overrideHostToValue[host] : expression;
-                overrideHostToValue[host] = App.config.replaceConfigValues(name, _express, replacedVal, ov);
-              }, this);
-            }
-          }
-          value = App.config.replaceConfigValues(name, _express, expression, globalObj.value);
-        } else {
-          value = null;
-        }
-      }, this);
-    }
-    return this.getValueWithOverrides(value, overrideHostToValue)
-  },
-
-  /**
-   * @param value
-   * @param overrideHostToValue
-   * @returns {{value: *, overrides: {}}}
-   * @private
-   * @method getValueWithOverrides
-   */
-  getValueWithOverrides: function (value, overrideHostToValue) {
-    var valueWithOverrides = {
-      value: value,
-      overrides: {}
-    };
-    if (!jQuery.isEmptyObject(overrideHostToValue)) {
-      for (var host in overrideHostToValue) {
-        var hostVal = overrideHostToValue[host];
-        if (!(hostVal in valueWithOverrides.overrides)) {
-          valueWithOverrides.overrides[hostVal] = [];
-        }
-        valueWithOverrides.overrides[hostVal].push(host);
-      }
-    }
-    return valueWithOverrides;
   },
 
   /*********************************** 3. GENERATING JSON TO SAVE *****************************/

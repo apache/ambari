@@ -33,8 +33,27 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
    * @type {boolean}
    */
   hasChangedDependencies: function() {
-    return App.get('isClusterSupportsEnhancedConfigs') && this.get('_dependentConfigValues.length') > 0;
+    return App.get('isClusterSupportsEnhancedConfigs') && this.get('isControllerSupportsEnhancedConfigs') && this.get('_dependentConfigValues.length') > 0;
   }.property('_dependentConfigValues.length'),
+
+  /**
+   * defines is block with changed dependent configs should be shown
+   * rely on controller
+   * @type {boolean}
+   */
+  isControllerSupportsEnhancedConfigs: function() {
+    return ['wizardStep7Controller','mainServiceInfoConfigsController'].contains(this.get('name'));
+  }.property('name'),
+
+  /**
+   * defines if initialValue of config can be used on current controller
+   * if not savedValue is used instead
+   * @type {boolean}
+   */
+  useInitialValue: function() {
+    ['wizardStep7Controller'].contains(this.get('name'));
+  }.property('name'),
+
 
   /**
    * message fro alert box for dependent configs
@@ -121,7 +140,11 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   },
 
   onConfigGroupChangeForEnhanced: function() {
-    this.clearDependentConfigs();
+    if (this.get('name') === 'mainServiceInfoConfigsController') {
+      this.clearDependentConfigs();
+    } else {
+      this.set('groupsToSave', {});
+    }
     this.get('dependentServiceNames').forEach(function(serviceName) {
       var defaultGroup = this.get('dependentConfigGroups').filterProperty('service.serviceName', serviceName).findProperty('isDefault');
       this.get('groupsToSave')[serviceName] = defaultGroup.get('name');
@@ -389,7 +412,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       var serviceName = service.get('serviceName');
       var stepConfig = this.get('stepConfigs').findProperty('serviceName', serviceName);
       if (stepConfig) {
-
+        var initialValue;
         var configProperties = stepConfig ? stepConfig.get('configs').filterProperty('filename', App.config.getOriginalFileName(key)) : [];
 
         var group = this.getGroupForService(serviceName);
@@ -401,14 +424,28 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           var override = (notDefaultGroup && group && cp && cp.get('overrides')) ? cp.get('overrides').findProperty('group.name', group.get('name')) : null;
 
           var value = override ? override.get('value') : cp && cp.get('value');
-          var defaultValue = override ? override.get('defaultValue') : cp && cp.get('defaultValue');
+
+          if (this.get('useInitialValue')) {
+            initialValue = override ? override.get('initialValue') : cp && cp.get('initialValue');
+          } else {
+            initialValue = override ? override.get('savedValue') : cp && cp.get('savedValue');
+          }
+
+
+          initialValue = Em.isNone(initialValue) ? value : initialValue;
           var recommendedValue = configObject[key].properties[propertyName];
 
           var isNewProperty = (!notDefaultGroup && Em.isNone(cp)) || (notDefaultGroup && group && Em.isNone(override));
 
-          if (!updateOnlyBoundaries && !parentPropertiesNames.contains(propertyName) && defaultValue != recommendedValue) { //on first initial request we don't need to change values
+          var parsedInit = parseFloat(initialValue);
+          var parsedRecommended = parseFloat(recommendedValue);
+          if (!isNaN(parsedInit) && !isNaN(parsedRecommended)) {
+            initialValue = parsedInit.toString();
+            recommendedValue = parsedRecommended.toString();
+          }
+          if (!updateOnlyBoundaries && !parentPropertiesNames.contains(propertyName) && initialValue != recommendedValue) { //on first initial request we don't need to change values
             if (dependentProperty) {
-              Em.set(dependentProperty, 'value', defaultValue);
+              Em.set(dependentProperty, 'value', initialValue);
               Em.set(dependentProperty, 'recommendedValue', recommendedValue);
               Em.set(dependentProperty, 'toDelete', false);
               Em.set(dependentProperty, 'toAdd', isNewProperty);
@@ -423,7 +460,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 fileName: key,
                 propertyName: propertyName,
                 configGroup: group ? group.get('name') : service.get('displayName') + " Default",
-                value: defaultValue,
+                value: initialValue,
                 parentConfigs: parentPropertiesNames,
                 serviceName: serviceName,
                 allowChangeGroup: serviceName != this.get('content.serviceName') && !this.get('selectedConfigGroup.isDefault'),
@@ -448,21 +485,21 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
            * properties that wasn't changed while recommendations
            */
 
-          if ((defaultValue == recommendedValue) || (Em.isNone(defaultValue) && Em.isNone(recommendedValue))) {
+          if ((initialValue == recommendedValue) || (Em.isNone(initialValue) && Em.isNone(recommendedValue))) {
             /** if recommended value same as default we shouldn't show it in popup **/
             if (notDefaultGroup) {
               if (override) {
                 if (override.get('isNotSaved')) {
                   cp.get('overrides').removeObject(override);
                 } else {
-                  override.set('value', defaultValue);
+                  override.set('value', initialValue);
                 }
                 if (dependentProperty) {
                   this.get('_dependentConfigValues').removeObject(dependentProperty);
                 }
               }
             } else {
-              cp.set('value', defaultValue);
+              cp.set('value', initialValue);
               if (dependentProperty) {
                 this.get('_dependentConfigValues').removeObject(dependentProperty);
               }
@@ -508,7 +545,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 self.get('_dependentConfigValues').pushObject({
                   saveRecommended: true,
                   saveRecommendedDefault: true,
-                  propertyValue: cp && cp.get('defaultValue'),
+                  propertyValue: cp && (cp.get('useInitialValue') ? cp.get('initialValue') : cp.get('savedValue')),
                   toDelete: true,
                   toAdd: false,
                   isDeleted: true,
@@ -568,13 +605,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             name: Em.get(propertyToAdd, 'propertyName'),
             displayName: Em.get(propertyToAdd, 'propertyName'),
             value: Em.get(propertyToAdd, 'recommendedValue'),
-            defaultValue: Em.get(propertyToAdd, 'recommendedValue'),
+            recommendedValue: Em.get(propertyToAdd, 'recommendedValue'),
+            savedValue: null,
             category: 'Advanced ' + Em.get(propertyToAdd, 'fileName'),
             serviceName: stepConfigs.get('serviceName'),
             filename: App.config.getOriginalFileName(Em.get(propertyToAdd, 'fileName')),
             isNotSaved: !Em.get(propertyToAdd, 'isDeleted'),
-            isRequired: true,
-            forceUpdate: true
+            isRequired: true
           });
           stepConfigs.get('configs').pushObject(addedProperty);
           addedProperty.validate();
@@ -652,16 +689,23 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
         if (propertyToUpdate) {
           var valueToSave = propertyToUpdate.saveRecommended ? propertyToUpdate.recommendedValue : propertyToUpdate.value;
           if (!selectedGroup || selectedGroup.get('isDefault')) {
-            cp.set('value', valueToSave);
-            cp.set('forceUpdate', true);
+            if (propertyToUpdate.saveRecommended || cp.get('value') == propertyToUpdate.recommendedValue) {
+              cp.set('value', valueToSave);
+            }
+            cp.set('recommendedValue', propertyToUpdate.recommendedValue);
           } else {
             if (stepConfigs.get('serviceName') !== this.get('content.serviceName')) {
-              cp.set('value', cp.get('defaultValue'));
-              cp.set('forceUpdate', true);
+              if (propertyToUpdate.saveRecommended || cp.get('value') == propertyToUpdate.recommendedValue) {
+                cp.set('value', this.get('useInitialValue') ? cp.get('initialValue') : cp.get('savedValue'));
+              }
+              cp.set('recommendedValue', propertyToUpdate.recommendedValue);
             }
             var overriddenConfig = cp.get('overrides') && cp.get('overrides').findProperty('group.name', selectedGroup.get('name'));
             if (overriddenConfig) {
-              overriddenConfig.set('value', valueToSave);
+              if (propertyToUpdate.saveRecommended || overriddenConfig.get('value') == propertyToUpdate.recommendedValue) {
+                overriddenConfig.set('value', valueToSave);
+              }
+              overriddenConfig.set('recommendedValue', propertyToUpdate.recommendedValue);
             }
           }
         }

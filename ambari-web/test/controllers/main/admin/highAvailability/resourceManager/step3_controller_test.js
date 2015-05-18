@@ -267,22 +267,22 @@ describe('App.RMHighAvailabilityWizardStep3Controller', function () {
     it('setting new RM properties values', function () {
       controller.setDynamicConfigValues(configs, '2181', ':8088', ':8090');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('value')).to.equal('h0');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('defaultValue')).to.equal('h0');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm1').get('recommendedValue')).to.equal('h0');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('value')).to.equal('h1');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('defaultValue')).to.equal('h1');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.hostname.rm2').get('recommendedValue')).to.equal('h1');
 
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('value')).to.equal('h0:8088');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('defaultValue')).to.equal('h0:8088');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm1').get('recommendedValue')).to.equal('h0:8088');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('value')).to.equal('h1:8088');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('defaultValue')).to.equal('h1:8088');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.address.rm2').get('recommendedValue')).to.equal('h1:8088');
 
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('value')).to.equal('h0:8090');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('defaultValue')).to.equal('h0:8090');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm1').get('recommendedValue')).to.equal('h0:8090');
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('value')).to.equal('h1:8090');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('defaultValue')).to.equal('h1:8090');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.webapp.https.address.rm2').get('recommendedValue')).to.equal('h1:8090');
 
       expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('value')).to.equal('h2:2181,h3:2181');
-      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('defaultValue')).to.equal('h2:2181,h3:2181');
+      expect(configs.configs.findProperty('name', 'yarn.resourcemanager.zk-address').get('recommendedValue')).to.equal('h2:2181,h3:2181');
     });
 
   });

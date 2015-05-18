@@ -163,6 +163,7 @@ App.ToggleConfigWidgetView = App.ConfigWidgetView.extend({
    * @method setRecommendedValue
    */
   setRecommendedValue: function () {
+    this._super();
     this.setValue(this.get('config.recommendedValue'));
   },
 

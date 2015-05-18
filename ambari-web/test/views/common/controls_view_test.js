@@ -613,14 +613,14 @@ describe('App.ServiceConfigRadioButtons', function () {
           databaseName: item.databaseName,
           hostName: item.hostName,
           databaseNameProperty: Em.Object.create({
-            defaultValue: item.databaseNameDefault
+            recommendedValue: item.databaseNameDefault
           }),
           hostNameProperty: Em.Object.create({
-            defaultValue: item.hostNameDefault
+            recommendedValue: item.hostNameDefault
           })
         });
         expect(view.get('connectionUrl.value')).to.equal(item.connectionUrlValue);
-        expect(view.get('connectionUrl.defaultValue')).to.equal(item.connectionUrlDefaultValue);
+        expect(view.get('connectionUrl.recommendedValue')).to.equal(item.connectionUrlDefaultValue);
         expect(view.get('dbClass.value')).to.equal(item.dbClassValue);
         serviceAuthPropsMap[item.serviceName].forEach(function (propName) {
           expect(view.get('categoryConfigsAll').findProperty('name', propName).get('isVisible')).to.equal(item.isAuthVisibleAndRequired);
@@ -789,7 +789,7 @@ describe('App.BaseUrlTextField', function () {
     it('should be recalculated after value is changed', function () {
       view.setProperties({
         value: 'val',
-        defaultValue: 'val'
+        recommendedValue: 'val'
       });
       expect(view.get('valueWasChanged')).to.be.false;
       view.set('value', 'newVal');
@@ -803,7 +803,7 @@ describe('App.BaseUrlTextField', function () {
     it('should unset value', function () {
       view.setProperties({
         value: 'valNew',
-        defaultValue: 'val'
+        savedValue: 'val'
       });
       view.restoreValue();
       expect(view.get('value')).to.equal('val');

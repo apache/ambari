@@ -59,13 +59,6 @@ App.CheckboxConfigWidgetView = App.ConfigWidgetView.extend({
   restoreValue: function () {
     this.$('input[type="checkbox"]:eq(0)').checkbox('click');
     this._super();
-  },
-
-  /**
-   * @method setRecommendedValue
-   */
-  setRecommendedValue: function () {
-    this.set('config.value', this.get('config.recommendedValue'));
   }
 
 });

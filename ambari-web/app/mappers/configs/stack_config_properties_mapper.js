@@ -26,7 +26,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     file_name: 'StackConfigurations.type',
     description: 'StackConfigurations.property_description',
     value: 'StackConfigurations.property_value',
-    default_value: 'StackConfigurations.property_value',
+    recommended_value: 'StackConfigurations.property_value',
     type: 'StackConfigurations.property_type',
     service_name: 'StackConfigurations.service_name',
     stack_name: 'StackConfigurations.stack_name',
@@ -34,7 +34,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
     property_depended_by: 'StackConfigurations.property_depended_by',
     value_attributes: 'StackConfigurations.property_value_attributes',
     is_final: 'default_is_final',
-    default_is_final: 'default_is_final',
+    recommended_is_final: 'default_is_final',
     supports_final: 'supports_final',
     widget: 'widget',
     /**** ui properties ***/
@@ -52,7 +52,7 @@ App.stackConfigPropertiesMapper = App.QuickDataMapper.create({
         stackItem.configurations.forEach(function(config) {
           var configType = App.config.getConfigTagFromFileName(config.StackConfigurations.type);
           config.id = config.StackConfigurations.property_name + '_' + configType;
-          config.default_is_final = config.StackConfigurations.final === "true";
+          config.recommended_is_final = config.StackConfigurations.final === "true";
           config.supports_final = !!configTypeInfo[configType] && configTypeInfo[configType].supports.final === "true";
           // Map from /dependencies to property_depended_by
           config.StackConfigurations.property_depended_by = [];

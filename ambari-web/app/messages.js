@@ -265,6 +265,7 @@ Em.I18n.translations = {
   'common.preview': 'Preview',
   'common.scope': 'Scope',
   'common.clone': 'Clone',
+  'common.removed': 'Removed',
 
   'models.alert_instance.tiggered.verbose': "Occured on {0} <br> Checked on {1}",
   'models.alert_definition.triggered.verbose': "Occured on {0}",

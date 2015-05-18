@@ -118,9 +118,9 @@ describe('App.configVersionsMapper', function () {
 
       //CONFIG_PROPERTY
       expect(App.ConfigProperty.find('dtnode_heapsize_hadoop-env_4').get('value')).to.eql('1026m');
-      expect(App.ConfigProperty.find('dtnode_heapsize_hadoop-env_4').get('defaultValue')).to.equal('1026m');
+      expect(App.ConfigProperty.find('dtnode_heapsize_hadoop-env_4').get('recommendedValue')).to.equal('1026m');
       expect(App.ConfigProperty.find('dtnode_heapsize_hadoop-env_4').get('isFinal')).to.be.false;
-      expect(App.ConfigProperty.find('dtnode_heapsize_hadoop-env_4').get('defaultIsFinal')).to.be.false;
+      expect(App.ConfigProperty.find('dtnode_heapsize_hadoop-env_4').get('recommendedIsFinal')).to.be.false;
     });
   });
 

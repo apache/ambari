@@ -326,7 +326,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
       if (property.get('observesValueFrom')) {
         var observedValue = allConfigs.findProperty('name', property.get('observesValueFrom')).get('value');
         property.set('value', observedValue);
-        property.set('defaultValue', observedValue);
+        property.set('recommendedValue', observedValue);
       }
       if (property.get('serviceName') == 'Cluster') {
         property.set('category', 'Global');

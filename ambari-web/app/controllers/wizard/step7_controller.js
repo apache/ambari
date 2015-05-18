@@ -559,9 +559,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         if (!Em.isNone(config.value)) {
           var replaceStr = config.value.match(/.jar=host[^,]+/)[0];
           var replaceWith = replaceStr.slice(0, replaceStr.lastIndexOf('=') - replaceStr.length + 1) + gangliaServerHost;
-          config.value = config.defaultValue = config.value.replace(replaceStr, replaceWith);
+          config.value = config.recommendedValue = config.value.replace(replaceStr, replaceWith);
         }
-        config.forceUpdate = true;
       }, this);
     }
   },
@@ -578,9 +577,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     if (cfgToChange) {
       var res = this.get('allSelectedServiceNames').contains('SLIDER');
       if (Em.get(cfgToChange, 'value') !== res) {
-        Em.set(cfgToChange, 'defaultValue', res);
+        Em.set(cfgToChange, 'recommendedValue', res);
         Em.set(cfgToChange, 'value', res);
-        Em.set(cfgToChange, 'forceUpdate', true);
       }
     }
   },
@@ -625,7 +623,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
   applyServicesConfigs: function (configs, storedConfigs) {
     if (this.get('allSelectedServiceNames').contains('YARN')) {
-      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml');
+      configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', []);
     }
     var dependedServices = ["STORM", "YARN"];
     dependedServices.forEach(function (serviceName) {
@@ -635,14 +633,13 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }, this);
     //STEP 6: Distribute configs by service and wrap each one in App.ServiceConfigProperty (configs -> serviceConfigs)
     var self = this;
+    if (self.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
+      self.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
+    }
+    self.setStepConfigs(configs, storedConfigs);
     this.loadServerSideConfigsRecommendations().always(function () {
       self.set('isRecommendedLoaded', true);
       // format descriptor configs
-      if (self.get('securityEnabled') && self.get('wizardController.name') == 'addServiceController') {
-        self.addKerberosDescriptorConfigs(configs, self.get('wizardController.kerberosDescriptorConfigs') || []);
-      }
-      self.setStepConfigs(configs, storedConfigs);
-
       var serviceConfigProperties = (self.get('content.serviceConfigProperties') || []).mapProperty('name');
       var recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
       recommendedToDelete.forEach(function (c) {
@@ -653,7 +650,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       });
 
       self.updateDependentConfigs();
-      self.clearDependentConfigs();
       self.checkHostOverrideInstaller();
       self.activateSpecialConfigs();
       self.selectProperService();
@@ -740,7 +736,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       masterComponentHosts: this.get('wizardController.content.masterComponentHosts'),
       slaveComponentHosts: this.get('wizardController.content.slaveComponentHosts')
     };
-    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB, this.get('recommendationsConfigs'));
+    var serviceConfigs = App.config.renderConfigs(configs, storedConfigs, this.get('allSelectedServiceNames'), this.get('installedServiceNames'), localDB);
     if (this.get('wizardController.name') === 'addServiceController') {
       serviceConfigs.setEach('showConfig', true);
       serviceConfigs.setEach('selected', false);
@@ -769,7 +765,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
 
           hRootDir.setProperties({
             'value':  valueToChange,
-            'defaultValue' : valueToChange
+            'recommendedValue' : valueToChange
           });
         }
       }
@@ -858,23 +854,22 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
    */
   setInstalledServiceConfigs: function (serviceConfigTags, configs, configsByTags, installedServiceNames) {
     var configsMap = {};
-    var configTypeMap = {};
     var configMixin = App.get('config');
+    var nonServiceTab = require('data/service_configs');
     var self = this;
 
     configsByTags.forEach(function (configSite) {
       configsMap[configSite.type] = configSite.properties || {};
     });
     configs.forEach(function (_config) {
-      var nonServiceTab = require('data/service_configs');
       var type = _config.filename ? App.config.getConfigTagFromFileName(_config.filename) : null;
       var mappedConfigValue = type && configsMap[type] ? configsMap[type][_config.name] : null;
       if (!Em.isNone(mappedConfigValue) && ((installedServiceNames && installedServiceNames.contains(_config.serviceName) || nonServiceTab.someProperty('serviceName', _config.serviceName)))) {
         // prevent overriding already edited properties
-        if (_config.defaultValue != mappedConfigValue) {
+        if (_config.savedValue != mappedConfigValue) {
           _config.value = mappedConfigValue;
         }
-        _config.defaultValue = mappedConfigValue;
+        _config.savedValue = mappedConfigValue;
         _config.hasInitialValue = true;
         App.config.handleSpecialProperties(_config);
         delete configsMap[type][_config.name];
@@ -890,7 +885,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
           name: propertyName,
           serviceName: configMixin.getServiceNameByConfigType(filename),
           value: configsMap[filename][propertyName],
-          defaultValue: configsMap[filename][propertyName],
+          savedValue: configsMap[filename][propertyName],
           filename: configMixin.get('filenameExceptions').contains(filename) ? filename : filename + '.xml',
           category: 'Advanced',
           hasInitialValue: true,
@@ -932,7 +927,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       var propertyName = propertyPrefix + '_existing_' + dbPrefix + '_host';
       var existingDBConfig = configs.findProperty('name', propertyName);
       if (!existingDBConfig.value)
-        existingDBConfig.value = existingDBConfig.defaultValue = configs.findProperty('name', dbHostName).value;
+        existingDBConfig.value = existingDBConfig.savedValue = configs.findProperty('name', dbHostName).value;
     }, this);
   },
   /**

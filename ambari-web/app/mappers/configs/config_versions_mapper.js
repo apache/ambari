@@ -78,8 +78,8 @@ App.configVersionsMapper = App.QuickDataMapper.create({
                 config_version_id: parsedItem.id,
                 stack_config_property_id: key  + '_' + type
               };
-              property.value = property.default_value = config.properties[key];
-              property.is_final = property.default_is_final = !!item.properties_attributes && item.properties_attributes.final[key] === "true";
+              property.value = property.recommended_value = config.properties[key];
+              property.is_final = property.recommended_is_final = !!item.properties_attributes && item.properties_attributes.final[key] === "true";
 
               properties.push(property);
               requestedProperties.push(property.id);

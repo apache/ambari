@@ -380,18 +380,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
    */
   loadUiSideConfigs: function (configMapping) {
     var uiConfig = [];
-    var configs = configMapping.filterProperty('foreignKey', null);
-    this.addDynamicProperties(configs);
-    configs.forEach(function (_config) {
-      var valueWithOverrides = this.getGlobConfigValueWithOverrides(_config.templateName, _config.value, _config.name);
-      uiConfig.pushObject({
-        "id": "site property",
-        "name": _config.name,
-        "value": valueWithOverrides.value,
-        "filename": _config.filename,
-        "overrides": valueWithOverrides.overrides
-      });
-    }, this);
     var dependentConfig = $.extend(true, [], configMapping.filterProperty('foreignKey'));
     dependentConfig.forEach(function (_config) {
       App.config.setConfigValue(uiConfig, this.get('content.serviceConfigProperties'), _config);
@@ -404,24 +392,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
         });
     }, this);
     return uiConfig;
-  },
-
-  /**
-   * Add dynamic properties to configs
-   * @param {Array} configs
-   * @method addDynamicProperties
-   */
-  addDynamicProperties: function (configs) {
-    var templetonHiveProperty = this.get('content.serviceConfigProperties').someProperty('name', 'templeton.hive.properties');
-    if (!templetonHiveProperty) {
-      configs.pushObject({
-        "name": "templeton.hive.properties",
-        "templateName": ["hive.metastore.uris"],
-        "foreignKey": null,
-        "value": "hive.metastore.local=false,hive.metastore.uris=<templateName[0]>,hive.metastore.sasl.enabled=yes,hive.metastore.execute.setugi=true,hive.metastore.warehouse.dir=/apps/hive/warehouse",
-        "filename": "webhcat-site.xml"
-      });
-    }
   },
 
   /**
@@ -441,95 +411,6 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
       }
     }
     return hosts;
-  },
-
-  /**
-   * Set all site property that are derived from other puppet-variable
-   * @param {String} templateName
-   * @param {String} expression
-   * @param {String} name
-   * @return {Object}
-   * example: <code>{
-   *   value: '...',
-   *   overrides: [
-   *    {
-   *      value: 'v1',
-   *      hosts: ['h1', 'h2']
-   *    },
-   *    {
-   *      value: 'v2',
-   *      hosts: ['h2', 'h3']
-   *    },
-   *    ....
-   *   ]
-   * }</code>
-   * @method getGlobConfigValueWithOverrides
-   */
-  getGlobConfigValueWithOverrides: function (templateName, expression, name) {
-    var express = expression.match(/<(.*?)>/g);
-    var value = expression;
-    if (express == null) {
-      return { value: expression, overrides: []};      // if site property do not map any global property then return the value
-    }
-    var overrideHostToValue = {};
-    express.forEach(function (_express) {
-      //console.log("The value of template is: " + _express);
-      var index = parseInt(_express.match(/\[([\d]*)(?=\])/)[1]);
-      if (this.get('configs').someProperty('name', templateName[index])) {
-        //console.log("The name of the variable is: " + this.get('content.serviceConfigProperties').findProperty('name', templateName[index]).name);
-        var globalObj = this.get('configs').findProperty('name', templateName[index]);
-        var globValue = globalObj.value;
-        // Hack for templeton.zookeeper.hosts
-        var preReplaceValue = null;
-        if (value !== null) {   // if the property depends on more than one template name like <templateName[0]>/<templateName[1]> then don't proceed to the next if the prior is null or not found in the global configs
-          preReplaceValue = value;
-          value = App.config.replaceConfigValues(name, _express, value, globValue);
-        }
-        if (globalObj.overrides != null) {
-          globalObj.overrides.forEach(function (override) {
-            var ov = override.value;
-            var hostsArray = override.hosts;
-            hostsArray.forEach(function (host) {
-              if (!(host in overrideHostToValue)) {
-                overrideHostToValue[host] = App.config.replaceConfigValues(name, _express, preReplaceValue, ov);
-              } else {
-                overrideHostToValue[host] = App.config.replaceConfigValues(name, _express, overrideHostToValue[host], ov);
-              }
-            }, this);
-          }, this);
-        }
-      } else {
-        /*
-         console.log("ERROR: The variable name is: " + templateName[index]);
-         console.log("ERROR: mapped config from configMapping file has no corresponding variable in " +
-         "content.serviceConfigProperties. Two possible reasons for the error could be: 1) The service is not selected. " +
-         "and/OR 2) The service_config metadata file has no corresponding global var for the site property variable");
-         */
-        value = null;
-      }
-    }, this);
-
-    var valueWithOverrides = {
-      value: value,
-      overrides: []
-    };
-    var overrideValueToHostMap = {};
-    if (!jQuery.isEmptyObject(overrideHostToValue)) {
-      for (var host in overrideHostToValue) {
-        var hostVal = overrideHostToValue[host];
-        if (!(hostVal in overrideValueToHostMap)) {
-          overrideValueToHostMap[hostVal] = [];
-        }
-        overrideValueToHostMap[hostVal].push(host);
-      }
-    }
-    for (var val in overrideValueToHostMap) {
-      valueWithOverrides.overrides.push({
-        value: val,
-        hosts: overrideValueToHostMap[val]
-      });
-    }
-    return valueWithOverrides;
   },
 
   /**

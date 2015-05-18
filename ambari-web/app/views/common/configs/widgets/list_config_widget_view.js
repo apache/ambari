@@ -243,7 +243,7 @@ App.ListConfigWidgetView = App.ConfigWidgetView.extend({
    * @method setRecommendedValue
    */
   setRecommendedValue: function () {
-    this.set('config.value', this.get('config.recommendedValue'));
+    this._super();
     this.calculateInitVal();
   },
 

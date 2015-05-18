@@ -185,7 +185,7 @@ var serviceConfigProperty,
       initial: {
         id: 'puppet var',
         value: '',
-        defaultValue: 'default'
+        savedValue: 'default'
       },
       result: {
         value: 'default'
@@ -197,17 +197,17 @@ var serviceConfigProperty,
       isEditable: false
     },
     {
-      defaultValue: null
+      savedValue: null
     },
     {
       value: 'value',
-      defaultValue: 'value'
+      savedValue: 'value'
     }
   ],
   notDefaultTrueData = {
     isEditable: true,
     value: 'value',
-    defaultValue: 'default'
+    savedValue: 'default'
   },
   types = ['masterHost', 'slaveHosts', 'masterHosts', 'slaveHost', 'radio button'],
   classCases = [

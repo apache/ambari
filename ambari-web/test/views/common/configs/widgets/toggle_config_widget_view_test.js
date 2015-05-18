@@ -28,7 +28,7 @@ describe('App.ToggleConfigWidgetView', function () {
       config: Em.Object.create({
         name: 'a.b.c',
         value: 'active',
-        defaultValue: 'active',
+        savedValue: 'active',
         stackConfigProperty: Em.Object.create({
           valueAttributes: {
             "type": "value-list",
