@@ -52,14 +52,14 @@ class ModifyPropertiesFileProvider(Provider):
           in_var_value = line.split(delimiter)[1].strip()
           
           if in_var_name in properties:
-            value = InlineTemplate(unicode(properties[in_var_name])).get_content()
+            value = InlineTemplate(unicode(properties[in_var_name])).get_content().strip()
             new_content_lines[line_num] = u"{0}{1}{2}".format(unicode(in_var_name), delimiter, value)
             unsaved_values.remove(in_var_name)
     else:
       Logger.info(format("Creating new properties file as {filename} doesn't exist"))
        
     for property_name in unsaved_values:
-      value = InlineTemplate(unicode(properties[property_name])).get_content()
+      value = InlineTemplate(unicode(properties[property_name])).get_content().strip()
       line = u"{0}{1}{2}".format(unicode(property_name), delimiter, value)
       new_content_lines.append(line)
           
