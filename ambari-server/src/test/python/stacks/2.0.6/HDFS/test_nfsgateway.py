@@ -223,6 +223,7 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
         content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
     )
 
   def assert_configure_secured(self):
@@ -258,6 +259,7 @@ class TestNFSGateway(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
         content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
     )
 
 

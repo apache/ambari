@@ -101,6 +101,7 @@ def hdfs(name=None):
 
   # for source-code of jar goto contrib/fast-hdfs-resource
   File(format("{ambari_libs_dir}/fast-hdfs-resource.jar"),
+       mode=0644,
        content=StaticFile("fast-hdfs-resource.jar")
   )
   

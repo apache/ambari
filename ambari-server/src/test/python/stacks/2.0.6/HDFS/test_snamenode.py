@@ -232,6 +232,7 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
         content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
@@ -281,6 +282,7 @@ class TestSNamenode(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/var/lib/ambari-agent/lib/fast-hdfs-resource.jar',
         content = StaticFile('fast-hdfs-resource.jar'),
+        mode = 0644,
     )
     self.assertResourceCalled('Directory', '/hadoop/hdfs/namesecondary',
                               owner = 'hdfs',
