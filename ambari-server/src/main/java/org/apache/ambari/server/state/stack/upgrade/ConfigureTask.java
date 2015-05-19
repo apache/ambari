@@ -36,6 +36,8 @@ import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Config;
 import org.apache.ambari.server.state.DesiredConfig;
 
+import com.google.gson.Gson;
+
 /**
  * The {@link ConfigureTask} represents a configuration change. This task can be
  * defined with conditional statements that will only set values if a condition
@@ -59,15 +61,16 @@ import org.apache.ambari.server.state.DesiredConfig;
  * }
  * </pre>
  *
- * It's also possible to simple set a value directly without a precondition
+ * It's also possible to simple set values directly without a precondition
  * check.
  *
  * <pre>
  * {@code
  * <task xsi:type="configure">
  *   <type>hive-site</type>
- *   <key>hive.server2.thrift.port</key>
- *   <value>10010</value>
+ *   <set key="hive.server2.thrift.port" value="10010"/>
+ *   <set key="foo" value="bar"/>
+ *   <set key="foobar" value="baz"/>
  * </task>
  * }
  * </pre>
@@ -84,20 +87,14 @@ public class ConfigureTask extends ServerSideActionTask {
   public static final String PARAMETER_CONFIG_TYPE = "configure-task-config-type";
 
   /**
-   * The key that represents the configuration key to change (ie
-   * hive.server2.thrift.port)
+   * Setting key/value pairs can be several per task, so they're passed in as a
+   * json-ified list of objects.
    */
-  public static final String PARAMETER_KEY = "configure-task-key";
+  public static final String PARAMETER_KEY_VALUE_PAIRS = "configure-task-key-value-pairs";
 
   /**
-   * The key that represents the configuration value to set on
-   * {@link #PARAMETER_CONFIG_TYPE}/{@link #PARAMETER_KEY}.
-   */
-  public static final String PARAMETER_VALUE = "configure-task-value";
-
-  /**
-   * Transfers can be several per task, so they're passed in as a json-ified list of
-   * objects.
+   * Transfers can be several per task, so they're passed in as a json-ified
+   * list of objects.
    */
   public static final String PARAMETER_TRANSFERS = "configure-task-transfers";
 
@@ -106,6 +103,11 @@ public class ConfigureTask extends ServerSideActionTask {
    * objects.
    */
   public static final String PARAMETER_REPLACEMENTS = "configure-task-replacements";
+
+  /**
+   * Gson
+   */
+  private Gson m_gson = new Gson();
 
   /**
    * Constructor.
@@ -121,11 +123,8 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlElement(name="type")
   private String configType;
 
-  @XmlElement(name="key")
-  private String key;
-
-  @XmlElement(name="value")
-  private String value;
+  @XmlElement(name = "set")
+  private List<ConfigurationKeyValue> keyValuePairs;
 
   @XmlElement(name="summary")
   public String summary;
@@ -139,6 +138,9 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlElement(name="replace")
   private List<Replace> replacements;
 
+  /**
+   * {@inheritDoc}
+   */
   @Override
   public Type getType() {
     return type;
@@ -151,6 +153,18 @@ public class ConfigureTask extends ServerSideActionTask {
     return configType;
   }
 
+  /**
+   * A key/value pair to set in the type specified by {@link ConfigureTask#type}
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  @XmlType(name = "set")
+  public static class ConfigurationKeyValue {
+    @XmlAttribute(name = "key")
+    public String key;
+
+    @XmlAttribute(name = "value")
+    public String value;
+  }
 
   /**
    * A conditional element that will only perform the configuration if the
@@ -320,49 +334,78 @@ public class ConfigureTask extends ServerSideActionTask {
    * Gets a map containing the following properties pertaining to the
    * configuration value to change:
    * <ul>
-   * <li>type - the configuration type (ie hdfs-site)</li>
-   * <li>key - the lookup key for the type</li>
-   * <li>value - the value to set the key to</li>
+   * <li>{@link #PARAMETER_CONFIG_TYPE} - the configuration type (ie hdfs-site)</li>
+   * <li>{@link #PARAMETER_KEY_VALUE_PAIRS} - key/value pairs for the
+   * configurations</li>
+   * <li>{@link #PARAMETER_KEY_VALUE_PAIRS} - key/value pairs for the
+   * configurations</li>
+   * <li>{@link #PARAMETER_TRANSFERS} - COPY/MOVE/DELETE changes</li>
+   * <li>{@link #PARAMETER_REPLACEMENTS} - value replacements</li>
    * </ul>
    *
    * @param cluster
    *          the cluster to use when retrieving conditional properties to test
    *          against (not {@code null}).
-   * @return the a map containing the configuration type, key, and value to use
-   *         when updating a configuration property (never {@code null).
-   *         This could potentially be an empty map if no conditions are
-   *         met. Callers should decide how to handle a configuration task
-   *         that is unable to set any configuration values.
+   * @return the a map containing the changes to make. This could potentially be
+   *         an empty map if no conditions are met. Callers should decide how to
+   *         handle a configuration task that is unable to set any configuration
+   *         values.
    */
-  public Map<String, String> getConfigurationProperties(Cluster cluster) {
+  public Map<String, String> getConfigurationChanges(Cluster cluster) {
     Map<String, String> configParameters = new HashMap<String, String>();
 
-    // if there are no conditions then just take the direct values
-    if (null == conditions || conditions.isEmpty()) {
-      configParameters.put(PARAMETER_CONFIG_TYPE, configType);
-      configParameters.put(PARAMETER_KEY, key);
-      configParameters.put(PARAMETER_VALUE, value);
-      return configParameters;
+    // the first matched condition will win; conditions make configuration tasks singular in
+    // the properties that can be set - when there is a condition the task will only contain
+    // conditions
+    if( null != conditions && !conditions.isEmpty() ){
+      for (Condition condition : conditions) {
+        String conditionConfigType = condition.conditionConfigType;
+        String conditionKey = condition.conditionKey;
+        String conditionValue = condition.conditionValue;
+
+        // always add the condition's target type just so that we have one to
+        // return even if none of the conditions match
+        configParameters.put(PARAMETER_CONFIG_TYPE, condition.configType);
+
+        // check the condition; if it passes, set the configuration properties
+        // and break
+        String checkValue = getDesiredConfigurationValue(cluster,
+            conditionConfigType, conditionKey);
+
+        if (conditionValue.equals(checkValue)) {
+          List<ConfigurationKeyValue> configurations = new ArrayList<ConfigurationKeyValue>(1);
+          ConfigurationKeyValue keyValue = new ConfigurationKeyValue();
+          keyValue.key = condition.key;
+          keyValue.value = condition.value;
+          configurations.add(keyValue);
+
+          configParameters.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS,
+              m_gson.toJson(configurations));
+
+          return configParameters;
+        }
+      }
     }
 
-    // the first matched condition will win; a single configuration task
-    // should only ever set a single configuration property
-    for (Condition condition : conditions) {
-      String conditionConfigType = condition.conditionConfigType;
-      String conditionKey = condition.conditionKey;
-      String conditionValue = condition.conditionValue;
+    // this task is not a condition task, so process the other elements normally
+    if (null != configType) {
+      configParameters.put(PARAMETER_CONFIG_TYPE, configType);
+    }
 
-      // check the condition; if it passes, set the configuration properties
-      // and break
-      String checkValue = getDesiredConfigurationValue(cluster,
-          conditionConfigType, conditionKey);
+    // for every <set key=foo value=bar/> add it to this list
+    if (null != keyValuePairs && !keyValuePairs.isEmpty()) {
+      configParameters.put(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS,
+          m_gson.toJson(keyValuePairs));
+    }
 
-      if (conditionValue.equals(checkValue)) {
-        configParameters.put(PARAMETER_CONFIG_TYPE, condition.configType);
-        configParameters.put(PARAMETER_KEY, condition.key);
-        configParameters.put(PARAMETER_VALUE, condition.value);
-        break;
-      }
+    // transfers
+    if( null != transfers && !transfers.isEmpty() ){
+      configParameters.put(ConfigureTask.PARAMETER_TRANSFERS, m_gson.toJson(transfers));
+    }
+
+    // replacements
+    if( null != replacements && !replacements.isEmpty() ){
+      configParameters.put(ConfigureTask.PARAMETER_REPLACEMENTS, m_gson.toJson(replacements));
     }
 
     return configParameters;

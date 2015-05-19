@@ -141,8 +141,7 @@
           </task>
           <task xsi:type="configure">
             <type>hdfs-site</type>
-            <key>myproperty</key>
-            <value>mynewvalue</value>
+            <set key="myproperty" value="mynewvalue"/>
           </task>
           <task xsi:type="manual">
             <message>{{direction.verb.proper}} your database</message>

@@ -253,7 +253,7 @@ public class UpgradeResourceProviderTest {
         "placeholder of placeholder-rendered-properly"));
 
     assertTrue(group.getItems().get(1).getText().contains("Restarting"));
-    assertTrue(group.getItems().get(2).getText().contains("Updating"));
+    assertTrue(group.getItems().get(2).getText().contains("Skipping"));
     assertTrue(group.getItems().get(3).getText().contains("Service Check"));
 
     ActionManager am = injector.getInstance(ActionManager.class);

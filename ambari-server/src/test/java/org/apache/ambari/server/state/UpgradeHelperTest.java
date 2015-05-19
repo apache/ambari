@@ -44,7 +44,6 @@ import org.apache.ambari.server.controller.ConfigurationRequest;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.HostDAO;
 import org.apache.ambari.server.stack.HostsType;
 import org.apache.ambari.server.stack.MasterHostResolver;
 import org.apache.ambari.server.state.UpgradeHelper.UpgradeGroupHolder;
@@ -60,6 +59,8 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.google.inject.Binder;
 import com.google.inject.Guice;
 import com.google.inject.Injector;
@@ -84,7 +85,7 @@ public class UpgradeHelperTest {
   private UpgradeHelper m_upgradeHelper;
   private ConfigHelper m_configHelper;
   private AmbariManagementController m_managementController;
-  private HostDAO m_hostDAO;
+  private Gson m_gson = new Gson();
 
   @Before
   public void before() throws Exception {
@@ -110,7 +111,6 @@ public class UpgradeHelperTest {
     m_upgradeHelper = injector.getInstance(UpgradeHelper.class);
     m_masterHostResolver = EasyMock.createMock(MasterHostResolver.class);
     m_managementController = injector.getInstance(AmbariManagementController.class);
-    m_hostDAO = injector.getInstance(HostDAO.class);
   }
 
   @After
@@ -394,11 +394,19 @@ public class UpgradeHelperTest {
     ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(
         0).getTasks().get(0);
 
-    Map<String, String> configProperties = configureTask.getConfigurationProperties(cluster);
+    Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster);
     assertFalse(configProperties.isEmpty());
-    assertEquals( configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
-    assertEquals( configProperties.get(ConfigureTask.PARAMETER_KEY), "hive.server2.thrift.port");
-    assertEquals( configProperties.get(ConfigureTask.PARAMETER_VALUE), "10010");
+    assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
+
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    assertNotNull(configurationJson);
+
+    List<ConfigureTask.ConfigurationKeyValue> keyValuePairs = m_gson.fromJson(configurationJson,
+        new TypeToken<List<ConfigureTask.ConfigurationKeyValue>>() {
+        }.getType());
+
+    assertEquals("hive.server2.thrift.port", keyValuePairs.get(0).key);
+    assertEquals("10010", keyValuePairs.get(0).value);
 
     // now change the thrift port to http to have the 2nd condition invoked
     Map<String, String> hiveConfigs = new HashMap<String, String>();
@@ -422,11 +430,72 @@ public class UpgradeHelperTest {
     }, null);
 
     // the configure task should now return different properties
-    configProperties = configureTask.getConfigurationProperties(cluster);
+    configProperties = configureTask.getConfigurationChanges(cluster);
     assertFalse(configProperties.isEmpty());
     assertEquals( configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
-    assertEquals( configProperties.get(ConfigureTask.PARAMETER_KEY), "hive.server2.http.port");
-    assertEquals( configProperties.get(ConfigureTask.PARAMETER_VALUE), "10011");
+
+    configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    assertNotNull(configurationJson);
+
+    keyValuePairs = m_gson.fromJson(configurationJson,
+        new TypeToken<List<ConfigureTask.ConfigurationKeyValue>>() {
+        }.getType());
+
+    assertEquals("hive.server2.http.port", keyValuePairs.get(0).key);
+    assertEquals("10011", keyValuePairs.get(0).value);
+  }
+
+  @Test
+  public void testConfigureTaskWithMultipleConfigurations() throws Exception {
+    Map<String, UpgradePack> upgrades = ambariMetaInfo.getUpgradePacks("HDP", "2.1.1");
+
+    assertTrue(upgrades.containsKey("upgrade_test"));
+    UpgradePack upgrade = upgrades.get("upgrade_test");
+    assertNotNull(upgrade);
+
+    Cluster cluster = makeCluster();
+
+    UpgradeContext context = new UpgradeContext(m_masterHostResolver, HDP_21, HDP_21,
+        UPGRADE_VERSION, Direction.UPGRADE);
+
+    List<UpgradeGroupHolder> groups = m_upgradeHelper.createSequence(upgrade, context);
+
+    assertEquals(6, groups.size());
+
+    // grab the configure task out of Hive
+    UpgradeGroupHolder hiveGroup = groups.get(4);
+    assertEquals("HIVE", hiveGroup.name);
+    ConfigureTask configureTask = (ConfigureTask) hiveGroup.items.get(1).getTasks().get(1).getTasks().get(0);
+
+    Map<String, String> configProperties = configureTask.getConfigurationChanges(cluster);
+    assertFalse(configProperties.isEmpty());
+    assertEquals(configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE), "hive-site");
+
+    String configurationJson = configProperties.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    String transferJson = configProperties.get(ConfigureTask.PARAMETER_TRANSFERS);
+    assertNotNull(configurationJson);
+    assertNotNull(transferJson);
+
+    List<ConfigureTask.ConfigurationKeyValue> keyValuePairs = m_gson.fromJson(configurationJson,
+        new TypeToken<List<ConfigureTask.ConfigurationKeyValue>>() {
+        }.getType());
+
+    List<ConfigureTask.Transfer> transfers = m_gson.fromJson(transferJson,
+        new TypeToken<List<ConfigureTask.Transfer>>() {
+        }.getType());
+
+    assertEquals("fooKey", keyValuePairs.get(0).key);
+    assertEquals("fooValue", keyValuePairs.get(0).value);
+    assertEquals("fooKey2", keyValuePairs.get(1).key);
+    assertEquals("fooValue2", keyValuePairs.get(1).value);
+    assertEquals("fooKey3", keyValuePairs.get(2).key);
+    assertEquals("fooValue3", keyValuePairs.get(2).value);
+
+    assertEquals("copy-key", transfers.get(0).fromKey);
+    assertEquals("copy-key-to", transfers.get(0).toKey);
+
+    assertEquals("move-key", transfers.get(1).fromKey);
+    assertEquals("move-key-to", transfers.get(1).toKey);
   }
 
 

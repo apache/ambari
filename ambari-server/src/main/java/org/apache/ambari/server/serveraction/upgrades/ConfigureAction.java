@@ -46,6 +46,7 @@ import org.apache.ambari.server.state.DesiredConfig;
 import org.apache.ambari.server.state.PropertyInfo;
 import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.state.stack.upgrade.ConfigureTask;
+import org.apache.ambari.server.state.stack.upgrade.ConfigureTask.ConfigurationKeyValue;
 import org.apache.commons.lang.StringUtils;
 
 import com.google.gson.Gson;
@@ -95,7 +96,11 @@ public class ConfigureAction extends AbstractServerAction {
   @Inject
   private ConfigMergeHelper m_mergeHelper;
 
-  private Gson m_gson = new Gson();
+  /**
+   * Gson
+   */
+  @Inject
+  private Gson m_gson;
 
   /**
    * Aside from the normal execution, this method performs the following logic, with
@@ -151,12 +156,19 @@ public class ConfigureAction extends AbstractServerAction {
     }
 
     String clusterName = commandParameters.get("clusterName");
+
     // such as hdfs-site or hbase-env
     String configType = commandParameters.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
 
-    String key = commandParameters.get(ConfigureTask.PARAMETER_KEY);
-    String value = commandParameters.get(ConfigureTask.PARAMETER_VALUE);
+    // extract transfers
+    List<ConfigureTask.ConfigurationKeyValue> keyValuePairs = Collections.emptyList();
+    String keyValuePairJson = commandParameters.get(ConfigureTask.PARAMETER_KEY_VALUE_PAIRS);
+    if (null != keyValuePairJson) {
+      keyValuePairs = m_gson.fromJson(
+          keyValuePairJson, new TypeToken<List<ConfigureTask.ConfigurationKeyValue>>(){}.getType());
+    }
 
+    // extract transfers
     List<ConfigureTask.Transfer> transfers = Collections.emptyList();
     String transferJson = commandParameters.get(ConfigureTask.PARAMETER_TRANSFERS);
     if (null != transferJson) {
@@ -164,6 +176,7 @@ public class ConfigureAction extends AbstractServerAction {
         transferJson, new TypeToken<List<ConfigureTask.Transfer>>(){}.getType());
     }
 
+    // extract replacements
     List<ConfigureTask.Replace> replacements = Collections.emptyList();
     String replaceJson = commandParameters.get(ConfigureTask.PARAMETER_REPLACEMENTS);
     if (null != replaceJson) {
@@ -171,19 +184,26 @@ public class ConfigureAction extends AbstractServerAction {
           replaceJson, new TypeToken<List<ConfigureTask.Replace>>(){}.getType());
     }
 
-    // if the two required properties are null and no transfer properties, then
-    // assume that no conditions were met and let the action complete
-    if (null == configType && null == key && transfers.isEmpty() && replacements.isEmpty()) {
-      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", "",
-          "Skipping configuration task");
+    // if there is nothing to do, then skip the task
+    if (keyValuePairs.isEmpty() && transfers.isEmpty() && replacements.isEmpty()) {
+      String message = "cluster={0}, type={1}, transfers={2}, replacements={3}, configurations={4}";
+      message = MessageFormat.format(message, clusterName, configType, transfers, replacements,
+          keyValuePairs);
+
+      StringBuilder buffer = new StringBuilder(
+          "Skipping this configuration task since none of the conditions were met and there are no transfers or replacements").append("\n");
+
+      buffer.append(message);
+
+      return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", buffer.toString(), "");
     }
 
     // if only 1 of the required properties was null and no transfer properties,
     // then something went wrong
-    if (null == clusterName || null == configType ||
-        (null == key && transfers.isEmpty() && replacements.isEmpty())) {
-      String message = "cluster={0}, type={1}, key={2}, transfers={3}, replacements={4}";
-      message = MessageFormat.format(message, clusterName, configType, key, transfers, replacements);
+    if (null == clusterName || null == configType
+        || (keyValuePairs.isEmpty() && transfers.isEmpty() && replacements.isEmpty())) {
+      String message = "cluster={0}, type={1}, transfers={2}, replacements={3}, configurations={4}";
+      message = MessageFormat.format(message, clusterName, configType, transfers, replacements, keyValuePairs);
       return createCommandReport(0, HostRoleStatus.FAILED, "{}", "", message);
     }
 
@@ -322,29 +342,38 @@ public class ConfigureAction extends AbstractServerAction {
       }
     }
 
+    // set all key/value pairs
+    if (null != keyValuePairs && !keyValuePairs.isEmpty()) {
+      for (ConfigurationKeyValue keyValuePair : keyValuePairs) {
+        String key = keyValuePair.key;
+        String value = keyValuePair.value;
 
-    if (null != key) {
-      String oldValue = base.get(key);
+        if (null != key) {
+          String oldValue = base.get(key);
 
-      // !!! values are not changing, so make this a no-op
-      if (null != oldValue && value.equals(oldValue)) {
-        if (currentStack.equals(targetStack) && !changedValues) {
-          return createCommandReport(0, HostRoleStatus.COMPLETED, "{}",
-              MessageFormat.format("{0}/{1} for cluster {2} would not change, skipping setting",
-                  configType, key, clusterName),
-              "");
+          // !!! values are not changing, so make this a no-op
+          if (null != oldValue && value.equals(oldValue)) {
+            if (currentStack.equals(targetStack) && !changedValues) {
+              outputBuffer.append(MessageFormat.format(
+                  "{0}/{1} for cluster {2} would not change, skipping setting", configType, key,
+                  clusterName));
+
+              // continue because this property is not changing
+              continue;
+            }
+          }
+
+          // !!! only put a key/value into this map of new configurations if
+          // there was a key, otherwise this will put something like null=null
+          // into the configs which will cause NPEs after upgrade - this is a
+          // byproduct of the configure being able to take a list of transfers
+          // without a key/value to set
+          newValues.put(key, value);
+          outputBuffer.append(MessageFormat.format("{0}/{1} changed to {2}\n", configType, key,
+              value));
         }
       }
-
-      // !!! only put a key/value into this map of new configurations if there
-      // was a key, otherwise this will put something like null=null into the
-      // configs which will cause NPEs after upgrade - this is a byproduct of
-      // the configure being able to take a list of transfers without a
-      // key/value to set
-      newValues.put(key, value);
-      outputBuffer.append(MessageFormat.format("{0}/{1} changed to {2}\n", configType, key, value));
     }
-
 
     // !!! string replacements happen only on the new values.
     for (ConfigureTask.Replace replacement : replacements) {
@@ -389,9 +418,8 @@ public class ConfigureAction extends AbstractServerAction {
     m_configHelper.createConfigType(cluster, m_controller, configType,
         newValues, auditName, serviceVersionNote);
 
-    String message = "Updated configuration ''{0}'' with ''{1}={2}''";
-    message = MessageFormat.format(message, configType, key, value);
-
+    String message = "Finished updating configuration ''{0}''";
+    message = MessageFormat.format(message, configType);
     return createCommandReport(0, HostRoleStatus.COMPLETED, "{}", message, "");
   }
 

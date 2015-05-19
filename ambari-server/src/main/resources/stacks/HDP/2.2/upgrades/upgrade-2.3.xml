@@ -364,12 +364,7 @@
             <type>mapred-site</type>
             <transfer operation="move" from-key="mapreduce.job.speculative.speculativecap" to-key="mapreduce.job.speculative.speculative-cap-running-tasks" default-value="0.1" />
             <transfer operation="delete" delete-key="mapreduce.task.tmp.dir" />
-          </task>
-
-          <task xsi:type="configure">
-            <type>mapred-site</type>
-            <key>mapreduce.fileoutputcommitter.algorithm.version</key>
-            <value>1</value>
+            <set key="mapreduce.fileoutputcommitter.algorithm.version" value="1"/>
           </task>
         </pre-upgrade>
 
@@ -390,8 +385,7 @@
         <pre-upgrade>
           <task xsi:type="configure">
             <type>yarn-site</type>
-            <key>yarn.timeline-service.recovery.enabled</key>
-            <value>true</value>
+            <set key="yarn.timeline-service.recovery.enabled" value="true"/>
           </task>
         </pre-upgrade>
 
@@ -404,8 +398,7 @@
         <pre-upgrade>
           <task xsi:type="configure">
             <type>yarn-site</type>
-            <key>yarn.node-labels.enabled</key>
-            <value>false</value>
+            <set key="yarn.node-labels.enabled" value="false"/>
           </task>
           <task xsi:type="configure">
             <type>capacity-scheduler</type>
@@ -456,13 +449,11 @@
         <pre-upgrade>
           <task xsi:type="configure">
             <type>tez-site</type>
-            <key>tez.am.view-acls</key>
-            <value>*</value>
+            <set key="tez.am.view-acls" value="*"/>
           </task>
           <task xsi:type="configure">
             <type>tez-site</type>
-            <key>tez.task.generate.counters.per.io</key>
-            <value>true</value>
+            <set key="tez.task.generate.counters.per.io" value="true"/>
           </task>
         </pre-upgrade>
         <upgrade>

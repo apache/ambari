@@ -141,8 +141,7 @@
           </task>
           <task xsi:type="configure">
             <type>hdfs-site</type>
-            <key>myproperty</key>
-            <value>mynewvalue</value>
+            <set key="myproperty" value="mynewvalue"/>
           </task>
           <task xsi:type="manual">
             <message>{{direction.verb.proper}} your database</message>
@@ -185,11 +184,11 @@
           </task>
           <task xsi:type="configure">
             <type>core-site</type>
-              <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
-              <transfer operation="copy" from-type="my-site" from-key="my-copy-key" to-key="my-copy-key-to" />
-              <transfer operation="move" from-key="move-key" to-key="move-key-to" />
-              <transfer operation="delete" delete-key="delete-key" preserve-edits="true">
-              <keep-key>important-key</keep-key>
+            <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
+            <transfer operation="copy" from-type="my-site" from-key="my-copy-key" to-key="my-copy-key-to" />
+            <transfer operation="move" from-key="move-key" to-key="move-key-to" />
+            <transfer operation="delete" delete-key="delete-key" preserve-edits="true">
+            <keep-key>important-key</keep-key>
             </transfer>
           </task>
         </pre-upgrade>
@@ -215,6 +214,15 @@
               <key>hive.server2.http.port</key>
               <value>10011</value>
             </condition>
+          </task>
+          
+          <task xsi:type="configure">
+            <type>hive-site</type>
+            <set key="fooKey" value="fooValue"/>
+            <set key="fooKey2" value="fooValue2"/>
+            <set key="fooKey3" value="fooValue3"/>
+            <transfer operation="copy" from-key="copy-key" to-key="copy-key-to" />
+            <transfer operation="move" from-key="move-key" to-key="move-key-to" />
           </task>
         </pre-upgrade>
        </component>

@@ -98,7 +98,6 @@ import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
 import com.google.inject.Inject;
 import com.google.inject.Provider;
 
@@ -190,9 +189,6 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
 
   @Inject
   private static HostDAO s_hostDAO = null;
-
-  private static Gson s_gson = new Gson();
-
 
   /**
    * Used to generated the correct tasks and stages during an upgrade.
@@ -1017,42 +1013,27 @@ public class UpgradeResourceProvider extends AbstractControllerResourceProvider 
       }
       case CONFIGURE: {
         ConfigureTask ct = (ConfigureTask) task;
-        Map<String, String> configProperties = ct.getConfigurationProperties(cluster);
-        List<ConfigureTask.Transfer> transfers = ct.getTransfers();
-        List<ConfigureTask.Replace> replacements = ct.getReplacements();
+        Map<String, String> configurationChanges = ct.getConfigurationChanges(cluster);
 
-        // if the properties are empty it means that the conditions in the
-        // task did not pass;
-        if (configProperties.isEmpty() && transfers.isEmpty() && replacements.isEmpty()) {
-          stageText = "No conditions were met for this configuration task.";
-          itemDetail = stageText;
+        // add all configuration changes to the command params
+        commandParams.putAll(configurationChanges);
+
+        // extract the config type to build the summary
+        String configType = configurationChanges.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
+        if (null != configType) {
+          itemDetail = String.format("Updating configuration %s", configType);
         } else {
-          commandParams.putAll(configProperties);
-          commandParams.put(ConfigureTask.PARAMETER_TRANSFERS, s_gson.toJson(transfers));
-          commandParams.put(ConfigureTask.PARAMETER_REPLACEMENTS, s_gson.toJson(replacements));
-
-          // extract the config type, key and value to use to build the
-          // summary and detail
-          String configType = configProperties.get(ConfigureTask.PARAMETER_CONFIG_TYPE);
-          String key = configProperties.get(ConfigureTask.PARAMETER_KEY);
-          String value = configProperties.get(ConfigureTask.PARAMETER_VALUE);
-
-          StringBuilder detail = new StringBuilder(String.format("Updating config %s", configType));
-
-          if (null != key && null != value) {
-            detail.append(String.format("/%s to %s", key, value));
-          }
-
-          itemDetail = detail.toString();
-
-          if (null != ct.summary) {
-            stageText = ct.summary;
-          } else {
-            stageText = String.format("Updating Config %s", configType);
-          }
+          itemDetail = "Skipping Configuration Task";
         }
 
         entity.setText(itemDetail);
+
+        if (null != ct.summary) {
+          stageText = ct.summary;
+        } else {
+          stageText = itemDetail;
+        }
+
         break;
       }
       default:
