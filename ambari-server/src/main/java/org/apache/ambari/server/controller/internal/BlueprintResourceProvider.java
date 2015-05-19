@@ -375,8 +375,28 @@ public class BlueprintResourceProvider extends AbstractControllerResourceProvide
    */
   private Command<Void> getCreateCommand(final Map<String, Object> properties, final Map<String, String> requestInfoProps) {
     return new Command<Void>() {
+      @SuppressWarnings("rawtypes")
       @Override
       public Void invoke() throws AmbariException {
+        String rawRequestBody = requestInfoProps.get(Request.REQUEST_INFO_BODY_PROPERTY);
+        Map<String, Object> rawBodyMap = jsonSerializer.<Map<String, Object>>fromJson(rawRequestBody, Map.class);
+        Object configurationData = rawBodyMap.get(CONFIGURATION_PROPERTY_ID);
+
+        if (configurationData != null) {
+          if (configurationData instanceof List) {
+            for (Object map : (List) configurationData) {
+              if (map instanceof Map) {
+                if (((Map) map).size() > 1) {
+                  throw new IllegalArgumentException("Configuration Maps must hold a single configuration type each");
+                }
+              } else {
+                throw new IllegalArgumentException("Configuration elements must be Maps");
+              }
+            }
+          } else {
+            throw new IllegalArgumentException("Configurations property must be a List of Maps");
+          }
+        }
         Blueprint blueprint;
         try {
           blueprint = blueprintFactory.createBlueprint(properties);

@@ -58,6 +58,7 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.ResourceProvider;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.UnsupportedPropertyException;
+import org.apache.ambari.server.controller.spi.ResourceAlreadyExistsException;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.orm.dao.BlueprintDAO;
 import org.apache.ambari.server.orm.dao.StackDAO;
@@ -127,22 +128,9 @@ public class BlueprintResourceProviderTest {
 
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
     Request request = createMock(Request.class);
-    //Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
-
-//    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
-//    ServiceInfo service = new ServiceInfo();
-//    service.setName("test-service");
-//    services.put("test-service", service);
-
-//    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
-//    ComponentInfo component1 = new ComponentInfo();
-//    component1.setName("component1");
-//    ComponentInfo component2 = new ComponentInfo();
-//    component2.setName("component2");
-//    serviceComponents.add(component1);
-//    serviceComponents.add(component2);
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+    Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
@@ -151,16 +139,8 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
-    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
-//    expect(metaInfo.getServices("test-stack-name", "test-stack-version")).andReturn(services).anyTimes();
-//    expect(metaInfo.getComponentsByService("test-stack-name", "test-stack-version", "test-service")).
-//        andReturn(serviceComponents).anyTimes();
-//    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component1")).
-//        andReturn("test-service").anyTimes();
-//    expect(metaInfo.getComponentToService("test-stack-name", "test-stack-version", "component2")).
-//        andReturn("test-service").anyTimes();
-//    expect(metaInfo.getService("test-stack-name", "test-stack-version", "test-service")).andReturn(service).anyTimes();
     dao.create(entity);
 
     replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
@@ -184,8 +164,6 @@ public class BlueprintResourceProviderTest {
     assertEquals(request, lastEvent.getRequest());
     assertNull(lastEvent.getPredicate());
 
-    //validateEntity(entityCapture.getValue(), false);
-
     verify(dao, entity, blueprintFactory, metaInfo, request, managementController);
   }
 
@@ -197,6 +175,8 @@ public class BlueprintResourceProviderTest {
 
 
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+    Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
+    requestInfoProperties.put("validate_topology", "false");
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
@@ -204,7 +184,7 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
-    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>singletonMap("validate_topology", "false"));
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
@@ -237,6 +217,7 @@ public class BlueprintResourceProviderTest {
 
     Request request = createMock(Request.class);
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+    Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
@@ -246,7 +227,7 @@ public class BlueprintResourceProviderTest {
     expectLastCall().andThrow(new InvalidTopologyException("test"));
 
     expect(request.getProperties()).andReturn(setProperties);
-    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
 
     replay(dao, entity, metaInfo, blueprintFactory, blueprint, request);
@@ -278,22 +259,8 @@ public class BlueprintResourceProviderTest {
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     setConfigurationProperties(setProperties);
     AmbariManagementController managementController = createMock(AmbariManagementController.class);
-//    Capture<Set<StackServiceRequest>> stackServiceRequestCapture = new Capture<Set<StackServiceRequest>>();
+    Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
     Request request = createMock(Request.class);
-
-//    Map<String, ServiceInfo> services = new HashMap<String, ServiceInfo>();
-//    ServiceInfo service = new ServiceInfo();
-//    service.setName("test-service");
-//    services.put("test-service", service);
-//
-//    List<ComponentInfo> serviceComponents = new ArrayList<ComponentInfo>();
-//    ComponentInfo component1 = new ComponentInfo();
-//    component1.setName("component1");
-//    ComponentInfo component2 = new ComponentInfo();
-//    component2.setName("component2");
-//    serviceComponents.add(component1);
-//    serviceComponents.add(component2);
-
 
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
@@ -302,7 +269,7 @@ public class BlueprintResourceProviderTest {
     expect(blueprint.toEntity()).andReturn(entity);
     expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
     expect(request.getProperties()).andReturn(setProperties);
-    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
     expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
     dao.create(entity);
 
@@ -338,11 +305,13 @@ public class BlueprintResourceProviderTest {
     Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
     setProperties.iterator().next().remove(BlueprintResourceProvider.HOST_GROUP_PROPERTY_ID);
 
+    Map<String, String> requestInfoProperties = getTestRequestInfoProperties();
+
     // set expectations
     expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andThrow(
         new IllegalArgumentException("Blueprint name must be provided"));
     expect(request.getProperties()).andReturn(setProperties);
-    expect(request.getRequestInfoProperties()).andReturn(Collections.<String, String>emptyMap());
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
 
     replay(dao, entity, metaInfo, blueprintFactory, blueprint, request);
     // end expectations
@@ -429,6 +398,126 @@ public class BlueprintResourceProviderTest {
     assertNotNull(lastEvent.getPredicate());
 
     verify(dao);
+  }
+
+  @Test
+  public void testCreateResources_withEmptyConfiguration() throws Exception {
+
+    Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+    setConfigurationProperties(setProperties);
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[]}");
+    Request request = createMock(Request.class);
+
+    // set expectations
+    expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
+    blueprint.validateRequiredProperties();
+    blueprint.validateTopology();
+    expect(blueprint.toEntity()).andReturn(entity);
+    expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    dao.create(entity);
+
+    replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
+    // end expectations
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    verify(dao, entity, blueprintFactory, metaInfo, request, managementController);
+  }
+
+  @Test
+  public void testCreateResources_withSingleConfigurationType() throws Exception {
+
+    Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+    setConfigurationProperties(setProperties);
+    AmbariManagementController managementController = createMock(AmbariManagementController.class);
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, "{\"configurations\":[{\"configuration-type\":{\"properties\":{\"property\":\"value\"}}}]}");
+    Request request = createMock(Request.class);
+
+    // set expectations
+    expect(blueprintFactory.createBlueprint(setProperties.iterator().next())).andReturn(blueprint).once();
+    blueprint.validateRequiredProperties();
+    blueprint.validateTopology();
+    expect(blueprint.toEntity()).andReturn(entity);
+    expect(blueprint.getName()).andReturn(BLUEPRINT_NAME).atLeastOnce();
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
+    expect(dao.findByName(BLUEPRINT_NAME)).andReturn(null);
+    dao.create(entity);
+
+    replay(dao, entity, metaInfo, blueprintFactory, blueprint, request, managementController);
+    // end expectations
+
+    ResourceProvider provider = AbstractControllerResourceProvider.getResourceProvider(
+        Resource.Type.Blueprint,
+        PropertyHelper.getPropertyIds(Resource.Type.Blueprint),
+        PropertyHelper.getKeyPropertyIds(Resource.Type.Blueprint),
+        managementController);
+
+    AbstractResourceProviderTest.TestObserver observer = new AbstractResourceProviderTest.TestObserver();
+    ((ObservableResourceProvider)provider).addObserver(observer);
+
+    provider.createResources(request);
+
+    ResourceProviderEvent lastEvent = observer.getLastEvent();
+    assertNotNull(lastEvent);
+    assertEquals(Resource.Type.Blueprint, lastEvent.getResourceType());
+    assertEquals(ResourceProviderEvent.Type.Create, lastEvent.getType());
+    assertEquals(request, lastEvent.getRequest());
+    assertNull(lastEvent.getPredicate());
+
+    verify(dao, entity, blueprintFactory, metaInfo, request, managementController);
+  }
+
+  @Test
+  public void testCreateResources_withWrongConfigurationsStructure() throws ResourceAlreadyExistsException, SystemException,
+      UnsupportedPropertyException, NoSuchParentResourceException
+  {
+    Request request = createMock(Request.class);
+
+    Set<Map<String, Object>> setProperties = getBlueprintTestProperties();
+
+    Map<String, String> requestInfoProperties = new HashMap<String, String>();
+    String configurationData = "{\"configurations\":[{\"config-type1\":{\"properties\" :{\"property\":\"property-value\"}},"
+        + "\"config-type2\" : {\"properties_attributes\" : {\"property\" : \"property-value\"}, \"properties\" : {\"property\" : \"property-value\"}}}"
+        + "]}";
+    requestInfoProperties.put(Request.REQUEST_INFO_BODY_PROPERTY, configurationData);
+
+    // set expectations
+    expect(request.getProperties()).andReturn(setProperties);
+    expect(request.getRequestInfoProperties()).andReturn(requestInfoProperties);
+
+    replay(dao, metaInfo, request);
+    // end expectations
+
+    try {
+      provider.createResources(request);
+      fail("Exception expected");
+    } catch (IllegalArgumentException e) {
+      //expected exception
+    }
+    verify(dao, metaInfo, request);
   }
 
   public static Set<Map<String, Object>> getBlueprintTestProperties() {
@@ -604,6 +693,16 @@ public class BlueprintResourceProviderTest {
     createProvider().createBlueprintConfigEntities(configProperties, entity);
     return entity;
   }
+
+  private Map<String, String> getTestRequestInfoProperties() {
+    Map<String, String> setPropertiesInfo = new HashMap<String, String>();
+    String configurationData = "{\"configurations\":[{\"config-type1\":{\"properties\" :{\"property\":\"property-value\"}}},"
+        + "{\"config-type2\" : {\"properties_attributes\" : {\"property\" : \"property-value\"}, \"properties\" : {\"property\" : \"property-value\"}}}"
+        + "]}";
+    setPropertiesInfo.put(Request.REQUEST_INFO_BODY_PROPERTY, configurationData);
+    return setPropertiesInfo;
+  }
+
 
   @Test
   public void testPopulateConfigurationEntity_oldSchema() throws Exception {
