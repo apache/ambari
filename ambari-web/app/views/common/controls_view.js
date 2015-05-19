@@ -90,6 +90,7 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
     if (!config.get('isValid')) return $.Deferred().resolve().promise();
     if (App.get('isClusterSupportsEnhancedConfigs') && ['mainServiceInfoConfigsController','wizardStep7Controller'].contains(this.get('controller.name'))) {
       var name = config.get('name');
+      var saveRecommended = (this.get('config.value') === this.get('config.recommendedValue'));
       var controller = this.get('controller');
       var type = App.config.getConfigTagFromFileName(config.get('filename'));
       var p = App.StackConfigProperty.find(name + '_' + type);
@@ -98,10 +99,10 @@ App.SupportsDependentConfigs = Ember.Mixin.create({
           "type": type,
           "name": name
         }], false, function() {
-          controller.removeCurrentFromDependentList(config);
+          controller.removeCurrentFromDependentList(config, saveRecommended);
         });
       } else {
-        controller.removeCurrentFromDependentList(config);
+        controller.removeCurrentFromDependentList(config, saveRecommended);
       }
     }
 

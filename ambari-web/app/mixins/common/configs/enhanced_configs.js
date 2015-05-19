@@ -207,16 +207,17 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * disable saving recommended value for current config
    * @param config
+   * @param {boolean} saveRecommended
    * @method removeCurrentFromDependentList
    */
-  removeCurrentFromDependentList: function (config) {
+  removeCurrentFromDependentList: function (config, saveRecommended) {
     var current = this.get('_dependentConfigValues').find(function(dependentConfig) {
       return Em.get(dependentConfig, 'propertyName') == config.get('name') && Em.get(dependentConfig, 'fileName') == App.config.getConfigTagFromFileName(config.get('filename'))
     });
     if (current) {
       Em.setProperties(current, {
-          'saveRecommended': false,
-          'saveRecommendedDefault': false
+          'saveRecommended': !!saveRecommended,
+          'saveRecommendedDefault': !!saveRecommended
         });
     }
   },
@@ -419,7 +420,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
         for (var propertyName in configObject[key].properties) {
 
-          var dependentProperty = this.get('_dependentConfigValues').findProperty('propertyName', propertyName);
+          var dependentProperty = this.get('_dependentConfigValues').filterProperty('propertyName', propertyName).findProperty('fileName', key);
           var cp = configProperties.findProperty('name', propertyName);
           var override = (notDefaultGroup && group && cp && cp.get('overrides')) ? cp.get('overrides').findProperty('group.name', group.get('name')) : null;
 
