@@ -407,6 +407,11 @@
             <key>yarn.node-labels.enabled</key>
             <value>false</value>
           </task>
+          <task xsi:type="configure">
+            <type>capacity-scheduler</type>
+            <key>yarn.scheduler.capacity.root.default-node-label-expression</key>
+            <value></value>
+          </task>
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
