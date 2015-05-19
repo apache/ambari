@@ -831,8 +831,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       self.setProperties({
         dataIsLoaded: true,
         versionLoaded: true,
-        hash: self.getHash(),
         isInit: false
+      });
+      Em.run.next(function(){
+         self.set('hash', self.getHash())
       });
     });
   },
