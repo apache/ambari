@@ -30,7 +30,6 @@ App.ConfigOverridable = Em.Mixin.create({
    * @method createOverrideProperty
    */
   createOverrideProperty: function (event) {
-    $('.tooltip').remove();
     var serviceConfigProperty = event.contexts[0];
     var serviceConfigController = this.get('isView') ? this.get('controller') : this;
     var selectedConfigGroup = serviceConfigController.get('selectedConfigGroup');
@@ -63,7 +62,8 @@ App.ConfigOverridable = Em.Mixin.create({
       );
     }
     else {
-      serviceConfigController.addOverrideProperty(serviceConfigProperty, selectedConfigGroup, serviceConfigProperty.get('widget') ? serviceConfigProperty.get('value') : null);
+      var valueForOverride = (serviceConfigProperty.get('widget') || serviceConfigProperty.get('displayType') == 'checkbox') ? serviceConfigProperty.get('value') : null;
+      serviceConfigController.addOverrideProperty(serviceConfigProperty, selectedConfigGroup, valueForOverride);
     }
     Em.$('body>.tooltip').remove();
   },
