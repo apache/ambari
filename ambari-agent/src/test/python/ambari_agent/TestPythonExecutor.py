@@ -37,6 +37,7 @@ if get_platform() != PLATFORM_WINDOWS:
 else:
   os_distro_value = ('win2012serverr2','6.3','WindowsServer')
 
+@patch.object(PythonExecutor, "open_subprocess_files", new=MagicMock(return_value =("", "")))
 class TestPythonExecutor(TestCase):
 
   @patch.object(OSCheck, "os_distribution", new = MagicMock(return_value = os_distro_value))
@@ -64,8 +65,8 @@ class TestPythonExecutor(TestCase):
     subproc_mock.returncode = None
     callback_method = MagicMock()
     thread = Thread(target =  executor.run_file, args = ("fake_puppetFile",
-      ["arg1", "arg2"], "/fake_tmp_dir", tmpoutfile, tmperrfile,
-      PYTHON_TIMEOUT_SECONDS, tmpstrucout, "INFO", callback_method, '1'))
+      ["arg1", "arg2"], tmpoutfile, tmperrfile,
+      PYTHON_TIMEOUT_SECONDS, tmpstrucout, callback_method, '1'))
     thread.start()
     time.sleep(0.1)
     subproc_mock.finished_event.wait()
@@ -96,9 +97,9 @@ class TestPythonExecutor(TestCase):
     subproc_mock.returncode = 0
     callback_method = MagicMock()
     thread = Thread(target =  executor.run_file, args = ("fake_puppetFile", ["arg1", "arg2"],
-                                                      "/fake_tmp_dir", tmpoutfile, tmperrfile,
+                                                      tmpoutfile, tmperrfile,
                                                       PYTHON_TIMEOUT_SECONDS, tmpstrucout,
-                                                      "INFO", callback_method, "1-1"))
+                                                      callback_method, "1-1"))
     thread.start()
     time.sleep(0.1)
     subproc_mock.should_finish_event.set()
@@ -131,10 +132,10 @@ class TestPythonExecutor(TestCase):
     subproc_mock.returncode = 0
     subproc_mock.should_finish_event.set()
     callback_method = MagicMock()
-    result = executor.run_file("file", ["arg1", "arg2"], "/fake_tmp_dir",
+    result = executor.run_file("file", ["arg1", "arg2"],
                                tmpoutfile, tmperrfile, PYTHON_TIMEOUT_SECONDS,
-                               tmpstructuredoutfile, "INFO", callback_method, "1-1")
-    self.assertEquals(result, {'exitcode': 0, 'stderr': 'Dummy err', 'stdout': 'Dummy output',
+                               tmpstructuredoutfile, callback_method, "1-1")
+    self.assertEquals(result, {'exitcode': 0, 'stderr': '', 'stdout': '',
                                'structuredOut': {}})
     self.assertTrue(callback_method.called)
 
@@ -179,11 +180,7 @@ class TestPythonExecutor(TestCase):
 
     def communicate(self):
       self.started_event.set()
-      self.tmpout.write("Dummy output")
-      self.tmpout.flush()
 
-      self.tmperr.write("Dummy err")
-      self.tmperr.flush()
       self.should_finish_event.wait()
       self.finished_event.set()
       pass

@@ -36,7 +36,7 @@ from ambari_commons.shell import shellRunner
 
 logger = logging.getLogger()
 
-class PythonExecutor:
+class PythonExecutor(object):
   """
   Performs functionality for executing python scripts.
   Warning: class maintains internal state. As a result, instances should not be
@@ -62,8 +62,8 @@ class PythonExecutor:
       tmperr =  open(tmperrfile, 'a')
     return tmpout, tmperr
 
-  def run_file(self, script, script_params, tmp_dir, tmpoutfile, tmperrfile,
-               timeout, tmpstructedoutfile, logger_level, callback, task_id,
+  def run_file(self, script, script_params, tmpoutfile, tmperrfile,
+               timeout, tmpstructedoutfile, callback, task_id,
                override_output_files = True, handle = None, log_info_on_failure=True):
     """
     Executes the specified python file in a separate subprocess.
@@ -76,9 +76,9 @@ class PythonExecutor:
     The structured out file, however, is preserved during multiple invocations that use the same file.
     """
 
-    script_params += [tmpstructedoutfile, logger_level, tmp_dir]
     pythonCommand = self.python_command(script, script_params)
     logger.debug("Running command " + pprint.pformat(pythonCommand))
+    
     if handle is None:
       tmpout, tmperr = self.open_subprocess_files(tmpoutfile, tmperrfile, override_output_files)
 
@@ -94,7 +94,7 @@ class PythonExecutor:
       process.communicate()
       self.event.set()
       thread.join()
-      result = self.prepare_process_result(process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
+      result = self.prepare_process_result(process.returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=timeout)
       
       if log_info_on_failure and result['exitcode']:
         self.on_failure(pythonCommand, result)
@@ -123,10 +123,8 @@ class PythonExecutor:
       ret = shell_runner.run(cmd)
       logger.info("Command '{0}' returned {1}. {2}{3}".format(cmd, ret["exitCode"], ret["error"], ret["output"]))
     
-  def prepare_process_result(self, process, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
+  def prepare_process_result(self, returncode, tmpoutfile, tmperrfile, tmpstructedoutfile, timeout=None):
     out, error, structured_out = self.read_result_from_files(tmpoutfile, tmperrfile, tmpstructedoutfile)
-    # Building results
-    returncode = process.returncode
 
     if self.python_process_has_been_killed:
       error = str(error) + "\n Python script has been killed due to timeout" + \
@@ -227,7 +225,7 @@ class BackgroundThread(threading.Thread):
     process.communicate()
 
     self.holder.handle.exitCode = process.returncode
-    process_condensed_result = self.pythonExecutor.prepare_process_result(process, self.holder.out_file, self.holder.err_file, self.holder.structured_out_file)
+    process_condensed_result = self.pythonExecutor.prepare_process_result(process.returncode, self.holder.out_file, self.holder.err_file, self.holder.structured_out_file)
     logger.debug("Calling callback with args %s" % process_condensed_result)
     self.holder.handle.on_background_command_complete_callback(process_condensed_result, self.holder.handle)
     logger.debug("Exiting from thread for holder pid %s" % self.holder.handle.pid)

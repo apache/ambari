@@ -28,6 +28,7 @@ import threading
 from FileCache import FileCache
 from AgentException import AgentException
 from PythonExecutor import PythonExecutor
+from PythonReflectiveExecutor import PythonReflectiveExecutor
 import hostname
 
 
@@ -55,6 +56,7 @@ class CustomServiceOrchestrator():
 
   AMBARI_SERVER_HOST = "ambari_server_host"
   DONT_DEBUG_FAILURES_FOR_COMMANDS = [COMMAND_NAME_SECURITY_STATUS, COMMAND_NAME_STATUS]
+  REFLECTIVELY_RUN_COMMANDS = [COMMAND_NAME_SECURITY_STATUS, COMMAND_NAME_STATUS] # -- commands which run a lot and often (this increases their speed)
 
   def __init__(self, config, controller):
     self.config = config
@@ -95,12 +97,15 @@ class CustomServiceOrchestrator():
       else: 
         logger.warn("Unable to find pid by taskId = %s" % task_id)
 
-  def get_py_executor(self):
+  def get_py_executor(self, forced_command_name):
     """
     Wrapper for unit testing
     :return:
     """
-    return PythonExecutor(self.tmp_dir, self.config)
+    if forced_command_name in self.REFLECTIVELY_RUN_COMMANDS:
+      return PythonReflectiveExecutor(self.tmp_dir, self.config)
+    else:
+      return PythonExecutor(self.tmp_dir, self.config)
 
   def runCommand(self, command, tmpoutfile, tmperrfile, forced_command_name=None,
                  override_output_files=True, retry=False):
@@ -178,13 +183,13 @@ class CustomServiceOrchestrator():
       if command.has_key('commandType') and command['commandType'] == ActionQueue.BACKGROUND_EXECUTION_COMMAND and len(filtered_py_file_list) > 1:
         raise AgentException("Background commands are supported without hooks only")
 
-      python_executor = self.get_py_executor()
+      python_executor = self.get_py_executor(forced_command_name)
       for py_file, current_base_dir in filtered_py_file_list:
         log_info_on_failure = not command_name in self.DONT_DEBUG_FAILURES_FOR_COMMANDS
-        script_params = [command_name, json_path, current_base_dir]
+        script_params = [command_name, json_path, current_base_dir, tmpstrucoutfile, logger_level, self.exec_tmp_dir]
         ret = python_executor.run_file(py_file, script_params,
-                               self.exec_tmp_dir, tmpoutfile, tmperrfile, timeout,
-                               tmpstrucoutfile, logger_level, self.map_task_to_process,
+                               tmpoutfile, tmperrfile, timeout,
+                               tmpstrucoutfile, self.map_task_to_process,
                                task_id, override_output_files, handle = handle, log_info_on_failure=log_info_on_failure)
         # Next run_file() invocations should always append to current output
         override_output_files = False

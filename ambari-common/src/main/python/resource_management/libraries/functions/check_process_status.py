@@ -47,10 +47,14 @@ def check_process_status(pid_file):
     Logger.debug("Pid file {0} does not exist".format(pid_file))
     raise ComponentIsNotRunning()
 
-  code, out = shell.call(["ps","-p", str(pid)])
-  
-  if code:
+  try:
+    # Kill will not actually kill the process
+    # From the doc:
+    # If sig is 0, then no signal is sent, but error checking is still
+    # performed; this can be used to check for the existence of a
+    # process ID or process group ID.
+    os.kill(pid, 0)
+  except OSError:
     Logger.debug("Process with pid {0} is not running. Stale pid file"
               " at {1}".format(pid, pid_file))
     raise ComponentIsNotRunning()
-  pass

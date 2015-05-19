@@ -214,13 +214,6 @@ class Script(object):
         method(env)
         if command_name == "install":
           self.set_version()
-    except ClientComponentHasNoStatus or ComponentIsNotRunning:
-      # Support of component status checks.
-      # Non-zero exit code is interpreted as an INSTALLED status of a component
-      sys.exit(1)
-    except Fail:
-      logger.exception("Error while executing command '{0}':".format(command_name))
-      sys.exit(1)
     finally:
       if self.should_expose_component_version(command_name):
         self.save_component_version_to_structured_out()
