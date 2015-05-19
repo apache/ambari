@@ -176,6 +176,7 @@
   metadata.authentication.method={{authentication_method}}
   metadata.authentication.principal={{authentication_principal}}
   metadata.authentication.keytab={{authentication_keytab}}
+  metadata.server.bind.address={{metadata_host}}
 
   # SPNEGO
   metadata.http.authentication.enabled={{http_authentication_enabled}}
