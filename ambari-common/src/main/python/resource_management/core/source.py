@@ -130,7 +130,7 @@ else:
       self.context.update(variables)
       
       rendered = self.template.render(self.context)
-      return rendered + "\n" if not rendered.endswith('\n') else rendered
+      return rendered
     
   class InlineTemplate(Template):
     def __init__(self, name, extra_imports=[], **kwargs):
