@@ -43,6 +43,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.RollbackException;
 
 import com.google.gson.Gson;
+import com.google.inject.persist.UnitOfWork;
 import junit.framework.Assert;
 
 import org.apache.ambari.server.AmbariException;
@@ -104,7 +105,6 @@ import org.apache.ambari.server.state.host.HostHealthyHeartbeatEvent;
 import org.apache.ambari.server.state.host.HostRegistrationRequestEvent;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.mockito.ArgumentCaptor;
 
@@ -194,10 +194,12 @@ public class ClusterTest {
     hostComponentStateDAO = injector.getInstance(HostComponentStateDAO.class);
     repositoryVersionDAO = injector.getInstance(RepositoryVersionDAO.class);
     gson = injector.getInstance(Gson.class);
+    injector.getInstance(UnitOfWork.class).begin();
   }
 
   @After
   public void teardown() {
+    injector.getInstance(UnitOfWork.class).end();
     injector.getInstance(PersistService.class).stop();
   }
 
@@ -538,7 +540,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testAddHost() throws Exception {
     createDefaultCluster();
     clusters.addHost("h3");
@@ -553,7 +554,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testGetHostState() throws Exception {
     createDefaultCluster();
 
@@ -561,7 +561,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testSetHostState() throws Exception {
     createDefaultCluster();
 
@@ -571,7 +570,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testHostEvent() throws Exception,
       InvalidStateTransitionException {
     createDefaultCluster();
@@ -622,7 +620,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testBasicClusterSetup() throws Exception {
     StackId stackVersion = new StackId("HDP-1.2.0");
 
@@ -652,7 +649,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testAddAndGetServices() throws Exception {
     createDefaultCluster();
 
@@ -698,7 +694,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testGetServiceComponentHosts() throws Exception {
     createDefaultCluster();
 
@@ -744,7 +739,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testGetAndSetConfigs() throws Exception {
     createDefaultCluster();
 
@@ -785,7 +779,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testDesiredConfigs() throws Exception {
     createDefaultCluster();
 
@@ -859,7 +852,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testConvertToResponse() throws Exception {
     createDefaultCluster();
 
@@ -914,7 +906,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testDeleteService() throws Exception {
     createDefaultCluster();
 
@@ -938,7 +929,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testGetHostsDesiredConfigs() throws Exception {
     createDefaultCluster();
 
@@ -970,7 +960,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testProvisioningState() throws Exception {
     createDefaultCluster();
 
@@ -984,7 +973,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testServiceConfigVersions() throws Exception {
     createDefaultCluster();
 
@@ -1048,7 +1036,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testSingleServiceVersionForMultipleConfigs() throws Exception {
     createDefaultCluster();
 
@@ -1084,7 +1071,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testServiceConfigVersionsForGroups() throws Exception {
     createDefaultCluster();
 
@@ -1182,7 +1168,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testTransitionClusterVersion() throws Exception {
     createDefaultCluster();
 
@@ -1330,7 +1315,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testTransitionClusterVersionTransactionFail() throws Exception {
     createDefaultCluster();
 
@@ -1359,7 +1343,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testInferHostVersions() throws Exception {
     createDefaultCluster();
 
@@ -1420,7 +1403,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testRecalculateClusterVersionState() throws Exception {
     createDefaultCluster();
 
@@ -1529,7 +1511,6 @@ public class ClusterTest {
   }
 
   @Test
-  @Ignore
   public void testRecalculateAllClusterVersionStates() throws Exception {
     createDefaultCluster();
 
@@ -1589,7 +1570,6 @@ public class ClusterTest {
    * @throws Exception
    */
   @Test
-  @Ignore
   public void testTransitionHostVersionAdvanced() throws Exception {
     String clusterName = "c1";
     String v1 = "2.2.0-123";

@@ -38,7 +38,6 @@ import org.apache.ambari.server.state.StackId;
 import org.apache.ambari.server.utils.EventBusSynchronizer;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.common.eventbus.EventBus;
@@ -118,7 +117,6 @@ public class InitialAlertEventTest {
    * @throws Exception
    */
   @Test
-  @Ignore
   public void testInitialAlertEvent() throws Exception {
     // ensure there are no historical items
     Assert.assertEquals(0, m_alertsDao.findAll().size());

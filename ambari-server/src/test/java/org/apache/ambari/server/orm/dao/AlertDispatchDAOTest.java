@@ -32,7 +32,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.configuration.Configuration;
 import org.apache.ambari.server.controller.AlertNoticeRequest;
 import org.apache.ambari.server.controller.internal.AlertNoticeResourceProvider;
 import org.apache.ambari.server.controller.internal.PageRequestImpl;
@@ -98,6 +100,8 @@ public class AlertDispatchDAOTest {
   public void setup() throws Exception {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
+    m_injector.getInstance(UnitOfWork.class).begin();
+
     m_dao = m_injector.getInstance(AlertDispatchDAO.class);
     m_alertsDao = m_injector.getInstance(AlertsDAO.class);
     m_definitionDao = m_injector.getInstance(AlertDefinitionDAO.class);
@@ -134,6 +138,7 @@ public class AlertDispatchDAOTest {
    */
   @After
   public void teardown() throws Exception {
+    m_injector.getInstance(UnitOfWork.class).end();
     m_injector.getInstance(PersistService.class).stop();
     m_injector = null;
   }
@@ -262,7 +267,6 @@ public class AlertDispatchDAOTest {
    *
    */
   @Test
-  @Ignore
   public void testGroupDefinitions() throws Exception {
     List<AlertDefinitionEntity> definitions = createDefinitions();
 
@@ -301,7 +305,6 @@ public class AlertDispatchDAOTest {
    *
    */
   @Test
-  @Ignore
   public void testCreateTarget() throws Exception {
     int targetCount = m_dao.findAllTargets().size();
 
@@ -480,6 +483,8 @@ public class AlertDispatchDAOTest {
     notice = m_dao.findNoticeById(notice.getNotificationId());
     assertEquals(target.getTargetId(), notice.getAlertTarget().getTargetId());
 
+    //new org.apache.derby.tools.dblook(new String[]{"-d", Configuration.JDBC_IN_MEMORY_URL, "-verbose", "-o", "/tmp/1.ddl"});
+
     target = m_dao.findTargetById(target.getTargetId());
     m_dao.remove(target);
     notice = m_dao.findNoticeById(notice.getNotificationId());
@@ -490,7 +495,6 @@ public class AlertDispatchDAOTest {
    *
    */
   @Test
-  @Ignore
   public void testDeleteAssociatedTarget() throws Exception {
     AlertTargetEntity target = m_helper.createAlertTarget();
     Set<AlertTargetEntity> targets = new HashSet<AlertTargetEntity>();

@@ -320,6 +320,14 @@ public class AlertTargetEntity {
     alertNotices.add(notice);
   }
 
+  public List<AlertNoticeEntity> getAlertNotices() {
+    return alertNotices;
+  }
+
+  public void setAlertNotices(List<AlertNoticeEntity> alertNotices) {
+    this.alertNotices = alertNotices;
+  }
+
   /**
    * Called before {@link EntityManager#remove(Object)} for this entity, removes
    * the non-owning relationship between targets and groups.

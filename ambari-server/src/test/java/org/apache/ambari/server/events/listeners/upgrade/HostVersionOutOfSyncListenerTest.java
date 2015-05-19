@@ -32,6 +32,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.inject.Inject;
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.events.ServiceComponentInstalledEvent;
@@ -101,6 +102,7 @@ public class HostVersionOutOfSyncListenerTest {
 
     EventBusSynchronizer.synchronizeAmbariEventPublisher(injector);
     injector.injectMembers(this);
+    injector.getInstance(UnitOfWork.class).begin();
 
     StackId stackId = new StackId(this.stackId);
     clusters.addCluster("c1", stackId);
@@ -115,6 +117,7 @@ public class HostVersionOutOfSyncListenerTest {
 
   @After
   public void teardown() {
+    injector.getInstance(UnitOfWork.class).end();
     injector.getInstance(PersistService.class).stop();
   }
 

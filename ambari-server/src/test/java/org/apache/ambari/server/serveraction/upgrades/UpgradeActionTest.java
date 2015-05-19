@@ -26,6 +26,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.google.inject.persist.UnitOfWork;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.ServiceNotFoundException;
@@ -66,7 +67,6 @@ import org.apache.ambari.server.state.State;
 import org.junit.After;
 import org.junit.Assert;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import com.google.gson.Gson;
@@ -122,10 +122,12 @@ public class UpgradeActionTest {
     m_injector = Guice.createInjector(new InMemoryDefaultTestModule());
     m_injector.getInstance(GuiceJpaInitializer.class);
     m_injector.injectMembers(this);
+    m_injector.getInstance(UnitOfWork.class).begin();
   }
 
   @After
   public void teardown() throws Exception {
+    m_injector.getInstance(UnitOfWork.class).end();
     m_injector.getInstance(PersistService.class).stop();
   }
 
@@ -376,7 +378,6 @@ public class UpgradeActionTest {
   }
 
   @Test
-  @Ignore
   public void testFinalizeUpgradeAcrossStacks() throws Exception {
     makeCrossStackUpgradeCluster();
 
@@ -425,7 +426,6 @@ public class UpgradeActionTest {
    * @throws Exception
    */
   @Test
-  @Ignore
   public void testFinalizeDowngradeAcrossStacks() throws Exception {
     makeCrossStackUpgradeCluster();
 
