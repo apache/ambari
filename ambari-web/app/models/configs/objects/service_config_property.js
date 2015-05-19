@@ -137,7 +137,8 @@ App.ServiceConfigProperty = Em.Object.extend({
    * @type {boolean}
    */
   recommendedValueExists: function () {
-    return !Em.isNone(this.get('recommendedValue')) && this.get('isRequiredByAgent') && !this.get('cantBeUndone');
+    return !Em.isNone(this.get('recommendedValue')) && (this.get('recommendedValue') != "")
+      && this.get('isRequiredByAgent') && !this.get('cantBeUndone');
   }.property('recommendedValue'),
 
   /**
