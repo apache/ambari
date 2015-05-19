@@ -674,7 +674,7 @@ App.ChartLinearTimeView = Ember.View.extend({
   },
 
   showGraphInPopup: function() {
-    if(!this.get('hasData')) {
+    if(!this.get('hasData') || this.get('isPreview')) {
       return;
     }
 

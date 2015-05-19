@@ -28,7 +28,7 @@ App.WidgetWizardView = Em.View.extend(App.WizardMenuMixin, {
   previewWidgetClass: function () {
     switch (this.get('controller.content.widgetType')) {
       case 'GRAPH':
-        return App.GraphWidgetView.extend(App.WidgetPreviewMixin);
+        return App.GraphWidgetView.extend(App.WidgetPreviewMixin, {isPreview: true});
       case 'TEMPLATE':
         return App.TemplateWidgetView.extend(App.WidgetPreviewMixin);
       case 'NUMBER':
