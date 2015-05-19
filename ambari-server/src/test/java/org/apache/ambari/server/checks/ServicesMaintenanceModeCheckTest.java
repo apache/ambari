@@ -76,11 +76,12 @@ public class ServicesMaintenanceModeCheckTest {
     final Service service = Mockito.mock(Service.class);
     Mockito.when(cluster.getServices()).thenReturn(Collections.singletonMap("service", service));
     Mockito.when(service.isClientOnlyService()).thenReturn(false);
-    Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
 
+    // We don't bother checking service desired state as it's performed by a separate check
+    Mockito.when(service.getDesiredState()).thenReturn(State.UNKNOWN);
     PrerequisiteCheck check = new PrerequisiteCheck(null, null);
     servicesMaintenanceModeCheck.perform(check, new PrereqCheckRequest("cluster"));
-    Assert.assertEquals(PrereqCheckStatus.FAIL, check.getStatus());
+    Assert.assertEquals(PrereqCheckStatus.PASS, check.getStatus());
 
     Mockito.when(service.getDesiredState()).thenReturn(State.STARTED);
     check = new PrerequisiteCheck(null, null);

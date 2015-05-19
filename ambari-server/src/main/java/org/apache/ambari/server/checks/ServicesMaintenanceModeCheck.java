@@ -50,7 +50,7 @@ public class ServicesMaintenanceModeCheck extends AbstractCheckDescriptor {
     final Cluster cluster = clustersProvider.get().getCluster(clusterName);
     for (Map.Entry<String, Service> serviceEntry : cluster.getServices().entrySet()) {
       final Service service = serviceEntry.getValue();
-      if (!service.isClientOnlyService() && (service.getDesiredState() != State.STARTED || service.getMaintenanceState() == MaintenanceState.ON)) {
+      if (!service.isClientOnlyService() && service.getMaintenanceState() == MaintenanceState.ON) {
         prerequisiteCheck.getFailedOn().add(service.getName());
       }
     }
