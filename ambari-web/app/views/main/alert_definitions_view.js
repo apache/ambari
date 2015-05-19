@@ -144,7 +144,7 @@ App.MainAlertDefinitionsView = App.TableView.extend({
    */
   serviceSort: sort.fieldView.extend({
     column: 3,
-    name: 'service.serviceName',
+    name: 'serviceDisplayName',
     displayName: Em.I18n.t('common.service'),
     type: 'string'
   }),
