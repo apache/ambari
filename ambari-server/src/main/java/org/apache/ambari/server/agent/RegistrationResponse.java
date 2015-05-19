@@ -20,6 +20,7 @@ package org.apache.ambari.server.agent;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jackson.annotate.JsonProperty;
 
@@ -60,6 +61,9 @@ public class RegistrationResponse {
 
   @JsonProperty("recoveryConfig")
   private RecoveryConfig recoveryConfig;
+
+  @JsonProperty("agentConfig")
+  private Map<String, String> agentConfig;
 
   @JsonProperty("statusCommands")
   private List<StatusCommand> statusCommands = null;
@@ -125,6 +129,14 @@ public class RegistrationResponse {
     this.recoveryConfig = recoveryConfig;
   }
 
+  public Map<String, String> getAgentConfig() {
+    return agentConfig;
+  }
+
+  public void setAgentConfig(Map<String, String> agentConfig) {
+    this.agentConfig = agentConfig;
+  }
+
   @Override
   public String toString() {
     StringBuilder buffer = new StringBuilder("RegistrationResponse{");
@@ -133,6 +145,7 @@ public class RegistrationResponse {
     buffer.append(", statusCommands=").append(statusCommands);
     buffer.append(", alertDefinitionCommands=").append(alertDefinitionCommands);
     buffer.append(", recoveryConfig=").append(recoveryConfig);
+    buffer.append(", agentConfig=").append(agentConfig);
     buffer.append('}');
     return buffer.toString();
   }

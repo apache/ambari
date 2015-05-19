@@ -19,11 +19,8 @@ limitations under the License.
 '''
 
 import unittest
-import doctest
-from os.path import dirname, split, isdir
-import logging.handlers
+from os.path import isdir
 import logging
-import platform
 from only_for_platform import get_platform, PLATFORM_WINDOWS
 #TODO Add an option to randomize the tests' execution
 #from random import shuffle

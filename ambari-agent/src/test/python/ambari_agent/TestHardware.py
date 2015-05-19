@@ -26,6 +26,7 @@ import socket
 from only_for_platform import not_for_platform, PLATFORM_WINDOWS
 from ambari_agent import hostname
 from ambari_agent.Hardware import Hardware
+from ambari_agent.AmbariConfig import AmbariConfig
 from ambari_agent.Facter import Facter, FacterLinux
 from ambari_commons import OSCheck
 
@@ -63,6 +64,32 @@ class TestHardware(TestCase):
       self.assertTrue(os_disk_item['size'] > 0)
 
     self.assertTrue(len(result['mounts']) == len(osdisks))
+
+  @patch.object(OSCheck, "get_os_type")
+  @patch.object(OSCheck, "get_os_version")
+  @patch("subprocess.Popen")
+  @patch("subprocess.Popen.communicate")
+
+  # @patch.object(AmbariConfig, "get")
+  # @patch.object(AmbariConfig, "has_option")
+  def test_osdisks_remote(self, communicate_mock, popen_mock,
+                          get_os_version_mock, get_os_type_mock):
+    # has_option_mock.return_value = True
+    # get_mock.return_value = "true"
+    get_os_type_mock.return_value = "suse"
+    get_os_version_mock.return_value = "11"
+    Hardware.osdisks()
+    popen_mock.assert_called_with(["df","-kPT"], stdout=-1)
+    config = AmbariConfig()
+    Hardware.osdisks(config)
+    popen_mock.assert_called_with(["df","-kPT"], stdout=-1)
+    config.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
+    config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "true")
+    Hardware.osdisks(config)
+    popen_mock.assert_called_with(["df","-kPT"], stdout=-1)
+    config.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY, "false")
+    Hardware.osdisks(config)
+    popen_mock.assert_called_with(["df","-kPT", "-l"], stdout=-1)
 
   def test_extractMountInfo(self):
     outputLine = "device type size used available percent mountpoint"

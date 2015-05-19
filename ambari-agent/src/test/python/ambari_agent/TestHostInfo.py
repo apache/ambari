@@ -405,23 +405,6 @@ class TestHostInfo(TestCase):
     self.assertTrue(list[0]['hadoop'])
     self.assertEquals(list[0]['user'], 'user')
 
-  @patch("subprocess.Popen")
-  @patch.object(Hardware, 'extractMountInfo')
-  def test_osdiskAvailableSpace(self, extract_mount_info_mock, subproc_popen_mock):
-    hostInfo = HostInfoLinux()
-    p = MagicMock()
-    p.communicate.return_value = ['some']
-    subproc_popen_mock.return_value = p
-    extract_mount_info_mock.return_value = {'info' : 'info'}
-    result = hostInfo.osdiskAvailableSpace('')
-
-    self.assertTrue(result['info'], 'info')
-
-    p.communicate.return_value = ''
-    result = hostInfo.osdiskAvailableSpace('')
-
-    self.assertEquals(result, {})
-
   @patch.object(OSCheck, "get_os_type")
   @patch("subprocess.Popen")
   def test_checkLiveServices(self, subproc_popen, get_os_type_method):

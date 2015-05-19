@@ -416,7 +416,7 @@ class RecoveryManager:
   def update_configuration_from_registration(self, reg_resp):
     """
     TODO: Server sends the recovery configuration - call update_config after parsing
-    "recovery_config": {
+    "recoveryConfig": {
       "type" : "DEFAULT|AUTO_START|FULL",
       "maxCount" : 10,
       "windowInMinutes" : 60,
