@@ -178,9 +178,17 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
      */
     issuedConfig: function() {
       var config = this.get('config');
-      // check editable overrides
-      if (!config.get('isEditable') && config.get('overrides.length') && config.get('overrides').someProperty('isEditable', true)) {
+      // check editable override
+      if (!config.get('isEditable') && config.get('isOriginalSCP') && config.get('overrides.length') && config.get('overrides').someProperty('isEditable', true)) {
         config = config.get('overrides').findProperty('isEditable', true);
+      } else if (config.get('isOriginalSCP') && config.get('isEditable')) {
+        // use original config if it is not valid
+        if (!config.get('isValid')) {
+          return config;
+        // scan overrides for non valid values and use it
+        } else if (config.get('overrides.length') && config.get('overrides').someProperty('isValid', false)) {
+          return config.get('overrides').findProperty('isValid', false);
+        }
       }
       return config;
     }.property('config.isEditable', 'config.overrides.length')

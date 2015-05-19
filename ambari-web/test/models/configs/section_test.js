@@ -29,8 +29,14 @@ describe('App.Section', function () {
 
     beforeEach(function () {
       model.reopen({subSections: [
-        App.SubSection.createRecord({configs: [{isValid: true}, {isValid: false}]}),
-        App.SubSection.createRecord({configs: [{isValid: true}, {isValid: false}]})
+        App.SubSection.createRecord({configs: [
+          App.ServiceConfigProperty.create({isValid: true}),
+          App.ServiceConfigProperty.create({isValid: false})
+        ]}),
+        App.SubSection.createRecord({configs: [
+          App.ServiceConfigProperty.create({isValid: true}),
+          App.ServiceConfigProperty.create({isValid: false})
+        ]})
       ]});
     });
 

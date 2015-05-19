@@ -179,8 +179,10 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
   errorsCount: function () {
     return this.get('selectedService.configs').filter(function (config) {
       return Em.isNone(config.get('widget'));
-    }).filterProperty('isValid', false).filterProperty('isVisible').length;
-  }.property('selectedService.configs.@each.isValid'),
+    }).filter(function(config) {
+      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
+    }).filterProperty('isVisible').length;
+  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.overrideErrorTrigger'),
 
   /**
    * Determines if Save-button should be disabled
@@ -370,6 +372,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method onConfigGroupChange
    */
   onConfigGroupChange: function () {
+    console.time('!!!!!!!!!');
     var self = this;
     this.get('stepConfigs').clear();
     var selectedConfigGroup = this.get('selectedConfigGroup');
@@ -418,6 +421,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         } else {
           self.onLoadOverrides(self.get('allConfigs'));
         }
+        console.timeEnd('!!!!!!!!!');
       });
     });
   }.observes('selectedConfigGroup'),

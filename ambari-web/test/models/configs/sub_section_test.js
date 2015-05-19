@@ -29,15 +29,26 @@ describe('App.SubSection', function () {
 
     beforeEach(function () {
       model.set('configs', [
-        {isValid: false},
-        {isValid: true},
-        {isValid: false},
-        {isValid: true}
+        App.ServiceConfigProperty.create({isValid: true}),
+        App.ServiceConfigProperty.create({isValid: false}),
+        App.ServiceConfigProperty.create({isValid: false}),
+        App.ServiceConfigProperty.create({isValid: false}),
       ]);
     });
 
     it('should use configs.@each.isValid', function () {
-      expect(model.get('errorsCount')).to.equal(2);
+      expect(model.get('errorsCount')).to.equal(3);
+    });
+
+    it('should use configs.@each.overrideErrorTrigger', function() {
+      // original value is valid
+      var validOriginalSCP = model.get('configs').objectAt(0);
+      // add override with not valid value
+      validOriginalSCP.set('overrides', [
+        App.ServiceConfigProperty.create({ isValid: false }),
+        App.ServiceConfigProperty.create({ isValid: true })
+      ]);
+      expect(model.get('errorsCount')).to.equal(4);
     });
 
   });

@@ -119,8 +119,16 @@ App.ServiceConfigProperty = Em.Object.extend({
    * @type {boolean}
    */
   hasIssues: function () {
-    return (this.get('errorMessage') + this.get('warnMessage')) !== "";
-  }.property('errorMessage', 'warnMessage'),
+    var originalSCPIssued = (this.get('errorMessage') + this.get('warnMessage')) !== "";
+    var overridesIssue = false;
+    (this.get('overrides') || []).forEach(function(override) {
+      if (override.get('errorMessage') + override.get('warnMessage') !== "") {
+        overridesIssue = true;
+        return;
+      }
+    });
+    return originalSCPIssued || overridesIssue;
+  }.property('errorMessage', 'warnMessage', 'overrideErrorTrigger'),
 
   overrideErrorTrigger: 0, //Trigger for overridable property error
   isRestartRequired: false,

@@ -228,13 +228,8 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
           warn: true
         });
       } else {
-        this.set('isMirrorValueValid', true);
-        this.get('config').setProperties({
-          warnMessage: '',
-          errorMessage: '',
-          value: '' + this.configValueByWidget(parsed),
-          warn: false
-        });
+        this.set('isMirrorValueValid', !this.get('config.error'));
+        this.set('config.value', '' + this.configValueByWidget(parsed));
         if (slider) {
           slider.setValue(parsed);
         }

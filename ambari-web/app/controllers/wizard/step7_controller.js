@@ -133,8 +133,10 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
   errorsCount: function () {
     return this.get('selectedService.configs').filter(function (config) {
       return Em.isNone(config.get('widget'));
-    }).filterProperty('isValid', false).filterProperty('isVisible').length;
-  }.property('selectedService.configs.@each.isValid'),
+    }).filter(function(config) {
+      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
+    }).filterProperty('isVisible').length;
+  }.property('selectedService.configs.@each.isValid', 'selectedService.configs.@each.overrideErrorTrigger'),
 
   /**
    * Should Next-button be disabled
@@ -477,6 +479,7 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
         serviceConfigProperty.set('overrides', parentOverridesArray);
       }
       serviceConfigProperty.get('overrides').pushObject(newSCP);
+      newSCP.validate();
     }, this);
     return serviceConfigProperty;
   },

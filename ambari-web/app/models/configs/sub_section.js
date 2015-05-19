@@ -77,8 +77,10 @@ App.SubSection = DS.Model.extend({
    * @type {number}
    */
   errorsCount: function () {
-    return this.get('configs').filterProperty('isValid', false).length;
-  }.property('configs.@each.isValid'),
+    return this.get('configs').filter(function(config) {
+      return !config.get('isValid') || (config.get('overrides') || []).someProperty('isValid', false);
+    }).length;
+  }.property('configs.@each.isValid', 'configs.@each.overrideErrorTrigger'),
 
   /**
    * @type {boolean}

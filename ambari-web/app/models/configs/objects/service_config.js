@@ -50,7 +50,7 @@ App.ServiceConfig = Ember.Object.extend({
       if (item.get('overrides')) {
         item.get('overrides').forEach(function (e) {
           if (e.error) {
-            if (category) {
+            if (category && !Em.get(e, 'parentSCP.widget')) {
               category.incrementProperty('nonSlaveErrorCount');
             }
             overrideErrors++;

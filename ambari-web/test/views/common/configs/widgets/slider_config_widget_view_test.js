@@ -31,7 +31,7 @@ describe('App.SliderConfigWidgetView', function () {
         disable: Em.K,
         setValue: Em.K
       },
-      config: Em.Object.create({
+      config: App.ServiceConfigProperty.create({
         name: 'a.b.c',
         description: 'A B C',
         value: '486',
@@ -61,7 +61,7 @@ describe('App.SliderConfigWidgetView', function () {
         disable: Em.K,
         setValue: Em.K
       },
-      config: Em.Object.create({
+      config: App.ServiceConfigProperty.create({
         name: 'a.b.c2',
         description: 'A B C 2',
         value: '72.2',
@@ -90,7 +90,7 @@ describe('App.SliderConfigWidgetView', function () {
         disable: Em.K,
         setValue: Em.K
       },
-      config: Em.Object.create({
+      config: App.ServiceConfigProperty.create({
         name: 'a.b.c3',
         description: 'A B C 3',
         value: '0.22',
