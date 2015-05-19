@@ -80,13 +80,13 @@
 
   <property>
     <name>ranger.jpa.jdbc.driver</name>
-    <value>net.sf.log4jdbc.DriverSpy</value>
+    <value>{{jdbc_driver}}</value>
     <description></description>
   </property>
 
   <property>
     <name>ranger.jpa.jdbc.url</name>
-    <value>jdbc:log4jdbc:{{db_flavor}}://{{db_host}}/{{ranger_db_name}}</value>
+    <value>{{db_jdbc_url}}</value>
     <description></description>
   </property> 
 
@@ -177,13 +177,13 @@
 
   <property>
     <name>ranger.jpa.audit.jdbc.driver</name>
-    <value>net.sf.log4jdbc.DriverSpy</value>
+    <value>{{jdbc_driver}}</value>
     <description></description>
   </property>
 
   <property>
     <name>ranger.jpa.audit.jdbc.url</name>
-    <value>jdbc:log4jdbc:{{db_flavor}}://{{db_host}}/{{ranger_auditdb_name}}</value>
+    <value>{{audit_jdbc_url}}</value>
     <description></description>
   </property>
 
@@ -223,5 +223,17 @@
     <value>5151</value>
     <description></description>
   </property>    
+
+  <property>
+    <name>ranger.jpa.jdbc.dialect</name>
+    <value>{{jdbc_dialect}}</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>ranger.jpa.audit.jdbc.dialect</name>
+    <value>{{jdbc_dialect}}</value>
+    <description></description>
+  </property> 
 
 </configuration>

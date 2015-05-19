@@ -40,7 +40,7 @@ def setup_ranger_hive():
                         plugin_audit_properties=params.config['configurations']['ranger-hive-audit'], plugin_audit_attributes=params.config['configuration_attributes']['ranger-hive-audit'],
                         plugin_security_properties=params.config['configurations']['ranger-hive-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-hive-security'],
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-hive-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-hive-policymgr-ssl'],
-                        component_list=['hive-client', 'hive-metastore', 'hive-server2'], audit_db_is_enabled=params.xa_audit_db_password,
+                        component_list=['hive-client', 'hive-metastore', 'hive-server2'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password
     )                 

@@ -40,7 +40,7 @@ def setup_ranger_hbase():
                         plugin_audit_properties=params.config['configurations']['ranger-hbase-audit'], plugin_audit_attributes=params.config['configuration_attributes']['ranger-hbase-audit'],
                         plugin_security_properties=params.config['configurations']['ranger-hbase-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-hbase-security'],
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-hbase-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-hbase-policymgr-ssl'],
-                        component_list=['hbase-client', 'hbase-master', 'hbase-regionserver'], audit_db_is_enabled=params.xa_audit_db_password,
+                        component_list=['hbase-client', 'hbase-master', 'hbase-regionserver'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password
     )                 

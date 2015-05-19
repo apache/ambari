@@ -59,7 +59,7 @@
   
   <property>
     <name>xasecure.audit.jpa.javax.persistence.jdbc.url</name>
-    <value>jdbc:{{xa_audit_db_flavor}}://{{xa_db_host}}/{{xa_audit_db_name}}</value>
+    <value>{{audit_jdbc_url}}</value>
     <description></description>
   </property>
 
@@ -77,13 +77,13 @@
 
   <property>
     <name>xasecure.audit.jpa.javax.persistence.jdbc.driver</name>
-    <value>com.mysql.jdbc.Driver</value>
+    <value>{{jdbc_driver}}</value>
     <description></description>
   </property>
 
   <property>
     <name>xasecure.audit.credential.provider.file</name>
-    <value>jceks://file/{{credential_file}}</value>
+    <value>jceks://file{{credential_file}}</value>
     <description></description>
   </property>
   

@@ -35,7 +35,7 @@ def setup_ranger_yarn():
                         plugin_audit_properties=params.config['configurations']['ranger-yarn-audit'], plugin_audit_attributes=params.config['configuration_attributes']['ranger-yarn-audit'],
                         plugin_security_properties=params.config['configurations']['ranger-yarn-security'], plugin_security_attributes=params.config['configuration_attributes']['ranger-yarn-security'],
                         plugin_policymgr_ssl_properties=params.config['configurations']['ranger-yarn-policymgr-ssl'], plugin_policymgr_ssl_attributes=params.config['configuration_attributes']['ranger-yarn-policymgr-ssl'],
-                        component_list=['hadoop-yarn-resourcemanager'], audit_db_is_enabled=params.xa_audit_db_password,
+                        component_list=['hadoop-yarn-resourcemanager'], audit_db_is_enabled=params.xa_audit_db_is_enabled,
                         credential_file=params.credential_file, xa_audit_db_password=params.xa_audit_db_password, 
                         ssl_truststore_password=params.ssl_truststore_password, ssl_keystore_password=params.ssl_keystore_password,
                         api_version = 'v2'

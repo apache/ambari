@@ -225,15 +225,23 @@ if has_ranger_admin:
   if xa_audit_db_flavor == 'mysql':
     jdbc_symlink_name = "mysql-jdbc-driver.jar"
     jdbc_jar_name = "mysql-connector-java.jar"
+    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "com.mysql.jdbc.Driver"
   elif xa_audit_db_flavor == 'oracle':
     jdbc_jar_name = "ojdbc6.jar"
     jdbc_symlink_name = "oracle-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor == 'postgres':
     jdbc_jar_name = "postgresql.jar"
     jdbc_symlink_name = "postgres-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "org.postgresql.Driver"
   elif xa_audit_db_flavor == 'sqlserver':
     jdbc_jar_name = "sqljdbc4.jar"
     jdbc_symlink_name = "mssql-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
   downloaded_custom_connector = format("{exec_tmp_dir}/{jdbc_jar_name}")
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")

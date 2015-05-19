@@ -88,18 +88,34 @@ oracle_home = default("/configurations/ranger-env/oracle_home", "-")
 #For curl command in ranger to get db connector
 jdk_location = config['hostLevelParams']['jdk_location'] 
 java_share_dir = '/usr/share/java'
-if db_flavor and db_flavor.lower() == 'mysql':
+if db_flavor.lower() == 'mysql':
   jdbc_symlink_name = "mysql-jdbc-driver.jar"
   jdbc_jar_name = "mysql-connector-java.jar"
-elif db_flavor and db_flavor.lower() == 'oracle':
+  db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{ranger_db_name}')
+  audit_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{ranger_auditdb_name}')
+  jdbc_driver = "net.sf.log4jdbc.DriverSpy"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
+elif db_flavor.lower() == 'oracle':
   jdbc_jar_name = "ojdbc6.jar"
   jdbc_symlink_name = "oracle-jdbc-driver.jar"
-elif db_flavor and db_flavor.lower() == 'postgres':
+  db_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
+  audit_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
+  jdbc_driver = "oracle.jdbc.OracleDriver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
+elif db_flavor.lower() == 'postgres':
   jdbc_jar_name = "postgresql.jar"
   jdbc_symlink_name = "postgres-jdbc-driver.jar"
-elif db_flavor and db_flavor.lower() == 'sqlserver':
+  db_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_db_name}')
+  audit_jdbc_url = format('jdbc:postgresql://{db_host}/{ranger_auditdb_name}')
+  jdbc_driver = "org.postgresql.Driver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
+elif db_flavor.lower() == 'sqlserver':
   jdbc_jar_name = "sqljdbc4.jar"
   jdbc_symlink_name = "mssql-jdbc-driver.jar"
+  db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_db_name}')
+  audit_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={ranger_auditdb_name}')
+  jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
@@ -123,8 +139,8 @@ ugsync_jceks_path = config["configurations"]["ranger-ugsync-site"]["ranger.users
 cred_lib_path = os.path.join(ranger_home,"cred","lib","*")
 cred_setup_prefix = format('python {ranger_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
 ranger_audit_source_type = config["configurations"]["ranger-admin-site"]["ranger.audit.source.type"]
+
 if xml_configurations_supported:
   ranger_usersync_keystore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.keystore.password"])
   ranger_usersync_ldap_ldapbindpassword = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.ldap.ldapbindpassword"])
   ranger_usersync_truststore_password = unicode(config["configurations"]["ranger-ugsync-site"]["ranger.usersync.truststore.password"])
-

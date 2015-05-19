@@ -46,13 +46,13 @@
 
     <property>
     <name>xasecure.policymgr.clientssl.keystore.credential.file</name>
-    <value>jceks://file/{{credential_file}}</value>
+    <value>jceks://file{{credential_file}}</value>
     <description>java  keystore credential file</description>
   </property>
 
   <property>
     <name>xasecure.policymgr.clientssl.truststore.credential.file</name>
-    <value>jceks://file/{{credential_file}}</value>
+    <value>jceks://file{{credential_file}}</value>
     <description>java  truststore credential file</description>
   </property>
 

@@ -416,15 +416,23 @@ if has_ranger_admin:
   if xa_audit_db_flavor and xa_audit_db_flavor == 'mysql':
     ranger_jdbc_symlink_name = "mysql-jdbc-driver.jar"
     ranger_jdbc_jar_name = "mysql-connector-java.jar"
+    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "com.mysql.jdbc.Driver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'oracle':
     ranger_jdbc_jar_name = "ojdbc6.jar"
     ranger_jdbc_symlink_name = "oracle-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    jdbc_driver = "oracle.jdbc.OracleDriver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'postgres':
     ranger_jdbc_jar_name = "postgresql.jar"
     ranger_jdbc_symlink_name = "postgres-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "org.postgresql.Driver"
   elif xa_audit_db_flavor and xa_audit_db_flavor == 'sqlserver':
     ranger_jdbc_jar_name = "sqljdbc4.jar"
     ranger_jdbc_symlink_name = "mssql-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
   
   ranger_downloaded_custom_connector = format("{tmp_dir}/{ranger_jdbc_jar_name}")
   
