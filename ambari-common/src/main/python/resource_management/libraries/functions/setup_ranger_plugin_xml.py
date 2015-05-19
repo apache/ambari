@@ -121,7 +121,7 @@ def setup_ranger_plugin(component_select_name, service_name,
 
     setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, hdp_version, credential_file,
               xa_audit_db_password, ssl_truststore_password, ssl_keystore_password,
-              component_user, component_group)
+              component_user, component_group, java_home)
 
   else:
     File(format('{component_conf_dir}/ranger-security.xml'),
@@ -141,20 +141,20 @@ def setup_ranger_plugin_jar_symblink(hdp_version, service_name, component_list):
       sudo=True)
 
 def setup_ranger_plugin_keystore(service_name, audit_db_is_enabled, hdp_version, credential_file, xa_audit_db_password,
-                                ssl_truststore_password, ssl_keystore_password, component_user, component_group):
+                                ssl_truststore_password, ssl_keystore_password, component_user, component_group, java_home):
 
   cred_lib_path = format('/usr/hdp/{hdp_version}/ranger-{service_name}-plugin/install/lib/*')
   cred_setup_prefix = format('python /usr/hdp/{hdp_version}/ranger-{service_name}-plugin/ranger_credential_helper.py -l "{cred_lib_path}"')
 
   if audit_db_is_enabled:
     cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "auditDBCred" -v "{xa_audit_db_password}" -c 1')
-    Execute(cred_setup, logoutput=True)
+    Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
 
   cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslKeyStore" -v "{ssl_keystore_password}" -c 1')
-  Execute(cred_setup, logoutput=True)
+  Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
 
   cred_setup = format('{cred_setup_prefix} -f {credential_file} -k "sslTrustStore" -v "{ssl_truststore_password}" -c 1')
-  Execute(cred_setup, logoutput=True)
+  Execute(cred_setup, environment={'JAVA_HOME': java_home}, logoutput=True)
 
   File(credential_file,
     owner = component_user,
