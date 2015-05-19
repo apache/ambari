@@ -17,7 +17,10 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
@@ -27,6 +30,7 @@ import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
+import org.apache.ambari.server.state.StackId;
 import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -339,8 +343,23 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
       } else {
         String componentName = getComponentName(resource);
         if (componentName != null && !componentName.isEmpty()) {
-          if (TIMELINE_APPID_MAP.containsKey(componentName)) {
-            componentName = TIMELINE_APPID_MAP.get(componentName);
+          String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
+          StackId stackId;
+          try {
+            AmbariManagementController managementController = AmbariServer.getController();
+            stackId = managementController.getClusters().getCluster(clusterName).getCurrentStackVersion();
+            if (stackId != null) {
+              String stackName = stackId.getStackName();
+              String version = stackId.getStackVersion();
+              AmbariMetaInfo ambariMetaInfo = managementController.getAmbariMetaInfo();
+              String serviceName = ambariMetaInfo.getComponentToService(stackName, version, componentName);
+              String timeLineAppId = ambariMetaInfo.getComponent(stackName, version, serviceName, componentName).getTimelineAppid();
+              if (timeLineAppId != null){
+                componentName = timeLineAppId;
+              }
+            }
+          } catch (Exception e) {
+            e.printStackTrace();
           }
           uriBuilder.setParameter("appId", componentName);
         }

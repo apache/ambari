@@ -17,7 +17,11 @@
  */
 package org.apache.ambari.server.controller.metrics.timeline;
 
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.api.services.AmbariMetaInfo;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
+import org.apache.ambari.server.controller.AmbariManagementController;
+import org.apache.ambari.server.controller.AmbariServer;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.internal.ResourceImpl;
 import org.apache.ambari.server.controller.internal.TemporalInfoImpl;
@@ -28,9 +32,17 @@ import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Clusters;
+import org.apache.ambari.server.state.ComponentInfo;
+import org.apache.ambari.server.state.StackId;
 import org.apache.http.client.utils.URIBuilder;
 import org.junit.Assert;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.powermock.api.easymock.PowerMock;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,9 +54,14 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
 import static org.mockito.Mockito.mock;
 
+@RunWith(PowerMockRunner.class)
+@PrepareForTest({AMSPropertyProvider.class, AmbariServer.class})
 public class AMSPropertyProviderTest {
   private static final String PROPERTY_ID1 = PropertyHelper.getPropertyId("metrics/cpu", "cpu_user");
   private static final String PROPERTY_ID2 = PropertyHelper.getPropertyId("metrics/memory", "mem_free");
@@ -63,6 +80,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForSingleHostMetric() throws Exception {
+    setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -101,6 +119,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForSingleHostMetricPointInTime() throws Exception {
+    setUpCommonMocks();
 
     // given
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_HOST_METRICS_FILE_PATH);
@@ -143,6 +162,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForMultipleHostMetricscPointInTime() throws Exception {
+    setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_HOST_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -187,6 +207,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForMultipleHostMetrics() throws Exception {
+    setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_HOST_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -237,6 +258,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForRegexpMetrics() throws Exception {
+    setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(MULTIPLE_COMPONENT_REGEXP_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -285,6 +307,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForSingleComponentMetric() throws Exception {
+    setUpCommonMocks();
     TestStreamProvider streamProvider = new TestStreamProvider(SINGLE_COMPONENT_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -327,6 +350,29 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateMetricsForEmbeddedHBase() throws Exception {
+    AmbariManagementController ams = createNiceMock(AmbariManagementController.class);
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(ams);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    StackId stackId= new StackId("HDP","2.2");
+    expect(ams.getClusters()).andReturn(clusters).anyTimes();
+    try {
+      expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).anyTimes();
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
+    expect(ams.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(ambariMetaInfo.getComponentToService("HDP", "2.2", "METRICS_COLLECTOR")).andReturn("AMS").anyTimes();
+    expect(ambariMetaInfo.getComponent("HDP", "2.2", "AMS", "METRICS_COLLECTOR"))
+            .andReturn(componentInfo).anyTimes();
+    expect(componentInfo.getTimelineAppid()).andReturn("AMS-HBASE");
+    replay(ams, clusters, cluster, ambariMetaInfo, componentInfo);
+    PowerMock.replayAll();
+
     TestStreamProvider streamProvider = new TestStreamProvider(EMBEDDED_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -369,6 +415,29 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testAggregateFunctionForComponentMetrics() throws Exception {
+    AmbariManagementController ams = createNiceMock(AmbariManagementController.class);
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(ams);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    StackId stackId= new StackId("HDP","2.2");
+    expect(ams.getClusters()).andReturn(clusters).anyTimes();
+    try {
+      expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).anyTimes();
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
+    expect(ams.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(ambariMetaInfo.getComponentToService("HDP", "2.2", "HBASE_REGIONSERVER")).andReturn("HBASE").anyTimes();
+    expect(ambariMetaInfo.getComponent("HDP", "2.2", "HBASE", "HBASE_REGIONSERVER"))
+            .andReturn(componentInfo).anyTimes();
+    expect(componentInfo.getTimelineAppid()).andReturn("HBASE");
+    replay(ams, clusters, cluster, ambariMetaInfo, componentInfo);
+    PowerMock.replayAll();
+
     TestStreamProvider streamProvider = new TestStreamProvider(AGGREGATE_METRICS_FILE_PATH);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
     ComponentSSLConfiguration sslConfiguration = mock(ComponentSSLConfiguration.class);
@@ -437,6 +506,7 @@ public class AMSPropertyProviderTest {
 
   @Test
   public void testPopulateResourcesForHostComponentHostMetrics() throws Exception {
+    setUpCommonMocks();
     TestStreamProviderForHostComponentHostMetricsTest streamProvider =
       new TestStreamProviderForHostComponentHostMetricsTest(null);
     TestMetricHostProvider metricHostProvider = new TestMetricHostProvider();
@@ -532,5 +602,31 @@ public class AMSPropertyProviderTest {
     public boolean isCollectorComponentLive(String clusterName, MetricsService service) throws SystemException {
       return true;
     }
+  }
+
+  private void setUpCommonMocks() throws AmbariException {
+    AmbariManagementController ams = createNiceMock(AmbariManagementController.class);
+    PowerMock.mockStatic(AmbariServer.class);
+    expect(AmbariServer.getController()).andReturn(ams);
+    AmbariMetaInfo ambariMetaInfo = createNiceMock(AmbariMetaInfo.class);
+    Clusters clusters = createNiceMock(Clusters.class);
+    Cluster cluster = createNiceMock(Cluster.class);
+    ComponentInfo componentInfo = createNiceMock(ComponentInfo.class);
+    StackId stackId= new StackId("HDP","2.2");
+    expect(ams.getClusters()).andReturn(clusters).anyTimes();
+    try {
+      expect(clusters.getCluster(anyObject(String.class))).andReturn(cluster).anyTimes();
+    } catch (AmbariException e) {
+      e.printStackTrace();
+    }
+    expect(cluster.getCurrentStackVersion()).andReturn(stackId).anyTimes();
+    expect(ams.getAmbariMetaInfo()).andReturn(ambariMetaInfo).anyTimes();
+    expect(ambariMetaInfo.getComponentToService(anyObject(String.class),
+            anyObject(String.class), anyObject(String.class))).andReturn("HDFS").anyTimes();
+    expect(ambariMetaInfo.getComponent(anyObject(String.class),anyObject(String.class),
+            anyObject(String.class), anyObject(String.class)))
+            .andReturn(componentInfo).anyTimes();
+    replay(ams, clusters, cluster, ambariMetaInfo);
+    PowerMock.replayAll();
   }
 }
