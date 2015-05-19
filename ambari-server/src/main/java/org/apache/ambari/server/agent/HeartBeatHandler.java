@@ -967,10 +967,6 @@ public class HeartBeatHandler {
     List<AlertDefinitionCommand> alertDefinitionCommands = getRegistrationAlertDefinitionCommands(hostname);
     response.setAlertDefinitionCommands(alertDefinitionCommands);
 
-    response.setAgentConfig(config.getAgentConfigsMap());
-    if(response.getAgentConfig() != null) {
-      LOG.debug("Agent configuration map set to " + response.getAgentConfig());
-    }
     response.setRecoveryConfig(RecoveryConfig.getRecoveryConfig(config));
     if(response.getRecoveryConfig() != null) {
       LOG.debug("Recovery configuration set to " + response.getRecoveryConfig().toString());

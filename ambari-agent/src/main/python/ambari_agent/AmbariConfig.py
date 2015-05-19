@@ -50,6 +50,10 @@ parallel_execution=0
 [python]
 custom_actions_dir = {ps}var{ps}lib{ps}ambari-agent{ps}resources{ps}custom_actions
 
+[command]
+maxretries=2
+sleepBetweenRetries=1
+
 [security]
 keysdir={ps}tmp{ps}ambari-agent
 server_crt=ca.crt
@@ -142,7 +146,6 @@ pidPathVars = [
 
 class AmbariConfig:
   TWO_WAY_SSL_PROPERTY = "security.server.two_way_ssl"
-  AMBARI_PROPERTIES_CATEGORY = 'agentConfig'
   SERVER_CONNECTION_INFO = "{0}/connection_info"
   CONNECTION_PROTOCOL = "https"
 
@@ -168,9 +171,6 @@ class AmbariConfig:
 
   def add_section(self, section):
     self.config.add_section(section)
-
-  def has_section(self, section):
-    return self.config.has_section(section)
 
   def setConfig(self, customConfig):
     self.config = customConfig
@@ -249,13 +249,6 @@ class AmbariConfig:
   def get_parallel_exec_option(self):
     return int(self.get('agent', 'parallel_execution', 0))
 
-  def update_configuration_from_registration(self, reg_resp):
-    if reg_resp and AmbariConfig.AMBARI_PROPERTIES_CATEGORY in reg_resp:
-      if not self.has_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY):
-        self.add_section(AmbariConfig.AMBARI_PROPERTIES_CATEGORY)
-      for k,v in reg_resp[AmbariConfig.AMBARI_PROPERTIES_CATEGORY].items():
-        self.set(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, k, v)
-    pass
 
 def updateConfigServerHostname(configFile, new_host):
   # update agent config file

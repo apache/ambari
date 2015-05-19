@@ -87,7 +87,7 @@ class Heartbeat:
       # this must be the last step before returning heartbeat
       hostInfo.register(nodeInfo, componentsMapped, commandsInProgress)
       heartbeat['agentEnv'] = nodeInfo
-      mounts = Hardware.osdisks(self.config)
+      mounts = Hardware.osdisks()
       heartbeat['mounts'] = mounts
 
       if logger.isEnabledFor(logging.DEBUG):

@@ -21,23 +21,24 @@ limitations under the License.
 import os.path
 import logging
 import subprocess
+import platform
 from ambari_commons.constants import AMBARI_SUDO_BINARY
 from ambari_commons.shell import shellRunner
 from Facter import Facter
-from ambari_commons.os_check import OSConst
+from ambari_commons.os_check import OSConst, OSCheck
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
-from AmbariConfig import AmbariConfig
 logger = logging.getLogger()
 
 class Hardware:
   SSH_KEY_PATTERN = 'ssh.*key'
-  WINDOWS_GET_DRIVES_CMD = "foreach ($drive in [System.IO.DriveInfo]::getdrives()){$available = $drive.TotalFreeSpace;$used = $drive.TotalSize-$drive.TotalFreeSpace;$percent = ($used*100)/$drive.TotalSize;$size = $drive.TotalSize;$type = $drive.DriveFormat;$mountpoint = $drive.RootDirectory.FullName;echo \"$available $used $percent% $size $type $mountpoint\"}"
-  CHECK_REMOTE_MOUNTS_KEY = 'agent.check.remote.mounts'
+  WINDOWS_GET_DRIVES_CMD ="foreach ($drive in [System.IO.DriveInfo]::getdrives()){$available = $drive.TotalFreeSpace;$used = $drive.TotalSize-$drive.TotalFreeSpace;$percent = ($used*100)/$drive.TotalSize;$size = $drive.TotalSize;$type = $drive.DriveFormat;$mountpoint = $drive.RootDirectory.FullName;echo \"$available $used $percent% $size $type $mountpoint\"}"
 
   def __init__(self):
     self.hardware = {}
-    self.hardware['mounts'] = Hardware.osdisks()
-    self.hardware.update(Facter().facterInfo())
+    osdisks = Hardware.osdisks()
+    self.hardware['mounts'] = osdisks
+    otherInfo = Facter().facterInfo()
+    self.hardware.update(otherInfo)
     pass
 
   @staticmethod
@@ -63,19 +64,12 @@ class Hardware:
 
   @staticmethod
   @OsFamilyFuncImpl(OsFamilyImpl.DEFAULT)
-  def osdisks(config = None):
+  def osdisks():
     """ Run df to find out the disks on the host. Only works on linux
     platforms. Note that this parser ignores any filesystems with spaces
     and any mounts with spaces. """
     mounts = []
-    command = ["df", "-kPT"]
-    if config and \
-        config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
-        config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
-      #limit listing to local file systems
-      command.append("-l")
-
-    df = subprocess.Popen(command, stdout=subprocess.PIPE)
+    df = subprocess.Popen(["df", "-kPT"], stdout=subprocess.PIPE)
     dfdata = df.communicate()[0]
     lines = dfdata.splitlines()
     for l in lines:

@@ -116,8 +116,6 @@ public class Configuration {
   public static final String CLIENT_API_SSL_CRT_PASS_FILE_NAME_KEY = "client.api.ssl.cert_pass_file";
   public static final String CLIENT_API_SSL_CRT_PASS_KEY = "client.api.ssl.crt_pass";
   public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
-  public static final String CHECK_REMOTE_MOUNTS_KEY = "agent.check.remote.mounts";
-  public static final String CHECK_REMOTE_MOUNTS_DEFAULT = "true";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database_name";
   public static final String SERVER_DB_NAME_DEFAULT = "ambari";
   public static final String REQUEST_READ_TIMEOUT = "views.request.read.timeout.millis";
@@ -382,7 +380,6 @@ public class Configuration {
 
   private Properties properties;
   private Map<String, String> configsMap;
-  private Map<String, String> agentConfigsMap;
   private CredentialProvider credentialProvider = null;
   private volatile boolean credentialProviderInitialized = false;
   private Map<String, String> customDbProperties = null;
@@ -488,12 +485,7 @@ public class Configuration {
   public Configuration(Properties properties) {
     this.properties = properties;
 
-    agentConfigsMap = new HashMap<String, String>();
-    agentConfigsMap.put(CHECK_REMOTE_MOUNTS_KEY, properties.getProperty(
-      CHECK_REMOTE_MOUNTS_KEY, CHECK_REMOTE_MOUNTS_DEFAULT));
-
     configsMap = new HashMap<String, String>();
-    configsMap.putAll(agentConfigsMap);
     configsMap.put(AMBARI_PYTHON_WRAP_KEY, properties.getProperty(
         AMBARI_PYTHON_WRAP_KEY, AMBARI_PYTHON_WRAP_DEFAULT));
     configsMap.put(SRVR_TWO_WAY_SSL_KEY, properties.getProperty(
@@ -780,15 +772,6 @@ public class Configuration {
    */
   public Map<String, String> getConfigsMap() {
     return configsMap;
-  }
-
-  /**
-   * Get the map with server config parameters related to agent configuration.
-   * Keys - public constants of this class
-   * @return the map with server config parameters related to agent configuration
-   */
-  public Map<String, String> getAgentConfigsMap() {
-    return agentConfigsMap;
   }
 
   /**
