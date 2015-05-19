@@ -170,6 +170,9 @@ public class AmbariManagementControllerImplTest {
     ambariConfigsSetter.setConfigs(controller, "https", "othersecuredhost", 8443);
     assertEquals("https://othersecuredhost:8443/oracle/ojdbc/", controller.getAmbariServerURI("/oracle/ojdbc/"));
 
+    ambariConfigsSetter.setConfigs(controller, "http", "hostname", 8080);
+    assertEquals("http://hostname:8080/jdk_path?query", controller.getAmbariServerURI("/jdk_path?query"));
+
     verify(injector);
   }
 
