@@ -23,6 +23,7 @@ import org.apache.ambari.view.ViewContext;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.util.Collections;
@@ -30,7 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.easymock.EasyMock.aryEq;
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
@@ -51,7 +54,7 @@ public class ViewURLStreamProviderTest {
     Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
     headerMap.put("header", Collections.singletonList("headerValue"));
 
-    expect(streamProvider.processURL("spec", "requestMethod", "params", headerMap)).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
 
     replay(streamProvider, urlConnection, inputStream);
@@ -79,7 +82,7 @@ public class ViewURLStreamProviderTest {
     headerMap.put("header", Collections.singletonList("headerValue"));
     headerMap.put("doAs", Collections.singletonList("joe"));
 
-    expect(streamProvider.processURL("spec", "requestMethod", "params", headerMap)).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
 
     replay(streamProvider, urlConnection, inputStream);
@@ -107,7 +110,7 @@ public class ViewURLStreamProviderTest {
     headerMap.put("header", Collections.singletonList("headerValue"));
     headerMap.put("doAs", Collections.singletonList("joe"));
 
-    expect(streamProvider.processURL("spec", "requestMethod", "params", headerMap)).andReturn(urlConnection);
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
     expect(viewContext.getUsername()).andReturn("joe").anyTimes();
 
@@ -116,6 +119,95 @@ public class ViewURLStreamProviderTest {
     ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
 
     Assert.assertEquals(inputStream, viewURLStreamProvider.readAsCurrent("spec", "requestMethod", "params", headers));
+
+    verify(streamProvider, urlConnection, inputStream, viewContext);
+  }
+
+  @Test
+  public void testReadFromInputStream() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    InputStream body = new ByteArrayInputStream("params".getBytes());
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, urlConnection, inputStream);
+
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readFrom("spec", "requestMethod", body, headers));
+
+    verify(streamProvider, urlConnection, inputStream);
+  }
+
+  @Test
+  public void testReadAsInputStream() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    InputStream body = new ByteArrayInputStream("params".getBytes());
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+    headers.put("doAs", "joe");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+    headerMap.put("doAs", Collections.singletonList("joe"));
+
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, urlConnection, inputStream);
+
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readAs("spec", "requestMethod", body, headers, "joe"));
+
+    verify(streamProvider, urlConnection, inputStream);
+  }
+
+  @Test
+  public void testReadAsCurrentInputStream() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    InputStream body = new ByteArrayInputStream("params".getBytes());
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+    headers.put("doAs", "joe");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+    headerMap.put("doAs", Collections.singletonList("joe"));
+
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+    expect(viewContext.getUsername()).andReturn("joe").anyTimes();
+
+    replay(streamProvider, urlConnection, inputStream, viewContext);
+
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readAsCurrent("spec", "requestMethod", body, headers));
 
     verify(streamProvider, urlConnection, inputStream, viewContext);
   }

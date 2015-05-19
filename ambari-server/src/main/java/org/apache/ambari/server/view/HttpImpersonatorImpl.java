@@ -137,7 +137,7 @@ public class HttpImpersonatorImpl implements HttpImpersonator {
       Map<String, List<String>> headers = new HashMap<String, List<String>>();
       headers.put(impersonatorSetting.getDoAsParamName(), new ArrayList<String>() {{add(impersonatorSetting.getUsername()); }} );
 
-      HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, null, headers);
+      HttpURLConnection connection = urlStreamProvider.processURL(url, requestType, (String) null, headers);
 
       int responseCode = connection.getResponseCode();
       InputStream resultInputStream;

@@ -65,30 +65,31 @@ public class URLStreamProvider implements StreamProvider {
 
   /**
    * Provide the connection timeout for the underlying connection.
-   * 
+   *
    * @param connectionTimeout
    *          time, in milliseconds, to attempt a connection
    * @param readTimeout
    *          the read timeout in milliseconds
    * @param configuration configuration holding TrustStore information
    */
-  public URLStreamProvider(int connectionTimeout, int readTimeout, 
-      ComponentSSLConfiguration configuration) {  
+  public URLStreamProvider(int connectionTimeout, int readTimeout,
+                           ComponentSSLConfiguration configuration) {
     this(connectionTimeout, readTimeout,
         configuration.getTruststorePath(),
         configuration.getTruststorePassword(),
         configuration.getTruststoreType());
   }
+
   /**
    * Provide the connection timeout for the underlying connection.
-   * 
+   *
    * @param connectionTimeout
    *          time, in milliseconds, to attempt a connection
    * @param readTimeout
    *          the read timeout in milliseconds
    */
   public URLStreamProvider(int connectionTimeout, int readTimeout, String path,
-      String password, String type) {
+                           String password, String type) {
 
     this.connTimeout = connectionTimeout;
     this.readTimeout = readTimeout;
@@ -118,14 +119,50 @@ public class URLStreamProvider implements StreamProvider {
    *
    * @param spec           the String to parse as a URL
    * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
-   * @param params         the body of the request; may be null
+   * @param body           the body of the request; may be null
    * @param headers        the headers of the request; may be null
    *
    * @return a URL connection
    *
    * @throws IOException if the URL connection can not be established
    */
-  public HttpURLConnection processURL(String spec, String requestMethod, Object params, Map<String, List<String>> headers)
+  public HttpURLConnection processURL(String spec, String requestMethod, String body, Map<String, List<String>> headers)
+      throws IOException {
+
+    return processURL(spec, requestMethod, body == null ? null : body.getBytes(), headers);
+  }
+
+  /**
+   * Get a URL connection from the given spec.
+   *
+   * @param spec           the String to parse as a URL
+   * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
+   * @param body           the body of the request; may be null
+   * @param headers        the headers of the request; may be null
+   *
+   * @return a URL connection
+   *
+   * @throws IOException if the URL connection can not be established
+   */
+  public HttpURLConnection processURL(String spec, String requestMethod, InputStream body, Map<String, List<String>> headers)
+      throws IOException {
+
+    return processURL(spec, requestMethod, body == null ? null : IOUtils.toByteArray(body), headers);
+  }
+
+  /**
+   * Get a URL connection from the given spec.
+   *
+   * @param spec           the String to parse as a URL
+   * @param requestMethod  the HTTP method (GET,POST,PUT,etc.).
+   * @param body           the body of the request; may be null
+   * @param headers        the headers of the request; may be null
+   *
+   * @return a URL connection
+   *
+   * @throws IOException if the URL connection can not be established
+   */
+  public HttpURLConnection processURL(String spec, String requestMethod, byte[] body, Map<String, List<String>> headers)
           throws IOException {
     if (LOG.isDebugEnabled()) {
       LOG.debug("readFrom spec:" + spec);
@@ -164,14 +201,8 @@ public class URLStreamProvider implements StreamProvider {
       }
     }
 
-    if (params != null) {
-      byte[] info;
-      if (params instanceof InputStream) {
-        info = IOUtils.toByteArray((InputStream)params);
-      } else {
-        info = ((String)params).getBytes();
-      }
-      connection.getOutputStream().write(info);
+    if (body != null) {
+      connection.getOutputStream().write(body);
     }
 
     int statusCode = connection.getResponseCode();

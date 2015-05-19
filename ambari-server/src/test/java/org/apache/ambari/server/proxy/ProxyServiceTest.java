@@ -82,7 +82,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getUriInfo().getRequestUri()).andReturn(uriMock);
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(uriMock.getQuery()).andReturn("url=testurl");
-    expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
+    expect(streamProviderMock.processURL("testurl", "GET", (InputStream) null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
@@ -198,7 +198,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getUriInfo().getRequestUri()).andReturn(uriMock);
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(uriMock.getQuery()).andReturn("url=testurl");
-    expect(streamProviderMock.processURL("testurl", "DELETE", null, headerParamsToForward)).andReturn(urlConnectionMock);
+    expect(streamProviderMock.processURL("testurl", "DELETE", (InputStream) null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getInputStream()).andReturn(is);
@@ -236,7 +236,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getUriInfo().getRequestUri()).andReturn(uriMock);
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(uriMock.getQuery()).andReturn("url=testurl");
-    expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
+    expect(streamProviderMock.processURL("testurl", "GET", (InputStream) null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(400).times(2);
     expect(urlConnectionMock.getContentType()).andReturn("text/plain");
     expect(urlConnectionMock.getErrorStream()).andReturn(es);
@@ -274,7 +274,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(getUriInfo().getRequestUri()).andReturn(uriMock);
     expect(getUriInfo().getQueryParameters()).andReturn(queryParams);
     expect(uriMock.getQuery()).andReturn("url=testurl");
-    expect(streamProviderMock.processURL("testurl", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
+    expect(streamProviderMock.processURL("testurl", "GET", (InputStream) null, headerParamsToForward)).andReturn(urlConnectionMock);
     expect(urlConnectionMock.getResponseCode()).andReturn(200);
     expect(urlConnectionMock.getContentType()).andReturn("application/json");
     expect(urlConnectionMock.getInputStream()).andReturn(new ByteArrayInputStream("{ \"test\":\"test\" }".getBytes()));
@@ -314,7 +314,7 @@ class ProxyServiceTest extends BaseServiceTest {
     expect(urlConnectionMock.getInputStream()).andReturn(is);
     PowerMock.expectNew(URLStreamProvider.class, 20000, 15000, null, null, null).andReturn(streamProviderMock);
     expect(streamProviderMock.processURL("http://server:8188/ws/v1/timeline/HIVE_QUERY_ID?fields=events,primary" +
-     "filters&limit=10&primaryFilter=user:hiveuser1", "GET", null, headerParamsToForward)).andReturn(urlConnectionMock);
+     "filters&limit=10&primaryFilter=user:hiveuser1", "GET", (InputStream) null, headerParamsToForward)).andReturn(urlConnectionMock);
     PowerMock.replay(streamProviderMock, URLStreamProvider.class);
     replay(getUriInfo(), urlConnectionMock, getHttpHeaders());
     ps.processGetRequestForwarding(getHttpHeaders(),getUriInfo());

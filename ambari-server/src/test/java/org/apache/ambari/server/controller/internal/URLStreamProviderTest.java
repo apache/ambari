@@ -68,7 +68,7 @@ public class URLStreamProviderTest {
 
     replay(urlStreamProvider, connection, appCookieManager);
 
-    Assert.assertEquals(connection, urlStreamProvider.processURL("spec", "GET", null, headerMap));
+    Assert.assertEquals(connection, urlStreamProvider.processURL("spec", "GET", (String) null, headerMap));
 
     verify(urlStreamProvider, connection, appCookieManager);
   }

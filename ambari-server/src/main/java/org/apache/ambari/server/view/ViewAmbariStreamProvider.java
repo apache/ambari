@@ -22,6 +22,7 @@ import org.apache.ambari.server.controller.AmbariManagementController;
 import org.apache.ambari.server.controller.AmbariSessionManager;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.view.AmbariStreamProvider;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -72,10 +73,23 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
   // ----- AmbariStreamProvider -----------------------------------------------
 
   @Override
-  public InputStream readFrom(String path, String requestMethod, String params, Map<String, String> headers,
-                              boolean useAmbariSession)
-      throws IOException {
+  public InputStream readFrom(String path, String requestMethod, String body, Map<String, String> headers,
+                              boolean useAmbariSession) throws IOException {
+    return getInputStream(path, requestMethod, headers, useAmbariSession, body.getBytes());
+  }
 
+  @Override
+  public InputStream readFrom(String path, String requestMethod, InputStream body, Map<String, String> headers,
+                              boolean useAmbariSession) throws IOException {
+
+    return getInputStream(path, requestMethod, headers, useAmbariSession, IOUtils.toByteArray(body));
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  private InputStream getInputStream(String path, String requestMethod, Map<String, String> headers,
+                                     boolean useAmbariSession, byte[] body) throws IOException {
     // add the Ambari session cookie to the given headers
     if (useAmbariSession) {
       String sessionId = ambariSessionManager.getCurrentSessionId();
@@ -102,7 +116,7 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
     }
 
     return streamProvider.processURL(controller.getAmbariServerURI(path.startsWith("/") ? path : "/" + path),
-        requestMethod, params, headerMap).getInputStream();
+        requestMethod, body, headerMap).getInputStream();
   }
 }
 

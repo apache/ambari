@@ -50,7 +50,7 @@ public class HTTPUtils {
 
       Map<String, List<String>> headers = new HashMap<String, List<String>>();
 
-      HttpURLConnection connection = urlStreamProvider.processURL(url, "GET", null, headers);
+      HttpURLConnection connection = urlStreamProvider.processURL(url, "GET", (String) null, headers);
 
       int responseCode = connection.getResponseCode();
       InputStream resultInputStream = null;

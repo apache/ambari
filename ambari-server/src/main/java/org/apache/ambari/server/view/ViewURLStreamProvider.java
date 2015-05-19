@@ -21,6 +21,7 @@ package org.apache.ambari.server.view;
 import org.apache.ambari.server.controller.internal.URLStreamProvider;
 import org.apache.ambari.server.proxy.ProxyService;
 import org.apache.ambari.view.ViewContext;
+import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -70,25 +71,50 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
   @Override
   public InputStream readFrom(String spec, String requestMethod, String body, Map<String, String> headers)
       throws IOException {
-    // adapt the headers to the internal URLStreamProvider processURL signature
-    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
-    for (Map.Entry<String, String> entry : headers.entrySet()) {
-      headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
-    }
-
-    HttpURLConnection connection = streamProvider.processURL(spec, requestMethod, body, headerMap);
-
-    int responseCode = connection.getResponseCode();
-
-    return responseCode >= ProxyService.HTTP_ERROR_RANGE_START ?
-        connection.getErrorStream() : connection.getInputStream();
+    return getInputStream(spec, requestMethod, headers, body.getBytes());
   }
+
+  @Override
+  public InputStream readFrom(String spec, String requestMethod, InputStream body, Map<String, String> headers)
+      throws IOException {
+    return getInputStream(spec, requestMethod, headers, IOUtils.toByteArray(body));
+  }
+
 
   @Override
   public InputStream readAs(String spec, String requestMethod, String body, Map<String, String> headers,
                             String userName)
       throws IOException {
 
+    return readFrom(spec, requestMethod, body, addDoAsHeader(spec, headers, userName));
+  }
+
+  @Override
+  public InputStream readAs(String spec, String requestMethod, InputStream body, Map<String, String> headers,
+                            String userName) throws IOException {
+    return readFrom(spec, requestMethod, body, addDoAsHeader(spec, headers, userName));
+  }
+
+
+  @Override
+  public InputStream readAsCurrent(String spec, String requestMethod, String body, Map<String, String> headers)
+      throws IOException {
+
+    return readAs(spec, requestMethod, body, headers, viewContext.getUsername());
+  }
+
+  @Override
+  public InputStream readAsCurrent(String spec, String requestMethod, InputStream body, Map<String, String> headers)
+      throws IOException {
+
+    return readAs(spec, requestMethod, body, headers, viewContext.getUsername());
+  }
+
+
+  // ----- helper methods ----------------------------------------------------
+
+  // add the "do as" header
+  private Map<String, String> addDoAsHeader(String spec, Map<String, String> headers, String userName) {
     if (spec.toLowerCase().contains(DO_AS_PARAM)) {
       throw new IllegalArgumentException("URL cannot contain \"" + DO_AS_PARAM + "\" parameter.");
     }
@@ -100,15 +126,24 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
     }
 
     headers.put(DO_AS_PARAM, userName);
-
-    return readFrom(spec, requestMethod, body, headers);
+    return headers;
   }
 
-  @Override
-  public InputStream readAsCurrent(String spec, String requestMethod, String body, Map<String, String> headers)
+  // get the input stream response from the underlying stream provider
+  private InputStream getInputStream(String spec, String requestMethod, Map<String, String> headers, byte[] info)
       throws IOException {
+    // adapt the headers to the internal URLStreamProvider processURL signature
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    for (Map.Entry<String, String> entry : headers.entrySet()) {
+      headerMap.put(entry.getKey(), Collections.singletonList(entry.getValue()));
+    }
 
-    return readAs(spec, requestMethod, body, headers, viewContext.getUsername());
+    HttpURLConnection connection = streamProvider.processURL(spec, requestMethod, info, headerMap);
+
+    int responseCode = connection.getResponseCode();
+
+    return responseCode >= ProxyService.HTTP_ERROR_RANGE_START ?
+        connection.getErrorStream() : connection.getInputStream();
   }
 }
 
