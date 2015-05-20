@@ -93,6 +93,20 @@
                 <p>{{t admin.stackUpgrade.finalize.message.upgrade}}</p>
               {{/if}}
 
+              {{#if view.areSkippedServiceChecksLoaded}}
+                {{#if view.skippedServiceChecks.length}}
+                  <div>{{t admin.stackUpgrade.finalize.message.skippedServiceChecks}}</div>
+                  <ul>
+                    {{#each serviceName in view.skippedServiceChecks}}
+                      <li>{{serviceName}}</li>
+                    {{/each}}
+                  </ul>
+                  <div>{{t admin.stackUpgrade.finalize.message.testServices}}</div>
+                {{/if}}
+              {{else}}
+                <div class="spinner"></div>
+              {{/if}}
+
               <label class="message">
                 {{view Em.Checkbox checkedBinding="view.isManualDone"}}
                 {{t admin.stackUpgrade.dialog.manualDone}}

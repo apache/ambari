@@ -64,6 +64,18 @@ App.upgradeWizardView = Em.View.extend({
   outsideView: true,
 
   /**
+   * Determines if list of services with checks that failed and were skipped by user during the upgrade is loaded
+   * @type {boolean}
+   */
+  areSkippedServiceChecksLoaded: false,
+
+  /**
+   * List of services with checks that failed and were skipped by user during the upgrade
+   * @type {array}
+   */
+  skippedServiceChecks: [],
+
+  /**
    * Downgrade should be available only if target version higher than current, so we can't downgrade
    * when downgrade already started
    * @type {boolean}
@@ -237,6 +249,43 @@ App.upgradeWizardView = Em.View.extend({
       });
     }
   }.observes('App.clusterName'),
+
+  getSkippedServiceChecks: function () {
+    if (this.get('isFinalizeItem') && !this.get('areSkippedServiceChecksLoaded')) {
+      var self = this;
+      App.ajax.send({
+        name: 'admin.upgrade.service_checks',
+        sender: this,
+        data: {
+          upgradeId: this.get('controller.upgradeId')
+        },
+        success: 'getSkippedServiceChecksSuccessCallback'
+      }).complete(function () {
+          self.set('areSkippedServiceChecksLoaded', true);
+        });
+    }
+  }.observes('isFinalizeItem'),
+
+  getSkippedServiceChecksSuccessCallback: function (data) {
+    if (data.items && data.items.length) {
+      var lastItemWithChecks = data.items[data.items.length - 1];
+      if (lastItemWithChecks && lastItemWithChecks.upgrade_items && lastItemWithChecks.upgrade_items.length) {
+        var skippedServiceChecks = [];
+        lastItemWithChecks.upgrade_items.forEach(function (item) {
+          if (item.tasks && item.tasks.length) {
+            item.tasks.forEach(function (task) {
+              var detail = Em.get(task, 'Tasks.command_detail');
+              if (detail && detail.startsWith('SERVICE_CHECK ')) {
+                skippedServiceChecks.push(App.format.role(detail.replace('SERVICE_CHECK ', '')));
+              }
+            });
+          }
+        });
+        skippedServiceChecks = skippedServiceChecks.uniq();
+        this.set('skippedServiceChecks', skippedServiceChecks);
+      }
+    }
+  },
 
   /**
    * start polling upgrade data

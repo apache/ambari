@@ -1519,6 +1519,9 @@ var urls = {
     'minimal_response=true',
     'mock': '/data/stack_versions/upgrade_item.json'
   },
+  'admin.upgrade.service_checks': {
+    'real': '/clusters/{clusterName}/upgrades/{upgradeId}/upgrade_groups?upgrade_items/UpgradeItem/status=COMPLETED&upgrade_items/tasks/Tasks/status.in(FAILED,ABORTED,TIMEDOUT)&upgrade_items/tasks/Tasks/command=SERVICE_CHECK&fields=upgrade_items/tasks/Tasks/command_detail,upgrade_items/tasks/Tasks/status&minimal_response=true'
+  },
   'admin.upgrade.start': {
     'real': '/clusters/{clusterName}/upgrades',
     'mock': '/data/stack_versions/start_upgrade.json',
