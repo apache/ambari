@@ -903,6 +903,8 @@ public class TestHeartbeatHandler {
     assertFalse(config.isEmpty());
     assertTrue(config.containsKey(Configuration.CHECK_REMOTE_MOUNTS_KEY));
     assertTrue("true".equals(config.get(Configuration.CHECK_REMOTE_MOUNTS_KEY)));
+    assertTrue(config.containsKey(Configuration.CHECK_MOUNTS_TIMEOUT_KEY));
+    assertTrue("0".equals(config.get(Configuration.CHECK_MOUNTS_TIMEOUT_KEY)));
   }
 
   @Test

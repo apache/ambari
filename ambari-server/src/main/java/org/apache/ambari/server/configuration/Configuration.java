@@ -118,6 +118,8 @@ public class Configuration {
   public static final String CLIENT_API_SSL_KEY_NAME_KEY = "client.api.ssl.key_name";
   public static final String CHECK_REMOTE_MOUNTS_KEY = "agent.check.remote.mounts";
   public static final String CHECK_REMOTE_MOUNTS_DEFAULT = "true";
+  public static final String CHECK_MOUNTS_TIMEOUT_KEY = "agent.check.mounts.timeout";
+  public static final String CHECK_MOUNTS_TIMEOUT_DEFAULT = "0";
   public static final String SERVER_DB_NAME_KEY = "server.jdbc.database_name";
   public static final String SERVER_DB_NAME_DEFAULT = "ambari";
   public static final String REQUEST_READ_TIMEOUT = "views.request.read.timeout.millis";
@@ -491,6 +493,8 @@ public class Configuration {
     agentConfigsMap = new HashMap<String, String>();
     agentConfigsMap.put(CHECK_REMOTE_MOUNTS_KEY, properties.getProperty(
       CHECK_REMOTE_MOUNTS_KEY, CHECK_REMOTE_MOUNTS_DEFAULT));
+    agentConfigsMap.put(CHECK_MOUNTS_TIMEOUT_KEY, properties.getProperty(
+      CHECK_MOUNTS_TIMEOUT_KEY, CHECK_MOUNTS_TIMEOUT_DEFAULT));
 
     configsMap = new HashMap<String, String>();
     configsMap.putAll(agentConfigsMap);

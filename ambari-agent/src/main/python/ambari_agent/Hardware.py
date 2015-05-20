@@ -33,6 +33,7 @@ class Hardware:
   SSH_KEY_PATTERN = 'ssh.*key'
   WINDOWS_GET_DRIVES_CMD = "foreach ($drive in [System.IO.DriveInfo]::getdrives()){$available = $drive.TotalFreeSpace;$used = $drive.TotalSize-$drive.TotalFreeSpace;$percent = ($used*100)/$drive.TotalSize;$size = $drive.TotalSize;$type = $drive.DriveFormat;$mountpoint = $drive.RootDirectory.FullName;echo \"$available $used $percent% $size $type $mountpoint\"}"
   CHECK_REMOTE_MOUNTS_KEY = 'agent.check.remote.mounts'
+  CHECK_REMOTE_MOUNTS_TIMEOUT_KEY = 'agent.check.mounts.timeout'
 
   def __init__(self):
     self.hardware = {}
@@ -68,7 +69,14 @@ class Hardware:
     platforms. Note that this parser ignores any filesystems with spaces
     and any mounts with spaces. """
     mounts = []
-    command = ["df", "-kPT"]
+    command = []
+    if config and \
+        config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_TIMEOUT_KEY) and \
+        config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) != "0":
+      command.append("timeout")
+      command.append(config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY))
+    command.append("df")
+    command.append("-kPT")
     if config and \
         config.has_option(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY) and \
         config.get(AmbariConfig.AMBARI_PROPERTIES_CATEGORY, Hardware.CHECK_REMOTE_MOUNTS_KEY).lower() == "false":
