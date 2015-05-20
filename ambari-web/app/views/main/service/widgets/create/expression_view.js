@@ -128,7 +128,7 @@ App.WidgetWizardExpressionView = Em.View.extend({
     this.propertyDidChange('expression');
     Em.run.next(function () {
       $(self.get('element')).find('.metric-field').sortable({
-        items: "> div",
+        items: "> .metric-instance",
         tolerance: "pointer",
         scroll: false,
         update: function () {
@@ -396,7 +396,12 @@ App.InputCursorTextfieldView = Ember.TextField.extend({
   },
 
   focusCursor: function () {
-    Em.run.next( function() { $('.add-item-input .ember-text-field').focus(); });
+    var self = this;
+    Em.run.next( function() {
+      if (self.$()) {
+        self.$().focus();
+      }
+    });
   }.observes('parentView.expression.data.length'),
 
   focusOut: function(evt) {
