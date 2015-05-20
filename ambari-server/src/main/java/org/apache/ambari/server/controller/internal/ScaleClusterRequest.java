@@ -69,7 +69,7 @@ public class ScaleClusterRequest extends BaseClusterRequest {
   }
 
   @Override
-  public String getCommandDescription() {
+  public String getDescription() {
     return String.format("Scale Cluster '%s' (+%s hosts)", clusterName, getTotalRequestedHostCount());
   }
 

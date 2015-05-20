@@ -219,7 +219,7 @@ public class ClusterTopologyImplTest {
     }
 
     @Override
-    public String getCommandDescription() {
+    public String getDescription() {
       return "Test Request";
     }
   }

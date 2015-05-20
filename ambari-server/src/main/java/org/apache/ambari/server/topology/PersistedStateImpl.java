@@ -185,7 +185,7 @@ public class PersistedStateImpl implements PersistedState {
     entity.setClusterAttributes(attributesAsString(request.getConfiguration().getAttributes()));
     entity.setClusterName(request.getClusterName());
     entity.setClusterProperties(propertiesAsString(request.getConfiguration().getProperties()));
-    entity.setDescription(request.getCommandDescription());
+    entity.setDescription(request.getDescription());
 
     // host groups
     Collection<TopologyHostGroupEntity> hostGroupEntities = new ArrayList<TopologyHostGroupEntity>();
@@ -353,7 +353,7 @@ public class PersistedStateImpl implements PersistedState {
     }
 
     @Override
-    public String getCommandDescription() {
+    public String getDescription() {
       return description;
     }
 

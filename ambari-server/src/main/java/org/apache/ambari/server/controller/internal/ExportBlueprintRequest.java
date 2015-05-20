@@ -111,7 +111,7 @@ public class ExportBlueprintRequest implements TopologyRequest {
   }
 
   @Override
-  public String getCommandDescription() {
+  public String getDescription() {
     return String.format("Export Command For Cluster '%s'", clusterName);
   }
 

@@ -68,7 +68,7 @@ public class LogicalRequest extends Request {
     super(id, getController().getClusters().getCluster(
         request.getClusterName()).getClusterId(), getController().getClusters());
 
-    setRequestContext(String.format("Logical Request: %s", request.getCommandDescription()));
+    setRequestContext(String.format("Logical Request: %s", request.getDescription()));
 
     this.topology = topology;
     createHostRequests(request, topology);
@@ -81,7 +81,7 @@ public class LogicalRequest extends Request {
     super(id, getController().getClusters().getCluster(
         request.getClusterName()).getClusterId(), getController().getClusters());
 
-    setRequestContext(String.format("Logical Request: %s", request.getCommandDescription()));
+    setRequestContext(String.format("Logical Request: %s", request.getDescription()));
 
     this.topology = topology;
     createHostRequests(topology, requestEntity);

@@ -195,7 +195,7 @@ public class TopologyManagerTest {
 
     expect(request.getBlueprint()).andReturn(blueprint).anyTimes();
     expect(request.getClusterName()).andReturn(CLUSTER_NAME).anyTimes();
-    expect(request.getCommandDescription()).andReturn("Provision Cluster Test").anyTimes();
+    expect(request.getDescription()).andReturn("Provision Cluster Test").anyTimes();
     expect(request.getConfiguration()).andReturn(topoConfiguration).anyTimes();
     expect(request.getHostGroupInfo()).andReturn(groupInfoMap).anyTimes();
     expect(request.getTopologyValidators()).andReturn(topologyValidators).anyTimes();

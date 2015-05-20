@@ -24,21 +24,62 @@ import java.util.Map;
 /**
  * A request which is used to create or modify a cluster topology.
  */
-//todo: naming
 public interface TopologyRequest {
-
+  /**
+   * Request types.
+   */
   public enum Type { PROVISION, SCALE, EXPORT }
 
+  /**
+   * Get the cluster name associated with the request.
+   *
+   * @return associated cluster name
+   */
   public String getClusterName();
+
+  /**
+   * Get the request type.
+   *
+   * @return the type of request
+   */
   public Type getType();
+
   //todo: only a single BP may be specified so all host groups have the same bp.
-  //todo: There is no reason really that we couldn't allow hostgroups from different blueprints assuming that
-  //todo: the stack matches across the groups.  For scaling operations, we allow different blueprints (rather arbitrary)
-  //todo: so BP really needs to get associated with the HostGroupInfo, even for create which will have a single BP
+  //todo: BP really needs to be associated with the HostGroupInfo, even for create which will have a single BP
   //todo: for all HG's.
+
+  /**
+   * Get the blueprint instance associated with the request.
+   *
+   * @return associated blueprint instance
+   */
   public Blueprint getBlueprint();
+
+  /**
+   * Get the cluster scoped configuration for the request.
+   *
+   * @return cluster scoped configuration
+   */
   public Configuration getConfiguration();
+
+  /**
+   * Get host group info.
+   *
+   * @return map of host group name to group info
+   */
   public Map<String, HostGroupInfo> getHostGroupInfo();
+
+  /**
+   * Get request topology validators.
+   *
+   * @return list of topology validators
+   */
   public List<TopologyValidator> getTopologyValidators();
-  public String getCommandDescription();
+
+  /**
+   * Get request description.
+   *
+   * @return string description of the request
+   */
+  public String getDescription();
 }

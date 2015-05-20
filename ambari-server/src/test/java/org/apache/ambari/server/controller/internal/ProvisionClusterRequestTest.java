@@ -71,6 +71,7 @@ public class ProvisionClusterRequestTest {
 
   @Before
   public void setUp() throws Exception {
+    reset(blueprintFactory, blueprint, hostResourceProvider);
     ProvisionClusterRequest.init(blueprintFactory);
     // set host resource provider field
     Class clazz = BaseClusterRequest.class;
@@ -89,7 +90,6 @@ public class ProvisionClusterRequestTest {
   @After
   public void tearDown() {
     verify(blueprintFactory, blueprint, hostResourceProvider);
-    reset(blueprintFactory, blueprint, hostResourceProvider);
   }
 
   @Test
@@ -103,7 +103,7 @@ public class ProvisionClusterRequestTest {
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
-    assertEquals(String.format("Provision Cluster '%s'", CLUSTER_NAME) , provisionClusterRequest.getCommandDescription());
+    assertEquals(String.format("Provision Cluster '%s'", CLUSTER_NAME) , provisionClusterRequest.getDescription());
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
@@ -155,7 +155,7 @@ public class ProvisionClusterRequestTest {
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
-    assertEquals(String.format("Provision Cluster '%s'", CLUSTER_NAME) , provisionClusterRequest.getCommandDescription());
+    assertEquals(String.format("Provision Cluster '%s'", CLUSTER_NAME) , provisionClusterRequest.getDescription());
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(1, hostGroupInfo.size());
@@ -207,7 +207,7 @@ public class ProvisionClusterRequestTest {
 
     assertEquals(CLUSTER_NAME, provisionClusterRequest.getClusterName());
     assertEquals(TopologyRequest.Type.PROVISION, provisionClusterRequest.getType());
-    assertEquals(String.format("Provision Cluster '%s'", CLUSTER_NAME) , provisionClusterRequest.getCommandDescription());
+    assertEquals(String.format("Provision Cluster '%s'", CLUSTER_NAME) , provisionClusterRequest.getDescription());
     assertSame(blueprint, provisionClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = provisionClusterRequest.getHostGroupInfo();
     assertEquals(2, hostGroupInfo.size());
@@ -373,27 +373,21 @@ public class ProvisionClusterRequestTest {
     replay(hostResourceProvider);
 
     Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
-    List hostGroups = (List) properties.get("host_groups");
-    Map hostGroup = (Map) hostGroups.iterator().next();
-    List hostInfo = (List) hostGroup.get("hosts");
-    ((Map) hostInfo.iterator().next()).put("host_count", "5");
+    ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_count", "5");
     // should result in an exception due to both host name and host count being specified
-    TopologyRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
+    new ProvisionClusterRequest(properties);
   }
 
   @Test(expected = InvalidTopologyTemplateException.class)
-  public void testNeitherHostNameOrCountSpecified() throws Exception {
+  public void testHostNameAndPredicateSpecified() throws Exception {
     // reset host resource provider expectations to none since we are not specifying a host predicate
     reset(hostResourceProvider);
     replay(hostResourceProvider);
 
     Map<String, Object> properties = createBlueprintRequestPropertiesNameOnly(CLUSTER_NAME, BLUEPRINT_NAME);
-    List hostGroups = (List) properties.get("host_groups");
-    Map hostGroup = (Map) hostGroups.iterator().next();
-    List hostInfo = (List) hostGroup.get("hosts");
-    ((Map) hostInfo.iterator().next()).remove("fqdn");
+    ((Map) ((List) properties.get("host_groups")).iterator().next()).put("host_predicate", "Hosts/host_name=myTestHost");
     // should result in an exception due to both host name and host count being specified
-    TopologyRequest provisionClusterRequest = new ProvisionClusterRequest(properties);
+    new ProvisionClusterRequest(properties);
   }
 
   public static Map<String, Object> createBlueprintRequestProperties(String clusterName, String blueprintName) {
@@ -427,12 +421,9 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> hostGroup2Properties = new HashMap<String, Object>();
     hostGroups.add(hostGroup2Properties);
     hostGroup2Properties.put("name", "group2");
-    Collection<Map<String, String>> hostGroup2Hosts = new ArrayList<Map<String, String>>();
-    hostGroup2Properties.put("hosts", hostGroup2Hosts);
-    Map<String, String> hostGroup2HostProperties = new HashMap<String, String>();
-    hostGroup2HostProperties.put("host_count", "5");
-    hostGroup2HostProperties.put("host_predicate", "Hosts/host_name=myTestHost");
-    hostGroup2Hosts.add(hostGroup2HostProperties);
+    hostGroup2Properties.put("host_count", "5");
+    hostGroup2Properties.put("host_predicate", "Hosts/host_name=myTestHost");
+
     // host group 2 scoped configuration
     // version 2 configuration syntax
     Collection<Map<String, String>> hostGroup2Configurations = new ArrayList<Map<String, String>>();
@@ -506,12 +497,9 @@ public class ProvisionClusterRequestTest {
     Map<String, Object> hostGroup2Properties = new HashMap<String, Object>();
     hostGroups.add(hostGroup2Properties);
     hostGroup2Properties.put("name", "group2");
-    Collection<Map<String, String>> hostGroup2Hosts = new ArrayList<Map<String, String>>();
-    hostGroup2Properties.put("hosts", hostGroup2Hosts);
-    Map<String, String> hostGroup2HostProperties = new HashMap<String, String>();
     // count with no predicate
-    hostGroup2HostProperties.put("host_count", "5");
-    hostGroup2Hosts.add(hostGroup2HostProperties);
+    hostGroup2Properties.put("host_count", "5");
+
     // host group 2 scoped configuration
     // version 2 configuration syntax
     Collection<Map<String, String>> hostGroup2Configurations = new ArrayList<Map<String, String>>();

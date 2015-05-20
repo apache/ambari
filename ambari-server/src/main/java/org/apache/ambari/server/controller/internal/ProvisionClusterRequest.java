@@ -15,9 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-//todo: in which package does this belong?  For now it is co-located with resource providers because
-//todo: it needs to understand the syntax of the associated resource provider request
 package org.apache.ambari.server.controller.internal;
 
 import org.apache.ambari.server.api.predicate.InvalidQueryException;
@@ -38,7 +35,47 @@ import java.util.Map;
 /**
  * Request for provisioning a cluster.
  */
+@SuppressWarnings("unchecked")
 public class ProvisionClusterRequest extends BaseClusterRequest {
+  /**
+   * host groups property name
+   */
+  public static final String HOSTGROUPS_PROPERTY = "host_groups";
+
+  /**
+   * host group name property name
+   */
+  public static final String HOSTGROUP_NAME_PROPERTY = "name";
+
+  /**
+   * host group host count property name
+   */
+  public static final String HOSTGROUP_HOST_COUNT_PROPERTY = "host_count";
+
+  /**
+   * host group host predicate property name
+   */
+  public static final String HOSTGROUP_HOST_PREDICATE_PROPERTY = "host_predicate";
+
+  /**
+   * host group host fqdn property name
+   */
+  public static final String HOSTGROUP_HOST_FQDN_PROPERTY = "fqdn";
+
+  /**
+   * host group hosts property name
+   */
+  public static final String HOSTGROUP_HOSTS_PROPERTY = "hosts";
+
+  /**
+   * configurations property name
+   */
+  public static final String CONFIGURATIONS_PROPERTY = "configurations";
+
+  /**
+   * default password property name
+   */
+  public static final String DEFAULT_PASSWORD_PROPERTY = "default_password";
 
   /**
    * configuration factory
@@ -50,7 +87,6 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    */
   private String defaultPassword;
 
-  @SuppressWarnings("unchecked")
   /**
    * Constructor.
    *
@@ -60,9 +96,8 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     setClusterName(String.valueOf(properties.get(
         ClusterResourceProvider.CLUSTER_NAME_PROPERTY_ID)));
 
-    //todo: constant
-    if (properties.containsKey("default_password")) {
-      defaultPassword = String.valueOf(properties.get("default_password"));
+    if (properties.containsKey(DEFAULT_PASSWORD_PROPERTY)) {
+      defaultPassword = String.valueOf(properties.get(DEFAULT_PASSWORD_PROPERTY));
     }
 
     try {
@@ -74,7 +109,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
     }
 
     Configuration configuration = configurationFactory.getConfiguration(
-        (Collection<Map<String, String>>) properties.get("configurations"));
+        (Collection<Map<String, String>>) properties.get(CONFIGURATIONS_PROPERTY));
     configuration.setParentConfiguration(blueprint.getConfiguration());
     setConfiguration(configuration);
 
@@ -92,7 +127,7 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
   }
 
   @Override
-  public String getCommandDescription() {
+  public String getDescription() {
     return String.format("Provision Cluster '%s'", clusterName);
   }
 
@@ -118,73 +153,115 @@ public class ProvisionClusterRequest extends BaseClusterRequest {
    * Parse host group information.
    *
    * @param properties  request properties
+   *
    * @throws InvalidTopologyTemplateException  if any validation checks on properties fail
    */
-  @SuppressWarnings("unchecked")
   private void parseHostGroupInfo(Map<String, Object> properties) throws InvalidTopologyTemplateException {
     Collection<Map<String, Object>> hostGroups =
-        (Collection<Map<String, Object>>) properties.get("host_groups");
+        (Collection<Map<String, Object>>) properties.get(HOSTGROUPS_PROPERTY);
 
     if (hostGroups == null || hostGroups.isEmpty()) {
       throw new InvalidTopologyTemplateException("'host_groups' element must be included in cluster create body");
     }
 
-    // iterate over host groups provided in request body
     for (Map<String, Object> hostGroupProperties : hostGroups) {
-      String name = String.valueOf(hostGroupProperties.get("name"));
-      // String.valueOf() converts null to "null"
-      if (name.equals("null") || name.isEmpty()) {
-        throw new InvalidTopologyTemplateException("All host groups must contain a 'name' element");
+      processHostGroup(hostGroupProperties);
+    }
+  }
+
+  /**
+   * Process host group properties.
+   *
+   * @param hostGroupProperties  host group properties
+   *
+   * @throws InvalidTopologyTemplateException if any validation checks on properties fail
+   */
+  private void processHostGroup(Map<String, Object> hostGroupProperties) throws InvalidTopologyTemplateException {
+    String name = String.valueOf(hostGroupProperties.get(HOSTGROUP_NAME_PROPERTY));
+    // String.valueOf() converts null to "null"
+    if (name == null || name.equals("null") || name.isEmpty()) {
+      throw new InvalidTopologyTemplateException("All host groups must contain a 'name' element");
+    }
+
+    HostGroupInfo hostGroupInfo = new HostGroupInfo(name);
+    getHostGroupInfo().put(name, hostGroupInfo);
+
+    processHostCountAndPredicate(hostGroupProperties, hostGroupInfo);
+    processGroupHosts(name, (Collection<Map<String, String>>)
+        hostGroupProperties.get(HOSTGROUP_HOSTS_PROPERTY), hostGroupInfo);
+
+    // don't set the parent configuration
+    hostGroupInfo.setConfiguration(configurationFactory.getConfiguration(
+        (Collection<Map<String, String>>) hostGroupProperties.get(CONFIGURATIONS_PROPERTY)));
+  }
+
+  /**
+   * Process host count and host predicate for a host group.
+   *
+   * @param hostGroupProperties  host group properties
+   * @param hostGroupInfo        associated host group info instance
+   *
+   * @throws InvalidTopologyTemplateException  specified host group properties fail validation
+   */
+  private void processHostCountAndPredicate(Map<String, Object> hostGroupProperties, HostGroupInfo hostGroupInfo)
+      throws InvalidTopologyTemplateException {
+
+    if (hostGroupProperties.containsKey(HOSTGROUP_HOST_COUNT_PROPERTY)) {
+      hostGroupInfo.setRequestedCount(Integer.valueOf(String.valueOf(
+          hostGroupProperties.get(HOSTGROUP_HOST_COUNT_PROPERTY))));
+    }
+
+    if (hostGroupProperties.containsKey(HOSTGROUP_HOST_PREDICATE_PROPERTY)) {
+      if (hostGroupInfo.getRequestedHostCount() == 0) {
+        throw new InvalidTopologyTemplateException(String.format(
+            "Host group '%s' must not specify 'host_predicate' without 'host_count'",
+            hostGroupInfo.getHostGroupName()));
       }
 
-      Collection hosts = (Collection) hostGroupProperties.get("hosts");
-      if (hosts == null || hosts.isEmpty()) {
-        throw new InvalidTopologyTemplateException("Host group '" + name + "' must contain a 'hosts' element");
+      String hostPredicate = String.valueOf(hostGroupProperties.get(HOSTGROUP_HOST_PREDICATE_PROPERTY));
+      validateHostPredicateProperties(hostPredicate);
+      try {
+        hostGroupInfo.setPredicate(hostPredicate);
+      } catch (InvalidQueryException e) {
+        throw new InvalidTopologyTemplateException(
+            String.format("Unable to compile host predicate '%s': %s", hostPredicate, e), e);
+      }
+    }
+  }
+
+  /**
+   * Process host group hosts.
+   *
+   * @param name           host group name
+   * @param hosts          collection of host group host properties
+   * @param hostGroupInfo  associated host group info instance
+   *
+   * @throws InvalidTopologyTemplateException specified host group properties fail validation
+   */
+  private void processGroupHosts(String name, Collection<Map<String, String>> hosts, HostGroupInfo hostGroupInfo)
+      throws InvalidTopologyTemplateException {
+
+    if (hosts != null) {
+      if (hostGroupInfo.getRequestedHostCount() != 0) {
+        throw new InvalidTopologyTemplateException(String.format(
+            "Host group '%s' must not contain both a 'hosts' element and a 'host_count' value", name));
       }
 
-      HostGroupInfo hostGroupInfo = new HostGroupInfo(name);
-      getHostGroupInfo().put(name, hostGroupInfo);
+      if (hostGroupInfo.getPredicate() != null) {
+        throw new InvalidTopologyTemplateException(String.format(
+            "Host group '%s' must not contain both a 'hosts' element and a 'host_predicate' value", name));
+      }
 
-      for (Object oHost : hosts) {
-        Map<String, String> hostProperties = (Map<String, String>) oHost;
-
-        String hostName = hostProperties.get("fqdn");
-        boolean containsHostCount = hostProperties.containsKey("host_count");
-        boolean containsHostPredicate = hostProperties.containsKey("host_predicate");
-
-        if (hostName != null && (containsHostCount || containsHostPredicate)) {
-          throw new InvalidTopologyTemplateException(
-              "Can't specify host_count or host_predicate if host_name is specified in hostgroup: " + name);
+      for (Map<String, String> hostProperties : hosts) {
+        if (hostProperties.containsKey(HOSTGROUP_HOST_FQDN_PROPERTY)) {
+          hostGroupInfo.addHost(hostProperties.get(HOSTGROUP_HOST_FQDN_PROPERTY));
         }
-
-        //add host information to host group
-        if (hostName == null || hostName.isEmpty()) {
-          //todo: validate the host_name and host_predicate are not both specified for same group
-          String predicate = hostProperties.get("host_predicate");
-          if (predicate != null && ! predicate.isEmpty()) {
-            validateHostPredicateProperties(predicate);
-            try {
-              hostGroupInfo.setPredicate(predicate);
-            } catch (InvalidQueryException e) {
-              throw new InvalidTopologyTemplateException(
-                  String.format("Unable to compile host predicate '%s': %s", predicate, e), e);
-            }
-          }
-
-          if (containsHostCount) {
-            hostGroupInfo.setRequestedCount(Integer.valueOf(hostProperties.get("host_count")));
-          } else {
-            throw new InvalidTopologyTemplateException(
-                "Host group '" + name + "' hosts element must include at least one fqdn" +
-                " or a host_count must be specified");
-          }
-        } else {
-          hostGroupInfo.addHost(hostName);
-        }
       }
-      // don't set the parent configuration
-      hostGroupInfo.setConfiguration(configurationFactory.getConfiguration(
-          (Collection<Map<String, String>>) hostGroupProperties.get("configurations")));
+    }
+
+    if (hostGroupInfo.getRequestedHostCount() == 0) {
+      throw new InvalidTopologyTemplateException(String.format(
+          "Host group '%s' must contain at least one 'hosts/fqdn' or a 'host_count' value", name));
     }
   }
 }

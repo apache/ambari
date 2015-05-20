@@ -111,7 +111,7 @@ public class ScaleClusterRequestTest {
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "1"),
-        scaleClusterRequest.getCommandDescription());
+        scaleClusterRequest.getDescription());
     assertEquals(CLUSTER_NAME, scaleClusterRequest.getClusterName());
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
@@ -142,7 +142,7 @@ public class ScaleClusterRequestTest {
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "2"),
-        scaleClusterRequest.getCommandDescription());
+        scaleClusterRequest.getDescription());
     assertEquals(CLUSTER_NAME, scaleClusterRequest.getClusterName());
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
@@ -171,7 +171,7 @@ public class ScaleClusterRequestTest {
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "1"),
-        scaleClusterRequest.getCommandDescription());
+        scaleClusterRequest.getDescription());
     assertEquals(CLUSTER_NAME, scaleClusterRequest.getClusterName());
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
@@ -198,7 +198,7 @@ public class ScaleClusterRequestTest {
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "2"),
-        scaleClusterRequest.getCommandDescription());
+        scaleClusterRequest.getDescription());
     assertEquals(CLUSTER_NAME, scaleClusterRequest.getClusterName());
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
@@ -221,7 +221,7 @@ public class ScaleClusterRequestTest {
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "1"),
-        scaleClusterRequest.getCommandDescription());
+        scaleClusterRequest.getDescription());
     assertEquals(CLUSTER_NAME, scaleClusterRequest.getClusterName());
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
@@ -248,7 +248,7 @@ public class ScaleClusterRequestTest {
 
     assertEquals(TopologyRequest.Type.SCALE, scaleClusterRequest.getType());
     assertEquals(String.format("Scale Cluster '%s' (+%s hosts)", CLUSTER_NAME, "3"),
-        scaleClusterRequest.getCommandDescription());
+        scaleClusterRequest.getDescription());
     assertEquals(CLUSTER_NAME, scaleClusterRequest.getClusterName());
     assertSame(blueprint, scaleClusterRequest.getBlueprint());
     Map<String, HostGroupInfo> hostGroupInfo = scaleClusterRequest.getHostGroupInfo();
