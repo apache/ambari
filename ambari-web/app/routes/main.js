@@ -563,16 +563,18 @@ module.exports = Em.Route.extend(App.RouterRedirections, {
 
   }),
 
-  addServiceWidget: function (router, context) {
+  createServiceWidget: function (router, context) {
     if (context) {
       var widgetController = router.get('widgetWizardController');
       widgetController.save('widgetService', context.get('serviceName'));
-      widgetController.save('layoutId', context.get('layout.id'));
+      var layout = JSON.parse(JSON.stringify(context.get('layout')));
+      layout.widgets = context.get('layout.widgets').mapProperty('id');
+      widgetController.save('layout', layout);
     }
-    router.transitionTo('addWidget');
+    router.transitionTo('createWidget');
   },
 
-  addWidget: require('routes/add_widget'),
+  createWidget: require('routes/create_widget'),
 
   editServiceWidget: function (router, context) {
     if (context) {

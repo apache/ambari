@@ -37,10 +37,10 @@ App.WidgetWizardController = App.WizardController.extend({
     widgetType: "",
 
     /**
-     * @type {number}
+     * @type {Object}
      * @default null
      */
-    layoutId: null,
+    layout: null,
 
     /**
      * Example:
@@ -102,6 +102,7 @@ App.WidgetWizardController = App.WizardController.extend({
         callback: function () {
           this.load('widgetService');
           this.load('widgetType');
+          this.load('layout', true);
         }
       }
     ],
@@ -344,12 +345,17 @@ App.WidgetWizardController = App.WizardController.extend({
    * @param data
    */
   postWidgetDefinitionSuccessCallback: function (data) {
-    if (Em.isNone(this.get('content.layoutId'))) return;
-    var widgets = App.WidgetLayout.find(this.get('content.layoutId')).get('widgets').toArray();
+    if (Em.isNone(this.get('content.layout'))) return;
+    var widgets = this.get('content.layout.widgets').map(function(item){
+      return Em.Object.create({id: item});
+    });
     widgets.pushObject(Em.Object.create({
       id: data.resources[0].WidgetInfo.id
     }));
-    App.router.get('mainServiceInfoSummaryController').saveWidgetLayout(widgets);
+    var mainServiceInfoSummaryController = App.router.get('mainServiceInfoSummaryController');
+    mainServiceInfoSummaryController.saveWidgetLayout(widgets, Em.Object.create(this.get('content.layout'))).done(function() {
+      mainServiceInfoSummaryController.updateActiveLayout();
+    });
   },
 
   /**

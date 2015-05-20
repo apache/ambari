@@ -271,7 +271,7 @@ App.AddMetricExpressionView = Em.View.extend({
       var data = this.get('parentView').get('expression.data'),
         id = (data.length > 0) ? Math.max.apply(this.get('parentView'), data.mapProperty('id')) + 1 : 1;
       result.set('id', id);
-      if (event.context.get('showAggregateSelect') && aggregateFunction !== 'avg') {
+      if (event.context.get('showAggregateSelect')) {
         result.set('metricPath', result.get('metricPath') + '._' + aggregateFunction);
         result.set('name', result.get('name') + '._' + aggregateFunction);
       }

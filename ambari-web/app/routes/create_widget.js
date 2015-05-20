@@ -18,7 +18,7 @@
 var App = require('app');
 
 module.exports = App.WizardRoute.extend({
-  route: '/widget/add',
+  route: '/widget/create',
   enter: function (router, context) {
     router.get('mainController').dataLoading().done(function () {
       var widgetWizardController = router.get('widgetWizardController');

@@ -586,7 +586,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
    * create widget
    */
   createWidget: function () {
-    App.router.send('addServiceWidget', Em.Object.create({
+    App.router.send('createServiceWidget', Em.Object.create({
       layout: this.get('activeWidgetLayout'),
       serviceName: this.get('content.serviceName')
     }));
