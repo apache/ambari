@@ -18,20 +18,8 @@
 
 package org.apache.ambari.server.state.kerberos;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
-import org.apache.ambari.server.AmbariException;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * AbstractKerberosDescriptor is the base class for all Kerberos*Descriptor and associated classes.
@@ -40,11 +28,6 @@ import java.util.regex.Pattern;
  * It also provides utility and helper methods.
  */
 public abstract class AbstractKerberosDescriptor {
-
-  /**
-   * a regular expression Pattern used to find "variable" placeholders in strings
-   */
-  private static final Pattern PATTERN_VARIABLE = Pattern.compile("\\$\\{(?:([\\w\\-\\.]+)/)?([\\w\\-\\.]+)\\}");
 
   /**
    * An AbstractKerberosDescriptor serving as the parent (or container) for this
@@ -60,76 +43,6 @@ public abstract class AbstractKerberosDescriptor {
    * This value may be null in the event a name (or identifier) is not relevant.
    */
   private String name = null;
-
-  /**
-   * Performs variable replacement on the supplied String value using values from the replacementsMap.
-   * <p/>
-   * The value is a String containing one or more "variables" in the form of ${variable_name}, such
-   * that "variable_name" may indicate a group identifier; else "" is used as the group.
-   * For example:
-   * <p/>
-   * variable_name:  group: ""; property: "variable_name"
-   * group1/variable_name:  group: "group1"; property: "variable_name"
-   * root/group1/variable_name:  Not Supported
-   * <p/>
-   * The replacementsMap is a Map of Maps creating a (small) hierarchy of data to traverse in order
-   * to resolve the variable.
-   * <p/>
-   * If a variable resolves to one or more variables, that new variable(s) will be processed and replaced.
-   * If variable exists after a set number of iterations it is assumed that a cycle has been created
-   * and the process will abort returning a String in a possibly unexpected state.
-   *
-   * @param value           a String containing zero or more variables to be replaced
-   * @param replacementsMap a Map of data used to perform the variable replacements
-   * @return a new String
-   */
-  public static String replaceVariables(String value, Map<String, Map<String, String>> replacementsMap) throws AmbariException {
-    if ((value != null) && (replacementsMap != null) && !replacementsMap.isEmpty()) {
-      int count = 0; // Used to help prevent an infinite loop...
-      boolean replacementPerformed;
-
-      do {
-        if (++count > 1000) {
-          throw new AmbariException(String.format("Circular reference found while replacing variables in %s", value));
-        }
-
-        Matcher matcher = PATTERN_VARIABLE.matcher(value);
-        StringBuffer sb = new StringBuffer();
-
-        replacementPerformed = false;
-
-        while (matcher.find()) {
-          String type = matcher.group(1);
-          String name = matcher.group(2);
-          Map<String, String> replacements;
-
-          if ((name != null) && !name.isEmpty()) {
-            if (type == null) {
-              replacements = replacementsMap.get("");
-            } else {
-              replacements = replacementsMap.get(type);
-            }
-
-            if (replacements != null) {
-              String replacement = replacements.get(name);
-
-              if (replacement != null) {
-                // Escape '$' and '\' so they don't cause any issues.
-                matcher.appendReplacement(sb, replacement.replace("\\", "\\\\").replace("$", "\\$"));
-                replacementPerformed = true;
-              }
-            }
-          }
-        }
-
-        matcher.appendTail(sb);
-        value = sb.toString();
-      }
-      while (replacementPerformed); // Process the string again to make sure new variables were not introduced
-    }
-
-    return value;
-  }
 
   /**
    * Generates a Map of data that represents this AbstractKerberosDescriptor implementation.
