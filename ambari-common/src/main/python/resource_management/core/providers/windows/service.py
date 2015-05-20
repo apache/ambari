@@ -108,7 +108,7 @@ class ServiceConfigProvider(Provider):
   def action_install(self):
     hSCM = safe_open_scmanager()
 
-    self._fix_system_user_name()
+    self._fix_user_name()
 
     try:
       hSvc = win32service.CreateService(hSCM,
@@ -142,7 +142,7 @@ class ServiceConfigProvider(Provider):
     try:
       hSvc = safe_open_service(hSCM, self.resource.service_name)
 
-      self._fix_system_user_name()
+      self._fix_user_name()
 
       try:
         win32service.ChangeServiceConfig(hSvc,
@@ -174,7 +174,7 @@ class ServiceConfigProvider(Provider):
     try:
       hSvc = safe_open_service(hSCM, self.resource.service_name)
 
-      self._fix_system_user_name()
+      self._fix_user_name()
 
       try:
         win32service.ChangeServiceConfig(hSvc,
@@ -219,9 +219,11 @@ class ServiceConfigProvider(Provider):
     finally:
       win32service.CloseServiceHandle(hSCM)
 
-  def _fix_system_user_name(self):
+  def _fix_user_name(self):
     if self.resource.username.upper() == "NT AUTHORITY\\SYSTEM":
       self.resource.username = None
+    elif self.resource.username.find("\\") == -1:
+      self.resource.username = ".\\" + self.resource.username
 
   def _is_system_user(self):
     if self.resource.username in ["NT AUTHORITY\\SYSTEM", "NT AUTHORITY\\NetworkService", "NT AUTHORITY\\LocalService"]:

@@ -23,7 +23,8 @@ from resource_management import *
 
 config = Script.get_config()
 
-ams_user = "hadoop"
+hadoop_user = config["configurations"]["cluster-env"]["hadoop.user.name"]
+ams_user = hadoop_user
 ams_collector_conf_dir = os.environ["COLLECTOR_CONF_DIR"]
 ams_collector_home_dir = os.environ["COLLECTOR_HOME"]
 ams_monitor_conf_dir = os.environ["MONITOR_CONF_DIR"]
@@ -35,5 +36,5 @@ hadoop_conf_dir = os.path.join(os.environ["HADOOP_HOME"], "conf")
 hbase_conf_dir = os.path.join(os.environ["COLLECTOR_HOME"], "hbase", "conf")
 
 ams_collector_win_service_name = "AmbariMetricsCollector"
-ams_monitor_win_service_name = "AmbariMetricsCollector"
+ams_monitor_win_service_name = "AmbariMetricsHostMonitoring"
 ams_embedded_hbase_win_service_name = "ams_hbase_master"
