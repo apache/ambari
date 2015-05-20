@@ -149,6 +149,7 @@ class TestStormNimbus(TestStormBase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
+    self.assertResourceCalled("Execute", "hdp-select set storm-client 2.2.1.0-2067")
     self.assertResourceCalled("Execute", "hdp-select set storm-nimbus 2.2.1.0-2067")
 
   def test_pre_rolling_restart_23(self):
@@ -168,6 +169,7 @@ class TestStormNimbus(TestStormBase):
                      call_mocks = [(0, None), (0, None)],
                      mocks_dict = mocks_dict)
 
+    self.assertResourceCalled("Execute", "hdp-select set storm-client 2.3.0.0-1234")
     self.assertResourceCalled("Execute", "hdp-select set storm-nimbus 2.3.0.0-1234")
 
     self.assertEquals(2, mocks_dict['call'].call_count)

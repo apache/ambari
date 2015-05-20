@@ -28,7 +28,6 @@ import java.util.TreeMap;
 
 import javax.annotation.Nullable;
 
-import com.google.inject.Inject;
 import org.apache.ambari.server.Role;
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.agent.AgentCommand.AgentCommandType;
@@ -47,6 +46,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.Assert;
 
+import com.google.inject.Inject;
 import com.google.inject.assistedinject.Assisted;
 import com.google.inject.assistedinject.AssistedInject;
 import com.google.inject.persist.Transactional;
@@ -100,7 +100,7 @@ public class Stage {
       @Assisted("commandParamsStage") String commandParamsStage,
       @Assisted("hostParamsStage") String hostParamsStage,
       HostRoleCommandFactory hostRoleCommandFactory) {
-    this.wrappersLoaded = true;
+    wrappersLoaded = true;
     this.requestId = requestId;
     this.logDir = logDir;
     this.clusterName = clusterName;
@@ -109,7 +109,7 @@ public class Stage {
     this.clusterHostInfo = clusterHostInfo;
     this.commandParamsStage = commandParamsStage;
     this.hostParamsStage = hostParamsStage;
-    this.skippable = false;
+    skippable = false;
     this.hostRoleCommandFactory = hostRoleCommandFactory;
   }
 
@@ -248,10 +248,10 @@ public class Stage {
     }
     //used on stage creation only, no need to check if wrappers loaded
     this.stageId = stageId;
-    for (String host: this.commandsToSend.keySet()) {
-      for (ExecutionCommandWrapper wrapper : this.commandsToSend.get(host)) {
+    for (String host: commandsToSend.keySet()) {
+      for (ExecutionCommandWrapper wrapper : commandsToSend.get(host)) {
         ExecutionCommand cmd = wrapper.getExecutionCommand();
-        cmd.setCommandId(StageUtils.getActionId(requestId, stageId));
+        cmd.setRequestAndStage(requestId, stageId);
       }
     }
   }
@@ -275,34 +275,34 @@ public class Stage {
     hrc.setExecutionCommandWrapper(wrapper);
     cmd.setHostname(hostName);
     cmd.setClusterName(clusterName);
-    cmd.setCommandId(this.getActionId());
+    cmd.setRequestAndStage(requestId, stageId);
     cmd.setRole(role.name());
     cmd.setRoleCommand(command);
 
     cmd.setServiceName("");
 
-    Map<String, HostRoleCommand> hrcMap = this.hostRoleCommands.get(hostName);
+    Map<String, HostRoleCommand> hrcMap = hostRoleCommands.get(hostName);
     if (hrcMap == null) {
       hrcMap = new LinkedHashMap<String, HostRoleCommand>();
-      this.hostRoleCommands.put(hostName, hrcMap);
+      hostRoleCommands.put(hostName, hrcMap);
     }
     if (hrcMap.get(role.toString()) != null) {
       throw new RuntimeException(
           "Setting the host role command second time for same stage: stage="
-              + this.getActionId() + ", host=" + hostName + ", role=" + role);
+              + getActionId() + ", host=" + hostName + ", role=" + role);
     }
     hrcMap.put(role.toString(), hrc);
-    List<ExecutionCommandWrapper> execCmdList = this.commandsToSend.get(hostName);
+    List<ExecutionCommandWrapper> execCmdList = commandsToSend.get(hostName);
     if (execCmdList == null) {
       execCmdList = new ArrayList<ExecutionCommandWrapper>();
-      this.commandsToSend.put(hostName, execCmdList);
+      commandsToSend.put(hostName, execCmdList);
     }
 
     if (execCmdList.contains(wrapper)) {
       //todo: proper exception
       throw new RuntimeException(
           "Setting the execution command second time for same stage: stage="
-              + this.getActionId() + ", host=" + hostName + ", role=" + role+ ", event="+event);
+              + getActionId() + ", host=" + hostName + ", role=" + role+ ", event="+event);
     }
     execCmdList.add(wrapper);
     return wrapper;
@@ -458,7 +458,7 @@ public class Stage {
    */
   public synchronized List<String> getHosts() { // TODO: Check whether method should be synchronized
     List<String> hlist = new ArrayList<String>();
-    for (String h : this.hostRoleCommands.keySet()) {
+    for (String h : hostRoleCommands.keySet()) {
       hlist.add(h);
     }
     return hlist;
@@ -504,19 +504,19 @@ public class Stage {
   }
 
   public long getLastAttemptTime(String host, String role) {
-    return this.hostRoleCommands.get(host).get(role).getLastAttemptTime();
+    return hostRoleCommands.get(host).get(role).getLastAttemptTime();
   }
 
   public short getAttemptCount(String host, String role) {
-    return this.hostRoleCommands.get(host).get(role).getAttemptCount();
+    return hostRoleCommands.get(host).get(role).getAttemptCount();
   }
 
   public void incrementAttemptCount(String hostname, String role) {
-    this.hostRoleCommands.get(hostname).get(role).incrementAttemptCount();
+    hostRoleCommands.get(hostname).get(role).incrementAttemptCount();
   }
 
   public void setLastAttemptTime(String host, String role, long t) {
-    this.hostRoleCommands.get(host).get(role).setLastAttemptTime(t);
+    hostRoleCommands.get(host).get(role).setLastAttemptTime(t);
   }
 
   public ExecutionCommandWrapper getExecutionCommandWrapper(String hostname,
@@ -535,41 +535,41 @@ public class Stage {
   }
 
   public long getStartTime(String hostname, String role) {
-    return this.hostRoleCommands.get(hostname).get(role).getStartTime();
+    return hostRoleCommands.get(hostname).get(role).getStartTime();
   }
 
   public void setStartTime(String hostname, String role, long startTime) {
-    this.hostRoleCommands.get(hostname).get(role).setStartTime(startTime);
+    hostRoleCommands.get(hostname).get(role).setStartTime(startTime);
   }
 
   public HostRoleStatus getHostRoleStatus(String hostname, String role) {
-    return this.hostRoleCommands.get(hostname).get(role).getStatus();
+    return hostRoleCommands.get(hostname).get(role).getStatus();
   }
 
   public void setHostRoleStatus(String host, String role,
       HostRoleStatus status) {
-    this.hostRoleCommands.get(host).get(role).setStatus(status);
+    hostRoleCommands.get(host).get(role).setStatus(status);
   }
 
   public ServiceComponentHostEventWrapper getFsmEvent(String hostname, String roleStr) {
-    return this.hostRoleCommands.get(hostname).get(roleStr).getEvent();
+    return hostRoleCommands.get(hostname).get(roleStr).getEvent();
   }
 
 
   public void setExitCode(String hostname, String role, int exitCode) {
-    this.hostRoleCommands.get(hostname).get(role).setExitCode(exitCode);
+    hostRoleCommands.get(hostname).get(role).setExitCode(exitCode);
   }
 
   public int getExitCode(String hostname, String role) {
-    return this.hostRoleCommands.get(hostname).get(role).getExitCode();
+    return hostRoleCommands.get(hostname).get(role).getExitCode();
   }
 
   public void setStderr(String hostname, String role, String stdErr) {
-    this.hostRoleCommands.get(hostname).get(role).setStderr(stdErr);
+    hostRoleCommands.get(hostname).get(role).setStderr(stdErr);
   }
 
   public void setStdout(String hostname, String role, String stdOut) {
-    this.hostRoleCommands.get(hostname).get(role).setStdout(stdOut);
+    hostRoleCommands.get(hostname).get(role).setStdout(stdOut);
   }
 
   public synchronized boolean isStageInProgress() {
@@ -597,9 +597,10 @@ public class Stage {
         if (hrc == null) {
           return false;
         }
-        for (HostRoleStatus status : statuses)
-        if (hrc.getStatus().equals(status)) {
-          return true;
+        for (HostRoleStatus status : statuses) {
+          if (hrc.getStatus().equals(status)) {
+            return true;
+          }
         }
       }
     }
@@ -608,11 +609,11 @@ public class Stage {
 
   public Map<String, List<ExecutionCommandWrapper>> getExecutionCommands() {
     checkWrappersLoaded();
-    return this.commandsToSend;
+    return commandsToSend;
   }
 
   public String getLogDir() {
-    return this.logDir;
+    return logDir;
   }
 
   public Map<String, Map<String, HostRoleCommand>> getHostRoleCommands() {

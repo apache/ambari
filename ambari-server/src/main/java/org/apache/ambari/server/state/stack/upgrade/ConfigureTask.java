@@ -126,9 +126,6 @@ public class ConfigureTask extends ServerSideActionTask {
   @XmlElement(name = "set")
   private List<ConfigurationKeyValue> keyValuePairs;
 
-  @XmlElement(name="summary")
-  public String summary;
-
   @XmlElement(name = "condition")
   private List<Condition> conditions;
 

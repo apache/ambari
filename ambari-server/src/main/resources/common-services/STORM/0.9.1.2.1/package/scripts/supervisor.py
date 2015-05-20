@@ -75,6 +75,7 @@ class SupervisorDefault(Supervisor):
 
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "storm", params.version)
+      hdp_select.select("storm-client", params.version)
       hdp_select.select("storm-supervisor", params.version)
 
   def start(self, env, rolling_restart=False):

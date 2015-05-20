@@ -18,21 +18,19 @@ limitations under the License.
 
 """
 
-
 from resource_management.core.resources import Execute
 from resource_management.core.resources import File
 from resource_management.libraries.functions.format import format
 import time
 
 
-def service(
-    name,
-    action='start'):
+def service(name, action = 'start'):
   import params
   import status_params
 
   pid_file = status_params.pid_files[name]
-  no_op_test = format("ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
+  no_op_test = format(
+    "ls {pid_file} >/dev/null 2>&1 && ps -p `cat {pid_file}` >/dev/null 2>&1")
 
   if name == "logviewer" or name == "drpc":
     tries_count = 12
@@ -45,43 +43,45 @@ def service(
     process_grep = format("{rest_lib_dir}/storm-rest-.*\.jar$")
   else:
     process_grep = format("storm.daemon.{name}$")
-    
+
   find_proc = format("{jps_binary} -l  | grep {process_grep}")
   write_pid = format("{find_proc} | awk {{'print $1'}} > {pid_file}")
   crt_pid_cmd = format("{find_proc} && {write_pid}")
-  storm_env = format("source {conf_dir}/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH")
+  storm_env = format(
+    "source {conf_dir}/storm-env.sh ; export PATH=$JAVA_HOME/bin:$PATH")
 
   if action == "start":
     if name == "rest_api":
-      process_cmd = format("{storm_env} ; java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
-      cmd = format("{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log 2>&1")
+      process_cmd = format(
+        "{storm_env} ; java -jar {rest_lib_dir}/`ls {rest_lib_dir} | grep -wE storm-rest-[0-9.-]+\.jar` server")
+      cmd = format(
+        "{process_cmd} {rest_api_conf_file} > {log_dir}/restapi.log 2>&1")
     else:
       cmd = format("{storm_env} ; storm {name} > {log_dir}/{name}.out 2>&1")
 
     Execute(cmd,
-           not_if=no_op_test,
-           user=params.storm_user,
-           wait_for_finish=False,
-           path=params.storm_bin_dir
-    )
+      not_if = no_op_test,
+      user = params.storm_user,
+      wait_for_finish = False,
+      path = params.storm_bin_dir)
+
     Execute(crt_pid_cmd,
-            user=params.storm_user,
-            logoutput=True,
-            tries=tries_count,
-            try_sleep=10,
-            path=params.storm_bin_dir
-    )
+      user = params.storm_user,
+      logoutput = True,
+      tries = tries_count,
+      try_sleep = 10,
+      path = params.storm_bin_dir)
 
   elif action == "stop":
     process_dont_exist = format("! ({no_op_test})")
     pid = format("`cat {pid_file}`")
+
     Execute(format("{sudo} kill {pid}"),
-            not_if=process_dont_exist
-    )
+      not_if = process_dont_exist)
+
     Execute(format("{sudo} kill -9 {pid}"),
-            not_if=format("sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
-            ignore_failures=True
-    )
-    File(pid_file,
-         action = "delete",
-    )
+      not_if = format(
+        "sleep 2; {process_dont_exist} || sleep 20; {process_dont_exist}"),
+      ignore_failures = True)
+
+    File(pid_file, action = "delete")

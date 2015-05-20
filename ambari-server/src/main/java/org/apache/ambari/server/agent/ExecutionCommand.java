@@ -17,7 +17,12 @@
  */
 package org.apache.ambari.server.agent;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.ambari.server.RoleCommand;
 import org.apache.ambari.server.utils.StageUtils;
@@ -41,6 +46,12 @@ public class ExecutionCommand extends AgentCommand {
 
   @SerializedName("clusterName")
   private String clusterName;
+
+  @SerializedName("requestId")
+  private long requestId;
+
+  @SerializedName("stageId")
+  private long stageId;
 
   @SerializedName("taskId")
   private long taskId;
@@ -95,8 +106,20 @@ public class ExecutionCommand extends AgentCommand {
     return commandId;
   }
 
-  public void setCommandId(String commandId) {
-    this.commandId = commandId;
+  /**
+   * Sets the request and stage on this command. The {@code commandId} field is
+   * automatically constructed from these as requestId-stageId.
+   *
+   * @param requestId
+   *          the ID of the execution request.
+   * @param stageId
+   *          the ID of the stage request.
+   */
+  public void setRequestAndStage(long requestId, long stageId) {
+    this.requestId = requestId;
+    this.stageId = stageId;
+
+    commandId = StageUtils.getActionId(requestId, stageId);
   }
 
   @Override
@@ -267,7 +290,7 @@ public class ExecutionCommand extends AgentCommand {
    * @param  params for kerberos commands
    */
   public void setKerberosCommandParams(List<Map<String, String>> params) {
-    this.kerberosCommandParams =  params;
+    kerberosCommandParams =  params;
   }
 
   /**

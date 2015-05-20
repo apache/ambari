@@ -58,7 +58,8 @@ export JAVA_HOME={{java64_home}}
 # Storm log folder
 export STORM_LOG_DIR={{log_dir}}
 
-# export STORM_CONF_DIR=""
+export STORM_CONF_DIR={{conf_dir}}
+export STORM_HOME={{storm_component_home_dir}}
     </value>
   </property>
 

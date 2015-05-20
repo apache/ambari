@@ -47,10 +47,6 @@ public class ManualTask extends ServerSideActionTask {
   @XmlElement(name="message")
   public String message;
 
-  @XmlElement(name="summary")
-  public String summary;
-
-
   @Override
   public Task.Type getType() {
     return type;

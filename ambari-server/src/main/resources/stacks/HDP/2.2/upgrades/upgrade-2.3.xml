@@ -178,6 +178,7 @@
       <service name="ZOOKEEPER">
         <component>ZOOKEEPER_CLIENT</component>
       </service>
+
       <service name="HDFS">
         <component>HDFS_CLIENT</component>
       </service>
@@ -285,6 +286,7 @@
           <function>finalize_rolling_upgrade</function>
         </task>
       </execute-stage>
+
       <execute-stage title="Save Cluster State" service="" component="">
         <task xsi:type="server_action" class="org.apache.ambari.server.serveraction.upgrades.FinalizeUpgradeAction">
         </task>
@@ -331,6 +333,7 @@
               <value>org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer</value>
             </condition>
           </task>
+
           <task xsi:type="configure" summary="Transitioning Ranger HDFS Policy">
             <type>ranger-hdfs-policymgr-ssl</type>
             <transfer operation="copy" from-type="ranger-hdfs-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/hadoop-client/conf/ranger-plugin-keystore.jks" />
@@ -338,6 +341,7 @@
             <transfer operation="copy" from-type="ranger-hdfs-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/hadoop-client/conf/ranger-plugin-truststore.jks" />
             <transfer operation="copy" from-type="ranger-hdfs-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.truststore.password" mask="true" default-value="changeit" />
           </task>
+
           <task xsi:type="configure" summary="Transitioning Ranger HDFS Audit">
             <type>ranger-hdfs-audit</type>
             <transfer operation="copy" from-type="ranger-hdfs-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED" to-key="xasecure.audit.destination.db" default-value="false"/>
@@ -387,6 +391,7 @@
             <transfer operation="delete" delete-key="POLICY_MGR_URL" />
           </task>
         </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -556,6 +561,7 @@
             <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD" />
           </task>
         </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -580,9 +586,6 @@
           <task xsi:type="configure">
             <type>tez-site</type>
             <set key="tez.am.view-acls" value="*"/>
-          </task>
-          <task xsi:type="configure">
-            <type>tez-site</type>
             <set key="tez.task.generate.counters.per.io" value="true"/>
           </task>
         </pre-upgrade>
@@ -899,17 +902,33 @@
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
 
+          <task xsi:type="execute" summary="Removing Storm data from ZooKeeper">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_zookeeper_data</function>
+          </task>
+
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+
           <task xsi:type="configure" summary="Converting nimbus.host into nimbus.seeds">
             <type>storm-site</type>
-            <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array" />
-            <transfer operation="delete" delete-key="nimbus.host" />
+            <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array"/>
+            <transfer operation="delete" delete-key="nimbus.host"/>
+          </task>
+
+          <task xsi:type="configure" summary="Updating Storm home and configuration environment variables">
+            <type>storm-env</type>
+            <replace key="content" find="# export STORM_CONF_DIR=&quot;&quot;" replace-with="export STORM_CONF_DIR={{conf_dir}}"/>
+            <replace key="content" find="export STORM_HOME=/usr/hdp/current/storm-client" replace-with="export STORM_HOME={{storm_component_home_dir}}"/>
           </task>
 
           <task xsi:type="configure" summary="Configuring Ranger Storm Policy">
             <type>ranger-storm-policymgr-ssl</type>
-            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/storm-nimbus/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/storm-client/conf/ranger-plugin-keystore.jks"/>
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword" mask="true"/>
-            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/storm-nimbus/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/storm-client/conf/ranger-plugin-truststore.jks"/>
             <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
           </task>
 
@@ -959,25 +978,56 @@
           <task xsi:type="restart" />
         </upgrade>
       </component>
+
       <component name="STORM_REST_API">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
       </component>
+
       <component name="SUPERVISOR">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
       </component>
+
       <component name="STORM_UI_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
       </component>
+
       <component name="DRPC_SERVER">
+        <pre-upgrade>
+          <task xsi:type="execute" summary="Removing local Storm data">
+            <script>scripts/storm_upgrade.py</script>
+            <function>delete_storm_local_data</function>
+          </task>
+        </pre-upgrade>
+
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
+
         <post-upgrade>
           <task xsi:type="manual">
             <message>Please rebuild your topology using the new Storm version dependencies and resubmit it using the newly created jar.</message>

@@ -55,6 +55,7 @@ sudo = AMBARI_SUDO_BINARY
 stack_name = default("/hostLevelParams/stack_name", None)
 version = default("/commandParams/version", None)
 
+storm_component_home_dir = status_params.storm_component_home_dir
 conf_dir = status_params.conf_dir
 
 stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
@@ -81,6 +82,8 @@ user_group = config['configurations']['cluster-env']['user_group']
 java64_home = config['hostLevelParams']['java_home']
 jps_binary = format("{java64_home}/bin/jps")
 nimbus_port = config['configurations']['storm-site']['nimbus.thrift.port']
+storm_zookeeper_root_dir = default('/configurations/storm-site/storm.zookeeper.root', None)
+storm_zookeeper_servers = default('/configurations/storm-site/storm.zookeeper.servers', None)
 
 # nimbus.seeds is supported in HDP 2.3.0.0 and higher
 nimbus_seeds_supported = default('/configurations/storm-env/nimbus_seeds_supported', False)
@@ -93,8 +96,7 @@ rest_api_conf_file = format("{conf_dir}/config.yaml")
 storm_env_sh_template = config['configurations']['storm-env']['content']
 jmxremote_port = config['configurations']['storm-env']['jmxremote_port']
 
-if 'ganglia_server_host' in config['clusterHostInfo'] and \
-                len(config['clusterHostInfo']['ganglia_server_host'])>0:
+if 'ganglia_server_host' in config['clusterHostInfo'] and len(config['clusterHostInfo']['ganglia_server_host'])>0:
   ganglia_installed = True
   ganglia_server = config['clusterHostInfo']['ganglia_server_host'][0]
   ganglia_report_interval = 60
@@ -135,6 +137,7 @@ if has_metric_collector:
   metric_collector_host = ams_collector_hosts[0]
   metric_collector_report_interval = 60
   metric_collector_app_id = "nimbus"
+
 metric_collector_sink_jar = "/usr/lib/storm/lib/ambari-metrics-storm-sink*.jar"
 
 # ranger host

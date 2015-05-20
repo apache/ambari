@@ -17,6 +17,7 @@
  */
 package org.apache.ambari.server.state.stack.upgrade;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlSeeAlso;
 
 
@@ -25,6 +26,12 @@ import javax.xml.bind.annotation.XmlSeeAlso;
  */
 @XmlSeeAlso(value={ExecuteTask.class, ConfigureTask.class, ManualTask.class, RestartTask.class, ServerActionTask.class})
 public abstract class Task {
+
+  /**
+   * An optional brief description of what this task is doing.
+   */
+  @XmlElement(name = "summary")
+  public String summary;
 
   /**
    * @return the type of the task

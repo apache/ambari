@@ -84,8 +84,17 @@ import org.apache.ambari.server.events.publishers.AmbariEventPublisher;
 import org.apache.ambari.server.orm.GuiceJpaInitializer;
 import org.apache.ambari.server.orm.InMemoryDefaultTestModule;
 import org.apache.ambari.server.orm.OrmTestHelper;
-import org.apache.ambari.server.orm.dao.*;
-import org.apache.ambari.server.orm.entities.*;
+import org.apache.ambari.server.orm.dao.ClusterDAO;
+import org.apache.ambari.server.orm.dao.HostDAO;
+import org.apache.ambari.server.orm.dao.RepositoryVersionDAO;
+import org.apache.ambari.server.orm.dao.ResourceTypeDAO;
+import org.apache.ambari.server.orm.dao.StackDAO;
+import org.apache.ambari.server.orm.entities.ClusterEntity;
+import org.apache.ambari.server.orm.entities.HostEntity;
+import org.apache.ambari.server.orm.entities.RepositoryVersionEntity;
+import org.apache.ambari.server.orm.entities.ResourceEntity;
+import org.apache.ambari.server.orm.entities.ResourceTypeEntity;
+import org.apache.ambari.server.orm.entities.StackEntity;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriter;
 import org.apache.ambari.server.serveraction.kerberos.KerberosIdentityDataFileWriterFactory;
 import org.apache.ambari.server.serveraction.kerberos.KerberosServerAction;
@@ -229,7 +238,7 @@ public class TestHeartbeatHandler {
     hostObject.setState(HostState.UNHEALTHY);
 
     ExecutionCommand execCmd = new ExecutionCommand();
-    execCmd.setCommandId("2-34");
+    execCmd.setRequestAndStage(2, 34);
     execCmd.setHostname(DummyHostname1);
     aq.enqueue(DummyHostname1, new ExecutionCommand());
     HeartBeat hb = new HeartBeat();
@@ -2318,11 +2327,11 @@ public class TestHeartbeatHandler {
     clusterEntity.setDesiredStack(stackEntity);
 
     clusterDAO.create(clusterEntity);
-    
+
     StackId stackId = new StackId(DummyStackId);
-    
+
     Cluster cluster = clusters.getCluster(DummyCluster);
-    
+
     cluster.setDesiredStackVersion(stackId);
     cluster.setCurrentStackVersion(stackId);
     helper.getOrCreateRepositoryVersion(stackId, stackId.getStackVersion());
@@ -2520,7 +2529,7 @@ public class TestHeartbeatHandler {
     hostObject.setState(HostState.UNHEALTHY);
 
     ExecutionCommand execCmd = new ExecutionCommand();
-    execCmd.setCommandId("2-34");
+    execCmd.setRequestAndStage(2, 34);
     execCmd.setHostname(DummyHostname1);
     aq.enqueue(DummyHostname1, new ExecutionCommand());
 

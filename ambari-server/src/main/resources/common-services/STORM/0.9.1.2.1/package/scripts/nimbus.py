@@ -57,7 +57,9 @@ class NimbusDefault(Nimbus):
     env.set_params(params)
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "storm", params.version)
+      hdp_select.select("storm-client", params.version)
       hdp_select.select("storm-nimbus", params.version)
+
 
   def start(self, env, rolling_restart=False):
     import params
@@ -66,15 +68,18 @@ class NimbusDefault(Nimbus):
     setup_ranger_storm()    
     service("nimbus", action="start")
 
+
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
     service("nimbus", action="stop")
 
+
   def status(self, env):
     import status_params
     env.set_params(status_params)
     check_process_status(status_params.pid_nimbus)
+
 
   def security_status(self, env):
     import status_params

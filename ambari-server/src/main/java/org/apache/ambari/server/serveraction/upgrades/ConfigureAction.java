@@ -56,8 +56,23 @@ import com.google.inject.Provider;
 
 /**
  * The {@link ConfigureAction} is used to alter a configuration property during
- * an upgrade. It will only produce a new configuration if the value being
- * changed is different than the existing value.
+ * an upgrade. It will only produce a new configuration if an actual change is
+ * occuring. For some configure tasks, the value is already at the desired
+ * property or the conditions of the task are not met. In these cases, a new
+ * configuration will not be created. This task can perform any of the following
+ * actions in a single declaration:
+ * <ul>
+ * <li>Copy a configuration to a new property key, optionally setting a default
+ * if the original property did not exist</li>
+ * <li>Copy a configuration to a new property key from one configuration type to
+ * another, optionally setting a default if the original property did not exist</li>
+ * <li>Rename a configuration, optionally setting a default if the original
+ * property did not exist</li>
+ * <li>Delete a configuration property</li>
+ * <li>Set a configuration property</li>
+ * <li>Conditionally set a configuration property based on another configuration
+ * property value</li>
+ * </ul>
  */
 public class ConfigureAction extends AbstractServerAction {
 
@@ -274,7 +289,7 @@ public class ConfigureAction extends AbstractServerAction {
             newValues.put(transfer.toKey, valueToCopy);
 
             // append standard output
-            outputBuffer.append(MessageFormat.format("Created {0}/{1} = {2}\n", configType,
+            outputBuffer.append(MessageFormat.format("Created {0}/{1} = \"{2}\"\n", configType,
                 transfer.toKey, mask(transfer, valueToCopy)));
           }
           break;
@@ -294,7 +309,8 @@ public class ConfigureAction extends AbstractServerAction {
             changedValues = true;
 
             // append standard output
-            outputBuffer.append(MessageFormat.format("Created {0}/{1} with default value {2}\n",
+            outputBuffer.append(MessageFormat.format(
+                "Created {0}/{1} with default value \"{2}\"\n",
                 configType, transfer.toKey, mask(transfer, transfer.defaultValue)));
           }
 
@@ -369,8 +385,16 @@ public class ConfigureAction extends AbstractServerAction {
           // byproduct of the configure being able to take a list of transfers
           // without a key/value to set
           newValues.put(key, value);
-          outputBuffer.append(MessageFormat.format("{0}/{1} changed to {2}\n", configType, key,
-              mask(keyValuePair, value)));
+
+          final String message;
+          if (StringUtils.isEmpty(value)) {
+            message = MessageFormat.format("{0}/{1} changed to an empty value", configType, key);
+          } else {
+            message = MessageFormat.format("{0}/{1} changed to \"{2}\"\n", configType, key,
+                mask(keyValuePair, value));
+          }
+
+          outputBuffer.append(message);
         }
       }
     }
@@ -381,7 +405,7 @@ public class ConfigureAction extends AbstractServerAction {
         String toReplace = newValues.get(replacement.key);
 
         if (!toReplace.contains(replacement.find)) {
-          outputBuffer.append(MessageFormat.format("String {0} was not found in {1}/{2}\n",
+          outputBuffer.append(MessageFormat.format("String \"{0}\" was not found in {1}/{2}\n",
               replacement.find, configType, replacement.key));
         } else {
           String replaced = StringUtils.replace(toReplace, replacement.find, replacement.replaceWith);

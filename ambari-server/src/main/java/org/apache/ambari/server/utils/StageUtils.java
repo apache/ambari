@@ -17,33 +17,6 @@
  */
 package org.apache.ambari.server.utils;
 
-import org.apache.commons.lang.StringUtils;
-import com.google.common.base.Joiner;
-import com.google.gson.Gson;
-import com.google.inject.Inject;
-import org.apache.ambari.server.AmbariException;
-import org.apache.ambari.server.Role;
-import org.apache.ambari.server.RoleCommand;
-import org.apache.ambari.server.actionmanager.Stage;
-import org.apache.ambari.server.actionmanager.StageFactory;
-import org.apache.ambari.server.agent.ExecutionCommand;
-import org.apache.ambari.server.controller.ActionExecutionContext;
-import org.apache.ambari.server.state.Cluster;
-import org.apache.ambari.server.state.Host;
-import org.apache.ambari.server.state.HostComponentAdminState;
-import org.apache.ambari.server.state.Service;
-import org.apache.ambari.server.state.ServiceComponent;
-import org.apache.ambari.server.state.ServiceComponentHost;
-import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
-import org.apache.ambari.server.topology.TopologyManager;
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
-import org.codehaus.jackson.JsonGenerationException;
-import org.codehaus.jackson.map.JsonMappingException;
-import org.codehaus.jackson.map.ObjectMapper;
-import org.codehaus.jackson.map.SerializationConfig;
-
-import javax.xml.bind.JAXBException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -62,6 +35,35 @@ import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
+
+import javax.xml.bind.JAXBException;
+
+import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.Role;
+import org.apache.ambari.server.RoleCommand;
+import org.apache.ambari.server.actionmanager.Stage;
+import org.apache.ambari.server.actionmanager.StageFactory;
+import org.apache.ambari.server.agent.ExecutionCommand;
+import org.apache.ambari.server.controller.ActionExecutionContext;
+import org.apache.ambari.server.state.Cluster;
+import org.apache.ambari.server.state.Host;
+import org.apache.ambari.server.state.HostComponentAdminState;
+import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
+import org.apache.ambari.server.state.svccomphost.ServiceComponentHostInstallEvent;
+import org.apache.ambari.server.topology.TopologyManager;
+import org.apache.commons.lang.StringUtils;
+import org.apache.commons.logging.Log;
+import org.apache.commons.logging.LogFactory;
+import org.codehaus.jackson.JsonGenerationException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+import org.codehaus.jackson.map.SerializationConfig;
+
+import com.google.common.base.Joiner;
+import com.google.gson.Gson;
+import com.google.inject.Inject;
 
 public class StageUtils {
 
@@ -201,7 +203,8 @@ public class StageUtils {
         new ServiceComponentHostInstallEvent("NAMENODE", hostname, now, "HDP-1.2.0"),
         "cluster1", "HDFS", false);
     ExecutionCommand execCmd = s.getExecutionCommandWrapper(hostname, "NAMENODE").getExecutionCommand();
-    execCmd.setCommandId(s.getActionId());
+
+    execCmd.setRequestAndStage(s.getRequestId(), s.getStageId());
     List<String> slaveHostList = new ArrayList<String>();
     slaveHostList.add(hostname);
     slaveHostList.add("host2");
@@ -245,7 +248,7 @@ public class StageUtils {
     InputStream is = new ByteArrayInputStream(json.getBytes(Charset.forName("UTF8")));
     return mapper.readValue(is, clazz);
   }
- 
+
   public static Map<String, String> getCommandParamsStage(ActionExecutionContext actionExecContext) throws AmbariException {
     return actionExecContext.getParameters() != null ? actionExecContext.getParameters() : new TreeMap<String, String>();
   }

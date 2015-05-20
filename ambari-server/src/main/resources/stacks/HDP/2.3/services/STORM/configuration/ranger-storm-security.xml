@@ -40,7 +40,7 @@
 
   <property>
     <name>ranger.plugin.storm.policy.rest.ssl.config.file</name>
-    <value>/usr/hdp/current/storm-nimbus/conf/ranger-policymgr-ssl.xml</value>
+    <value>/usr/hdp/current/storm-client/conf/ranger-policymgr-ssl.xml</value>
     <description>Path to the file containing SSL details to contact Ranger Admin</description>
   </property>
 
