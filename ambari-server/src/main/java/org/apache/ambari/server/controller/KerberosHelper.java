@@ -92,6 +92,7 @@ import org.apache.ambari.server.state.kerberos.KerberosIdentityDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosKeytabDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosPrincipalDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
+import org.apache.ambari.server.state.kerberos.VariableReplacementHelper;
 import org.apache.ambari.server.state.svccomphost.ServiceComponentHostServerActionEvent;
 import org.apache.ambari.server.utils.StageUtils;
 import org.apache.commons.io.FileUtils;
@@ -179,6 +180,9 @@ public class KerberosHelper {
 
   @Inject
   private KerberosConfigDataFileWriterFactory kerberosConfigDataFileWriterFactory;
+
+  @Inject
+  private VariableReplacementHelper variableReplacementHelper;
 
   /**
    * Used to get kerberos descriptors associated with the cluster or stack.
@@ -1085,9 +1089,9 @@ public class KerberosHelper {
                       // Add the relevant principal name and keytab file data to the command params state
                       if (!commandParameters.containsKey("principal_name") || !commandParameters.containsKey("keytab_file")) {
                         commandParameters.put("principal_name",
-                            KerberosDescriptor.replaceVariables(identity.getPrincipalDescriptor().getValue(), configurations));
+                            variableReplacementHelper.replaceVariables(identity.getPrincipalDescriptor().getValue(), configurations));
                         commandParameters.put("keytab_file",
-                            KerberosDescriptor.replaceVariables(identity.getKeytabDescriptor().getFile(), configurations));
+                            variableReplacementHelper.replaceVariables(identity.getKeytabDescriptor().getFile(), configurations));
                       }
 
                       serviceComponentHostsToProcess.add(sch);
@@ -1400,7 +1404,7 @@ public class KerberosHelper {
    * Merges configuration from a Map of configuration updates into a main configurations Map.  Each
    * property in the updates Map is processed to replace variables using the replacement Map.
    * <p/>
-   * See {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
+   * See {@link VariableReplacementHelper#replaceVariables(String, Map)}
    * for information on variable replacement.
    *
    * @param configurations a Map of configurations
@@ -1437,7 +1441,7 @@ public class KerberosHelper {
    * Merges the specified configuration property in a map of configuration types.
    * The supplied property is processed to replace variables using the replacement Map.
    * <p/>
-   * See {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
+   * See {@link VariableReplacementHelper#replaceVariables(String, Map)}
    * for information on variable replacement.
    *
    * @param configurations             the Map of configuration types to update
@@ -1466,7 +1470,7 @@ public class KerberosHelper {
    * Merges configuration from a Map of configuration updates into a main configurations Map.  Each
    * property in the updates Map is processed to replace variables using the replacement Map.
    * <p/>
-   * See {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
+   * See {@link VariableReplacementHelper#replaceVariables(String, Map)}
    * for information on variable replacement.
    *
    * @param configurations a Map of configurations
@@ -1487,8 +1491,8 @@ public class KerberosHelper {
 
       for (Map.Entry<String, String> property : updates.entrySet()) {
         existingProperties.put(
-            KerberosDescriptor.replaceVariables(property.getKey(), replacements),
-            KerberosDescriptor.replaceVariables(property.getValue(), replacements)
+            variableReplacementHelper.replaceVariables(property.getKey(), replacements),
+            variableReplacementHelper.replaceVariables(property.getValue(), replacements)
         );
       }
     }
@@ -1532,9 +1536,9 @@ public class KerberosHelper {
           String principalConfiguration = null;
 
           if (principalDescriptor != null) {
-            principal = KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations);
+            principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
             principalType = principalDescriptor.getType().name().toLowerCase();
-            principalConfiguration = KerberosDescriptor.replaceVariables(principalDescriptor.getConfiguration(), configurations);
+            principalConfiguration = variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations);
           }
 
           if (principal != null) {
@@ -1548,12 +1552,12 @@ public class KerberosHelper {
             boolean keytabIsCachable = false;
 
             if (keytabDescriptor != null) {
-              keytabFilePath = KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations);
-              keytabFileOwnerName = KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerName(), configurations);
-              keytabFileOwnerAccess = KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations);
-              keytabFileGroupName = KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations);
-              keytabFileGroupAccess = KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupAccess(), configurations);
-              keytabFileConfiguration = KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
+              keytabFilePath = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
+              keytabFileOwnerName = variableReplacementHelper.replaceVariables(keytabDescriptor.getOwnerName(), configurations);
+              keytabFileOwnerAccess = variableReplacementHelper.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations);
+              keytabFileGroupName = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupName(), configurations);
+              keytabFileGroupAccess = variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupAccess(), configurations);
+              keytabFileConfiguration = variableReplacementHelper.replaceVariables(keytabDescriptor.getConfiguration(), configurations);
               keytabIsCachable = keytabDescriptor.isCachable();
             }
 
@@ -1608,8 +1612,8 @@ public class KerberosHelper {
           KerberosPrincipalDescriptor principalDescriptor = identity.getPrincipalDescriptor();
           if (principalDescriptor != null) {
             authToLocalBuilder.addRule(
-                KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations),
-                KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
+                variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations),
+                variableReplacementHelper.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
           }
         }
       }
@@ -2073,7 +2077,7 @@ public class KerberosHelper {
               String principal = null;
 
               if (principalDescriptor != null) {
-                principal = KerberosDescriptor.replaceVariables(principalDescriptor.getValue(), configurations);
+                principal = variableReplacementHelper.replaceVariables(principalDescriptor.getValue(), configurations);
               }
 
               if (principal != null) {
@@ -2081,7 +2085,7 @@ public class KerberosHelper {
                 String keytabFile = null;
 
                 if (keytabDescriptor != null) {
-                  keytabFile = KerberosDescriptor.replaceVariables(keytabDescriptor.getFile(), configurations);
+                  keytabFile = variableReplacementHelper.replaceVariables(keytabDescriptor.getFile(), configurations);
                 }
 
                 if (replaceHostNames) {
@@ -2094,8 +2098,8 @@ public class KerberosHelper {
                   KerberosPrincipalDescriptor resolvedPrincipalDescriptor =
                       new KerberosPrincipalDescriptor(principal,
                           principalDescriptor.getType(),
-                          KerberosDescriptor.replaceVariables(principalDescriptor.getConfiguration(), configurations),
-                          KerberosDescriptor.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
+                          variableReplacementHelper.replaceVariables(principalDescriptor.getConfiguration(), configurations),
+                          variableReplacementHelper.replaceVariables(principalDescriptor.getLocalUsername(), configurations));
 
                   KerberosKeytabDescriptor resolvedKeytabDescriptor;
 
@@ -2105,11 +2109,11 @@ public class KerberosHelper {
                     resolvedKeytabDescriptor =
                         new KerberosKeytabDescriptor(
                             keytabFile,
-                            KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
-                            KerberosDescriptor.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
-                            KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupName(), configurations),
-                            KerberosDescriptor.replaceVariables(keytabDescriptor.getGroupAccess(), configurations),
-                            KerberosDescriptor.replaceVariables(keytabDescriptor.getConfiguration(), configurations),
+                            variableReplacementHelper.replaceVariables(keytabDescriptor.getOwnerName(), configurations),
+                            variableReplacementHelper.replaceVariables(keytabDescriptor.getOwnerAccess(), configurations),
+                            variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupName(), configurations),
+                            variableReplacementHelper.replaceVariables(keytabDescriptor.getGroupAccess(), configurations),
+                            variableReplacementHelper.replaceVariables(keytabDescriptor.getConfiguration(), configurations),
                             keytabDescriptor.isCachable());
                   }
 

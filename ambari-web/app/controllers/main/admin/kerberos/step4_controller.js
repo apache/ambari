@@ -196,24 +196,10 @@ App.KerberosWizardStep4Controller = App.WizardStep7Controller.extend(App.AddSecu
   },
 
   /**
-   * Function to override kerberos descriptor's property values
+   * Function to override kerberos descriptor property values
    */
   tweakConfigProperty: function(config) {
-    if (config.name === 'templeton.hive.properties') {
-      var defaultHiveMsPort = "9083";
-      var hiveMSHosts = App.HostComponent.find().filterProperty('componentName', 'HIVE_METASTORE');
-      if (hiveMSHosts.length > 1) {
-        var hiveMSHostNames = hiveMSHosts.mapProperty('hostName');
-        var port = config.value.match(/:[0-9]{2,4}/);
-        port = port ? port[0].slice(1) : defaultHiveMsPort;
-        for (var i = 0; i < hiveMSHostNames.length; i++) {
-          hiveMSHostNames[i] = "thrift://" + hiveMSHostNames[i] + ":" + port;
-        }
-        var configValue =  config.value.replace(/thrift.+[0-9]{2,},/i, hiveMSHostNames.join('\\,') + ",");
-        config.set('value', configValue);
-        config.set('recommendedValue', configValue);
-      }
-    }
+    // This is a placeholder in the event kerberos descriptor property values need to be changed
   },
 
   /**
