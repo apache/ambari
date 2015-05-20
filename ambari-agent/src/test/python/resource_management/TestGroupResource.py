@@ -62,7 +62,7 @@ class TestGroupResource(TestCase):
     subproc_mock.returncode = 0
     subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
-    getgrnam_mock.return_value = "mapred"
+    getgrnam_mock.return_value = _get_group()
 
     with Environment('/') as env:
       Group('mapred',
@@ -84,7 +84,7 @@ class TestGroupResource(TestCase):
     subproc_mock.returncode = 1
     subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
-    getgrnam_mock.return_value = "mapred"
+    getgrnam_mock.return_value = _get_group()
 
     try:
       with Environment('/') as env:
@@ -110,7 +110,7 @@ class TestGroupResource(TestCase):
     subproc_mock.returncode = 0
     subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
-    getgrnam_mock.return_value = "mapred"
+    getgrnam_mock.return_value = _get_group()
 
     with Environment('/') as env:
       Group('mapred',
@@ -119,7 +119,7 @@ class TestGroupResource(TestCase):
     
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=5, bufsize=1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=5, bufsize=1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('mapred')
 
 
@@ -131,7 +131,7 @@ class TestGroupResource(TestCase):
     subproc_mock.returncode = 1
     subproc_mock.stdout.readline = MagicMock(side_effect = ['OK'])
     popen_mock.return_value = subproc_mock
-    getgrnam_mock.return_value = "mapred"
+    getgrnam_mock.return_value = _get_group()
 
     try:
       with Environment('/') as env:
@@ -144,5 +144,15 @@ class TestGroupResource(TestCase):
       pass
 
     self.assertEqual(popen_mock.call_count, 1)
-    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=5, bufsize=1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
+    popen_mock.assert_called_with(['/bin/bash', '--login', '--noprofile', '-c', 'ambari-sudo.sh  PATH=/bin -H -E groupdel mapred'], shell=False, preexec_fn=None, stderr=-2, stdout=5, bufsize=1, env={'PATH': '/bin'}, cwd=None, close_fds=True)
     getgrnam_mock.assert_called_with('mapred')
+    
+def _get_group():
+  group = MagicMock()
+  group.gr_name='mapred'
+  group.gr_passwd='x'
+  group.gr_gid=0
+  group.gr_mem=[]
+  
+  return group
+  

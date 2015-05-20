@@ -25,32 +25,34 @@ from __future__ import with_statement
 import re
 import os
 import time
+import pwd
+import grp
 from resource_management.core import shell
 from resource_management.core import sudo
 from resource_management.core.base import Fail
 from resource_management.core import ExecuteTimeoutException
 from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
-from resource_management.core.utils import _coerce_uid
-from resource_management.core.utils import _coerce_gid
 
 def _ensure_metadata(path, user, group, mode=None, cd_access=None):
   stat = sudo.stat(path)
-
+  user_entity = group_entity = None
+  
   if user:
-    uid = _coerce_uid(user)
-    if stat.st_uid != uid:
+    _user_entity = pwd.getpwnam(user)
+    if stat.st_uid != _user_entity.pw_uid:
+      user_entity = _user_entity
       Logger.info(
         "Changing owner for %s from %d to %s" % (path, stat.st_uid, user))
       
-      sudo.chown(path, user, None)
-      
   if group:
-    gid = _coerce_gid(group)
-    if stat.st_gid != gid:
+    _group_entity = grp.getgrnam(group)
+    if stat.st_gid != _group_entity.gr_gid:
+      group_entity = _group_entity
       Logger.info(
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
-      sudo.chown(path, None, group)
+  
+  sudo.chown(path, user_entity, group_entity)
       
   if mode:
     if stat.st_mode != mode:
@@ -214,7 +216,7 @@ class LinkProvider(Provider):
 def _preexec_fn(resource):
   def preexec():
     if resource.group:
-      gid = _coerce_gid(resource.group)
+      gid = grp.getgrnam(resource.group).gr_gid
       os.setgid(gid)
       os.setegid(gid)
 

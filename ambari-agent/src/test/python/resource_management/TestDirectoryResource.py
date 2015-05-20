@@ -22,6 +22,8 @@ import os
 from resource_management.core.system import System
 from resource_management.core import Environment, Fail, sudo
 from resource_management.core.resources import Directory
+import pwd
+import grp
 
 @patch.object(System, "os_family", new = 'redhat')
 class TestDirectoryResource(TestCase):
@@ -32,16 +34,19 @@ class TestDirectoryResource(TestCase):
   @patch.object(sudo, "stat")
   @patch.object(sudo,"chmod")
   @patch.object(sudo,"chown")
-  @patch("resource_management.core.providers.system._coerce_uid")
-  @patch("resource_management.core.providers.system._coerce_gid")
-  def test_create_directory_recursive(self, _coerce_gid_mock, _coerce_uid_mock,
+  @patch.object(pwd, "getpwnam")
+  @patch.object(grp, "getgrnam")
+  def test_create_directory_recursive(self, getgrnam_mock, getpwnam_mock,
                                       os_chown_mock, os_chmod_mock, os_stat_mock,
                                       isdir_mock, os_makedirs_mock, 
                                       os_path_exists_mock):
     os_path_exists_mock.return_value = False
     isdir_mock.return_value = True
-    _coerce_uid_mock.return_value = 66
-    _coerce_gid_mock.return_value = 77
+    getpwnam_mock.return_value = MagicMock()
+    getpwnam_mock.return_value.pw_uid = 66
+    getgrnam_mock.return_value = MagicMock()
+    getgrnam_mock.return_value.gr_gid = 77
+    
     os_stat_mock.return_value = type("", (), dict(st_mode=0755, st_uid=0, st_gid=0))()
     
     with Environment('/') as env:
@@ -55,8 +60,7 @@ class TestDirectoryResource(TestCase):
       
     os_makedirs_mock.assert_called_with('/a/b/c/d', 0777)
     os_chmod_mock.assert_called_with('/a/b/c/d', 0777)
-    os_chown_mock.assert_any_call('/a/b/c/d', 'hdfs', None)
-    os_chown_mock.assert_any_call('/a/b/c/d', None, 'hadoop')
+    os_chown_mock.assert_any_call('/a/b/c/d', getpwnam_mock.return_value, getgrnam_mock.return_value)
   
   @patch.object(sudo, "path_exists")
   @patch.object(os.path, "dirname")
@@ -65,17 +69,19 @@ class TestDirectoryResource(TestCase):
   @patch.object(sudo, "stat")
   @patch.object(sudo,"chmod")
   @patch.object(sudo,"chown")
-  @patch("resource_management.core.providers.system._coerce_uid")
-  @patch("resource_management.core.providers.system._coerce_gid")
-  def test_create_directory_not_recursive(self, _coerce_gid_mock, _coerce_uid_mock,
+  @patch.object(pwd, "getpwnam")
+  @patch.object(grp, "getgrnam")
+  def test_create_directory_not_recursive(self, getgrnam_mock, getpwnam_mock,
                                       os_chown_mock, os_chmod_mock, os_stat_mock,
                                       mkdir_mock, isdir_mock, os_dirname_mock, 
                                       os_path_exists_mock):
     os_path_exists_mock.return_value = False
     os_dirname_mock.return_value = "/a/b/c"
     isdir_mock.return_value = True
-    _coerce_uid_mock.return_value = 66
-    _coerce_gid_mock.return_value = 77
+    getpwnam_mock.return_value = MagicMock()
+    getpwnam_mock.return_value.pw_uid = 66
+    getgrnam_mock.return_value = MagicMock()
+    getpwnam_mock.return_value.gr_gid = 77
     os_stat_mock.return_value = type("", (), dict(st_mode=0755, st_uid=0, st_gid=0))()
     
     with Environment('/') as env:
@@ -88,8 +94,7 @@ class TestDirectoryResource(TestCase):
       
     mkdir_mock.assert_called_with('/a/b/c/d', 0777)
     os_chmod_mock.assert_called_with('/a/b/c/d', 0777)
-    os_chown_mock.assert_any_call('/a/b/c/d', 'hdfs', None)
-    os_chown_mock.assert_any_call('/a/b/c/d', None, 'hadoop')
+    os_chown_mock.assert_any_call('/a/b/c/d', getpwnam_mock.return_value, getgrnam_mock.return_value)
     
   @patch.object(sudo, "path_exists")
   @patch.object(os.path, "dirname")

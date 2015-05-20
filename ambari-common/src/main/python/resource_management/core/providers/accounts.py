@@ -30,38 +30,48 @@ from resource_management.core.logger import Logger
 
 
 class UserProvider(Provider):
+  options = dict(
+    comment=(lambda self: self.user.pw_gecos, "-c"),
+    gid=(lambda self: grp.getgrgid(self.user.pw_gid).gr_name, "-g"),
+    uid=(lambda self: self.user.pw_uid, "-u"),
+    shell=(lambda self: self.user.pw_shell, "-s"),
+    password=(lambda self: self.user.pw_password, "-p"),
+    home=(lambda self: self.user.pw_dir, "-d"),
+    groups=(lambda self: self.user_groups, "-G")
+  )
+    
   def action_create(self):
     if not self.user:
       command = ['useradd', "-m"]
       Logger.info("Adding user %s" % self.resource)
     else:
       command = ['usermod']
+      
+      for option_name, attributes in self.options.iteritems():
+        if getattr(self.resource, option_name) != None and getattr(self.resource, option_name) != attributes[0](self):
+          # groups on system contain the one we need
+          if attributes[1] == "-G" and set(getattr(self.resource, option_name)).issubset(set(attributes[0](self))):
+            continue
+          break
+      else:
+        return
+      
       Logger.info("Modifying user %s" % (self.resource.username))
-
-    options = dict(
-      comment="-c",
-      gid="-g",
-      uid="-u",
-      shell="-s",
-      password="-p",
-      home="-d",
-    )
 
     if self.resource.system and not self.user:
       command.append("--system")
-
-    if self.resource.groups:
       
-      groups = self.resource.groups
-      if self.user and self.user_groups:
-        groups += self.user_groups
-      
-      command += ["-G", ",".join(groups)]
-
-    for option_name, option_flag in options.items():
-      option_value = getattr(self.resource, option_name)
-      if option_flag and option_value:
-        command += [option_flag, str(option_value)]
+    for option_name, attributes in self.options.iteritems():   
+      if attributes[1] == "-G":
+        groups = self.resource.groups
+        if self.user and self.user_groups:
+          groups += self.user_groups
+        option_value = ",".join(groups)
+      else:
+        option_value = getattr(self.resource, option_name)
+        
+      if attributes[1] and option_value:
+        command += [attributes[1], str(option_value)]
 
     # if trying to modify existing user, but no values to modify are provided
     if self.user and len(command) == 1:
@@ -74,7 +84,7 @@ class UserProvider(Provider):
   def action_remove(self):
     if self.user:
       command = ['userdel', self.resource.username]
-      shell.checked_call(command)
+      shell.checked_call(command, sudo=True)
       Logger.info("Removed user %s" % self.resource)
 
   @property
@@ -89,6 +99,10 @@ class UserProvider(Provider):
     return [g.gr_name for g in grp.getgrall() if self.resource.username in g.gr_mem]
 
 class GroupProvider(Provider):
+  options = dict(
+    gid=(lambda self: self.group.gr_gid, "-g"),
+    password=(lambda self: self.group.gr_passwd, "-p")
+  )
   def action_create(self):
     group = self.group
     if not group:
@@ -96,28 +110,32 @@ class GroupProvider(Provider):
       Logger.info("Adding group %s" % self.resource)
     else:
       command = ['groupmod']
-      Logger.info("Modifying group %s" % (self.resource.group_name))
       
-    options = dict(
-        gid="-g",
-        password="-p",
-    )
+      for option_name, attributes in self.options.iteritems():
+        if getattr(self.resource, option_name) != None and getattr(self.resource, option_name) != attributes[0](self):
+          break
+      else:
+        return
+      
+      Logger.info("Modifying group %s" % (self.resource.group_name))
 
-    for option_name, option_flag in options.items():
+    for option_name, attributes in self.options.iteritems():
       option_value = getattr(self.resource, option_name)
-      if option_flag and option_value:
-        command += [option_flag, str(option_value)]
+      if attributes[1] and option_value:
+        command += [attributes[1], str(option_value)]
         
     command.append(self.resource.group_name)
 
+    # if trying to modify existing group, but no values to modify are provided
+    if self.group and len(command) == 1:
+      return
+    
     shell.checked_call(command, sudo=True)
-
-    group = self.group
 
   def action_remove(self):
     if self.group:
       command = ['groupdel', self.resource.group_name]
-      shell.checked_call(command)
+      shell.checked_call(command, sudo=True)
       Logger.info("Removed group %s" % self.resource)
 
   @property

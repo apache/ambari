@@ -21,6 +21,8 @@ from unittest import TestCase
 from mock.mock import patch, MagicMock
 import os
 import sys
+import grp
+import pwd
 from resource_management.core import Environment, Fail
 from resource_management.core.resources import File
 from resource_management.core.system import System
@@ -261,16 +263,16 @@ class TestFileResource(TestCase):
     self.assertEqual(open_mock.call_count, 0)
 
 
-  @patch("resource_management.core.providers.system._coerce_uid")
-  @patch("resource_management.core.providers.system._coerce_gid")
+  @patch.object(pwd, "getpwnam")
+  @patch.object(grp, "getgrnam")
   @patch.object(sudo, "chown")
   @patch.object(sudo, "chmod")
   @patch.object(sudo, "stat")
   @patch.object(sudo, "create_file")
   @patch.object(sudo, "path_exists")
   @patch.object(sudo, "path_isdir")
-  def test_ensure_metadata(self, isdir_mock, exists_mock, create_file_mock, stat_mock, chmod_mock, chown_mock, gid_mock,
-                           uid_mock):
+  def test_ensure_metadata(self, isdir_mock, exists_mock, create_file_mock, stat_mock, chmod_mock, chown_mock, getgrnam_mock,
+                           getpwnam_mock):
     """
     Tests if _ensure_metadata changes owner, usergroup and permissions of file to proper values
     """
@@ -284,8 +286,10 @@ class TestFileResource(TestCase):
         self.st_gid = 1
 
     stat_mock.return_value = stat()
-    gid_mock.return_value = 0
-    uid_mock.return_value = 0
+    getpwnam_mock.return_value = MagicMock()
+    getpwnam_mock.return_value.pw_uid = 0
+    getgrnam_mock.return_value = MagicMock()
+    getgrnam_mock.return_value.gr_gid = 0
 
     with Environment('/') as env:
       File('/directory/file',
@@ -301,14 +305,16 @@ class TestFileResource(TestCase):
     self.assertEqual(create_file_mock.call_count, 1)
     stat_mock.assert_called_with('/directory/file')
     self.assertEqual(chmod_mock.call_count, 1)
-    self.assertEqual(chown_mock.call_count, 2)
-    gid_mock.assert_called_once_with('hdfs')
-    uid_mock.assert_called_once_with('root')
+    self.assertEqual(chown_mock.call_count, 1)
+    getgrnam_mock.assert_called_once_with('hdfs')
+    getpwnam_mock.assert_called_with('root')
 
     chmod_mock.reset_mock()
     chown_mock.reset_mock()
-    gid_mock.return_value = 1
-    uid_mock.return_value = 1
+    getpwnam_mock.return_value = MagicMock()
+    getpwnam_mock.return_value.pw_uid = 1
+    getgrnam_mock.return_value = MagicMock()
+    getgrnam_mock.return_value.gr_gid = 1
 
     with Environment('/') as env:
       File('/directory/file',
@@ -321,7 +327,7 @@ class TestFileResource(TestCase):
     
 
     self.assertEqual(chmod_mock.call_count, 1)
-    self.assertEqual(chown_mock.call_count, 0)
+    chown_mock.assert_called_with('/directory/file', None, None)
 
   @patch("resource_management.core.providers.system._ensure_metadata")
   @patch("resource_management.core.providers.system.FileProvider._get_content")

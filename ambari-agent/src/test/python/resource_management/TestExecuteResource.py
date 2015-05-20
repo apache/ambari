@@ -133,23 +133,6 @@ class TestExecuteResource(TestCase):
     except Fail as e:
       pass
 
-  @patch.object(grp, "getgrnam")
-  @patch.object(pwd, "getpwnam")
-  def test_attribute_group(self, getpwnam_mock, getgrnam_mock):
-    def error(argument):
-      self.assertEqual(argument, "test_group")
-      raise KeyError("fail")
-
-    getpwnam_mock.side_effect = 1
-    getgrnam_mock.side_effect = error
-    try:
-      with Environment("/") as env:
-        Execute('echo "1"',
-                group="test_group",
-        )
-    except Fail as e:
-      pass
-
   @patch.object(subprocess, "Popen")
   def test_attribute_environment(self, popen_mock):
     expected_dict = {"JAVA_HOME": "/test/java/home"}

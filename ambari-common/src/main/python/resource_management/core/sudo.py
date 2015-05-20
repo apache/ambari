@@ -25,13 +25,14 @@ import shutil
 import stat
 from resource_management.core import shell
 from resource_management.core.logger import Logger
-from resource_management.core.utils import _coerce_uid
-from resource_management.core.utils import _coerce_gid
 from ambari_commons.os_check import OSCheck
 
 if os.geteuid() == 0:
   def chown(path, owner, group):
-    return os.chown(path, _coerce_uid(owner) if owner else -1, _coerce_gid(group) if group else -1)
+    uid = owner.pw_uid if owner else -1
+    gid = group.gr_gid if group else -1
+    if uid != -1 or gid != 1:
+      return os.chown(path, uid, gid)
   
   def chmod(path, mode):
     return os.chmod(path, mode)
@@ -101,10 +102,10 @@ else:
 
   # os.chown replacement
   def chown(path, owner, group):
-    if owner:
-      shell.checked_call(["chown", owner, path], sudo=True)
-    if group:
-      shell.checked_call(["chgrp", group, path], sudo=True)
+    owner = owner.pw_name if owner else ""
+    group = group.gr_name if group else ""
+    if owner or group:
+      shell.checked_call(["chown", owner+":"+group, path], sudo=True)
       
   # os.chmod replacement
   def chmod(path, mode):
