@@ -18,7 +18,7 @@ limitations under the License.
 
 from unittest import TestCase
 from ambari_server.serverUtils import get_ambari_server_api_base
-from ambari_server.serverConfiguration import CLIENT_API_PORT, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
+from ambari_server.serverConfiguration import CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
 class TestServerUtils(TestCase):
 
@@ -27,14 +27,24 @@ class TestServerUtils(TestCase):
     # Test case of using http protocol
     properties = FakeProperties({
       SSL_API: "false",
+      CLIENT_API_PORT_PROPERTY: None
     })
     result = get_ambari_server_api_base(properties)
     self.assertEquals(result, 'http://127.0.0.1:8080/api/v1/')
 
+    # Test case of using http protocol and custom port
+    properties = FakeProperties({
+      SSL_API: "false",
+      CLIENT_API_PORT_PROPERTY: "8033"
+      })
+    result = get_ambari_server_api_base(properties)
+    self.assertEquals(result, 'http://127.0.0.1:8033/api/v1/')
+
     # Test case of using https protocol (and ssl port)
     properties = FakeProperties({
       SSL_API: "true",
-      SSL_API_PORT : "8443"
+      SSL_API_PORT : "8443",
+      CLIENT_API_PORT_PROPERTY: None
     })
     result = get_ambari_server_api_base(properties)
     self.assertEquals(result, 'https://127.0.0.1:8443/api/v1/')

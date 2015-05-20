@@ -26,7 +26,7 @@ from ambari_commons.os_check import OSConst
 from ambari_commons.os_utils import run_os_command
 from ambari_server.resourceFilesKeeper import ResourceFilesKeeper, KeeperException
 from ambari_server.serverConfiguration import configDefaults, PID_NAME, get_resources_location, get_stack_location, \
-  CLIENT_API_PORT, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
+  CLIENT_API_PORT, CLIENT_API_PORT_PROPERTY, SSL_API, DEFAULT_SSL_API_PORT, SSL_API_PORT
 
 
 # Ambari server API properties
@@ -106,6 +106,9 @@ def refresh_stack_hash(properties):
 def get_ambari_server_api_base(properties):
   api_protocol = SERVER_API_PROTOCOL
   api_port = CLIENT_API_PORT
+  api_port_prop = properties.get_property(CLIENT_API_PORT_PROPERTY)
+  if api_port_prop is not None and api_port_prop != '':
+    api_port = api_port_prop
 
   api_ssl = False
   api_ssl_prop = properties.get_property(SSL_API)

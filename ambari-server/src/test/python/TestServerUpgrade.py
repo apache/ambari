@@ -63,7 +63,10 @@ class TestServerUpgrade(TestCase):
 
     # Test normal flow
     get_validated_string_input_mock.return_value = 'dummy_string'
-    get_ambari_properties_mock.return_value = MagicMock()
+
+    p = get_ambari_properties_mock.return_value
+    p.get_property.side_effect = ["8080", "false"]
+
     get_ambari_server_api_base_mock.return_value = 'http://127.0.0.1:8080/api/v1/'
     get_verbose_mock.retun_value = False
 
