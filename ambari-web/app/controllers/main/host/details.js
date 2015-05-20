@@ -690,7 +690,7 @@ App.MainHostDetailsController = Em.Controller.extend({
       attributes[item.type] = item.properties_attributes || {};
     }, this);
 
-    configs['storm-site']['nimbus.seeds'] = stormNimbusHosts.join(',');
+    configs['storm-site']['nimbus.seeds'] = JSON.stringify(stormNimbusHosts).replace(/"/g, "'");
 
     if (stormNimbusHosts.length > 1) {
       // for HA Nimbus

@@ -537,7 +537,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
     }
     switch (name) {
       case 'storm.zookeeper.servers':
-        if (Object.prototype.toString.call(value) === '[object Array]' ) {
+      case 'nimbus.seeds':
+        if (Em.isArray(value)) {
           return JSON.stringify(value).replace(/"/g, "'");
         } else {
           return value;
@@ -1124,7 +1125,8 @@ App.ConfigsSaverMixin = Em.Mixin.create({
   setServerConfigValue: function (configName, value) {
     switch (configName) {
       case 'storm.zookeeper.servers':
-        if( Object.prototype.toString.call( value ) === '[object Array]' ) {
+      case 'nimbus.seeds':
+        if(Em.isArray(value)) {
           return JSON.stringify(value).replace(/"/g, "'");
         } else {
           return value;

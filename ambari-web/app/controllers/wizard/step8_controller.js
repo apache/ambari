@@ -1725,7 +1725,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     var configs = this.get('configs').filterProperty('filename', 'storm-site.xml');
     var stormProperties = {};
     configs.forEach(function (_configProperty) {
-      if (_configProperty.name == "storm.zookeeper.servers") {
+      if (["nimbus.seeds", "storm.zookeeper.servers"].contains(_configProperty.name)) {
         stormProperties[_configProperty.name] = JSON.stringify(_configProperty.value).replace(/"/g, "'");
       } else {
         stormProperties[_configProperty.name] = _configProperty.value;
