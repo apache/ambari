@@ -33,7 +33,8 @@ module.exports = App.ServiceConfigModificationHandler.create({
         // Only when configuration is already present, do we act on it.
         // Unsecured clusters do not have this config, and hence we skip any
         // updates
-        var newNimbusAuthorizer = authEnabled ? "com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer"
+        var newNimbusAuthorizer = authEnabled ? (App.get('isHadoop23Stack') ? "org.apache.ranger.authorization.storm.authorizer.RangerStormAuthorizer"
+              : "com.xasecure.authorization.storm.authorizer.XaSecureStormAuthorizer")
             : "backtype.storm.security.auth.authorizer.SimpleACLAuthorizer";
 
         // Add Storm-Ranger configs

@@ -23,7 +23,8 @@ module.exports = App.ServiceConfigModificationHandler.create({
 
   updateConfigClasses : function(configClasses, authEnabled, affectedProperties, addOldValue) {
     if (configClasses != null) {
-      var xaAuthCoProcessorClass = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor";
+      var xaAuthCoProcessorClass = App.get('isHadoop23Stack') ? "org.apache.ranger.authorization.hbase.RangerAuthorizationCoprocessor"
+        : "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor";
       var nonXAClass = 'org.apache.hadoop.hbase.security.access.AccessController';
       var currentClassesList = configClasses.get('value').trim().length > 0 ? configClasses.get('value').trim().split(',') : [];
       var newClassesList = null, xaClassIndex, nonXaClassIndex;

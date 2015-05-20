@@ -34,8 +34,9 @@ module.exports = App.ServiceConfigModificationHandler.create({
 
       var rangerPluginEnabled = newValue == "Yes";
       var newConfigAuthorizationEnabledValue = rangerPluginEnabled ? "true" : "false";
-      var newAuthorizationManagerValue = rangerPluginEnabled ? "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
-          : "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory";
+      var newAuthorizationManagerValue = rangerPluginEnabled ? (App.get('isHadoop23Stack') ? "org.apache.ranger.authorization.hive.authorizer.RangerHiveAuthorizerFactory"
+          : "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory")
+         : "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory";
       var newAuthenticatorManagerValue = rangerPluginEnabled ? "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
           : "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator";
       var enabledRestrictedMap = {
