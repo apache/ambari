@@ -67,7 +67,7 @@ public class SliderAppMetricsHelper {
       String fullUrl = spec + "?" + params;
       logger.debug("Metrics request url = " + fullUrl);
       reader = new BufferedReader(new InputStreamReader(context
-          .getURLStreamProvider().readFrom(fullUrl, "GET", null, headers)));
+          .getURLStreamProvider().readFrom(fullUrl, "GET", (String)null, headers)));
 
       TimelineMetrics timelineMetrics = timelineObjectReader.readValue(reader);
       logger.debug("Timeline metrics response => " + timelineMetrics);

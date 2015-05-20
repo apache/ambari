@@ -271,7 +271,7 @@ public class SliderAppMasterClient extends BaseHttpClient {
       InputStream jmxStream = null;
       Map<String, String> headers = new HashMap<String, String>();
       try {
-        jmxStream = streamProvider.readFrom(jmxUrl, "GET", null, headers);
+        jmxStream = streamProvider.readFrom(jmxUrl, "GET", (String)null, headers);
       } catch (IOException e) {
         logger.error(String.format(
             "Unable to access JMX endpoint at %s. Error %s", jmxUrl,
