@@ -329,7 +329,8 @@ describe('App.WizardStep8Controller', function () {
         },
         getConfigAttributes: function() {
           return Em.A(['atr']);
-        }
+        },
+        createSiteObj: App.MainServiceInfoConfigsController.create({}).createSiteObj.bind(App.MainServiceInfoConfigsController.create({}))
       }));
     });
     afterEach(function() {

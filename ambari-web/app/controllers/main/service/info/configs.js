@@ -372,7 +372,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
    * @method onConfigGroupChange
    */
   onConfigGroupChange: function () {
-    console.time('!!!!!!!!!');
     var self = this;
     this.get('stepConfigs').clear();
     var selectedConfigGroup = this.get('selectedConfigGroup');
@@ -421,7 +420,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         } else {
           self.onLoadOverrides(self.get('allConfigs'));
         }
-        console.timeEnd('!!!!!!!!!');
       });
     });
   }.observes('selectedConfigGroup'),

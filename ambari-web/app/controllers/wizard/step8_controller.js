@@ -1553,7 +1553,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     });
 
     return sites.map(function (site) {
-      return this.createSiteObj(site.type, site.tag, site.properties);
+      return App.router.get('mainServiceInfoConfigsController').createSiteObj(site.type, site.tag, site.properties);
     }, this);
   },
 
