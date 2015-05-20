@@ -72,6 +72,13 @@ public enum CheckDescription {
         put(AbstractCheckDescriptor.DEFAULT, "The SNameNode component must be deleted from host: {{fails}}.");
       }}),
 
+  SERVICES_HIVE_MULTIPLE_METASTORES(PrereqCheckType.SERVICE,
+      "Hive Metastore Availability",
+      new HashMap<String, String>() {{
+        put(AbstractCheckDescriptor.DEFAULT,
+          "Multiple Hive Metastore instances are recommended for Rolling Upgrade. This ensures that there is at least one Metastore running during the upgrade process.");
+      }}),
+
   SERVICES_MAINTENANCE_MODE(PrereqCheckType.SERVICE,
       "No services can be in Maintenance Mode",
       new HashMap<String, String>() {{
@@ -134,10 +141,10 @@ public enum CheckDescription {
       }}),
 
   SERVICES_YARN_RM_HA(PrereqCheckType.SERVICE,
-      "YARN ResourceManager HA should be enabled to prevent a disruption in service during the upgrade",
+      "YARN ResourceManager High Availability is not enabled.",
       new HashMap<String, String>() {{
         put(AbstractCheckDescriptor.DEFAULT,
-          "YARN ResourceManager High Availability is not enabled. Verify that dfs.nameservices property is present in hdfs-site.xml.");
+          "YARN ResourceManager HA should be enabled to prevent a disruption in service during the upgrade");
       }}),
 
   SERVICES_YARN_TIMELINE_ST(PrereqCheckType.SERVICE,

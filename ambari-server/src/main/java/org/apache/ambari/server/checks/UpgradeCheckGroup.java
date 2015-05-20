@@ -54,6 +54,12 @@ public enum UpgradeCheckGroup {
   CLIENT_RETRY_PROPERTY(5.0f),
 
   /**
+   * Checks for various HA components, such as multiple metastores, are
+   * available.
+   */
+  MULTIPLE_COMPONENT_WARNING(6.0f),
+
+  /**
    * All other checks.
    */
   DEFAULT(Float.MAX_VALUE);

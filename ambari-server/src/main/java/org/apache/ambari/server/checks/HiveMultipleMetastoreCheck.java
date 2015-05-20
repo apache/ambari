@@ -20,28 +20,30 @@ package org.apache.ambari.server.checks;
 import java.util.Map;
 
 import org.apache.ambari.server.AmbariException;
+import org.apache.ambari.server.ServiceComponentNotFoundException;
 import org.apache.ambari.server.controller.PrereqCheckRequest;
 import org.apache.ambari.server.state.Cluster;
 import org.apache.ambari.server.state.Service;
+import org.apache.ambari.server.state.ServiceComponent;
+import org.apache.ambari.server.state.ServiceComponentHost;
 import org.apache.ambari.server.state.stack.PrereqCheckStatus;
 import org.apache.ambari.server.state.stack.PrerequisiteCheck;
-import org.apache.commons.lang.BooleanUtils;
 
 import com.google.inject.Singleton;
 
 /**
- * The {@link YarnRMHighAvailabilityCheck} checks that YARN has HA mode enabled
- * for ResourceManager..
+ * The {@link HiveMultipleMetastoreCheck} checks that there are at least 2 Hive
+ * Metastore instances in the cluster.
  */
 @Singleton
-@UpgradeCheck(group = UpgradeCheckGroup.MULTIPLE_COMPONENT_WARNING, order = 2.0f)
-public class YarnRMHighAvailabilityCheck extends AbstractCheckDescriptor {
+@UpgradeCheck(group = UpgradeCheckGroup.MULTIPLE_COMPONENT_WARNING, order = 1.0f)
+public class HiveMultipleMetastoreCheck extends AbstractCheckDescriptor {
 
   /**
    * Constructor.
    */
-  public YarnRMHighAvailabilityCheck() {
-    super(CheckDescription.SERVICES_YARN_RM_HA);
+  public HiveMultipleMetastoreCheck() {
+    super(CheckDescription.SERVICES_HIVE_MULTIPLE_METASTORES);
   }
 
   /**
@@ -55,7 +57,7 @@ public class YarnRMHighAvailabilityCheck extends AbstractCheckDescriptor {
 
     final Cluster cluster = clustersProvider.get().getCluster(request.getClusterName());
     Map<String, Service> services = cluster.getServices();
-    if (!services.containsKey("YARN")) {
+    if (!services.containsKey("HIVE")) {
       return false;
     }
 
@@ -67,12 +69,19 @@ public class YarnRMHighAvailabilityCheck extends AbstractCheckDescriptor {
    */
   @Override
   public void perform(PrerequisiteCheck prerequisiteCheck, PrereqCheckRequest request) throws AmbariException {
-    // pretty weak sauce here; probably should do a bit more, like query JMX to
-    // see that there is at least 1 RM active and 1 in standby
-    String propertyValue = getProperty(request, "yarn-site", "yarn.resourcemanager.ha.enabled");
+    final String clusterName = request.getClusterName();
+    final Cluster cluster = clustersProvider.get().getCluster(clusterName);
 
-    if (null == propertyValue || !BooleanUtils.toBoolean(propertyValue)) {
-      prerequisiteCheck.getFailedOn().add("YARN");
+    try {
+      Service hive = cluster.getService("HIVE");
+      ServiceComponent metastore = hive.getServiceComponent("HIVE_METASTORE");
+      Map<String, ServiceComponentHost> metastores = metastore.getServiceComponentHosts();
+
+      if (metastores.size() < 2) {
+        prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
+        prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
+      }
+    } catch (ServiceComponentNotFoundException scnfe) {
       prerequisiteCheck.setStatus(PrereqCheckStatus.WARNING);
       prerequisiteCheck.setFailReason(getFailReason(prerequisiteCheck, request));
     }
