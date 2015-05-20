@@ -19,10 +19,8 @@ limitations under the License.
 '''
 
 import logging
-import signal
 import json
 import sys
-import platform
 import os
 import socket
 import time
@@ -163,7 +161,8 @@ class Controller(threading.Thread):
         self.cluster_configuration.update_configurations_from_heartbeat(ret)
 
         self.recovery_manager.update_configuration_from_registration(ret)
-
+        self.config.update_configuration_from_registration(ret)
+        logger.debug("Updated config:" + str(self.config))
         # always update alert definitions on registration
         self.alert_scheduler_handler.update_definitions(ret)
       except ssl.SSLError:

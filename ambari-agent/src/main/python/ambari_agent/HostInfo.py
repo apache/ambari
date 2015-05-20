@@ -19,7 +19,6 @@ limitations under the License.
 '''
 
 import glob
-import hostname
 import logging
 import os
 import re
@@ -32,7 +31,6 @@ from ambari_commons import OSCheck, OSConst
 from ambari_commons.firewall import Firewall
 from ambari_commons.os_family_impl import OsFamilyImpl
 
-from ambari_agent.Hardware import Hardware
 from ambari_agent.HostCheckReportFileHandler import HostCheckReportFileHandler
 
 
@@ -163,23 +161,12 @@ class HostInfoLinux(HostInfo):
   def __init__(self, config=None):
     super(HostInfoLinux, self).__init__(config)
 
-  def osdiskAvailableSpace(self, path):
-    diskInfo = {}
-    try:
-      df = subprocess.Popen(["df", "-kPT", path], stdout=subprocess.PIPE)
-      dfdata = df.communicate()[0]
-      return Hardware.extractMountInfo(dfdata.splitlines()[-1])
-    except:
-      pass
-    return diskInfo
-
   def checkUsers(self, users, results):
     f = open('/etc/passwd', 'r')
     for userLine in f:
       fields = userLine.split(":")
       if fields[0] in users:
         result = {}
-        homeDir = fields[5]
         result['name'] = fields[0]
         result['homeDir'] = fields[5]
         result['status'] = "Available"
