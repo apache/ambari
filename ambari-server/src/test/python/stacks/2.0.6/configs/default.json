@@ -524,6 +524,9 @@
             "hcat_log_dir": "/var/log/webhcat", 
             "hive_database": "New MySQL Database"
         },
+        "ranger-env": {
+            "xml_configurations_supported" : "false"
+        },
       "cluster-env": {
         "security_enabled": "false",
         "hdfs_user_principal" : "",
