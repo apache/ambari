@@ -362,7 +362,7 @@
         <pre-upgrade>
           <task xsi:type="configure">
             <type>mapred-site</type>
-            <transfer operation="move" from-key="mapreduce.job.speculative.speculativecap" to-key="mapreduce.job.speculative.speculative-cap-running-tasks" default-value="0.1" />
+            <transfer operation="move" from-key="mapreduce.job.speculative.speculativecap" to-key="mapreduce.job.speculative.speculative-cap-running-tasks" default-value="0.1"/>
             <transfer operation="delete" delete-key="mapreduce.task.tmp.dir" />
             <set key="mapreduce.fileoutputcommitter.algorithm.version" value="1"/>
           </task>
@@ -386,6 +386,8 @@
           <task xsi:type="configure">
             <type>yarn-site</type>
             <set key="yarn.timeline-service.recovery.enabled" value="true"/>
+            <set key="yarn.timeline-service.state-store-class" value="org.apache.hadoop.yarn.server.timeline.recovery.LeveldbTimelineStateStore"/>
+            <transfer operation="copy" from-key="yarn.timeline-service.leveldb-timeline-store.path" to-key="yarn.timeline-service.leveldb-state-store.path" default-value="/hadoop/yarn/timeline"/>
           </task>
         </pre-upgrade>
 
@@ -402,8 +404,7 @@
           </task>
           <task xsi:type="configure">
             <type>capacity-scheduler</type>
-            <key>yarn.scheduler.capacity.root.default-node-label-expression</key>
-            <value></value>
+            <set key="yarn.scheduler.capacity.root.default-node-label-expression" value=""/>
           </task>
         </pre-upgrade>
         <upgrade>
