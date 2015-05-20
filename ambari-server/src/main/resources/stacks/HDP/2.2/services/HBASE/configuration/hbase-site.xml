@@ -119,7 +119,7 @@
   </property>
   <property>
     <name>hbase.regionserver.rpc.scheduler.factory.class</name>
-    <value></value>
+    <value> </value>
     <depends-on>
       <property>
         <type>hbase-env</type>
@@ -129,7 +129,7 @@
   </property>
   <property>
     <name>hbase.rpc.controllerfactory.class</name>
-    <value></value>
+    <value> </value>
     <depends-on>
       <property>
         <type>hbase-env</type>

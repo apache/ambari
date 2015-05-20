@@ -30,7 +30,7 @@
 
   <property>
     <name>hadoop.security.key.provider.path</name>
-    <value></value>
+    <value> </value>
     <depends-on>
       <property>
         <type>hadoop-env</type>
