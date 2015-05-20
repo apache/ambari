@@ -39,11 +39,10 @@ class RangerServiceCheck(Script):
       Logger.info('Ranger admin process up and running')
     else:
       if (self.is_ru_rangeradmin_in_progress()):
-         Logger.info('Ranger admin process not running - skipping as rolling upgrade is in progress')
-      else
-         Logger.debug('Ranger admin process not running')
-         raise ComponentIsNotRunning()
-  pass
+        Logger.info('Ranger admin process not running - skipping as rolling upgrade is in progress')
+      else:
+        Logger.debug('Ranger admin process not running')
+        raise ComponentIsNotRunning()
 
 
   def check_ranger_usersync_service(self):
@@ -54,7 +53,6 @@ class RangerServiceCheck(Script):
     else:
       Logger.debug('Ranger usersync process not running')
       raise ComponentIsNotRunning()
-  pass
 
   def is_ru_rangeradmin_in_progress(self):
     return os.path.isfile(RangerServiceCheck.upgrade_marker_file)
