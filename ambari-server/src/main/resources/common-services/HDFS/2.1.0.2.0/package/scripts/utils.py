@@ -167,20 +167,35 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
     "ls {pid_file} >/dev/null 2>&1 &&"
     " ps -p `cat {pid_file}` >/dev/null 2>&1")
 
-  if create_pid_dir:
-    Directory(pid_dir,
-              owner=user,
-              recursive=True)
-  if create_log_dir:
+  # on STOP directories shouldn't be created
+  # since during stop still old dirs are used (which were created during previous start)
+  if action != "stop":
     if name == "nfs3":
-      Directory(log_dir,
-                mode=0775,
+      Directory(params.hadoop_pid_dir_prefix,
+                mode=0755,
                 owner=params.root_user,
-                group=params.user_group)
+                group=params.root_group
+      )
     else:
-      Directory(log_dir,
+      Directory(params.hadoop_pid_dir_prefix,
+                  mode=0755,
+                  owner=params.hdfs_user,
+                  group=params.user_group
+      )
+    if create_pid_dir:
+      Directory(pid_dir,
                 owner=user,
                 recursive=True)
+    if create_log_dir:
+      if name == "nfs3":
+        Directory(log_dir,
+                  mode=0775,
+                  owner=params.root_user,
+                  group=params.user_group)
+      else:
+        Directory(log_dir,
+                  owner=user,
+                  recursive=True)
 
   if params.security_enabled and name == "datanode":
     ## The directory where pid files are stored in the secure data environment.

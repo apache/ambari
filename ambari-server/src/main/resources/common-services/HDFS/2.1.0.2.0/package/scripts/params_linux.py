@@ -69,6 +69,7 @@ hadoop_bin_dir = conf_select.get_hadoop_dir("bin")
 hadoop_home = "/usr/lib/hadoop"
 hadoop_secure_dn_user = hdfs_user
 hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+hadoop_lib_home = conf_select.get_hadoop_dir("lib")
 
 # hadoop parameters for 2.2+
 if Script.is_hdp_stack_greater_or_equal("2.2"):
@@ -93,9 +94,10 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
     else:
       hadoop_secure_dn_user = '""'
 
-
 ambari_libs_dir = "/var/lib/ambari-agent/lib"
 limits_conf_dir = "/etc/security/limits.d"
+
+create_lib_snappy_symlinks = not Script.is_hdp_stack_greater_or_equal("2.2")
 
 if Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.1") and not OSCheck.is_suse_family():
   # deprecated rhel jsvc_path
@@ -105,6 +107,16 @@ else:
 
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir
 ulimit_cmd = "ulimit -c unlimited ; "
+
+snappy_so = "libsnappy.so"
+so_target_dir_x86 = format("{hadoop_lib_home}/native/Linux-i386-32")
+so_target_dir_x64 = format("{hadoop_lib_home}/native/Linux-amd64-64")
+so_target_x86 = format("{so_target_dir_x86}/{snappy_so}")
+so_target_x64 = format("{so_target_dir_x64}/{snappy_so}")
+so_src_dir_x86 = format("{hadoop_home}/lib")
+so_src_dir_x64 = format("{hadoop_home}/lib64")
+so_src_x86 = format("{so_src_dir_x86}/{snappy_so}")
+so_src_x64 = format("{so_src_dir_x64}/{snappy_so}")
 
 #security params
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']

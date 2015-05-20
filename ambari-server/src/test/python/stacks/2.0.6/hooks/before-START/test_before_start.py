@@ -176,18 +176,6 @@ class TestHookBeforeStart(RMFTestCase):
                               not_if = "(! which getenforce ) || (which getenforce && getenforce | grep -q Disabled)",
                               sudo=True,
                               )
-    self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-i386-32',
-        recursive = True,
-    )
-    self.assertResourceCalled('Directory', '/usr/lib/hadoop/lib/native/Linux-amd64-64',
-        recursive = True,
-    )
-    self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-i386-32/libsnappy.so',
-        to = '/usr/lib/libsnappy.so',
-    )
-    self.assertResourceCalled('Link', '/usr/lib/hadoop/lib/native/Linux-amd64-64/libsnappy.so',
-        to = '/usr/lib64/libsnappy.so',
-    )
     self.assertResourceCalled('Directory', '/var/log/hadoop',
                               owner = 'root',
                               group = 'hadoop',

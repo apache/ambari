@@ -33,9 +33,6 @@ def setup_hadoop():
           sudo=True,
   )
 
-  if params.current_service == "HDFS":
-    install_snappy()
-
   #directories
   if params.has_namenode:
     Directory(params.hdfs_log_dir_prefix,
@@ -94,23 +91,6 @@ def setup_hadoop():
            content=Template("hadoop-metrics2.properties.j2")
       )
 
-def setup_database():
-  """
-  Load DB
-  """
-  import params
-  db_driver_download_url = None
-  
-  if params.server_db_name == 'oracle' and params.oracle_driver_url != "":
-    db_driver_download_url = params.oracle_driver_symlink_url
-  elif params.server_db_name == 'mysql' and params.mysql_driver_url != "":
-    db_driver_download_url = params.mysql_driver_symlink_url
-
-  if db_driver_download_url:
-    File(format("{hadoop_lib_home}/{db_driver_filename}"),
-         content = DownloadSource(db_driver_download_url),
-    )
-
 
 def setup_configs():
   """
@@ -148,30 +128,6 @@ def generate_include_file():
          content=Template("include_hosts_list.j2"),
          owner=params.hdfs_user,
          group=params.user_group
-    )
-
-
-def install_snappy():
-  import params
-
-  snappy_so = "libsnappy.so"
-  so_target_dir_x86 = format("{hadoop_lib_home}/native/Linux-i386-32")
-  so_target_dir_x64 = format("{hadoop_lib_home}/native/Linux-amd64-64")
-  so_target_x86 = format("{so_target_dir_x86}/{snappy_so}")
-  so_target_x64 = format("{so_target_dir_x64}/{snappy_so}")
-  so_src_dir_x86 = format("{hadoop_home}/lib")
-  so_src_dir_x64 = format("{hadoop_home}/lib64")
-  so_src_x86 = format("{so_src_dir_x86}/{snappy_so}")
-  so_src_x64 = format("{so_src_dir_x64}/{snappy_so}")
-  if params.has_namenode and params.create_lib_snappy_symlinks:
-    Directory([so_target_dir_x86, so_target_dir_x64],
-              recursive=True,
-    )    
-    Link(so_target_x86,
-         to=so_src_x86,
-    )
-    Link(so_target_x64,
-         to=so_src_x64,
     )
 
 def create_javahome_symlink():

@@ -21,6 +21,7 @@ limitations under the License.
 from resource_management import *
 import socket
 import sys
+import time
 from hcat_service_check import hcat_service_check
 from webhcat_service_check import webhcat_service_check
 from ambari_commons import OSConst
@@ -58,8 +59,17 @@ class HiveServiceCheckDefault(HiveServiceCheck):
     else:
       kinitcmd=None
 
+    SOCKET_WAIT_SECONDS = 290
+
+    start_time = time.time()
+    end_time = start_time + SOCKET_WAIT_SECONDS
+
+    print "Waiting for the Hive server to start..."
+      
     workable_server_available = False
-    for address in address_list:
+    i = 0
+    while time.time() < end_time and not workable_server_available:
+      address = address_list[i]
       try:
         check_thrift_port_sasl(address, port, params.hive_server2_authentication,
                                params.hive_server_principal, kinitcmd, params.smokeuser,
@@ -70,9 +80,20 @@ class HiveServiceCheckDefault(HiveServiceCheck):
         workable_server_available = True
       except:
         print "Connection to %s on port %s failed" % (address, port)
-
+        time.sleep(5)
+        
+      i += 1
+      if i == len(address_list)-1:
+        i = 0
+          
+    elapsed_time = time.time() - start_time
+    
     if not workable_server_available:
-      exit(1)
+      raise Fail("Connection to Hive server %s on port %s failed after %d seconds" %
+                 (params.hostname, params.hive_server_port, elapsed_time))
+    
+    print "Successfully connected to Hive at %s on port %s after %d seconds" %\
+          (params.hostname, params.hive_server_port, elapsed_time)
 
     hcat_service_check()
     webhcat_service_check()

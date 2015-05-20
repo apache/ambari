@@ -57,7 +57,6 @@ class ZookeeperServer(Script):
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    self.configure(env, rolling_restart=rolling_restart)
     zookeeper_service(action = 'stop')
 
 @OsFamilyImpl(os_family=OsFamilyImpl.DEFAULT)

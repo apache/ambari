@@ -29,6 +29,9 @@ from ambari_commons import OSConst
 def hdfs(name=None):
   import params
 
+  if params.create_lib_snappy_symlinks:
+    install_snappy()
+  
   # On some OS this folder could be not exists, so we will create it before pushing there files
   Directory(params.limits_conf_dir,
             recursive=True,
@@ -107,6 +110,18 @@ def hdfs(name=None):
   
   if params.lzo_enabled and len(params.lzo_packages) > 0:
       Package(params.lzo_packages)
+      
+def install_snappy():
+  import params
+  Directory([params.so_target_dir_x86, params.so_target_dir_x64],
+            recursive=True,
+  )    
+  Link(params.so_target_x86,
+       to=params.so_src_x86,
+  )
+  Link(params.so_target_x64,
+       to=params.so_src_x64,
+  )
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
 def hdfs(component=None):

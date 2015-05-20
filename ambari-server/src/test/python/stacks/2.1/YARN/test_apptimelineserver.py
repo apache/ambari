@@ -64,10 +64,12 @@ class TestAppTimelineServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'ulimit -c unlimited; export HADOOP_LIBEXEC_DIR=/usr/lib/hadoop/libexec && /usr/lib/hadoop-yarn/sbin/yarn-daemon.sh --config /etc/hadoop/conf start timelineserver',
                               not_if=pid_check_cmd,
                               user='yarn')
-    self.assertResourceCalled('Execute', pid_check_cmd,
-                              initial_wait=5,
-                              not_if=pid_check_cmd,
-                              user='yarn')
+    self.assertResourceCalled('Execute', 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid` >/dev/null 2>&1',
+        not_if = 'ls /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid >/dev/null 2>&1 && ps -p `cat /var/run/hadoop-yarn/yarn/yarn-yarn-timelineserver.pid` >/dev/null 2>&1',
+        tries = 5,
+        user = 'yarn',
+        try_sleep = 1,
+    )
     self.assertNoMoreResources()
 
   def test_stop_default(self):

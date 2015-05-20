@@ -64,7 +64,12 @@ def service(componentName, action='start', serviceName='yarn'):
     Execute(daemon_cmd, user = usr, not_if = check_process)
 
     # Ensure that the process with the expected PID exists.
-    Execute(check_process, user = usr, not_if = check_process, initial_wait = 5)
+    Execute(check_process,
+            user=usr,
+            not_if = check_process,
+            tries=5,
+            try_sleep=1,
+    )
 
   elif action == 'stop':
     daemon_cmd = format("{cmd} stop {componentName}")

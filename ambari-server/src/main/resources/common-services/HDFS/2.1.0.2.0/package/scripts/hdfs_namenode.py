@@ -47,12 +47,6 @@ def namenode(action=None, do_format=True, rolling_restart=False, env=None):
          group=params.user_group
     )
 
-    Directory(params.hadoop_pid_dir_prefix,
-              mode=0755,
-              owner=params.hdfs_user,
-              group=params.user_group
-    )
-
     if params.dfs_ha_enabled and \
       params.dfs_ha_namenode_standby is not None and \
       params.hostname == params.dfs_ha_namenode_standby:

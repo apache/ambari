@@ -123,13 +123,14 @@ class KnoxGatewayDefault(KnoxGateway):
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    self.configure(env)
     daemon_cmd = format('{knox_bin} stop')
     Execute(daemon_cmd,
             environment={'JAVA_HOME': params.java_home},
             user=params.knox_user,
     )
-    Execute (format("rm -f {knox_pid_file}"))
+    File(params.knox_pid_file,
+         action="delete",
+    )
 
   def status(self, env):
     import status_params

@@ -91,41 +91,6 @@ def hive_service(name, action='start', rolling_restart=False):
       
       Execute(db_connection_check_command,
               path='/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin', tries=5, try_sleep=10)
-      
-    # AMBARI-5800 - wait for the server to come up instead of just the PID existance
-    if name == 'hiveserver2':
-      SOCKET_WAIT_SECONDS = 120
-
-      start_time = time.time()
-      end_time = start_time + SOCKET_WAIT_SECONDS
-
-      is_service_socket_valid = False
-      print "Waiting for the Hive server to start..."
-      if params.security_enabled:
-        kinitcmd=format("{kinit_path_local} -kt {smoke_user_keytab} {smokeuser_principal}; ")
-      else:
-        kinitcmd=None
-      while time.time() < end_time:
-        try:
-          check_thrift_port_sasl(params.hostname, params.hive_server_port, params.hive_server2_authentication,
-                                 params.hive_server_principal, kinitcmd, params.smokeuser,
-                                 transport_mode=params.hive_transport_mode, http_endpoint=params.hive_http_endpoint,
-                                 ssl=params.hive_ssl, ssl_keystore=params.hive_ssl_keystore_path,
-                                 ssl_password=params.hive_ssl_keystore_password)
-          is_service_socket_valid = True
-          break
-        except Exception, e:
-          time.sleep(5)
-
-      elapsed_time = time.time() - start_time
-      
-      if not is_service_socket_valid:
-        raise Fail("Connection to Hive server %s on port %s failed after %d seconds" %
-                   (params.hostname, params.hive_server_port, elapsed_time))
-      
-      print "Successfully connected to Hive at %s on port %s after %d seconds" %\
-            (params.hostname, params.hive_server_port, elapsed_time)
-            
   elif action == 'stop':
 
     daemon_kill_cmd = format("{sudo} kill `cat {pid_file}`")

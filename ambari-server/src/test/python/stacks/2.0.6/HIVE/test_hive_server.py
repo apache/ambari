@@ -80,11 +80,6 @@ class TestHiveServer(RMFTestCase):
                               tries=5,
                               try_sleep=10
     )
-    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
-                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
-                              user = 'ambari-qa',
-                              timeout = 30,
-                              )
     self.assertNoMoreResources()
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
@@ -114,11 +109,6 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
-                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
-                              user = 'ambari-qa',
-                              timeout = 30,
-                              )
     self.assertNoMoreResources()
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
@@ -147,11 +137,6 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
-                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
-                              user = 'ambari-qa',
-                              timeout = 30,
-                              )
     self.assertNoMoreResources()
 
 
@@ -181,11 +166,6 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', '/usr/jdk64/jdk1.7.0_45/bin/java -cp /usr/lib/ambari-agent/DBConnectionVerification.jar:/usr/lib/hive/lib//mysql-connector-java.jar org.apache.ambari.server.DBConnectionVerification \'jdbc:mysql://c6402.ambari.apache.org/hive?createDatabaseIfNotExist=true\' hive \'!`"\'"\'"\' 1\' com.mysql.jdbc.Driver',
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'], tries=5, try_sleep=10
     )
-    self.assertResourceCalled('Execute', "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;auth=noSasl' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
-                              path = ['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
-                              user = 'ambari-qa',
-                              timeout = 30,
-                              )
     self.assertNoMoreResources()
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
@@ -257,16 +237,6 @@ class TestHiveServer(RMFTestCase):
                               path=['/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin'],
                               tries=5,
                               try_sleep=10,
-    )
-    self.assertResourceCalled('Execute',
-                              '/usr/bin/kinit -kt /etc/security/keytabs/smokeuser.headless.keytab ambari-qa@EXAMPLE.COM; ',
-                              user='ambari-qa',
-    )
-    self.assertResourceCalled('Execute',
-                              "! beeline -u 'jdbc:hive2://c6401.ambari.apache.org:10000/;transportMode=binary;principal=hive/_HOST@EXAMPLE.COM' -e '' 2>&1| awk '{print}'|grep -i -e 'Connection refused' -e 'Invalid URL'",
-                              path=['/bin/', '/usr/bin/', '/usr/lib/hive/bin/', '/usr/sbin/'],
-                              user='ambari-qa',
-                              timeout=30,
     )
     self.assertNoMoreResources()
 
@@ -701,10 +671,7 @@ class TestHiveServer(RMFTestCase):
 
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
-  @patch("hive_server.HiveServer.pre_rolling_restart")
-  @patch("hive_server.HiveServer.start")
-  def test_stop_during_upgrade(self, hive_server_start_mock,
-    hive_server_pre_rolling_mock):
+  def test_stop_during_upgrade(self):
     
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
      classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",
@@ -720,9 +687,8 @@ class TestHiveServer(RMFTestCase):
     self.assertResourceCalled('Execute', 'hdp-select set hive-server2 2.2.1.0-2065',)
 
 
-  @patch("hive_server.HiveServer.pre_rolling_restart")
-  @patch("hive_server.HiveServer.start")
-  def test_stop_during_upgrade_bad_hive_version(self, hive_server_start_mock, hive_server_pre_rolling_mock):
+
+  def test_stop_during_upgrade_bad_hive_version(self):
     try:
       self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
        classname = "HiveServer", command = "restart", config_file = "hive-upgrade.json",

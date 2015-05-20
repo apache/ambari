@@ -56,12 +56,13 @@ class KafkaBroker(Script):
   def stop(self, env, rolling_restart=False):
     import params
     env.set_params(params)
-    self.configure(env)
     daemon_cmd = format('source {params.conf_dir}/kafka-env.sh; {params.kafka_bin} stop')
     Execute(daemon_cmd,
             user=params.kafka_user,
     )
-    Execute (format("rm -f {params.kafka_pid_file}"))
+    File (params.kafka_pid_file, 
+          action = "delete"
+    )
 
 
   def status(self, env):

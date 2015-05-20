@@ -51,11 +51,6 @@ def datanode(action=None):
     handle_dfs_data_dir(create_dirs, params)
   elif action == "start" or action == "stop":
     import params
-    Directory(params.hadoop_pid_dir_prefix,
-              mode=0755,
-              owner=params.hdfs_user,
-              group=params.user_group
-    )
     service(
       action=action, name="datanode",
       user=params.hdfs_user,

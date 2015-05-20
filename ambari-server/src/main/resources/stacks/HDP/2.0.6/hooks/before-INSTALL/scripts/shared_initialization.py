@@ -28,7 +28,7 @@ def setup_java():
   """
   import params
 
-  jdk_curl_target = format("{artifact_dir}/{jdk_name}")
+  jdk_curl_target = format("{tmp_dir}/{jdk_name}")
   java_dir = os.path.dirname(params.java_home)
   java_exec = format("{java_home}/bin/java")
   tmp_java_dir = format("{tmp_dir}/jdk")
@@ -39,8 +39,10 @@ def setup_java():
   Directory(params.artifact_dir,
       recursive = True,
   )
+
   File(jdk_curl_target,
        content = DownloadSource(format("{jdk_location}/{jdk_name}")),
+       not_if = format("test -f {jdk_curl_target}")
   )
 
   if params.jdk_name.endswith(".bin"):

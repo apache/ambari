@@ -63,11 +63,6 @@ def nfsgateway(action=None, format=False):
   if action == "configure":
     return
   elif action == "start" or action == "stop":
-    Directory(params.hadoop_pid_dir_prefix,
-              mode=0755,
-              owner=params.root_user,
-              group=params.root_group
-    )
     service(
       action=action,
       name="nfs3",
