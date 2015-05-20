@@ -4351,6 +4351,7 @@ var hdp2properties = [
     "displayName": "Supervisor hosts",
     "description": "The host that has been assigned to run Supervisor",
     "recommendedValue": "",
+    "isRequired": false,
     "displayType": "slaveHosts",
     "isReconfigurable": false,
     "isVisible": true,
