@@ -138,13 +138,13 @@ public class KerberosPrincipalDescriptor extends AbstractKerberosDescriptor {
    * <ul>
    * <li>
    * ${variable} placeholders are replaced on the server - see
-   * {@link VariableReplacementHelper#replaceVariables(String, Map)}
+   * {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
    * </li>
    * <li>the _HOST placeholder is replaced on the hosts to dynamically populate the relevant hostname</li>
    * </ul>
    *
    * @return a String declaring this principal's value
-   * @see VariableReplacementHelper#replaceVariables(String, Map)
+   * @see org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)
    */
   public String getValue() {
     return getName();

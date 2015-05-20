@@ -220,12 +220,12 @@ public class KerberosKeytabDescriptor extends AbstractKerberosDescriptor {
    * <ul>
    * <li>
    * ${variable} placeholders are replaced on the server - see
-   * {@link VariableReplacementHelper#replaceVariables(String, Map)}
+   * {@link org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)}
    * </li>
    * </ul>
    *
    * @return a String declaring the keytab file's absolute path
-   * @see VariableReplacementHelper#replaceVariables(String, Map)
+   * @see org.apache.ambari.server.state.kerberos.KerberosDescriptor#replaceVariables(String, java.util.Map)
    */
   public String getFile() {
     return getName();
