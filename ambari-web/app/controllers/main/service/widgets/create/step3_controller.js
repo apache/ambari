@@ -49,23 +49,8 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
    * @type {string}
    */
   widgetScope: function () {
-    return this.get('isSharedChecked')? 'Cluster': 'User';
+    return this.get('isSharedChecked') ? 'Cluster' : 'User';
   }.property('isSharedChecked'),
-
-  showConfirmationOnSharing: function () {
-    var self = this;
-    if(this.get('isSharedChecked')) {
-      var bodyMessage = Em.Object.create({
-        confirmMsg: Em.I18n.t('dashboard.widgets.browser.action.share.confirmation'),
-        confirmButton: Em.I18n.t('dashboard.widgets.browser.action.share')
-      });
-      return App.showConfirmationFeedBackPopup(function (query) {
-        self.set('isSharedChecked', true);
-      }, bodyMessage, function (query) {
-        self.set('isSharedChecked', false);
-      });
-    }
-  },
 
   /**
    * @type {string}
@@ -89,6 +74,13 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   widgetMetrics: [],
 
   /**
+   * @type {boolean}
+   */
+  isSubmitDisabled: function () {
+    return this.get('widgetName') ? !Boolean(this.get('widgetName').trim()) : true;
+  }.property('widgetName'),
+
+  /**
    * restore widget data set on 2nd step
    */
   initPreviewData: function () {
@@ -99,16 +91,29 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
     this.set('widgetName', this.get('content.widgetName'));
     this.set('widgetDescription', this.get('content.widgetDescription'));
     this.set('isSharedChecked', this.get('content.widgetScope') == 'CLUSTER');
-    // on editing, dont allow changing from shared scope to unshare
-    this.set('isSharedCheckboxDisabled', this.get('content.widgetScope') == 'CLUSTER' &&
-      this.get('isEditController'));
+    // on editing, don't allow changing from shared scope to unshare
+    this.set('isSharedCheckboxDisabled', this.get('content.widgetScope') == 'CLUSTER' && this.get('isEditController'));
     this.addObserver('isSharedChecked', this, this.showConfirmationOnSharing);
   },
 
-  isSubmitDisabled: function () {
-    var widgetName = this.get('widgetName')? this.get('widgetName').trim(): null;
-    return !(widgetName);
-  }.property('widgetName'),
+  /**
+   * confirmation popup
+   * @returns {App.ModalPopup|undefined}
+   */
+  showConfirmationOnSharing: function () {
+    var self = this;
+    if (this.get('isSharedChecked')) {
+      var bodyMessage = Em.Object.create({
+        confirmMsg: Em.I18n.t('dashboard.widgets.browser.action.share.confirmation'),
+        confirmButton: Em.I18n.t('dashboard.widgets.browser.action.share')
+      });
+      return App.showConfirmationFeedBackPopup(function (query) {
+        self.set('isSharedChecked', true);
+      }, bodyMessage, function (query) {
+        self.set('isSharedChecked', false);
+      });
+    }
+  },
 
   /**
    * collect all needed data to create new widget
@@ -136,8 +141,7 @@ App.WidgetWizardStep3Controller = Em.Controller.extend({
   },
 
   cancel: function () {
-    var controller = App.router.get(this.get('content.controllerName'));
-    controller.cancel();
+    App.router.get(this.get('content.controllerName')).cancel();
   },
 
   complete: function () {
