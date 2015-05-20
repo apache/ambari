@@ -50,6 +50,8 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   canEdit: true,
 
+  canNotEdit: Em.computed.not('canEdit'),
+
   /**
    * Config label class attribute. Displays validation status of config.
    * @type {string}
@@ -323,6 +325,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
         self.set('isHover', false);
       });
     }
+    this.initIncompatibleWidgetAsTextBox();
   },
 
   /**
@@ -382,6 +385,15 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    */
   isValueCompatibleWithWidget: function() {
     return this.get('config.isValid');
+  },
+
+  /**
+   * Initialize widget with incompatible value as textbox
+   */
+  initIncompatibleWidgetAsTextBox : function() {
+    if (!this.isValueCompatibleWithWidget()) {
+      this.get('config').set('showAsTextBox', true);
+    }
   },
 
   /**

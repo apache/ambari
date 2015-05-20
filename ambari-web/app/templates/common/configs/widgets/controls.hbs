@@ -16,12 +16,13 @@
 * limitations under the License.
 }}
 
+
+{{#if view.supportSwitchToCheckBox}}
+  <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
+    {{view App.PlainConfigTextField serviceConfigBinding="view.config" disabledBinding="view.canNotEdit"}}
+  </div>
+{{/if}}
 {{#if view.canEdit}}
-  {{#if view.supportSwitchToCheckBox}}
-    <div {{bindAttr class="view.config.showAsTextBox::hide :left :widget-config-raw"}}>
-      {{view App.PlainConfigTextField serviceConfigBinding="view.config"}}
-    </div>
-  {{/if}}
   <div class="widget-config-controls">
     <div {{bindAttr class=":widget-col :left view.config.isNotDefaultValue::not-show"}}>
       <a href="#"
