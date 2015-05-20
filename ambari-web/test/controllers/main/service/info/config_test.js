@@ -382,13 +382,12 @@ describe("App.MainServiceInfoConfigsController", function () {
       }
     ];
     tests.forEach(function(t){
-      beforeEach(function () {
-        mainServiceInfoConfigsController.set("content", { hostComponents: []});
-      });
-
       it(t.m, function () {
-        mainServiceInfoConfigsController.set("content.hostComponents", t.content.hostComponents);
+        sinon.stub(App.HostComponent, 'find', function(){
+          return t.content.hostComponents;
+        });
         expect(mainServiceInfoConfigsController.getMasterComponentHostValue(t.content.hostComponents[0].componentName, t.multiple)).to.eql(t.result);
+        App.HostComponent.find.restore();
       });
     });
   });
