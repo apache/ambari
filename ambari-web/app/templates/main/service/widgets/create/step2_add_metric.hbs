@@ -17,49 +17,55 @@
 }}
 
 <div class="btn-group dropdown span2">
-  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">{{t dashboard.widgets.wizard.step2.newMetric}}&nbsp;<span class="caret"></span></a>
+  <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">{{t dashboard.widgets.wizard.step2.newMetric}}
+    &nbsp;<span class="caret"></span></a>
   <ul class="dropdown-menu service-level-dropdown">
+    {{#if controller.content.isMetricsLoaded}}
       <!--service level-->
-    {{#each service in view.componentMap}}
-      <li class="dropdown-submenu keep-open">
-        <a class="" tabindex="-1" href="javascript:void(null);">{{service.displayName}}</a>
-        <ul class="dropdown-menu">
-          {{#each component in service.components}}
-            <!--component level-->
-            <li class="dropdown-submenu keep-open">
-            <a href="javascript:void(null);">{{component.displayName}}</a>
-            <ul class="dropdown-menu select-options-dropdown">
-              <!--metrics level-->
-              <li class="keep-open metric-select" {{action selectComponents component target="view"}}>
-                <select class="metrics-select chosen-select" >
-                    <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.selectMetric}}</option>
-                  {{#each metric in component.metrics}}
-                    <option>{{unbound metric}}</option>
-                  {{/each}}
-                </select>
+      {{#each service in view.componentMap}}
+        <li class="dropdown-submenu keep-open">
+          <a class="" tabindex="-1" href="javascript:void(null);">{{service.displayName}}</a>
+          <ul class="dropdown-menu">
+            {{#each component in service.components}}
+              <!--component level-->
+              <li class="dropdown-submenu keep-open">
+                <a href="javascript:void(null);">{{component.displayName}}</a>
+                <ul class="dropdown-menu select-options-dropdown">
+                  <!--metrics level-->
+                  <li class="keep-open metric-select" {{action selectComponents component target="view"}}>
+                    <select class="metrics-select chosen-select">
+                      <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.selectMetric}}</option>
+                      {{#each metric in component.metrics}}
+                        <option>{{unbound metric}}</option>
+                      {{/each}}
+                    </select>
+                  </li>
+                  <!--select aggregare function -->
+                  <li {{bindAttr class=":keep-open :aggregator-select component.showAggregateSelect::hidden"}}
+                    {{action selectComponents component target="view"}}
+                    {{translateAttr data-original-title="dashboard.widgets.wizard.step2.aggregateTooltip"}}>
+                    <select class="aggregate-function-select chosen-select">
+                      <option value="" disabled
+                              selected>{{t dashboard.widgets.wizard.step2.aggregateFunction.scanOps}}</option>
+                      {{#each function in view.parentView.AGGREGATE_FUNCTIONS}}
+                        <option>{{unbound function}}</option>
+                      {{/each}}
+                    </select>
+                  </li>
+                  <li class="actions-buttons">
+                    <button class="btn" href="#" {{action cancel target="view"}}>{{t common.cancel}}</button>
+                    <button {{bindAttr class=":btn :btn-primary component.isAddEnabled::disabled"}} href="#"
+                      {{action addMetric component target="view"}}>{{t common.add}}</button>
+                  </li>
+                </ul>
               </li>
-              <!--select aggregare function -->
-              <li {{bindAttr class=":keep-open :aggregator-select component.showAggregateSelect::hidden"}}
-                {{action selectComponents component target="view"}}
-                {{translateAttr data-original-title="dashboard.widgets.wizard.step2.aggregateTooltip"}}>
-                  <select class="aggregate-function-select chosen-select" >
-                      <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.aggregateFunction.scanOps}}</option>
-                    {{#each function in view.parentView.AGGREGATE_FUNCTIONS}}
-                      <option>{{unbound function}}</option>
-                    {{/each}}
-                  </select>
-              </li>
-              <li class="actions-buttons">
-                <button class="btn" href="#" {{action cancel target="view"}}>{{t common.cancel}}</button>
-                <button {{bindAttr class=":btn :btn-primary component.isAddEnabled::disabled"}} href="#"
-                  {{action addMetric component target="view"}}>{{t common.add}}</button>
-              </li>
-            </ul>
-            </li>
-          {{/each}}
-        </ul>
-      </li>
-    {{/each}}
+            {{/each}}
+          </ul>
+        </li>
+      {{/each}}
+    {{else}}
+      <div class="spinner"></div>
+    {{/if}}
   </ul>
 </div>
 

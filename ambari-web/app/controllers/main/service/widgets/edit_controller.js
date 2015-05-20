@@ -79,7 +79,8 @@ App.WidgetEditController = App.WidgetWizardController.extend({
     widgetDescription: null,
     widgetScope: null,
     widgetAuthor: null,
-    widgetId: null
+    widgetId: null,
+    isMetricsLoaded: false
   }),
 
   loadMap: {

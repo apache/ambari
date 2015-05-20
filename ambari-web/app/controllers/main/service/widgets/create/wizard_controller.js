@@ -35,6 +35,7 @@ App.WidgetWizardController = App.WizardController.extend({
     controllerName: 'widgetWizardController',
     widgetService: null,
     widgetType: "",
+    isMetricsLoaded: false,
 
     /**
      * @type {Object}
@@ -183,10 +184,12 @@ App.WidgetWizardController = App.WizardController.extend({
   loadAllMetrics: function () {
     var allMetrics = this.getDBProperty('allMetrics');
     var self = this;
+    this.set("content.isMetricsLoaded", false);
     var dfd = $.Deferred();
 
     if (allMetrics.length === 0) {
       this.loadAllMetricsFromServer(function () {
+        self.set("content.isMetricsLoaded", true);
         dfd.resolve(self.get('content.allMetrics'));
       });
     } else {
