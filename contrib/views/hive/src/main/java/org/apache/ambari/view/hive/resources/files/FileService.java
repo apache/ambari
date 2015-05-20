@@ -118,7 +118,8 @@ public class FileService extends BaseService {
     URL url = new URL(filePath.substring(JSON_PATH_FILE.length()));
 
     InputStream responseInputStream = context.getURLStreamProvider().readFrom(url.toString(), "GET",
-        null, new HashMap<String, String>());
+                                                                              (String)null,
+                                                                              new HashMap<String, String>());
     String response = IOUtils.toString(responseInputStream);
 
     for (String ref : url.getRef().split("!")) {

@@ -98,7 +98,8 @@ public class ATSRequestsDelegateImpl implements ATSRequestsDelegate {
     String response;
     try {
       InputStream responseInputStream = context.getURLStreamProvider().readFrom(atsUrl, "GET",
-          null, new HashMap<String, String>());
+                                                                                (String)null,
+                                                                                new HashMap<String, String>());
       response = IOUtils.toString(responseInputStream);
     } catch (IOException e) {
       LOG.error("Error while reading from ATS", e);
