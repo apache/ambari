@@ -20,13 +20,13 @@ Ambari Agent
 """
 import os
 
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
-from resource_management import *
 from resource_management.libraries.functions import format
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
-from resource_management.libraries.script.script import Script
 from resource_management.libraries import functions
 
 import status_params
@@ -91,16 +91,10 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   hadoop_yarn_home = format("/usr/hdp/current/{yarn_role_root}")
   yarn_bin = format("/usr/hdp/current/{yarn_role_root}/sbin")
   yarn_container_bin = format("/usr/hdp/current/{yarn_role_root}/bin")
-  
-  mapreduce_tar_source = config['configurations']['cluster-env']['mapreduce_tar_source']
-  mapreduce_tar_destination = config['configurations']['cluster-env']['mapreduce_tar_destination_folder'] + "/" + os.path.basename(mapreduce_tar_source)
 
   # the configuration direction for HDFS/YARN/MapR is the hadoop config
   # directory, which is symlinked by hadoop-client only
   hadoop_conf_dir = "/usr/hdp/current/hadoop-client/conf"
-  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
-  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
-
 
 limits_conf_dir = "/etc/security/limits.d"
 execute_path = os.environ['PATH'] + os.pathsep + hadoop_bin_dir + os.pathsep + yarn_container_bin

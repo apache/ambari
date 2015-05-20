@@ -35,6 +35,7 @@ class TestHiveServer(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "HIVE/0.12.0.2.0/package"
   STACK_VERSION = "2.0.6"
   UPGRADE_STACK_VERSION = "2.2"
+
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_configure_default(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
@@ -51,7 +52,6 @@ class TestHiveServer(RMFTestCase):
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default(self, socket_mock):
     s = socket_mock.return_value
-
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname="HiveServer",
                        command="start",
@@ -84,7 +84,6 @@ class TestHiveServer(RMFTestCase):
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=False))
   def test_start_default_no_copy(self):
-
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
                        command = "start",
@@ -271,6 +270,7 @@ class TestHiveServer(RMFTestCase):
     self.assertNoMoreResources()
 
   def assert_configure_default(self, no_tmp = False):
+    # Verify creating of Hcat and Hive directories
     self.assertResourceCalled('HdfsResource', '/apps/webhcat',
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
@@ -295,19 +295,7 @@ class TestHiveServer(RMFTestCase):
         action = ['create_on_execute'],
         mode = 0755,
     )
-    self.assertResourceCalled('HdfsResource', '/apps/webhcat/hive.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/share/HDP-webhcat/hive.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'file',
-        mode = 0755,
-    )
+
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',
@@ -363,6 +351,7 @@ class TestHiveServer(RMFTestCase):
                               group='hadoop',
                               recursive=True,
     )
+
     self.assertResourceCalled('XmlConfig', 'mapred-site.xml',
                               group='hadoop',
                               conf_dir='/etc/hive/conf',
@@ -458,7 +447,6 @@ class TestHiveServer(RMFTestCase):
                               cd_access='a',
     )
 
-
   def assert_configure_secured(self):
     self.assertResourceCalled('HdfsResource', '/apps/webhcat',
         security_enabled = True,
@@ -484,19 +472,7 @@ class TestHiveServer(RMFTestCase):
         action = ['create_on_execute'],
         mode = 0755,
     )
-    self.assertResourceCalled('HdfsResource', '/apps/webhcat/hive.tar.gz',
-        security_enabled = True,
-        hadoop_conf_dir = '/etc/hadoop/conf',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        source = '/usr/share/HDP-webhcat/hive.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/bin',
-        type = 'file',
-        mode = 0755,
-    )
+
     self.assertResourceCalled('HdfsResource', '/apps/hive/warehouse',
         security_enabled = True,
         hadoop_bin_dir = '/usr/bin',
@@ -815,7 +791,10 @@ class TestHiveServer(RMFTestCase):
     put_structured_out_mock.assert_called_with({"securityState": "UNSECURED"})
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
-  def test_pre_rolling_restart(self):
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_pre_rolling_restart(self, copy_to_hdfs_mock):
+    copy_to_hdfs_mock.return_value = True
+
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
@@ -829,19 +808,10 @@ class TestHiveServer(RMFTestCase):
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
     self.assertResourceCalled('Execute',
                               'hdp-select set hive-server2 %s' % version,)
-    self.assertResourceCalled('HdfsResource', 'hdfs:///hdp/apps/2.0.0.0-1234/mapreduce//mapreduce.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/hdp/current/hadoop-client/mapreduce.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'file',
-        mode = 0444,
-    )
+
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs")
+    self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
@@ -855,13 +825,15 @@ class TestHiveServer(RMFTestCase):
 
   @patch("resource_management.core.shell.call")
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value=True))
-  def test_pre_rolling_restart_23(self, call_mock):
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_pre_rolling_restart_23(self, copy_to_hdfs_mock, call_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
 
+    copy_to_hdfs_mock.return_value = True
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/hive_server.py",
                        classname = "HiveServer",
@@ -873,20 +845,11 @@ class TestHiveServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute',
+
                               'hdp-select set hive-server2 %s' % version,)
-    self.assertResourceCalled('HdfsResource', 'hdfs:///hdp/apps/2.0.0.0-1234/mapreduce//mapreduce.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/hdp/current/hadoop-client/mapreduce.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        action = ['create_on_execute'],
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'file',
-        mode = 0444,
-    )
+    copy_to_hdfs_mock.assert_any_call("mapreduce", "hadoop", "hdfs")
+    copy_to_hdfs_mock.assert_any_call("tez", "hadoop", "hdfs")
+    self.assertEquals(2, copy_to_hdfs_mock.call_count)
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',

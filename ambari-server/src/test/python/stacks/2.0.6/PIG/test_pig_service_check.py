@@ -73,6 +73,7 @@ class TestPigServiceCheck(RMFTestCase):
       tries = 3,
       user = 'ambari-qa',
       try_sleep = 5,
+      logoutput = True
     )
        
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/pigsmoke.out',
@@ -132,6 +133,7 @@ class TestPigServiceCheck(RMFTestCase):
       tries = 3,
       user = 'ambari-qa',
       try_sleep = 5,
+      logoutput = True
     )
        
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/pigsmoke.out',

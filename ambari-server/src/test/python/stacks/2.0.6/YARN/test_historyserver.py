@@ -674,13 +674,15 @@ class TestHistoryServer(RMFTestCase):
 
   @patch.object(Script, "is_hdp_stack_greater_or_equal", new = MagicMock(return_value="2.3.0"))
   @patch.object(functions, "get_hdp_version", new = MagicMock(return_value="2.3.0.0-1234"))
-  def test_pre_rolling_restart_23(self):
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_pre_rolling_restart_23(self, copy_to_hdfs_mock):
     config_file = self.get_src_folder()+"/test/python/stacks/2.0.6/configs/default.json"
     with open(config_file, "r") as f:
       json_content = json.load(f)
     version = '2.3.0.0-1234'
     json_content['commandParams']['version'] = version
 
+    copy_to_hdfs_mock.return_value = True
     mocks_dict = {}
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/historyserver.py",
                        classname = "HistoryServer",
@@ -692,20 +694,7 @@ class TestHistoryServer(RMFTestCase):
                        mocks_dict = mocks_dict)
 
     self.assertResourceCalled('Execute', 'hdp-select set hadoop-mapreduce-historyserver %s' % version)
-    self.assertResourceCalled('HdfsResource', 'hdfs:///hdp/apps/2.3.0.0-1234/mapreduce//mapreduce.tar.gz',
-        security_enabled = False,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = UnknownConfigurationMock(),
-        source = '/usr/hdp/current/hadoop-client/mapreduce.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hdfs',
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'file',
-        action = ['create_on_execute'],
-        mode = 0444,
-    )
+    copy_to_hdfs_mock.assert_called_with("mapreduce", "hadoop", "hdfs")
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
@@ -715,6 +704,7 @@ class TestHistoryServer(RMFTestCase):
         action = ['execute'],
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
     )
+
     self.assertNoMoreResources()
 
     self.assertEquals(2, mocks_dict['call'].call_count)

@@ -18,15 +18,13 @@ limitations under the License.
 Ambari Agent
 
 """
-from resource_management import *
-from resource_management.libraries.functions import format
+
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
-from resource_management.libraries.script.script import Script
-
-import os
 
 # server configurations
 config = Script.get_config()
@@ -52,10 +50,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   pig_conf_dir = "/usr/hdp/current/pig-client/conf"
   hadoop_home = '/usr/hdp/current/hadoop-client'
   pig_bin_dir = '/usr/hdp/current/pig-client/bin'
-  
-  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
-  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
-
 
 hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']

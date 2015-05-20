@@ -283,9 +283,7 @@
         "ignore_groupsusers_create": "false",
         "smokeuser": "ambari-qa",
         "kerberos_domain": "EXAMPLE.COM",
-        "user_group": "hadoop",
-        "mapreduce_tar_destination_folder" : "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-        "mapreduce_tar_source" : "/usr/hdp/current/hadoop-client/mapreduce.tar.gz"
+        "user_group": "hadoop"
       },
 
       "hbase-env": {

@@ -251,23 +251,11 @@
         },
         "cluster-env": {
             "security_enabled": "false",
-            "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz",
-            "hadoop-streaming_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-            "pig_tar_source": "/usr/hdp/current/pig-client/pig.tar.gz",
-            "tez_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/",
             "ignore_groupsusers_create": "false",
-            "hadoop-streaming_tar_source": "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar",
             "kerberos_domain": "EXAMPLE.COM",
-            "hive_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/",
-            "mapreduce_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab",
-            "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/",
             "user_group": "hadoop",
-            "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz",
-            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz",
             "smokeuser": "ambari-qa",
-            "sqoop_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/",
-            "tez_tar_source": "/usr/hdp/current/tez-client/lib/tez.tar.gz"
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab"
         }
     },
     "configurationTags": {

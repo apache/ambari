@@ -26,7 +26,10 @@ class TestPigServiceCheck(RMFTestCase):
   COMMON_SERVICES_PACKAGE_DIR = "PIG/0.12.0.2.0/package"
   STACK_VERSION = "2.2"
 
-  def test_service_check_secure(self):
+  @patch("resource_management.libraries.functions.copy_tarball.copy_to_hdfs")
+  def test_service_check_secure(self, copy_to_hdfs_mock):
+    copy_to_hdfs_mock.return_value = True
+
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/service_check.py",
                        classname="PigServiceCheck",
                        command="service_check",
@@ -69,16 +72,13 @@ class TestPigServiceCheck(RMFTestCase):
       content=StaticFile("pigSmoke.sh"),
       mode=0755
     )
-    
-    
-
     self.assertResourceCalled("Execute", "pig /tmp/pigSmoke.sh",
       path=["/usr/hdp/current/pig-client/bin:/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"],
       tries=3,
       user="ambari-qa",
-      try_sleep=5
+      try_sleep=5,
+      logoutput=True
     )
-
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/pigsmoke.out',
         bin_dir = '/usr/hdp/current/hadoop-client/bin',
         user = 'ambari-qa',
@@ -105,19 +105,8 @@ class TestPigServiceCheck(RMFTestCase):
         hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
         type = 'file',
     )
-    self.assertResourceCalled('HdfsResource', 'hdfs:///hdp/apps/2.2.0.0/tez//tez.tar.gz',
-        security_enabled = True,
-        hadoop_conf_dir = '/usr/hdp/current/hadoop-client/conf',
-        keytab = '/etc/security/keytabs/hdfs.headless.keytab',
-        source = '/usr/hdp/current/tez-client/lib/tez.tar.gz',
-        kinit_path_local = '/usr/bin/kinit',
-        user = 'hdfs',
-        owner = 'hdfs',
-        group = 'hadoop',
-        hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
-        type = 'file',
-        action = ['create_on_execute'],
-    )
+
+    copy_to_hdfs_mock.assert_called_with("tez", "hadoop", "hdfs")
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = True,
         hadoop_bin_dir = '/usr/hdp/current/hadoop-client/bin',
@@ -135,7 +124,8 @@ class TestPigServiceCheck(RMFTestCase):
       tries=3,
       try_sleep=5,
       path=["/usr/hdp/current/pig-client/bin:/usr/sbin:/sbin:/usr/local/bin:/bin:/usr/bin"],
-      user="ambari-qa"
+      user="ambari-qa",
+      logoutput=True
     )
 
     self.assertResourceCalled('ExecuteHadoop', 'fs -test -e /user/ambari-qa/pigsmoke.out',

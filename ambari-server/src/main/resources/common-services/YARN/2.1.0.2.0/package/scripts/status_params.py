@@ -17,9 +17,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-
-from resource_management import *
-from resource_management.libraries.functions import conf_select
+from resource_management.libraries.script.script import Script
+from resource_management.libraries import functions
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.default import default
 from ambari_commons import OSCheck
 
 config = Script.get_config()
@@ -51,7 +52,7 @@ else:
   yarn_historyserver_pid_file = format("{yarn_pid_dir}/yarn-{yarn_user}-timelineserver.pid")  # *-historyserver.pid is deprecated
   mapred_historyserver_pid_file = format("{mapred_pid_dir}/mapred-{mapred_user}-historyserver.pid")
 
-  hadoop_conf_dir = conf_select.get_hadoop_conf_dir()
+  hadoop_conf_dir = functions.conf_select.get_hadoop_conf_dir()
 
   hostname = config['hostname']
   kinit_path_local = functions.get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))

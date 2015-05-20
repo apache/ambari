@@ -19,14 +19,20 @@ Ambari Agent
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
+from resource_management.core.source import Template
+from resource_management.core.logger import Logger
+
 from yarn import yarn
 from service import service
 from ambari_commons import OSConst
@@ -73,14 +79,7 @@ class HistoryServerDefault(HistoryServer):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hadoop", params.version)
       hdp_select.select("hadoop-mapreduce-historyserver", params.version)
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.mapreduce_tar_source,
-                          owner=params.hdfs_user,
-                          group=params.user_group,
-                          mode=0444,
-      )
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
       params.HdfsResource(None, action="execute")
 
 
@@ -90,14 +89,7 @@ class HistoryServerDefault(HistoryServer):
     self.configure(env) # FOR SECURITY
     
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.mapreduce_tar_source,
-                          owner=params.hdfs_user,
-                          group=params.user_group,
-                          mode=0444,
-      )
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
       params.HdfsResource(None, action="execute")
 
     service('historyserver', action='start', serviceName='mapreduce')

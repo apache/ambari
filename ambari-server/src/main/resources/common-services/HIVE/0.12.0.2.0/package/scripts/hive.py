@@ -18,14 +18,25 @@ limitations under the License.
 
 """
 
-from resource_management import *
-from resource_management.libraries import functions
-import sys
 import os
 import glob
+from urlparse import urlparse
+
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions.version import compare_versions
+from resource_management.core.resources.service import ServiceConfig
+from resource_management.core.resources.system import File, Execute, Directory
+from resource_management.core.source import StaticFile, Template, DownloadSource, InlineTemplate
+from resource_management.core.shell import as_user
+from resource_management.libraries.functions.is_empty import is_empty
+from resource_management.libraries.resources.xml_config import XmlConfig
+from resource_management.libraries.functions.format import format
+from resource_management.core.exceptions import Fail
+
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons import OSConst
-from urlparse import urlparse
 
 
 @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
@@ -81,24 +92,16 @@ def hive(name=None):
   import params
 
   if name == 'hiveserver2':
-
-    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >=0:
-      params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.mapreduce_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-        
+    # HDP 2.1.* or lower
     if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, "2.2.0.0") < 0:
       params.HdfsResource(params.webhcat_apps_dir,
-                           type="directory",
-                           action="create_on_execute",
-                           owner=params.webhcat_user,
-                           mode=0755
-      )
-  
+                            type="directory",
+                            action="create_on_execute",
+                            owner=params.webhcat_user,
+                            mode=0755
+                          )
+    
+    # Create webhcat dirs.
     if params.hcat_hdfs_user_dir != params.webhcat_hdfs_user_dir:
       params.HdfsResource(params.hcat_hdfs_user_dir,
                            type="directory",
@@ -106,56 +109,66 @@ def hive(name=None):
                            owner=params.hcat_user,
                            mode=params.hcat_hdfs_user_mode
       )
+
     params.HdfsResource(params.webhcat_hdfs_user_dir,
                          type="directory",
                          action="create_on_execute",
                          owner=params.webhcat_user,
                          mode=params.webhcat_hdfs_user_mode
     )
-  
-    for src_filepath in glob.glob(params.hadoop_streaming_tar_source):
-      src_filename = os.path.basename(src_filepath)
-      params.HdfsResource(InlineTemplate(params.hadoop_streaming_tar_destination_dir).get_content() + '/' + src_filename,
-                          type="file",
-                          action="create_on_execute",
-                          source=src_filepath,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-  
-    if (os.path.isfile(params.pig_tar_source)):
-      params.HdfsResource(InlineTemplate(params.pig_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.pig_tar_source,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-  
-    params.HdfsResource(InlineTemplate(params.hive_tar_destination).get_content(),
-                        type="file",
-                        action="create_on_execute",
-                        source=params.hive_tar_source,
-                        group=params.user_group,
-                        mode=params.tarballs_mode
-    )
- 
-    for src_filepath in glob.glob(params.sqoop_tar_source):
-      src_filename = os.path.basename(src_filepath)
-      params.HdfsResource(InlineTemplate(params.sqoop_tar_destination_dir).get_content() + '/' + src_filename,
-                          type="file",
-                          action="create_on_execute",
-                          source=src_filepath,
-                          group=params.user_group,
-                          mode=params.tarballs_mode
-      )
-      
+
+    # ****** Begin Copy Tarballs ******
+    # *********************************
+    # HDP 2.2 or higher, copy mapreduce.tar.gz to HDFS
+    if params.hdp_stack_version_major != "" and compare_versions(params.hdp_stack_version_major, '2.2') >= 0:
+      copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
+
+    # Always copy pig.tar.gz and hive.tar.gz using the appropriate mode.
+    # This can use a different source and dest location to account for both HDP 2.1 and 2.2
+    copy_to_hdfs("pig",
+                 params.user_group,
+                 params.hdfs_user,
+                 file_mode=params.tarballs_mode,
+                 custom_source_file=params.pig_tar_source,
+                 custom_dest_file=params.pig_tar_dest_file)
+    copy_to_hdfs("hive",
+                 params.user_group,
+                 params.hdfs_user,
+                 file_mode=params.tarballs_mode,
+                 custom_source_file=params.hive_tar_source,
+                 custom_dest_file=params.hive_tar_dest_file)
+
+    wildcard_tarballs = ["sqoop", "hadoop_streaming"]
+    for tarball_name in wildcard_tarballs:
+      source_file_pattern = eval("params." + tarball_name + "_tar_source")
+      dest_dir = eval("params." + tarball_name + "_tar_dest_dir")
+
+      if source_file_pattern is None or dest_dir is None:
+        continue
+
+      source_files = glob.glob(source_file_pattern) if "*" in source_file_pattern else [source_file_pattern]
+      for source_file in source_files:
+        src_filename = os.path.basename(source_file)
+        dest_file = os.path.join(dest_dir, src_filename)
+
+        copy_to_hdfs(tarball_name,
+                     params.user_group,
+                     params.hdfs_user,
+                     file_mode=params.tarballs_mode,
+                     custom_source_file=source_file,
+                     custom_dest_file=dest_file)
+    # ******* End Copy Tarballs *******
+    # *********************************
+
+    # Create Hive Metastore Warehouse Dir
     params.HdfsResource(params.hive_apps_whs_dir,
                          type="directory",
                           action="create_on_execute",
                           owner=params.hive_user,
                           mode=0777
     )
+
+    # Create Hive User Dir
     params.HdfsResource(params.hive_hdfs_user_dir,
                          type="directory",
                           action="create_on_execute",

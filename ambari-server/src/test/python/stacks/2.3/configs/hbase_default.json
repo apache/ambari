@@ -311,24 +311,12 @@
             "content": "\n#\n#\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#   http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing,\n# software distributed under the License is distributed on an\n# \"AS IS\" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY\n# KIND, either express or implied.  See the License for the\n# specific language governing permissions and limitations\n# under the License.\n#\n#\n#\n\n#\n# ZooKeeper Logging Configuration\n#\n\n# DEFAULT: console appender only\nlog4j.rootLogger=INFO, CONSOLE\n\n# Example with rolling log file\n#log4j.rootLogger=DEBUG, CONSOLE, ROLLINGFILE\n\n# Example with rolling log file and tracing\n#log4j.rootLogger=TRACE, CONSOLE, ROLLINGFILE, TRACEFILE\n\n#\n# Log INFO level and above messages to the console\n#\nlog4j.appender.CONSOLE=org.apache.log4j.ConsoleAppender\nlog4j.appender.CONSOLE.Threshold=INFO\nlog4j.appender.CONSOLE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.CONSOLE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n\n\n#\n# Add ROLLINGFILE to rootLogger to get log file output\n#    Log DEBUG level and above messages to a log file\nlog4j.appender.ROLLINGFILE=org.apache.log4j.RollingFileAppender\nlog4j.appender.ROLLINGFILE.Threshold=DEBUG\nlog4j.appender.ROLLINGFILE.File=zookeeper.log\n\n# Max log file size of 10MB\nlog4j.appender.ROLLINGFILE.MaxFileSize=10MB\n# uncomment the next line to limit number of backup files\n#log4j.appender.ROLLINGFILE.MaxBackupIndex=10\n\nlog4j.appender.ROLLINGFILE.layout=org.apache.log4j.PatternLayout\nlog4j.appender.ROLLINGFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L] - %m%n\n\n\n#\n# Add TRACEFILE to rootLogger to get log file output\n#    Log DEBUG level and above messages to a log file\nlog4j.appender.TRACEFILE=org.apache.log4j.FileAppender\nlog4j.appender.TRACEFILE.Threshold=TRACE\nlog4j.appender.TRACEFILE.File=zookeeper_trace.log\n\nlog4j.appender.TRACEFILE.layout=org.apache.log4j.PatternLayout\n### Notice we are including log4j's NDC here (%x)\nlog4j.appender.TRACEFILE.layout.ConversionPattern=%d{ISO8601} - %-5p [%t:%C{1}@%L][%x] - %m%n"
         }, 
         "cluster-env": {
-            "security_enabled": "false", 
-            "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz", 
-            "hadoop-streaming_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 
-            "pig_tar_source": "/usr/hdp/current/pig-client/pig.tar.gz", 
-            "hive_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/", 
-            "ignore_groupsusers_create": "false", 
-            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
-            "hadoop-streaming_tar_source": "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", 
-            "kerberos_domain": "EXAMPLE.COM", 
-            "tez_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/", 
-            "mapreduce_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 
-            "tez_tar_source": "/usr/hdp/current/tez-client/lib/tez.tar.gz", 
-            "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/", 
-            "user_group": "hadoop", 
-            "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz", 
-            "sqoop_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/", 
-            "smokeuser": "ambari-qa", 
-            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz"
+            "security_enabled": "false",
+            "ignore_groupsusers_create": "false",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop",
+            "smokeuser": "ambari-qa",
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab"
         }
     }, 
     "configurationTags": {

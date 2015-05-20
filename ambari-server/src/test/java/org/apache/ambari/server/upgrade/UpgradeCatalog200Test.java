@@ -451,20 +451,8 @@ public class UpgradeCatalog200Test {
     propertiesExpectedT0.put("user_group", "hadoop");
     propertiesExpectedT0.put("kinit_path_local", "/usr/bin");
     propertiesExpectedT0.put("security_enabled", "true");
-    propertiesExpectedT0.put("hive_tar_destination_folder", "hdfs,///hdp/apps/{{ hdp_stack_version }}/hive/");
-    propertiesExpectedT0.put("sqoop_tar_source", "/usr/hdp/current/sqoop-client/sqoop.tar.gz");
-    propertiesExpectedT0.put("hadoop-streaming_tar_destination_folder", "hdfs,///hdp/apps/{{ hdp_stack_version }}/mapreduce/");
-    propertiesExpectedT0.put("pig_tar_source", "/usr/hdp/current/pig-client/pig.tar.gz");
-    propertiesExpectedT0.put("mapreduce_tar_destination_folder", "hdfs,///hdp/apps/{{ hdp_stack_version }}/mapreduce/");
-    propertiesExpectedT0.put("hive_tar_source", "/usr/hdp/current/hive-client/hive.tar.gz");
-    propertiesExpectedT0.put("mapreduce_tar_source", "/usr/hdp/current/hadoop-client/mapreduce.tar.gz");
     propertiesExpectedT0.put("smokeuser", "ambari-qa");
-    propertiesExpectedT0.put("pig_tar_destination_folder", "hdfs,///hdp/apps/{{ hdp_stack_version }}/pig/");
-    propertiesExpectedT0.put("hadoop-streaming_tar_source", "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar");
-    propertiesExpectedT0.put("tez_tar_destination_folder", "hdfs,///hdp/apps/{{ hdp_stack_version }}/tez/");
     propertiesExpectedT0.put("smokeuser_keytab", "/etc/security/keytabs/smokeuser.headless.keytab");
-    propertiesExpectedT0.put("sqoop_tar_destination_folder", "hdfs,///hdp/apps/{{ hdp_stack_version }}/sqoop/");
-    propertiesExpectedT0.put("tez_tar_source", "/usr/hdp/current/tez-client/lib/tez.tar.gz");
     propertiesExpectedT0.put("ignore_groupsusers_create", "false");
 
     final Map<String, String> propertiesExpectedT1 = new HashMap<String, String>(propertiesExpectedT0);

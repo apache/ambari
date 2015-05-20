@@ -36,6 +36,7 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('Execute', "curl -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://localhost:18080 | grep 200",
         tries = 10,
         try_sleep = 3,
+        logoutput = True
     )
     self.assertNoMoreResources()
     
@@ -54,5 +55,6 @@ class TestServiceCheck(RMFTestCase):
     self.assertResourceCalled('Execute', "curl -s -o /dev/null -w'%{http_code}' --negotiate -u: -k http://localhost:18080 | grep 200",
         tries = 10,
         try_sleep = 3,
+        logoutput = True
     )
     self.assertNoMoreResources()

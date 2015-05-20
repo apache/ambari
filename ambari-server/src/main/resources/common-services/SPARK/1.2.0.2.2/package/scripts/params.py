@@ -70,8 +70,6 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   spark_log_dir = config['configurations']['spark-env']['spark_log_dir']
   spark_pid_dir = status_params.spark_pid_dir
   spark_home = format("/usr/hdp/current/{component_directory}")
-  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
-  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
 
 
 java_home = config['hostLevelParams']['java_home']

@@ -29,6 +29,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.copy_tarball import STACK_VERSION_PATTERN
 from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions.get_port_from_url import get_port_from_url
@@ -50,7 +51,7 @@ stack_version_unformatted = str(config['hostLevelParams']['stack_version'])
 hdp_stack_version_major = format_hdp_stack_version(stack_version_unformatted)
 stack_is_hdp21 = Script.is_hdp_stack_greater_or_equal("2.0") and Script.is_hdp_stack_less_than("2.2")
 
-# this is not avaliable on INSTALL action because hdp-select is not available
+# this is not available on INSTALL action because hdp-select is not available
 hdp_stack_version = functions.get_hdp_version('hive-server2')
 
 # New Cluster Stack Version that is defined during the RESTART of a Rolling Upgrade
@@ -58,13 +59,16 @@ version = default("/commandParams/version", None)
 
 hadoop_bin_dir = "/usr/bin"
 hadoop_home = '/usr'
-hadoop_streeming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
 hive_bin = '/usr/lib/hive/bin'
 hive_lib = '/usr/lib/hive/lib/'
 hive_var_lib = '/var/lib/hive'
+
+# These tar folders were used in HDP 2.1
+hadoop_streaming_jars = '/usr/lib/hadoop-mapreduce/hadoop-streaming-*.jar'
 pig_tar_file = '/usr/share/HDP-webhcat/pig.tar.gz'
 hive_tar_file = '/usr/share/HDP-webhcat/hive.tar.gz'
 sqoop_tar_file = '/usr/share/HDP-webhcat/sqoop*.tar.gz'
+
 hive_specific_configs_supported = False
 hive_etc_dir_prefix = "/etc/hive"
 limits_conf_dir = "/etc/security/limits.d"
@@ -102,40 +106,37 @@ if Script.is_hdp_stack_greater_or_equal("2.2"):
   webhcat_bin_dir = '/usr/hdp/current/hive-webhcat/sbin'
   
   # --- Tarballs ---
+  # DON'T CHANGE THESE VARIABLE NAMES
+  # Values don't change from those in copy_tarball.py
+  hive_tar_source = "/usr/hdp/%s/hive/hive.tar.gz"      % STACK_VERSION_PATTERN
+  pig_tar_source = "/usr/hdp/%s/pig/pig.tar.gz"         % STACK_VERSION_PATTERN
+  hive_tar_dest_file = "/hdp/apps/%s/hive/hive.tar.gz"  % STACK_VERSION_PATTERN
+  pig_tar_dest_file = "/hdp/apps/%s/pig/pig.tar.gz"     % STACK_VERSION_PATTERN
 
-  hive_tar_source = config['configurations']['cluster-env']['hive_tar_source']
-  pig_tar_source = config['configurations']['cluster-env']['pig_tar_source']
-  hadoop_streaming_tar_source = config['configurations']['cluster-env']['hadoop-streaming_tar_source']
-  sqoop_tar_source = config['configurations']['cluster-env']['sqoop_tar_source']
-  mapreduce_tar_source = config['configurations']['cluster-env']['mapreduce_tar_source']
-  tez_tar_source = config['configurations']['cluster-env']['tez_tar_source']
-  
-  hive_tar_destination = config['configurations']['cluster-env']['hive_tar_destination_folder']  + "/" + os.path.basename(hive_tar_source)
-  pig_tar_destination = config['configurations']['cluster-env']['pig_tar_destination_folder'] + "/" + os.path.basename(pig_tar_source)
-  hadoop_streaming_tar_destination_dir = config['configurations']['cluster-env']['hadoop-streaming_tar_destination_folder']
-  sqoop_tar_destination_dir = config['configurations']['cluster-env']['sqoop_tar_destination_folder']
-  mapreduce_tar_destination = config['configurations']['cluster-env']['mapreduce_tar_destination_folder'] + "/" + os.path.basename(mapreduce_tar_source)
-  tez_tar_destination = config['configurations']['cluster-env']['tez_tar_destination_folder'] + "/" + os.path.basename(tez_tar_source)
+
+  hadoop_streaming_tar_source = "/usr/hdp/%s/hadoop/hadoop-streaming.jar"    % STACK_VERSION_PATTERN
+  sqoop_tar_source = "/usr/hdp/%s/sqoop/sqoop.tar.gz"                        % STACK_VERSION_PATTERN
+  hadoop_streaming_tar_dest_dir = "/hdp/apps/%s/mapreduce/"                  % STACK_VERSION_PATTERN
+  sqoop_tar_dest_dir = "/hdp/apps/%s/sqoop/"                                 % STACK_VERSION_PATTERN
 
   tarballs_mode = 0444
 else:
   # --- Tarballs ---
+  webhcat_apps_dir = "/apps/webhcat"
+
+  # In HDP 2.1, the tarballs were copied from and to different locations.
+  # DON'T CHANGE THESE VARIABLE NAMES
   hive_tar_source = hive_tar_file
   pig_tar_source = pig_tar_file
-  hadoop_streaming_tar_source = hadoop_streeming_jars
-  sqoop_tar_source = sqoop_tar_file
+  hive_tar_dest_file = webhcat_apps_dir + "/hive.tar.gz"
+  pig_tar_dest_file = webhcat_apps_dir + "/pig.tar.gz"
 
-  webhcat_apps_dir = "/apps/webhcat"
-  
-  hive_tar_destination = webhcat_apps_dir + "/" + os.path.basename(hive_tar_source)
-  pig_tar_destination = webhcat_apps_dir + "/" + os.path.basename(pig_tar_source)
-  hadoop_streaming_tar_destination_dir = webhcat_apps_dir
-  sqoop_tar_destination_dir = webhcat_apps_dir
+  hadoop_streaming_tar_source = hadoop_streaming_jars   # this contains *
+  sqoop_tar_source = sqoop_tar_file                     # this contains *
+  hadoop_streaming_tar_dest_dir = webhcat_apps_dir
+  sqoop_tar_dest_dir = webhcat_apps_dir
 
   tarballs_mode = 0755
-
-
-
 
 execute_path = os.environ['PATH'] + os.pathsep + hive_bin + os.pathsep + hadoop_bin_dir
 hive_metastore_user_name = config['configurations']['hive-site']['javax.jdo.option.ConnectionUserName']

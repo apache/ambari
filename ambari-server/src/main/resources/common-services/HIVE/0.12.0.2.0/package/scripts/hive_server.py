@@ -17,20 +17,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
-import hive_server_upgrade
 
-from resource_management import *
-from hive import hive
-from hive_service import hive_service
+
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions import format
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.get_hdp_version import get_hdp_version
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
+from ambari_commons import OSCheck, OSConst
+if OSCheck.is_windows_family():
+  from resource_management.libraries.functions.windows_service_utils import check_windows_service_status
 from setup_ranger_hive import setup_ranger_hive
 from ambari_commons.os_family_impl import OsFamilyImpl
-from ambari_commons import OSConst
+from resource_management.core.logger import Logger
+
+import hive_server_upgrade
+from hive import hive
+from hive_service import hive_service
 
 
 class HiveServer(Script):
@@ -100,18 +110,12 @@ class HiveServerDefault(HiveServer):
     if params.version and compare_versions(format_hdp_stack_version(params.version), '2.2.0.0') >= 0:
       conf_select.select(params.stack_name, "hive", params.version)
       hdp_select.select("hive-server2", params.version)
-      old = params.hdp_stack_version
-      try:
-        params.hdp_stack_version = get_hdp_version('hive-server2')
-        params.HdfsResource(InlineTemplate(params.mapreduce_tar_destination).get_content(),
-                            type="file",
-                            action="create_on_execute",
-                            source=params.mapreduce_tar_source,
-                            group=params.user_group,
-                            mode=params.tarballs_mode)
+
+      # Copy mapreduce.tar.gz and tez.tar.gz to HDFS
+      resource_created = copy_to_hdfs("mapreduce", params.user_group, params.hdfs_user)
+      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user) or resource_created
+      if resource_created:
         params.HdfsResource(None, action="execute")
-      finally:
-        params.hdp_stack_version = old
 
   def security_status(self, env):
     import status_params

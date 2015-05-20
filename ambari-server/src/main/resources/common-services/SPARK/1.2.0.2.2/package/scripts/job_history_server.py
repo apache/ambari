@@ -20,13 +20,13 @@ limitations under the License.
 
 import sys
 import os
+
+from resource_management.libraries.script.script import Script
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
-from resource_management.libraries.functions.format import format
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.check_process_status import check_process_status
-from resource_management.core.resources import Execute
-from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.core.logger import Logger
 from resource_management.core import shell
 from setup_spark import *
@@ -78,14 +78,9 @@ class JobHistoryServer(Script):
       conf_select.select(params.stack_name, "spark", params.version)
       hdp_select.select("spark-historyserver", params.version)
 
-      params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.tez_tar_source,
-                          group=params.user_group,
-                          owner=params.hdfs_user
-      )
-      params.HdfsResource(None, action="execute")
+      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+      if resource_created:
+        params.HdfsResource(None, action="execute")
 
 if __name__ == "__main__":
   JobHistoryServer().execute()

@@ -148,19 +148,7 @@
            "content": "\n# Set Hadoop-specific environment variables here.\n\n#Set path to where bin/hadoop is available\n#Set path to where bin/hadoop is available\nexport HADOOP_HOME=${HADOOP_HOME:-{{hadoop_home}}}\n\n#set the path to where bin/hbase is available\nexport HBASE_HOME=${HBASE_HOME:-{{hbase_home}}}\n\n#Set the path to where bin/hive is available\nexport HIVE_HOME=${HIVE_HOME:-{{hive_home}}}\n\n#Set the path for where zookeper config dir is\nexport ZOOCFGDIR=${ZOOCFGDIR:-/etc/zookeeper/conf}\n\n# add libthrift in hive to sqoop class path first so hive imports work\nexport SQOOP_USER_CLASSPATH=\"`ls ${HIVE_HOME}/lib/libthrift-*.jar 2> /dev/null`:${SQOOP_USER_CLASSPATH}\""
         },
         "cluster-env": {
-            "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz",
-            "hadoop-streaming_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-            "pig_tar_source": "/usr/hdp/current/pig-client/pig.tar.gz",
-            "ignore_groupsusers_create": "false",
-            "hadoop-streaming_tar_source": "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar",
-            "hive_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/",
-            "mapreduce_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-            "tez_tar_source": "/usr/hdp/current/tez-client/lib/tez.tar.gz",
-            "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/",
-            "tez_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/",
-            "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz",
-            "sqoop_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/",
-            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz"
+            "ignore_groupsusers_create": "false"
         },
         "capacity-scheduler": {
           "yarn.scheduler.capacity.maximum-am-resource-percent": "0.2",

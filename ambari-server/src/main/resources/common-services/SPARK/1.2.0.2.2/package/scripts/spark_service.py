@@ -17,7 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
-from resource_management import *
+
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
+from resource_management.libraries.functions import format
+from resource_management.core.resources.system import File, Execute
 
 def spark_service(action):
   import params
@@ -27,13 +32,8 @@ def spark_service(action):
       spark_kinit_cmd = format("{kinit_path_local} -kt {spark_kerberos_keytab} {spark_principal}; ")
       Execute(spark_kinit_cmd, user=params.spark_user)
 
-      params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                          type="file",
-                          action="create_on_execute",
-                          source=params.tez_tar_source,
-                          group=params.user_group,
-                          owner=params.hdfs_user
-      )
+    resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+    if resource_created:
       params.HdfsResource(None, action="execute")
 
     no_op_test = format(

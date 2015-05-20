@@ -19,20 +19,28 @@ Ambari Agent
 
 """
 
-from resource_management import *
+from resource_management.libraries.script.script import Script
+from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions import conf_select
 from resource_management.libraries.functions import hdp_select
+from resource_management.libraries.functions.check_process_status import check_process_status
+from resource_management.libraries.functions.copy_tarball import copy_to_hdfs
 from resource_management.libraries.functions.version import compare_versions, format_hdp_stack_version
 from resource_management.libraries.functions.security_commons import build_expectations, \
   cached_kinit_executor, get_params_from_filesystem, validate_security_config_properties, \
   FILE_TYPE_XML
+from resource_management.core.resources.system import File, Execute
+from resource_management.core.source import Template
+from resource_management.core.logger import Logger
+
+
+
 from install_jars import install_tez_jars
 from yarn import yarn
 from service import service
 from ambari_commons import OSConst
 from ambari_commons.os_family_impl import OsFamilyImpl
 from setup_ranger_yarn import setup_ranger_yarn
-import os
 
 
 class Resourcemanager(Script):
@@ -108,16 +116,9 @@ class ResourcemanagerDefault(Resourcemanager):
     if not Script.is_hdp_stack_greater_or_equal("2.2"):
       install_tez_jars()
     else:
-      # will work only for stack versions >=2.2
-      if os.path.exists(params.tez_tar_source):
-        params.HdfsResource(InlineTemplate(params.tez_tar_destination).get_content(),
-                            type="file",
-                            action="create_on_execute",
-                            source=params.tez_tar_source,
-                            group=params.user_group,
-                            owner=params.hdfs_user
-        )
-      params.HdfsResource(None, action="execute")
+      resource_created = copy_to_hdfs("tez", params.user_group, params.hdfs_user)
+      if resource_created:
+        params.HdfsResource(None, action="execute")
     service('resourcemanager', action='start')
 
   def status(self, env):

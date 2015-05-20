@@ -27,7 +27,7 @@ from resource_management.core.base import Resource, ForcedListArgument, Resource
 Calling a lot of hadoop commands takes too much time.
 The cause is that for every call new connection initialized, with datanodes, namenode.
 
-While this resource can gather the dicteroies/files to create/delete/copyFromLocal.
+While this resource can gather the directories/files to create/delete/copyFromLocal.
 And after just with one call create all that.
 
 action = create_delayed / delete_delayed. Are for gathering information  about what you want

@@ -17,10 +17,12 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 '''
+
+import socket
+
 from resource_management.core.exceptions import Fail
 from resource_management.core.resources import Execute
 from resource_management.libraries.functions import format
-import socket
 
 
 def check_thrift_port_sasl(address, port, hive_auth="NOSASL", key=None, kinitcmd=None, smokeuser='ambari-qa',

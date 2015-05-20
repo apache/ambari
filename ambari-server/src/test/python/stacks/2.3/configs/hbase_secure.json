@@ -576,25 +576,13 @@
             "content": "\n# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \"License\"); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \"AS IS\" BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\nversion: 1\n\n# Please replace with site specific values\ndn: dc=hadoop,dc=apache,dc=org\nobjectclass: organization\nobjectclass: dcObject\no: Hadoop\ndc: hadoop\n\n# Entry for a sample people container\n# Please replace with site specific values\ndn: ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:organizationalUnit\nou: people\n\n# Entry for a sample end user\n# Please replace with site specific values\ndn: uid=guest,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: Guest\nsn: User\nuid: guest\nuserPassword:guest-password\n\n# entry for sample user admin\ndn: uid=admin,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: Admin\nsn: Admin\nuid: admin\nuserPassword:admin-password\n\n# entry for sample user sam\ndn: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: sam\nsn: sam\nuid: sam\nuserPassword:sam-password\n\n# entry for sample user tom\ndn: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:person\nobjectclass:organizationalPerson\nobjectclass:inetOrgPerson\ncn: tom\nsn: tom\nuid: tom\nuserPassword:tom-password\n\n# create FIRST Level groups branch\ndn: ou=groups,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass:organizationalUnit\nou: groups\ndescription: generic groups branch\n\n# create the analyst group under groups\ndn: cn=analyst,ou=groups,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass: groupofnames\ncn: analyst\ndescription:analyst  group\nmember: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org\nmember: uid=tom,ou=people,dc=hadoop,dc=apache,dc=org\n\n\n# create the scientist group under groups\ndn: cn=scientist,ou=groups,dc=hadoop,dc=apache,dc=org\nobjectclass:top\nobjectclass: groupofnames\ncn: scientist\ndescription: scientist group\nmember: uid=sam,ou=people,dc=hadoop,dc=apache,dc=org"
         }, 
         "cluster-env": {
-            "security_enabled": "true", 
-            "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz", 
-            "hadoop-streaming_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 
-            "pig_tar_source": "/usr/hdp/current/pig-client/pig.tar.gz", 
-            "hive_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/", 
+            "security_enabled": "true",
+            "ignore_groupsusers_create": "false",
+            "kerberos_domain": "EXAMPLE.COM",
+            "user_group": "hadoop",
+            "smokeuser": "ambari-qa",
             "smokeuser_principal_name": "ambari-qa@EXAMPLE.COM", 
-            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab", 
-            "hadoop-streaming_tar_source": "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar", 
-            "kerberos_domain": "EXAMPLE.COM", 
-            "tez_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/", 
-            "mapreduce_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/", 
-            "tez_tar_source": "/usr/hdp/current/tez-client/lib/tez.tar.gz", 
-            "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/", 
-            "user_group": "hadoop", 
-            "ignore_groupsusers_create": "false", 
-            "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz", 
-            "sqoop_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/", 
-            "smokeuser": "ambari-qa", 
-            "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz"
+            "smokeuser_keytab": "/etc/security/keytabs/smokeuser.headless.keytab"
         }
     }, 
     "configurationTags": {

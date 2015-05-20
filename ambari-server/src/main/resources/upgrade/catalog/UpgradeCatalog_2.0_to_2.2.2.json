@@ -65,20 +65,6 @@
                     "yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity": "-1",
                     "yarn.scheduler.capacity.root.default-node-label-expression": " "
                 },
-                "cluster-env": {
-                    "hadoop-streaming_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-                    "hadoop-streaming_tar_source": "/usr/hdp/current/hadoop-mapreduce-client/hadoop-streaming.jar",
-                    "hive_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/hive/",
-                    "hive_tar_source": "/usr/hdp/current/hive-client/hive.tar.gz",
-                    "mapreduce_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/mapreduce/",
-                    "mapreduce_tar_source": "/usr/hdp/current/hadoop-client/mapreduce.tar.gz",
-                    "pig_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/pig/",
-                    "pig_tar_source": "/usr/hdp/current/pig-client/pig.tar.gz",
-                    "sqoop_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/sqoop/",
-                    "sqoop_tar_source": "/usr/hdp/current/sqoop-client/sqoop.tar.gz",
-                    "tez_tar_destination_folder": "hdfs:///hdp/apps/{{ hdp_stack_version }}/tez/",
-                    "tez_tar_source": "/usr/hdp/current/tez-client/lib/tez.tar.gz"
-                },
                 "core-site": {
                     "hadoop.http.authentication.simple.anonymous.allowed": "true"
                 },
