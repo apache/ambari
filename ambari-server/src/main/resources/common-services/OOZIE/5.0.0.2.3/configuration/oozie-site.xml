@@ -153,7 +153,7 @@
 
   <property>
     <name>oozie.authentication.simple.anonymous.allowed</name>
-    <value>false</value>
+    <value>true</value>
     <description>
       Indicates if anonymous requests are allowed when using 'simple' authentication.
     </description>
