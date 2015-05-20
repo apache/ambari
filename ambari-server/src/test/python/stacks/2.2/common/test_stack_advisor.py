@@ -2301,6 +2301,27 @@ class TestHDP22StackAdvisor(TestCase):
 
     pass
 
+  def test_validateHiveConfigurations(self):
+    properties = {"hive_security_authorization": "None", "hive.exec.orc.default.stripe.size": "8388608"}
+    configurations = {
+      "hive-site": {
+        "properties": {"hive.security.authorization.enabled": "true"}
+      },
+      "hive-env": {
+        "properties": {"hive_security_authorization": "None"}
+      }
+    }
+    services = {
+      "services": []
+    }
+
+    # Test for 'ranger-hive-plugin-properties' not being in configs
+    res_expected = []
+    res = self.stackAdvisor.validateHiveConfigurations(properties, {}, configurations, services, {})
+    self.assertEquals(res, res_expected)
+
+    pass
+
   def test_recommendYarnCGroupConfigurations(self):
     servicesList = ["YARN"]
     configurations = {}

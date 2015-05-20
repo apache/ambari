@@ -661,7 +661,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
       if hdfs_site['dfs.permissions.enabled'] != 'true':
@@ -761,7 +761,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = [] 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
@@ -817,7 +817,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     validationItems = []
     #Adding Ranger Plugin logic here
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     ##Add stack validations only if Ranger is enabled.
     if ("RANGER" in servicesList):
@@ -877,7 +877,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled'] if ranger_plugin_properties else 'No'
     prop_name = 'hbase.security.authorization'
     prop_val = "true"
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
