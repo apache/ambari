@@ -23,12 +23,12 @@
     {{#if controller.content.isMetricsLoaded}}
       <!--service level-->
       {{#each service in view.componentMap}}
-        <li class="dropdown-submenu keep-open">
+        <li class="dropdown-submenu">
           <a class="" tabindex="-1" href="javascript:void(null);">{{service.displayName}}</a>
           <ul class="dropdown-menu">
             {{#each component in service.components}}
               <!--component level-->
-              <li class="dropdown-submenu keep-open">
+              <li class="dropdown-submenu">
                 <a href="javascript:void(null);">{{component.displayName}}</a>
                 <ul class="dropdown-menu select-options-dropdown">
                   <!--metrics level-->

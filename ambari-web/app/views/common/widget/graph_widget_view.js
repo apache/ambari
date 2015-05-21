@@ -79,9 +79,10 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
       this.get('content.values').forEach(function (value) {
         var expression = this.extractExpressions(value)[0];
         var computedData;
-        var datasetKey = value.value.match(this.get('EXPRESSION_REGEX'))[0];
+        var datasetKey;
 
         if (expression) {
+          datasetKey = value.value.match(this.get('EXPRESSION_REGEX'))[0];
           computedData = this.computeExpression(expression, metrics)[datasetKey];
           //exclude empty datasets
           if (computedData.length > 0) {

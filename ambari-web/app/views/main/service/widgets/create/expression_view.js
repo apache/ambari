@@ -210,9 +210,6 @@ App.AddMetricExpressionView = Em.View.extend({
     $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
       $(this).hasClass('keep-open') && e.stopPropagation();
     });
-    $('html').on('click.dropdown', '.dropdown-menu chosen-drop', function (e) {
-      $(this).hasClass('keep-open') && e.stopPropagation();
-    });
     var self = this;
     Em.run.later(this, function () {
       $(".metrics-select.chosen-select").chosen({
