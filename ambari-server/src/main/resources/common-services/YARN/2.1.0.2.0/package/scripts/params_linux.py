@@ -116,6 +116,9 @@ smokeuser_principal = config['configurations']['cluster-env']['smokeuser_princip
 security_enabled = config['configurations']['cluster-env']['security_enabled']
 smoke_user_keytab = config['configurations']['cluster-env']['smokeuser_keytab']
 yarn_executor_container_group = config['configurations']['yarn-site']['yarn.nodemanager.linux-container-executor.group']
+yarn_nodemanager_container_executor_class =  config['configurations']['yarn-site']['yarn.nodemanager.container-executor.class']
+is_linux_container_executor = (yarn_nodemanager_container_executor_class == 'org.apache.hadoop.yarn.server.nodemanager.LinuxContainerExecutor')
+container_executor_mode = 06050 if is_linux_container_executor else 02050
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
 rm_hosts = config['clusterHostInfo']['rm_host']
 rm_host = rm_hosts[0]

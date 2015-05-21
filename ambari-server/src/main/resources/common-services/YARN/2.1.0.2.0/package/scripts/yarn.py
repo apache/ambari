@@ -218,7 +218,7 @@ def yarn(name = None):
   container_executor = format("{yarn_container_bin}/container-executor")
   File(container_executor,
       group=params.yarn_executor_container_group,
-      mode=06050
+      mode=params.container_executor_mode
   )
 
   File(format("{hadoop_conf_dir}/container-executor.cfg"),

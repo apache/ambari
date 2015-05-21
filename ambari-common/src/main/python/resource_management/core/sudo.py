@@ -31,7 +31,7 @@ if os.geteuid() == 0:
   def chown(path, owner, group):
     uid = owner.pw_uid if owner else -1
     gid = group.gr_gid if group else -1
-    if uid != -1 or gid != 1:
+    if uid != -1 or gid != -1:
       return os.chown(path, uid, gid)
   
   def chmod(path, mode):

@@ -35,9 +35,11 @@ from resource_management.core.providers import Provider
 from resource_management.core.logger import Logger
 
 def _ensure_metadata(path, user, group, mode=None, cd_access=None):
-  stat = sudo.stat(path)
   user_entity = group_entity = None
-  
+
+  if user or group:
+    stat = sudo.stat(path)
+
   if user:
     _user_entity = pwd.getpwnam(user)
     if stat.st_uid != _user_entity.pw_uid:
@@ -53,8 +55,9 @@ def _ensure_metadata(path, user, group, mode=None, cd_access=None):
         "Changing group for %s from %d to %s" % (path, stat.st_gid, group))
   
   sudo.chown(path, user_entity, group_entity)
-      
+
   if mode:
+    stat = sudo.stat(path)
     if stat.st_mode != mode:
       Logger.info("Changing permission for %s from %o to %o" % (
       path, stat.st_mode, mode))

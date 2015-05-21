@@ -272,7 +272,7 @@ class TestNodeManager(RMFTestCase):
     )
     self.assertResourceCalled('File', '/usr/lib/hadoop-yarn/bin/container-executor',
                               group = 'hadoop',
-                              mode = 06050,
+                              mode = 02050,
                               )
     self.assertResourceCalled('File', '/etc/hadoop/conf/container-executor.cfg',
                               content = Template('container-executor.cfg.j2'),
