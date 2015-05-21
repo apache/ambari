@@ -154,11 +154,22 @@ public class ConfigureTask extends ServerSideActionTask {
   }
 
   /**
+   * Used for configuration updates that should mask their values from being
+   * printed in plain text.
+   */
+  @XmlAccessorType(XmlAccessType.FIELD)
+  public static class Masked {
+    @XmlAttribute(name = "mask")
+    public boolean mask = false;
+  }
+
+
+  /**
    * A key/value pair to set in the type specified by {@link ConfigureTask#type}
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "set")
-  public static class ConfigurationKeyValue {
+  public static class ConfigurationKeyValue extends Masked {
     @XmlAttribute(name = "key")
     public String key;
 
@@ -197,7 +208,7 @@ public class ConfigureTask extends ServerSideActionTask {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "transfer")
-  public static class Transfer {
+  public static class Transfer extends Masked {
     /**
      * The type of operation, such as COPY or DELETE.
      */
@@ -291,7 +302,7 @@ public class ConfigureTask extends ServerSideActionTask {
    */
   @XmlAccessorType(XmlAccessType.FIELD)
   @XmlType(name = "replace")
-  public static class Replace {
+  public static class Replace extends Masked {
     /**
      * The key name
      */

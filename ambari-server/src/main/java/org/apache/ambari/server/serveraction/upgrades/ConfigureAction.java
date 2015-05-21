@@ -275,7 +275,7 @@ public class ConfigureAction extends AbstractServerAction {
 
             // append standard output
             outputBuffer.append(MessageFormat.format("Created {0}/{1} = {2}\n", configType,
-                transfer.toKey, valueToCopy));
+                transfer.toKey, mask(transfer, valueToCopy)));
           }
           break;
         case MOVE:
@@ -295,7 +295,7 @@ public class ConfigureAction extends AbstractServerAction {
 
             // append standard output
             outputBuffer.append(MessageFormat.format("Created {0}/{1} with default value {2}\n",
-                configType, transfer.toKey, transfer.defaultValue));
+                configType, transfer.toKey, mask(transfer, transfer.defaultValue)));
           }
 
           break;
@@ -370,7 +370,7 @@ public class ConfigureAction extends AbstractServerAction {
           // without a key/value to set
           newValues.put(key, value);
           outputBuffer.append(MessageFormat.format("{0}/{1} changed to {2}\n", configType, key,
-              value));
+              mask(keyValuePair, value)));
         }
       }
     }
@@ -506,4 +506,12 @@ public class ConfigureAction extends AbstractServerAction {
 
     return result;
   }
+
+  private static String mask(ConfigureTask.Masked mask, String value) {
+    if (mask.mask) {
+      return StringUtils.repeat("*", value.length());
+    }
+    return value;
+  }
+
 }

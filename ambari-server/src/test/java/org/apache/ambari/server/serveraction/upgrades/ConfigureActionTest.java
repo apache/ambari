@@ -306,6 +306,7 @@ public class ConfigureActionTest {
     transfer.fromKey = "movedFromKeyMissingWithDefault";
     transfer.toKey = "movedToMissingWithDefault";
     transfer.defaultValue = "defaultValue2";
+    transfer.mask = true;
     transfers.add(transfer);
 
     transfer = new ConfigureTask.Transfer();
@@ -544,6 +545,7 @@ public class ConfigureActionTest {
     configurations.add(fooKey3);
     fooKey3.key = "fooKey3";
     fooKey3.value = "barValue3";
+    fooKey3.mask = true;
 
     Map<String, String> commandParams = new HashMap<String, String>();
     commandParams.put("upgrade_direction", "upgrade");
@@ -573,6 +575,8 @@ public class ConfigureActionTest {
     assertEquals("barValue", config.getProperties().get("fooKey"));
     assertEquals("barValue2", config.getProperties().get("fooKey2"));
     assertEquals("barValue3", config.getProperties().get("fooKey3"));
+    assertTrue(report.getStdOut().contains("******"));
+
   }
 
   private void makeUpgradeCluster() throws Exception {
