@@ -27,16 +27,35 @@
   </a>
 </p>
 <p class="repository-name">({{view.content.repositoryVersion}})</p>
-<div {{bindAttr class="view.stateElement.isInstalling:installing view.stateElement.hasMultipleButtons:multiple-buttons-container :align-center :state"}}>
+<div {{bindAttr class="view.stateElement.isInstalling:installing :align-center :state"}}>
   {{#if view.stateElement.isButton}}
-    {{#each button in view.stateElement.buttons}}
+    <button class="btn btn-primary"
+      {{action runAction target="view"}}
+      {{bindAttr disabled="view.stateElement.isDisabled"}}>
+      {{view.stateElement.text}}
+    </button>
+  {{/if}}
+  {{#if view.stateElement.isButtonGroup}}
+    <div class="btn-group">
       <button class="btn btn-primary"
-        {{action runAction button.action target="view"}}
+        {{action runAction target="view"}}
         {{bindAttr disabled="view.stateElement.isDisabled"}}>
-        {{button.text}}
+        {{view.stateElement.text}}
       </button>
-      <br />
-    {{/each}}
+      <button class="btn btn-primary dropdown-toggle" data-toggle="dropdown">
+        <span class="caret"></span>
+      </button>
+      <ul class="dropdown-menu">
+        {{#each button in view.stateElement.buttons}}
+          <li>
+            <a {{action runAction button.action target="view"}}
+              {{bindAttr disabled="button.isDisabled"}}>
+            {{button.text}}
+            </a>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
   {{/if}}
   {{#if view.stateElement.isLabel}}
     <span {{bindAttr class="view.stateElement.class"}}>{{view.stateElement.text}}</span>
