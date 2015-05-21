@@ -356,6 +356,7 @@
           </task>
           
           <task xsi:type="configure" summary="Transitioning Ranger HDFS Security">
+            <type>ranger-hdfs-security</type>
             <transfer operation="copy" from-type="ranger-hdfs-plugin-properties" from-key="REPOSITORY_NAME" to-key="ranger.plugin.hdfs.service.name" default-value="{{repo_name}}" />
             <transfer operation="copy" from-type="ranger-hdfs-plugin-properties" from-key="POLICY_MGR_URL" to-key="ranger.plugin.hdfs.policy.rest.url" default-value="{{policymgr_mgr_url}}" />
           </task>
