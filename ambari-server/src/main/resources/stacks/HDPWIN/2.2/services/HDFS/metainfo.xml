@@ -21,6 +21,12 @@
     <service>
       <name>HDFS</name>
       <version>2.6.0.2.2.0.0</version>
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
   </services>
 </metainfo>

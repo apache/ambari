@@ -22,11 +22,24 @@
     <service>
       <name>YARN</name>
       <version>2.6.0.2.2.0.0</version>
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
      </service>
     <service>
       <name>MAPREDUCE2</name>
       <version>2.6.0.2.2.0.0</version>
       <configuration-dir>configuration-mapred</configuration-dir>
+      <themes-dir>themes-mapred</themes-dir>
+      <themes>
+        <theme>
+          <fileName>theme.json</fileName>
+          <default>true</default>
+        </theme>
+      </themes>
     </service>
   </services>
 </metainfo>

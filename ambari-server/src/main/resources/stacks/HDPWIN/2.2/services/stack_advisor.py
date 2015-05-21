@@ -18,6 +18,8 @@ limitations under the License.
 """
 
 import math
+from math import floor
+from urlparse import urlparse
 
 class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
@@ -39,7 +41,10 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putHdfsSiteProperty = self.putProperty(configurations, "hdfs-site", services)
     putHdfsSiteProperty("dfs.datanode.max.transfer.threads", 16384 if clusterData["hBaseInstalled"] else 4096)
     dataDirsCount = 1
-    if "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]:
+    # Use users 'dfs.datanode.data.dir' first
+    if "hdfs-site" in services["configurations"] and "dfs.datanode.data.dir" in services["configurations"]["hdfs-site"]["properties"]:
+      dataDirsCount = len(str(services["configurations"]["hdfs-site"]["properties"]["dfs.datanode.data.dir"]).split(","))
+    elif "dfs.datanode.data.dir" in configurations["hdfs-site"]["properties"]:
       dataDirsCount = len(str(configurations["hdfs-site"]["properties"]["dfs.datanode.data.dir"]).split(","))
     if dataDirsCount <= 2:
       failedVolumesTolerated = 0
@@ -57,31 +62,38 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       nameNodeCores = int(namenodeHosts[0]['Hosts']['cpu_count'])
     putHdfsSiteProperty("dfs.namenode.handler.count", 25*nameNodeCores)
 
-    putHdfsSiteProperty("dfs.namenode.safemode.threshold-pct", "0.99f" if len(namenodeHosts) > 1 else "1.0f")
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if ('ranger-hdfs-plugin-properties' in services['configurations']) and ('ranger-hdfs-plugin-enabled' in services['configurations']['ranger-hdfs-plugin-properties']['properties']):
+      rangerPluginEnabled = services['configurations']['ranger-hdfs-plugin-properties']['properties']['ranger-hdfs-plugin-enabled']
+      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == 'Yes'.lower()):
+        putHdfsSiteProperty("dfs.permissions.enabled",'true')
+
+    putHdfsSiteProperty("dfs.namenode.safemode.threshold-pct", "0.999" if len(namenodeHosts) > 1 else "1.000")
 
     putHdfsEnvProperty = self.putProperty(configurations, "hadoop-env", services)
     putHdfsEnvPropertyAttribute = self.putPropertyAttribute(configurations, "hadoop-env")
 
     putHdfsEnvProperty('namenode_heapsize', max(int(clusterData['totalAvailableRam'] / 2), 1024))
-    putHdfsEnvProperty('namenode_opt_newsize', max(int(clusterData['totalAvailableRam'] / 8), 128))
-    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(clusterData['totalAvailableRam'] / 8), 256))
 
-    nn_max_heapsize=None
+    nn_heapsize_limit = None
     if (namenodeHosts is not None and len(namenodeHosts) > 0):
       if len(namenodeHosts) > 1:
         nn_max_heapsize = min(int(namenodeHosts[0]["Hosts"]["total_mem"]), int(namenodeHosts[1]["Hosts"]["total_mem"])) / 1024
+        masters_at_host = max(self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts),
+                              self.getHostComponentsByCategories(namenodeHosts[1]["Hosts"]["host_name"], ["MASTER"], services, hosts))
       else:
         nn_max_heapsize = int(namenodeHosts[0]["Hosts"]["total_mem"] / 1024) # total_mem in kb
+        masters_at_host = self.getHostComponentsByCategories(namenodeHosts[0]["Hosts"]["host_name"], ["MASTER"], services, hosts)
 
       putHdfsEnvPropertyAttribute('namenode_heapsize', 'maximum', max(nn_max_heapsize, 1024))
 
-      nn_heapsize = nn_max_heapsize
-      nn_heapsize -= clusterData["reservedRam"]
-      if clusterData["hBaseInstalled"]:
-        nn_heapsize -= clusterData["hbaseRam"]
-      putHdfsEnvProperty('namenode_heapsize', max(int(nn_heapsize / 2), 1024))
-      putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
-      putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 256))
+      nn_heapsize_limit = nn_max_heapsize
+      nn_heapsize_limit -= clusterData["reservedRam"]
+      if len(masters_at_host) > 1:
+        nn_heapsize_limit = int(nn_heapsize_limit/2)
+
+      putHdfsEnvProperty('namenode_heapsize', max(nn_heapsize_limit, 1024))
+
 
     datanodeHosts = self.getHostsWithComponent("HDFS", "DATANODE", services, hosts)
     if datanodeHosts is not None and len(datanodeHosts) > 0:
@@ -123,12 +135,14 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       nn_memory_config = nn_memory_configs[index]
 
       #override with new values if applicable
-      if nn_max_heapsize is not None and nn_memory_config['nn_heap'] <= nn_max_heapsize:
+      if nn_heapsize_limit is not None and nn_memory_config['nn_heap'] <= nn_heapsize_limit:
         putHdfsEnvProperty('namenode_heapsize', nn_memory_config['nn_heap'])
-        putHdfsEnvProperty('namenode_opt_newsize', nn_memory_config['nn_opt'])
-        putHdfsEnvProperty('namenode_opt_maxnewsize', nn_memory_config['nn_opt'])
 
       putHdfsEnvPropertyAttribute('dtnode_heapsize', 'maximum', int(min_datanode_ram_kb/1024))
+
+    nn_heapsize = int(configurations["hadoop-env"]["properties"]["namenode_heapsize"])
+    putHdfsEnvProperty('namenode_opt_newsize', max(int(nn_heapsize / 8), 128))
+    putHdfsEnvProperty('namenode_opt_maxnewsize', max(int(nn_heapsize / 8), 128))
 
     putHdfsSitePropertyAttribute = self.putPropertyAttribute(configurations, "hdfs-site")
     putHdfsSitePropertyAttribute('dfs.datanode.failed.volumes.tolerated', 'maximum', dataDirsCount)
@@ -143,9 +157,14 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putYarnPropertyAttribute = self.putPropertyAttribute(configurations, "yarn-site")
     nodeManagerHost = self.getHostWithComponent("YARN", "NODEMANAGER", services, hosts)
     if (nodeManagerHost is not None):
-      putYarnProperty('yarn.nodemanager.resource.cpu-vcores', nodeManagerHost["Hosts"]["cpu_count"] * 2)
+      cpuPercentageLimit = 0.8
+      if "yarn.nodemanager.resource.percentage-physical-cpu-limit" in configurations["yarn-site"]["properties"]:
+        cpuPercentageLimit = float(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.percentage-physical-cpu-limit"])
+      cpuLimit = max(1, int(floor(nodeManagerHost["Hosts"]["cpu_count"] * cpuPercentageLimit)))
+      putYarnProperty('yarn.nodemanager.resource.cpu-vcores', str(cpuLimit))
+      putYarnProperty('yarn.scheduler.maximum-allocation-vcores', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.nodemanager.resource.memory-mb', 'maximum', int(nodeManagerHost["Hosts"]["total_mem"] / 1024)) # total_mem in kb
-      putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'maximum', nodeManagerHost["Hosts"]["cpu_count"] * 4)
+      putYarnPropertyAttribute('yarn.nodemanager.resource.cpu-vcores', 'maximum', nodeManagerHost["Hosts"]["cpu_count"] * 2)
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.maximum-allocation-vcores', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.cpu-vcores"])
       putYarnPropertyAttribute('yarn.scheduler.minimum-allocation-mb', 'maximum', configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"])
@@ -194,6 +213,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     putHiveServerProperty = self.putProperty(configurations, "hiveserver2-site", services)
     putHiveEnvProperty = self.putProperty(configurations, "hive-env", services)
     putHiveSiteProperty = self.putProperty(configurations, "hive-site", services)
+    putHiveSitePropertyAttribute = self.putPropertyAttribute(configurations, "hive-site")
 
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
 
@@ -212,10 +232,6 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     # Vectorization
     putHiveSiteProperty("hive.vectorized.execution.enabled", "true")
     putHiveSiteProperty("hive.vectorized.execution.reduce.enabled", "false")
-
-    # Memory
-    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", "2147483648")
-    putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
 
     # Transactions
     putHiveEnvProperty("hive_txn_acid", "off")
@@ -273,26 +289,34 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
     if not "yarn-site" in configurations:
       self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    #properties below should be always present as they are provided in HDP206 stack advisor at least
+    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+    #duplicate tez task resource calc logic, direct dependency doesn't look good here (in case of Hive without Tez)
+    container_size = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
+    container_size = min(clusterData['containers'] * clusterData['ramPerContainer'], container_size, yarnMaxAllocationSize)
 
-    if "yarn-site" in configurations and \
-                    "yarn.scheduler.minimum-allocation-mb" in configurations["yarn-site"]["properties"]:
-      container_size = configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]
     putHiveSiteProperty("hive.tez.container.size", container_size)
     putHiveSiteProperty("hive.prewarm.enabled", "false")
     putHiveSiteProperty("hive.prewarm.numcontainers", "3")
     putHiveSiteProperty("hive.tez.auto.reducer.parallelism", "true")
     putHiveSiteProperty("hive.tez.dynamic.partition.pruning", "true")
 
+    container_size = configurations["hive-site"]["properties"]["hive.tez.container.size"]
+    container_size_bytes = int(container_size)*1024*1024
+    # Memory
+    putHiveSiteProperty("hive.auto.convert.join.noconditionaltask.size", int(container_size_bytes/3))
+    putHiveSitePropertyAttribute("hive.auto.convert.join.noconditionaltask.size", "maximum", container_size_bytes)
+    putHiveSiteProperty("hive.exec.reducers.bytes.per.reducer", "67108864")
+
     # CBO
     putHiveEnvProperty("cost_based_optimizer", "On")
     if str(configurations["hive-env"]["properties"]["cost_based_optimizer"]).lower() == "on":
       putHiveSiteProperty("hive.cbo.enable", "true")
-      putHiveSiteProperty("hive.stats.fetch.partition.stats", "true")
-      putHiveSiteProperty("hive.stats.fetch.column.stats", "true")
     else:
       putHiveSiteProperty("hive.cbo.enable", "false")
-      putHiveSiteProperty("hive.stats.fetch.partition.stats", "false")
-      putHiveSiteProperty("hive.stats.fetch.column.stats", "false")
+    hive_cbo_enable = configurations["hive-site"]["properties"]["hive.cbo.enable"]
+    putHiveSiteProperty("hive.stats.fetch.partition.stats", hive_cbo_enable)
+    putHiveSiteProperty("hive.stats.fetch.column.stats", hive_cbo_enable)
     putHiveSiteProperty("hive.compute.query.using.stats ", "true")
 
     # Interactive Query
@@ -303,7 +327,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
     yarn_queues = "default"
     if "capacity-scheduler" in configurations and \
-                    "yarn.scheduler.capacity.root.queues" in configurations["capacity-scheduler"]["properties"]:
+      "yarn.scheduler.capacity.root.queues" in configurations["capacity-scheduler"]["properties"]:
       yarn_queues = str(configurations["capacity-scheduler"]["properties"]["yarn.scheduler.capacity.root.queues"])
     putHiveServerProperty("hive.server2.tez.default.queues", yarn_queues)
 
@@ -321,18 +345,66 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     else:
       putHiveSiteProperty("hive.security.authorization.enabled", "true")
 
-    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
+    try:
       auth_manager_value = str(configurations["hive-env"]["properties"]["hive.security.metastore.authorization.manager"])
-      sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+    except KeyError:
+      auth_manager_value = ''
+      pass
+    sqlstdauth_class = "org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly"
+
+    if str(configurations["hive-env"]["properties"]["hive_security_authorization"]).lower() == "sqlstdauth":
       if sqlstdauth_class not in auth_manager_value:
         putHiveSiteProperty("hive.security.metastore.authorization.manager", auth_manager_value + "," + sqlstdauth_class)
+    elif auth_manager_value != '':
+      #remove item from csv
+      auth_manager_values = auth_manager_value.split(",")
+      auth_manager_values = [x for x in auth_manager_values if x != sqlstdauth_class]
+      putHiveSiteProperty("hive.security.metastore.authorization.manager", ",".join(auth_manager_values))
+      pass
 
     putHiveServerProperty("hive.server2.enable.doAs", "true")
     putHiveSiteProperty("hive.server2.use.SSL", "false")
 
+    #Hive authentication
+    hive_server2_auth = None
+    if "hive-site" in services["configurations"] and "hive.server2.authentication" in services["configurations"]["hive-site"]["properties"]:
+      hive_server2_auth = str(services["configurations"]["hive-site"]["properties"]["hive.server2.authentication"]).lower()
+    elif "hive.server2.authentication" in configurations["hive-site"]["properties"]:
+      hive_server2_auth = str(configurations["hive-site"]["properties"]["hive.server2.authentication"]).lower()
+
+    if hive_server2_auth == "ldap":
+      putHiveSiteProperty("hive.server2.authentication.ldap.url", "")
+      putHiveSiteProperty("hive.server2.authentication.ldap.baseDN", " ")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.authentication.ldap.url", "delete", "true")
+      putHiveSitePropertyAttribute("hive.server2.authentication.ldap.baseDN", "delete", "true")
+
+    if hive_server2_auth == "kerberos":
+      putHiveSiteProperty("hive.server2.authentication.kerberos.keytab", "")
+      putHiveSiteProperty("hive.server2.authentication.kerberos.principal", "")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.keytab", "delete", "true")
+      putHiveSitePropertyAttribute("hive.server2.authentication.kerberos.principal", "delete", "true")
+
+    if hive_server2_auth == "pam":
+      putHiveSiteProperty("hive.server2.authentication.pam.services", "")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.authentication.pam.services", "delete", "true")
+
+    if hive_server2_auth == "custom":
+      putHiveSiteProperty("hive.server2.custom.authentication.class", "")
+    else:
+      putHiveSitePropertyAttribute("hive.server2.custom.authentication.class", "delete", "true")
+
+
   def recommendHBASEConfigurations(self, configurations, clusterData, services, hosts):
     super(HDPWIN22StackAdvisor, self).recommendHbaseEnvConfigurations(configurations, clusterData, services, hosts)
     putHbaseEnvPropertyAttributes = self.putPropertyAttribute(configurations, "hbase-env")
+
+    hmaster_host = self.getHostWithComponent("HBASE", "HBASE_MASTER", services, hosts)
+    if hmaster_host is not None:
+      host_ram = hmaster_host["Hosts"]["total_mem"]
+      putHbaseEnvPropertyAttributes('hbase_master_heapsize', 'maximum', max(1024, int(host_ram/1024)))
 
     rs_hosts = self.getHostsWithComponent("HBASE", "HBASE_REGIONSERVER", services, hosts)
     if rs_hosts is not None and len(rs_hosts) > 0:
@@ -344,13 +416,26 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       putHbaseEnvPropertyAttributes('hbase_regionserver_heapsize', 'maximum', max(1024, int(min_ram*0.8/1024)))
 
     putHbaseSiteProperty = self.putProperty(configurations, "hbase-site", services)
-    putHbaseSiteProperty("hbase.regionserver.global.memstore.upperLimit", '0.4')
+    putHbaseSitePropertyAttributes = self.putPropertyAttribute(configurations, "hbase-site")
+    putHbaseSiteProperty("hbase.regionserver.global.memstore.size", '0.4')
 
     if 'hbase-env' in services['configurations'] and 'phoenix_sql_enabled' in services['configurations']['hbase-env']['properties']:
       if 'true' == services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'].lower():
+        putHbaseSiteProperty("hbase.region.server.rpc.scheduler.factory.class", "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory")
+        putHbaseSiteProperty("hbase.rpc.controllerfactory.class", "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory")
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec')
       else:
         putHbaseSiteProperty("hbase.regionserver.wal.codec", 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec')
+        putHbaseSitePropertyAttributes('hbase.region.server.rpc.scheduler.factory.class', 'delete', 'true')
+        putHbaseSitePropertyAttributes('hbase.rpc.controllerfactory.class', 'delete', 'true')
+
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if 'ranger-hbase-plugin-properties' in services['configurations'] and ('ranger-hbase-plugin-enabled' in services['configurations']['ranger-hbase-plugin-properties']['properties']):
+      rangerPluginEnabled = services['configurations']['ranger-hbase-plugin-properties']['properties']['ranger-hbase-plugin-enabled']
+      if ("RANGER" in servicesList) and (rangerPluginEnabled.lower() == "Yes".lower()):
+        putHbaseSiteProperty("hbase.security.authorization", 'true')
+        putHbaseSiteProperty("hbase.coprocessor.master.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
+        putHbaseSiteProperty("hbase.coprocessor.region.classes", 'com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor')
 
     # Recommend configs for bucket cache
     threshold = 23 # 2 Gb is reserved for other offheap memory
@@ -372,7 +457,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       # Set values in hbase-site
       putHbaseProperty = self.putProperty(configurations, "hbase-site", services)
       putHbaseProperty('hfile.block.cache.size', hfile_block_cache_size)
-      putHbaseProperty('hbase.regionserver.global.memstore.upperLimit', hbase_regionserver_global_memstore_size)
+      putHbaseProperty('hbase.regionserver.global.memstore.size', hbase_regionserver_global_memstore_size)
       putHbaseProperty('hbase.bucketcache.ioengine', 'offheap')
       putHbaseProperty('hbase.bucketcache.size', hbase_bucketcache_size)
       putHbaseProperty('hbase.bucketcache.percentage.in.combinedcache', hbase_bucketcache_percentage_in_combinedcache_str)
@@ -391,12 +476,57 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       putHbaseEnvProperty = self.putProperty(configurations, "hbase-env", services)
       putHbaseEnvProperty('hbase_max_direct_memory_size', '')
 
+    # Authorization
+    # If configurations has it - it has priority as it is calculated. Then, the service's configurations will be used.
+    hbase_security_authorization = None
+    if 'hbase-site' in configurations and 'hbase.security.authorization' in configurations['hbase-site']['properties']:
+      hbase_security_authorization = configurations['hbase-site']['properties']['hbase.security.authorization']
+    elif 'hbase-site' in services['configurations'] and 'hbase.security.authorization' in services['configurations']['hbase-site']['properties']:
+      hbase_security_authorization = services['configurations']['hbase-site']['properties']['hbase.security.authorization']
+    if hbase_security_authorization:
+      if 'true' == hbase_security_authorization.lower():
+        putHbaseProperty('hbase.coprocessor.master.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseProperty('hbase.coprocessor.region.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+        putHbaseProperty('hbase.coprocessor.regionserver.classes', "org.apache.hadoop.hbase.security.access.AccessController")
+      else:
+        putHbaseProperty('hbase.coprocessor.master.classes', "")
+        putHbaseProperty('hbase.coprocessor.region.classes', "")
+        putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
+    else:
+      putHbaseSitePropertyAttributes('hbase.coprocessor.regionserver.classes', 'delete', 'true')
+
+    # Authentication
+    if 'hbase-site' in services['configurations'] and 'hbase.security.authentication' in services['configurations']['hbase-site']['properties']:
+      hbase_coprocessor_region_classes = None
+      if 'hbase.coprocessor.region.classes' in configurations["hbase-site"]["properties"]:
+        hbase_coprocessor_region_classes = configurations["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
+      elif 'hbase.coprocessor.region.classes' in services['configurations']["hbase-site"]["properties"]:
+        hbase_coprocessor_region_classes = services['configurations']["hbase-site"]["properties"]["hbase.coprocessor.region.classes"].strip()
+      if hbase_coprocessor_region_classes:
+        coprocessorRegionClassList = hbase_coprocessor_region_classes.split(',')
+      else:
+        coprocessorRegionClassList = []
+      if 'kerberos' == services['configurations']['hbase-site']['properties']['hbase.security.authentication'].lower():
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' not in coprocessorRegionClassList:
+          coprocessorRegionClassList.append('org.apache.hadoop.hbase.security.token.TokenProvider')
+          putHbaseProperty('hbase.coprocessor.region.classes', ','.join(coprocessorRegionClassList))
+      else:
+        if 'org.apache.hadoop.hbase.security.token.TokenProvider' in coprocessorRegionClassList:
+          coprocessorRegionClassList.remove('org.apache.hadoop.hbase.security.token.TokenProvider')
+          putHbaseProperty('hbase.coprocessor.region.classes', ','.join(coprocessorRegionClassList))
+
+
   def recommendTezConfigurations(self, configurations, clusterData, services, hosts):
+    if not "yarn-site" in configurations:
+      self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    #properties below should be always present as they are provided in HDP206 stack advisor
+    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+
     putTezProperty = self.putProperty(configurations, "tez-site")
     putTezProperty("tez.am.resource.memory.mb", int(clusterData['amMemory']) * 2 if int(clusterData['amMemory']) < 3072 else int(clusterData['amMemory']))
 
     taskResourceMemory = clusterData['mapMemory'] if clusterData['mapMemory'] > 2048 else int(clusterData['reduceMemory'])
-    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory)
+    taskResourceMemory = min(clusterData['containers'] * clusterData['ramPerContainer'], taskResourceMemory, yarnMaxAllocationSize)
     putTezProperty("tez.task.resource.memory.mb", taskResourceMemory)
     putTezProperty("tez.runtime.io.sort.mb", min(int(taskResourceMemory * 0.4), 2047))
     putTezProperty("tez.runtime.unordered.output.buffer.size-mb", int(taskResourceMemory * 0.075))
@@ -406,7 +536,10 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     childValidators = {
       "HDFS": {"hdfs-site": self.validateHDFSConfigurations,
                "hadoop-env": self.validateHDFSConfigurationsEnv},
-      "HIVE": {"hive-site": self.validateHiveConfigurations},
+      "YARN": {"yarn-env": self.validateYARNEnvConfigurations},
+      "HIVE": {"hiveserver2-site": self.validateHiveServer2Configurations,
+               "hive-site": self.validateHiveConfigurations,
+               "hive-env": self.validateHiveConfigurationsEnv},
       "HBASE": {"hbase-site": self.validateHBASEConfigurations,
                 "hbase-env": self.validateHBASEEnvConfigurations},
       "MAPREDUCE2": {"mapred-site": self.validateMapReduce2Configurations},
@@ -415,6 +548,62 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     parentValidators.update(childValidators)
     return parentValidators
 
+  def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
+                        {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
+                        {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
+                        {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
+    return self.toConfigurationValidationProblems(validationItems, "tez-site")
+
+  def recommendMapReduce2Configurations(self, configurations, clusterData, services, hosts):
+    self.recommendYARNConfigurations(configurations, clusterData, services, hosts)
+    putMapredProperty = self.putProperty(configurations, "mapred-site", services)
+    nodemanagerMinRam = 1048576 # 1TB in mb
+    for nodemanager in self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts):
+      nodemanagerMinRam = min(nodemanager["Hosts"]["total_mem"]/1024, nodemanagerMinRam)
+    putMapredProperty('yarn.app.mapreduce.am.resource.mb', configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+    putMapredProperty('yarn.app.mapreduce.am.command-opts', "-Xmx" + str(int(0.8 * int(configurations["mapred-site"]["properties"]["yarn.app.mapreduce.am.resource.mb"]))) + "m" + " -Dhdp.version=${hdp.version}")
+    putMapredProperty('mapreduce.reduce.memory.mb', min(2*int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(nodemanagerMinRam)))
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    min_mapreduce_map_memory_mb = 0
+    min_mapreduce_map_java_opts = 0
+    if ("PIG" in servicesList):
+      min_mapreduce_map_memory_mb = 1500
+      min_mapreduce_map_java_opts = 1024
+    putMapredProperty('mapreduce.map.memory.mb', max(min_mapreduce_map_memory_mb, int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])))
+    mapredMapXmx = int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.map.memory.mb"]));
+    putMapredProperty('mapreduce.map.java.opts', "-Xmx" + str(max(min_mapreduce_map_java_opts, mapredMapXmx)) + "m")
+    putMapredProperty('mapreduce.reduce.java.opts', "-Xmx" + str(int(0.8*int(configurations["mapred-site"]["properties"]["mapreduce.reduce.memory.mb"]))) + "m")
+    putMapredProperty('mapreduce.task.io.sort.mb', str(min(int(0.7*mapredMapXmx), 2047)))
+    # Property Attributes
+    putMapredPropertyAttribute = self.putPropertyAttribute(configurations, "mapred-site")
+    yarnMinAllocationSize = int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"])
+    yarnMaxAllocationSize = min(30 * int(configurations["yarn-site"]["properties"]["yarn.scheduler.minimum-allocation-mb"]), int(configurations["yarn-site"]["properties"]["yarn.scheduler.maximum-allocation-mb"]))
+    putMapredPropertyAttribute("mapreduce.map.memory.mb", "maximum", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("mapreduce.map.memory.mb", "minimum", yarnMinAllocationSize)
+    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "maximum", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("mapreduce.reduce.memory.mb", "minimum", yarnMinAllocationSize)
+    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "maximum", yarnMaxAllocationSize)
+    putMapredPropertyAttribute("yarn.app.mapreduce.am.resource.mb", "minimum", yarnMinAllocationSize)
+    # Hadoop MR limitation
+    putMapredPropertyAttribute("mapreduce.task.io.sort.mb", "maximum", "2047")
+
+  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
+                        {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
+                        {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
+                        {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
+                        {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
+                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')}]
+    return self.toConfigurationValidationProblems(validationItems, "mapred-site")
+
+  def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},
+                        {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
+                        {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
+    return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+  
   def validateHDFSConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     # We can not access property hadoop.security.authentication from the
     # other config (core-site). That's why we are using another heuristics here
@@ -435,9 +624,40 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     VALID_TRANSFER_PROTECTION_VALUES = ['authentication', 'integrity', 'privacy']
 
     validationItems = []
+    address_properties = [
+      # "dfs.datanode.address",
+      # "dfs.datanode.http.address",
+      # "dfs.datanode.https.address",
+      # "dfs.datanode.ipc.address",
+      # "dfs.journalnode.http-address",
+      # "dfs.journalnode.https-address",
+      # "dfs.namenode.rpc-address",
+      # "dfs.namenode.secondary.http-address",
+      "dfs.namenode.http-address",
+      "dfs.namenode.https-address",
+    ]
+    #Validating *address properties for correct values
+
+    for address_property in address_properties:
+      if address_property in hdfs_site:
+        value = hdfs_site[address_property]
+        if not is_valid_host_port_authority(value):
+          validationItems.append({"config-name" : address_property, "item" :
+            self.getErrorItem(address_property + " does not contain a valid host:port authority: " + value)})
+
+    #Adding Ranger Plugin logic here 
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled']
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if hdfs_site['dfs.permissions.enabled'] != 'true':
+        validationItems.append({"config-name": 'dfs.permissions.enabled',
+                                    "item": self.getWarnItem(
+                                      "dfs.permissions.enabled needs to be set to true if Ranger HDFS Plugin is enabled.")})
+
     if (not wire_encryption_enabled and   # If wire encryption is enabled at Hadoop, it disables all our checks
-            core_site['hadoop.security.authentication'] == 'kerberos' and
-            core_site['hadoop.security.authorization'] == 'true'):
+          core_site['hadoop.security.authentication'] == 'kerberos' and
+          core_site['hadoop.security.authorization'] == 'true'):
       # security is enabled
 
       dfs_http_policy = 'dfs.http.policy'
@@ -447,15 +667,15 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
       data_transfer_protection = 'dfs.data.transfer.protection'
 
       try: # Params may be absent
-        privileged_dfs_dn_port = (False, True)[getPort(hdfs_site[dfs_datanode_address]) is not None]
+        privileged_dfs_dn_port = isSecurePort(getPort(hdfs_site[dfs_datanode_address]))
       except KeyError:
         privileged_dfs_dn_port = False
       try:
-        privileged_dfs_http_port = (False, True)[getPort(hdfs_site[datanode_http_address]) is not None]
+        privileged_dfs_http_port = isSecurePort(getPort(hdfs_site[datanode_http_address]))
       except KeyError:
         privileged_dfs_http_port = False
       try:
-        privileged_dfs_https_port = (False, True)[getPort(hdfs_site[datanode_https_address]) is not None]
+        privileged_dfs_https_port = isSecurePort(getPort(hdfs_site[datanode_https_address]))
       except KeyError:
         privileged_dfs_https_port = False
       try:
@@ -498,7 +718,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                     "In a secure cluster, Datanode forbids using non-secure ports " \
                     "if {0} is not set to {3}. " \
                     "Please make sure that properties {2} use secure ports.".format(
-            dfs_http_policy, dfs_http_policy_value, important_properties, HTTPS_ONLY)
+                      dfs_http_policy, dfs_http_policy_value, important_properties, HTTPS_ONLY)
           address_properties_with_warnings.extend(important_properties)
 
       # Generate port-related warnings if any
@@ -513,7 +733,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                                   "item": self.getWarnItem(
                                     "{0} property can not be used when {1} is set to any "
                                     "value other then {2}. Tip: When {1} property is not defined, it defaults to {3}".format(
-                                      data_transfer_protection, dfs_http_policy, HTTPS_ONLY, HTTP_ONLY))})
+                                    data_transfer_protection, dfs_http_policy, HTTPS_ONLY, HTTP_ONLY))})
         elif not data_transfer_protection_value in VALID_TRANSFER_PROTECTION_VALUES:
           validationItems.append({"config-name": data_transfer_protection,
                                   "item": self.getWarnItem(
@@ -521,59 +741,189 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
                                       data_transfer_protection_value, VALID_TRANSFER_PROTECTION_VALUES))})
     return self.toConfigurationValidationProblems(validationItems, "hdfs-site")
 
-  def validateHDFSConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [ {"config-name": 'namenode_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_heapsize')},
-                        {"config-name": 'namenode_opt_newsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_newsize')},
-                        {"config-name": 'namenode_opt_maxnewsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'namenode_opt_maxnewsize')}]
-    return self.toConfigurationValidationProblems(validationItems, "hadoop-env")
+  def validateHiveServer2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    super(HDPWIN22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    hive_server2 = properties
+    validationItems = [] 
+    #Adding Ranger Plugin logic here 
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    ##Add stack validations only if Ranger is enabled.
+    if ("RANGER" in servicesList):
+      ##Add stack validations for  Ranger plugin enabled.
+      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+        prop_name = 'hive.security.authorization.manager'
+        prop_val = "com.xasecure.authorization.hive.authorizer.XaSecureHiveAuthorizerFactory"
+        if hive_server2[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is enabled."\
+                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+        prop_name = 'hive.security.authenticator.manager'
+        prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
+        if hive_server2[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is enabled."\
+                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+      ##Add stack validations for  Ranger plugin disabled.
+      elif (ranger_plugin_enabled.lower() == 'No'.lower()):
+        prop_name = 'hive.security.authorization.manager'
+        prop_val = "org.apache.hadoop.hive.ql.security.authorization.plugin.sqlstd.SQLStdHiveAuthorizerFactory"
+        if hive_server2[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is disabled."\
+                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+        prop_name = 'hive.security.authenticator.manager'
+        prop_val = "org.apache.hadoop.hive.ql.security.SessionStateUserAuthenticator"
+        if hive_server2[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is disabled."\
+                                  " {0} needs to be set to {1}".format(prop_name,prop_val))})
+    return self.toConfigurationValidationProblems(validationItems, "hiveserver2-site")
+
+  def validateHiveConfigurationsEnv(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    hive_env = properties
+    hive_site = getSiteProperties(configurations, "hive-site")
+    if str(hive_env["hive_security_authorization"]).lower() == "none" \
+      and str(hive_site["hive.security.authorization.enabled"]).lower() == "true":
+      authorization_item = self.getErrorItem("hive_security_authorization should not be None "
+                                             "if hive.security.authorization.enabled is set")
+      validationItems.append({"config-name": "hive_security_authorization", "item": authorization_item})
+
+    return self.toConfigurationValidationProblems(validationItems, "hive-env")
 
   def validateHiveConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDPWIN22StackAdvisor, self).validateHiveConfigurations(properties, recommendedDefaults, configurations, services, hosts)
+    hive_site = properties
     validationItems = []
+    #Adding Ranger Plugin logic here
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hive-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hive-plugin-enabled']
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    ##Add stack validations only if Ranger is enabled.
+    if ("RANGER" in servicesList):
+      ##Add stack validations for  Ranger plugin enabled.
+      if (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+        prop_name = 'hive.security.authorization.enabled'
+        prop_val = 'true'
+        if hive_site[prop_name] != prop_val:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                    "If Ranger Hive Plugin is enabled." \
+                                    " {0} needs to be set to {1}".format(prop_name,prop_val))})
+
+        prop_name = 'hive.conf.restricted.list'
+        prop_vals = 'hive.security.authorization.enabled,hive.security.authorization.manager,hive.security.authenticator.manager'.split(',')
+        current_vals = hive_site[prop_name].split(',')
+        missing_vals = []
+
+        for val in prop_vals:
+          if not val in current_vals:
+            missing_vals.append(val)
+
+        if missing_vals:
+          validationItems.append({"config-name": prop_name,
+                                  "item": self.getWarnItem(
+                                  "If Ranger Hive Plugin is enabled." \
+                                  " {0} needs to contain {1}".format(prop_name, ','.join(missing_vals)))})
     stripe_size_values = [8388608, 16777216, 33554432, 67108864, 134217728, 268435456]
     stripe_size_property = "hive.exec.orc.default.stripe.size"
     if int(properties[stripe_size_property]) not in stripe_size_values:
       validationItems.append({"config-name": stripe_size_property, "item": self.getWarnItem("Correct values are ")})
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
 
-  def validateTezConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [ {"config-name": 'tez.am.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.am.resource.memory.mb')},
-                        {"config-name": 'tez.task.resource.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.task.resource.memory.mb')},
-                        {"config-name": 'tez.runtime.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.io.sort.mb')},
-                        {"config-name": 'tez.runtime.unordered.output.buffer.size-mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'tez.runtime.unordered.output.buffer.size-mb')},]
-    return self.toConfigurationValidationProblems(validationItems, "tez-site")
-
-  def validateMapReduce2Configurations(self, properties, recommendedDefaults, configurations, services, hosts):
-    validationItems = [ {"config-name": 'mapreduce.map.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.map.java.opts')},
-                        {"config-name": 'mapreduce.reduce.java.opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'mapreduce.reduce.java.opts')},
-                        {"config-name": 'mapreduce.task.io.sort.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.task.io.sort.mb')},
-                        {"config-name": 'mapreduce.map.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.map.memory.mb')},
-                        {"config-name": 'mapreduce.reduce.memory.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'mapreduce.reduce.memory.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.resource.mb', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.resource.mb')},
-                        {"config-name": 'yarn.app.mapreduce.am.command-opts', "item": self.validateXmxValue(properties, recommendedDefaults, 'yarn.app.mapreduce.am.command-opts')}]
-    return self.toConfigurationValidationProblems(validationItems, "mapred-site")
-
   def validateHBASEConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
     super(HDPWIN22StackAdvisor, self).validateHbaseEnvConfigurations(properties, recommendedDefaults, configurations, services, hosts)
     hbase_site = properties
     validationItems = []
 
-    prop_name1 = 'hbase.regionserver.global.memstore.upperLimit'
+    prop_name1 = 'hbase.regionserver.global.memstore.size'
     prop_name2 = 'hfile.block.cache.size'
     props_max_sum = 0.8
 
     if not is_number(hbase_site[prop_name1]):
       validationItems.append({"config-name": prop_name1,
                               "item": self.getWarnItem(
-                                "{0} should be float value".format(prop_name1))})
+                              "{0} should be float value".format(prop_name1))})
     elif not is_number(hbase_site[prop_name2]):
       validationItems.append({"config-name": prop_name2,
                               "item": self.getWarnItem(
-                                "{0} should be float value".format(prop_name2))})
+                              "{0} should be float value".format(prop_name2))})
     elif float(hbase_site[prop_name1]) + float(hbase_site[prop_name2]) > props_max_sum:
       validationItems.append({"config-name": prop_name1,
                               "item": self.getWarnItem(
-                                "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})
+                              "{0} and {1} sum should not exceed {2}".format(prop_name1, prop_name2, props_max_sum))})
+
+    #Adding Ranger Plugin logic here 
+    ranger_plugin_properties = getSiteProperties(configurations, "ranger-hbase-plugin-properties")
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hbase-plugin-enabled']
+    prop_name = 'hbase.security.authorization'
+    prop_val = "true"
+    servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
+    if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
+      if hbase_site[prop_name] != prop_val:
+        validationItems.append({"config-name": prop_name,
+                                "item": self.getWarnItem(
+                                "If Ranger HBase Plugin is enabled."\
+                                "{0} needs to be set to {1}".format(prop_name,prop_val))})
+      prop_name = "hbase.coprocessor.master.classes"
+      prop_val = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+      exclude_val = "org.apache.hadoop.hbase.security.access.AccessController"
+      if (prop_val in hbase_site[prop_name] and exclude_val not in hbase_site[prop_name]):
+        pass
+      else:
+        validationItems.append({"config-name": prop_name,
+                                "item": self.getWarnItem(
+                                "If Ranger HBase Plugin is enabled."\
+                                " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
+      prop_name = "hbase.coprocessor.region.classes"
+      prop_val = "com.xasecure.authorization.hbase.XaSecureAuthorizationCoprocessor"
+      if (prop_val in hbase_site[prop_name] and exclude_val not in hbase_site[prop_name]):
+        pass
+      else:
+        validationItems.append({"config-name": prop_name,
+                                "item": self.getWarnItem(
+                                "If Ranger HBase Plugin is enabled."\
+                                " {0} needs to contain {1} instead of {2}".format(prop_name,prop_val,exclude_val))})
+
+    # Validate bucket cache correct config
+    prop_name = "hbase.bucketcache.ioengine"
+    prop_val = "offheap"
+    if not (not hbase_site[prop_name] or hbase_site[prop_name] == prop_val):
+      validationItems.append({"config-name": prop_name,
+                              "item": self.getWarnItem(
+                                "Recommended values of " \
+                                " {0} is empty or '{1}'".format(prop_name,prop_val))})
+
+    prop_name1 = "hbase.bucketcache.ioengine"
+    prop_name2 = "hbase.bucketcache.size"
+    prop_name3 = "hbase.bucketcache.percentage.in.combinedcache"
+
+    if hbase_site[prop_name1] and not hbase_site[prop_name2]:
+      validationItems.append({"config-name": prop_name2,
+                              "item": self.getWarnItem(
+                                "If bucketcache ioengine is enabled, {0} should be set".format(prop_name2))})
+    if hbase_site[prop_name1] and not hbase_site[prop_name3]:
+      validationItems.append({"config-name": prop_name3,
+                              "item": self.getWarnItem(
+                                "If bucketcache ioengine is enabled, {0} should be set".format(prop_name3))})
+
+    # Validate hbase.security.authentication. 
+    # Kerberos works only when security enabled.
+    if "hbase.security.authentication" in properties:
+      hbase_security_kerberos = properties["hbase.security.authentication"].lower() == "kerberos"
+      core_site_properties = getSiteProperties(configurations, "core-site")
+      security_enabled = False
+      if core_site_properties:
+        security_enabled = core_site_properties['hadoop.security.authentication'] == 'kerberos' and core_site_properties['hadoop.security.authorization'] == 'true'
+      if not security_enabled and hbase_security_kerberos:
+        validationItems.append({"config-name": "hbase.security.authentication",
+                              "item": self.getWarnItem("Cluster must be secured with Kerberos before hbase.security.authentication's value of kerberos will have effect")})
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-site")
 
@@ -581,8 +931,72 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
     hbase_env = properties
     validationItems = [ {"config-name": 'hbase_regionserver_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_regionserver_heapsize')},
                         {"config-name": 'hbase_master_heapsize', "item": self.validatorLessThenDefaultValue(properties, recommendedDefaults, 'hbase_master_heapsize')} ]
+    prop_name = "hbase_max_direct_memory_size"
+    hbase_site_properties = getSiteProperties(configurations, "hbase-site")
+    prop_name1 = "hbase.bucketcache.ioengine"
+
+    if hbase_site_properties[prop_name1] and hbase_site_properties[prop_name1] == "offheap" and not hbase_env[prop_name]:
+      validationItems.append({"config-name": prop_name,
+                              "item": self.getWarnItem(
+                                "If bucketcache ioengine is enabled, {0} should be set".format(prop_name))})
 
     return self.toConfigurationValidationProblems(validationItems, "hbase-env")
+
+  def validateYARNEnvConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
+    validationItems = []
+    if "yarn_cgroups_enabled" in properties:
+      yarn_cgroups_enabled = properties["yarn_cgroups_enabled"].lower() == "true"
+      core_site_properties = getSiteProperties(configurations, "core-site")
+      security_enabled = False
+      if core_site_properties:
+        security_enabled = core_site_properties['hadoop.security.authentication'] == 'kerberos' and core_site_properties['hadoop.security.authorization'] == 'true'
+      if not security_enabled and yarn_cgroups_enabled:
+        validationItems.append({"config-name": "yarn_cgroups_enabled",
+                              "item": self.getWarnItem("CPU Isolation should only be enabled if security is enabled")})
+    return self.toConfigurationValidationProblems(validationItems, "yarn-env")
+
+  def getMastersWithMultipleInstances(self):
+    result = super(HDPWIN22StackAdvisor, self).getMastersWithMultipleInstances()
+    result.extend(['METRICS_COLLECTOR'])
+    return result
+
+  def getNotValuableComponents(self):
+    result = super(HDPWIN22StackAdvisor, self).getNotValuableComponents()
+    result.extend(['METRICS_MONITOR'])
+    return result
+
+  def getNotPreferableOnServerComponents(self):
+    result = super(HDPWIN22StackAdvisor, self).getNotPreferableOnServerComponents()
+    result.extend(['METRICS_COLLECTOR'])
+    return result
+
+  def getCardinalitiesDict(self):
+    result = super(HDPWIN22StackAdvisor, self).getCardinalitiesDict()
+    result['METRICS_COLLECTOR'] = {"min": 1}
+    return result
+
+  def getAffectedConfigs(self, services):
+    affectedConfigs = super(HDPWIN22StackAdvisor, self).getAffectedConfigs(services)
+
+    # There are configs that are not defined in the stack but added/removed by 
+    # stack-advisor. Here we add such configs in order to clear the config
+    # filtering down in base class
+    configsList = [affectedConfig["type"] + "/" + affectedConfig["name"] for affectedConfig in affectedConfigs]
+    if 'yarn-env/yarn_cgroups_enabled' in configsList:
+      if 'yarn-site/yarn.nodemanager.container-executor.class' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.class"})
+      if 'yarn-site/yarn.nodemanager.container-executor.group' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.group"})
+      if 'yarn-site/yarn.nodemanager.container-executor.resources-handler.class' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.resources-handler.class"})
+      if 'yarn-site/yarn.nodemanager.container-executor.cgroups.hierarchy' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.cgroups.hierarchy"})
+      if 'yarn-site/yarn.nodemanager.container-executor.cgroups.mount' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.container-executor.cgroups.mount"})
+      if 'yarn-site/yarn.nodemanager.linux-container-executor.cgroups.mount-path' not in configsList:
+        affectedConfigs.append({"type": "yarn-site", "name": "yarn.nodemanager.linux-container-executor.cgroups.mount-path"})
+
+    return affectedConfigs;
 
 def is_number(s):
   try:
@@ -590,3 +1004,17 @@ def is_number(s):
     return True
   except ValueError:
     pass
+
+  return False
+
+def is_valid_host_port_authority(target):
+  has_scheme = "://" in target
+  if not has_scheme:
+    target = "dummyscheme://"+target
+  try:
+    result = urlparse(target)
+    if result.hostname is not None and result.port is not None:
+      return True
+  except ValueError:
+    pass
+  return False

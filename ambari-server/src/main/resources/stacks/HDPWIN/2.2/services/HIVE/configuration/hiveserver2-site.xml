@@ -32,4 +32,104 @@ limitations under the License.
     The user defined authorization class should implement interface org.apache.hadoop.hive.ql.security.authorization.HiveAuthorizationProvider.  </description>
   </property>
   
+  <property>
+    <name>tez.session.am.dag.submit.timeout.secs</name>
+    <value>600</value>
+    <description></description>
+    <display-name>Max idle tez session length</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>600</minimum>
+      <maximum>86400</maximum>
+      <unit>seconds</unit>
+      <step-increment>600</step-increment>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.enable.doAs</name>
+    <value>true</value>
+    <description>
+      Setting this property to true will have HiveServer2 execute
+      Hive operations as the user making the calls to it.
+    </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.sessions.per.default.queue</name>
+    <value>1</value>
+    <description>
+      A positive integer that determines the number of Tez sessions that should be
+      launched on each of the queues specified by "hive.server2.tez.default.queues".
+      Determines the parallelism on each queue.
+    </description>
+    <display-name>Session per queue</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <step-increment>1</step-increment>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.default.queues</name>
+    <display-name>Default query queues</display-name>
+    <value>default</value>
+    <description>
+      A list of comma separated values corresponding to YARN queues of the same name.
+      When HiveServer2 is launched in Tez mode, this configuration needs to be set
+      for multiple Tez sessions to run in parallel on the cluster.
+    </description>
+    <value-attributes>
+      <type>combo</type>
+      <entries>
+        <entry>
+          <value>default</value>
+          <label>Default</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1+</selection-cardinality>
+    </value-attributes>
+  </property>
+
+  <property>
+    <name>hive.server2.tez.initialize.default.sessions</name>
+    <value>false</value>
+    <description>
+      This flag is used in HiveServer2 to enable a user to use HiveServer2 without
+      turning on Tez for HiveServer2. The user could potentially want to run queries
+      over Tez without the pool of sessions.
+    </description>
+    <display-name>Start Tez session at Initialization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
 </configuration>

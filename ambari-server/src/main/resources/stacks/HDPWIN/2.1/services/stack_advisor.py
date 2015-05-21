@@ -131,7 +131,10 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
 
   def recommendYARNConfigurations(self, configurations, clusterData, services, hosts):
     putYarnProperty = self.putProperty(configurations, "yarn-site", services)
-    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(clusterData['containers'] * clusterData['ramPerContainer'])))
+    nodemanagerMinRam = 1048576 # 1TB in mb
+    for nodemanager in self.getHostsWithComponent("YARN", "NODEMANAGER", services, hosts):
+      nodemanagerMinRam = min(nodemanager["Hosts"]["total_mem"]/1024, nodemanagerMinRam)
+    putYarnProperty('yarn.nodemanager.resource.memory-mb', int(round(min(clusterData['containers'] * clusterData['ramPerContainer'], nodemanagerMinRam))))
     putYarnProperty('yarn.scheduler.minimum-allocation-mb', int(clusterData['ramPerContainer']))
     putYarnProperty('yarn.scheduler.maximum-allocation-mb', int(configurations["yarn-site"]["properties"]["yarn.nodemanager.resource.memory-mb"]))
 
@@ -319,15 +322,47 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     for service in services["services"]:
       serviceName = service["StackServices"]["service_name"]
       validator = self.validateServiceConfigurations(serviceName)
-      if validator is not  None:
+      if validator is not None:
         for siteName, method in validator.items():
           if siteName in recommendedDefaults:
             siteProperties = getSiteProperties(configurations, siteName)
             if siteProperties is not None:
-              resultItems = method(siteProperties, recommendedDefaults[siteName]["properties"], configurations, services, hosts)
+              siteRecommendations = recommendedDefaults[siteName]["properties"]
+              print("SiteName: %s, method: %s\n" % (siteName, method.__name__))
+              print("Site properties: %s\n" % str(siteProperties))
+              print("Recommendations: %s\n********\n" % str(siteRecommendations))
+              resultItems = method(siteProperties, siteRecommendations, configurations, services, hosts)
               items.extend(resultItems)
+    clusterWideItems = self.validateClusterConfigurations(configurations, services, hosts)
+    items.extend(clusterWideItems)
     self.validateMinMax(items, recommendedDefaults, configurations)
     return items
+
+  def validateClusterConfigurations(self, configurations, services, hosts):
+    validationItems = []
+    hostComponents = {}
+    failureMessage = ""
+
+    for service in services["services"]:
+      for component in service["components"]:
+        if component["StackServiceComponents"]["hostnames"] is not None:
+          for hostName in component["StackServiceComponents"]["hostnames"]:
+            if hostName not in hostComponents.keys():
+              hostComponents[hostName] = []
+            hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
+
+    for host in hosts["items"]:
+      # Not enough physical memory
+      requiredMemory = getMemorySizeRequired(hostComponents[host["Hosts"]["host_name"]], configurations)
+      if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
+        failureMessage += "Not enough physical RAM on the host {0}. " \
+                          "At least {1} MB is recommended based on components assigned.\n" \
+          .format(host["Hosts"]["host_name"], requiredMemory/1048576)  # MB
+    if failureMessage:
+      notEnoughMemoryItem = self.getWarnItem(failureMessage)
+      validationItems.extend([{"config-name": "", "item": notEnoughMemoryItem}])
+
+    return self.toConfigurationValidationProblems(validationItems, "")
 
   def getServiceConfigurationValidators(self):
     return {
@@ -409,6 +444,11 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     return {"level": "ERROR", "message": message}
 
   def validatorLessThenDefaultValue(self, properties, recommendedDefaults, propertyName):
+    if propertyName not in recommendedDefaults:
+      # If a property name exists in say hbase-env and hbase-site (which is allowed), then it will exist in the
+      # "properties" dictionary, but not necessarily in the "recommendedDefaults" dictionary". In this case, ignore it.
+      return None
+
     if not propertyName in properties:
       return self.getErrorItem("Value should be set")
     value = to_number(properties[propertyName])
@@ -537,6 +577,15 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
       return componentHosts[0]
     return None
 
+  def getHostComponentsByCategories(self, hostname, categories, services, hosts):
+    components = []
+    if services is not None and hosts is not None:
+      for service in services["services"]:
+          components.extend([componentEntry for componentEntry in service["components"]
+                              if componentEntry["StackServiceComponents"]["component_category"] in categories
+                              and hostname in componentEntry["StackServiceComponents"]["hostnames"]])
+    return components
+
   def validateAmsHbaseSiteConfigurations(self, properties, recommendedDefaults, configurations, services, hosts):
 
     amsCollectorHosts = self.getComponentHostNames(services, "AMBARI_METRICS", "METRICS_COLLECTOR")
@@ -611,16 +660,12 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
     masterHostItem = None
 
     if masterItem is None:
-      hostComponents = {}
       hostMasterComponents = {}
 
       for service in services["services"]:
         for component in service["components"]:
           if component["StackServiceComponents"]["hostnames"] is not None:
             for hostName in component["StackServiceComponents"]["hostnames"]:
-              if hostName not in hostComponents.keys():
-                hostComponents[hostName] = []
-              hostComponents[hostName].append(component["StackServiceComponents"]["component_name"])
               if self.isMasterComponent(component):
                 if hostName not in hostMasterComponents.keys():
                   hostMasterComponents[hostName] = []
@@ -642,17 +687,6 @@ class HDPWIN21StackAdvisor(DefaultStackAdvisor):
               masterHostItem = self.getWarnItem(
                 masterHostMessage.format(
                   collectorHostName, str(", ".join(hostMasterComponents[collectorHostName]))))
-
-            # Not enough physical memory
-            requiredMemory = getMemorySizeRequired(hostComponents[collectorHostName], configurations)
-            if host["Hosts"]["total_mem"] * 1024 < requiredMemory:  # in bytes
-              message = "Not enough total RAM on the host {0}, " \
-                        "at least {1} MB required for the components({2})" \
-                .format(collectorHostName, requiredMemory/1048576,
-                        str(", ".join(hostComponents[collectorHostName])))  # MB
-              regionServerItem = self.getErrorItem(message)
-              masterItem = self.getErrorItem(message)
-              break
       pass
 
     # Check RS memory in distributed mode since we set default as 512m

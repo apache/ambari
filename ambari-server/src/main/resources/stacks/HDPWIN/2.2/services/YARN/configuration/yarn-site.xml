@@ -77,6 +77,10 @@
     <description>
       Enable RM work preserving recovery. This configuration is private to YARN for experimenting the feature.
     </description>
+    <display-name>Enable Work Preserving Restart</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
   </property>
   <property>
     <name>yarn.resourcemanager.store.class</name>
@@ -183,11 +187,30 @@
     <name>yarn.nodemanager.resource.cpu-vcores</name>
     <value>8</value>
     <description></description>
+    <display-name>Number of virtual cores</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>32</maximum>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>yarn.nodemanager.resource.percentage-physical-cpu-limit</name>
-    <value>100</value>
+    <value>80</value>
     <description>The amount of CPU allocated for YARN containers - only effective when used with CGroups</description>
+    <display-name>Percentage of physical CPU allocated for all containers on a node</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>100</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
   </property>
   <property>
     <name>yarn.node-labels.manager-class</name>
@@ -322,5 +345,85 @@
     <name>yarn.node-labels.fs-store.root-dir</name>
     <value>/system/yarn/node-labels</value>
     <description></description>
+  </property>
+  <property>
+    <name>yarn.scheduler.minimum-allocation-vcores</name>
+    <value>1</value>
+    <description></description>
+    <display-name>Minimum Container Size (VCores)</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>yarn.scheduler.maximum-allocation-vcores</name>
+    <value>8</value>
+    <description></description>
+    <display-name>Maximum Container Size (VCores)</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>0</minimum>
+      <maximum>8</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>yarn-site</type>
+        <name>yarn.nodemanager.resource.cpu-vcores</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>yarn.node-labels.enabled</name>
+    <value>false</value>
+    <description>
+      Enable node labels to restrict YARN applications so that they run only on cluster nodes that have a specified node label.
+    </description>
+    <display-name>Node Labels</display-name>
+    <value-attributes>
+      <type>boolean</type>
+    </value-attributes>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>yarn.resourcemanager.scheduler.monitor.enable</name>
+    <value>false</value>
+    <display-name>Pre-emption</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 </configuration>

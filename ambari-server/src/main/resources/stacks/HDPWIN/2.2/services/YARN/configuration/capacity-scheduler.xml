@@ -19,7 +19,21 @@
   <property>
     <name>yarn.scheduler.capacity.resource-calculator</name>
     <value>org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator</value>
-    <description></description>
+    <display-name>CPU Scheduling</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>org.apache.hadoop.yarn.util.resource.DominantResourceCalculator</value>
+          <label>Enabled</label>
+        </entry>
+        <entry>
+          <value>org.apache.hadoop.yarn.util.resource.DefaultResourceCalculator</value>
+          <label>Disabled</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>yarn.scheduler.capacity.root.accessible-node-labels</name>

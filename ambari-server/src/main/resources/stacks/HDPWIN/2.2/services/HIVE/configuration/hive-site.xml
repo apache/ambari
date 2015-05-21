@@ -23,6 +23,21 @@ limitations under the License.
     <name>hive.cbo.enable</name>
     <value>true</value>
     <description>Flag to control enabling Cost Based Optimizations using Calcite framework.</description>
+    <display-name>Enable Cost Based Optimizer</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -160,6 +175,14 @@ limitations under the License.
     <name>hive.exec.reducers.bytes.per.reducer</name>
     <value>67108864</value>
     <description>size per reducer.The default is 256Mb, i.e if the input size is 1G, it will use 4 reducers.</description>
+    <display-name>Data per Reducer</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>64</minimum>
+      <maximum>4294967296</maximum>
+      <unit>B</unit>
+      <step-increment></step-increment>
+    </value-attributes>
   </property>
 
   <property>
@@ -233,6 +256,27 @@ limitations under the License.
       in case the user accidentally overwrites all partitions.
       NonStrict allows all partitions of a table to be dynamic.
     </description>
+    <display-name>Allow all partitions to be Dynamic</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>nonstrict</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>strict</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -445,12 +489,35 @@ limitations under the License.
     <name>hive.exec.orc.default.stripe.size</name>
     <value>67108864</value>
     <description>Define the default ORC stripe size</description>
+    <display-name>Default ORC Stripe Size</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>8388608</minimum>
+      <maximum>268435456</maximum>
+      <unit>B</unit>
+      <increment-step>8388608</increment-step>
+    </value-attributes>
   </property>
 
   <property>
     <name>hive.exec.orc.default.compress</name>
     <value>ZLIB</value>
     <description>Define the default compression codec for ORC file</description>
+    <display-name>ORC Compression Algorithm</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>ZLIB</value>
+          <label>zlib Compression Library</label>
+        </entry>
+        <entry>
+          <value>SNAPPY</value>
+          <label>Snappy Compression Library</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -517,6 +584,27 @@ limitations under the License.
     <name>hive.enforce.bucketing</name>
     <value>true</value>
     <description>Whether bucketing is enforced. If true, while inserting into the table, bucketing is enforced.</description>
+    <display-name>Enforce bucketing</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.enforce.sorting</name>
@@ -600,6 +688,21 @@ limitations under the License.
       This way we can keep only one record writer open for each partition value
       in the reducer thereby reducing the memory pressure on reducers.
     </description>
+    <display-name>Sort Partitions Dynamically</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.stats.autogather</name>
@@ -626,6 +729,27 @@ limitations under the License.
       from metastore. When this flag is disabled, Hive will make calls to filesystem to get file sizes
       and will estimate the number of rows from row schema.
     </description>
+    <display-name>Fetch partition stats at compiler</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>cost_based_optimizer</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.stats.fetch.column.stats</name>
@@ -636,6 +760,27 @@ limitations under the License.
       can be expensive when the number of columns is high. This flag can be used to disable fetching
       of column statistics from metastore.
     </description>
+    <display-name>Fetch column stats at compiler</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>On</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>Off</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>cost_based_optimizer</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -654,6 +799,27 @@ limitations under the License.
     <name>hive.txn.manager</name>
     <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
     <description/>
+    <display-name>Transaction Manager</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager</value>
+          <label>org.apache.hadoop.hive.ql.lockmgr.DummyTxnManager (off)</label>
+        </entry>
+        <entry>
+          <value>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager</value>
+          <label>org.apache.hadoop.hive.ql.lockmgr.DbTxnManager (on)</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -673,6 +839,27 @@ limitations under the License.
     <description>
       Support concurrency and use locks, needed for Transactions. Requires Zookeeper.
     </description>
+    <display-name>Use Locking</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_txn_acid</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -743,6 +930,27 @@ limitations under the License.
     <name>hive.security.authorization.enabled</name>
     <value>false</value>
     <description>enable or disable the Hive client authorization</description>
+    <display-name>Enable Authorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
 
   <property>
@@ -755,12 +963,19 @@ limitations under the License.
   </property>
   <property>
     <name>hive.security.metastore.authorization.manager</name>
+    <display-name>Hive Authorization Manager</display-name>
     <value>org.apache.hadoop.hive.ql.security.authorization.StorageBasedAuthorizationProvider,org.apache.hadoop.hive.ql.security.authorization.MetaStoreAuthzAPIAuthorizerEmbedOnly</value>
     <description>
       authorization manager class name to be used in the metastore for authorization.
       The user defined authorization class should implement interface
       org.apache.hadoop.hive.ql.security.authorization.HiveMetastoreAuthorizationProvider.
     </description>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_security_authorization</name>
+      </property>
+    </depends-on>
   </property>
   <property>
     <name>hive.security.metastore.authorization.auth.reads</name>
@@ -865,6 +1080,33 @@ limitations under the License.
     <name>hive.server2.authentication</name>
     <description>Authentication mode, default NONE. Options are NONE, NOSASL, KERBEROS, LDAP, PAM and CUSTOM</description>
     <value>NONE</value>
+    <display-name>HiveServer2 Authentication</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>NONE</value>
+          <label>None</label>
+        </entry>
+        <entry>
+          <value>LDAP</value>
+          <label>LDAP</label>
+        </entry>
+        <entry>
+          <value>KERBEROS</value>
+          <label>Kerberos</label>
+        </entry>
+        <entry>
+          <value>PAM</value>
+          <label>PAM</label>
+        </entry>
+        <entry>
+          <value>CUSTOM</value>
+          <label>Custom</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -886,6 +1128,21 @@ limitations under the License.
       Setting this property to true will have HiveServer2 execute
       Hive operations as the user making the calls to it.
     </description>
+    <display-name>Run as end user instead of Hive user</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.server2.table.type.mapping</name>
@@ -903,6 +1160,21 @@ limitations under the License.
     <name>hive.server2.use.SSL</name>
     <value>false</value>
     <description/>
+    <display-name>Use SSL</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -934,11 +1206,33 @@ limitations under the License.
     <name>hive.prewarm.enabled</name>
     <value>false</value>
     <description>Enables container prewarm for Tez (Hadoop 2 only)</description>
+    <display-name>Hold Containers to Reduce Latency</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.prewarm.numcontainers</name>
-    <value>10</value>
+    <value>3</value>
     <description>Controls the number of containers to prewarm for Tez (Hadoop 2 only)</description>
+    <display-name>Number of Containers Held</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>20</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
   </property>
 
   <property>
@@ -968,6 +1262,21 @@ limitations under the License.
       and set parallelism estimates. Tez will sample source vertices' output sizes and adjust the estimates at runtime as
       necessary.
     </description>
+    <display-name>Allow dynamic numbers of reducers</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.tez.max.partition.factor</name>
@@ -986,6 +1295,21 @@ limitations under the License.
     <name>hive.tez.dynamic.partition.pruning</name>
     <value>true</value>
     <description>When dynamic pruning is enabled, joins on partition keys will be processed by sending events from the processing vertices to the tez application master. These events will be used to prune unnecessary partitions.</description>
+    <display-name>Allow dynamic partition pruning</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
   <property>
     <name>hive.tez.dynamic.partition.pruning.max.event.size</name>
@@ -1051,8 +1375,44 @@ limitations under the License.
       This flag should be set to true to enable vectorized mode of query execution.
       The default value is false.
     </description>
+    <display-name>Enable Vectorization and Map Vectorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
-
+  <property>
+    <name>hive.auto.convert.join.noconditionaltask.size</name>
+    <value>52428800</value>
+    <description>If hive.auto.convert.join.noconditionaltask is off, this parameter does not take affect. However, if it
+      is on, and the sum of size for n-1 of the tables/partitions for a n-way join is smaller than this size, the join is directly
+      converted to a mapjoin(there is no conditional task). The default is 10MB.
+    </description>
+    <display-name>For Map Join, per Map memory threshold</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>8192</minimum>
+      <maximum>17179869184</maximum>
+      <unit>B</unit>
+      <step-increment></step-increment>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.tez.container.size</name>
+      </property>
+    </depends-on>
+  </property>
   <property>
     <name>hive.vectorized.execution.reduce.enabled</name>
     <value>false</value>
@@ -1066,15 +1426,45 @@ limitations under the License.
     <name>hive.optimize.index.filter</name>
     <value>true</value>
     <description>Whether to enable automatic use of indexes</description>
+    <display-name>Push Filters to Storage</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
     <name>hive.execution.engine</name>
-    <value>mr</value>
+    <value>tez</value>
     <description>
       Expects one of [mr, tez].
       Chooses execution engine. Options are: mr (Map reduce, default) or tez (hadoop 2 only)
     </description>
+    <display-name>Exection Engine</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>mr</value>
+          <label>MapReduce</label>
+        </entry>
+        <entry>
+          <value>tez</value>
+          <label>TEZ</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -1097,6 +1487,21 @@ limitations under the License.
       stored in metastore. For basic stats collection turn on the config hive.stats.autogather to true.
       For more advanced stats collection need to run analyze table queries.
     </description>
+    <display-name>Compute simple queries using stats only</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
 
   <property>
@@ -1113,6 +1518,13 @@ limitations under the License.
       launched on each of the queues specified by "hive.server2.tez.default.queues".
       Determines the parallelism on each queue.
     </description>
+    <display-name>Session per queue</display-name>
+    <value-attributes>
+      <type>int</type>
+      <minimum>1</minimum>
+      <maximum>10</maximum>
+      <increment-step>1</increment-step>
+    </value-attributes>
   </property>
 
   <property>
@@ -1123,7 +1535,163 @@ limitations under the License.
       turning on Tez for HiveServer2. The user could potentially want to run queries
       over Tez without the pool of sessions.
     </description>
+    <display-name>Start Tez session at Initialization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
   </property>
-
-
+  <property>
+    <name>hive.exec.orc.encoding.strategy</name>
+    <value>SPEED</value>
+    <description>
+      Define the encoding strategy to use while writing data. Changing this 
+      will only affect the light weight encoding for integers. This flag will not change 
+      the compression level of higher level compression codec (like ZLIB). Possible 
+      options are SPEED and COMPRESSION.
+    </description>
+    <display-name>ORC Encoding Strategy</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_exec_orc_storage_strategy</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.exec.orc.compression.strategy</name>
+    <value>SPEED</value>
+    <description>
+      Define the compression strategy to use while writing data. This changes the 
+      compression level of higher level compression codec (like ZLIB).
+    </description>
+    <display-name>ORC Compression Strategy</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>SPEED</value>
+          <label>Speed</label>
+        </entry>
+        <entry>
+          <value>COMPRESSION</value>
+          <label>Compression</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+    <depends-on>
+      <property>
+        <type>hive-env</type>
+        <name>hive_exec_orc_storage_strategy</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.vectorized.execution.reduce.enabled</name>
+    <value>false</value>
+    <description>
+      This flag should be set to true to enable vectorized mode of the reduce-side of 
+      query execution.
+    </description>
+    <display-name>Enable Reduce Vectorization</display-name>
+    <value-attributes>
+      <type>value-list</type>
+      <entries>
+        <entry>
+          <value>true</value>
+          <label>True</label>
+        </entry>
+        <entry>
+          <value>false</value>
+          <label>False</label>
+        </entry>
+      </entries>
+      <selection-cardinality>1</selection-cardinality>
+    </value-attributes>
+  </property>
+  <property>
+    <name>hive.server2.authentication.ldap.url</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.ldap.baseDN</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.kerberos.keytab</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.kerberos.principal</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.authentication.pam.services</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
+    <name>hive.server2.custom.authentication.class</name>
+    <value></value>
+    <depends-on>
+      <property>
+        <type>hive-site</type>
+        <name>hive.server2.authentication</name>
+      </property>
+    </depends-on>
+  </property>
 </configuration>
