@@ -32,6 +32,7 @@ public class PrerequisiteCheck {
   private PrereqCheckStatus m_status = PrereqCheckStatus.PASS;
   private String m_failReason = "";
   private List<String> m_failedOn = new ArrayList<String>();
+  private List<Object> m_failedDetail = new ArrayList<Object>();
 
   public PrerequisiteCheck(CheckDescription description, String clusterName) {
     m_description = description;
@@ -65,6 +66,11 @@ public class PrerequisiteCheck {
   public List<String> getFailedOn() {
     return m_failedOn;
   }
+
+  public List<Object> getFailedDetail() {
+    return m_failedDetail;
+  }
+
 
   public void setFailedOn(List<String> failedOn) {
     m_failedOn = failedOn;

@@ -61,6 +61,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
   public static final String UPGRADE_CHECK_STATUS_PROPERTY_ID             = PropertyHelper.getPropertyId("UpgradeChecks", "status");
   public static final String UPGRADE_CHECK_REASON_PROPERTY_ID             = PropertyHelper.getPropertyId("UpgradeChecks", "reason");
   public static final String UPGRADE_CHECK_FAILED_ON_PROPERTY_ID          = PropertyHelper.getPropertyId("UpgradeChecks", "failed_on");
+  public static final String UPGRADE_CHECK_FAILED_DETAIL_PROPERTY_ID      = PropertyHelper.getPropertyId("UpgradeChecks", "failed_detail");
   public static final String UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID         = PropertyHelper.getPropertyId("UpgradeChecks", "check_type");
   public static final String UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID       = PropertyHelper.getPropertyId("UpgradeChecks", "cluster_name");
   public static final String UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID = PropertyHelper.getPropertyId("UpgradeChecks", "repository_version");
@@ -82,6 +83,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
       UPGRADE_CHECK_STATUS_PROPERTY_ID,
       UPGRADE_CHECK_REASON_PROPERTY_ID,
       UPGRADE_CHECK_FAILED_ON_PROPERTY_ID,
+      UPGRADE_CHECK_FAILED_DETAIL_PROPERTY_ID,
       UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID,
       UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID,
       UPGRADE_CHECK_REPOSITORY_VERSION_PROPERTY_ID);
@@ -144,6 +146,7 @@ public class PreUpgradeCheckResourceProvider extends ReadOnlyResourceProvider {
         setResourceProperty(resource, UPGRADE_CHECK_STATUS_PROPERTY_ID, prerequisiteCheck.getStatus(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_REASON_PROPERTY_ID, prerequisiteCheck.getFailReason(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_FAILED_ON_PROPERTY_ID, prerequisiteCheck.getFailedOn(), requestedIds);
+        setResourceProperty(resource, UPGRADE_CHECK_FAILED_DETAIL_PROPERTY_ID,prerequisiteCheck.getFailedDetail(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CHECK_TYPE_PROPERTY_ID, prerequisiteCheck.getType(), requestedIds);
         setResourceProperty(resource, UPGRADE_CHECK_CLUSTER_NAME_PROPERTY_ID, prerequisiteCheck.getClusterName(), requestedIds);
         if (upgradeCheckRequest.getRepositoryVersion() != null) {

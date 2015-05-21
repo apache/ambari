@@ -164,12 +164,12 @@ public class ConfigurationMergeCheckTest {
     PropertyInfo pi10 = new PropertyInfo();
     pi10.setFilename(CONFIG_FILE);
     pi10.setName(CONFIG_PROPERTY);
-    pi10.setValue("1024m");
+    pi10.setValue("1024");
 
     PropertyInfo pi11 = new PropertyInfo();
     pi11.setFilename(CONFIG_FILE);
     pi11.setName(CONFIG_PROPERTY);
-    pi11.setValue("1024m");
+    pi11.setValue("1024");
 
     expect(ami.getServiceProperties("HDP", "1.0", "HDFS")).andReturn(
         Collections.singleton(pi10)).anyTimes();
@@ -190,17 +190,25 @@ public class ConfigurationMergeCheckTest {
     Assert.assertEquals("Expect no warnings", 0, check.getFailedOn().size());
 
     check = new PrerequisiteCheck(null, "cluster");
-    pi11.setValue("1026m");
+    m_configMap.put(CONFIG_PROPERTY, "1025m");
+    pi11.setValue("1026");
     cmc.perform(check, request);
     Assert.assertEquals("Expect warning when user-set has changed from new default",
         1, check.getFailedOn().size());
+    Assert.assertEquals(1, check.getFailedDetail().size());
+    ConfigurationMergeCheck.MergeDetail detail = (ConfigurationMergeCheck.MergeDetail) check.getFailedDetail().get(0);
+    Assert.assertEquals("1025m", detail.current);
+    Assert.assertEquals("1026m", detail.new_stack_value);
+    Assert.assertEquals("1025m", detail.result_value);
+    Assert.assertEquals(CONFIG_TYPE, detail.type);
+    Assert.assertEquals(CONFIG_PROPERTY, detail.property);
 
     check = new PrerequisiteCheck(null, "cluster");
     pi11.setName(CONFIG_PROPERTY + ".foo");
     cmc.perform(check, request);
     Assert.assertEquals("Expect no warning when user new stack is empty",
         0, check.getFailedOn().size());
-
+    Assert.assertEquals(0, check.getFailedDetail().size());
 
     check = new PrerequisiteCheck(null, "cluster");
     pi11.setName(CONFIG_PROPERTY);
@@ -208,7 +216,10 @@ public class ConfigurationMergeCheckTest {
     cmc.perform(check, request);
     Assert.assertEquals("Expect warning when user old stack is empty, and value changed",
         1, check.getFailedOn().size());
-
+    Assert.assertEquals(1, check.getFailedDetail().size());
+    detail = (ConfigurationMergeCheck.MergeDetail) check.getFailedDetail().get(0);
+    Assert.assertEquals("1025m", detail.current);
+    Assert.assertEquals("1026m", detail.new_stack_value);
   }
 
   private RepositoryVersionEntity createFor(final String stackVersion) {
