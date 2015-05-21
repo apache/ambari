@@ -124,10 +124,10 @@ class TestRangerAdmin(RMFTestCase):
         logoutput = True,
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
     )
-    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/conf/xa_system.properties',
+    self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/xa_system.properties',
         properties = self.getConfig()['configurations']['ranger-site'],
     )
-    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/conf/ranger_webserver.properties',
+    self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/ranger_webserver.properties',
         mode = 0744,
         properties = self.getConfig()['configurations']['ranger-site']
     )
@@ -153,10 +153,10 @@ class TestRangerAdmin(RMFTestCase):
         logoutput = True,
         environment = {'JAVA_HOME': u'/usr/jdk64/jdk1.7.0_45'},
     )
-    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/conf/xa_system.properties',
+    self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/xa_system.properties',
         properties = self.getConfig()['configurations']['ranger-site'],
     )
-    self.assertResourceCalled('ModifyPropertiesFile', '/usr/hdp/current/ranger-admin/conf/ranger_webserver.properties',
+    self.assertResourceCalled('ModifyPropertiesFile', '/etc/ranger/admin/conf/ranger_webserver.properties',
         mode = 0744,
         properties = self.getConfig()['configurations']['ranger-site']
     )

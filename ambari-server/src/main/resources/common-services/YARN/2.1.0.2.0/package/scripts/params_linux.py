@@ -271,7 +271,7 @@ ranger_admin_log_dir = default("/configurations/ranger-env/ranger_admin_log_dir"
 is_supported_yarn_ranger = config['configurations']['yarn-env']['is_supported_yarn_ranger']
 
 #ranger yarn properties
-if has_ranger_admin:
+if has_ranger_admin and is_supported_yarn_ranger:
 
   enable_ranger_yarn = (config['configurations']['ranger-yarn-plugin-properties']['ranger-yarn-plugin-enabled'].lower() == 'yes')
   policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
@@ -332,10 +332,8 @@ if has_ranger_admin:
   driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
   driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
-  if xml_configurations_supported:
-    xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.db.is.enabled']
-    ssl_keystore_file_path = config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore']
-    ssl_truststore_file_path = config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore']
-    ssl_keystore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
-    ssl_truststore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
-    credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
+
+  xa_audit_db_is_enabled = config['configurations']['ranger-yarn-audit']['xasecure.audit.db.is.enabled'] if xml_configurations_supported else None
+  ssl_keystore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
+  ssl_truststore_password = unicode(config['configurations']['ranger-yarn-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
+  credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None

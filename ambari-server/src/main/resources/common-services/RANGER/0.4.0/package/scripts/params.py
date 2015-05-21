@@ -51,14 +51,17 @@ stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 
 if stack_is_hdp22_or_further:
   ranger_home    = '/usr/hdp/current/ranger-admin'
-  ranger_conf    = '/usr/hdp/current/ranger-admin/conf'
+  ranger_conf    = '/etc/ranger/admin/conf'
   ranger_stop    = '/usr/bin/ranger-admin-stop'
   ranger_start   = '/usr/bin/ranger-admin-start'
   usersync_home  = '/usr/hdp/current/ranger-usersync'
   usersync_start = '/usr/bin/ranger-usersync-start'
   usersync_stop  = '/usr/bin/ranger-usersync-stop'
   ranger_ugsync_conf = '/etc/ranger/usersync/conf'
-  
+
+if stack_is_hdp23_or_further:
+  ranger_conf    = '/usr/hdp/current/ranger-admin/conf'
+
 usersync_services_file = "/usr/hdp/current/ranger-usersync/ranger-usersync-services.sh"
 
 java_home = config['hostLevelParams']['java_home']

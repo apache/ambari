@@ -457,11 +457,9 @@ if has_ranger_admin:
   }
 
   xa_audit_db_password = unicode(config['configurations']['admin-properties']['audit_db_password'])
+  
+  xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.db.is.enabled'] if xml_configurations_supported else None
+  ssl_keystore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password']) if xml_configurations_supported else None
+  ssl_truststore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password']) if xml_configurations_supported else None
+  credential_file = format('/etc/ranger/{repo_name}/cred.jceks') if xml_configurations_supported else None
 
-  if xml_configurations_supported:
-    xa_audit_db_is_enabled = config['configurations']['ranger-hive-audit']['xasecure.audit.db.is.enabled']
-    ssl_keystore_file_path = config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore']
-    ssl_truststore_file_path = config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore']
-    ssl_keystore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
-    ssl_truststore_password = unicode(config['configurations']['ranger-hive-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
-    credential_file = format('/etc/ranger/{repo_name}/cred.jceks')
