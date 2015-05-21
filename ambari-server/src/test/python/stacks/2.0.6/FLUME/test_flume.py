@@ -183,24 +183,35 @@ class TestFlumeHandler(RMFTestCase):
 
   def assert_configure_default(self):
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf',
+                              owner='flume',
+                              recursive=True)
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+    self.assertResourceCalled('Directory',
+                              '/var/log/flume',
+                              owner = 'flume')
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf/a1',
+                              owner='flume')
 
-    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
-      mode = 0644,
-      properties = build_flume(
-        self.getConfig()['configurations']['flume-conf']['content'])['a1'])
+    self.assertResourceCalled('PropertiesFile',
+                              '/etc/flume/conf/a1/flume.conf',
+                              owner='flume',
+                              mode = 0644,
+                              properties = build_flume(
+                                self.getConfig()['configurations']['flume-conf']['content'])['a1'])
 
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/log4j.properties',
       content = Template('log4j.properties.j2', agent_name = 'a1'),
+      owner='flume',
       mode = 0644)
 
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/ambari-meta.json',
+      owner='flume',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
 
@@ -211,23 +222,32 @@ class TestFlumeHandler(RMFTestCase):
 
   def assert_configure_many(self):
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf',
+                              owner='flume',
+                              recursive=True)
 
     self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
 
     top = build_flume(self.getConfig()['configurations']['flume-conf']['content'])
 
     # a1
-    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
-    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
-      mode = 0644,
-      properties = top['a1'])
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf/a1',
+                              owner='flume')
+    self.assertResourceCalled('PropertiesFile',
+                              '/etc/flume/conf/a1/flume.conf',
+                              owner='flume',
+                              mode = 0644,
+                              properties = top['a1'])
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/log4j.properties',
+      owner='flume',
       content = Template('log4j.properties.j2', agent_name = 'a1'),
       mode = 0644)
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/ambari-meta.json',
+      owner='flume',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
 
@@ -237,16 +257,21 @@ class TestFlumeHandler(RMFTestCase):
     )
 
     # b1
-    self.assertResourceCalled('Directory', '/etc/flume/conf/b1')
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf/b1',
+                              owner='flume')
     self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/b1/flume.conf',
       mode = 0644,
+      owner='flume',
       properties = top['b1'])
     self.assertResourceCalled('File',
       '/etc/flume/conf/b1/log4j.properties',
+      owner='flume',
       content = Template('log4j.properties.j2', agent_name = 'b1'),
       mode = 0644)
     self.assertResourceCalled('File',
       '/etc/flume/conf/b1/ambari-meta.json',
+      owner='flume',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
     self.assertResourceCalled('File', "/etc/flume/conf/b1/flume-env.sh",
@@ -363,24 +388,35 @@ class TestFlumeHandler(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf', recursive=True)
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf',
+                              owner='flume',
+                              recursive=True)
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+    self.assertResourceCalled('Directory',
+                              '/var/log/flume',
+                              owner = 'flume')
 
-    self.assertResourceCalled('Directory', '/etc/flume/conf/a1')
+    self.assertResourceCalled('Directory',
+                              '/etc/flume/conf/a1',
+                              owner='flume')
 
-    self.assertResourceCalled('PropertiesFile', '/etc/flume/conf/a1/flume.conf',
-      mode = 0644,
-      properties = build_flume(
-        self.getConfig()['configurations']['flume-conf']['content'])['a1'])
+    self.assertResourceCalled('PropertiesFile',
+                              '/etc/flume/conf/a1/flume.conf',
+                              owner='flume',
+                              mode = 0644,
+                              properties = build_flume(
+                                self.getConfig()['configurations']['flume-conf']['content'])['a1'])
 
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/log4j.properties',
+      owner='flume',
       content = Template('log4j.properties.j2', agent_name = 'a1'),
       mode = 0644)
 
     self.assertResourceCalled('File',
       '/etc/flume/conf/a1/ambari-meta.json',
+      owner='flume',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
       mode = 0644)
 
@@ -400,32 +436,44 @@ class TestFlumeHandler(RMFTestCase):
                        hdp_stack_version = self.STACK_VERSION,
                        target = RMFTestCase.TARGET_COMMON_SERVICES)
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/flume-server/conf', recursive=True)
+    self.assertResourceCalled('Directory',
+                              '/usr/hdp/current/flume-server/conf',
+                              owner='flume',
+                              recursive=True)
 
-    self.assertResourceCalled('Directory', '/var/log/flume', owner = 'flume')
+    self.assertResourceCalled('Directory',
+                              '/var/log/flume',
+                              owner = 'flume')
 
-    self.assertResourceCalled('Directory', '/usr/hdp/current/flume-server/conf/a1')
+    self.assertResourceCalled('Directory',
+                              '/usr/hdp/current/flume-server/conf/a1',
+                              owner='flume')
 
-    self.assertResourceCalled('PropertiesFile', '/usr/hdp/current/flume-server/conf/a1/flume.conf',
-      mode = 0644,
-      properties = build_flume(
-        self.getConfig()['configurations']['flume-conf']['content'])['a1'])
+    self.assertResourceCalled('PropertiesFile',
+                              '/usr/hdp/current/flume-server/conf/a1/flume.conf',
+                              owner='flume',
+                              mode = 0644,
+                              properties = build_flume(
+                                self.getConfig()['configurations']['flume-conf']['content'])['a1'])
 
     self.assertResourceCalled('File',
       '/usr/hdp/current/flume-server/conf/a1/log4j.properties',
       content = Template('log4j.properties.j2', agent_name = 'a1'),
+      owner='flume',
       mode = 0644)
 
     self.assertResourceCalled('File',
       '/usr/hdp/current/flume-server/conf/a1/ambari-meta.json',
       content='{"channels_count": 1, "sinks_count": 1, "sources_count": 1}',
+      owner='flume',
       mode = 0644)
 
     content = InlineTemplate(self.getConfig()['configurations']['flume-env']['content'])
 
     self.assertTrue(content.get_content().find('/usr/hdp/current/hive-metastore') > -1)
 
-    self.assertResourceCalled('File', "/usr/hdp/current/flume-server/conf/a1/flume-env.sh",
+    self.assertResourceCalled('File',
+                              "/usr/hdp/current/flume-server/conf/a1/flume-env.sh",
                               owner="flume",
                               content=content)
 

@@ -85,7 +85,10 @@ def flume(action = None):
     for n in find_expected_agent_names(params.flume_conf_dir):
       os.unlink(os.path.join(params.flume_conf_dir, n, 'ambari-meta.json'))
 
-    Directory(params.flume_conf_dir, recursive=True)
+    Directory(params.flume_conf_dir,
+              recursive=True,
+              owner=params.flume_user,
+              )
     Directory(params.flume_log_dir, owner=params.flume_user)
 
     flume_agents = {}
@@ -99,18 +102,23 @@ def flume(action = None):
       flume_agent_log4j_file = os.path.join(flume_agent_conf_dir, 'log4j.properties')
       flume_agent_env_file = os.path.join(flume_agent_conf_dir, 'flume-env.sh')
 
-      Directory(flume_agent_conf_dir)
+      Directory(flume_agent_conf_dir,
+                owner=params.flume_user,
+                )
 
       PropertiesFile(flume_agent_conf_file,
         properties=flume_agents[agent],
+        owner=params.flume_user,
         mode = 0644)
 
       File(flume_agent_log4j_file,
         content=Template('log4j.properties.j2', agent_name = agent),
+        owner=params.flume_user,
         mode = 0644)
 
       File(flume_agent_meta_file,
         content = json.dumps(ambari_meta(agent, flume_agents[agent])),
+        owner=params.flume_user,
         mode = 0644)
 
       File(flume_agent_env_file,
