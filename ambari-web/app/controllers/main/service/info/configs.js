@@ -810,11 +810,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     serviceNames.forEach(function(serviceName) {
       var serviceConfig = App.config.createServiceConfig(serviceName);
       //Make SecondaryNameNode invisible on enabling namenode HA
-      if (serviceConfig.get('serviceName') === 'HDFS') {
-        App.config.OnNnHAHideSnn(serviceConfig);
-      }
       var configsByService = this.get('allConfigs').filterProperty('serviceName', serviceName);
       this.loadConfigs(configsByService, serviceConfig);
+      if (serviceConfig.get('serviceName') === 'HDFS') {
+        if (App.get('isHaEnabled')) {
+          var c = serviceConfig.configs,
+            removedConfigs = c.filterProperty('category', 'SECONDARY_NAMENODE');
+          removedConfigs.map(function (config) {
+            c = c.without(config);
+          });
+          serviceConfig.configs = c;
+        }
+      }
 
       this.get('stepConfigs').pushObject(serviceConfig);
     }, this);

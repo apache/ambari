@@ -355,34 +355,6 @@ describe('App.config', function () {
     });
   });
 
-  describe('#OnNnHAHideSnn()', function() {
-    it('`SNameNode` category present in `ServiceConfig`. It should be removed.', function() {
-      App.store.load(App.HDFSService, {
-        'id': 'HDFS'
-      });
-      var ServiceConfig = Em.Object.create({
-        configCategories: [ { name: 'SNameNode' } ]
-      });
-      expect(ServiceConfig.get('configCategories').findProperty('name','SNameNode')).to.ok;
-      App.config.OnNnHAHideSnn(ServiceConfig);
-      expect(ServiceConfig.get('configCategories').findProperty('name','SNameNode')).to.undefined;
-      var record = App.HDFSService.find('HDFS');
-      record.deleteRecord();
-      record.get('stateManager').transitionTo('loading');
-    });
-    it('`SNameNode` category absent in `ServiceConfig`. Nothing to do.', function() {
-      App.store.load(App.HDFSService, {
-        'id': 'HDFS'
-      });
-      var ServiceConfig = Em.Object.create({
-        configCategories: [ { name: 'DataNode' } ]
-      });
-      App.config.OnNnHAHideSnn(ServiceConfig);
-      expect(ServiceConfig.get('configCategories').findProperty('name','DataNode')).to.ok;
-      expect(ServiceConfig.get('configCategories.length')).to.eql(1);
-    });
-  });
-
   describe('#preDefinedConfigFile', function() {
     before(function() {
       setups.setupStackVersion(this, 'BIGTOP-0.8');

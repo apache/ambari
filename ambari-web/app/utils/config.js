@@ -1452,15 +1452,6 @@ App.config = Em.Object.create({
     return ((rez == '') || (rez == undefined)) ? value : rez;
   },
 
-  OnNnHAHideSnn: function (ServiceConfig) {
-    var configCategories = ServiceConfig.get('configCategories');
-    var snCategory = configCategories.findProperty('name', 'SNameNode');
-    var isSnnPresent = !!App.HDFSService.find('HDFS').get('snameNode');
-    if (snCategory && !isSnnPresent) {
-      configCategories.removeObject(snCategory);
-    }
-  },
-
   /**
    * exclude configs that depends on services which are uninstalled
    * if config doesn't have serviceName or dependent service is installed then

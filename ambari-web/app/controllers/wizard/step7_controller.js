@@ -407,9 +407,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     var serviceName = configs[0].serviceName,
       service = this.get('stepConfigs').findProperty('serviceName', serviceName);
     var serviceConfig = App.config.createServiceConfig(serviceName);
-    if (serviceConfig.get('serviceName') === 'HDFS') {
-      App.config.OnNnHAHideSnn(serviceConfig);
-    }
     service.set('selectedConfigGroup', this.get('preSelectedConfigGroup'));
     this.loadComponentConfigs(service.get('configs'), serviceConfig, service);
     service.set('configs', serviceConfig.get('configs'));
