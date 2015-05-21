@@ -615,6 +615,64 @@
               <value>10011</value>
             </condition>
           </task>
+
+          <task xsi:type="configure" summary="Configuring Ranger Hive Policy">
+            <type>ranger-hive-policymgr-ssl</type>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/hive-server2/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword" mask="true"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/hive-server2/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
+          </task>
+
+          <task xsi:type="configure" summary="Configuring Ranger Hive Security">
+            <type>ranger-hive-security</type>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="POLICY_MGR_URL" to-key="ranger.plugin.hive.service.name" default-value="{{repo_name}}"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="REPOSITORY_NAME" to-key="ranger.plugin.hive.policy.source.impl" default-value="org.apache.ranger.admin.client.RangerAdminRESTClient"/>
+          </task>
+
+          <task xsi:type="configure" summary="Configuring Ranger Hive Audit">
+            <type>ranger-hive-audit</type>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE" to-key="xasecure.hive.update.xapolicies.on.grant.revoke" default-value="TRUE"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED" to-key="xasecure.audit.destination.db" default-value="FALSE"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir" default-value="hdfs://{{namenode_hostname}}:8020/ranger/audit"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="TRUE"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/knox/audit/hdfs/spool"/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
+            <transfer operation="copy" from-type="ranger-hive-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <set key="xasecure.audit.destination.solr" value="TRUE"/>
+            <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
+            <set key="xasecure.audit.destination.solr.zookeepers" value=""/>
+            <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/knox/audit/solr/spool"/>
+            <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
+            <set key="xasecure.audit.destination.db.jdbc.url" value=""/>
+            <set key="xasecure.audit.provider.summary.enabled" value="TRUE"/>
+          </task>
+
+          <task xsi:type="configure" summary="Removing Deprecated Ranger Configurations">
+            <type>ranger-hive-plugin-properties</type>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="POLICY_MGR_URL"/>
+            <transfer operation="delete" delete-key="REPOSITORY_NAME"/>
+            <transfer operation="delete" delete-key="UPDATE_XAPOLICIES_ON_GRANT_REVOKE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
+          </task>
         </pre-upgrade>
 
         <pre-downgrade>
@@ -772,10 +830,61 @@
           <task xsi:type="manual">
             <message>Before continuing, please deactivate and kill any currently running topologies.</message>
           </task>
+
           <task xsi:type="configure" summary="Converting nimbus.host into nimbus.seeds">
             <type>storm-site</type>
             <transfer operation="copy" from-key="nimbus.host" to-key="nimbus.seeds" coerce-to="yaml-array" />
             <transfer operation="delete" delete-key="nimbus.host" />
+          </task>
+
+          <task xsi:type="configure" summary="Configuring Ranger Storm Policy">
+            <type>ranger-storm-policymgr-ssl</type>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/storm-nimbus/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword" mask="true"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/storm-nimbus/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
+          </task>
+
+          <task xsi:type="configure" summary="Configuring Ranger Storm Audit">
+            <type>ranger-storm-audit</type>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED" to-key="xasecure.audit.destination.db" default-value="FALSE" />
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir" default-value="hdfs://{{namenode_hostname}}:8020/ranger/audit" />
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="TRUE" />
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/storm/audit/hdfs/spool" />
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
+            <transfer operation="copy" from-type="ranger-storm-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <set key="xasecure.audit.credential.provider.file" value="jceks://file{{credential_file}}"/>
+            <set key="xasecure.audit.destination.solr" value="TRUE"/>
+            <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
+            <set key="xasecure.audit.destination.solr.zookeepers" value=""/>
+            <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/storm/audit/solr/spool"/>
+            <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
+            <set key="xasecure.audit.destination.db.jdbc.url" value=""/>
+            <set key="xasecure.audit.destination.db.user" value=""/>
+            <set key="xasecure.audit.provider.summary.enabled" value="TRUE"/>
+          </task>
+
+          <task xsi:type="configure" summary="Removing Deprecated Ranger Configurations">
+            <type>ranger-storm-plugin-properties</type>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
           </task>
         </pre-upgrade>
         <upgrade>

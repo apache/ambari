@@ -40,7 +40,7 @@
 
   <property>
     <name>ranger.plugin.hive.policy.rest.ssl.config.file</name>
-    <value>/etc/hive/conf/ranger-policymgr-ssl.xml</value>
+    <value>/usr/hdp/current/hive-server2/conf/ranger-policymgr-ssl.xml</value>
     <description>Path to the file containing SSL details to contact Ranger Admin</description>
   </property>
 
