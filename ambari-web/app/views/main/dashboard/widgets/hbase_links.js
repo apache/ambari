@@ -26,7 +26,7 @@ App.HBaseLinksView = App.LinkDashboardWidgetView.extend({
 
   model_type: 'hbase',
 
-  port: '60010',
+  port: App.get('isHadoop23Stack') ? '16010' : '60010',
 
   componentName: 'HBASE_REGIONSERVER',
 
