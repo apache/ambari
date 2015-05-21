@@ -644,7 +644,7 @@ describe('App.upgradeWizardView', function () {
     });
   });
 
-  describe.skip('#getSkippedServiceChecks()', function () {
+  describe('#getSkippedServiceChecks()', function () {
 
     var cases = [
       {
@@ -655,10 +655,10 @@ describe('App.upgradeWizardView', function () {
         title: 'no ajax request should be sent away from Finalize step'
       },
       {
-        isFinalizeItem: false,
+        isFinalizeItem: true,
         areSkippedServiceChecksLoaded: true,
         ajaxSendCallCount: 0,
-        areSkippedServiceChecksLoadedResult: false,
+        areSkippedServiceChecksLoadedResult: true,
         title: 'no ajax request should be sent if data is already loaded'
       },
       {
