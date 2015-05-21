@@ -445,7 +445,7 @@ App.WidgetMixin = Ember.Mixin.create({
             return metrics.findProperty('name', match).data;
           } else {
             validExpression = false;
-            console.error('Metrics with name "' + match + '" not found to compute expression');
+            console.warn('Metrics with name "' + match + '" not found to compute expression');
           }
         } else {
           return match;
@@ -455,7 +455,7 @@ App.WidgetMixin = Ember.Mixin.create({
       //check for correct math expression
       if (!(validExpression && this.get('MATH_EXPRESSION_REGEX').test(beforeCompute))) {
         validExpression = false;
-        console.error('Value for metric is not correct mathematical expression: ' + beforeCompute);
+        console.warn('Value for metric is not correct mathematical expression: ' + beforeCompute);
       }
 
       result['${' + _expression + '}'] = (validExpression) ? Number(window.eval(beforeCompute)).toString() : value;

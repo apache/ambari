@@ -125,7 +125,7 @@ App.GraphWidgetView = Em.View.extend(App.WidgetMixin, {
           dataLength = (dataLinks[match].length > dataLength) ? dataLinks[match].length : dataLength;
         } else {
           validExpression = false;
-          console.error('Metrics with name "' + match + '" not found to compute expression');
+          console.warn('Metrics with name "' + match + '" not found to compute expression');
         }
       }
     });
