@@ -30,6 +30,7 @@
           <displayName>Accumulo Master</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>ACCUMULO</timelineAppid>
           <dependencies>
             <dependency>
               <name>HDFS/HDFS_CLIENT</name>
@@ -59,6 +60,7 @@
           <displayName>Accumulo Monitor</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_monitor.py</script>
             <scriptType>PYTHON</scriptType>
@@ -71,6 +73,7 @@
           <displayName>Accumulo GC</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_gc.py</script>
             <scriptType>PYTHON</scriptType>
@@ -83,6 +86,7 @@
           <displayName>Accumulo Tracer</displayName>
           <category>MASTER</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_tracer.py</script>
             <scriptType>PYTHON</scriptType>
@@ -95,6 +99,7 @@
           <displayName>Accumulo TServer</displayName>
           <category>SLAVE</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_tserver.py</script>
             <scriptType>PYTHON</scriptType>
@@ -106,6 +111,7 @@
           <displayName>Accumulo Client</displayName>
           <category>CLIENT</category>
           <cardinality>1+</cardinality>
+          <timelineAppid>ACCUMULO</timelineAppid>
           <commandScript>
             <script>scripts/accumulo_client.py</script>
             <scriptType>PYTHON</scriptType>

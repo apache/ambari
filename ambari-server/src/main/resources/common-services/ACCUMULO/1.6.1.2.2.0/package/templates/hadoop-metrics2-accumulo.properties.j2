@@ -35,7 +35,6 @@ rpc.collector={{metric_collector_host}}:{{metric_collector_port}}
 accumulo.sink.timeline.class=org.apache.hadoop.metrics2.sink.timeline.HadoopTimelineMetricsSink
 accumulo.sink.timeline.period=10
 accumulo.sink.timeline.collector={{metric_collector_host}}:{{metric_collector_port}}
-accumulo.sink.timeline.serviceName-prefix={{instance_name}}
 
 {% else %}
 
