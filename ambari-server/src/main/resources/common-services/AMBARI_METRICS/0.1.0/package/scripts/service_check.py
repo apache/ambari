@@ -44,7 +44,6 @@ class AMSServiceCheck(Script):
   @OsFamilyFuncImpl(os_family=OSConst.WINSRV_FAMILY)
   def service_check(self, env):
     from resource_management.libraries.functions.windows_service_utils import check_windows_service_exists
-    from service_mapping import collector_win_service_name, monitor_win_service_name
     import params
 
     env.set_params(params)
@@ -52,12 +51,12 @@ class AMSServiceCheck(Script):
     #Just check that the services were correctly installed
     #Check the monitor on all hosts
     Logger.info("Metrics Monitor service check was started.")
-    if not check_windows_service_exists(monitor_win_service_name):
+    if not check_windows_service_exists(params.ams_monitor_win_service_name):
       raise Fail("Metrics Monitor service was not properly installed. Check the logs and retry the installation.")
     #Check the collector only where installed
     if params.ams_collector_home_dir and os.path.isdir(params.ams_collector_home_dir):
       Logger.info("Metrics Collector service check was started.")
-      if not check_windows_service_exists(collector_win_service_name):
+      if not check_windows_service_exists(params.ams_collector_win_service_name):
         raise Fail("Metrics Collector service was not properly installed. Check the logs and retry the installation.")
 
   @OsFamilyFuncImpl(os_family=OsFamilyImpl.DEFAULT)

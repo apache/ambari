@@ -20,7 +20,6 @@ limitations under the License.
 
 from resource_management import *
 from ambari_commons import OSConst
-from service_mapping import *
 from ambari_commons.os_family_impl import OsFamilyFuncImpl, OsFamilyImpl
 from ambari_commons.str_utils import compress_backslashes
 import glob
@@ -30,7 +29,7 @@ import os
 def ams(name=None):
   import params
   if name == 'collector':
-    if not check_windows_service_exists(collector_win_service_name):
+    if not check_windows_service_exists(params.ams_collector_win_service_name):
       Execute(format("cmd /C cd {ams_collector_home_dir} & ambari-metrics-collector.cmd setup"))
 
     Directory(params.ams_collector_conf_dir,
@@ -124,7 +123,7 @@ def ams(name=None):
     pass
 
   elif name == 'monitor':
-    if not check_windows_service_exists(monitor_win_service_name):
+    if not check_windows_service_exists(params.ams_monitor_win_service_name):
       Execute(format("cmd /C cd {ams_monitor_home_dir} & ambari-metrics-monitor.cmd setup"))
 
     # creating symbolic links on ams jars to make them available to services

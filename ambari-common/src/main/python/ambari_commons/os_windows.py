@@ -510,18 +510,20 @@ class WinServiceController:
   @staticmethod
   def Start(serviceName, waitSecs=30):
     err = 0
+    msg = ''
     try:
       win32serviceutil.StartService(serviceName)
       if waitSecs:
         win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_RUNNING, waitSecs)
     except win32service.error, exc:
-      print "Error starting service: %s" % exc.strerror
+      msg = "Error starting service: %s" % exc.strerror
       err = exc.winerror
-    return err
+    return err, msg
 
   @staticmethod
   def Stop(serviceName, waitSecs=30):
     err = 0
+    msg = ''
     try:
       if waitSecs:
         win32serviceutil.StopServiceWithDeps(serviceName, waitSecs=waitSecs)
@@ -530,9 +532,9 @@ class WinServiceController:
         if waitSecs:
           win32serviceutil.WaitForServiceStatus(serviceName, win32service.SERVICE_STOPPED, waitSecs)
     except win32service.error, exc:
-      print "Error stopping service: %s (%d)" % (exc.strerror, exc.winerror)
+      msg = "Error stopping service: %s (%d)" % (exc.strerror, exc.winerror)
       err = exc.winerror
-    return err
+    return err, msg
 
   @staticmethod
   def QueryStatus(serviceName):

@@ -53,10 +53,14 @@ def safe_open_service(hSCM, service_name):
 
 class ServiceProvider(Provider):
   def action_start(self):
-    WinServiceController.Start(self.resource.service_name, 5)
+    (ret, msg) = WinServiceController.Start(self.resource.service_name, 5)
+    if 0 != ret:
+      raise Fail(msg)
 
   def action_stop(self):
-    WinServiceController.Stop(self.resource.service_name, 5)
+    (ret, msg) = WinServiceController.Stop(self.resource.service_name, 5)
+    if 0 != ret:
+      raise Fail(msg)
 
   def action_restart(self):
     self.action_stop()

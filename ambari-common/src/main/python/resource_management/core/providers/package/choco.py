@@ -42,7 +42,7 @@ REMOVE_CMD = {
 
 CHECK_CMD = {
   True: ['cmd', '/c', 'choco', 'list', '--pre', '--local-only', '-v'],
-  False: ['cmd', '/c', 'choco', 'list', '--pre', '-local-only'],
+  False: ['cmd', '/c', 'choco', 'list', '--pre', '--local-only'],
 }
 
 class ChocoProvider(PackageProvider):
