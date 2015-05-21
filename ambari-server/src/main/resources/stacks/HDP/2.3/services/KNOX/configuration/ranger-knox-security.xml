@@ -40,7 +40,7 @@
 
   <property>
     <name>ranger.plugin.knox.policy.rest.ssl.config.file</name>
-    <value>/etc/knox/conf/ranger-policymgr-ssl.xml</value>
+    <value>/usr/hdp/current/knox-server/conf/ranger-policymgr-ssl.xml</value>
     <description>Path to the file containing SSL details to contact Ranger Admin</description>
   </property>
 

@@ -648,7 +648,7 @@
             <set key="xasecure.audit.provider.summary.enabled" value="TRUE"/>
           </task>
 
-          <task xsi:type="configure" summary="Removing Deprecated Ranger Configurations">
+          <task xsi:type="configure" summary="Removing Deprecated Ranger Hive Plugin Configurations">
             <type>ranger-hive-plugin-properties</type>
             <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
             <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
@@ -818,6 +818,55 @@
 
     <service name="KNOX">
       <component name="KNOX_GATEWAY">
+        <pre-upgrade>
+          <task xsi:type="configure" summary="Configuring Ranger Knox Policy">
+            <type>ranger-knox-policymgr-ssl</type>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_KEYSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.keystore" default-value="/usr/hdp/current/knox-server/conf/ranger-plugin-keystore.jks"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_KEYSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.keystore.password" default-value="myKeyFilePassword" mask="true"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_TRUSTSTORE_FILE_PATH" to-key="xasecure.policymgr.clientssl.truststore" default-value="/usr/hdp/current/knox-server/conf/ranger-plugin-truststore.jks"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="SSL_TRUSTSTORE_PASSWORD" to-key="xasecure.policymgr.clientssl.truststore.password" default-value="changeit" mask="true"/>
+          </task>
+
+          <task xsi:type="configure" summary="Configuring Ranger Knox Audit">
+            <type>ranger-knox-audit</type>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.IS_ENABLED" to-key="xasecure.audit.destination.db" default-value="FALSE"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY" to-key="xasecure.audit.destination.hdfs.dir" default-value="hdfs://{{namenode_hostname}}:8020/ranger/audit"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.IS_ENABLED" to-key="xasecure.audit.destination.hdfs" default-value="TRUE"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY" to-key="xasecure.audit.destination.hdfs.batch.filespool.dir" default-value="/var/log/knox/audit/hdfs/spool"/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.USER_NAME" to-key="xasecure.audit.destination.db.user" default-value=""/>
+            <transfer operation="copy" from-type="ranger-knox-plugin-properties" from-key="XAAUDIT.DB.PASSWORD" to-key="xasecure.audit.destination.db.passwordr" default-value="" mask="true"/>
+            <set key="xasecure.audit.destination.solr" value="TRUE"/>
+            <set key="xasecure.audit.destination.solr.urls" value="{{ranger_audit_solr_urls}}"/>
+            <set key="xasecure.audit.destination.solr.zookeepers" value=""/>
+            <set key="xasecure.audit.destination.solr.batch.filespool.dir" value="/var/log/knox/audit/solr/spool"/>
+            <set key="xasecure.audit.destination.db.jdbc.driver" value="{{jdbc_driver}}"/>
+            <set key="xasecure.audit.destination.db.jdbc.url" value=""/>
+            <set key="xasecure.audit.provider.summary.enabled" value="TRUE"/>
+          </task>
+
+          <task xsi:type="configure" summary="Removing Deprecated Ranger Knox Plugin Configurations">
+            <type>ranger-knox-plugin-properties</type>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_FILE_PATH"/>
+            <transfer operation="delete" delete-key="SSL_TRUSTSTORE_PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINATION_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.IS_ENABLED"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.USER_NAME"/>
+            <transfer operation="delete" delete-key="XAAUDIT.DB.PASSWORD"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_OPEN_RETRY_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.DESTINTATION_ROLLOVER_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_ARCHIVE_MAX_FILE_COUNT"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_DIRECTORY"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FILE"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_FLUSH_INTERVAL_SECONDS"/>
+            <transfer operation="delete" delete-key="XAAUDIT.HDFS.LOCAL_BUFFER_ROLLOVER_INTERVAL_SECONDS"/>
+          </task>
+        </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
         </upgrade>
@@ -864,7 +913,7 @@
             <set key="xasecure.audit.provider.summary.enabled" value="TRUE"/>
           </task>
 
-          <task xsi:type="configure" summary="Removing Deprecated Ranger Configurations">
+          <task xsi:type="configure" summary="Removing Deprecated Ranger Storm Plugin Configurations">
             <type>ranger-storm-plugin-properties</type>
             <transfer operation="delete" delete-key="SSL_KEYSTORE_FILE_PATH"/>
             <transfer operation="delete" delete-key="SSL_KEYSTORE_PASSWORD"/>
