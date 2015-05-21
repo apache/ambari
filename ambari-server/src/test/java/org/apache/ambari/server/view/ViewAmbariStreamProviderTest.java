@@ -108,4 +108,74 @@ public class ViewAmbariStreamProviderTest {
 
     verify(streamProvider, sessionManager, urlConnection, inputStream);
   }
+
+  @Test
+  public void testReadFromNullStringBody() throws Exception {
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
+    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+
+    String body = null;
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+    headers.put("Cookie", "FOO=bar");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+    headerMap.put("Cookie", Collections.singletonList("FOO=bar; AMBARISESSIONID=abcdefg"));
+
+    expect(sessionManager.getCurrentSessionId()).andReturn("abcdefg");
+    expect(sessionManager.getSessionCookie()).andReturn("AMBARISESSIONID");
+
+    expect(controller.getAmbariServerURI("/spec")).andReturn("http://c6401.ambari.apache.org:8080/spec");
+    expect(streamProvider.processURL(eq("http://c6401.ambari.apache.org:8080/spec"), eq("requestMethod"), aryEq((byte[])null), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, sessionManager, controller, urlConnection, inputStream);
+
+    ViewAmbariStreamProvider viewAmbariStreamProvider = new ViewAmbariStreamProvider(streamProvider, sessionManager, controller);
+
+    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers, true));
+
+    verify(streamProvider, sessionManager, urlConnection, inputStream);
+  }
+
+  @Test
+  public void testReadFromNullInputStreamBody() throws Exception {
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    AmbariSessionManager sessionManager = createNiceMock(AmbariSessionManager.class);
+    AmbariManagementController controller = createNiceMock(AmbariManagementController.class);
+
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+
+    InputStream body = null;
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+    headers.put("Cookie", "FOO=bar");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+    headerMap.put("Cookie", Collections.singletonList("FOO=bar; AMBARISESSIONID=abcdefg"));
+
+    expect(sessionManager.getCurrentSessionId()).andReturn("abcdefg");
+    expect(sessionManager.getSessionCookie()).andReturn("AMBARISESSIONID");
+
+    expect(controller.getAmbariServerURI("/spec")).andReturn("http://c6401.ambari.apache.org:8080/spec");
+    expect(streamProvider.processURL(eq("http://c6401.ambari.apache.org:8080/spec"), eq("requestMethod"), aryEq((byte[])null), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, sessionManager, controller, urlConnection, inputStream);
+
+    ViewAmbariStreamProvider viewAmbariStreamProvider = new ViewAmbariStreamProvider(streamProvider, sessionManager, controller);
+
+    Assert.assertEquals(inputStream, viewAmbariStreamProvider.readFrom("spec", "requestMethod", body, headers, true));
+
+    verify(streamProvider, sessionManager, urlConnection, inputStream);
+  }
 }

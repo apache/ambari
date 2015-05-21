@@ -75,14 +75,14 @@ public class ViewAmbariStreamProvider implements AmbariStreamProvider {
   @Override
   public InputStream readFrom(String path, String requestMethod, String body, Map<String, String> headers,
                               boolean useAmbariSession) throws IOException {
-    return getInputStream(path, requestMethod, headers, useAmbariSession, body.getBytes());
+    return getInputStream(path, requestMethod, headers, useAmbariSession, body == null ? null : body.getBytes());
   }
 
   @Override
   public InputStream readFrom(String path, String requestMethod, InputStream body, Map<String, String> headers,
                               boolean useAmbariSession) throws IOException {
 
-    return getInputStream(path, requestMethod, headers, useAmbariSession, IOUtils.toByteArray(body));
+    return getInputStream(path, requestMethod, headers, useAmbariSession, body == null ? null : IOUtils.toByteArray(body));
   }
 
 

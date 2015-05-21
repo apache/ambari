@@ -67,6 +67,34 @@ public class ViewURLStreamProviderTest {
   }
 
   @Test
+  public void testReadFromNullBody() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    String body = null;
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq((byte[]) null), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, urlConnection, inputStream);
+
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readFrom("spec", "requestMethod", body, headers));
+
+    verify(streamProvider, urlConnection, inputStream);
+  }
+
+  @Test
   public void testReadAs() throws Exception {
 
     URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
@@ -140,6 +168,34 @@ public class ViewURLStreamProviderTest {
     headerMap.put("header", Collections.singletonList("headerValue"));
 
     expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq("params".getBytes()), eq(headerMap))).andReturn(urlConnection);
+    expect(urlConnection.getInputStream()).andReturn(inputStream);
+
+    replay(streamProvider, urlConnection, inputStream);
+
+    ViewURLStreamProvider viewURLStreamProvider = new ViewURLStreamProvider(viewContext, streamProvider);
+
+    Assert.assertEquals(inputStream, viewURLStreamProvider.readFrom("spec", "requestMethod", body, headers));
+
+    verify(streamProvider, urlConnection, inputStream);
+  }
+
+  @Test
+  public void testReadFromNullInputStreamBody() throws Exception {
+
+    URLStreamProvider streamProvider = createNiceMock(URLStreamProvider.class);
+    HttpURLConnection urlConnection = createNiceMock(HttpURLConnection.class);
+    InputStream inputStream = createNiceMock(InputStream.class);
+    ViewContext viewContext = createNiceMock(ViewContext.class);
+
+    InputStream body = null;
+
+    Map<String, String> headers = new HashMap<String, String>();
+    headers.put("header", "headerValue");
+
+    Map<String, List<String>> headerMap = new HashMap<String, List<String>>();
+    headerMap.put("header", Collections.singletonList("headerValue"));
+
+    expect(streamProvider.processURL(eq("spec"), eq("requestMethod"), aryEq((byte[]) null), eq(headerMap))).andReturn(urlConnection);
     expect(urlConnection.getInputStream()).andReturn(inputStream);
 
     replay(streamProvider, urlConnection, inputStream);

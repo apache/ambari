@@ -71,13 +71,13 @@ public class ViewURLStreamProvider implements org.apache.ambari.view.URLStreamPr
   @Override
   public InputStream readFrom(String spec, String requestMethod, String body, Map<String, String> headers)
       throws IOException {
-    return getInputStream(spec, requestMethod, headers, body.getBytes());
+    return getInputStream(spec, requestMethod, headers, body == null ? null : body.getBytes());
   }
 
   @Override
   public InputStream readFrom(String spec, String requestMethod, InputStream body, Map<String, String> headers)
       throws IOException {
-    return getInputStream(spec, requestMethod, headers, IOUtils.toByteArray(body));
+    return getInputStream(spec, requestMethod, headers, body == null ? null : IOUtils.toByteArray(body));
   }
 
 
