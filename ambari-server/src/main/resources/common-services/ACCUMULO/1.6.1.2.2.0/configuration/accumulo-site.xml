@@ -42,7 +42,7 @@
 
   <property>
     <name>tserver.memory.maps.max</name>
-    <value>256M</value>
+    <value>1G</value>
     <description>Amount of memory to use for Accumulo's in-memory
       map, where incoming writes are sorted.  If native maps are enabled
       (tserver.memory.maps.native.enabled) this memory is
@@ -52,7 +52,7 @@
 
   <property>
     <name>tserver.memory.maps.native.enabled</name>
-    <value>false</value>
+    <value>true</value>
     <description>Controls whether or not native maps are enabled
       for Accumulo's in-memory map, where incoming writes are
       sorted (see also tserver.memory.maps.max).</description>
@@ -60,26 +60,26 @@
 
   <property>
     <name>tserver.cache.data.size</name>
-    <value>64M</value>
+    <value>128M</value>
     <description>Size of on-heap block cache for data blocks.</description>
   </property>
 
   <property>
     <name>tserver.cache.index.size</name>
-    <value>128M</value>
+    <value>256M</value>
     <description>Size of on-heap block cache for index blocks.</description>
   </property>
 
   <property>
     <name>tserver.sort.buffer.size</name>
-    <value>100M</value>
+    <value>200M</value>
     <description>Amount of memory to use for sorting walogs when
       recovering from tserver failure.</description>
   </property>
 
   <property>
     <name>tserver.walog.max.size</name>
-    <value>512M</value>
+    <value>1G</value>
     <description>Maximum size of each write-ahead log.</description>
   </property>
 

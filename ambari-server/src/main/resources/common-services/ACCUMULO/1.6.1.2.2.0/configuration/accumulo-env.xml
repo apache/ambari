@@ -73,7 +73,7 @@
   </property>
   <property>
     <name>accumulo_tserver_heapsize</name>
-    <value>1024</value>
+    <value>1536</value>
     <description>Accumulo Tablet Server Heap Size.</description>
   </property>
   <property>

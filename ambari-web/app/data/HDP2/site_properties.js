@@ -2163,7 +2163,7 @@ var hdp2properties = [
     "name": "tserver.memory.maps.native.enabled",
     "displayName": "tserver.memory.maps.native.enabled",
     "displayType": "checkbox",
-    "recommendedValue": false,
+    "recommendedValue": true,
     "serviceName": "ACCUMULO",
     "filename": "accumulo-site.xml",
     "category": "Advanced accumulo-site",
