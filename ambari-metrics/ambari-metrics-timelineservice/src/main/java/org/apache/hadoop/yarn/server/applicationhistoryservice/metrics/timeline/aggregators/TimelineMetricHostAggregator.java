@@ -68,11 +68,12 @@ public class TimelineMetricHostAggregator extends AbstractTimelineAggregator {
     condition.setStatement(String.format(GET_METRIC_AGGREGATE_ONLY_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, nativeTimeRangeDelay),
       tableName));
+    // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("METRIC_NAME");
     condition.addOrderByColumn("HOSTNAME");
+    condition.addOrderByColumn("SERVER_TIME");
     condition.addOrderByColumn("APP_ID");
     condition.addOrderByColumn("INSTANCE_ID");
-    condition.addOrderByColumn("SERVER_TIME");
     return condition;
   }
 

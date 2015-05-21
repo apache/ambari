@@ -94,10 +94,11 @@ public class TimelineMetricClusterAggregatorMinute extends AbstractTimelineAggre
     condition.setStatement(String.format(GET_METRIC_SQL,
       PhoenixTransactSQL.getNaiveTimeRangeHint(startTime, NATIVE_TIME_RANGE_DELTA),
       METRICS_RECORD_TABLE_NAME));
+    // Retaining order of the row-key avoids client side merge sort.
     condition.addOrderByColumn("METRIC_NAME");
     condition.addOrderByColumn("HOSTNAME");
-    condition.addOrderByColumn("APP_ID");
     condition.addOrderByColumn("SERVER_TIME");
+    condition.addOrderByColumn("APP_ID");
     return condition;
   }
 
