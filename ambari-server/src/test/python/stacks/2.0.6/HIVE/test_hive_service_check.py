@@ -85,6 +85,7 @@ class TestServiceCheck(RMFTestCase):
                               )
     self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
         content = Template('templeton_smoke.pig.j2', templeton_test_input='/tmp/idtest.ambari-qa.1431110511.43.in', templeton_test_output='/tmp/idtest.ambari-qa.1431110511.43.out'),
+        owner="hdfs"
     )
     self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.pig',
         security_enabled = False,
@@ -185,6 +186,7 @@ class TestServiceCheck(RMFTestCase):
     
     self.assertResourceCalled('File', '/tmp/idtest.ambari-qa.1431110511.43.pig',
         content = Template('templeton_smoke.pig.j2', templeton_test_input='/tmp/idtest.ambari-qa.1431110511.43.in', templeton_test_output='/tmp/idtest.ambari-qa.1431110511.43.out'),
+        owner = "hdfs"
     )
     self.assertResourceCalled('HdfsResource', '/tmp/idtest.ambari-qa.1431110511.43.pig',
         action = ['create_on_execute'],

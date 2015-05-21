@@ -53,6 +53,7 @@ def webhcat_service_check():
 
   File(format("{tmp_dir}/{templeton_test_script}"),
        content = Template("templeton_smoke.pig.j2", templeton_test_input=templeton_test_input, templeton_test_output=templeton_test_output),
+       owner=params.hdfs_user
   )
   
   params.HdfsResource(format("/tmp/{templeton_test_script}"),
