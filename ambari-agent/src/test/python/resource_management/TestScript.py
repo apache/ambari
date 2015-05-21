@@ -44,9 +44,9 @@ class TestScript(TestCase):
     sys.stdout = out
 
 
-
+  @patch.object(Script, 'set_version')
   @patch("resource_management.core.providers.package.PackageProvider")
-  def test_install_packages(self, package_provider_mock):
+  def test_install_packages(self, package_provider_mock, set_version_mock):
     no_packages_config = {
       'hostLevelParams' : {
         'repo_info' : "[{\"baseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\",\"osType\":\"centos6\",\"repoId\":\"HDP-2.0._\",\"repoName\":\"HDP\",\"defaultBaseUrl\":\"http://public-repo-1.hortonworks.com/HDP/centos6/2.x/updates/2.0.6.0\"}]"
@@ -90,6 +90,7 @@ class TestScript(TestCase):
       script.install_packages("env")
     resource_dump = pprint.pformat(env.resource_list)
     self.assertEqual(resource_dump, '[Package[\'hbase\'], Package[\'yet-another-package\']]')
+    self.assertTrue(set_version_mock.called)
 
   @patch("__builtin__.open")
   def test_structured_out(self, open_mock):

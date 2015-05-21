@@ -212,8 +212,6 @@ class Script(object):
       with Environment(self.basedir, tmp_dir=Script.tmp_dir) as env:
         env.config.download_path = Script.tmp_dir
         method(env)
-        if command_name == "install":
-          self.set_version()
     finally:
       if self.should_expose_component_version(command_name):
         self.save_component_version_to_structured_out()
@@ -372,7 +370,7 @@ class Script(object):
                           config["hostLevelParams"]["agentCacheDir"], "hdp.msi", hadoop_user, self.get_password(hadoop_user),
                           str(config['hostLevelParams']['stack_version']))
       reload_windows_env()
-    pass
+    self.set_version()
 
   @staticmethod
   def fail_with_error(message):
