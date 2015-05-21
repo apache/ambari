@@ -19,6 +19,7 @@
 var App = require('app');
 require('controllers/wizard/slave_component_groups_controller');
 var batchUtils = require('utils/batch_scheduled_requests');
+var databaseUtils = require('utils/configs/database');
 
 App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorMixin, App.EnhancedConfigsMixin, App.PreloadRequestsChainMixin, App.ThemesMappingMixin, App.VersionsMappingMixin, App.ConfigsSaverMixin, {
 
@@ -823,6 +824,7 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
       var serviceConfig = App.config.createServiceConfig(serviceName);
       //Make SecondaryNameNode invisible on enabling namenode HA
       var configsByService = this.get('allConfigs').filterProperty('serviceName', serviceName);
+      databaseUtils.bootstrapDatabaseProperties(configsByService, serviceName);
       this.loadConfigs(configsByService, serviceConfig);
       if (serviceConfig.get('serviceName') === 'HDFS') {
         if (App.get('isHaEnabled')) {
@@ -1207,19 +1209,6 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
     hostProperties.forEach(function (h) {
       this.setHostForService(h.serviceName, h.componentName, h.hostProperty, h.m);
     }, this);
-
-    if (serviceName === 'HIVE') {
-      var hiveDb = configs.findProperty('name', 'hive_database').value;
-      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with SQL authentication', 'Existing MSSQL Server database with integrated authentication'].contains(hiveDb)) {
-        configs.findProperty('name', 'hive_hostname').isVisible = true;
-      }
-    }
-    if (serviceName === 'OOZIE') {
-      var oozieDb = configs.findProperty('name', 'oozie_database').value;
-      if (['Existing MySQL Database', 'Existing Oracle Database', 'Existing PostgreSQL Database', 'Existing MSSQL Server database with SQL authentication', 'Existing MSSQL Server database with integrated authentication'].contains(oozieDb)) {
-        configs.findProperty('name', 'oozie_hostname').isVisible = true;
-      }
-    }
   },
 
   /**
