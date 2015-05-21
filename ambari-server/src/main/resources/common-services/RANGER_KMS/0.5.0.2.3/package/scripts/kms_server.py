@@ -23,14 +23,19 @@ from resource_management.core.exceptions import ComponentIsNotRunning
 from resource_management.libraries.functions.format import format
 from resource_management.core.logger import Logger
 from resource_management.core import shell
-from kms import kms
+from kms import kms, setup_kms_db, setup_java_patch, enable_kms_plugin
 from kms_service import kms_service
 
 class KmsServer(Script):
 
   def install(self, env):
     self.install_packages(env)
+    import params
+    env.set_params(params)
+
+    setup_kms_db()
     self.configure(env)
+    setup_java_patch()
 
   def stop(self, env, rolling_restart=False):
     import params
@@ -43,9 +48,10 @@ class KmsServer(Script):
 
     env.set_params(params)
     self.configure(env)
+    enable_kms_plugin()
     kms_service(action = 'start')
 
-  def status(self, env):
+  def status(self, env):    
     kms_service(action = 'status')
 
   def configure(self, env):

@@ -244,6 +244,16 @@ hdp23properties.push({
   },
   {
     "id": "site property",
+    "name": "xasecure.audit.hdfs.config.encoding",
+    "displayName": "xasecure.audit.hdfs.config.encoding",
+    "defaultValue": "",
+    "isRequired": false,
+    "filename": "ranger-kms-audit.xml",
+    "category": "Advanced ranger-kms-audit",
+    "serviceName": "RANGER_KMS"
+  },
+  {
+    "id": "site property",
     "name": "ranger-yarn-plugin-enabled",
     "displayType": "checkbox",
     "displayName": "Enable Ranger for YARN",

@@ -17,8 +17,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 """
+import os
 from resource_management.libraries.script import Script
-from resource_management.libraries.functions.version import format_hdp_stack_version
+from resource_management.libraries.functions.version import format_hdp_stack_version, compare_versions
 from resource_management.libraries.functions.format import format
 from resource_management.libraries.functions.default import default
 
@@ -37,7 +38,7 @@ if stack_is_hdp23_or_further:
   kms_home = '/usr/hdp/current/ranger-kms'
   kms_conf_dir = '/etc/ranger/kms/conf'
   
-
+kms_log_dir = config['configurations']['kms-env']['kms_log_dir']
 java_home = config['hostLevelParams']['java_home']
 kms_user  = default("/configurations/kms-env/kms_user", "kms")
 kms_group = default("/configurations/kms-env/kms_group", "kms")
@@ -52,41 +53,60 @@ kms_host = config['clusterHostInfo']['ranger_kms_server_hosts'][0]
 kms_port = config['configurations']['kms-env']['kms_port']
 
 #kms properties
-policymgr_mgr_url = format('http://{ranger_admin_hosts}:6080')
-sql_connector_jar = config['configurations']['kms-properties']['SQL_CONNECTOR_JAR']
-db_flavor = config['configurations']['kms-properties']['DB_FLAVOR']
-xa_audit_db_flavor = config['configurations']['admin-properties']['DB_FLAVOR']
-xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
-xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
-xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
-xa_db_host = config['configurations']['admin-properties']['db_host']
+db_flavor = (config['configurations']['kms-properties']['DB_FLAVOR']).lower()
+db_host = config['configurations']['kms-properties']['db_host']
+db_name = config['configurations']['kms-properties']['db_name']
+db_user = config['configurations']['kms-properties']['db_user']
+db_password = unicode(config['configurations']['kms-properties']['db_password'])
+kms_master_key_password = unicode(config['configurations']['kms-properties']['KMS_MASTER_KEY_PASSWD'])
+credential_provider_path = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.credential.provider.path']
+jdbc_alias = config['configurations']['dbks-site']['ranger.ks.jpa.jdbc.credential.alias']
+masterkey_alias = config['configurations']['dbks-site']['ranger.ks.masterkey.credential.alias']
 repo_name = str(config['clusterName']) + '_kms'
+cred_lib_path = os.path.join(kms_home,"cred","lib","*")
+cred_setup_prefix = format('python {kms_home}/ranger_credential_helper.py -l "{cred_lib_path}"')
+credential_file = format('/etc/ranger/kms/{repo_name}/cred.jceks')
 
-repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
-repo_config_password = config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD']
+if has_ranger_admin:
+  policymgr_mgr_url = config['configurations']['admin-properties']['policymgr_external_url']
+  xa_audit_db_flavor = (config['configurations']['admin-properties']['DB_FLAVOR']).lower()
+  xa_audit_db_name = config['configurations']['admin-properties']['audit_db_name']
+  xa_audit_db_user = config['configurations']['admin-properties']['audit_db_user']
+  xa_audit_db_password = config['configurations']['admin-properties']['audit_db_password']
+  xa_db_host = config['configurations']['admin-properties']['db_host']
 
-admin_uname = config['configurations']['ranger-env']['admin_username']
-admin_password = config['configurations']['ranger-env']['admin_password']
-
-ambari_ranger_admin = config['configurations']['ranger-env']['ranger_admin_username']
-ambari_ranger_password = config['configurations']['ranger-env']['ranger_admin_password']
-
-admin_uname_password = format("{admin_uname}:{admin_password}")
+  admin_uname = config['configurations']['ranger-env']['admin_username']
+  admin_password = config['configurations']['ranger-env']['admin_password']
+  ambari_ranger_admin = config['configurations']['ranger-env']['ranger_admin_username']
+  ambari_ranger_password = config['configurations']['ranger-env']['ranger_admin_password']
+  admin_uname_password = format("{admin_uname}:{admin_password}")
 
 java_share_dir = '/usr/share/java'
-if has_ranger_admin:
-  if db_flavor.lower() == 'mysql':
-    jdbc_symlink_name = "mysql-jdbc-driver.jar"
-    jdbc_jar_name = "mysql-connector-java.jar"
-  elif db_flavor.lower() == 'oracle':
-    jdbc_jar_name = "ojdbc6.jar"
-    jdbc_symlink_name = "oracle-jdbc-driver.jar"
-  elif db_flavor.lower() == 'postgres':
-    jdbc_jar_name = "postgresql.jar"
-    jdbc_symlink_name = "postgres-jdbc-driver.jar"
-  elif db_flavor.lower() == 'sqlserver':
-    jdbc_jar_name = "sqljdbc4.jar"
-    jdbc_symlink_name = "mssql-jdbc-driver.jar"   
+
+if db_flavor == 'mysql':
+  jdbc_symlink_name = "mysql-jdbc-driver.jar"
+  jdbc_jar_name = "mysql-connector-java.jar"
+  db_jdbc_url = format('jdbc:log4jdbc:mysql://{db_host}/{db_name}')
+  db_jdbc_driver = "net.sf.log4jdbc.DriverSpy"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.MySQLPlatform"
+elif db_flavor == 'oracle':
+  jdbc_jar_name = "ojdbc6.jar"
+  jdbc_symlink_name = "oracle-jdbc-driver.jar"
+  db_jdbc_url = format('jdbc:oracle:thin:\@//{db_host}')
+  db_jdbc_driver = "oracle.jdbc.OracleDriver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.OraclePlatform"
+elif db_flavor == 'postgres':
+  jdbc_jar_name = "postgresql.jar"
+  jdbc_symlink_name = "postgres-jdbc-driver.jar"
+  db_jdbc_url = format('jdbc:postgresql://{db_host}/{db_name}')
+  db_jdbc_driver = "org.postgresql.Driver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.PostgreSQLPlatform"
+elif db_flavor == 'sqlserver':
+  jdbc_jar_name = "sqljdbc4.jar"
+  jdbc_symlink_name = "mssql-jdbc-driver.jar"
+  db_jdbc_url = format('jdbc:sqlserver://{db_host};databaseName={db_name}')
+  db_jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
+  jdbc_dialect = "org.eclipse.persistence.platform.database.SQLServerPlatform"
 
 downloaded_custom_connector = format("{tmp_dir}/{jdbc_jar_name}")
 
@@ -94,23 +114,34 @@ driver_curl_source = format("{jdk_location}/{jdbc_symlink_name}")
 driver_curl_target = format("{java_share_dir}/{jdbc_jar_name}")
 
 if has_ranger_admin:
-  if xa_audit_db_flavor.lower() == 'mysql':
+  if xa_audit_db_flavor == 'mysql':
     jdbc_symlink = "mysql-jdbc-driver.jar"
     jdbc_jar = "mysql-connector-java.jar"
-  elif xa_audit_db_flavor.lower() == 'oracle':
+    audit_jdbc_url = format('jdbc:mysql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "com.mysql.jdbc.Driver"
+  elif xa_audit_db_flavor == 'oracle':
     jdbc_jar = "ojdbc6.jar"
     jdbc_symlink = "oracle-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'postgres':
+    audit_jdbc_url = format('jdbc:oracle:thin:\@//{xa_db_host}')
+    jdbc_driver = "oracle.jdbc.OracleDriver"
+  elif xa_audit_db_flavor == 'postgres':
     jdbc_jar = "postgresql.jar"
     jdbc_symlink = "postgres-jdbc-driver.jar"
-  elif xa_audit_db_flavor.lower() == 'sqlserver':
+    audit_jdbc_url = format('jdbc:postgresql://{xa_db_host}/{xa_audit_db_name}')
+    jdbc_driver = "org.postgresql.Driver"
+  elif xa_audit_db_flavor == 'sqlserver':
     jdbc_jar = "sqljdbc4.jar"
     jdbc_symlink = "mssql-jdbc-driver.jar"
+    audit_jdbc_url = format('jdbc:sqlserver://{xa_db_host};databaseName={xa_audit_db_name}')
+    jdbc_driver = "com.microsoft.sqlserver.jdbc.SQLServerDriver"
 
-downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}")
+  downloaded_connector_path = format("{tmp_dir}/{jdbc_jar}")
 
-driver_source = format("{jdk_location}/{jdbc_symlink}")
-driver_target = format("{java_share_dir}/{jdbc_jar}")    
+  driver_source = format("{jdk_location}/{jdbc_symlink}")
+  driver_target = format("{java_share_dir}/{jdbc_jar}")
+
+repo_config_username = config['configurations']['kms-properties']['REPOSITORY_CONFIG_USERNAME']
+repo_config_password = unicode(config['configurations']['kms-properties']['REPOSITORY_CONFIG_PASSWORD'])
 
 kms_plugin_config = {
   'username' : repo_config_username,
@@ -125,3 +156,7 @@ kms_ranger_plugin_repo = {
   'name' : repo_name,
   'type' : 'kms'
 }
+
+xa_audit_db_is_enabled = config['configurations']['ranger-kms-audit']['xasecure.audit.db.is.enabled']
+ssl_keystore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.keystore.password'])
+ssl_truststore_password = unicode(config['configurations']['ranger-kms-policymgr-ssl']['xasecure.policymgr.clientssl.truststore.password'])
