@@ -103,6 +103,10 @@ describe('App.ComboConfigWidgetView', function() {
       it('should convert config value: `{0}` to widget value: `{1}`'.format(test.value, test.e), function() {
         this.view.set('content', {});
         this.view.set('content.valuesList', Em.A(test.valuesList));
+        this.view.set('config', {
+          isValid: true,
+          value: test.value
+        });
         expect(this.view.generateWidgetValue(test.value)).to.be.equal(test.e);
       });
     });

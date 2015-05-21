@@ -82,8 +82,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
   },
 
   didInsertElement: function () {
-    Em.run.once(this, 'prepareContent');
     this._super();
+    Em.run.once(this, 'prepareContent');
     this.toggleWidgetState();
     this.initPopover();
   },
@@ -104,7 +104,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
     this.set('propertyUnit', property.get('stackConfigProperty.valueAttributes.unit'));
     this.set('minValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.minimum')));
     this.set('maxValue', this.generateWidgetValue(property.get('stackConfigProperty.valueAttributes.maximum')));
-    this.set('content', this.generateWidgetValue(property.get('value')));
+    this.setValue(!isNaN(parseInt(property.get('value'))) ? property.get('value') : 0);
     this.parseIncrement();
   },
 
@@ -151,7 +151,7 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
    * @method valueObserver
    */
   valueObserver: function() {
-    if (!this.get('content')) return;
+    if (!this.get('content') || isNaN(parseInt(this.get('config.value')))) return;
     Em.run.once(this, 'valueObserverCallback');
   }.observes('content.@each.value'),
 
@@ -232,8 +232,8 @@ App.TimeIntervalSpinnerView = App.ConfigWidgetView.extend({
     this.parseIncrement();
   },
 
-  setValue: function() {
-    this.set('content', this.generateWidgetValue(this.get('config.value')));
+  setValue: function(value) {
+    this.set('content', this.generateWidgetValue(value));
   },
 
   isValueCompatibleWithWidget: function() {

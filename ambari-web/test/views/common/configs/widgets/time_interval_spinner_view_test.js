@@ -129,9 +129,10 @@ describe('App.TimeIntervalSpinnerView', function () {
 
   describe('#parseIncrement', function () {
 
-    var createProperty = function (widgetUnits, configPropertyUnits, incrementStep, value) {
+    var createProperty = function (widgetUnits, configPropertyUnits, incrementStep, value, min, max) {
       return Em.Object.create({
         value: value,
+        isValid: true,
         stackConfigProperty: Em.Object.create({
           widget: {
             units: [
@@ -140,8 +141,8 @@ describe('App.TimeIntervalSpinnerView', function () {
           },
           valueAttributes: {
             unit: configPropertyUnits,
-            minimum: 1,
-            maximum: 2,
+            minimum: min,
+            maximum: max,
             increment_step: incrementStep
           }
         })
@@ -151,7 +152,7 @@ describe('App.TimeIntervalSpinnerView', function () {
     Em.A([
         {
           input: "120000",
-          config: createProperty("minutes,seconds", "milliseconds", 10000, "120000"),
+          config: createProperty("minutes,seconds", "milliseconds", 10000, "120000", 0, 240000),
           e: [
             { label: 'Minutes', value: 2, incrementStep: 1, enabled: true},
             { label: 'Seconds', value: 0, incrementStep: 10, enabled: true}
@@ -159,7 +160,7 @@ describe('App.TimeIntervalSpinnerView', function () {
         },
         {
           input: "120000",
-          config: createProperty("minutes,seconds", "milliseconds", 60000, "120000"),
+          config: createProperty("minutes,seconds", "milliseconds", 60000, "120000", "0", "240000"),
           e: [
             { label: 'Minutes', value: 2, incrementStep: 1, enabled: true},
             { label: 'Seconds', value: 0, incrementStep: 60, enabled: false}
@@ -184,6 +185,7 @@ describe('App.TimeIntervalSpinnerView', function () {
         {
           config: Em.Object.create({
             value: "540",
+            isValid: true,
             stackConfigProperty: Em.Object.create({
               widget: {
                 units: [
@@ -201,6 +203,7 @@ describe('App.TimeIntervalSpinnerView', function () {
         {
           config: Em.Object.create({
             value: "86460",
+            isValid: true,
             stackConfigProperty: Em.Object.create({
               widget: {
                 units: [

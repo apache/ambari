@@ -25,7 +25,6 @@ var App = require('app');
 App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   templateName: require('templates/common/configs/widgets/combo_config_widget'),
   classNames: ['widget-config', 'combo-widget'],
-
   supportSwitchToCheckBox: true,
   /**
    * Object with following structure:
@@ -40,10 +39,10 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
   content: null,
 
   didInsertElement: function() {
-    this.generateContent();
+    this.initWidget();
+    this._super();
     this.toggleWidgetState();
     this.initPopover();
-    this._super();
   },
 
   /**
@@ -51,7 +50,7 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    *
    * @method generateContent
    */
-  generateContent: function() {
+  initWidget: function() {
     this.set('content', Em.Object.create({}));
     this.set('content.valuesList', this.convertToWidgetUnits(this.get('config.stackConfigProperty.valueAttributes')));
     this.set('content.value', this.generateWidgetValue(this.get('config.value')));
@@ -81,7 +80,10 @@ App.ComboConfigWidgetView = App.ConfigWidgetView.extend({
    * @returns {String}
    */
   generateWidgetValue: function(value) {
-    return this.get('content.valuesList').findProperty('configValue', value).get('widgetValue');
+    if (this.isValueCompatibleWithWidget()) {
+      return this.get('content.valuesList').findProperty('configValue', value).get('widgetValue');
+    }
+    return null;
   },
 
   /**
