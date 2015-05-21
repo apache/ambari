@@ -138,6 +138,23 @@ class TestFalconServer(RMFTestCase):
         owner = 'falcon',
         recursive = True,
     )
+    self.assertResourceCalled('HdfsResource', '/apps/data-mirroring',
+        security_enabled = False,
+        hadoop_bin_dir = '/usr/bin',
+        keytab = UnknownConfigurationMock(),
+        kinit_path_local = '/usr/bin/kinit',
+        user = 'hdfs',
+        owner = 'hdfs',
+        group='hadoop',
+        hadoop_conf_dir = '/etc/hadoop/conf',
+        type = 'directory',
+        recursive_chown = True,
+        recursive_chmod = True,
+        action = ['create_on_execute'],
+        mode = 0770,
+        source='/usr/hdp/current/falcon-server/data-mirroring'
+    )
+
     self.assertResourceCalled('HdfsResource', None,
         security_enabled = False,
         hadoop_bin_dir = '/usr/bin',

@@ -120,6 +120,17 @@ def falcon(type, action = None):
                   owner=params.falcon_user,
                   recursive=True
         )
+      if params.supports_hive_dr:
+        params.HdfsResource(params.dfs_data_mirroring_dir,
+                            type="directory",
+                            action="create_on_execute",
+                            owner=params.hdfs_user,
+                            group=params.user_group,
+                            recursive_chown = True,
+                            recursive_chmod = True,
+                            mode=0770,
+                            source=params.local_data_mirroring_dir
+        )
       params.HdfsResource(None, action="execute")
       Directory(params.falcon_local_dir,
                 owner=params.falcon_user,

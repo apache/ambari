@@ -111,5 +111,10 @@ export FALCON_DATA_DIR={{falcon_embeddedmq_data}}
 # Where do you want to expand the war file. By Default it is in /server/webapp dir under the base install dir.
 #export FALCON_EXPANDED_WEBAPP_DIR=
     </value>
-  </property>  
+  </property>
+  <property>
+    <name>supports_hive_dr</name>
+    <value>false</value>
+    <description>Enable support of Falcon Hive DR</description>
+  </property>
 </configuration>

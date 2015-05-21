@@ -101,6 +101,11 @@ hdfs_user = config['configurations']['hadoop-env']['hdfs_user']
 hdfs_principal_name = config['configurations']['hadoop-env']['hdfs_principal_name']
 smokeuser_principal =  config['configurations']['cluster-env']['smokeuser_principal_name']
 kinit_path_local = get_kinit_path(default('/configurations/kerberos-env/executable_search_paths', None))
+
+supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
+local_data_mirroring_dir = "/usr/hdp/current/falcon-server/data-mirroring"
+dfs_data_mirroring_dir = "/apps/data-mirroring"
+
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
