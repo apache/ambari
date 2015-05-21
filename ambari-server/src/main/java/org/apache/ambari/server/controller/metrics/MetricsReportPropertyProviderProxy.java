@@ -80,6 +80,21 @@ public class MetricsReportPropertyProviderProxy extends AbstractPropertyProvider
       clusterNamePropertyId);
   }
 
+  /**
+   * Allow delegates to support special properties not stack defined.
+   */
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    MetricsService metricsService = metricsServiceProvider.getMetricsServiceType();
+    Set<String> checkedPropertyIds = super.checkPropertyIds(propertyIds);
+
+    if (metricsService != null && metricsService.equals(TIMELINE_METRICS)) {
+      return amsMetricsReportProvider.checkPropertyIds(checkedPropertyIds);
+    } else {
+      return checkedPropertyIds;
+    }
+  }
+
   @Override
   public Set<Resource> populateResources(Set<Resource> resources, Request request,
                                          Predicate predicate) throws SystemException {

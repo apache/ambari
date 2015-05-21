@@ -21,6 +21,8 @@ package org.apache.ambari.server.controller.internal;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.text.DecimalFormat;
+import java.util.Date;
+import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -32,6 +34,7 @@ import java.util.regex.Pattern;
 import org.apache.ambari.server.controller.metrics.MetricReportingAdapter;
 import org.apache.ambari.server.controller.spi.PropertyProvider;
 import org.apache.ambari.server.controller.utilities.PropertyHelper;
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 
 /**
@@ -384,5 +387,4 @@ public abstract class AbstractPropertyProvider extends BaseProvider implements P
       return length > 0 ? dataPoints[length - 1][0] : 0;
     }
   }
-
 }

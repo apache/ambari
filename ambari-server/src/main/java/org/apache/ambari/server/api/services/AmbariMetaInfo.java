@@ -18,24 +18,10 @@
 
 package org.apache.ambari.server.api.services;
 
-import java.io.File;
-import java.io.FileReader;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
-
-import javax.xml.bind.JAXBException;
-
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.google.inject.Inject;
+import com.google.inject.Singleton;
 import org.apache.ambari.server.AmbariException;
 import org.apache.ambari.server.ParentObjectNotFoundException;
 import org.apache.ambari.server.StackAccessException;
@@ -71,16 +57,32 @@ import org.apache.ambari.server.state.kerberos.KerberosDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosDescriptorFactory;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptor;
 import org.apache.ambari.server.state.kerberos.KerberosServiceDescriptorFactory;
+import org.apache.ambari.server.state.stack.Metric;
 import org.apache.ambari.server.state.stack.MetricDefinition;
 import org.apache.ambari.server.state.stack.OsFamily;
 import org.apache.ambari.server.state.stack.UpgradePack;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
-import com.google.inject.Inject;
-import com.google.inject.Singleton;
+import javax.xml.bind.JAXBException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+
+import static org.apache.ambari.server.controller.spi.Resource.InternalType.Component;
+import static org.apache.ambari.server.controller.utilities.PropertyHelper.AGGREGATE_FUNCTION_IDENTIFIERS;
 
 
 /**
@@ -867,7 +869,7 @@ public class AmbariMetaInfo {
       try {
         map = gson.fromJson(new FileReader(svc.getMetricsFile()), type);
 
-        svc.setMetrics(map);
+        svc.setMetrics(updateComponentMetricMapWithAggregateFunctionIds(map));
 
       } catch (Exception e) {
         LOG.error ("Could not read the metrics file", e);
@@ -876,6 +878,50 @@ public class AmbariMetaInfo {
     }
 
     return map;
+  }
+
+  /**
+   * Add aggregate function support for all stack defined metrics.
+   */
+  private Map<String, Map<String, List<MetricDefinition>>> updateComponentMetricMapWithAggregateFunctionIds(
+      Map<String, Map<String, List<MetricDefinition>>> metricMap) {
+
+    if (!metricMap.isEmpty()) {
+      // For every Component
+      for (Map<String, List<MetricDefinition>> componentMetricDef :  metricMap.values()) {
+        // For every Component / HostComponent category
+        for (Map.Entry<String, List<MetricDefinition>> metricDefEntry : componentMetricDef.entrySet()) {
+          // NOTE: Only Component aggregates supported for now.
+          if (metricDefEntry.getKey().equals(Component.name())) {
+            //For every metric definition
+            for (MetricDefinition metricDefinition : metricDefEntry.getValue()) {
+              Map<String, Metric> newMetrics = new HashMap<String, Metric>();
+              // Metrics System metrics only
+              if (metricDefinition.getType().equals("ganglia")) {
+                // For every function id
+                for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
+                  for (Map.Entry<String, Metric> metricEntry : metricDefinition.getMetrics().entrySet()) {
+                    String newMetricKey = metricEntry.getKey() + identifierToAdd;
+                    Metric currentMetric = metricEntry.getValue();
+                    Metric newMetric = new Metric(
+                      currentMetric.getName() + identifierToAdd,
+                      currentMetric.isPointInTime(),
+                      currentMetric.isTemporal(),
+                      currentMetric.isAmsHostMetric(),
+                      currentMetric.getUnit()
+                    );
+                    newMetrics.put(newMetricKey, newMetric);
+                  }
+                }
+              }
+              metricDefinition.getMetrics().putAll(newMetrics);
+            }
+          }
+        }
+      }
+    }
+
+    return metricMap;
   }
 
   /**

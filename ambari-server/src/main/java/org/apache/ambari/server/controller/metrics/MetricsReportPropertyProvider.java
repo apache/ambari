@@ -35,6 +35,8 @@ public abstract class MetricsReportPropertyProvider extends AbstractPropertyProv
 
   protected final ComponentSSLConfiguration configuration;
 
+  protected static final MetricsPaddingMethod DEFAULT_PADDING_METHOD =
+    new MetricsPaddingMethod(MetricsPaddingMethod.PADDING_STRATEGY.ZEROS);
 
   // ----- Constants --------------------------------------------------------
 

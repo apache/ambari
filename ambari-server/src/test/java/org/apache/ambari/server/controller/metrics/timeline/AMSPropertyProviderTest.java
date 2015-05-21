@@ -47,6 +47,7 @@ import org.powermock.modules.junit4.PowerMockRunner;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -444,6 +445,7 @@ public class AMSPropertyProviderTest {
 
     Map<String, Map<String, PropertyInfo>> propertyIds =
       PropertyHelper.getMetricPropertyIds(Resource.Type.Component);
+    PropertyHelper.updateMetricsWithAggregateFunctionSupport(propertyIds);
 
     AMSComponentPropertyProvider propertyProvider = new AMSComponentPropertyProvider(
       propertyIds,

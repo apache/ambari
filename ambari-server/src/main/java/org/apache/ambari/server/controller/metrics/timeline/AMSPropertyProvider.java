@@ -39,13 +39,13 @@ import org.codehaus.jackson.map.AnnotationIntrospector;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.codehaus.jackson.map.ObjectReader;
 import org.codehaus.jackson.xc.JaxbAnnotationIntrospector;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import static org.apache.ambari.server.Role.HBASE_MASTER;
 import static org.apache.ambari.server.Role.HBASE_REGIONSERVER;
 import static org.apache.ambari.server.Role.METRICS_COLLECTOR;
@@ -67,14 +68,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
   private final static ObjectReader timelineObjectReader;
   private static final String METRIC_REGEXP_PATTERN = "\\([^)]*\\)";
   private static final int COLLECTOR_DEFAULT_PORT = 6188;
-  protected static enum AGGREGATE_FUNCTION_IDENTIFIER {
-    SUM,
-    MIN,
-    MAX,
-    AVG
-  }
-  protected static final EnumMap<AGGREGATE_FUNCTION_IDENTIFIER, String> aggregateFunctionIdentifierMap =
-    new EnumMap<AGGREGATE_FUNCTION_IDENTIFIER, String>(AGGREGATE_FUNCTION_IDENTIFIER.class);
 
   static {
     TIMELINE_APPID_MAP.put(HBASE_MASTER.name(), "HBASE");
@@ -87,11 +80,6 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
     //noinspection deprecation
     mapper.getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
     timelineObjectReader = mapper.reader(TimelineMetrics.class);
-
-    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.SUM, "._sum");
-    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.MIN, "._min");
-    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.MAX, "._max");
-    aggregateFunctionIdentifierMap.put(AGGREGATE_FUNCTION_IDENTIFIER.AVG, "._avg");
   }
 
   public AMSPropertyProvider(Map<String, Map<String, PropertyInfo>> componentPropertyInfoMap,
@@ -121,25 +109,15 @@ public abstract class AMSPropertyProvider extends MetricsPropertyProvider {
    */
   @Override
   public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    Set<String> supportedIds = new HashSet<String>();
     for (String propertyId : propertyIds) {
       if (propertyId.startsWith(ZERO_PADDING_PARAM)
-          || hasAggregateFunctionSuffix(propertyId)) {
-        propertyIds.remove(propertyId);
+          || PropertyHelper.hasAggregateFunctionSuffix(propertyId)) {
+        supportedIds.add(propertyId);
       }
     }
+    propertyIds.removeAll(supportedIds);
     return propertyIds;
-  }
-
-  /**
-   * Check if property ends with a trailing suffix
-   */
-  protected boolean hasAggregateFunctionSuffix(String propertyId) {
-    for (String aggregateFunctionId : aggregateFunctionIdentifierMap.values()) {
-      if (propertyId.endsWith(aggregateFunctionId)) {
-        return true;
-      }
-    }
-    return false;
   }
 
   /**

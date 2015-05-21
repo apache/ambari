@@ -20,6 +20,7 @@ package org.apache.ambari.server.controller.metrics.timeline;
 import org.apache.ambari.server.configuration.ComponentSSLConfiguration;
 import org.apache.ambari.server.controller.internal.PropertyInfo;
 import org.apache.ambari.server.controller.metrics.MetricHostProvider;
+import org.apache.ambari.server.controller.metrics.MetricsPaddingMethod;
 import org.apache.ambari.server.controller.metrics.MetricsPropertyProvider;
 import org.apache.ambari.server.controller.metrics.MetricsReportPropertyProvider;
 import org.apache.ambari.server.controller.spi.Predicate;
@@ -27,6 +28,7 @@ import org.apache.ambari.server.controller.spi.Request;
 import org.apache.ambari.server.controller.spi.Resource;
 import org.apache.ambari.server.controller.spi.SystemException;
 import org.apache.ambari.server.controller.spi.TemporalInfo;
+import org.apache.ambari.server.controller.utilities.PropertyHelper;
 import org.apache.ambari.server.controller.utilities.StreamProvider;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetric;
 import org.apache.hadoop.metrics2.sink.timeline.TimelineMetrics;
@@ -41,16 +43,21 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.SocketTimeoutException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.apache.ambari.server.controller.metrics.MetricsPaddingMethod.ZERO_PADDING_PARAM;
 import static org.apache.ambari.server.controller.metrics.MetricsServiceProvider.MetricsService.TIMELINE_METRICS;
+import static org.apache.ambari.server.controller.utilities.PropertyHelper.updateMetricsWithAggregateFunctionSupport;
 
 public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
   private static ObjectMapper mapper;
   private final static ObjectReader timelineObjectReader;
+  private MetricsPaddingMethod metricsPaddingMethod;
 
   static {
     mapper = new ObjectMapper();
@@ -69,6 +76,22 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
     super(componentPropertyInfoMap, streamProvider, configuration,
       hostProvider, clusterNamePropertyId);
+  }
+
+  /**
+   * Support properties with aggregate functions and metrics padding method.
+   */
+  @Override
+  public Set<String> checkPropertyIds(Set<String> propertyIds) {
+    Set<String> supportedIds = new HashSet<String>();
+    for (String propertyId : propertyIds) {
+      if (propertyId.startsWith(ZERO_PADDING_PARAM)
+          || PropertyHelper.hasAggregateFunctionSuffix(propertyId)) {
+        supportedIds.add(propertyId);
+      }
+    }
+    propertyIds.removeAll(supportedIds);
+    return propertyIds;
   }
 
   @Override
@@ -96,13 +119,27 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
    * @throws SystemException if unable to populate the resource
    */
   private boolean populateResource(Resource resource, Request request, Predicate predicate)
-    throws SystemException {
+      throws SystemException {
 
     Set<String> propertyIds = getPropertyIds();
 
     if (propertyIds.isEmpty()) {
       return true;
     }
+
+    metricsPaddingMethod = DEFAULT_PADDING_METHOD;
+
+    Set<String> requestPropertyIds = request.getPropertyIds();
+    if (requestPropertyIds != null && !requestPropertyIds.isEmpty()) {
+      for (String propertyId : requestPropertyIds) {
+        if (propertyId.startsWith(ZERO_PADDING_PARAM)) {
+          String paddingStrategyStr = propertyId.substring(ZERO_PADDING_PARAM.length() + 1);
+          metricsPaddingMethod = new MetricsPaddingMethod(
+            MetricsPaddingMethod.PADDING_STRATEGY.valueOf(paddingStrategyStr));
+        }
+      }
+    }
+
     String clusterName = (String) resource.getPropertyValue(clusterNamePropertyId);
 
     // Check liveliness of host
@@ -165,6 +202,9 @@ public class AMSReportPropertyProvider extends MetricsReportPropertyProvider {
 
         for (TimelineMetric metric : timelineMetrics.getMetrics()) {
           if (metric.getMetricName() != null && metric.getMetricValues() != null) {
+            // Pad zeros or nulls if needed
+            metricsPaddingMethod.applyPaddingStrategy(metric, temporalInfo);
+
             String propertyId = propertyIdMap.get(metric.getMetricName());
             if (propertyId != null) {
               resource.setProperty(propertyId, getValue(metric, true));
