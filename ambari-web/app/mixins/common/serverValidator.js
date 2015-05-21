@@ -142,6 +142,8 @@ App.ServerValidatorMixin = Em.Mixin.create({
       console.warn('error while loading default config values');
     }
     this._saveRecommendedValues(data);
+    var configObject = data.resources[0].recommendations.blueprint.configurations;
+    if (configObject) this.updateInitialValue(configObject);
     this.set("recommendationsConfigs", Em.get(data.resources[0] , "recommendations.blueprint.configurations"));
   },
 

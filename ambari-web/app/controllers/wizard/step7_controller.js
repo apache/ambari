@@ -641,7 +641,6 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
     }
     self.setStepConfigs(configs, storedConfigs);
     this.loadServerSideConfigsRecommendations().always(function () {
-      self.set('isRecommendedLoaded', true);
       // format descriptor configs
       var serviceConfigProperties = (self.get('content.serviceConfigProperties') || []).mapProperty('name');
       var recommendedToDelete = self.get('_dependentConfigValues').filterProperty('toDelete');
@@ -657,6 +656,8 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
       self.activateSpecialConfigs();
       self.selectProperService();
       self.restoreRecommendedConfigs();
+      self.clearDependentConfigsByService(App.StackService.find().filterProperty('isSelected').mapProperty('serviceName'));
+      self.set('isRecommendedLoaded', true);
       if (self.get('content.skipConfigStep')) {
         App.router.send('next');
       }

@@ -48,11 +48,13 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
   /**
    * defines if initialValue of config can be used on current controller
    * if not savedValue is used instead
-   * @type {boolean}
+   * @param {String} serviceName
+   * @return {boolean}
+   * @method useInitialValue
    */
-  useInitialValue: function() {
-    ['wizardStep7Controller'].contains(this.get('name'));
-  }.property('name'),
+  useInitialValue: function(serviceName) {
+    return ['wizardStep7Controller'].contains(this.get('name')) && !App.Service.find().findProperty('serviceName', serviceName);
+  },
 
 
   /**
@@ -137,6 +139,18 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
       groupsToSave: {},
       _dependentConfigValues: []
     });
+  },
+
+  /**
+   * clear values for dependent configs for given services
+   * @method clearDependentConfigs
+   * @private
+   */
+  clearDependentConfigsByService: function(serviceNames) {
+    var cleanDependencies = this.get('_dependentConfigValues').reject(function(c) {
+      return serviceNames.contains(c.serviceName);
+    }, this);
+    this.set('_dependentConfigValues', cleanDependencies);
   },
 
   onConfigGroupChangeForEnhanced: function() {
@@ -426,7 +440,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
 
           var value = override ? override.get('value') : cp && cp.get('value');
 
-          if (this.get('useInitialValue')) {
+          if (this.useInitialValue(serviceName)) {
             initialValue = override ? override.get('initialValue') : cp && cp.get('initialValue');
           } else {
             initialValue = override ? override.get('savedValue') : cp && cp.get('savedValue');
@@ -546,7 +560,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
                 self.get('_dependentConfigValues').pushObject({
                   saveRecommended: true,
                   saveRecommendedDefault: true,
-                  propertyValue: cp && (cp.get('useInitialValue') ? cp.get('initialValue') : cp.get('savedValue')),
+                  propertyValue: cp && (self.useInitialValue(serviceName) ? cp.get('initialValue') : cp.get('savedValue')),
                   toDelete: true,
                   toAdd: false,
                   isDeleted: true,
@@ -624,7 +638,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           this.addOverrideProperty(cp, selectedGroup, Em.get(propertyToAdd, 'recommendedValue'), !Em.get(propertyToAdd, 'isDeleted'));
         }
         Em.setProperties(propertyToAdd, {
-          isDeleted: false,
+          isDeleted: Em.get(propertyToAdd, 'isDeleted'),
           toAdd: false,
           toDelete: false
         });
@@ -669,6 +683,8 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
             toAdd: false,
             toDelete: false
           });
+        } else {
+          this.get('_dependentConfigValues').removeObject(propertyToDelete);
         }
       }, this);
     }
@@ -697,7 +713,7 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           } else {
             if (stepConfigs.get('serviceName') !== this.get('content.serviceName')) {
               if (propertyToUpdate.saveRecommended || cp.get('value') == propertyToUpdate.recommendedValue) {
-                cp.set('value', this.get('useInitialValue') ? cp.get('initialValue') : cp.get('savedValue'));
+                cp.set('value', this.useInitialValue(stepConfigs.get('serviceName')) ? cp.get('initialValue') : cp.get('savedValue'));
               }
               cp.set('recommendedValue', propertyToUpdate.recommendedValue);
             }
@@ -711,6 +727,32 @@ App.EnhancedConfigsMixin = Em.Mixin.create({
           }
         }
       }, this);
+    }
+  },
+
+  /**
+   * On first load on installer and add service <code>initialValue<code> of <code>serviceConfigProperty<code> object
+   * that contains value from stack should be overriden by dynamic recommendation.
+   * Do this only for not installed services as in this case <code>initialValue<code> is not used.
+   * @param configObject
+   */
+  updateInitialValue: function(configObject) {
+    for (var key in configObject) {
+      /**  defines main info for file name (service name, config group, config that belongs to filename) **/
+      var service = App.config.getServiceByConfigType(key);
+      if (App.Service.find().filterProperty('serviceName', service.get('serviceName'))) {
+        var stepConfig = this.get('stepConfigs').findProperty('serviceName', service.get('serviceName'));
+        if (stepConfig) {
+          var configProperties = stepConfig ? stepConfig.get('configs').filterProperty('filename', App.config.getOriginalFileName(key)) : [];
+
+          for (var propertyName in configObject[key].properties) {
+            var configProperty = configProperties.findProperty('name', propertyName);
+            if (configProperty) {
+              configProperty.set('initialValue', configObject[key].properties[propertyName]);
+            }
+          }
+        }
+      }
     }
   }
 
