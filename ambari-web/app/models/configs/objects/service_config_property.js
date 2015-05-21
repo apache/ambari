@@ -234,6 +234,46 @@ App.ServiceConfigProperty = Em.Object.extend({
     return ["masterHost", "slaveHosts", "masterHosts", "slaveHost", "radio button"].contains(this.get('displayType'));
   }.property('displayType'),
 
+  /**
+   * Used in <code>templates/common/configs/service_config_category.hbs</code>
+   * @type {boolean}
+   */
+  undoAvailable: function () {
+    return this.get('cantBeUndone') && this.get('isNotDefaultValue');
+  }.property('cantBeUndone', 'isNotDefaultValue'),
+
+  /**
+   * Used in <code>templates/common/configs/service_config_category.hbs</code>
+   * @type {boolean}
+   */
+  removeAvailable: function () {
+    return this.get('isRemovable') && !this.get('isComparison');
+  }.property('isComparison', 'isRemovable'),
+
+  /**
+   * Used in <code>templates/common/configs/service_config_category.hbs</code>
+   * @type {boolean}
+   */
+  switchGroupAvailable: function () {
+    return !this.get('isEditable') && this.get('group');
+  }.property('isEditable', 'group'),
+
+  /**
+   * Used in <code>templates/common/configs/service_config_category.hbs</code>
+   * @type {boolean}
+   */
+  setRecommendedAvailable: function () {
+    return this.get('isEditable') && this.get('recommendedValueExists');
+  }.property('isEditable', 'recommendedValueExists'),
+
+  /**
+   * Used in <code>templates/common/configs/service_config_category.hbs</code>
+   * @type {boolean}
+   */
+  overrideAvailable: function () {
+    return !this.get('isComparison') && this.get('isPropertyOverridable');
+  }.property('isPropertyOverridable', 'isComparison'),
+
   isValid: function () {
     return this.get('errorMessage') === '';
   }.property('errorMessage'),

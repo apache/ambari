@@ -28,6 +28,7 @@ App.Tab = DS.Model.extend({
   serviceName: DS.attr('string'),
   sections: DS.hasMany('App.Section'),
   isAdvancedHidden: DS.attr('boolean', {defaultValue: false}),
+  isRendered: DS.attr('boolean', {defaultValue: false}),
 
   /**
    * Number of the errors in all sections in the current tab

@@ -313,11 +313,20 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
    */
   onToggleBlock: function () {
     this.$('.accordion-body').toggle('blind', 500);
-    this.set('category.isCollapsed', !this.get('category.isCollapsed'));
+    this.toggleProperty('category.isCollapsed');
+  },
+
+  /**
+   * Determines should accordion be collapsed by default
+   * @returns {boolean}
+   * @method calcIsCollapsed
+   */
+  calcIsCollapsed: function() {
+    return Em.isNone(this.get('category.isCollapsed')) ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1 || this.get('category.name').indexOf('Custom') != -1) : this.get('category.isCollapsed');
   },
 
   didInsertElement: function () {
-    var isCollapsed = this.get('category.isCollapsed') == undefined ? (this.get('category.name').indexOf('Advanced') != -1 || this.get('category.name').indexOf('CapacityScheduler') != -1 || this.get('category.name').indexOf('Custom') != -1) : this.get('category.isCollapsed');
+    var isCollapsed = this.calcIsCollapsed();
     var self = this;
     this.set('category.isCollapsed', isCollapsed);
     if (isCollapsed) {
@@ -343,11 +352,6 @@ App.ServiceConfigsByCategoryView = Em.View.extend(App.UserPref, App.ConfigOverri
         item.set('isVisible', false);
       });
     }
-  },
-
-  isOneOfAdvancedSections: function () {
-    var category = this.get('category');
-    return category.indexOf("Advanced") != -1;
   },
 
   /**

@@ -42,30 +42,30 @@ describe('App.ServiceConfigContainerView', function () {
   describe('#selectedServiceObserver', function () {
 
     it('should add a child view', function () {
-      view.set('controller', {
+      view.set('controller', Em.Object.create({
         selectedService: {
           configCategories: []
         }
-      });
+      }));
       expect(view.get('childViews')).to.have.length(1);
     });
 
     it('should set controller for the view', function () {
-      view.set('controller', {
+      view.set('controller', Em.Object.create({
         name: 'controller',
         selectedService: {
           configCategories: []
         }
-      });
+      }));
       expect(view.get('childViews.firstObject.controller.name')).to.equal('controller');
     });
 
     it('should add config categories', function () {
-      view.set('controller', {
+      view.set('controller', Em.Object.create({
         selectedService: {
           configCategories: [Em.Object.create(), Em.Object.create()]
         }
-      });
+      }));
       expect(view.get('childViews.firstObject.serviceConfigsByCategoryView.childViews')).to.have.length(2);
     });
 

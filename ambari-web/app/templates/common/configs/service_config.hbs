@@ -116,15 +116,19 @@
       {{#each tab in view.tabs}}
         <div {{bindAttr class=":tab-pane tab.isActive:active tab.id"}}>
           {{#if tab.isAdvanced}}
-            {{#each category in selectedService.configCategories}}
-              <div class="accordion">
-                {{#if category.isCustomView}}
-                  {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
-                {{else}}
-                  {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
-                {{/if}}
-              </div>
-            {{/each}}
+            {{#if tab.isRendered}}
+              {{#each category in selectedService.configCategories}}
+                <div class="accordion">
+                  {{#if category.isCustomView}}
+                    {{view category.customView categoryBinding="category" serviceBinding="selectedService" canEditBinding="view.canEdit" serviceConfigsBinding="selectedService.configs"}}
+                  {{else}}
+                    {{view App.ServiceConfigsByCategoryView categoryBinding="category" canEditBinding="view.canEdit" serviceBinding="selectedService" serviceConfigsBinding="selectedService.configs" supportsHostOverridesBinding="view.supportsHostOverrides"}}
+                  {{/if}}
+                </div>
+              {{/each}}
+            {{else}}
+              <div class="spinner"></div>
+            {{/if}}
           {{else}}
               {{! Render Enhanced Config Section }}
               {{view App.ServiceConfigLayoutTabView contentBinding="tab" canEditBinding="view.canEdit" }}

@@ -114,6 +114,14 @@ App.ServiceConfigView = Em.View.extend({
     this.checkCanEdit();
   },
 
+  willDestroyElement: function() {
+    this.get('tabs').setEach('isActive', false);
+    var advancedTab = this.get('tabs').findProperty('isAdvanced', true);
+    if (advancedTab) {
+      advancedTab.set('isRendered', false);
+    }
+  },
+
   /**
    * Check if we should show Custom Property category
    */
@@ -129,10 +137,7 @@ App.ServiceConfigView = Em.View.extend({
       });
     }
 
-  }.observes(
-      'App.router.mainServiceInfoConfigsController.selectedConfigGroup.name',
-      'App.router.wizardStep7Controller.selectedConfigGroup.name'
-  ),
+  }.observes('controller.selectedConfigGroup.name'),
 
   setActiveTab: function (event) {
     if (event.context.get('isHiddenByFilter')) return false;
@@ -141,6 +146,7 @@ App.ServiceConfigView = Em.View.extend({
     });
     var currentTab = event.context;
     currentTab.set('isActive', true);
+    currentTab.set('isRendered', true);
   },
 
   /**
