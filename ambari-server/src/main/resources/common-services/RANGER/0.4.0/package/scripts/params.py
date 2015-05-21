@@ -44,6 +44,8 @@ hdp_stack_version = format_hdp_stack_version(stack_version_unformatted)
 
 xml_configurations_supported = config['configurations']['ranger-env']['xml_configurations_supported']
 
+create_db_dbuser = config['configurations']['ranger-env']['create_db_dbuser']
+
 stack_is_hdp22_or_further = Script.is_hdp_stack_greater_or_equal("2.2")
 stack_is_hdp23_or_further = Script.is_hdp_stack_greater_or_equal("2.3")
 

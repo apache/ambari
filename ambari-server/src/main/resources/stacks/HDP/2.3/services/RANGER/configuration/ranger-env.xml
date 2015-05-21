@@ -27,8 +27,14 @@
   </property>
 
   <property>
+    <name>create_db_dbuser</name>
+    <value>true</value>
+    <description>Setup Ranger Database and Database User?</description>
+  </property>
+
+  <property>
     <name>oracle_home</name>
     <deleted>true</deleted>
-  </property>  
+  </property>
 
 </configuration>

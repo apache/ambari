@@ -101,16 +101,21 @@ def setup_ranger_db():
   if not os.path.isfile(os.path.join(params.ranger_home, 'ews', 'lib',params.jdbc_jar_name)):
     Execute(('cp', '--remove-destination', params.downloaded_custom_connector, os.path.join(params.ranger_home, 'ews', 'lib')),
       path=["/bin", "/usr/bin/"],
-      sudo=True)  
+      sudo=True)
 
   ModifyPropertiesFile(format("{ranger_home}/install.properties"),
     properties = params.config['configurations']['admin-properties']
   )
 
-  dba_setup = format('python {ranger_home}/dba_script.py -q')
-  db_setup = format('python {ranger_home}/db_setup.py')
+  # User wants us to setup the DB user and DB?
+  if params.create_db_dbuser:
+    Logger.info('Setting up Ranger DB and DB User')
+    dba_setup = format('python {ranger_home}/dba_script.py -q')
+    Execute(dba_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  else:
+    Logger.info('Separate DBA property not set. Assuming Ranger DB and DB User exists!')
 
-  Execute(dba_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
+  db_setup = format('python {ranger_home}/db_setup.py')
   Execute(db_setup, environment={'RANGER_ADMIN_HOME':params.ranger_home, 'JAVA_HOME': params.java_home}, logoutput=True)
 
 

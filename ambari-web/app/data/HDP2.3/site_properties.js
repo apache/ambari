@@ -164,6 +164,15 @@ hdp23properties.push({
     "category": "DBSettings",
     "index": 0
   },
+  {
+    "id": "site property",
+    "name": "create_db_dbuser",
+    "displayName": "Setup DB and DB user",
+    "displayType": "checkbox",
+    "filename": "ranger-env.xml",
+    "category": "Advanced ranger-env",
+    "serviceName": "RANGER"
+  },
   /**************************************** RANGER - HDFS Plugin ***************************************/
   {
     "id": "site property",
