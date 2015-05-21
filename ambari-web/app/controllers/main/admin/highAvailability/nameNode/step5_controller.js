@@ -22,7 +22,7 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep5Controller",
 
-  commands: ['stopServices', 'installNameNode', 'installJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
+  commands: ['stopServices', 'installNameNode', 'checkJournalNodes', 'reconfigureHDFS', 'startJournalNodes', 'disableSNameNode'],
 
   hdfsSiteTag : "",
   coreSiteTag : "",
@@ -30,6 +30,25 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   installNameNode: function () {
     var hostName = this.get('content.masterComponentHosts').filterProperty('component', 'NAMENODE').findProperty('isInstalled', false).hostName;
     this.createComponent('NAMENODE', hostName, "HDFS");
+  },
+
+  checkJournalNodes: function() {
+    App.ajax.send({
+      name: 'admin.high_availability.check_journalnode',
+      sender: this,
+      success: 'onJournalNodeCheck',
+      error: 'onJournalNodeCheck'
+    });
+  },
+
+  onJournalNodeCheck: function(data) {
+    if (!(Em.get(data, 'ServiceComponentInfo.state') === 'INSTALLED')) {
+      this.installJournalNodes();
+    }
+    else {
+      var hostNames = this.get('content.masterComponentHosts').filterProperty('component', 'JOURNALNODE').mapProperty('hostName');
+      this.createComponent('JOURNALNODE', hostNames, "HDFS");
+    }
   },
 
   installJournalNodes: function () {
@@ -124,7 +143,6 @@ App.HighAvailabilityWizardStep5Controller = App.HighAvailabilityProgressPageCont
   onLoadConfigs: function(data) {
     var self = this;
     var configController = App.router.get('highAvailabilityWizardStep3Controller');
-    var configData = $.extend({}, data);
     var configItems = data.items.map(function(item) {
       var fileName = Em.get(item, 'type');
       var configTypeObject = self.get('content.serviceConfigProperties').items.findProperty('type', fileName);

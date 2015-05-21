@@ -1284,6 +1284,11 @@ var urls = {
       }
     }
   },
+  'admin.high_availability.check_journalnode': {
+    'real': '/clusters/{clusterName}/services/HDFS/components/JOURNALNODE?fields=ServiceComponentInfo/state',
+    'mock': ''
+  },
+
   'common.create_component': {
     'real': '/clusters/{clusterName}/services?ServiceInfo/service_name={serviceName}',
     'mock': '',
