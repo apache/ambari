@@ -80,6 +80,10 @@
       height: 40px;
       overflow: hidden;
       text-overflow: ellipsis;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      display: block;
+      display: -webkit-box;
     }
     .content {
       text-align: center;
@@ -158,9 +162,6 @@
       display: none;
     }
     .graph-widget {
-      .title {
-        height: 0;
-      }
       .chart-container {
         cursor: default;
       }
