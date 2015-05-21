@@ -138,6 +138,16 @@
     </depends-on>
   </property>
   <property>
+    <name>phoenix.functions.allowUserDefinedFunctions</name>
+    <value> </value>
+    <depends-on>
+      <property>
+        <type>hbase-env</type>
+        <name>phoenix_sql_enabled</name>
+      </property>
+    </depends-on>
+  </property>
+  <property>
     <name>hbase.coprocessor.regionserver.classes</name>
     <value></value>
     <depends-on>

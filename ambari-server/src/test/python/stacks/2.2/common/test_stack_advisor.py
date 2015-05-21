@@ -1771,6 +1771,7 @@ class TestHDP22StackAdvisor(TestCase):
           "hbase.regionserver.wal.codec": "org.apache.hadoop.hbase.regionserver.wal.IndexedWALEditCodec",
           "hbase.region.server.rpc.scheduler.factory.class": "org.apache.hadoop.hbase.ipc.PhoenixRpcSchedulerFactory",
           "hbase.rpc.controllerfactory.class": "org.apache.hadoop.hbase.ipc.controller.ServerRpcControllerFactory",
+          "phoenix.functions.allowUserDefinedFunctions": "true",
           "hbase.bucketcache.size": "",
           "hbase.bucketcache.percentage.in.combinedcache": "",
           "hbase.regionserver.global.memstore.size": "0.4",
@@ -1801,7 +1802,7 @@ class TestHDP22StackAdvisor(TestCase):
     # Test when phoenix_sql_enabled = false
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
-    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}, 'hbase.coprocessor.regionserver.classes': {'delete': 'true'}}
+    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}, 'hbase.coprocessor.regionserver.classes': {'delete': 'true'}, 'phoenix.functions.allowUserDefinedFunctions': {'delete': 'true'}}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, None)
     self.assertEquals(configurations, expected)
 
@@ -1833,7 +1834,7 @@ class TestHDP22StackAdvisor(TestCase):
                         }]})
     services['configurations']['hbase-env']['properties']['phoenix_sql_enabled'] = 'false'
     expected['hbase-site']['properties']['hbase.regionserver.wal.codec'] = 'org.apache.hadoop.hbase.regionserver.wal.WALCellCodec'
-    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}, 'hbase.coprocessor.regionserver.classes': {'delete': 'true'}}
+    expected['hbase-site']['property_attributes'] = {'hbase.region.server.rpc.scheduler.factory.class': {'delete': 'true'}, 'hbase.rpc.controllerfactory.class': {'delete': 'true'}, 'hbase.coprocessor.regionserver.classes': {'delete': 'true'}, 'phoenix.functions.allowUserDefinedFunctions': {'delete': 'true'}}
     expected['hbase-env']['property_attributes'] = {'hbase_master_heapsize': {'maximum': '49152'}}
     self.stackAdvisor.recommendHBASEConfigurations(configurations, clusterData, services, hosts)
     self.assertEquals(configurations, expected)
