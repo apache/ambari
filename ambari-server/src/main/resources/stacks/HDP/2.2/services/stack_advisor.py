@@ -851,7 +851,7 @@ class HDP22StackAdvisor(HDP21StackAdvisor):
     stripe_size_property = "hive.exec.orc.default.stripe.size"
     if int(properties[stripe_size_property]) not in stripe_size_values:
       validationItems.append({"config-name": stripe_size_property,
-                              "item": self.getWarnItem("Correct values are ")
+                              "item": self.getWarnItem("Correct values are {0}".format(stripe_size_values))
                              }
       )
     return self.toConfigurationValidationProblems(validationItems, "hive-site")
