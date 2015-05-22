@@ -25,7 +25,7 @@ import time
 import re
 import logging
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 class DataCleaner(threading.Thread):
   COMMAND_FILE_NAMES_PATTERN = 'errors-\d+.txt|output-\d+.txt|site-\d+.pp|structured-out-\d+.json|command-\d+.json'
@@ -36,7 +36,7 @@ class DataCleaner(threading.Thread):
   def __init__(self, config):
     threading.Thread.__init__(self)
     self.daemon = True
-    logger.debug('Data cleanup thread started')
+    logger.info('Data cleanup thread started')
     self.config = config
 
     self.file_max_age = config.get('agent', 'data_cleanup_max_age', 86400)
@@ -117,9 +117,9 @@ class DataCleaner(threading.Thread):
 
   def run(self):
     while not self.stopped:
-      logger.debug('Data cleanup started')
+      logger.info('Data cleanup started')
       self.cleanup()
-      logger.debug('Data cleanup finished')
+      logger.info('Data cleanup finished')
       time.sleep(self.cleanup_interval)
 
 

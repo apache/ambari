@@ -45,7 +45,7 @@ from ambari_agent.ClusterConfiguration import  ClusterConfiguration
 from ambari_agent.RecoveryManager import  RecoveryManager
 from ambari_agent.HeartbeatHandlers import HeartbeatStopHandlers, bind_signal_handlers
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 AGENT_AUTO_RESTART_EXIT_CODE = 77
 
@@ -122,7 +122,7 @@ class Controller(threading.Thread):
 
         try:
           server_ip = socket.gethostbyname(self.hostname)
-          logger.debug("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
+          logger.info("Registering with %s (%s) (agent=%s)", self.hostname, server_ip, prettyData)
         except socket.error:
           logger.warn("Unable to determine the IP address of '%s', agent registration may fail (agent=%s)",
                       self.hostname, prettyData)
@@ -148,11 +148,11 @@ class Controller(threading.Thread):
           return ret
 
         self.responseId = int(ret['responseId'])
-        logger.debug("Registration Successful (response id = %s)", self.responseId)
+        logger.info("Registration Successful (response id = %s)", self.responseId)
 
         self.isRegistered = True
         if 'statusCommands' in ret.keys():
-          logger.debug("Got status commands on registration.")
+          logger.info("Got status commands on registration.")
           self.addToStatusQueue(ret['statusCommands'])
         else:
           self.hasMappedComponents = False
@@ -241,7 +241,7 @@ class Controller(threading.Thread):
 
         serverId = int(response['responseId'])
 
-        logger.debug('Heartbeat response received (id = %s)', serverId)
+        logger.info('Heartbeat response received (id = %s)', serverId)
 
         if 'hasMappedComponents' in response.keys():
           self.hasMappedComponents = response['hasMappedComponents'] is not False
@@ -299,7 +299,7 @@ class Controller(threading.Thread):
           logger.error("Received the restartAgent command")
           self.restartAgent()
         else:
-          logger.debug("No commands sent from %s", self.serverHostname)
+          logger.info("No commands sent from %s", self.serverHostname)
 
         if retry:
           logger.info("Reconnected to %s", self.heartbeatUrl)
@@ -366,12 +366,12 @@ class Controller(threading.Thread):
   def registerAndHeartbeat(self):
     registerResponse = self.registerWithServer()
     message = registerResponse['response']
-    logger.debug("Registration response from %s was %s", self.serverHostname, message)
+    logger.info("Registration response from %s was %s", self.serverHostname, message)
 
     if self.isRegistered:
       # Clearing command queue to stop executing "stale" commands
       # after registration
-      logger.debug('Resetting ActionQueue...')
+      logger.info('Resetting ActionQueue...')
       self.actionQueue.reset()
 
       # Process callbacks
@@ -403,7 +403,7 @@ class Controller(threading.Thread):
 
 
   def updateComponents(self, cluster_name):
-    logger.debug("Updating components map of cluster " + cluster_name)
+    logger.info("Updating components map of cluster " + cluster_name)
 
     # May throw IOError on server connection error
     response = self.sendRequest(self.componentsUrl + cluster_name, None)
@@ -416,7 +416,7 @@ class Controller(threading.Thread):
           LiveStatus.CLIENT_COMPONENTS.append({"serviceName": service, "componentName": component})
         else:
           LiveStatus.COMPONENTS.append({"serviceName": service, "componentName": component})
-    logger.debug("Components map updated")
+    logger.info("Components map updated")
     logger.debug("LiveStatus.SERVICES" + str(LiveStatus.SERVICES))
     logger.debug("LiveStatus.CLIENT_COMPONENTS" + str(LiveStatus.CLIENT_COMPONENTS))
     logger.debug("LiveStatus.COMPONENTS" + str(LiveStatus.COMPONENTS))
@@ -424,6 +424,7 @@ class Controller(threading.Thread):
 def main(argv=None):
   # Allow Ctrl-C
 
+  logger.setLevel(logging.INFO)
   formatter = logging.Formatter("%(asctime)s %(filename)s:%(lineno)d - \
     %(message)s")
   stream_handler = logging.StreamHandler()

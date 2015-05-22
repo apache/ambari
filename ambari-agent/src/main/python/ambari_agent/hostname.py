@@ -25,7 +25,7 @@ import AmbariConfig
 import logging
 import traceback
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 
 cached_hostname = None
 cached_public_hostname = None

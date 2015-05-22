@@ -259,7 +259,7 @@ class Scheduler(object):
         event = JobStoreEvent(EVENT_JOBSTORE_JOB_ADDED, jobstore, job)
         self._notify_listeners(event)
 
-        logger.debug('Added job "%s" to job store "%s"', job, jobstore)
+        logger.info('Added job "%s" to job store "%s"', job, jobstore)
 
         # Notify the scheduler about the new job
         if wakeup:
@@ -505,7 +505,7 @@ class Scheduler(object):
                                    'reached (%d)', job, job.max_instances)
                     break
 
-                logger.debug('Running job "%s" (scheduled at %s)', job,
+                logger.info('Running job "%s" (scheduled at %s)', job,
                             run_time)
 
                 try:
@@ -524,7 +524,7 @@ class Scheduler(object):
                                      retval=retval)
                     self._notify_listeners(event)
 
-                    logger.debug('Job "%s" executed successfully', job)
+                    logger.info('Job "%s" executed successfully', job)
 
                 job.remove_instance()
 
@@ -571,7 +571,7 @@ class Scheduler(object):
     def _main_loop(self):
         """Executes jobs on schedule."""
 
-        logger.debug('Scheduler started')
+        logger.info('Scheduler started')
         self._notify_listeners(SchedulerEvent(EVENT_SCHEDULER_START))
 
         self._wakeup.clear()

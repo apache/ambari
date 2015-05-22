@@ -248,7 +248,7 @@
                   <location>conf/unix/ambari-sudo.sh</location>
                 </source>
               </sources>
-            </mapping>         
+            </mapping>
             <mapping>
               <directory>${ambari_commons.install.dir}</directory>
               <username>root</username>
@@ -305,17 +305,6 @@
                 </source>
               </sources>
             </mapping>
-            <mapping>
-              <directory>/etc/ambari-agent/conf</directory>
-              <filemode>755</filemode>
-              <username>root</username>
-              <groupname>root</groupname>
-              <sources>
-                <source>
-                  <location>conf/unix/logging.conf.sample</location>
-                </source>
-              </sources>
-            </mapping>              
             <mapping>
               <directory>/usr/sbin</directory>
               <filemode>755</filemode>
@@ -506,17 +495,6 @@
                   <filemode>755</filemode>
               </mapper>
             </data>
-            <data>
-              <src>conf/unix/logging.conf.sample</src>
-              <type>file</type>
-              <mapper>
-                <type>perm</type>
-                <prefix>/etc/ambari-agent/conf</prefix>
-                  <user>root</user>
-                  <group>root</group>
-                  <filemode>755</filemode>
-              </mapper>
-            </data>            
            <data>
               <src>etc/sudoers.d/ambari-agent</src>
               <type>file</type>

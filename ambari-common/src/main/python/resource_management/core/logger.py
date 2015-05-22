@@ -34,7 +34,7 @@ class Logger:
   sensitive_strings = {}
   
   @staticmethod
-  def initialize_logger(name='resource_management', logging_level=logging.INFO, format='%(asctime)s - %(message)s'):
+  def initialize_logger(logging_level=logging.INFO, name='resource_management', format='%(asctime)s - %(message)s'):
     # set up logging (two separate loggers for stderr and stdout with different loglevels)
     logger = logging.getLogger(name)
     logger.setLevel(logging_level)
@@ -47,7 +47,7 @@ class Logger:
     cherr.setFormatter(formatter)
     logger.addHandler(cherr)
     logger.addHandler(chout)
-
+    
     Logger.logger = logger
     
     return logger, chout, cherr

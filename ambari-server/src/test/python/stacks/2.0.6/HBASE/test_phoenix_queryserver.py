@@ -121,7 +121,7 @@ class TestPhoenixQueryServer(RMFTestCase):
     )
     self.assertNoMoreResources()
 
-  @skip("there's nothing to upgrade to yet")
+  @skip("there's nothing to upgrade to yet")    
   def test_start_default_24(self):
     self.executeScript(self.COMMON_SERVICES_PACKAGE_DIR + "/scripts/phoenix_queryserver.py",
                    classname = "PhoenixQueryServer",
