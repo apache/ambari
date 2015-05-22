@@ -33,24 +33,13 @@
                 <ul class="dropdown-menu select-options-dropdown">
                   <!--metrics level-->
                   <li class="keep-open metric-select" {{action selectComponents component target="view"}}>
-                    <select class="metrics-select chosen-select">
-                      <option value="" disabled selected>{{t dashboard.widgets.wizard.step2.selectMetric}}</option>
-                      {{#each metric in component.metrics}}
-                        <option>{{unbound metric}}</option>
-                      {{/each}}
-                    </select>
+                      {{view App.JqueryChosenView optionsBinding="component.metrics" elementIdBinding="component.id" selectionObjBinding="view.metricsSelectionObj"}}
                   </li>
                   <!--select aggregare function -->
                   <li {{bindAttr class=":keep-open :aggregator-select component.showAggregateSelect::hidden"}}
                     {{action selectComponents component target="view"}}
                     {{translateAttr data-original-title="dashboard.widgets.wizard.step2.aggregateTooltip"}}>
-                    <select class="aggregate-function-select chosen-select">
-                      <option value="" disabled
-                              selected>{{t dashboard.widgets.wizard.step2.aggregateFunction.scanOps}}</option>
-                      {{#each function in view.parentView.AGGREGATE_FUNCTIONS}}
-                        <option>{{unbound function}}</option>
-                      {{/each}}
-                    </select>
+                    {{view App.JqueryChosenView optionsBinding="view.parentView.AGGREGATE_FUNCTIONS" elementIdBinding="component.aggregatorId" selectionObjBinding="view.aggregateFnSelectionObj"}}
                   </li>
                   <li class="actions-buttons">
                     <button class="btn" href="#" {{action cancel target="view"}}>{{t common.cancel}}</button>

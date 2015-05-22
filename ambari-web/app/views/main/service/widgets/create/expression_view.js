@@ -210,34 +210,40 @@ App.AddMetricExpressionView = Em.View.extend({
     $('html').on('click.dropdown', '.dropdown-menu li', function (e) {
       $(this).hasClass('keep-open') && e.stopPropagation();
     });
-    var self = this;
-    Em.run.later(this, function () {
-      $(".metrics-select.chosen-select").chosen({
-        placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
-        no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound')
-      }).change(function (event, obj) {
-          var filteredComponentMetrics = self.get('controller.filteredMetrics').filterProperty('component_name', self.get('currentSelectedComponent.componentName')).filterProperty('level',self.get('currentSelectedComponent.level'));
-          var filteredMetric = filteredComponentMetrics.findProperty('name', obj.selected);
-          var selectedMetric =  Em.Object.create({
-            name: obj.selected,
-            componentName: self.get('currentSelectedComponent.componentName'),
-            serviceName: self.get('currentSelectedComponent.serviceName'),
-            metricPath: filteredMetric.widget_id,
-            isMetric: true
-          });
-          if (self.get('currentSelectedComponent.hostComponentCriteria')) {
-            selectedMetric.hostComponentCriteria = self.get('currentSelectedComponent.hostComponentCriteria');
-          }
-          self.set('currentSelectedComponent.selectedMetric', selectedMetric);
-      });
-
-      $(".aggregate-function-select.chosen-select").chosen({
-        placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps')
-      }).change(function (event, obj) {
-          self.set('currentSelectedComponent.selectedAggregation', obj.selected);
-      });
-    }, 1600);
   },
+
+  metricsSelectionObj: function () {
+    var self = this;
+    return Em.Object.create({
+      placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.selectMetric'),
+      no_results_text: Em.I18n.t('widget.create.wizard.step2.noMetricFound'),
+      onChangeCallback: function (event, obj) {
+        var filteredComponentMetrics = self.get('controller.filteredMetrics').filterProperty('component_name', self.get('currentSelectedComponent.componentName')).filterProperty('level', self.get('currentSelectedComponent.level'));
+        var filteredMetric = filteredComponentMetrics.findProperty('name', obj.selected);
+        var selectedMetric = Em.Object.create({
+          name: obj.selected,
+          componentName: self.get('currentSelectedComponent.componentName'),
+          serviceName: self.get('currentSelectedComponent.serviceName'),
+          metricPath: filteredMetric.widget_id,
+          isMetric: true
+        });
+        if (self.get('currentSelectedComponent.hostComponentCriteria')) {
+          selectedMetric.hostComponentCriteria = self.get('currentSelectedComponent.hostComponentCriteria');
+        }
+        self.set('currentSelectedComponent.selectedMetric', selectedMetric);
+      }
+    })
+  }.property(),
+
+  aggregateFnSelectionObj: function () {
+    var self = this;
+    return Em.Object.create({
+      placeholder_text: Em.I18n.t('dashboard.widgets.wizard.step2.aggregateFunction.scanOps'),
+      onChangeCallback: function (event, obj) {
+        self.set('currentSelectedComponent.selectedAggregation', obj.selected);
+      }
+    })
+  }.property(),
 
   /**
    * @type {Ember.Object}
@@ -347,6 +353,7 @@ App.AddMetricExpressionView = Em.View.extend({
           metrics: servicesMap[serviceName].components[componentId].metrics.uniq().sort(),
           selected: false,
           id: componentId,
+          aggregatorId: componentId + '_aggregator',
           serviceName: serviceName,
           showAggregateSelect: function () {
             return this.get('level') === 'COMPONENT';
