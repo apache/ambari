@@ -29,7 +29,7 @@ import traceback
 import hostname
 import platform
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 GEN_AGENT_KEY = 'openssl req -new -newkey rsa:1024 -nodes -keyout "%(keysdir)s'+os.sep+'%(hostname)s.key" '\
 	'-subj /OU=%(hostname)s/ -out "%(keysdir)s'+os.sep+'%(hostname)s.csr"'
@@ -52,11 +52,11 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
       try:
         sock = self.create_connection()
         self.sock = ssl.wrap_socket(sock, cert_reqs=ssl.CERT_NONE)
-        logger.info('SSL connection established. Two-way SSL authentication is '
+        logger.debug('SSL connection established. Two-way SSL authentication is '
                     'turned off on the server.')
       except (ssl.SSLError, AttributeError):
         self.two_way_ssl_required = True
-        logger.info('Insecure connection to https://' + self.host + ':' + self.port +
+        logger.error('Insecure connection to https://' + self.host + ':' + self.port +
                     '/ failed. Reconnecting using two-way SSL authentication..')
 
     if self.two_way_ssl_required:
@@ -90,7 +90,7 @@ class VerifiedHTTPSConnection(httplib.HTTPSConnection):
   def create_connection(self):
     if self.sock:
       self.sock.close()
-    logger.info("SSL Connect being called.. connecting to the server")
+    logger.debug("SSL Connect being called.. connecting to the server")
     sock = socket.create_connection((self.host, self.port), 60)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_KEEPALIVE, 1)
     if self._tunnel_host:

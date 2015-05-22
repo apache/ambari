@@ -1,0 +1,26 @@
+[loggers]
+keys=root,Controller
+
+[handlers]
+keys=logfile
+
+[formatters]
+keys=logfileformatter
+
+[logger_root]
+level=WARNING
+handlers=logfile
+
+[logger_Controller]
+level=DEBUG
+handlers=logfile
+qualname=Controller
+
+[formatter_logfileformatter]
+format=%(levelname)s %(asctime)s %(filename)s:%(lineno)d - %(message)s
+
+[handler_logfile]
+class=handlers.RotatingFileHandler
+level=DEBUG
+args=('/var/log/ambari-agent/ambari-agent.log',"a", 10000000, 25)
+formatter=logfileformatter

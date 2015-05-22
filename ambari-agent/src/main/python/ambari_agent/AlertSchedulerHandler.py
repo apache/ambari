@@ -35,7 +35,7 @@ from alerts.port_alert import PortAlert
 from alerts.script_alert import ScriptAlert
 from alerts.web_alert import WebAlert
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 class AlertSchedulerHandler():
   FILENAME = 'definitions.json'
@@ -364,15 +364,7 @@ def main():
   args = list(sys.argv)
   del args[0]
 
-  try:
-    logger.setLevel(logging.DEBUG)
-  except TypeError:
-    logger.setLevel(12)
-
-  ch = logging.StreamHandler()
-  ch.setLevel(logger.level)
-  logger.addHandler(ch)
-    
+  
   ash = AlertSchedulerHandler(args[0], args[1], args[2], False)
   ash.start()
   

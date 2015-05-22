@@ -18,14 +18,13 @@ from urlparse import urlparse
 import logging
 import httplib
 from ssl import SSLError
-import platform
 from HeartbeatHandlers import HeartbeatStopHandlers
 
 ERROR_SSL_WRONG_VERSION = "SSLError: Failed to connect. Please check openssl library versions. \n" +\
               "Refer to: https://bugzilla.redhat.com/show_bug.cgi?id=1022468 for more details."
 LOG_REQUEST_MESSAGE = "GET %s -> %s, body: %s"
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 
 class NetUtil:
@@ -57,7 +56,7 @@ class NetUtil:
 
        Additionally returns body of request, if available
     """
-    logger.info("Connecting to " + url)
+    logger.debug("Connecting to " + url)
     responseBody = ""
 
     try:

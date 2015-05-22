@@ -25,7 +25,7 @@ import re
 from alerts.base_alert import BaseAlert
 from resource_management.core.environment import Environment
 
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
 
 class ScriptAlert(BaseAlert):
   def __init__(self, alert_meta, alert_source_meta, config):
