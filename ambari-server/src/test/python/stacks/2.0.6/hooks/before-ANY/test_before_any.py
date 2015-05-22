@@ -24,6 +24,8 @@ from resource_management import Hook
 
 @patch.object(Hook, "run_custom_hook", new = MagicMock())
 class TestHookBeforeInstall(RMFTestCase):
+  TMP_PATH = '/tmp/hbase-hbase'
+
   @patch("os.path.exists")
   def test_hook_default(self, os_path_exists_mock):
 
@@ -136,7 +138,7 @@ class TestHookBeforeInstall(RMFTestCase):
     self.assertResourceCalled('Execute', '/tmp/changeUid.sh ambari-qa /tmp/hadoop-ambari-qa,/tmp/hsperfdata_ambari-qa,/home/ambari-qa,/tmp/ambari-qa,/tmp/sqoop-ambari-qa',
         not_if = '(test $(id -u ambari-qa) -gt 1000) || (false)',
     )
-    self.assertResourceCalled('Directory', '/hadoop/hbase',
+    self.assertResourceCalled('Directory', self.TMP_PATH,
         owner = 'hbase',
         mode = 0775,
         recursive = True,
@@ -146,7 +148,7 @@ class TestHookBeforeInstall(RMFTestCase):
         content = StaticFile('changeToSecureUid.sh'),
         mode = 0555,
     )
-    self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,/hadoop/hbase',
+    self.assertResourceCalled('Execute', '/tmp/changeUid.sh hbase /home/hbase,/tmp/hbase,/usr/bin/hbase,/var/log/hbase,' + self.TMP_PATH,
         not_if = '(test $(id -u hbase) -gt 1000) || (false)',
     )
     self.assertResourceCalled('User', 'test_user1',
