@@ -92,7 +92,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     return step ? parseFunction(step) : this.get('unitType') === 'int' ? 1 : 0.1;
   }.property('config.stackConfigProperty.valueAttributes.increment_step'),
 
-
   /**
    * Default value of config property transformed according widget format
    * @returns {Number}
@@ -110,8 +109,6 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
     var parseFunction = this.get('mirrorValueParseFunction');
     return parseFunction(this.widgetValueByConfigAttributes(this.get('config.recommendedValue')));
   }.property('config.recommendedValue'),
-
-  units: ['b', 'kb', 'mb', 'gb', 'tb', 'pb'],
 
   /**
    * unit type of widget
@@ -235,7 +232,7 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
         }
       }
       // avoid precision during restore value
-      if (parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.savedValue')))) {
+      if (!Em.isNone(this.get('config.savedValue')) && parsed == parseFunction(this.widgetValueByConfigAttributes(this.get('config.savedValue')))) {
         this.set('config.value', this.get('config.savedValue'));
       }
     } else {
@@ -245,9 +242,9 @@ App.SliderConfigWidgetView = App.ConfigWidgetView.extend({
   },
 
   /**
+   * set widget value same as config value
    * @override
    * @method setValue
-   * set widget value same as config value
    */
   setValue: function(value) {
     var parseFunction = this.get('parseFunction');

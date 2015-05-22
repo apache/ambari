@@ -34,6 +34,8 @@ App.BaseUnitConvertMixin = Em.Mixin.create({
    */
   currentDimensionType: null,
 
+  units: ['b', 'kb', 'mb', 'gb', 'tb', 'pb'],
+
   /**
    * Labels related to units. Specify desired display names here that not much actual unit name.
    */
