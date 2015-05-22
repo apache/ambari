@@ -231,6 +231,10 @@ public class BlueprintConfigurationProcessor {
       doYarnResourceManagerHAUpdate();
     }
 
+    if (isOozieServerHAEnabled(clusterTopology.getConfiguration().getFullProperties())) {
+      doOozieServerHAUpdate();
+    }
+
     Collection<Map<String, Map<String, String>>> allConfigs = new ArrayList<Map<String, Map<String, String>>>();
     allConfigs.add(clusterTopology.getConfiguration().getFullProperties());
     for (HostGroupInfo groupInfo : clusterTopology.getHostGroupInfo().values()) {
@@ -304,6 +308,10 @@ public class BlueprintConfigurationProcessor {
       updaters = addYarnResourceManagerHAUpdaters(updaters);
     }
 
+    if (isOozieServerHAEnabled(clusterTopology.getConfiguration().getFullProperties())) {
+      updaters = addOozieServerHAUpdaters(updaters);
+    }
+
     return updaters;
   }
 
@@ -355,6 +363,33 @@ public class BlueprintConfigurationProcessor {
 
     // add the updaters for the dynamic HA properties, based on the HA config in hdfs-site
     highAvailabilityUpdaters.add(createMapOfYarnResourceManagerHAUpdaters());
+
+    return highAvailabilityUpdaters;
+  }
+
+
+  /**
+   * Creates a Collection of PropertyUpdater maps that include the OozieServer HA properties, and
+   *   adds these to the list of updaters used to process the cluster configuration.
+
+   *   This new Collection includes the statically-defined updaters,
+   *   in addition to the HA-related updaters.
+   *
+   * @param updaters a Collection of updater maps to be included in the list of updaters for
+   *                   this cluster config update
+   * @return A Collection of PropertyUpdater maps to handle the cluster config update
+   */
+  private Collection<Map<String, Map<String, PropertyUpdater>>> addOozieServerHAUpdaters(Collection<Map<String, Map<String, PropertyUpdater>>> updaters) {
+    Collection<Map<String, Map<String, PropertyUpdater>>> highAvailabilityUpdaters =
+      new LinkedList<Map<String, Map<String, PropertyUpdater>>>();
+
+    // always add the statically-defined list of updaters to the list to use
+    // in processing cluster configuration
+    highAvailabilityUpdaters.addAll(updaters);
+
+    // add the updaters for the Oozie HA properties not defined in stack, but
+    // required to be present/updated in oozie-site
+    highAvailabilityUpdaters.add(createMapOfOozieServerHAUpdaters());
 
     return highAvailabilityUpdaters;
   }
@@ -418,6 +453,20 @@ public class BlueprintConfigurationProcessor {
     }
   }
 
+  /**
+   * Perform export update processing for HA configuration for Oozie servers.  The properties used
+   * in Oozie HA are not defined in the stack, but need to be added at runtime during an HA
+   * deployment in order to support exporting/redeploying clusters with Oozie HA config.
+   *
+   */
+  public void doOozieServerHAUpdate() {
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = createMapOfOozieServerHAUpdaters();
+
+    if (highAvailabilityUpdaters.get("oozie-site").size() > 0) {
+      doMultiHostExportUpdate(highAvailabilityUpdaters, clusterTopology.getConfiguration().getFullProperties());
+    }
+  }
+
 
   /**
    * Creates map of PropertyUpdater instances that are associated with
@@ -478,6 +527,27 @@ public class BlueprintConfigurationProcessor {
     }
 
     return highAvailabilityUpdaters;
+  }
+
+  /**
+   * Creates map of PropertyUpdater instances that are associated with
+   *   Oozie Server High Availability (HA).
+   *
+   * @return a Map of registered PropertyUpdaters for handling HA properties in oozie-site
+   */
+  private Map<String, Map<String, PropertyUpdater>> createMapOfOozieServerHAUpdaters() {
+    Map<String, Map<String, PropertyUpdater>> highAvailabilityUpdaters = new HashMap<String, Map<String, PropertyUpdater>>();
+    Map<String, PropertyUpdater> oozieSiteUpdatersForAvailability = new HashMap<String, PropertyUpdater>();
+    highAvailabilityUpdaters.put("oozie-site", oozieSiteUpdatersForAvailability);
+
+    // register a multi-host property updater for this Oozie property.
+    // this property is not defined in the stacks, since HA is not supported yet
+    // by the stack definition syntax.  This property should only be considered in
+    // an Oozie HA cluster.
+    oozieSiteUpdatersForAvailability.put("oozie.zookeeper.connection.string", new MultipleHostTopologyUpdater("ZOOKEEPER_SERVER"));
+
+    return highAvailabilityUpdaters;
+
   }
 
   /**

@@ -2223,6 +2223,77 @@ public class BlueprintConfigurationProcessorTest {
   }
 
   @Test
+  public void testOozieHAEnabledExport() throws Exception {
+    final String expectedHostName = "c6401.apache.ambari.org";
+    final String expectedHostNameTwo = "c6402.ambari.apache.org";
+    final String expectedExternalHost = "c6408.ambari.apache.org";
+    final String expectedHostGroupName = "host_group_1";
+    final String expectedHostGroupNameTwo = "host_group_2";
+    final String expectedPortNum = "80000";
+
+    Map<String, Map<String, String>> configProperties = new HashMap<String, Map<String, String>>();
+    Map<String, String> oozieSiteProperties = new HashMap<String, String>();
+    Map<String, String> oozieEnvProperties = new HashMap<String, String>();
+    Map<String, String> coreSiteProperties = new HashMap<String, String>();
+
+    configProperties.put("oozie-site", oozieSiteProperties);
+    configProperties.put("oozie-env", oozieEnvProperties);
+    configProperties.put("hive-env", oozieEnvProperties);
+    configProperties.put("core-site", coreSiteProperties);
+
+
+    oozieSiteProperties.put("oozie.base.url", expectedHostName + ":" + expectedPortNum);
+    oozieSiteProperties.put("oozie.authentication.kerberos.principal", expectedHostName);
+    oozieSiteProperties.put("oozie.service.HadoopAccessorService.kerberos.principal", expectedHostName);
+    oozieSiteProperties.put("oozie.service.JPAService.jdbc.url", "jdbc:mysql://" + expectedExternalHost + "/ooziedb");
+
+    // simulate the Oozie HA configuration
+    oozieSiteProperties.put("oozie.services.ext",
+      "org.apache.oozie.service.ZKLocksService,org.apache.oozie.service.ZKXLogStreamingService,org.apache.oozie.service.ZKJobsConcurrencyService,org.apache.oozie.service.ZKUUIDService");
+    oozieSiteProperties.put("oozie.zookeeper.connection.string", createHostAddress(expectedHostName, "2181") + "," + createHostAddress(expectedHostNameTwo, "2181"));
+
+
+    oozieEnvProperties.put("oozie_hostname", expectedHostName);
+    oozieEnvProperties.put("oozie_existing_mysql_host", expectedExternalHost);
+
+    coreSiteProperties.put("hadoop.proxyuser.oozie.hosts", expectedHostName + "," + expectedHostNameTwo);
+
+    Configuration clusterConfig = new Configuration(configProperties, Collections.<String, Map<String, Map<String, String>>>emptyMap());
+    Collection<String> hgComponents = new HashSet<String>();
+    hgComponents.add("OOZIE_SERVER");
+    hgComponents.add("ZOOKEEPER_SERVER");
+    TestHostGroup group1 = new TestHostGroup(expectedHostGroupName, hgComponents, Collections.singleton(expectedHostName));
+
+    Collection<String> hgComponents2 = new HashSet<String>();
+    hgComponents2.add("OOZIE_SERVER");
+    hgComponents2.add("ZOOKEEPER_SERVER");
+    TestHostGroup group2 = new TestHostGroup(expectedHostGroupNameTwo, hgComponents2, Collections.singleton(expectedHostNameTwo));
+
+    Collection<TestHostGroup> hostGroups = new HashSet<TestHostGroup>();
+    hostGroups.add(group1);
+    hostGroups.add(group2);
+
+    expect(stack.getCardinality("OOZIE_SERVER")).andReturn(new Cardinality("1+")).anyTimes();
+
+    ClusterTopology topology = createClusterTopology(bp, clusterConfig, hostGroups);
+    BlueprintConfigurationProcessor updater = new BlueprintConfigurationProcessor(topology);
+    updater.doUpdateForBlueprintExport();
+
+    assertEquals("oozie property not updated correctly",
+      createExportedHostName(expectedHostGroupName, expectedPortNum), oozieSiteProperties.get("oozie.base.url"));
+    assertEquals("oozie property not updated correctly",
+      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.authentication.kerberos.principal"));
+    assertEquals("oozie property not updated correctly",
+      createExportedHostName(expectedHostGroupName), oozieSiteProperties.get("oozie.service.HadoopAccessorService.kerberos.principal"));
+    assertEquals("oozie property not updated correctly",
+      createExportedHostName(expectedHostGroupName), oozieEnvProperties.get("oozie_hostname"));
+    assertEquals("oozie property not updated correctly",
+      createExportedHostName(expectedHostGroupName) + "," + createExportedHostName(expectedHostGroupNameTwo), coreSiteProperties.get("hadoop.proxyuser.oozie.hosts"));
+    assertEquals("oozie property not updated correctly",
+      createExportedAddress("2181", expectedHostGroupName) + "," + createExportedAddress("2181", expectedHostGroupNameTwo), oozieSiteProperties.get("oozie.zookeeper.connection.string"));
+  }
+
+  @Test
   public void testYarnHighAvailabilityConfigClusterUpdateSpecifyingHostNamesDirectly() throws Exception {
     final String expectedHostName = "c6401.apache.ambari.org";
     final String expectedPortNum = "808080";

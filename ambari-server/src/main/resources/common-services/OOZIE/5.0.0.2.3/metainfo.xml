@@ -30,7 +30,7 @@
           <name>OOZIE_SERVER</name>
           <displayName>Oozie Server</displayName>
           <category>MASTER</category>
-          <cardinality>1</cardinality>
+          <cardinality>1+</cardinality>
           <versionAdvertised>true</versionAdvertised>
           <dependencies>
             <dependency>
