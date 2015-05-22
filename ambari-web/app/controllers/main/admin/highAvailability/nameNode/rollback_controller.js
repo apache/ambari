@@ -33,6 +33,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
   commands: [
     'stopAllServices',
     'restoreHBaseConfigs',
+    'restoreAccumuloConfigs',
     'stopFailoverControllers',
     'deleteFailoverControllers',
     'stopStandbyNameNode',
@@ -68,6 +69,7 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       'deleteSNameNode',
       'startAllServices',
       'reconfigureHBase',
+      'reconfigureAccumulo',
       'startZKFC',
       'installZKFC',
       'startSecondNameNode',
@@ -94,6 +96,10 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
     var hbaseTask = this.get('tasks').findProperty('command', 'restoreHBaseConfigs');
     if (!App.Service.find().someProperty('serviceName', 'HBASE') && hbaseTask) {
       this.get('tasks').splice(hbaseTask.get('id'), 1);
+    }
+    var accumuloTask = this.get('tasks').findProperty('command', 'restoreAccumuloConfigs');
+    if (!App.Service.find().someProperty('serviceName', 'ACCUMULO') && accumuloTask) {
+      this.get('tasks').splice(accumuloTask.get('id'), 1);
     }
   },
 
@@ -234,6 +240,20 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       error: 'onTaskError'
     });
   },
+  restoreAccumuloConfigs: function(){
+    console.warn('func: restoreAccumuloConfigs');
+    this.loadConfigTag("accumuloSiteTag");
+    var accumuloSiteTag = this.get("content.accumuloSiteTag");
+    App.ajax.send({
+      name: 'admin.high_availability.load_accumulo_configs',
+      sender: this,
+      data: {
+        accumuloSiteTag: accumuloSiteTag
+      },
+      success: 'onLoadAccumuloConfigs',
+      error: 'onTaskError'
+    });
+  },
 
   stopFailoverControllers: function(){
     console.warn('func: stopFailoverControllers');
@@ -304,6 +324,20 @@ App.HighAvailabilityRollbackController = App.HighAvailabilityProgressPageControl
       data: {
         siteName: 'hbase-site',
         properties: hbaseSiteProperties
+      },
+      success: 'onTaskCompleted',
+      error: 'onTaskError'
+    });
+  },
+  onLoadAccumuloConfigs: function (data) {
+    console.warn('func: onLoadAccumuloConfigs');
+    var accumuloSiteProperties = data.items.findProperty('type', 'accumulo-site').properties;
+    App.ajax.send({
+      name: 'admin.high_availability.save_configs',
+      sender: this,
+      data: {
+        siteName: 'accumulo-site',
+        properties: accumuloSiteProperties
       },
       success: 'onTaskCompleted',
       error: 'onTaskError'

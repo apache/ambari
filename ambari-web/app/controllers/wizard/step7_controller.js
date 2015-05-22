@@ -769,6 +769,15 @@ App.WizardStep7Controller = Em.Controller.extend(App.ServerValidatorMixin, App.E
             'recommendedValue' : valueToChange
           });
         }
+        if(this.get('selectedServiceNames').contains('ACCUMULO') && nameServiceId){
+          var vols = serviceConfigs.findProperty('serviceName', 'ACCUMULO').configs.findProperty('name','instance.volumes'),
+            valueToChange = vols.get('value').replace(/\/\/.*:[0-9]+/i, '//' + nameServiceId.get('value'));
+
+          vols.setProperties({
+            'value':  valueToChange,
+            'recommendedValue' : valueToChange
+          });
+        }
       }
     }
 

@@ -22,14 +22,20 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
 
   name:"highAvailabilityWizardStep9Controller",
 
-  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'deleteSNameNode', 'startAllServices'],
+  commands: ['startSecondNameNode', 'installZKFC', 'startZKFC', 'reconfigureHBase', 'reconfigureAccumulo', 'deleteSNameNode', 'startAllServices'],
 
   hbaseSiteTag: "",
+  accumuloSiteTag: "",
 
   initializeTasks: function () {
     this._super();
+    var numSpliced = 0;
     if (!App.Service.find().someProperty('serviceName', 'HBASE')) {
       this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureHBase').get('id'), 1);
+      numSpliced = 1;
+    }
+    if (!App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+      this.get('tasks').splice(this.get('tasks').findProperty('command', 'reconfigureAccumulo').get('id') - numSpliced, 1);
     }
   },
 
@@ -60,6 +66,20 @@ App.HighAvailabilityWizardStep9Controller = App.HighAvailabilityProgressPageCont
   reconfigureHBase: function () {
     var data = this.get('content.serviceConfigProperties');
     var configData = this.reconfigureSites(['hbase-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
+    App.ajax.send({
+      name: 'common.service.configurations',
+      sender: this,
+      data: {
+        desired_config: configData
+      },
+      success: 'saveConfigTag',
+      error: 'onTaskError'
+    });
+  },
+
+  reconfigureAccumulo: function () {
+    var data = this.get('content.serviceConfigProperties');
+    var configData = this.reconfigureSites(['accumulo-site'], data, Em.I18n.t('admin.highAvailability.step4.save.configuration.note').format(App.format.role('NAMENODE')));
     App.ajax.send({
       name: 'common.service.configurations',
       sender: this,

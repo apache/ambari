@@ -23,9 +23,10 @@ module.exports =
     displayName: 'MISC',
     configCategories: [
       App.ServiceConfigCategory.create({ name: 'HDFS', displayName: 'HDFS'}),
-      App.ServiceConfigCategory.create({ name: 'HBASE', displayName: 'HBase'})
+      App.ServiceConfigCategory.create({ name: 'HBASE', displayName: 'HBase'}),
+      App.ServiceConfigCategory.create({ name: 'ACCUMULO', displayName: 'Accumulo'})
     ],
-    sites: ['core-site', 'hdfs-site','hbase-site'],
+    sites: ['core-site', 'hdfs-site', 'hbase-site', 'accumulo-site'],
     configs: [
     /**********************************************HDFS***************************************/
       {
@@ -233,6 +234,28 @@ module.exports =
         "value": "/hadoop/hdfs/journal",
         "category": "HBASE",
         "filename": "hbase-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "id": "site property",
+        "name": "instance.volumes",
+        "displayName": "instance.volumes",
+        "isReconfigurable": false,
+        "recommendedValue": "/hadoop/hdfs/journal",
+        "value": "/hadoop/hdfs/journal",
+        "category": "ACCUMULO",
+        "filename": "accumulo-site",
+        "serviceName": 'MISC'
+      },
+      {
+        "id": "site property",
+        "name": "instance.volumes.replacements",
+        "displayName": "instance.volumes.replacements",
+        "isReconfigurable": false,
+        "recommendedValue": "/hadoop/hdfs/journal",
+        "value": "/hadoop/hdfs/journal",
+        "category": "ACCUMULO",
+        "filename": "accumulo-site",
         "serviceName": 'MISC'
       }
     ]

@@ -71,6 +71,11 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
       urlParams.push('(type=hbase-site&tag=' + hbaseSiteTag + ')');
       this.set("hbaseSiteTag", {name : "hbaseSiteTag", value : hbaseSiteTag});
     }
+    if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+      var accumuloSiteTag = data.Clusters.desired_configs['accumulo-site'].tag;
+      urlParams.push('(type=accumulo-site&tag=' + accumuloSiteTag + ')');
+      this.set("accumuloSiteTag", {name : "accumuloSiteTag", value : accumuloSiteTag});
+    }
     App.ajax.send({
       name: 'admin.get.all_configurations',
       sender: this,
@@ -136,6 +141,15 @@ App.HighAvailabilityWizardStep3Controller = Em.Controller.extend({
     if (App.Service.find().someProperty('serviceName', 'HBASE')) {
      var value = this.get('serverConfigData.items').findProperty('type', 'hbase-site').properties['hbase.rootdir'].replace(/\/\/[^\/]*/, '//' + nameServiceId);
      this.setConfigInitialValue(config,value);
+    }
+    config = configs.findProperty('name','instance.volumes');
+    var config2 = configs.findProperty('name','instance.volumes.replacements');
+    if (App.Service.find().someProperty('serviceName', 'ACCUMULO')) {
+      var oldValue = this.get('serverConfigData.items').findProperty('type', 'accumulo-site').properties['instance.volumes'];
+      var value = oldValue.replace(/\/\/[^\/]*/, '//' + nameServiceId);
+      var replacements = oldValue + " " + value;
+      this.setConfigInitialValue(config,value);
+      this.setConfigInitialValue(config2,replacements)
     }
     config = configs.findProperty('name','dfs.journalnode.edits.dir');
     if (App.get('isHadoopWindowsStack') && App.Service.find().someProperty('serviceName', 'HDFS')) {
