@@ -71,6 +71,8 @@ public class ViewClassLoader extends WebAppClassLoader {
 
     // add com.google.inject as system classes to allow for injection in view components using the google annotation
     webAppContext.addSystemClass("com.google.inject.");
+    // add org.slf4j as system classes to avoid linkage errors
+    webAppContext.addSystemClass("org.slf4j.");
 
     return webAppContext;
   }

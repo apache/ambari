@@ -72,6 +72,7 @@ public class ViewClassLoaderTest {
     expect(parentClassLoader.loadClass("ParentClass")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("javax.xml.parsers.SAXParserFactory")).andReturn(parentClass).once();
     expect(parentClassLoader.loadClass("com.google.inject.AbstractModule")).andReturn(parentClass).once();
+    expect(parentClassLoader.loadClass("org.slf4j.LoggerFactory")).andReturn(parentClass).once();
 
     replay(parentClassLoader);
 
@@ -99,6 +100,12 @@ public class ViewClassLoaderTest {
 
     // should be loaded by parent loader
     clazz = classLoader.loadClass("com.google.inject.AbstractModule");
+
+    Assert.assertNotNull(clazz);
+    Assert.assertSame(parentClass, clazz);
+
+    // should be loaded by parent loader
+    clazz = classLoader.loadClass("org.slf4j.LoggerFactory");
 
     Assert.assertNotNull(clazz);
     Assert.assertSame(parentClass, clazz);
