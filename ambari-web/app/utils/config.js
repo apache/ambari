@@ -546,9 +546,13 @@ App.config = Em.Object.create({
                 'hive_existing_oracle_host',
                 'hive_existing_postgresql_host',
                 'hive_existing_mysql_host',
+                'hive_existing_mssql_server_host',
+                'hive_existing_mssql_server_2_host',
                 'oozie_existing_oracle_host',
                 'oozie_existing_postgresql_host',
-                'oozie_existing_mysql_host'
+                'oozie_existing_mysql_host',
+                'oozie_existing_mssql_server_host',
+                'oozie_existing_mssql_server_2_host'
               ].contains(Em.get(preDefined, 'name'))) {
             return;
           }
