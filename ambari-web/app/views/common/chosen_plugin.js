@@ -37,6 +37,7 @@ App.JqueryChosenView = Em.View.extend({
     var self = this;
     var elementId = "#" + self.get("elementId");
     $(elementId).chosen({
+      search_contains: true,
       placeholder_text: self.get('selectionObj.placeholder_text'),
       no_results_text: self.get('selectionObj.no_results_text')
     }).change(self.get('selectionObj.onChangeCallback'));
