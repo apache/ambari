@@ -16,10 +16,20 @@
 -->
 
 <configuration supports_final="false">
+
+  <property>
+    <name>yarn.scheduler.capacity.root.accessible-node-labels.default.capacity</name>
+    <deleted>true</deleted>
+  </property>
+
+  <property>
+    <name>yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity</name>
+    <deleted>true</deleted>
+  </property>
+
   <property>
     <name>yarn.scheduler.capacity.root.default-node-label-expression</name>
-    <value></value>
-    <description></description>
+    <deleted>true</deleted>
   </property>
 
 </configuration>
