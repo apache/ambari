@@ -484,7 +484,7 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
   hideWidget: function (event) {
     var widgetToHide = event.context;
     var activeLayout = this.get('activeWidgetLayout');
-    var widgetIds = activeLayout.get('widgets').map(function(widget) {
+    var widgetIds = activeLayout.get('widgets').map(function (widget) {
       return {
         "id": widget.get("id")
       }
@@ -496,8 +496,8 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         "layout_name": activeLayout.get("layoutName"),
         "scope": activeLayout.get("scope"),
         "section_name": activeLayout.get("sectionName"),
-        "widgets": widgetIds.filter(function(widget) {
-          return widget.id != widgetToHide.id;
+        "widgets": widgetIds.filter(function (widget) {
+          return widget.id !== widgetToHide.id;
         })
       }
     };
@@ -510,9 +510,26 @@ App.MainServiceInfoSummaryController = Em.Controller.extend(App.WidgetSectionMix
         layoutId: activeLayout.get("id"),
         data: data
       },
-      success: 'updateActiveLayout'
+      success: 'hideWidgetSuccessCallback'
     });
 
+  },
+
+  /**
+   * @param {object|null} data
+   * @param {object} opt
+   * @param {object} params
+   */
+  hideWidgetSuccessCallback: function (data, opt, params) {
+    params.data.WidgetLayoutInfo.widgets = params.data.WidgetLayoutInfo.widgets.map(function (widget) {
+      return {
+        WidgetInfo: {
+          id: widget.id
+        }
+      }
+    });
+    App.widgetLayoutMapper.map({items: [params.data]});
+    this.propertyDidChange('widgets');
   },
 
   /**

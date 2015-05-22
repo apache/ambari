@@ -292,4 +292,43 @@ describe('App.MainServiceInfoSummaryController', function () {
 
   });
 
+  describe("#hideWidgetSuccessCallback()", function () {
+    beforeEach(function () {
+      sinon.stub(App.widgetLayoutMapper, 'map');
+      sinon.stub(controller, 'propertyDidChange');
+    });
+    afterEach(function () {
+      App.widgetLayoutMapper.map.restore();
+      controller.propertyDidChange.restore();
+    });
+    it("", function () {
+      var params = {
+        data: {
+          WidgetLayoutInfo: {
+            widgets: [
+              {
+                id: 1
+              }
+            ]
+          }
+        }
+      };
+      controller.hideWidgetSuccessCallback({}, {}, params);
+      expect(App.widgetLayoutMapper.map.calledWith({
+        items: [{
+          WidgetLayoutInfo: {
+            widgets: [
+              {
+                WidgetInfo: {
+                  id: 1
+                }
+              }
+            ]
+          }
+        }]
+      })).to.be.true;
+      expect(controller.propertyDidChange.calledWith('widgets')).to.be.true;
+    });
+  });
+
 });
