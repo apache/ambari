@@ -33,7 +33,7 @@ App.ChartClusterMetricsCPU = App.ChartLinearTimeView.extend({
 
   title: Em.I18n.t('dashboard.clusterMetrics.cpu'),
   yAxisFormatter: App.ChartLinearTimeView.PercentageFormatter,
-  isTimePagingDisable: true,
+  isTimePagingDisable: false,
   transformToSeries: function (jsonData) {
     var seriesArray = [];
     var idle = null;

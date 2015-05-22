@@ -32,7 +32,7 @@ App.ChartClusterMetricsNetwork = App.ChartLinearTimeView.extend({
 
   ajaxIndex: 'dashboard.cluster_metrics.network',
 
-  isTimePagingDisable: true,
+  isTimePagingDisable: false,
   title: Em.I18n.t('dashboard.clusterMetrics.network'),
   yAxisFormatter: App.ChartLinearTimeView.BytesFormatter,
   renderer: 'line',

@@ -31,7 +31,7 @@ App.ChartClusterMetricsLoad = App.ChartLinearTimeView.extend({
   id: "cluster-metrics-load",
 
   ajaxIndex: 'dashboard.cluster_metrics.load',
-  isTimePagingDisable: true,
+  isTimePagingDisable: false,
   renderer: 'line',
   title: Em.I18n.t('dashboard.clusterMetrics.load'),
   
