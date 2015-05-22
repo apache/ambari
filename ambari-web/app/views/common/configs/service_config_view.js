@@ -116,10 +116,6 @@ App.ServiceConfigView = Em.View.extend({
 
   willDestroyElement: function() {
     this.get('tabs').setEach('isActive', false);
-    var advancedTab = this.get('tabs').findProperty('isAdvanced', true);
-    if (advancedTab) {
-      advancedTab.set('isRendered', false);
-    }
   },
 
   /**
@@ -159,6 +155,11 @@ App.ServiceConfigView = Em.View.extend({
       return Em.A([]);
     }
     var tabs = App.Tab.find().filterProperty('serviceName', this.get('controller.selectedService.serviceName'));
+    tabs.setEach('isActive', false);
+    var advancedTab = tabs.findProperty('isAdvanced', true);
+    if (advancedTab) {
+      advancedTab.set('isRendered', false);
+    }
     this.processTabs(tabs);
     this.pickActiveTab(tabs);
     return tabs;
