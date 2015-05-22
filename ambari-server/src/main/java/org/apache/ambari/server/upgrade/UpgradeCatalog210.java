@@ -879,6 +879,40 @@ public class UpgradeCatalog210 extends AbstractUpgradeCatalog {
 
   protected void addMissingConfigs() throws AmbariException {
     updateHiveConfigs();
+    updateHdfsConfigs();
+  }
+  
+  protected void updateHdfsConfigs() throws AmbariException {
+    /***
+     * Append -Dorg.mortbay.jetty.Request.maxFormContentSize=-1 to HADOOP_NAMENODE_OPTS from hadoop-env.sh
+     */
+    AmbariManagementController ambariManagementController = injector.getInstance(
+        AmbariManagementController.class);
+    Clusters clusters = ambariManagementController.getClusters();
+
+    if (clusters != null) {
+      Map<String, Cluster> clusterMap = clusters.getClusters();
+      Map<String, String> prop = new HashMap<String, String>();
+      String content = null;
+
+      if (clusterMap != null && !clusterMap.isEmpty()) {
+        for (final Cluster cluster : clusterMap.values()) {
+          content = null;
+          if (cluster.getDesiredConfigByType("hadoop-env") != null) {
+            content = cluster.getDesiredConfigByType(
+                "hadoop-env").getProperties().get("content");
+          }
+
+          if (content != null) {
+            content += "\nexport HADOOP_NAMENODE_OPTS=\"${HADOOP_NAMENODE_OPTS} -Dorg.mortbay.jetty.Request.maxFormContentSize=-1\"";
+
+            prop.put("content", content);
+            updateConfigurationPropertiesForCluster(cluster, "hadoop-env",
+                prop, true, false);
+          }
+        }
+      }
+    }
   }
 
   protected void updateHiveConfigs() throws AmbariException {

@@ -166,13 +166,15 @@ def create_hdfs_directories(check):
                        type="directory",
                        action="create_on_execute",
                        owner=params.hdfs_user,
-                       mode=0777
+                       mode=0777,
+                       only_if=check
   )
   params.HdfsResource(params.smoke_hdfs_user_dir,
                        type="directory",
                        action="create_on_execute",
                        owner=params.smoke_user,
-                       mode=params.smoke_hdfs_user_mode
+                       mode=params.smoke_hdfs_user_mode,
+                       only_if=check
   )
   params.HdfsResource(None, 
                       action="execute",

@@ -256,17 +256,6 @@ def service(action=None, name=None, user=None, options="", create_pid_dir=False,
          action="delete",
     )
 
-
-def get_value_from_jmx(qry, property):
-  try:
-    response = urllib2.urlopen(qry)
-    data = response.read()
-    if data:
-      data_dict = json.loads(data)
-      return data_dict["beans"][0][property]
-  except:
-    return None
-
 def get_jmx_data(nn_address, modeler_type, metric, encrypted=False):
   """
   :param nn_address: Namenode Address, e.g., host:port, ** MAY ** be preceded with "http://" or "https://" already.

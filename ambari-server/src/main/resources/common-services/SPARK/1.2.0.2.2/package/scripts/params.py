@@ -30,6 +30,7 @@ from resource_management.libraries.functions import format
 from resource_management.libraries.functions.version import format_hdp_stack_version
 from resource_management.libraries.functions.default import default
 from resource_management.libraries.functions import get_kinit_path
+
 from resource_management.libraries.script.script import Script
 
 
@@ -152,7 +153,8 @@ if security_enabled:
       'hive.server2.enable.doAs': str(config['configurations']['hive-site']['hive.server2.enable.doAs']).lower()
     })
   
-
+default_fs = config['configurations']['core-site']['fs.defaultFS']
+hdfs_site = config['configurations']['hdfs-site']
 
 
 import functools
@@ -165,5 +167,8 @@ HdfsResource = functools.partial(
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
   hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs
  )

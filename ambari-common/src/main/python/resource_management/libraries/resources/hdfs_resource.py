@@ -65,11 +65,16 @@ class HdfsResource(Resource):
   change_permissions_for_parents = BooleanArgument(default=False)
 
   security_enabled = BooleanArgument(default=False)
+  principal_name = ResourceArgument()
   keytab = ResourceArgument()
   kinit_path_local = ResourceArgument()
   user = ResourceArgument()
   hadoop_bin_dir = ResourceArgument()
   hadoop_conf_dir = ResourceArgument()
+  
+  # WebHDFS needs these
+  hdfs_site = ResourceArgument()
+  default_fs = ResourceArgument()
 
   #action 'execute' immediately creates all pending files/directories in efficient manner
   #action 'create_delayed/delete_delayed' adds file/directory to list of pending directories

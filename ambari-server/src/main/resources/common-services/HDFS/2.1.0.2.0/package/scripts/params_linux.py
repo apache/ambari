@@ -37,6 +37,7 @@ from resource_management.libraries.resources.hdfs_resource import HdfsResource
 from resource_management.libraries.functions.format_jvm_option import format_jvm_option
 from resource_management.libraries.functions.get_lzo_packages import get_lzo_packages
 
+
 config = Script.get_config()
 tmp_dir = Script.get_tmp_dir()
 
@@ -292,6 +293,10 @@ else:
   dn_kinit_cmd = ""
   nn_kinit_cmd = ""
   jn_kinit_cmd = ""
+  
+
+hdfs_site = config['configurations']['hdfs-site']
+default_fs = config['configurations']['core-site']['fs.defaultFS']
 
 import functools
 #create partial functions with common arguments for every HdfsResource call
@@ -303,7 +308,10 @@ HdfsResource = functools.partial(
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
   hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs
 )
 
 

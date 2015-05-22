@@ -20,7 +20,7 @@ limitations under the License.
 
 from resource_management.core.logger import Logger
 from resource_management.libraries.functions.default import default
-from utils import get_value_from_jmx
+from resource_management.libraries.functions.jmx import get_value_from_jmx
 
 
 class NAMENODE_STATE:

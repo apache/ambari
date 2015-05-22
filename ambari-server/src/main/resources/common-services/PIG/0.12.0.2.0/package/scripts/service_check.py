@@ -47,13 +47,13 @@ class PigServiceCheckLinux(PigServiceCheck):
     params.HdfsResource(output_dir,
                         type="directory",
                         action="delete_on_execute",
-                        user=params.smokeuser,
+                        owner=params.smokeuser,
                         )
     params.HdfsResource(input_file,
                         type="file",
                         source="/etc/passwd",
                         action="create_on_execute",
-                        user=params.smokeuser,
+                        owner=params.smokeuser,
     )
     params.HdfsResource(None, action="execute")
  
@@ -85,13 +85,13 @@ class PigServiceCheckLinux(PigServiceCheck):
       params.HdfsResource(output_dir,
                           type="directory",
                           action="delete_on_execute",
-                          user=params.smokeuser,
+                          owner=params.smokeuser,
       )
       params.HdfsResource(input_file,
                           type="file",
                           source="/etc/passwd",
                           action="create_on_execute",
-                          user=params.smokeuser,
+                          owner=params.smokeuser,
       )
 
       # Check for Pig-on-Tez

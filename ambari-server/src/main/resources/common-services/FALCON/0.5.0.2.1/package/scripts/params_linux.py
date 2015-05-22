@@ -27,6 +27,7 @@ from resource_management.libraries.functions import get_kinit_path
 from resource_management.libraries.script.script import Script
 
 
+
 config = Script.get_config()
 
 stack_name = default("/hostLevelParams/stack_name", None)
@@ -106,6 +107,11 @@ supports_hive_dr = config['configurations']['falcon-env']['supports_hive_dr']
 local_data_mirroring_dir = "/usr/hdp/current/falcon-server/data-mirroring"
 dfs_data_mirroring_dir = "/apps/data-mirroring"
 
+
+
+hdfs_site = config['configurations']['hdfs-site']
+default_fs = config['configurations']['core-site']['fs.defaultFS']
+
 import functools
 #create partial functions with common arguments for every HdfsResource call
 #to create/delete hdfs directory/file/copyfromlocal we need to call params.HdfsResource in code
@@ -116,6 +122,9 @@ HdfsResource = functools.partial(
   keytab = hdfs_user_keytab,
   kinit_path_local = kinit_path_local,
   hadoop_bin_dir = hadoop_bin_dir,
-  hadoop_conf_dir = hadoop_conf_dir
+  hadoop_conf_dir = hadoop_conf_dir,
+  principal_name = hdfs_principal_name,
+  hdfs_site = hdfs_site,
+  default_fs = default_fs
  )
 
