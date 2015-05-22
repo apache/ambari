@@ -459,6 +459,13 @@ App.MainAdminStackAndUpgradeController = Em.Controller.extend(App.LocalStorage, 
       var title = Em.I18n.t('popup.clusterCheck.Upgrade.title');
       var alert = Em.I18n.t('popup.clusterCheck.Upgrade.alert');
       App.showClusterCheckPopup(data, header, title, alert);
+    } else if (data.items.someProperty('UpgradeChecks.status', "WARNING") && data.items.someProperty('UpgradeChecks.id', "CONFIG_MERGE")) {
+      var self = this,
+        configsMergeCheckData = data.items.findProperty('UpgradeChecks.id', "CONFIG_MERGE").UpgradeChecks.failed_detail;
+      this.set('requestInProgress', false);
+      App.showUpgradeConfigsMergePopup(configsMergeCheckData, params.label, function () {
+        self.upgrade(params);
+      });
     } else {
       this.upgrade(params);
     }

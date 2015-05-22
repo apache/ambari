@@ -252,41 +252,76 @@ describe('App.MainAdminStackAndUpgradeController', function() {
   });
 
   describe("#runPreUpgradeCheckSuccess()", function () {
-    beforeEach(function () {
-      sinon.stub(App, 'showClusterCheckPopup', Em.K);
-      sinon.stub(controller, 'upgrade', Em.K);
-    });
-    afterEach(function () {
-      App.showClusterCheckPopup.restore();
-      controller.upgrade.restore();
-    });
-    it("shows popup", function () {
-      var check =  { items: [{
-        UpgradeChecks: {
+    var cases = [
+      {
+        check: {
           "check": "Work-preserving RM/NM restart is enabled in YARN configs",
           "status": "FAIL",
           "reason": "FAIL",
           "failed_on": [],
           "check_type": "SERVICE"
-        }
-      }]};
-      controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
-      expect(controller.upgrade.called).to.be.false;
-      expect(App.showClusterCheckPopup.called).to.be.true;
-    });
-    it("runs upgrade popup", function () {
-      var check = { items: [{
-        UpgradeChecks: {
+        },
+        showClusterCheckPopupCalledCount: 1,
+        showUpgradeConfigsMergePopupCalledCount: 0,
+        upgradeCalledCount: 0,
+        title: 'error popup is displayed is errors are present'
+      },
+      {
+        check: {
+          "check": "Configuration Merge Check",
+          "status": "WARNING",
+          "reason": "Conflict",
+          "failed_on": [],
+          "failed_detail": [],
+          "check_type": "CLUSTER",
+          "id": "CONFIG_MERGE"
+        },
+        showClusterCheckPopupCalledCount: 0,
+        showUpgradeConfigsMergePopupCalledCount: 1,
+        upgradeCalledCount: 0,
+        title: 'warnings popup is displayed is configs merge conflicts are present'
+      },
+      {
+        check: {
           "check": "Work-preserving RM/NM restart is enabled in YARN configs",
           "status": "PASS",
           "reason": "OK",
           "failed_on": [],
           "check_type": "SERVICE"
-        }
-      }]};
-      controller.runPreUpgradeCheckSuccess(check,null,{label: "name"});
-      expect(controller.upgrade.called).to.be.true;
-      expect(App.showClusterCheckPopup.called).to.be.false;
+        },
+        showClusterCheckPopupCalledCount: 0,
+        showUpgradeConfigsMergePopupCalledCount: 0,
+        upgradeCalledCount: 1,
+        title: 'upgrade is started if errors and configs merge conflicts are absent'
+      }
+    ];
+    beforeEach(function () {
+      sinon.stub(App, 'showClusterCheckPopup', Em.K);
+      sinon.stub(App, 'showUpgradeConfigsMergePopup', Em.K);
+      sinon.stub(controller, 'upgrade', Em.K);
+    });
+    afterEach(function () {
+      App.showClusterCheckPopup.restore();
+      App.showUpgradeConfigsMergePopup.restore();
+      controller.upgrade.restore();
+    });
+    cases.forEach(function (item) {
+      it(item.title, function () {
+        controller.runPreUpgradeCheckSuccess(
+          {
+            items: [
+              {
+                UpgradeChecks: item.check
+              }
+            ]
+          }, null, {
+            label: 'name'
+          }
+        );
+        expect(controller.upgrade.callCount).to.equal(item.upgradeCalledCount);
+        expect(App.showClusterCheckPopup.callCount).to.equal(item.showClusterCheckPopupCalledCount);
+        expect(App.showUpgradeConfigsMergePopup.callCount).to.equal(item.showUpgradeConfigsMergePopupCalledCount);
+      });
     });
   });
 

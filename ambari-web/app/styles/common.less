@@ -330,3 +330,29 @@
     }
   }
 }
+
+.configs-merge-warnings {
+  .modal {
+    width: 950px;
+    margin-left: -475px;
+  }
+  .icon-info-sign {
+    color: @blue;
+  }
+  .configs-table {
+    table-layout: fixed;
+    font-size: 0.95em;
+    td {
+      word-wrap: break-word;
+      &.no-value {
+        font-style: italic;
+      }
+    }
+    td:first-child, td:first-child + td, th:first-child, th:first-child + th {
+      width: 12.5%;
+    }
+    td:first-child + td + td, td:first-child + td + td + td, td:first-child + td + td + td + td, th:first-child + th + th, th:first-child + th + th + th, th:first-child + th + th + th + th {
+      width: 25%;
+    }
+  }
+}
