@@ -101,6 +101,15 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
   isOriginalSCPBinding: 'config.isOriginalSCP',
 
   /**
+   * Check if property validation failed for overridden property in case when its value is equal to parent
+   * config property.
+   * @type {boolean}
+   */
+  isOverrideEqualityError: function() {
+    return this.get('config.parentSCP') && this.get('config.parentSCP.value') == this.get('config.value');
+  }.property('config.isValid'),
+
+  /**
    * Alias to <code>config.isComparison</code>
    * Should be used in the templates
    * Don't use original <code>config.isComparison</code> in the widget-templates!!!
@@ -384,7 +393,7 @@ App.ConfigWidgetView = Em.View.extend(App.SupportsDependentConfigs, App.WidgetPo
    * @returns {boolean}
    */
   isValueCompatibleWithWidget: function() {
-    return this.get('config.isValid');
+    return (this.get('isOverrideEqualityError') && !this.get('config.isValid')) || this.get('config.isValid');
   },
 
   /**

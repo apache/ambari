@@ -294,4 +294,97 @@ describe('App.TimeIntervalSpinnerView', function () {
     });
   });
 
+  describe('#showAsTextBox', function() {
+    Em.A([
+      {
+        config: App.ServiceConfigProperty.create({
+          value: "600",
+          isValid: true,
+          stackConfigProperty: Em.Object.create({
+            widget: {
+              units: [
+                { unit: "hours,minutes" }
+              ]
+            },
+            valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+          })
+        }),
+        m: 'original config with valid value should be shown as widget',
+        e: false
+      },
+      {
+        config: App.ServiceConfigProperty.create({
+          value: "test",
+          isValid: true,
+          stackConfigProperty: Em.Object.create({
+            widget: {
+              units: [
+                { unit: "hours,minutes" }
+              ]
+            },
+            valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+          })
+        }),
+        m: 'original config with invalid value should be shown as textbox',
+        e: true
+      },
+      {
+        config: App.ServiceConfigProperty.create({
+          value: "600",
+          isValid: true,
+          stackConfigProperty: Em.Object.create({
+            widget: {
+              units: [
+                { unit: "hours,minutes" }
+              ]
+            },
+            valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+          }),
+          parentSCP: Em.Object.create({ value: "600" })
+        }),
+        m: 'overriden config have same value as original and values of both configs are valid, widget should be shown',
+        e: false
+      },
+      {
+        config: App.ServiceConfigProperty.create({
+          value: "test",
+          isValid: true,
+          stackConfigProperty: Em.Object.create({
+            widget: {
+              units: [
+                { unit: "hours,minutes" }
+              ]
+            },
+            valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+          }),
+          parentSCP: Em.Object.create({ value: "test" })
+        }),
+        m: 'overriden config have same value as original and values of both configs are NOT valid, textbox should be shown',
+        e: true
+      },
+      {
+        config: App.ServiceConfigProperty.create({
+          value: "test",
+          isValid: true,
+          stackConfigProperty: Em.Object.create({
+            widget: {
+              units: [
+                { unit: "hours,minutes" }
+              ]
+            },
+            valueAttributes: {type: "int", maximum: "86400", minimum: "600", unit: "seconds"}
+          }),
+          parentSCP: Em.Object.create({ value: "500" })
+        }),
+        m: 'overriden config have different value as original and values of override NOT valid, textbox should be shown',
+        e: true
+      }
+    ]).forEach(function (test) {
+      it(test.m, function() {
+        view.set('config', test.config);
+        view.didInsertElement();
+        expect(view.get('config.showAsTextBox')).to.eql(test.e);
+      });
+    });
+  });
 });
