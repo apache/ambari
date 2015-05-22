@@ -647,7 +647,7 @@ class HDPWIN22StackAdvisor(HDPWIN21StackAdvisor):
 
     #Adding Ranger Plugin logic here 
     ranger_plugin_properties = getSiteProperties(configurations, "ranger-hdfs-plugin-properties")
-    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled']
+    ranger_plugin_enabled = ranger_plugin_properties['ranger-hdfs-plugin-enabled'] if ranger_plugin_properties else 'No'
     servicesList = [service["StackServices"]["service_name"] for service in services["services"]]
     if ("RANGER" in servicesList) and (ranger_plugin_enabled.lower() == 'Yes'.lower()):
       if hdfs_site['dfs.permissions.enabled'] != 'true':
