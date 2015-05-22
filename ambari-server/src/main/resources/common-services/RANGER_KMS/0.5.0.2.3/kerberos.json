@@ -1,0 +1,46 @@
+{
+  "services": [
+    {
+      "name": "RANGER_KMS",
+      "identities": [
+        {
+          "name": "/spnego",
+          "keytab": {
+            "configuration": "kms-site/hadoop.kms.authentication.kerberos.keytab"
+          }
+        },
+        {
+          "name": "/smokeuser"
+        }
+      ],
+      "configurations": [
+        {
+          "kms-site": {
+            "hadoop.kms.authentication.type": "kerberos",
+            "hadoop.kms.authentication.kerberos.principal": "*"
+          }
+        }
+      ],
+      "components": [
+        {
+          "name": "RANGER_KMS_SERVER",
+          "identities": [
+            {
+              "name": "/spnego",
+              "principal": {
+                "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal"
+              },
+              "keytab": {
+                "configuration": "kms-site/hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab"
+              }
+            },
+            {
+              "name": "/smokeuser"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
