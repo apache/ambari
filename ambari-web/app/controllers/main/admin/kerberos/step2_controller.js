@@ -24,12 +24,6 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
 
   isKerberosWizard: true,
 
-  kdcTypesValues: {
-    'mit-kdc'         : Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
-    'active-directory': Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
-    'none'            : Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
-  },
-
   selectedServiceNames: ['KERBEROS'],
 
   allSelectedServiceNames: ['KERBEROS'],
@@ -271,9 +265,9 @@ App.KerberosWizardStep2Controller = App.WizardStep7Controller.extend({
   },
 
   tweakKdcTypeValue: function (properties) {
-    for (var prop in this.get('kdcTypesValues')) {
-      if (this.get('kdcTypesValues').hasOwnProperty(prop)) {
-        if (this.get('kdcTypesValues')[prop] === properties['kdc_type']) {
+    for (var prop in App.router.get('mainAdminKerberosController.kdcTypesValues')) {
+      if (App.router.get('mainAdminKerberosController.kdcTypesValues').hasOwnProperty(prop)) {
+        if (App.router.get('mainAdminKerberosController.kdcTypesValues')[prop] === properties['kdc_type']) {
           properties['kdc_type'] = prop;
         }
       }

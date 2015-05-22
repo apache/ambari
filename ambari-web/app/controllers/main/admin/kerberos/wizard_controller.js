@@ -174,7 +174,7 @@ App.KerberosWizardController = App.WizardController.extend({
   },
 
   /**
-   * Overide the visibility of a list of form items with a new value
+   * Override the visibility of a list of form items with a new value
    *
    * @param {Array} itemsArray
    * @param newValue

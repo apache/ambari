@@ -409,6 +409,18 @@ App.MainServiceInfoConfigsController = Em.Controller.extend(App.ServerValidatorM
         var configsToSkip = self.get('advancedConfigs').filterProperty('filename', 'capacity-scheduler.xml').filterProperty('subSection');
         configs = App.config.fileConfigsIntoTextarea(configs, 'capacity-scheduler.xml', configsToSkip);
       }
+
+      if (self.get('content.serviceName') === 'KERBEROS') {
+        var kdc_type = configs.findProperty('name', 'kdc_type');
+        if (kdc_type.get('value') === 'none') {
+          configs.findProperty('name', 'kdc_host').set('isRequired', false).set('isVisible', false);
+          configs.findProperty('name', 'admin_server_host').set('isRequired', false).set('isVisible', false);
+          configs.findProperty('name', 'domains').set('isRequired', false).set('isVisible', false);
+        }
+
+        kdc_type.set('value', App.router.get('mainAdminKerberosController.kdcTypesValues')[kdc_type.get('value')]);
+      }
+
       self.set('allConfigs', configs);
       //add configs as names of host components
       self.addHostNamesToConfig();

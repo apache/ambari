@@ -26,6 +26,13 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   dataIsLoaded: false,
   isRecommendedLoaded: true,
   kdc_type: 'none',
+
+  kdcTypesValues: {
+    'mit-kdc'         : Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
+    'active-directory': Em.I18n.t('admin.kerberos.wizard.step1.option.ad'),
+    'none'            : Em.I18n.t('admin.kerberos.wizard.step1.option.manual')
+  },
+
   getAddSecurityWizardStatus: function () {
     return App.db.getSecurityWizardStatus();
   },
