@@ -166,7 +166,7 @@
       complete. Setting it larger means that more StoreFiles are included in a compaction. For most
       cases, the default value is appropriate.
     </description>
-    <display-name>Maximum Files in a Store before Compaction</display-name>
+    <display-name>Maximum Files for Compaction</display-name>
     <value-attributes>
       <type>int</type>
       <entries>

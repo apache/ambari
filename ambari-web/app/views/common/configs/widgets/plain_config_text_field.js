@@ -29,9 +29,18 @@ App.PlainConfigTextField = Ember.View.extend(App.SupportsDependentConfigs, {
   valueBinding: 'serviceConfig.value',
   classNames: ['widget-config-plain-text-field'],
   placeholderBinding: 'serviceConfig.savedValue',
+
   unit: function() {
     return Em.getWithDefault(this, 'serviceConfig.stackConfigProperty.valueAttributes.unit', false);
   }.property('serviceConfig.stackConfigProperty.valueAttributes.unit'),
+
+  displayUnit: function() {
+    var unit = this.get('unit');
+    if ('milliseconds' == unit) {
+      unit = 'ms';
+    }
+    return unit;
+  }.property('unit'),
 
   focusOut: function () {
     this.sendRequestRorDependentConfigs(this.get('serviceConfig'));

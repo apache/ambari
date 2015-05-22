@@ -166,7 +166,7 @@
     <description>
       The size of an individual memstore. Each column familiy within each region is allocated its own memstore.
     </description>
-    <display-name>Per-Column Family Memstore Flush Size</display-name>
+    <display-name>Memstore Flush Size</display-name>
     <value-attributes>
       <type>int</type>
       <minimum>33554432</minimum>
