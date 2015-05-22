@@ -75,7 +75,7 @@ App.QuickViewLinks = Em.View.extend({
   /**
    * list of files that contains properties for enabling/disabling ssl
    */
-  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults'],
+  requiredSiteNames: ['hadoop-env','yarn-env','hbase-env','oozie-env','mapred-env','storm-env', 'falcon-env', 'core-site', 'hdfs-site', 'hbase-site', 'oozie-site', 'yarn-site', 'mapred-site', 'storm-site', 'spark-defaults', 'accumulo-site'],
   /**
    * Get public host name by its host name.
    *
@@ -283,7 +283,7 @@ App.QuickViewLinks = Em.View.extend({
 
   /**
    * services that supports security. this array is used to find out protocol.
-   * becides GANGLIA, YARN, MAPREDUCE2. These properties use
+   * becides GANGLIA, YARN, MAPREDUCE2, ACCUMULO. These services use
    * their properties to know protocol
    */
   servicesSupportsHttps: ["HDFS", "HBASE"],
@@ -328,6 +328,17 @@ App.QuickViewLinks = Em.View.extend({
           }
         }
         return hadoopSslEnabled ? "https" : "http";
+        break;
+      case "ACCUMULO":
+        var accumuloProperties = configProperties && configProperties.findProperty('type', 'accumulo-site');
+        if (accumuloProperties && accumuloProperties.properties) {
+          if (accumuloProperties.properties['monitor.ssl.keyStore'] && accumuloProperties.properties['monitor.ssl.trustStore']) {
+            return "https";
+          } else {
+            return "http";
+          }
+        }
+        return "http";
         break;
       default:
         return this.get('servicesSupportsHttps').contains(service_id) && hadoopSslEnabled ? "https" : "http";
@@ -374,6 +385,7 @@ App.QuickViewLinks = Em.View.extend({
       case "storm":
       case "spark":
       case "falcon":
+      case "accumulo":
         return "_blank";
         break;
       default:

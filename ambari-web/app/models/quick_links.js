@@ -319,8 +319,10 @@ App.QuickLinks.FIXTURES = [
     service_id: 'ACCUMULO',
     template:'%@://%@:%@/',
     http_config: 'monitor.port.client',
+    https_config: 'monitor.port.client',
     site: 'accumulo-site',
     regex: '^(\\d+)$',
-    default_http_port: 50095
+    default_http_port: 50095,
+    default_https_port: 50095
   }
 ];
