@@ -30,13 +30,17 @@ angular.module('ambariAdminConsole')
     Auth.signout();
   };
 
+  $scope.ambariVersion = null;
+
   $scope.about = function() {
+   var ambariVersion = $scope.ambariVersion;
   	var modalInstance = $modal.open({
   		templateUrl:'views/modals/AboutModal.html',
   		controller: ['$scope', function($scope) {
   			$scope.ok = function() {
   				modalInstance.close();
   			};
+        $scope.ambariVersion = ambariVersion;
   		}]
   	});
   };
@@ -45,6 +49,12 @@ angular.module('ambariAdminConsole')
 
   $scope.cluster = null;
   $scope.isLoaded = null;
+
+  function loadAmbariVersion() {
+    Cluster.getAmbariVersion().then(function(version){
+      $scope.ambariVersion = version;
+    });
+  }
 
   function loadClusterData(){
     Cluster.getStatus().then(function(cluster) {
@@ -58,6 +68,7 @@ angular.module('ambariAdminConsole')
     });
   }
   loadClusterData();
+  loadAmbariVersion();
 
   $scope.viewInstances = [];
   View.getAllVisibleInstance().then(function(instances) {

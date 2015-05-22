@@ -47,6 +47,19 @@ angular.module('ambariAdminConsole')
 
       return deferred.promise;
     },
+    getAmbariVersion: function() {
+      var deferred = $q.defer();
+
+      $http.get(Settings.baseUrl + '/services/AMBARI/components/AMBARI_SERVER?fields=RootServiceComponents/component_version,RootServiceComponents/properties/server.os_family&minimal_response=true', {mock: '2.1'})
+      .then(function(data) {
+        deferred.resolve(data.data.RootServiceComponents.component_version);
+      })
+      .catch(function(data) {
+        deferred.reject(data);
+      });
+
+      return deferred.promise;
+    },
     getPermissions: function() {
       var deferred = $q.defer();
 
