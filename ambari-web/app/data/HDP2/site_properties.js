@@ -454,15 +454,39 @@ var hdp2properties = [
   },
   {
     "id": "site property",
+    "name": "hive.metastore.heapsize",  // the default value is overwritten in code
+    "displayName": "Hive Metastore heapsize",
+    "isOverridable": false,
+    "category": "HIVE_METASTORE",
+    "serviceName": "HIVE",
+    "filename": "hive-env.xml",
+    "displayType": "int",
+    "unit": "MB",
+    "index": 11
+  },
+  {
+    "id": "site property",
     "name": "hive.heapsize",
-    "displayName": "Hive heap size",
+    "displayName": "HiveServer2 heap size",
     "displayType": "int",
     "unit": "MB",
     "isOverridable": false,
     "serviceName": "HIVE",
     "filename": "hive-site.xml",
-    "category": "General",
+    "category": "HIVE_SERVER2",
     "index": 9
+  },
+  {
+    "id": "site property",
+    "name": "hive.client.heapsize",
+    "displayName": "Hive Client heapsize",
+    "isOverridable": false,
+    "category": "HIVE_CLIENT",
+    "serviceName": "HIVE",
+    "filename": "hive-env.xml",
+    "displayType": "int",
+    "unit": "MB",
+    "index": 10
   },
   {
     "id": "site property",
