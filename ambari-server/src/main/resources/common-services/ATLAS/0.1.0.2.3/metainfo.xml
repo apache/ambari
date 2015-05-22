@@ -55,7 +55,7 @@
           <osFamily>any</osFamily>
           <packages>
             <package>
-              <name>atlas-metadata</name>
+              <name>atlas</name>
             </package>
           </packages>
         </osSpecific>

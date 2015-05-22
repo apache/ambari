@@ -27,7 +27,7 @@
           <osFamily>redhat7,redhat6,suse11</osFamily>
           <packages>
             <package>
-              <name>atlas-metadata_2_3_*</name>
+              <name>atlas_2_3_*</name>
             </package>
           </packages>
         </osSpecific>
@@ -35,7 +35,7 @@
           <osFamily>debian7,ubuntu12,ubuntu14</osFamily>
           <packages>
             <package>
-              <name>atlas-metadata-2-3-.*</name>
+              <name>atlas-2-3-.*</name>
             </package>
           </packages>
         </osSpecific>
