@@ -531,7 +531,7 @@ describe('App.MainHostDetailsController', function () {
     });
 
     it('should display add component confirmation', function () {
-      var popup = controller.showAddComponentPopup(message, function () {
+      var popup = controller.showAddComponentPopup(message, false, function () {
         controller.primary(component);
       });
       expect(App.ModalPopup.show.calledOnce).to.be.true;
@@ -2191,6 +2191,7 @@ describe('App.MainHostDetailsController', function () {
             c1: [],
             c2: []
           },
+          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
           getKDCSessionStateCalled: true,
           sendComponentCommandCalled: true,
           showAlertPopupCalled: false,
@@ -2206,6 +2207,7 @@ describe('App.MainHostDetailsController', function () {
           dependencies: {
             c3: []
           },
+          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
           getKDCSessionStateCalled: true,
           sendComponentCommandCalled: false,
           showAlertPopupCalled: false,
@@ -2221,6 +2223,7 @@ describe('App.MainHostDetailsController', function () {
           dependencies: {
             c4: ['c5']
           },
+          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
           getKDCSessionStateCalled: false,
           sendComponentCommandCalled: false,
           showAlertPopupCalled: true,
@@ -2241,6 +2244,7 @@ describe('App.MainHostDetailsController', function () {
             c5: ['c6'],
             c6: ['c5']
           },
+          getSecurityTypeCalled: null, //should have same value as getKDCSessionStateCalled, always
           getKDCSessionStateCalled: true,
           sendComponentCommandCalled: false,
           showAlertPopupCalled: false,
@@ -2255,6 +2259,9 @@ describe('App.MainHostDetailsController', function () {
       sinon.stub(App.get('router.mainAdminKerberosController'), 'getKDCSessionState', function (arg) {
         return arg();
       });
+      sinon.stub(App.get('router.mainAdminKerberosController'), 'getSecurityType', function (arg) {
+        return arg();
+      });
       sinon.stub(App, 'showAlertPopup', Em.K);
       sinon.stub(App.StackServiceComponent, 'find', function (componentName) {
         return Em.Object.create({
@@ -2267,6 +2274,7 @@ describe('App.MainHostDetailsController', function () {
       controller.sendComponentCommand.restore();
       controller.showAddComponentPopup.restore();
       App.get('router.mainAdminKerberosController').getKDCSessionState.restore();
+      App.get('router.mainAdminKerberosController').getSecurityType.restore();
       App.showAlertPopup.restore();
       App.StackServiceComponent.find.restore();
       componentsUtils.checkComponentDependencies.restore();
@@ -2280,6 +2288,7 @@ describe('App.MainHostDetailsController', function () {
         controller.installClients({
           context: item.context
         });
+        expect(App.get('router.mainAdminKerberosController').getSecurityType.calledOnce).to.equal(item.getKDCSessionStateCalled);
         expect(App.get('router.mainAdminKerberosController').getKDCSessionState.calledOnce).to.equal(item.getKDCSessionStateCalled);
         expect(controller.sendComponentCommand.calledOnce).to.equal(item.sendComponentCommandCalled);
         expect(App.showAlertPopup.calledOnce).to.equal(item.showAlertPopupCalled);

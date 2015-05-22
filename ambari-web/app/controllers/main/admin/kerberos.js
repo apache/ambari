@@ -25,7 +25,7 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
   securityEnabled: false,
   dataIsLoaded: false,
   isRecommendedLoaded: true,
-  kdc_type: 'none',
+  kdc_type: '',
 
   kdcTypesValues: {
     'mit-kdc'         : Em.I18n.t('admin.kerberos.wizard.step1.option.kdc'),
@@ -374,13 +374,14 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
     }
   },
 
-  getSecurityType: function () {
+  getSecurityType: function (callback) {
     if (this.get('securityEnabled')) {
       App.ajax.send({
         name: 'admin.security.cluster_configs.kerberos',
         sender: this,
         data: {
-          clustName: 'c1'
+          clusterName: App.get('clusterName'),
+          additionalCallback: callback
         },
         success: 'getSecurityTypeSuccess'
       })
@@ -389,6 +390,10 @@ App.MainAdminKerberosController = App.KerberosWizardStep4Controller.extend({
 
   getSecurityTypeSuccess: function (data, opt, params) {
     this.set('kdc_type', data.items && Em.get(data.items[0], 'properties.kdc_type') ? Em.get(data.items[0], 'properties.kdc_type') : 'none' );
+
+    if (Em.typeOf(params.additionalCallback) === 'function') {
+      params.additionalCallback();
+    }
   },
 
   isManualKerberos: function () {

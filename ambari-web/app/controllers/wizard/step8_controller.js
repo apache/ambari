@@ -69,6 +69,14 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   configs: [],
 
   /**
+   * True if Kerberos is installed on the cluster and the kdc_type on the server is set to "none"
+   * @type {Boolean}
+   */
+  isManualKerberos: function () {
+    return App.get('router.mainAdminKerberosController.kdc_type') === 'none';
+  }.property('App.router.mainAdminKerberosController.kdc_type'),
+
+  /**
    * All configs
    * @type {Array}
    */
@@ -126,6 +134,12 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
   securityEnabled: function () {
     return App.router.get('mainAdminKerberosController.securityEnabled');
   }.property('App.router.mainAdminKerberosController.securityEnabled'),
+
+  getSecurityType: function () {
+    if (this.get('securityEnabled')) {
+      App.router.mainAdminKerberosController.getSecurityType();
+    }
+  },
 
   /**
    * Selected config group
@@ -221,6 +235,7 @@ App.WizardStep8Controller = Em.Controller.extend(App.AddSecurityConfigs, App.wiz
     this.loadServices();
     this.set('isSubmitDisabled', false);
     this.set('isBackBtnDisabled', false);
+    this.getSecurityType();
   },
 
   /**

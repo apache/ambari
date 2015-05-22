@@ -454,7 +454,9 @@ App.MainHostDetailsController = Em.Controller.extend({
   addComponentWithCheck: function (event) {
     var componentName = event.context ? event.context.get('componentName') : "";
     event.hiveMetastoreHost = (componentName == "HIVE_METASTORE" && !!this.get('content.hostName')) ? this.get('content.hostName') : null;
-    App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
+    App.get('router.mainAdminKerberosController').getSecurityType(function (event) {
+      App.get('router.mainAdminKerberosController').getKDCSessionState(this.addComponent.bind(this, event));
+    }.bind(this, event));
   },
   /**
    * Send command to server to install selected host component
@@ -471,7 +473,10 @@ App.MainHostDetailsController = Em.Controller.extend({
       missedComponents = event.selectedHost ? [] : componentsUtils.checkComponentDependencies(componentName, {
         scope: 'host',
         installedComponents: this.get('content.hostComponents').mapProperty('componentName')
-      });
+      }),
+      isManualKerberos = App.get('router.mainAdminKerberosController.isManualKerberos'),
+      manualKerberosWarning = isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '';
+
     if (!!missedComponents.length) {
       var popupMessage = Em.I18n.t('host.host.addComponent.popup.dependedComponents.body').format(component.get('displayName'),
         stringUtils.getFormattedStringFromArray(missedComponents.map(function(cName) {
@@ -484,28 +489,28 @@ App.MainHostDetailsController = Em.Controller.extend({
       case 'ZOOKEEPER_SERVER':
         returnFunc = App.showConfirmationPopup(function () {
           self.primary(component);
-        }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'HIVE_METASTORE':
         returnFunc = App.showConfirmationPopup(function () {
           self.set('hiveMetastoreHost', hostName);
           self.loadConfigs("loadHiveConfigs");
-        }, Em.I18n.t('hosts.host.addComponent.' + componentName ));
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'NIMBUS':
         returnFunc = App.showConfirmationPopup(function() {
             self.set('nimbusHost', hostName);
             self.loadConfigs("loadStormConfigs");
-        }, Em.I18n.t('hosts.host.addComponent.' + componentName));
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       case 'RANGER_KMS_SERVER':
         returnFunc = App.showConfirmationPopup(function() {
           self.set('rangerKMSServerHost', hostName);
           self.loadConfigs("loadRangerConfigs");
-        }, Em.I18n.t('hosts.host.addComponent.' + componentName));
+        }, Em.I18n.t('hosts.host.addComponent.' + componentName) + manualKerberosWarning);
         break;
       default:
-        returnFunc = this.addClientComponent(component);
+        returnFunc = this.addClientComponent(component, isManualKerberos);
       }
     return returnFunc;
   },
@@ -513,21 +518,28 @@ App.MainHostDetailsController = Em.Controller.extend({
    * Send command to server to install client on selected host
    * @param component
    */
-  addClientComponent: function (component) {
+  addClientComponent: function (component, isManualKerberos) {
     var self = this;
     var message = this.formatClientsMessage(component);
-    return this.showAddComponentPopup(message, function () {
+
+    return this.showAddComponentPopup(message, isManualKerberos, function () {
       self.primary(component);
     });
   },
 
-  showAddComponentPopup: function (message, primary) {
+  showAddComponentPopup: function (message, isManualKerberos, primary) {
+    isManualKerberos = isManualKerberos || false;
+
     return App.ModalPopup.show({
       primary: Em.I18n.t('hosts.host.addComponent.popup.confirm'),
       header: Em.I18n.t('popup.confirmation.commonHeader'),
 
       addComponentMsg: function () {
         return Em.I18n.t('hosts.host.addComponent.msg').format(message);
+      }.property(),
+
+      manualKerberosWarning: function () {
+        return isManualKerberos ? Em.I18n.t('hosts.host.manualKerberosWarning') : '';
       }.property(),
 
       bodyClass: Em.View.extend({
@@ -2156,24 +2168,27 @@ App.MainHostDetailsController = Em.Controller.extend({
         })));
       App.showAlertPopup(Em.I18n.t('host.host.addComponent.popup.dependedComponents.header'), popupMessage);
     } else {
-      App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
-        var sendInstallCommand = function () {
-          if (clientsToInstall.length) {
-            self.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
-          }
-        };
-        if (clientsToAdd.length) {
-          var message = stringUtils.getFormattedStringFromArray(clientsToAdd.mapProperty('displayName'));
-          self.showAddComponentPopup(message, function () {
+      App.get('router.mainAdminKerberosController').getSecurityType(function () {
+        App.get('router.mainAdminKerberosController').getKDCSessionState(function () {
+          var sendInstallCommand = function () {
+            if (clientsToInstall.length) {
+              self.sendComponentCommand(clientsToInstall, Em.I18n.t('host.host.details.installClients'), 'INSTALLED');
+            }
+          };
+          if (clientsToAdd.length) {
+            var message = stringUtils.getFormattedStringFromArray(clientsToAdd.mapProperty('displayName'));
+            var isManualKerberos = App.get('router.mainAdminKerberosController.isManualKerberos');
+            self.showAddComponentPopup(message, isManualKerberos, function () {
+              sendInstallCommand();
+              clientsToAdd.forEach(function (component) {
+                this.primary(component);
+              }, self);
+            });
+          } else {
             sendInstallCommand();
-            clientsToAdd.forEach(function (component) {
-              this.primary(component);
-            }, self);
-          });
-        } else {
-          sendInstallCommand();
-        }
-      });
+          }
+        });
+      }.bind(this));
     }
   },
 
