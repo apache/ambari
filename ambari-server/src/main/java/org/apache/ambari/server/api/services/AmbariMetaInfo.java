@@ -887,7 +887,7 @@ public class AmbariMetaInfo {
       Map<String, Map<String, List<MetricDefinition>>> metricMap) {
 
     if (!metricMap.isEmpty()) {
-      // For every Component
+        // For every Component
       for (Map<String, List<MetricDefinition>> componentMetricDef :  metricMap.values()) {
         // For every Component / HostComponent category
         for (Map.Entry<String, List<MetricDefinition>> metricDefEntry : componentMetricDef.entrySet()) {
@@ -895,26 +895,31 @@ public class AmbariMetaInfo {
           if (metricDefEntry.getKey().equals(Component.name())) {
             //For every metric definition
             for (MetricDefinition metricDefinition : metricDefEntry.getValue()) {
-              Map<String, Metric> newMetrics = new HashMap<String, Metric>();
               // Metrics System metrics only
               if (metricDefinition.getType().equals("ganglia")) {
-                // For every function id
-                for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
-                  for (Map.Entry<String, Metric> metricEntry : metricDefinition.getMetrics().entrySet()) {
-                    String newMetricKey = metricEntry.getKey() + identifierToAdd;
-                    Metric currentMetric = metricEntry.getValue();
-                    Metric newMetric = new Metric(
-                      currentMetric.getName() + identifierToAdd,
-                      currentMetric.isPointInTime(),
-                      currentMetric.isTemporal(),
-                      currentMetric.isAmsHostMetric(),
-                      currentMetric.getUnit()
-                    );
-                    newMetrics.put(newMetricKey, newMetric);
+                // Create a new map for each category
+                for (Map<String, Metric> metricByCategory : metricDefinition.getMetricsByCategory().values()) {
+                  Map<String, Metric> newMetrics = new HashMap<String, Metric>();
+
+                  // For every function id
+                  for (String identifierToAdd : AGGREGATE_FUNCTION_IDENTIFIERS) {
+
+                    for (Map.Entry<String, Metric> metricEntry : metricByCategory.entrySet()) {
+                      String newMetricKey = metricEntry.getKey() + identifierToAdd;
+                      Metric currentMetric = metricEntry.getValue();
+                      Metric newMetric = new Metric(
+                        currentMetric.getName() + identifierToAdd,
+                        currentMetric.isPointInTime(),
+                        currentMetric.isTemporal(),
+                        currentMetric.isAmsHostMetric(),
+                        currentMetric.getUnit()
+                      );
+                      newMetrics.put(newMetricKey, newMetric);
+                    }
                   }
+                  metricByCategory.putAll(newMetrics);
                 }
               }
-              metricDefinition.getMetrics().putAll(newMetrics);
             }
           }
         }
