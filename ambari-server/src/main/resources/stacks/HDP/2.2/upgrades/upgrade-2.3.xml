@@ -456,10 +456,28 @@
             <type>yarn-site</type>
             <set key="yarn.node-labels.enabled" value="false"/>
           </task>
+
           <task xsi:type="configure">
             <type>capacity-scheduler</type>
             <set key="yarn.scheduler.capacity.root.default-node-label-expression" value=""/>
           </task>
+
+          <task xsi:type="configure" summary="Checking the Capacity Scheduler root default capacity">
+            <condition type="capacity-scheduler" key="yarn.scheduler.capacity.root.accessible-node-labels.default.capacity" value="-1">
+              <type>capacity-scheduler</type>
+              <key>yarn.scheduler.capacity.root.accessible-node-labels.default.capacity</key>
+              <value>10</value>
+            </condition>
+          </task>
+
+          <task xsi:type="configure" summary="Checking the Capacity Scheduler root maximum capacity">
+            <condition type="capacity-scheduler" key="yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity" value="-1">
+              <type>capacity-scheduler</type>
+              <key>yarn.scheduler.capacity.root.accessible-node-labels.default.maximum-capacity</key>
+              <value>100</value>
+            </condition>
+          </task>
+
         </pre-upgrade>
         <upgrade>
           <task xsi:type="restart" />
